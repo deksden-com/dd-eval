@@ -232,9 +232,37 @@ Exact case boundaries may change while authoring the canonical implementation,
 but a published checkpoint never moves. Use annotated Git tags pointing to an
 accepted commit.
 
+## Initial smoke evaluation
+
+The command-line executable is named `dd-eval`. `dd-deval` is not an alias and
+must not appear in manifests, documentation, reports, or automation.
+
+The first bounded end-to-end run uses Codex CLI with `gpt-5.6-luna` and maximum
+reasoning. Its purpose is to validate the evaluation procedure rather than to
+compare models. The smoke case is a small vertical task-priority feature that
+exercises SPECIFY gap handling, PLAN, PostgreSQL/API/UI implementation,
+deterministic verification, readiness, merge, and result collection without the
+duration of a full checkpoint-03 implementation.
+
+The first CLI increment implements only the contract needed by that run:
+
+```text
+dd-eval prepare --case <case-id> --output <path>
+```
+
+`prepare` resolves an exact source commit, exports tracked files without source
+history or remotes, applies only the public track-specific input, initializes a
+new repository with one deterministic `eval-input` commit, and writes the run
+manifest outside the evaluated repository. It rejects hidden eval materials,
+secrets, `.tasks`, an ambiguous source ref, and a non-reproducible output tree.
+The same case and track must produce the same input tree for every harness/model
+profile. Collection, verification, reporting, harness automation, and deploy
+commands are added only after this manual smoke run proves their actual
+interface.
+
 ## Materialized run repositories
 
-The future `dd-eval` CLI exports the tree from an exact `dd-tasks` commit into a
+The `dd-eval` CLI exports the tree from an exact `dd-tasks` commit into a
 new repository. It does not give the agent the canonical repository's history,
 remote, later refs, evaluation cases, rubrics, clarification answers, or
 reference result.
@@ -243,7 +271,36 @@ A run repository starts with one `eval-input` commit. The agent's final state is
 tagged or committed as `eval-output`. The run manifest retained here binds both
 states to the case, profile, prompts, and verification evidence.
 
-The first CLI only needs to validate a case, materialize a clean repository,
-collect the result, run deterministic checks, and produce a report. Automatic
-harness execution and Exe.dev lifecycle management can be added after one full
-manual evaluation proves the required interface.
+After the smoke run, the next CLI increment validates a case, collects the
+result, runs deterministic checks, and produces a report. Automatic harness
+execution and Exe.dev lifecycle management are added only after one full manual
+evaluation proves the required interface.
+
+## Exe.dev checkpoint previews
+
+Canonical checkpoint previews use one isolated Exe.dev VM per accepted source
+snapshot. The initial target is a private `checkpoint-02-core` preview; it is a
+review environment, not a production claim. Its manifest binds the VM name,
+source commit, Memory Bank/flow revision, deployment time, URL, and verification
+evidence.
+
+One Docker Compose contour on the VM owns:
+
+- PostgreSQL on an internal network with a persistent named volume;
+- the Hono API, reachable only from the web proxy/container network;
+- the production React build served through a small reverse proxy on port
+  `8000`, with `/api` routed to Hono;
+- health and deterministic seed/reset commands for preview verification.
+
+Exe.dev terminates HTTPS and proxies the VM hostname to port `8000`. Access stays
+private by default; public sharing requires a separate explicit decision. No
+cron, polling, analytics, worker, or other idle background workload is added.
+The preview is rebuilt from its exact source commit rather than patched by hand.
+
+For later visual comparison, accepted eval outputs may receive separate
+short-lived VMs or copies of a prepared VM. Do not create a VM for every failed
+or incomplete run: deterministic checks happen first, and deploy is reserved for
+results worth inspecting. Current Exe.dev public CLI documentation exposes VM
+creation, copy, restart, and deletion, but no stable stop command. Until the
+account-specific lifecycle is verified, `dd-eval` must treat delete-and-recreate
+as the dependable zero-runtime lifecycle and must not claim pause/resume support.
