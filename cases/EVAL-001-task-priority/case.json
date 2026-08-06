@@ -26,5 +26,15 @@
     "source_remotes": "excluded",
     "initial_branch": "main",
     "initial_commit_message": "eval-input"
+  },
+  "results": {
+    "planning": [
+      {
+        "id": "2026-08-06-codex-desktop-luna-max-planning",
+        "status": "reviewed_procedure_smoke",
+        "result": "results/2026-08-06-codex-desktop-luna-max-planning/result.json",
+        "analysis": "results/2026-08-06-codex-desktop-luna-max-planning/analysis.md"
+      }
+    ]
   }
 }

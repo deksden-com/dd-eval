@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "id": "2026-08-06-codex-desktop-luna-max-planning",
+  "case_id": "EVAL-001-task-priority",
+  "track": "planning",
+  "status": "reviewed_procedure_smoke",
+  "reviewed_at": "2026-08-06",
+  "validity": {
+    "verdict": "procedure_smoke_only",
+    "comparable_as_configured_profile": false,
+    "reason": "The materialized profile declares codex-cli, while the observed session originator is Codex Desktop with source=vscode and thread_source=subagent. Keep the quality score, but do not compare it as a codex-cli harness result."
+  },
+  "configured_profile": {
+    "id": "codex-gpt-5-6-luna-max",
+    "harness": "codex-cli",
+    "model": "gpt-5.6-luna",
+    "reasoning": "max"
+  },
+  "observed_runtime": {
+    "originator": "Codex Desktop",
+    "source": "vscode",
+    "thread_source": "subagent",
+    "model_provider": "openai",
+    "model": "gpt-5.6-luna",
+    "reasoning": "max",
+    "cli_version": "0.147.0-alpha.1.2",
+    "approval_policy": "never",
+    "sandbox_policy": "danger-full-access"
+  },
+  "source": {
+    "checkpoint_id": "cp-002",
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "checkpoint-03-preview-access-policy",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "tree": "0be2bf5196215c9152510d1652254d7ed49bb698",
+    "input_commit": "02d2fe7f74be1b2a66a0c37d6bdc0659d6d20929",
+    "input_branch": "main",
+    "input_remotes": []
+  },
+  "session": {
+    "task_id": "019fd671-5250-7db0-a148-1a1bb5e36cad",
+    "jsonl_basename": "rollout-2026-08-06T11-39-38-019fd671-5250-7db0-a148-1a1bb5e36cad.jsonl",
+    "jsonl_sha256": "fbf76a99caa480c8086d9b029d8166ee3cd599f03ab64d02ff6ad59ee604afc0",
+    "started_at": "2026-08-06T09:39:40.637Z",
+    "completed_at": "2026-08-06T13:13:46.155Z",
+    "wall_seconds": 12845.518,
+    "turns": 4,
+    "context_compactions": 3
+  },
+  "flow_result": {
+    "protocol_id": "PRT-007-task-priority",
+    "run_id": "RUN-007-prt-007-task-priority-specify",
+    "verdict": "ready_for_code",
+    "stopped_before_code": true,
+    "runtime_cli_degraded": true,
+    "runtime_cli_reason": "dd-flow executable unavailable",
+    "source_code_changed": false,
+    "commit_or_push_performed": false
+  },
+  "score": {
+    "total": 83,
+    "maximum": 100,
+    "sections": {
+      "flow_and_rules": {
+        "score": 19,
+        "maximum": 20,
+        "defect": "Official dd-flow runtime registration/schema validation was unavailable; the agent correctly used an explicit file-only degraded contour."
+      },
+      "gap_discovery": {
+        "score": 14,
+        "maximum": 25,
+        "defect": "Initial gaps did not separately surface create-versus-patch omission, invalid/no-mutation behavior, all API representations, exact fixtures, or the full tests/docs acceptance boundary."
+      },
+      "question_quality": {
+        "score": 12,
+        "maximum": 15,
+        "defect": "The three questions were compact problem-space questions with impact and recommendations, but the set was incomplete."
+      },
+      "specification": {
+        "score": 19,
+        "maximum": 20,
+        "defect": "After the common clarification packet the specification was coherent and traceable; historical recommendations differ from accepted answers but remain clearly marked as provenance."
+      },
+      "plan": {
+        "score": 19,
+        "maximum": 20,
+        "defect": "Semantic coverage is strong, but the evidence/reviewer contour is disproportionately expensive for this smoke feature."
+      }
+    }
+  },
+  "timing": {
+    "specify_to_waiting_for_user_seconds": 2269.506,
+    "clarification_to_ready_for_code_seconds": 10527.927,
+    "phases": [
+      {
+        "name": "input_and_priming",
+        "started_at": "2026-08-06T09:39:40.637Z",
+        "completed_at": "2026-08-06T09:43:21.108Z",
+        "wall_seconds": 220.471,
+        "explicit_wait_seconds": 22,
+        "exec_tool_seconds": 87,
+        "main_session_token_delta": 575428
+      },
+      {
+        "name": "protocol_rules_and_bootstrap",
+        "started_at": "2026-08-06T09:43:21.108Z",
+        "completed_at": "2026-08-06T09:54:37.911Z",
+        "wall_seconds": 676.803,
+        "explicit_wait_seconds": 116,
+        "exec_tool_seconds": 198,
+        "main_session_token_delta": 5185183
+      },
+      {
+        "name": "bounded_project_discovery",
+        "started_at": "2026-08-06T09:54:37.911Z",
+        "completed_at": "2026-08-06T10:00:32.795Z",
+        "wall_seconds": 354.884,
+        "explicit_wait_seconds": 27,
+        "exec_tool_seconds": 144,
+        "main_session_token_delta": 5083040
+      },
+      {
+        "name": "specify_artifacts_and_knowledge_extraction",
+        "started_at": "2026-08-06T10:00:32.795Z",
+        "completed_at": "2026-08-06T10:17:30.143Z",
+        "wall_seconds": 1017.348,
+        "explicit_wait_seconds": 118,
+        "exec_tool_seconds": 87,
+        "main_session_token_delta": 4212373
+      },
+      {
+        "name": "waiting_gate_and_clarification_arrival",
+        "started_at": "2026-08-06T10:17:30.143Z",
+        "completed_at": "2026-08-06T10:18:18.228Z",
+        "wall_seconds": 48.085,
+        "explicit_wait_seconds": 0,
+        "exec_tool_seconds": 0,
+        "main_session_token_delta": 398197
+      },
+      {
+        "name": "clarification_materialization_and_specify_closure",
+        "started_at": "2026-08-06T10:18:18.228Z",
+        "completed_at": "2026-08-06T10:33:15.079Z",
+        "wall_seconds": 896.851,
+        "explicit_wait_seconds": 0,
+        "exec_tool_seconds": 94,
+        "main_session_token_delta": 9971635
+      },
+      {
+        "name": "plan_skeleton_and_aspect_graph",
+        "started_at": "2026-08-06T10:33:15.079Z",
+        "completed_at": "2026-08-06T10:42:40.437Z",
+        "wall_seconds": 565.358,
+        "explicit_wait_seconds": 0,
+        "exec_tool_seconds": 91,
+        "main_session_token_delta": 2287126
+      },
+      {
+        "name": "goal_traceability_review_and_recovery",
+        "started_at": "2026-08-06T10:42:40.437Z",
+        "completed_at": "2026-08-06T10:59:08.662Z",
+        "wall_seconds": 988.225,
+        "explicit_wait_seconds": 303,
+        "exec_tool_seconds": 136,
+        "main_session_token_delta": 7455270
+      },
+      {
+        "name": "review_wave_1",
+        "started_at": "2026-08-06T10:59:08.662Z",
+        "completed_at": "2026-08-06T11:14:33.780Z",
+        "wall_seconds": 925.118,
+        "explicit_wait_seconds": 191,
+        "exec_tool_seconds": 244,
+        "main_session_token_delta": 9303316
+      },
+      {
+        "name": "review_wave_2",
+        "started_at": "2026-08-06T11:14:33.780Z",
+        "completed_at": "2026-08-06T12:11:08.335Z",
+        "wall_seconds": 3394.555,
+        "explicit_wait_seconds": 407,
+        "exec_tool_seconds": 894,
+        "main_session_token_delta": 20265645
+      },
+      {
+        "name": "review_wave_3_and_recovery",
+        "started_at": "2026-08-06T12:11:08.335Z",
+        "completed_at": "2026-08-06T12:34:49.308Z",
+        "wall_seconds": 1420.973,
+        "explicit_wait_seconds": 859,
+        "exec_tool_seconds": 210,
+        "main_session_token_delta": 10170267
+      },
+      {
+        "name": "review_wave_4",
+        "started_at": "2026-08-06T12:34:49.308Z",
+        "completed_at": "2026-08-06T12:47:25.913Z",
+        "wall_seconds": 756.605,
+        "explicit_wait_seconds": 545,
+        "exec_tool_seconds": 59,
+        "main_session_token_delta": 5140302
+      },
+      {
+        "name": "review_wave_5_and_final_synthesis",
+        "started_at": "2026-08-06T12:47:25.913Z",
+        "completed_at": "2026-08-06T13:11:50.566Z",
+        "wall_seconds": 1464.653,
+        "explicit_wait_seconds": 425,
+        "exec_tool_seconds": 260,
+        "main_session_token_delta": 14901689
+      },
+      {
+        "name": "final_audit_and_goal_close",
+        "started_at": "2026-08-06T13:11:50.566Z",
+        "completed_at": "2026-08-06T13:13:46.155Z",
+        "wall_seconds": 115.589,
+        "explicit_wait_seconds": 0,
+        "exec_tool_seconds": 20,
+        "main_session_token_delta": 2049416
+      }
+    ]
+  },
+  "tooling": {
+    "custom_exec_calls": 508,
+    "custom_exec_seconds": 2524,
+    "explicit_wait_calls": 166,
+    "explicit_wait_seconds": 3013,
+    "wait_calls_at_least_20_seconds": 79,
+    "patch_events": 108,
+    "spawn_attempts": 19,
+    "capacity_probe_attempts": 3,
+    "note": "Tool and wait durations are not pure waste: reviewer sessions ran in the background during part of this time."
+  },
+  "token_usage": {
+    "main_session": {
+      "input_tokens": 96745907,
+      "cached_input_tokens": 95249920,
+      "uncached_input_tokens": 1495987,
+      "output_tokens": 252980,
+      "reasoning_output_tokens": 53615,
+      "total_tokens": 96998887
+    },
+    "main_and_child_sessions": {
+      "input_tokens": 134319243,
+      "cached_input_tokens": 130497024,
+      "uncached_input_tokens": 3822219,
+      "output_tokens": 643454,
+      "reasoning_output_tokens": 255413,
+      "total_tokens": 134962697
+    },
+    "interpretation": "These counters sum repeated request context; they are not unique source-text size. Reasoning output is included in output/total accounting."
+  },
+  "reviewer_orchestration": {
+    "catalog_aspects": 24,
+    "applicable_aspects": 17,
+    "not_applicable_aspects": 7,
+    "focused_aspect_reports": 15,
+    "self_checks": 2,
+    "child_sessions_observed": 21,
+    "child_sessions_with_task_complete": 17,
+    "child_sessions_without_task_complete": 4,
+    "duplicate_sessions": [
+      "coding_standards_design_review",
+      "contract_propagation_design"
+    ],
+    "duplicate_retry_token_cost": 5048618,
+    "packet_read_entries": 220,
+    "packet_unique_read_paths": 72,
+    "packet_bytes": 44080
+  },
+  "artifacts": {
+    "gap_analysis": {
+      "path": ".tasks/dd-flow-runs/RUN-007-prt-007-task-priority-specify/00-context-discovery/gaps.md",
+      "sha256": "a4888eac2f82e71ef15dad296bc2283afa994623380f7823ea94c9612aaee53c"
+    },
+    "specification": {
+      "path": ".tasks/dd-flow-runs/RUN-007-prt-007-task-priority-specify/01-specify/specification.json",
+      "sha256": "5266375d8d48e689611e4a42c7bd96acd2c5ffceada89f4887ea64c2ae87ba9b"
+    },
+    "plan": {
+      "path": ".tasks/dd-flow-runs/RUN-007-prt-007-task-priority-specify/02-plan/plan.json",
+      "sha256": "6adac1132e2fc18a0a14aeb32a4267cf388c4eb45b532001b9fcd48e226bde36"
+    },
+    "stage_report": {
+      "path": ".tasks/dd-flow-runs/RUN-007-prt-007-task-priority-specify/02-plan/stage-report.json",
+      "sha256": "2121dba1e5db4fb4246b69ae92a076cbabbcf57ec04784cfbf15183cfe5752ca"
+    },
+    "tracked_git_diff_sha256": "90eabfb461f1a99bb68bc62747cf413c12a421d71de2cd6d7cfc5a729cbe3c19"
+  },
+  "blocking_omissions": [],
+  "non_blocking_improvements": [
+    "Use an observed Codex Desktop profile or actually run codex-cli before cross-harness comparison.",
+    "Install a compatible dd-flow CLI so runtime registration and stage-report generation are not reconstructed manually.",
+    "Queue reviewer launches to the known pool size and make partial batch-spawn results return allocated session ids.",
+    "Give every retry a unique attempt report path; never let duplicate sessions write the same canonical report concurrently.",
+    "Collect JSONL timing/token/retry metrics automatically in a later dd-eval collect command."
+  ]
+}
