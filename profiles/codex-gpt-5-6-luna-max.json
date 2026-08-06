@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "id": "codex-gpt-5-6-luna-max",
+  "harness": "codex-cli",
+  "model": "gpt-5.6-luna",
+  "reasoning": "max",
+  "notes": "Initial procedure smoke profile; harness version and runtime permissions are collected when the run starts."
+}

@@ -257,6 +257,7 @@ that run:
 node ./bin/dd-eval.mjs validate --case EVAL-001-task-priority
 node ./bin/dd-eval.mjs prepare \
   --case EVAL-001-task-priority \
+  --profile codex-gpt-5-6-luna-max \
   --track planning \
   --output /absolute/path/to/run-repository
 ```

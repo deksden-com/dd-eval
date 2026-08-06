@@ -6,7 +6,7 @@ function usage() {
 
 Usage:
   dd-eval validate --case <case-id> [--source <dd-tasks>]
-  dd-eval prepare --case <case-id> --output <path> [--track planning] [--source <dd-tasks>]
+  dd-eval prepare --case <case-id> --profile <profile-id> --output <path> [--track planning] [--source <dd-tasks>]
 `;
 }
 
@@ -35,7 +35,7 @@ try {
     process.stdout.write(`${JSON.stringify({ ok: true, case_id: result.definition.id, checkpoint_id: result.checkpoint.id, source_commit: result.checkpoint.source.commit })}\n`);
   } else if (command === "prepare") {
     if (!options.output) throw new Error("--output is required");
-    const result = await prepare({ caseId: options.case, track: options.track, source, output: options.output });
+    const result = await prepare({ caseId: options.case, profileId: options.profile, track: options.track, source, output: options.output });
     process.stdout.write(`${JSON.stringify({ ok: true, ...result })}\n`);
   } else {
     throw new Error(`unknown command: ${command}`);
