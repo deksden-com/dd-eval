@@ -1,0 +1,16 @@
+{
+  "name": "dd-eval",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "dd-eval": "./bin/dd-eval.mjs"
+  },
+  "scripts": {
+    "test": "node --test",
+    "validate": "node ./bin/dd-eval.mjs validate --case EVAL-001-task-priority"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

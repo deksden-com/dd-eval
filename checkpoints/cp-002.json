@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "cp-002",
+  "title": "Core task tracker with public closed-registration preview",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "checkpoint-03-preview-access-policy",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "annotated_tag_object": "5977257d22826f5f861bec5662ce7bdd3fda07af"
+  },
+  "live_reference": {
+    "provider": "exe.dev",
+    "target": "ddtasks-cp02",
+    "url": "https://ddtasks-cp02.exe.xyz",
+    "proxy_visibility": "public",
+    "registration_mode": "closed"
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "cp-002 is the dd-eval identifier; the product repository keeps its own checkpoint tag name.",
+    "The live deployment is a visual reference, not the source used to materialize runs."
+  ]
+}

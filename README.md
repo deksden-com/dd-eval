@@ -244,21 +244,37 @@ exercises SPECIFY gap handling, PLAN, PostgreSQL/API/UI implementation,
 deterministic verification, readiness, merge, and result collection without the
 duration of a full checkpoint-03 implementation.
 
-The first CLI increment implements only the contract needed by that run:
+The eval baseline is `cp-002`, which resolves immutably to dd-tasks tag
+`checkpoint-03-preview-access-policy` and commit
+`15021169f90245c6d9254488b8a3ba0621b5bc07`. Eval checkpoint ids and product
+checkpoint tag names are separate namespaces; the mapping lives in
+`checkpoints/cp-002.json` and neither identifier is moved after publication.
+
+The first CLI increment implements only the planning-input contract needed by
+that run:
 
 ```text
-dd-eval prepare --case <case-id> --output <path>
+node ./bin/dd-eval.mjs validate --case EVAL-001-task-priority
+node ./bin/dd-eval.mjs prepare \
+  --case EVAL-001-task-priority \
+  --track planning \
+  --output /absolute/path/to/run-repository
 ```
 
 `prepare` resolves an exact source commit, exports tracked files without source
-history or remotes, applies only the public track-specific input, initializes a
-new repository with one deterministic `eval-input` commit, and writes the run
-manifest outside the evaluated repository. It rejects hidden eval materials,
-secrets, `.tasks`, an ambiguous source ref, and a non-reproducible output tree.
-The same case and track must produce the same input tree for every harness/model
-profile. Collection, verification, reporting, harness automation, and deploy
-commands are added only after this manual smoke run proves their actual
-interface.
+history or remotes, initializes a new repository with one deterministic
+`eval-input` commit, and writes `<output>.run.json` outside the evaluated
+repository. The harness sends the public prompt separately; clarification,
+reference, review, and acceptance files never enter the agent repository. The
+command rejects tracked secrets, `.tasks`, hidden eval paths, an incorrect tag,
+and a non-reproducible output tree. The same case and track therefore produce
+the same tree and input commit for every harness/model profile.
+
+Implementation materialization is intentionally blocked until the planning
+smoke produces an accepted flow-native `ready_for_code` snapshot. Reference
+specification, plan, reviewer prompts, and the deterministic acceptance contract
+already live under `cases/EVAL-001-task-priority/`; they are operator materials,
+not a fabricated project flow state.
 
 ## Materialized run repositories
 
@@ -279,10 +295,11 @@ evaluation proves the required interface.
 ## Exe.dev checkpoint previews
 
 Canonical checkpoint previews use one isolated Exe.dev VM per accepted source
-snapshot. The initial target is a private `checkpoint-02-core` preview; it is a
-review environment, not a production claim. Its manifest binds the VM name,
-source commit, Memory Bank/flow revision, deployment time, URL, and verification
-evidence.
+snapshot. The current `cp-002` reference target is
+[`ddtasks-cp02`](https://ddtasks-cp02.exe.xyz): a public Exe.dev HTTPS share with
+application registration closed. It is a review environment, not a production
+claim. Its manifest binds the VM name, source commit, Memory Bank/flow revision,
+URL, access mode, and verification evidence.
 
 One Docker Compose contour on the VM owns:
 
@@ -292,10 +309,12 @@ One Docker Compose contour on the VM owns:
   `8000`, with `/api` routed to Hono;
 - health and deterministic seed/reset commands for preview verification.
 
-Exe.dev terminates HTTPS and proxies the VM hostname to port `8000`. Access stays
-private by default; public sharing requires a separate explicit decision. No
-cron, polling, analytics, worker, or other idle background workload is added.
-The preview is rebuilt from its exact source commit rather than patched by hand.
+Exe.dev terminates HTTPS and proxies the VM hostname to port `8000`. New preview
+operations remain private and closed by default; the current public+closed mode
+was an explicit deployment decision and does not bypass application login or
+workspace authorization. No cron, polling, analytics, worker, or other idle
+background workload is added. The preview is rebuilt from its exact source
+commit rather than patched by hand.
 
 For later visual comparison, accepted eval outputs may receive separate
 short-lived VMs or copies of a prepared VM. Do not create a VM for every failed

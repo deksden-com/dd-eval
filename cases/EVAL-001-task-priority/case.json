@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "id": "EVAL-001-task-priority",
+  "title": "Task priority",
+  "checkpoint": "cp-002",
+  "purpose": "Smoke-test SPECIFY gap discovery, planning, and a small PostgreSQL/API/React vertical feature.",
+  "tracks": {
+    "planning": {
+      "status": "ready",
+      "initial_prompt": "prompts/initial-request.md",
+      "clarification_packet": "prompts/clarification-packet.md",
+      "reference_specification": "reference/specification.md",
+      "reference_plan": "reference/implementation-plan.md",
+      "review_prompt": "review/planning.md"
+    },
+    "implementation": {
+      "status": "awaiting_accepted_ready_for_code_snapshot",
+      "review_prompt": "review/implementation.md",
+      "acceptance_contract": "acceptance/SCN-EVAL-001-task-priority.md"
+    }
+  },
+  "materialization": {
+    "supported_tracks": ["planning"],
+    "prompt_delivery": "outside_repository",
+    "source_history": "excluded",
+    "source_remotes": "excluded",
+    "initial_branch": "main",
+    "initial_commit_message": "eval-input"
+  }
+}
