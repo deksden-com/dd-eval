@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-max",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "max",
+  "notes": "Controlled Desktop planning profile. Harness version and runtime permissions are collected from the session transcript."
+}

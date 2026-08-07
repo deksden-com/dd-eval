@@ -9,6 +9,8 @@
       "status": "ready",
       "initial_prompt": "prompts/initial-request.md",
       "clarification_packet": "prompts/clarification-packet.md",
+      "controller_initial_prompt": "prompts/controller-initial.md",
+      "controller_clarification_prompt": "prompts/controller-clarification.md",
       "reference_specification": "reference/specification.md",
       "reference_plan": "reference/implementation-plan.md",
       "review_prompt": "review/planning.md"
@@ -20,6 +22,10 @@
     }
   },
   "materialization": {
+    "checkpoints": [
+      "cp-002",
+      "cp-002-mb-2-16-0"
+    ],
     "supported_tracks": ["planning"],
     "prompt_delivery": "outside_repository",
     "source_history": "excluded",

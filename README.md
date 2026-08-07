@@ -293,6 +293,32 @@ result, runs deterministic checks, and produces a report. Automatic harness
 execution and Exe.dev lifecycle management are added only after one full manual
 evaluation proves the required interface.
 
+### Memory Bank 2.16.0 rerun
+
+The first controlled flow-version rerun keeps `EVAL-001-task-priority` and its
+prompts/rubric unchanged while selecting a second immutable checkpoint:
+
+```text
+node ./bin/dd-eval.mjs prepare \
+  --case EVAL-001-task-priority \
+  --checkpoint cp-002-mb-2-16-0 \
+  --profile codex-desktop-gpt-5-6-luna-max \
+  --track planning \
+  --output /absolute/path/to/run-repository
+```
+
+`cp-002-mb-2-16-0` has the same application code as `cp-002`; only the project
+Memory Bank is upgraded. It resolves to published tag
+`eval-cp-002-mb-2-16-0`, commit `65c4e97`, Memory Bank `2.16.0`, and canonical
+flow-pack commit `4f98e82`.
+
+The operator runbook is
+`cases/EVAL-001-task-priority/runbook-mb-2-16-0.md`. Controller prompts remain
+outside the materialized repository. After the run, `dd-eval collect` combines
+the sanitized Codex JSONL summary with optional `dd-flow` timeline, usage, and
+flag projections. It records unavailable usage honestly and never copies raw
+prompt, response, reasoning, or tool-argument content.
+
 ## Exe.dev checkpoint previews
 
 Canonical checkpoint previews use one isolated Exe.dev VM per accepted source
