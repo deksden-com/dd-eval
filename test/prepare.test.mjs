@@ -44,6 +44,27 @@ test("prepare selects the Memory Bank 2.16.0 checkpoint without changing the cas
   }
 });
 
+test("prepare selects Memory Bank 2.17.0 and binds operator material hashes", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-mb217-"));
+  try {
+    const result = await prepare({
+      caseId: "EVAL-001-task-priority",
+      checkpointId: "cp-002-mb-2-17-0",
+      profileId: "codex-desktop-gpt-5-6-luna-max",
+      source,
+      output: path.join(root, "run")
+    });
+    const manifest = JSON.parse(await readFile(result.runManifest, "utf8"));
+    const memoryBank = await readFile(path.join(result.output, ".memory-bank", "index.md"), "utf8");
+    assert.equal(manifest.checkpoint_id, "cp-002-mb-2-17-0");
+    assert.match(memoryBank, /memory_bank_version: '2\.17\.0'/);
+    assert.match(manifest.operator_material_sha256.clarification_packet, /^[a-f0-9]{64}$/);
+    assert.match(manifest.operator_material_sha256.controller_initial_prompt, /^[a-f0-9]{64}$/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("collect records transcript and flow timing without copying transcript content", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-eval-collect-"));
   try {

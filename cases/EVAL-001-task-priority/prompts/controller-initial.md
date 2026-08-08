@@ -1,7 +1,8 @@
 # Controller prompt: initial SPECIFY pass
 
-Ты выполняешь controlled planning eval `EVAL-001-task-priority` на Memory Bank
-2.16.0.
+Ты выполняешь initial SPECIFY gate controlled planning eval
+`EVAL-001-task-priority`. Версия Memory Bank определяется только materialized
+checkpoint и должна быть прочитана из репозитория, а не предположена из prompt.
 
 Рабочий репозиторий:
 
@@ -14,11 +15,11 @@ materials. Они не являются доступным контекстом 
 используй Git history/refs/remotes вне единственного materialized `eval-input`
 commit.
 
-Первое обязательное действие: поставь goal:
+Первое обязательное действие: поставь отдельный Goal A:
 
-> Завершить planning track EVAL-001-task-priority по проектному Memory Bank:
-> пройти priming, protocol, specify с честным выявлением problem-space gaps,
-> после единого пакета ответов завершить flow plan и остановиться до code.
+> Завершить initial SPECIFY gate EVAL-001-task-priority: пройти priming,
+> protocol и discovery/questions, перейти в waiting_for_user и остановиться до
+> получения внешнего clarification packet, не начиная PLAN.
 
 Текущая фаза — только discovery/questions:
 
@@ -39,7 +40,9 @@ commit.
 6. Сформулируй полный, компактный набор действительно необходимых
    problem-space вопросов с impact/recommendation там, где это требует flow.
 7. После вопросов остановись в `waiting_for_user`. Не придумывай ответы, не
-   выполняй plan, code, readiness или merge. Goal не закрывай.
+   выполняй plan, code, readiness или merge. Goal A отметь complete только
+   после доказанного `waiting_for_user`; этот goal не должен пересекать внешний
+   input gate.
 
 Единственный пользовательский запрос для SPECIFY:
 

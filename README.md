@@ -319,6 +319,20 @@ the sanitized Codex JSONL summary with optional `dd-flow` timeline, usage, and
 flag projections. It records unavailable usage honestly and never copies raw
 prompt, response, reasoning, or tool-argument content.
 
+### Memory Bank 2.17.0 rerun
+
+The second controlled flow-version rerun uses checkpoint
+`cp-002-mb-2-17-0`, published tag `eval-cp-002-mb-2-17-0`, Memory Bank
+`2.17.0`, and the same application tree and EVAL-001 user materials. Its
+operator runbook is
+`cases/EVAL-001-task-priority/runbook-mb-2-17-0.md`.
+
+The controller is deliberately split into two goals. Goal A ends at
+`waiting_for_user`; only then does the controller deliver the exact canonical
+clarification packet and Goal B continues through PLAN to `ready_for_code`.
+The run manifest stores SHA-256 for all operator materials so packet mismatch
+is a run-validity failure, not a model-quality defect.
+
 ## Exe.dev checkpoint previews
 
 Canonical checkpoint previews use one isolated Exe.dev VM per accepted source
