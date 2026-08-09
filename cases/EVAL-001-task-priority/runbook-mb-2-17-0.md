@@ -22,7 +22,7 @@ node ./bin/dd-eval.mjs prepare \
   --checkpoint cp-002-mb-2-17-0 \
   --profile codex-desktop-gpt-5-6-luna-max \
   --track planning \
-  --output /Users/deksden/Documents/_Projects/dd-eval-runs/EVAL-001-task-priority/codex-desktop-gpt-5.6-luna-max-mb-2.17.0-cli-0.4.1-planning-rerun-01
+  --output /Users/deksden/Documents/_Projects/dd-eval-runs/EVAL-001-task-priority/codex-desktop-gpt-5.6-luna-max-mb-2.17.0-cli-0.4.2-planning-rerun-02
 ```
 
 The run manifest binds SHA-256 for every operator material. Controller prompts
@@ -44,16 +44,23 @@ hash invalidates the run instead of lowering its quality score.
 
 ## Runtime preflight
 
-The installed CLI is `/Users/deksden/Library/pnpm/dd-flow` version `0.4.1`.
+The installed CLI is `/Users/deksden/Library/pnpm/dd-flow` version `0.4.2`,
+built from tagged commit `5443eeea84ccea3740546a8b0bc3867161ac340b`
+with engine `install_source=local_development`.
 The evaluated task must check that exact path when `dd-flow` is absent from
 `PATH`. The materialized repository path is unique, so it receives a separate
 project registration and RUN lineage.
 
 The immutable checkpoint metadata continues to describe its original Memory
 Bank input. The actual CLI path and version for this run are recorded in the
-profile embedded into the external run manifest. Do not reuse or continue an
-attempt that started with CLI `0.4.0`; retain it only as invalid infrastructure
-evidence and prepare a fresh repository.
+profile embedded into the external run manifest. npm publication is not a
+precondition for this local run because the exact executable, Git tag, commit
+and install source are bound explicitly.
+
+Do not reuse or continue either earlier attempt. The CLI `0.4.0` attempt exposed
+project-scoping defects; the CLI `0.4.1` rerun exposed top-level router scope
+loss before RUN creation. Retain both only as invalid infrastructure evidence
+and prepare the `rerun-02` repository above.
 
 ## Collect and compare
 

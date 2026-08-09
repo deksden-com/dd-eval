@@ -7,7 +7,10 @@
   "runtime": {
     "dd_flow_cli": {
       "path": "/Users/deksden/Library/pnpm/dd-flow",
-      "version": "0.4.1"
+      "version": "0.4.2",
+      "git_tag": "v0.4.2",
+      "git_commit": "5443eeea84ccea3740546a8b0bc3867161ac340b",
+      "install_source": "local_development"
     }
   },
   "notes": "Controlled Desktop planning profile. Harness version and runtime permissions are collected from the session transcript."

@@ -57,7 +57,8 @@ test("prepare selects Memory Bank 2.17.0 and binds operator material hashes", as
     const manifest = JSON.parse(await readFile(result.runManifest, "utf8"));
     const memoryBank = await readFile(path.join(result.output, ".memory-bank", "index.md"), "utf8");
     assert.equal(manifest.checkpoint_id, "cp-002-mb-2-17-0");
-    assert.equal(manifest.profile.runtime.dd_flow_cli.version, "0.4.1");
+    assert.equal(manifest.profile.runtime.dd_flow_cli.version, "0.4.2");
+    assert.equal(manifest.profile.runtime.dd_flow_cli.git_tag, "v0.4.2");
     assert.match(memoryBank, /memory_bank_version: '2\.17\.0'/);
     assert.match(manifest.operator_material_sha256.clarification_packet, /^[a-f0-9]{64}$/);
     assert.match(manifest.operator_material_sha256.controller_initial_prompt, /^[a-f0-9]{64}$/);
