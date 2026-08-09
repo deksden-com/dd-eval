@@ -22,7 +22,7 @@ node ./bin/dd-eval.mjs prepare \
   --checkpoint cp-002-mb-2-17-0 \
   --profile codex-desktop-gpt-5-6-luna-max \
   --track planning \
-  --output /Users/deksden/Documents/_Projects/dd-eval-runs/EVAL-001-task-priority/codex-desktop-gpt-5.6-luna-max-mb-2.17.0-planning
+  --output /Users/deksden/Documents/_Projects/dd-eval-runs/EVAL-001-task-priority/codex-desktop-gpt-5.6-luna-max-mb-2.17.0-cli-0.4.1-planning-rerun-01
 ```
 
 The run manifest binds SHA-256 for every operator material. Controller prompts
@@ -44,15 +44,24 @@ hash invalidates the run instead of lowering its quality score.
 
 ## Runtime preflight
 
-The installed CLI is `/Users/deksden/Library/pnpm/dd-flow` version `0.4.0`.
+The installed CLI is `/Users/deksden/Library/pnpm/dd-flow` version `0.4.1`.
 The evaluated task must check that exact path when `dd-flow` is absent from
 `PATH`. The materialized repository path is unique, so it receives a separate
 project registration and RUN lineage.
 
+The immutable checkpoint metadata continues to describe its original Memory
+Bank input. The actual CLI path and version for this run are recorded in the
+profile embedded into the external run manifest. Do not reuse or continue an
+attempt that started with CLI `0.4.0`; retain it only as invalid infrastructure
+evidence and prepare a fresh repository.
+
 ## Collect and compare
 
 After `ready_for_code`, collect timeline, usage, flags and sanitized Codex JSONL
-as described in `runbook-mb-2-16-0.md`. Compare against both earlier runs:
+as described in `runbook-mb-2-16-0.md`. Evaluate the current Memory Bank 2.17.0
+run on its own; a Memory Bank 2.16.0 repeat is not required. Compare the useful
+timing and quality signals against the retained earlier results only as
+historical context:
 
 - total and phase wall time;
 - question/plan quality;

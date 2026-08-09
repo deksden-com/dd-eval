@@ -4,5 +4,11 @@
   "harness": "codex-desktop",
   "model": "gpt-5.6-luna",
   "reasoning": "max",
+  "runtime": {
+    "dd_flow_cli": {
+      "path": "/Users/deksden/Library/pnpm/dd-flow",
+      "version": "0.4.1"
+    }
+  },
   "notes": "Controlled Desktop planning profile. Harness version and runtime permissions are collected from the session transcript."
 }
