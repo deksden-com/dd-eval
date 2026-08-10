@@ -25,7 +25,8 @@
     "checkpoints": [
       "cp-002",
       "cp-002-mb-2-16-0",
-      "cp-002-mb-2-17-0"
+      "cp-002-mb-2-17-0",
+      "cp-002-mb-2-18-0"
     ],
     "supported_tracks": ["planning"],
     "prompt_delivery": "outside_repository",

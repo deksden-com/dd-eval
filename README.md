@@ -333,6 +333,18 @@ clarification packet and Goal B continues through PLAN to `ready_for_code`.
 The run manifest stores SHA-256 for all operator materials so packet mismatch
 is a run-validity failure, not a model-quality defect.
 
+### Memory Bank 2.18.0 rerun
+
+The third controlled flow-version rerun uses checkpoint
+`cp-002-mb-2-18-0`, published tag `eval-cp-002-mb-2-18-0`, Memory Bank
+`2.18.0`, CLI `0.4.2`, and the unchanged EVAL-001 application tree and operator
+materials. Its operator runbook is
+`cases/EVAL-001-task-priority/runbook-mb-2-18-0.md`.
+
+This rerun measures the adaptive local-first routing, simplified capacity and
+semantic-launch accounting, guarded execution-flag correction, and complete
+stage wall-clock observability introduced by the updated flow.
+
 ## Exe.dev checkpoint previews
 
 Canonical checkpoint previews use one isolated Exe.dev VM per accepted source
