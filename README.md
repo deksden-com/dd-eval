@@ -345,6 +345,14 @@ This rerun measures the adaptive local-first routing, simplified capacity and
 semantic-launch accounting, guarded execution-flag correction, and complete
 stage wall-clock observability introduced by the updated flow.
 
+### Memory Bank 3.0.0 Goal-A rerun
+
+The next controlled run uses `cp-002-mb-3-0`, published tag
+`eval-cp-002-mb-3-0`, Memory Bank `3.0.0`, and CLI `0.5.0`. It starts with the
+incomplete-input SPECIFY goal only. The exact operator procedure and stop gate
+are in `cases/EVAL-001-task-priority/runbook-mb-3-0-0-specify.md`; the
+clarification packet is deliberately not delivered until that gate passes.
+
 ## Exe.dev checkpoint previews
 
 Canonical checkpoint previews use one isolated Exe.dev VM per accepted source

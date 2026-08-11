@@ -28,7 +28,7 @@ commit.
 2. Выполни priming строго по project-local
    `.memory-bank/dd-flow/prime.md` и прочитай требуемые им project rules.
 3. До создания RUN выполни runtime preflight. Используй установленный
-   `/Users/deksden/Library/pnpm/dd-flow` версии `0.4.2`, если `dd-flow` не
+   `/Users/deksden/Library/pnpm/dd-flow` версии `0.5.0`, если `dd-flow` не
    находится через `PATH`. Не объявляй CLI недоступным, пока не проверен этот
    точный путь.
 4. Затем выполни project-local protocol flow и logical stage `specify` для

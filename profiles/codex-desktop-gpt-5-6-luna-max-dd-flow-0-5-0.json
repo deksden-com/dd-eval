@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-max-dd-flow-0-5-0",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "max",
+  "runtime": {
+    "dd_flow_cli": {
+      "path": "/Users/deksden/Library/pnpm/dd-flow",
+      "version": "0.5.0",
+      "git_commit": "428cdc88bb51c0613a95a5b8c9717c7e2e2abe6c",
+      "install_source": "local_development"
+    }
+  },
+  "notes": "Controlled Desktop planning profile for the Memory Bank 3.0.0 treatment. Harness runtime permissions and the session transcript are collected with the run."
+}
