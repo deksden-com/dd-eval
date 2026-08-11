@@ -102,6 +102,34 @@ test("collect records transcript and flow timing without copying transcript cont
   }
 });
 
+test("collect does not invent negative unattributed time for an unfinished RUN", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-open-run-"));
+  try {
+    const files = {
+      manifest: path.join(root, "run.json"),
+      session: path.join(root, "session.jsonl"),
+      timeline: path.join(root, "timeline.json"),
+      output: path.join(root, "collected.json")
+    };
+    await writeFile(files.manifest, '{}\n');
+    await writeFile(files.session, `${JSON.stringify({ type: "session_meta", timestamp: "2026-08-07T10:00:00.000Z", payload: { session_id: "session-open" } })}\n`);
+    await writeFile(files.timeline, JSON.stringify({
+      schema_id: "dd-flow/run-timeline@2",
+      timing_status: "in_progress",
+      summary: { elapsed_ms: null },
+      stages: [{ elapsed_ms: 45000 }],
+      sessions: []
+    }));
+
+    await collect(files);
+    const result = JSON.parse(await readFile(files.output, "utf8"));
+    assert.equal(result.flow_observability.stage_elapsed_seconds, 45);
+    assert.equal(result.flow_observability.unattributed_flow_seconds, null);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("prepare refuses a fabricated implementation predecessor state", async () => {
   await assert.rejects(
     prepare({
