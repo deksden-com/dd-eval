@@ -1,0 +1,394 @@
+{
+  "schema_version": 1,
+  "collected_at": "2026-08-11T11:25:38.095Z",
+  "run_manifest": {
+    "schema_version": 1,
+    "case_id": "EVAL-001-task-priority",
+    "profile": {
+      "schema_version": 1,
+      "id": "codex-desktop-gpt-5-6-luna-max",
+      "harness": "codex-desktop",
+      "model": "gpt-5.6-luna",
+      "reasoning": "max",
+      "runtime": {
+        "dd_flow_cli": {
+          "path": "/Users/deksden/Library/pnpm/dd-flow",
+          "version": "0.4.2",
+          "git_tag": "v0.4.2",
+          "git_commit": "5443eeea84ccea3740546a8b0bc3867161ac340b",
+          "install_source": "local_development"
+        }
+      },
+      "notes": "Controlled Desktop planning profile. Harness version and runtime permissions are collected from the session transcript."
+    },
+    "track": "planning",
+    "checkpoint_id": "cp-002-mb-2-18-0",
+    "source": {
+      "repository": "https://github.com/deksden-com/dd-tasks.git",
+      "tag": "eval-cp-002-mb-2-18-0",
+      "commit": "f883630c2d95179e3ac1c3881bb11cba4fa71b39",
+      "tree": "d188e79d9b7de56a45f5959d7ad4d35045d68371"
+    },
+    "input": {
+      "commit": "57d1f22e6a02b4270b3360171b938a3435d83b3e",
+      "tree": "d188e79d9b7de56a45f5959d7ad4d35045d68371",
+      "branch": "main"
+    },
+    "operator_materials": {
+      "initial_prompt": "cases/EVAL-001-task-priority/prompts/initial-request.md",
+      "clarification_packet": "cases/EVAL-001-task-priority/prompts/clarification-packet.md",
+      "reference_specification": "cases/EVAL-001-task-priority/reference/specification.md",
+      "reference_plan": "cases/EVAL-001-task-priority/reference/implementation-plan.md",
+      "review_prompt": "cases/EVAL-001-task-priority/review/planning.md",
+      "controller_initial_prompt": "cases/EVAL-001-task-priority/prompts/controller-initial.md",
+      "controller_clarification_prompt": "cases/EVAL-001-task-priority/prompts/controller-clarification.md"
+    },
+    "operator_material_sha256": {
+      "initial_prompt": "a2393842992fdd7271c2fca7d19f3d6829ef7f6a99bc64742c67dcb4075bb606",
+      "clarification_packet": "21c521d64bf40cd8027be014af6b2d3d95c89589d281ffa45bd0d38fd0d75e67",
+      "reference_specification": "b9232c623ec1164b1a941d05f4602d97469cb9ddc6b9a0dab2f9a4dc1a075571",
+      "reference_plan": "52a0f3442ca245535e0f17142c2039d5d25c66d8c44632dada68a0da510cc903",
+      "review_prompt": "5e6c42a52b6d58517aedad9093e42f1e5e9bc746909847de49e9374e368d5399",
+      "controller_initial_prompt": "7953dc4d2d524e6828c3fab8c80e173edaeee59abf5a6c611bee8b9512204427",
+      "controller_clarification_prompt": "d31992f1d972c2aca63010e809d6bb9c24a6b484a93db2055c71c156e6956275"
+    }
+  },
+  "session": {
+    "session": {
+      "id": "019fe9d3-dc30-7133-a534-a6ad4d9a2959",
+      "started_at": "2026-08-10T04:00:03.634Z",
+      "cwd": "/Users/deksden/Documents/_Projects",
+      "originator": "Codex Desktop",
+      "cli_version": "0.147.0-alpha.6.5",
+      "source": "vscode",
+      "thread_source": "subagent",
+      "model_provider": "openai"
+    },
+    "models": [
+      "gpt-5.6-luna"
+    ],
+    "reasoning_efforts": [
+      "max"
+    ],
+    "started_at": "2026-08-10T04:00:03.634Z",
+    "completed_at": "2026-08-10T06:38:18.079Z",
+    "elapsed_seconds": 9494.445,
+    "event_counts": {
+      "session_meta": 1,
+      "event_msg:task_started": 2,
+      "response_item:message": 32,
+      "world_state": 4,
+      "turn_context": 5,
+      "event_msg:user_message": 2,
+      "event_msg:agent_reasoning": 275,
+      "response_item:reasoning": 347,
+      "event_msg:agent_message": 28,
+      "response_item:custom_tool_call": 269,
+      "response_item:custom_tool_call_output": 269,
+      "event_msg:token_count": 287,
+      "response_item:function_call": 12,
+      "response_item:function_call_output": 12,
+      "event_msg:patch_apply_end": 39,
+      "compacted": 3,
+      "event_msg:context_compacted": 3,
+      "event_msg:task_complete": 2,
+      "event_msg:thread_settings_applied": 1
+    },
+    "tool_calls": {
+      "exec": 269,
+      "wait": 12
+    },
+    "compactions": 3,
+    "token_usage": {
+      "input_tokens": 35745522,
+      "cached_input_tokens": 34718976,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 181694,
+      "reasoning_output_tokens": 50937,
+      "total_tokens": 35927216
+    },
+    "transcript_path": "/Users/deksden/.codex/sessions/2026/08/10/rollout-2026-08-10T06-00-03-019fe9d3-dc30-7133-a534-a6ad4d9a2959.jsonl",
+    "transcript_sha256": "03ad2ec83da0e75d42b2c509b5e999de6258fff62256fe6c04818bc7f03d2045"
+  },
+  "flow_observability": {
+    "timeline": {
+      "schema_id": "dd-flow/run-timeline@2",
+      "timing_status": "measured",
+      "summary": {
+        "flow_kind": "mb_sdlc",
+        "subject": {
+          "type": "protocol",
+          "id": "PRT-007-task-priority"
+        },
+        "status": "running",
+        "verdict": "pending",
+        "started_at": "2026-08-10T04:16:01.184Z",
+        "completed_at": null,
+        "elapsed_ms": null,
+        "stage_count": 2,
+        "event_count": 9,
+        "session_count": 0
+      },
+      "stages": [
+        {
+          "order": 1,
+          "stage": "specify",
+          "dir": "01-specify",
+          "status": "done",
+          "data_schema_id": "dd-flow/specification-stage-report@2",
+          "updated_at": "2026-08-10T06:01:45.516Z",
+          "started_at": "2026-08-10T04:21:08.911Z",
+          "attempt": "try-002",
+          "data": "/Users/deksden/.dd-flow/projects/PRJ-025-codex-desktop-gpt-5-6-luna-max-mb-2-18-0-cli-0-4-2-planning-rerun-01/runs/RUN-001-task-priority/01-specify/try-002/stage-report.json",
+          "report": "/Users/deksden/.dd-flow/projects/PRJ-025-codex-desktop-gpt-5-6-luna-max-mb-2-18-0-cli-0-4-2-planning-rerun-01/runs/RUN-001-task-priority/01-specify/try-002/report.md",
+          "completed_at": "2026-08-10T06:01:45.516Z",
+          "elapsed_ms": 6036605
+        },
+        {
+          "order": 2,
+          "stage": "plan",
+          "dir": "02-plan",
+          "status": "done",
+          "data_schema_id": "dd-flow/plan-stage-report@4",
+          "updated_at": "2026-08-10T06:32:40.114Z",
+          "started_at": "2026-08-10T06:02:24.435Z",
+          "attempt": "try-001",
+          "stage_report": "/Users/deksden/.dd-flow/projects/PRJ-025-codex-desktop-gpt-5-6-luna-max-mb-2-18-0-cli-0-4-2-planning-rerun-01/runs/RUN-001-task-priority/02-plan/try-001/stage-report.html",
+          "data": "/Users/deksden/.dd-flow/projects/PRJ-025-codex-desktop-gpt-5-6-luna-max-mb-2-18-0-cli-0-4-2-planning-rerun-01/runs/RUN-001-task-priority/02-plan/try-001/stage-report.json",
+          "report": "/Users/deksden/.dd-flow/projects/PRJ-025-codex-desktop-gpt-5-6-luna-max-mb-2-18-0-cli-0-4-2-planning-rerun-01/runs/RUN-001-task-priority/02-plan/try-001/report.md",
+          "completed_at": "2026-08-10T06:32:40.114Z",
+          "elapsed_ms": 1815679
+        }
+      ],
+      "sessions": []
+    },
+    "usage": {
+      "schema_id": "dd-flow/run-usage@1",
+      "source": {
+        "kind": "codex_transcript_v1",
+        "parser_version": 1,
+        "refreshed_sessions": 0
+      },
+      "groups": [],
+      "coverage": {},
+      "delta_count": 0
+    },
+    "flags": {
+      "resolution_status": "valid",
+      "snapshot_revision": 1,
+      "snapshot_checksum": "519d0372b1c2ed9ccd9d1ecd283160b8d0dc4cffcf20ff7dd56bf9f9ea028555",
+      "flow_flags": {
+        "contract": {
+          "id": "dd-flow-canonical-2026-06",
+          "version": 3,
+          "capabilities": [
+            "flow_flags.v1",
+            "flow_run_snapshot.v1",
+            "flow_run_index.v3",
+            "session_coverage_units.v1",
+            "privacy_safe_observability.v1"
+          ]
+        },
+        "flow_kind": "mb_sdlc",
+        "preset": {
+          "requested": "normal",
+          "applied": "normal",
+          "source_ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal"
+        },
+        "snapshot_revision": 1,
+        "resolution_status": "valid",
+        "resolved_at": "2026-08-10T04:16:01.184Z",
+        "values": {
+          "planning.mode": {
+            "value": "compact_plan",
+            "value_type": "enum",
+            "owner": "mb_sdlc",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "planning.mode: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "plan.review.mode": {
+            "value": "grouped",
+            "value_type": "enum",
+            "owner": "mb_sdlc",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "plan.review.mode: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "subagents.route": {
+            "value": "grouped_subagent",
+            "value_type": "enum",
+            "owner": "subagent_routing",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "subagents.route: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "subagents.grouping": {
+            "value": "allowlisted",
+            "value_type": "enum",
+            "owner": "subagent_routing",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "subagents.grouping: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "subagents.pool_fallback": {
+            "value": "runtime",
+            "value_type": "enum",
+            "owner": "subagent_routing",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "subagents.pool_fallback: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "report.markdown": {
+            "value": true,
+            "value_type": "boolean",
+            "owner": "flow_reports",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "report.markdown: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "report.html": {
+            "value": false,
+            "value_type": "boolean",
+            "owner": "flow_reports",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "report.html: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "observability.detail": {
+            "value": "normal",
+            "value_type": "enum",
+            "owner": "flow_runtime",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "observability.detail: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "knowledge.extract": {
+            "value": "conditional",
+            "value_type": "enum",
+            "owner": "knowledge",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "knowledge.extract: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "knowledge.promote": {
+            "value": "conditional",
+            "value_type": "enum",
+            "owner": "knowledge",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "knowledge.promote: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "workspace.bootstrap.mode": {
+            "value": "revalidate",
+            "value_type": "enum",
+            "owner": "workspace_bootstrap",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "workspace.bootstrap.mode: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "merge.ceremony": {
+            "value": "normal",
+            "value_type": "enum",
+            "owner": "merge",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "merge.ceremony: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "merge.report_detail": {
+            "value": "normal",
+            "value_type": "enum",
+            "owner": "merge",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "merge.report_detail: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "verification.depth": {
+            "value": "standard",
+            "value_type": "enum",
+            "owner": "verification",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "verification.depth: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          },
+          "evidence.level": {
+            "value": "proof_bundle",
+            "value_type": "enum",
+            "owner": "verification",
+            "source": {
+              "kind": "preset",
+              "ref": "dd-flow-canonical-2026-06#flow_flags.presets.normal",
+              "revision": null
+            },
+            "rationale": "evidence.level: preset normal",
+            "resolved_at": "2026-08-10T04:16:01.184Z"
+          }
+        },
+        "compatibility_projection": {
+          "task_profile_revision": null,
+          "legacy_flow_profile_read": false
+        },
+        "snapshot_checksum": "519d0372b1c2ed9ccd9d1ecd283160b8d0dc4cffcf20ff7dd56bf9f9ea028555",
+        "floors_applied": []
+      }
+    },
+    "stage_elapsed_seconds": 7852.284,
+    "unattributed_flow_seconds": -7852.284
+  }
+}
