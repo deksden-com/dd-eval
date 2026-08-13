@@ -48,9 +48,9 @@ iteration:
 dd-tasks branch:       beta/mb-3.2
 dd-flow-cli branch:    beta/engine-0.7
 
-dd-tasks tag:          eval-mb-3.2.0-beta.1
-dd-flow-cli tag:       eval-engine-0.7.1-beta.1
-eval bundle id:        mb-3.2.0-beta.1
+dd-tasks tag:          eval-mb-3.2.0-beta.3
+dd-flow-cli tag:       eval-engine-0.7.1-beta.3
+eval bundle id:        mb-3.2.0-beta.3
 ```
 
 `memory_bank_version` remains the installed stable base (`3.2.0`). The
@@ -212,6 +212,19 @@ dd-flow engine doctor --project-root /path/to/dd-tasks-beta --json
 The resolved package version must equal the exact beta pin. Record its
 `snapshot_root` and integrity checksum. A missing, broad, stable, unhealthy, or
 unexpected selection stops the run before an agent is launched.
+
+For an eval that measures agent usage or token accounting, make session binding
+a launch gate rather than a best-effort diagnostic. Its controller's first
+command uses `stage start --require-session-binding`; the installed PreToolUse
+hook must append a trusted event and the start receipt must report `bound`.
+Run one real, minimal Codex task smoke after restarting the client whenever a
+hook configuration or runtime is changed. A unit test proves the CLI boundary;
+only this smoke proves that the active client delivers hook events.
+
+Before freezing, run the schema parity check for every schema changed in both
+the engine and flow pack. A RUN-bound engine is authoritative at runtime, so a
+project copy must match it; no fallback to the project schema is allowed. The
+engine's regression suite must include a deliberately stale project copy.
 
 ## 4. Freeze an eval input
 
