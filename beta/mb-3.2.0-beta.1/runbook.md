@@ -97,7 +97,7 @@ node ./bin/dd-eval.mjs validate \
 node ./bin/dd-eval.mjs prepare \
   --case EVAL-001-task-priority \
   --checkpoint cp-002-mb-3-2-0-beta-1 \
-  --profile codex-desktop-gpt-5-6-luna-max-dd-flow-0-7-0 \
+  --profile codex-desktop-gpt-5-6-luna-max-dd-flow-0-7-1-beta-1 \
   --track planning \
   --source /Users/deksden/Documents/_Projects/dd-tasks.beta-mb-3-2 \
   --output /Users/deksden/Documents/_Projects/dd-eval-runs/EVAL-001-task-priority/mb-3.2.0-beta.1-specify-01
