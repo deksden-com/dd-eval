@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-mb-3-2-0-beta-2",
+  "title": "cp-002 product state with Memory Bank 3.2.0-beta.2",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-beta.2",
+    "commit": "989e5670dd997f1182f103aebf22baf8a75ffada",
+    "annotated_tag_object": "15b3c95ffe5d4d72874c6d2b4448423ad5e87c16"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-beta.2",
+    "flow_pack_commit": "989e5670dd997f1182f103aebf22baf8a75ffada",
+    "dd_flow_cli": "0.7.1-beta.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.7.1-beta.2",
+      "commit": "d0473cbd79aa956d82c93fc74d440ff78eed5832",
+      "annotated_tag_object": "b3ae5df92505fc1879d68db6e94e3768e04d4a63"
+    }
+  },
+  "operator_material_overrides": {
+    "controller_initial_prompt": "beta/mb-3.2.0-beta.1/controller-initial.md"
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "Beta 1 is retained as debugging evidence: the flow contract and its strict schema diverged before stage start.",
+    "Beta 2 aligns the contract, project schema and engine schema before the clean retry."
+  ]
+}

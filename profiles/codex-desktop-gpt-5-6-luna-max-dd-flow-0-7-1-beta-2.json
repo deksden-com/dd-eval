@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-max-dd-flow-0-7-1-beta-2",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "max",
+  "runtime": {
+    "dd_flow_cli": {
+      "path": "/Users/deksden/Library/pnpm/dd-flow",
+      "version": "0.7.1-beta.2",
+      "git_tag": "eval-engine-0.7.1-beta.2",
+      "git_commit": "d0473cbd79aa956d82c93fc74d440ff78eed5832",
+      "install_source": "local_development"
+    },
+    "mb_lint": {
+      "path": "/Users/deksden/Library/pnpm/mb-lint",
+      "version": "0.4.0",
+      "install_source": "published_runtime"
+    }
+  },
+  "notes": "Controlled Desktop SPECIFY retry after flow-contract schema alignment. The global router is linked to beta engine 0.7.1-beta.2."
+}
