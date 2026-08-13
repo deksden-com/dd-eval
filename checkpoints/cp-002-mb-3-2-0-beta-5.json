@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-mb-3-2-0-beta-5",
+  "title": "cp-002 product state with Memory Bank 3.2.0-beta.5",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-beta.5",
+    "commit": "c1c4d3f5d246f65bdc3d4e8b96daad6ba09a69bd",
+    "annotated_tag_object": "eb7ab0a4236ece351df6528c1601d1e33d7c83d0"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-beta.5",
+    "flow_pack_commit": "c1c4d3f5d246f65bdc3d4e8b96daad6ba09a69bd",
+    "dd_flow_cli": "0.7.1-beta.6",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.7.1-beta.6",
+      "commit": "6733b48c78e0d9f3829fa98ad0a7c3a9dfa45750",
+      "annotated_tag_object": "fe68f757eb9c2005dee9659b39022bdccd0fcc37"
+    }
+  },
+  "operator_material_overrides": {
+    "controller_initial_prompt": "beta/mb-3.2.0-beta.5/controller-initial.md"
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The product tree remains the cp-002 baseline.",
+    "This candidate aligns the engine flow-contract schema with the canonical semantic stage-input contract."
+  ]
+}
