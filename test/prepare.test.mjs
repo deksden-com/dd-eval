@@ -18,9 +18,41 @@ test("prepare creates the same isolated input twice", async () => {
     assert.equal(manifest.checkpoint_id, "cp-002");
     assert.equal(manifest.profile.model, "gpt-5.6-luna");
     assert.equal(manifest.input.tree, manifest.source.tree);
+    assert.equal(manifest.intake.path, ".tasks/dd-flow/intake/EVAL-001-task-priority/initial-request.md");
+    assert.match(manifest.intake.sha256, /^[a-f0-9]{64}$/);
+    assert.match(await readFile(path.join(first.output, manifest.intake.path), "utf8"), /Добавьте приоритет задач/);
+    assert.match(await readFile(first.controllerPrompt, "utf8"), new RegExp(first.output.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("checkpoint operator-material overrides are constrained to dd-eval", async () => {
+  const { resolveOperatorMaterials } = await import("../lib/dd-eval.mjs");
+  const materials = resolveOperatorMaterials(
+    path.join(path.resolve(import.meta.dirname, ".."), "cases", "EVAL-001-task-priority"),
+    {
+      initial_prompt: "prompts/initial-request.md",
+      clarification_packet: "prompts/clarification-packet.md",
+      reference_specification: "reference/specification.md",
+      reference_plan: "reference/implementation-plan.md",
+      review_prompt: "review/planning.md",
+      controller_initial_prompt: "prompts/controller-initial.md"
+    },
+    { operator_material_overrides: { controller_initial_prompt: "beta/mb-3.2.0-beta.1/controller-initial.md" } }
+  );
+  assert.equal(materials.controller_initial_prompt, "beta/mb-3.2.0-beta.1/controller-initial.md");
+  assert.throws(() => resolveOperatorMaterials(
+    path.join(path.resolve(import.meta.dirname, ".."), "cases", "EVAL-001-task-priority"),
+    {
+      initial_prompt: "prompts/initial-request.md",
+      clarification_packet: "prompts/clarification-packet.md",
+      reference_specification: "reference/specification.md",
+      reference_plan: "reference/implementation-plan.md",
+      review_prompt: "review/planning.md"
+    },
+    { operator_material_overrides: { controller_initial_prompt: "../outside.md" } }
+  ), /must stay inside dd-eval/);
 });
 
 test("prepare selects the Memory Bank 2.16.0 checkpoint without changing the case", async () => {

@@ -8,6 +8,14 @@ This repository owns the evaluation cases, prompts, reference answers, runner
 CLI, review rules, and collected results. None of those materials belong in an
 agent's task repository.
 
+Flow and engine changes are exercised before canonical release through the
+[beta contour](runbooks/beta-contour.md). It reuses project-local flow packs,
+router-installed engine snapshots, immutable checkpoints, and the normal eval
+runner rather than introducing a separate beta toolchain.
+
+Current beta specifications live under [beta/](beta/README.md); they document
+candidate behavior without consuming canonical `SPC-*` numbering.
+
 ## Evaluation model
 
 An evaluation run starts from an immutable `dd-tasks` checkpoint and measures a
