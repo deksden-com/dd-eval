@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-max-dd-flow-0-7-1-beta-4",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "max",
+  "runtime": {
+    "dd_flow_cli": {
+      "path": "/Users/deksden/Library/pnpm/dd-flow",
+      "version": "0.7.1-beta.4",
+      "git_tag": "eval-engine-0.7.1-beta.4",
+      "git_commit": "291399ae30a0d4d64262fc9c33c04bd67d633cb8",
+      "install_source": "local_development"
+    },
+    "mb_lint": {
+      "path": "/Users/deksden/Library/pnpm/mb-lint",
+      "version": "0.4.0",
+      "install_source": "published_runtime"
+    }
+  },
+  "notes": "Controlled Desktop SPECIFY beta.3 run. Bootstrap requires a trusted PreToolUse session binding and resolves beta engine 0.7.1-beta.4."
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-mb-3-2-0-beta-3",
+  "title": "cp-002 product state with Memory Bank 3.2.0-beta.3",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-beta.3",
+    "commit": "0dedb830ef321859f0c657219eab123d5530fd76",
+    "annotated_tag_object": "e12e6af6adf92bdce1be6349484e8149dcb3ffc0"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-beta.3",
+    "flow_pack_commit": "0dedb830ef321859f0c657219eab123d5530fd76",
+    "dd_flow_cli": "0.7.1-beta.4",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.7.1-beta.4",
+      "commit": "291399ae30a0d4d64262fc9c33c04bd67d633cb8",
+      "annotated_tag_object": "ec45754958515754176a0e716557ba62d7a874bf"
+    }
+  },
+  "operator_material_overrides": {
+    "controller_initial_prompt": "beta/mb-3.2.0-beta.3/controller-initial.md"
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The application tree remains the cp-002 product state; only the beta flow pack changes.",
+    "Beta 3 validates RUN-bound semantic schemas, finish receipts, the conflict boundary and required trusted session binding."
+  ]
+}
