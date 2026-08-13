@@ -27,13 +27,17 @@ commit.
    commit `eval-input`, отсутствие remotes. Не меняй этот input commit.
 2. Выполни priming строго по project-local
    `.memory-bank/dd-flow/prime.md` и прочитай требуемые им project rules.
-3. До создания RUN выполни runtime preflight. Используй установленный
-   `/Users/deksden/Library/pnpm/dd-flow` версии `0.5.0`, если `dd-flow` не
-   находится через `PATH`. Не объявляй CLI недоступным, пока не проверен этот
-   точный путь.
-4. Затем выполни project-local protocol flow и logical stage `specify` для
-   запроса ниже. Регистрируй RUN/stage/session в предусмотренные flow моменты,
-   а не задним числом; сохраняй flow flags, timing и usage statuses честно.
+3. Создай intake-файл в рабочем репозитории с точным запросом ниже, затем
+   первым flow action запусти CLI-owned bootstrap:
+   `dd-flow stage start --bootstrap --stage specify --project-root <root>
+   --subject <safe-label> --intake-file <path> --json`. Не запускай перед ним
+   `help`, `status`, `version`, permissions или отдельную регистрацию RUN:
+   bootstrap сам возвращает authoritative stage prompt, runtime/Git/
+   permissions/session receipt и bounded required context.
+4. Прочитай только возвращённый stage prompt и перечисленные им project
+   sources, затем выполни project-local SPECIFY flow для запроса ниже.
+   Регистрируй stage/session через предусмотренные CLI-команды, а не задним
+   числом; сохраняй flow flags, timing и usage statuses честно.
 5. Выяви существенные gaps задачи по применимым правилам flow. Сначала
    исследуй проектные факты, чтобы не задавать routine implementation questions,
    уже закрытые кодом или Memory Bank.

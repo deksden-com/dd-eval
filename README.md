@@ -353,6 +353,15 @@ incomplete-input SPECIFY goal only. The exact operator procedure and stop gate
 are in `cases/EVAL-001-task-priority/runbook-mb-3-0-0-specify.md`; the
 clarification packet is deliberately not delivered until that gate passes.
 
+### Memory Bank 3.2.0 Goal-A rerun
+
+The current treatment uses immutable checkpoint `cp-002-mb-3-2-0`, published tag
+`eval-cp-002-mb-3-2-0`, Memory Bank `3.2.0`, flow pack commit `2a1aaec`, and
+CLI `0.7.0`. It uses the
+`codex-desktop-gpt-5-6-luna-max-dd-flow-0-7-0` profile and runs Goal A only:
+CLI-owned bootstrap plus SPECIFY, stopping at `waiting_for_user`. The operator
+procedure is `cases/EVAL-001-task-priority/runbook-mb-3-2-0-specify.md`.
+
 ## Exe.dev checkpoint previews
 
 Canonical checkpoint previews use one isolated Exe.dev VM per accepted source

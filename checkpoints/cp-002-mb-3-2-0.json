@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-mb-3-2-0",
+  "title": "cp-002 product state with Memory Bank 3.2.0",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-cp-002-mb-3-2-0",
+    "commit": "252f6c8b112a88327cf8c8e22c606679f85bb0ff",
+    "annotated_tag_object": "81b225668ccd65380c5b2e6a0d2d95f7b7cde3e8"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0",
+    "flow_pack_commit": "2a1aaec84ee7d62b9f5a6549de5d1f0cb88082c0",
+    "dd_flow_cli": "0.7.0"
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The application tree remains the cp-002 product state; this treatment updates the project Memory Bank and flow runtime to 3.2.0.",
+    "This checkpoint is the Memory Bank 3.2.0 treatment input for the EVAL-001 Goal-A SPECIFY rerun."
+  ]
+}
