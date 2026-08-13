@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-mb-3-2-0-beta-1",
+  "title": "cp-002 product state with Memory Bank 3.2.0-beta.1",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-beta.1",
+    "commit": "fc33479867f57cc9b14c783ad52e8b57922969fa",
+    "annotated_tag_object": "ea292eec8576d5e4d670ffb920c23c9ecf1faaf4"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-beta.1",
+    "flow_pack_commit": "fc33479867f57cc9b14c783ad52e8b57922969fa",
+    "dd_flow_cli": "0.7.1-beta.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.7.1-beta.1",
+      "commit": "5ef46a5fc5df1d9f2e04cf96093d9052052971a4",
+      "annotated_tag_object": "0cbe4e376a1db20300b854ca83d5dcaa5db62951"
+    }
+  },
+  "operator_material_overrides": {
+    "controller_initial_prompt": "beta/mb-3.2.0-beta.1/controller-initial.md"
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The application tree remains the cp-002 product state; only the beta flow pack changes.",
+    "This immutable beta treatment tests the repaired SPECIFY start, session binding, waiting state and generated report."
+  ]
+}
