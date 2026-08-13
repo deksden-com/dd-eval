@@ -31,7 +31,8 @@
       "cp-002-mb-3-2-0",
       "cp-002-mb-3-2-0-beta-1",
       "cp-002-mb-3-2-0-beta-2",
-      "cp-002-mb-3-2-0-beta-3"
+      "cp-002-mb-3-2-0-beta-3",
+      "cp-002-mb-3-2-0-beta-4"
     ],
     "supported_tracks": ["planning"],
     "prompt_delivery": "outside_repository",

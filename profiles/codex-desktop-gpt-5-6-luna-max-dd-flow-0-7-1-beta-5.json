@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-max-dd-flow-0-7-1-beta-5",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "max",
+  "runtime": {
+    "dd_flow_cli": {
+      "path": "/Users/deksden/Library/pnpm/dd-flow",
+      "version": "0.7.1-beta.5",
+      "git_tag": "eval-engine-0.7.1-beta.5",
+      "git_commit": "1d6fae436bb2a57b08d0834be0295f97c21558ed",
+      "install_source": "local_development"
+    },
+    "mb_lint": {
+      "path": "/Users/deksden/Library/pnpm/mb-lint",
+      "version": "0.4.0",
+      "install_source": "published_runtime"
+    }
+  },
+  "notes": "Controlled Desktop SPECIFY beta.4 run with bootstrap hook registration and required trusted session binding."
+}

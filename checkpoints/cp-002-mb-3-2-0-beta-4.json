@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-mb-3-2-0-beta-4",
+  "title": "cp-002 product state with Memory Bank 3.2.0-beta.4",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-beta.4",
+    "commit": "eeaf377be9caedcba193ccc446ed44868576f610",
+    "annotated_tag_object": "a03885d8eedc15e32084ba0e4c48052c9f5ae0c1"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-beta.4",
+    "flow_pack_commit": "eeaf377be9caedcba193ccc446ed44868576f610",
+    "dd_flow_cli": "0.7.1-beta.5",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.7.1-beta.5",
+      "commit": "1d6fae436bb2a57b08d0834be0295f97c21558ed",
+      "annotated_tag_object": "bfce145f86febe43ce756fe038d8f6bf9eeb5d13"
+    }
+  },
+  "operator_material_overrides": {
+    "controller_initial_prompt": "beta/mb-3.2.0-beta.4/controller-initial.md"
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The product tree remains the cp-002 baseline.",
+    "This candidate fixes the bootstrap-hook registration cycle discovered by the beta.3 launch gate."
+  ]
+}
