@@ -27,3 +27,13 @@ the launch to its project-selected engine.
 3. A successful launch persists the true worker session in SQLite for both the
    Agent Turn and flow-session record, but does not return it to the agent.
 4. The returned SPECIFY prompt remains free of lifecycle and eval instructions.
+
+## Evaluation boundary
+
+`EVAL-002` now establishes its context in a separate canonical session:
+`prime.md`, then a normal feature discussion, then a native fork at the user
+trigger “Ок, давай оформим протокол.” The prior cold-start controller bootstrap
+is retained only as a hook/contract diagnostic and is not a scored flow run.
+
+The current beta has one remaining integration gap: its user-facing entrypoint
+must route that trigger to vNext SPECIFY before a forked run can be scored.

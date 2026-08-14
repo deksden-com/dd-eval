@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "id": "EVAL-002-codex-desktop-luna-max-context-v1",
+  "case_id": "EVAL-002-vnext-specify-task-priority",
+  "profile_id": "codex-desktop-gpt-5-6-luna-max-dd-flow-0-8-0-beta-4",
+  "checkpoint": "cp-002-vnext-specify-beta-4",
+  "state": "ready",
+  "materialization": {
+    "source_tag": "eval-mb-3.2.0-vnext-specify-beta.4",
+    "source_commit": "6c69bd2ed0ecae15507f5dd73abcef03437bdce0",
+    "input_commit": "ece042637c4f73d82d9260d4e260544508305dfa",
+    "input_tree": "e0f4deb7533fe554ce7f313e83192358fdebe4be"
+  },
+  "session": {
+    "harness": "codex-desktop",
+    "host_id": "local",
+    "thread_id": "01a00109-b41b-7a61-a220-bae19d4c1729",
+    "fork_turn_id": "01a0010b-2d6f-7252-8b20-3ff6a124d3b9",
+    "model": "gpt-5.6-luna",
+    "reasoning": "max"
+  },
+  "context_sequence": [
+    "../prompts/session/00-prime.md",
+    "../prompts/session/01-discussion.md"
+  ],
+  "fork_point": {
+    "after": "../prompts/session/01-discussion.md",
+    "trigger": "../prompts/session/02-start-flow.md"
+  },
+  "prompt_sha256": {
+    "prime": "69511a836327aa1883f64c128c7f7e5c9b068cfa7d2c7201fadf9f2d35a13418",
+    "discussion": "5ab9ac432109bbc4142b32c0207fbad74ece0adc04776d26d86fdcfd788cc4db",
+    "trigger": "f49a01e5c704a7665988f0c1ba18b73c29430109d35aca48116c7830b2388053"
+  },
+  "portability": {
+    "native_fork": "Use when the harness can fork this exact session.",
+    "replay": "For another harness or model, replay context_sequence in order, save its own session identity, then fork if supported."
+  }
+}

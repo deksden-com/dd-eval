@@ -3,7 +3,18 @@
   "id": "EVAL-002-vnext-specify-task-priority",
   "title": "vNext SPECIFY: task priority",
   "checkpoint": "cp-002-vnext-specify-beta-4",
-  "purpose": "Prove the SPECIFY-first vNext flow from a normal feature discussion, before protocol creation.",
+  "purpose": "Prove the SPECIFY-first vNext flow from a primed feature-discussion session, before protocol creation.",
+  "session_baseline": {
+    "mode": "native_fork_preferred",
+    "definition": "baselines/codex-desktop-gpt-5-6-luna-max.json",
+    "prime_prompt": "prompts/session/00-prime.md",
+    "discussion_prompt": "prompts/session/01-discussion.md",
+    "fork_trigger_prompt": "prompts/session/02-start-flow.md",
+    "portable_replay": [
+      "prompts/session/00-prime.md",
+      "prompts/session/01-discussion.md"
+    ]
+  },
   "tracks": {
     "specify": {
       "status": "ready",
