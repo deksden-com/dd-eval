@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-max-dd-flow-0-8-0-beta-8",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "max",
+  "runtime": {
+    "dd_flow_cli": {
+      "router_version": "0.8.0-beta.8",
+      "engine_version": "0.8.0-beta.8",
+      "engine_tag": "eval-engine-0.8.0-beta.8",
+      "engine_commit": "35a80abea0a3588acb4bc9352f82d4c63e563e6a",
+      "install_source": "local_development_snapshot"
+    }
+  },
+  "notes": "vNext SPECIFY beta.9: a native fork of a primed feature discussion; the worker receives only the normal user trigger and enters the complete semantic SPECIFY stage."
+}

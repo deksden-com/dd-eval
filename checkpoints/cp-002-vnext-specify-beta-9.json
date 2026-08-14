@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-specify-beta-9",
+  "title": "cp-002 product state with vNext SPECIFY contract and observability repairs",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-specify-beta.9",
+    "commit": "e4a097f4a602ac13a210ff35b75f8d8eb53a675b",
+    "annotated_tag_object": "30e73bae2ec0184fb956f8835e5a31c1adbe4c38"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-specify-beta.9",
+    "flow_pack_commit": "e4a097f4a602ac13a210ff35b75f8d8eb53a675b",
+    "dd_flow_cli": "0.8.0-beta.8",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.8",
+      "commit": "35a80abea0a3588acb4bc9352f82d4c63e563e6a",
+      "annotated_tag_object": "15e66817b9441c7dcf47b960f08191638c90c3a9",
+      "snapshot_integrity": "c50ae96869836c2e54049dc76c37773aa7f55f0b6836b3876f0988f5fb43f825"
+    }
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The product tree remains cp-002.",
+    "Beta.9 makes actor-visible journeys select use_case_analysis, supplies the complete result contract, preserves policy findings and records real stage/session observability."
+  ]
+}
