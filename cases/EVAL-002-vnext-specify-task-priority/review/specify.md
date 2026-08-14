@@ -12,8 +12,9 @@ that belongs to the deterministic controller.
 - The result is inside `stages/specify/`, validates against
   `dd-flow/vnext-specify-result@1`, and its immutable receipt predates
   validation.
-- The real worker session is attached by the trusted controller adapter; no
-  agent-authored session id is accepted.
+- The first worker action is `flow launch`; its trusted PreToolUse event binds
+  the real worker session to the Agent Turn. No agent-authored session id is
+  accepted.
 - `waiting_for_user` remains a non-terminal RUN state. `specified`, `failed`,
   and `cancelled` are terminal.
 

@@ -1,27 +1,21 @@
-# Controller: launch vNext SPECIFY
+# Worker bootstrap: vNext SPECIFY
 
-This is controller material, not a prompt for the evaluated agent.
+You are a fresh agent session in the materialized repository
+`{{RUN_REPOSITORY}}`.
 
-1. Materialize the case and run exactly one deterministic launch:
+Your first tool action must be exactly:
 
-   ```sh
-   dd-flow flow launch --flow mb-sdlc-vnext-specify \
-     --project-root "{{RUN_REPOSITORY}}" \
-     --intake-file "{{INTAKE_FILE}}" \
-     --slug task-priority --json
-   ```
+```sh
+dd-flow flow launch --flow mb-sdlc-vnext-specify \
+  --project-root "{{RUN_REPOSITORY}}" \
+  --intake-file "{{INTAKE_FILE}}" \
+  --slug task-priority --json
+```
 
-2. Start a fresh agent session with the returned `worker_prompt_markdown` as
-   its entire task. Do not add eval, lifecycle, CLI, Git, or review hints.
-3. When the agent has stopped, have the trusted controller adapter attach its
-   real session to the returned Agent Turn, then call:
+The command returns `worker_prompt_markdown`. Treat that returned text as your
+complete task and follow it. Do not add separate eval, lifecycle, CLI, Git, or
+review work before or after the returned stage prompt.
 
-   ```sh
-   dd-flow work submit "<work-id>" \
-     --project-root "{{RUN_REPOSITORY}}" \
-     --result-file "<returned-result-path>" --json
-   ```
-
-4. A valid initial pass either remains `waiting_for_user` with structured
-   blocking questions or ends `specified` with no questions. Do not create a
-   protocol, plan, or code work in this MVP.
+Write only the requested semantic result, then stop. The controller submits
+that result after your session ends. Do not create a protocol, plan, code,
+review, merge, or deployment work.
