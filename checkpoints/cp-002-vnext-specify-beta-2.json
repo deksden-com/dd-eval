@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-specify-beta-2",
+  "title": "cp-002 product state with the repaired vNext SPECIFY proof pack",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-specify-beta.2",
+    "commit": "b1a2b2c0908d889d0ee15bd79cb27b2ecbaf9054",
+    "annotated_tag_object": "61da646674392af24c41ec1c86bce27a00579cee"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-specify-beta.2",
+    "flow_pack_commit": "b1a2b2c0908d889d0ee15bd79cb27b2ecbaf9054",
+    "dd_flow_cli": "0.8.0-beta.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.2",
+      "commit": "14d4b687f00808f25228a116f5c668b777c589b9",
+      "annotated_tag_object": "51683cf3b05878e376a74da80f47c99fc68770bb",
+      "snapshot_integrity": "e439415b5e3de2407b5169dae2d2e7cc8a019c1a8c9c64fde09d28786c6414f4"
+    }
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The product tree is unchanged from cp-002; only the beta flow pack and runtime engine are evaluated.",
+    "Beta.2 adds the narrow runtime-storage initialization required for a router-dispatched vNext launch against an existing shared database."
+  ]
+}

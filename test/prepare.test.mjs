@@ -55,6 +55,25 @@ test("checkpoint operator-material overrides are constrained to dd-eval", async 
   ), /must stay inside dd-eval/);
 });
 
+test("a stage-only track requires only its declared controller materials", async () => {
+  const { resolveOperatorMaterials } = await import("../lib/dd-eval.mjs");
+  const materials = resolveOperatorMaterials(
+    path.join(path.resolve(import.meta.dirname, ".."), "cases", "EVAL-002-vnext-specify-task-priority"),
+    {
+      initial_prompt: "prompts/discussion.md",
+      controller_initial_prompt: "prompts/controller-launch.md",
+      review_prompt: "review/specify.md"
+    },
+    {}
+  );
+  assert.deepEqual(materials, {
+    initial_prompt: "cases/EVAL-002-vnext-specify-task-priority/prompts/discussion.md",
+    controller_initial_prompt: "cases/EVAL-002-vnext-specify-task-priority/prompts/controller-launch.md",
+    review_prompt: "cases/EVAL-002-vnext-specify-task-priority/review/specify.md"
+  });
+});
+
+
 test("prepare selects the Memory Bank 2.16.0 checkpoint without changing the case", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-eval-mb216-"));
   try {

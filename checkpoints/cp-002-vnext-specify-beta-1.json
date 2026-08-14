@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-specify-beta-1",
+  "title": "cp-002 product state with the vNext SPECIFY proof pack",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-specify-beta.1",
+    "commit": "6bc1fd261447b592200d7e7d78ad78c9c6182649",
+    "annotated_tag_object": "feb7024195fca5930295604de2b77d1984cc7313"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-specify-beta.1",
+    "flow_pack_commit": "6bc1fd261447b592200d7e7d78ad78c9c6182649",
+    "dd_flow_cli": "0.8.0-beta.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.1",
+      "commit": "72608530cac9d9ae9d6055bbc590e55ea6d633fa",
+      "annotated_tag_object": "170d2a32082c0c26fc221fae075e54282822fde2",
+      "snapshot_integrity": "da09fd51265572c3e40b692229676c29c0e0ff66e179d50681d78c22057ccff0"
+    }
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The product tree is unchanged from cp-002; only the beta flow pack is evaluated.",
+    "This checkpoint is intentionally limited to the SPECIFY-first vNext proof and creates no protocol before the result is accepted."
+  ]
+}

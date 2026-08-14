@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-specify-beta-3",
+  "title": "cp-002 product state with the vNext SPECIFY status repair",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-specify-beta.3",
+    "commit": "8f55d7086e566fbf67b4552a96bf0746b366486f",
+    "annotated_tag_object": "65329e07d0eb171bd8a03ebc5ec2116bd080c12e"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-specify-beta.3",
+    "flow_pack_commit": "8f55d7086e566fbf67b4552a96bf0746b366486f",
+    "dd_flow_cli": "0.8.0-beta.3",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.3",
+      "commit": "f7519164c3718e2db690ceb1bf01454c45b4aa7c",
+      "annotated_tag_object": "cc0e99ca7008b25a94d445055e2d7ccad62e99ac",
+      "snapshot_integrity": "1fdc4f98213aa46e5796efaa0545fe82d4e2546317fd9574e9c6249d7be65bca"
+    }
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The product tree remains cp-002.",
+    "Beta.3 repairs only the vNext-specific run-status projection after beta.2 established router launch and runtime-storage readiness."
+  ]
+}

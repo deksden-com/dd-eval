@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-max-dd-flow-0-8-0-beta-2",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "max",
+  "runtime": {
+    "dd_flow_cli": {
+      "router": "globally installed stable router",
+      "engine_version": "0.8.0-beta.2",
+      "engine_tag": "eval-engine-0.8.0-beta.2",
+      "engine_commit": "14d4b687f00808f25228a116f5c668b777c589b9",
+      "install_source": "local_development_snapshot"
+    }
+  },
+  "notes": "vNext SPECIFY proof. The router must resolve the exact local beta engine before the worker session starts."
+}
