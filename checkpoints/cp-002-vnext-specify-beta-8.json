@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-specify-beta-8",
+  "title": "cp-002 product state with full canonical vNext SPECIFY semantics",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-specify-beta.8",
+    "commit": "9fbb9f51fbf50159b9c8684e11d0cbfc9056c0fd",
+    "annotated_tag_object": "33db2ec73e088ae5a8a4f9a7550b576396773b11"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-specify-beta.8",
+    "flow_pack_commit": "9fbb9f51fbf50159b9c8684e11d0cbfc9056c0fd",
+    "dd_flow_cli": "0.8.0-beta.7",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.7",
+      "commit": "c22221b592352232fc37c8225caa08d58cadf247",
+      "annotated_tag_object": "2b0c5bc9decba25bf5ab684748ceaefd096899ad",
+      "snapshot_integrity": "0bd11e64d76d5b83c150a5ffd5c2ce5dd6c1aa0983e80af0e37eb4a995b9aea0"
+    }
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The product tree remains cp-002.",
+    "Beta.8 preserves the canonical SPECIFY semantic scope in the vNext SPECIFY → PROTOCOLIZE order and requires the complete adaptive nine-method matrix."
+  ]
+}
