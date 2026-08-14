@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "EVAL-002-codex-desktop-luna-max-context-v3",
+  "case_id": "EVAL-002-vnext-specify-task-priority",
+  "profile_id": "codex-desktop-gpt-5-6-luna-max-dd-flow-0-8-0-beta-5",
+  "checkpoint": "cp-002-vnext-specify-beta-6",
+  "state": "ready",
+  "materialization": {
+    "source_tag": "eval-mb-3.2.0-vnext-specify-beta.6",
+    "source_commit": "efdbbcd",
+    "engine_tag": "eval-engine-0.8.0-beta.5",
+    "engine_commit": "f27c8bb"
+  },
+  "session": {
+    "harness": "codex-desktop",
+    "host_id": "local",
+    "thread_id": "01a00148-536f-7400-94d9-139e82e69366",
+    "fork_turn_id": "01a0014a-4ed9-7170-9723-7854e6ce3002",
+    "model": "gpt-5.6-luna",
+    "reasoning": "max"
+  },
+  "context_sequence": [
+    "../prompts/session/00-prime.md",
+    "../prompts/session/01-discussion.md"
+  ],
+  "fork_point": {
+    "after": "../prompts/session/01-discussion.md",
+    "trigger": "../prompts/session/02-start-flow.md",
+    "fork_thread_id": "01a0014b-8130-7a70-9292-63333d3ba285"
+  },
+  "prompt_sha256": {
+    "prime": "69511a836327aa1883f64c128c7f7e5c9b068cfa7d2c7201fadf9f2d35a13418",
+    "discussion": "5ab9ac432109bbc4142b32c0207fbad74ece0adc04776d26d86fdcfd788cc4db",
+    "trigger": "f49a01e5c704a7665988f0c1ba18b73c29430109d35aca48116c7830b2388053"
+  }
+}
