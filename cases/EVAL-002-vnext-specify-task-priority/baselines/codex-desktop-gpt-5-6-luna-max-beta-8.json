@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "EVAL-002-codex-desktop-luna-max-context-v4",
+  "case_id": "EVAL-002-vnext-specify-task-priority",
+  "profile_id": "codex-desktop-gpt-5-6-luna-max-dd-flow-0-8-0-beta-7",
+  "checkpoint": "cp-002-vnext-specify-beta-8",
+  "state": "ready",
+  "materialization": {
+    "source_tag": "eval-mb-3.2.0-vnext-specify-beta.8",
+    "source_commit": "9fbb9f51fbf50159b9c8684e11d0cbfc9056c0fd",
+    "engine_tag": "eval-engine-0.8.0-beta.7",
+    "engine_commit": "c22221b592352232fc37c8225caa08d58cadf247"
+  },
+  "session": {
+    "harness": "codex-desktop",
+    "host_id": "local",
+    "thread_id": "01a0016d-dbef-7093-a5a1-3a96ed42f57d",
+    "fork_turn_id": "01a00170-0574-7f80-b939-43d8cead761b",
+    "model": "gpt-5.6-luna",
+    "reasoning": "max"
+  },
+  "context_sequence": [
+    "../prompts/session/00-prime.md",
+    "../prompts/session/01-discussion.md"
+  ],
+  "fork_point": {
+    "after": "../prompts/session/01-discussion.md",
+    "trigger": "../prompts/session/02-start-flow.md",
+    "fork_thread_id": "01a00170-4653-7812-9629-49df2b8d04c5"
+  },
+  "timing_ms": {
+    "prime": 136166,
+    "discussion": 12580
+  },
+  "note": "The priming controller supplied an outdated nested repository path; the agent found the materialized Git root before beginning the otherwise canonical priming sequence. The scored fork received only the canonical trigger."
+}
