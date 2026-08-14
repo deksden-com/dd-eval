@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-specify-beta-5",
+  "title": "cp-002 product state with user-triggered vNext SPECIFY entry",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-specify-beta.5",
+    "commit": "6ddc0958e26d6a2dfe721276d43fc1b1a2d5fe54",
+    "annotated_tag_object": "de6b69fdc11a1c8daec06f8e0aa54c22c3a21487"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-specify-beta.5",
+    "flow_pack_commit": "6ddc0958e26d6a2dfe721276d43fc1b1a2d5fe54",
+    "dd_flow_cli": "0.8.0-beta.4",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.4",
+      "commit": "83c625893bb9abf9a41091ad6bc34c2bce8fed18",
+      "annotated_tag_object": "0289ccc1fe2b7fc3928c99d01953d0b3aa874df1",
+      "snapshot_integrity": "abe745c083ab362c63a5f3f189f793ab06d4964ae522c300e92895fc8de27401"
+    }
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The product tree remains cp-002.",
+    "Beta.5 routes a normal primed user request to vnext/start.md, which launches hook-bound vNext SPECIFY without protocol-first work."
+  ]
+}

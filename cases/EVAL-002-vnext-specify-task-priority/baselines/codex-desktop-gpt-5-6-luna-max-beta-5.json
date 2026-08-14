@@ -1,21 +1,21 @@
 {
   "schema_version": 1,
-  "id": "EVAL-002-codex-desktop-luna-max-context-v1",
+  "id": "EVAL-002-codex-desktop-luna-max-context-v2",
   "case_id": "EVAL-002-vnext-specify-task-priority",
-  "profile_id": "codex-desktop-gpt-5-6-luna-max-dd-flow-0-8-0-beta-4",
-  "checkpoint": "cp-002-vnext-specify-beta-4",
-  "state": "superseded",
+  "profile_id": "codex-desktop-gpt-5-6-luna-max-dd-flow-0-8-0-beta-5",
+  "checkpoint": "cp-002-vnext-specify-beta-5",
+  "state": "ready",
   "materialization": {
-    "source_tag": "eval-mb-3.2.0-vnext-specify-beta.4",
-    "source_commit": "6c69bd2ed0ecae15507f5dd73abcef03437bdce0",
-    "input_commit": "ece042637c4f73d82d9260d4e260544508305dfa",
-    "input_tree": "e0f4deb7533fe554ce7f313e83192358fdebe4be"
+    "source_tag": "eval-mb-3.2.0-vnext-specify-beta.5",
+    "source_commit": "6ddc0958e26d6a2dfe721276d43fc1b1a2d5fe54",
+    "input_commit": "7614ed07f179e3337720e7d3887b5f434e7e0b35",
+    "input_tree": "5a4693220df337b0e4a4a9e7f2811836c4bc0c51"
   },
   "session": {
     "harness": "codex-desktop",
     "host_id": "local",
-    "thread_id": "01a00109-b41b-7a61-a220-bae19d4c1729",
-    "fork_turn_id": "01a0010b-2d6f-7252-8b20-3ff6a124d3b9",
+    "thread_id": "01a00119-5b51-70b1-8e11-3fb2e5daa3f8",
+    "fork_turn_id": "01a0011a-a062-7fa2-8ecb-0c5196939dc4",
     "model": "gpt-5.6-luna",
     "reasoning": "max"
   },
@@ -35,7 +35,5 @@
   "portability": {
     "native_fork": "Use when the harness can fork this exact session.",
     "replay": "For another harness or model, replay context_sequence in order, save its own session identity, then fork if supported."
-  },
-  "superseded_by": "codex-desktop-gpt-5-6-luna-max-beta-5.json",
-  "supersession_reason": "This baseline was primed before beta.5 changed the user-level flow entrypoint."
+  }
 }
