@@ -408,6 +408,23 @@ dd-eval/cases/<case>/results/<run-id>/analysis.md
 The analysis records the beta change list, verdict, timings, session coverage,
 engine binding identity, material findings and archive location.
 
+### Session identity is mandatory
+
+Every committed result or analysis must record the real session IDs for **all**
+agent sessions that contributed to the RUN, including the role and stage range
+of each one. Record the materialized repository path beside them. For example:
+
+```text
+- SPECIFY session: `<id>`
+- PROTOCOLIZE session: `<id>`
+- materialized repository: `dd-eval-runs/<case>/<run>`
+```
+
+Obtain the authoritative list with `dd-flow stat run sessions ls --run
+<RUN-ID> --project-root <run-repository> --json`; do not infer IDs from a
+model report. This is required so a reviewer can reopen the Codex sessions,
+locate their JSONL transcripts, and reconcile usage with the stored RUN.
+
 Keep bulky forensic artifacts outside Git under one immutable archive
 directory:
 

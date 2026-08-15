@@ -8,7 +8,9 @@ The isolated same-session run completed `SPECIFY → PROTOCOLIZE`:
 - stages: `specified`, then `protocolized`
 - created: `PRT-007-task-priority` and the task-priority feature under
   `EP-001-task-management`
-- sessions: one registered Codex session
+- Codex session: `01a0057c-ad1f-7aa3-b0ec-84d4383fcc1c`
+- materialized repository:
+  `dd-eval-runs/EVAL-003-vnext-protocolize-task-priority/luna-max-beta5-same-session`
 - durations: SPECIFY 191,226 ms; PROTOCOLIZE 89,631 ms
 
 The post-run projection is correct: `flow_kind=vnext_protocolize`,
