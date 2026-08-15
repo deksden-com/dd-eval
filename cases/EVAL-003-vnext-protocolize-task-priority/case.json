@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "EVAL-003-vnext-protocolize-task-priority",
   "title": "vNext SPECIFY to PROTOCOLIZE: task priority",
-  "checkpoint": "cp-002-vnext-protocolize-beta-8",
+  "checkpoint": "cp-002-vnext-protocolize-beta-9",
   "purpose": "Prove the portable SPECIFY handoff and the smallest delivery structure.",
   "tracks": {
     "same-session": {
@@ -17,7 +17,7 @@
     }
   },
   "materialization": {
-    "checkpoints": ["cp-002-vnext-protocolize-beta-8"],
+    "checkpoints": ["cp-002-vnext-protocolize-beta-9"],
     "supported_tracks": ["same-session", "new-session"],
     "prompt_delivery": "outside_repository",
     "source_history": "excluded",

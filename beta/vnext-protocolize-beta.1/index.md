@@ -10,9 +10,9 @@ This bundle extends the proven vNext SPECIFY contour with one following stage:
 `SPECIFY → PROTOCOLIZE`. It intentionally excludes PLAN, CODE, REVIEW and
 MERGE runtime work.
 
-Engine target: `dd-flow-cli@0.8.0-beta.20`.
+Engine target: `dd-flow-cli@0.8.0-beta.21`.
 
-Flow pack target: `3.2.0-vnext-protocolize-beta.8`.
+Flow pack target: `3.2.0-vnext-protocolize-beta.9`.
 
 ## Included specifications
 
@@ -24,5 +24,6 @@ Flow pack target: `3.2.0-vnext-protocolize-beta.8`.
 
 `EVAL-003` passed in both handoff modes on beta.4, exposing and preserving two
 runtime defects. Beta.5 fixed the projection defect and passed the clean
-same-session rerun. Beta.8 adds the complete delivery contract and is prepared
-for the next same-session proof. Results live beside the case.
+same-session rerun. Beta.8 exposed a flow-version routing mismatch; beta.9
+fixes it and is prepared for the next same-session proof. Results live beside
+the case.
