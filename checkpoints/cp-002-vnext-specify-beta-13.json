@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-specify-beta-13",
+  "title": "cp-002 with hook-rewrite-independent vNext SPECIFY entry",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-specify-beta.13",
+    "commit": "1d0f93ee28ceef90bdaa4b142cdf2164d167a358",
+    "annotated_tag_object": "24596ce58c913003b657f0a47d26581a936c04e9"
+  },
+  "product_baseline": { "checkpoint_id": "cp-002", "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07", "product_code_changed": false },
+  "memory_bank": {
+    "version": "3.2.0-vnext-specify-beta.13",
+    "flow_pack_commit": "1d0f93ee28ceef90bdaa4b142cdf2164d167a358",
+    "dd_flow_cli": "0.8.0-beta.12",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.12",
+      "commit": "46e8485ad1067b2e6a74ea38f8234f42a0593207",
+      "annotated_tag_object": "43d1d0c5df6e17b5c78dcec3c45127787a6b49ae",
+      "snapshot_integrity": "cafc32359b9655fcafd265fa57ca3402f6a9ab0cb5f8640f562c38d87722e559"
+    }
+  },
+  "state": "accepted_immutable",
+  "notes": ["Engine beta.12 atomically claims a fresh, matching PreToolUse event when Desktop ignores updatedInput."]
+}

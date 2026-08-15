@@ -6,10 +6,10 @@ You are a fresh agent session in the materialized repository
 Your first tool action must be exactly:
 
 ```sh
-dd-flow flow launch --flow mb-sdlc-vnext-specify \
+dd-flow stage start --bootstrap --stage specify \
   --project-root "{{RUN_REPOSITORY}}" \
-  --intake-file "{{INTAKE_FILE}}" \
-  --slug task-priority --json
+  --subject task-priority \
+  --intake-file "{{INTAKE_FILE}}" --json
 ```
 
 The command returns `worker_prompt_markdown`. Treat that returned text as your
