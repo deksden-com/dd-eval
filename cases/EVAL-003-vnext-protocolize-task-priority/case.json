@@ -8,12 +8,14 @@
     "same-session": {
       "status": "ready",
       "initial_prompt": "prompts/discussion.md",
-      "controller_initial_prompt": "prompts/controller-same-session.md"
+      "controller_initial_prompt": "prompts/controller-same-session.md",
+      "review_prompt": "review/protocolize.md"
     },
     "new-session": {
       "status": "ready",
       "initial_prompt": "prompts/discussion.md",
-      "controller_initial_prompt": "prompts/controller-new-session.md"
+      "controller_initial_prompt": "prompts/controller-new-session.md",
+      "review_prompt": "review/protocolize.md"
     }
   },
   "materialization": {
