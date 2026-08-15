@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-protocolize-beta-5",
+  "title": "cp-002 with vNext SPECIFY to PROTOCOLIZE and run-guidance fix",
+  "source": {"repository": "https://github.com/deksden-com/dd-tasks.git", "tag": "eval-mb-3.2.0-vnext-protocolize-beta.5", "commit": "badf8dcc66ca4ec24407023f97ec3fed8179a5b1"},
+  "product_baseline": {"checkpoint_id": "cp-002", "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07", "product_code_changed": false},
+  "memory_bank": {"version": "3.2.0-vnext-protocolize-beta.5", "dd_flow_cli": "0.8.0-beta.18", "engine": {"repository": "https://github.com/deksden-com/dd-flow-cli.git", "tag": "eval-engine-0.8.0-beta.18", "commit": "4e44edf431dee645f777944885b35513b64d23fb"}},
+  "state": "accepted_immutable"
+}
