@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-specify-beta-14",
+  "title": "cp-002 with write-safe internal runtime schema migration",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-specify-beta.14",
+    "commit": "a084adfe571d88260f0787ce5b268a5ed4a597ef",
+    "annotated_tag_object": "7eace849a0c1c0d6aa94c0c8947e02573c8b9729"
+  },
+  "product_baseline": { "checkpoint_id": "cp-002", "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07", "product_code_changed": false },
+  "memory_bank": {
+    "version": "3.2.0-vnext-specify-beta.14",
+    "flow_pack_commit": "a084adfe571d88260f0787ce5b268a5ed4a597ef",
+    "dd_flow_cli": "0.8.0-beta.13",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.13",
+      "commit": "96e9ff884835626a0d4f451b4f4f09046c727af9",
+      "annotated_tag_object": "657269d01ddbfb633d1ec14251429ad8ef625f27",
+      "snapshot_integrity": "3cfe603fb8ff07194138daee22829fc4f50149565c73b33b007d8214c121ea69"
+    }
+  },
+  "state": "accepted_immutable",
+  "notes": ["Engine beta.13 upgrades only additive internal SQLite schema before write commands, then claims the matching PreToolUse event by invocation fingerprint."]
+}
