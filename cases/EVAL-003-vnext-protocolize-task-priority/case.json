@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "id": "EVAL-003-vnext-protocolize-task-priority",
+  "title": "vNext SPECIFY to PROTOCOLIZE: task priority",
+  "checkpoint": "cp-002-vnext-protocolize-beta-4",
+  "purpose": "Prove the portable SPECIFY handoff and the smallest delivery structure.",
+  "tracks": {
+    "same-session": {
+      "status": "ready",
+      "initial_prompt": "prompts/discussion.md",
+      "controller_initial_prompt": "prompts/controller-same-session.md"
+    },
+    "new-session": {
+      "status": "ready",
+      "initial_prompt": "prompts/discussion.md",
+      "controller_initial_prompt": "prompts/controller-new-session.md"
+    }
+  },
+  "materialization": {
+    "checkpoints": ["cp-002-vnext-protocolize-beta-4"],
+    "supported_tracks": ["same-session", "new-session"],
+    "prompt_delivery": "outside_repository",
+    "source_history": "excluded",
+    "source_remotes": "excluded",
+    "initial_branch": "main",
+    "initial_commit_message": "eval-input"
+  },
+  "results": {"same-session": [], "new-session": []}
+}

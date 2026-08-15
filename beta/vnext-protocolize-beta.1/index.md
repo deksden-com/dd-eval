@@ -10,9 +10,9 @@ This bundle extends the proven vNext SPECIFY contour with one following stage:
 `SPECIFY → PROTOCOLIZE`. It intentionally excludes PLAN, CODE, REVIEW and
 MERGE runtime work.
 
-Engine target: `dd-flow-cli@0.8.0-beta.16`.
+Engine target: `dd-flow-cli@0.8.0-beta.17`.
 
-Flow pack target: `3.2.0-vnext-protocolize-beta.3`.
+Flow pack target: `3.2.0-vnext-protocolize-beta.4`.
 
 ## Included specifications
 

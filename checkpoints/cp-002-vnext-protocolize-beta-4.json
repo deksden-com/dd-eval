@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-protocolize-beta-4",
+  "title": "cp-002 with vNext SPECIFY to PROTOCOLIZE and catalog-path fix",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-protocolize-beta.4",
+    "commit": "358f234c7fac7571a098b7b0c1e9eca9355c44e9"
+  },
+  "product_baseline": {"checkpoint_id": "cp-002", "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07", "product_code_changed": false},
+  "memory_bank": {
+    "version": "3.2.0-vnext-protocolize-beta.4",
+    "dd_flow_cli": "0.8.0-beta.17",
+    "engine": {"repository": "https://github.com/deksden-com/dd-flow-cli.git", "tag": "eval-engine-0.8.0-beta.17", "commit": "c1e9e3b807d8d20373aef2a230b82b87f1c9b20e"}
+  },
+  "state": "accepted_immutable"
+}
