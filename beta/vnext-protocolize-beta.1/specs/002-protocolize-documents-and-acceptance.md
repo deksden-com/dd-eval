@@ -19,12 +19,20 @@ The semantic result declares one of:
 - a single executable PRT; or
 - a PSET and executable member PRTs.
 
-It records only material delivery decisions: narrow goal, explicit hard
-dependencies, primary acceptance for every PRT, aggregate acceptance for a
-PSET, and durable-document actions.
+It records only material delivery decisions: a `scope_sizing_verdict`, narrow
+goals and roles, explicit hard dependencies, primary acceptance for every PRT,
+request-acceptance coverage, and durable links. The raw user intake is copied
+beside the first PRT only when it is materially useful.
+
+A PSET additionally records why it is needed, which members are startable now,
+and a pre-code execution topology: dependency graph, feasible and excluded
+modes, selected mode, workspace owner and the `before_first_code` confirmation
+gate. It must not be used merely to manufacture parallelism.
 
 The agent uses slugs/temporary member keys. CLI allocates all EP/FT/PRT/PSET
-ids, renders documents, validates them, updates indexes and registers runtime.
+ids, replaces temporary keys in durable output, renders documents, validates
+them, updates indexes and registers runtime. A material requirement conflict
+returns `requirement_gap` to SPECIFY without creating delivery documents.
 
 ## Positive document triggers
 
