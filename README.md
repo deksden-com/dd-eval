@@ -52,6 +52,15 @@ Every result records the harness and version, model, reasoning mode, tool and
 network permissions, flow revision, source checkpoint, prompts, duration, token
 usage when available, Git diff, verification output, and review output.
 
+## Harness default
+
+Run an eval in a separate, visible Codex Desktop task by default. It preserves
+the real harness session identity, makes progress inspectable, and exercises
+the installed hooks as the target environment does. Do not use `codex exec`
+for a normal eval run. It is allowed only for an explicitly labelled CLI-harness
+case or a narrowly scoped mechanical smoke check; such a run is not comparable
+to a Desktop-harness result.
+
 ## Complete `dd-tasks` product
 
 `dd-tasks` is a small team task tracker. It is intentionally ordinary: enough

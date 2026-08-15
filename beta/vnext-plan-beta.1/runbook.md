@@ -18,6 +18,13 @@ status: 'DRAFT'
 - The canonical discussion fixture has already reached accepted PROTOCOLIZE
   with one PRT. PSET is a separate eval case.
 
+## Harness
+
+Launch the evaluated worker as a separate, visible Codex Desktop task by
+default. Do not launch this eval through `codex exec`: that is a different
+harness and is permitted only for an explicitly labelled CLI case or a
+mechanical smoke check. Record the Desktop task ID in the result.
+
 ## Preflight
 
 ```bash
