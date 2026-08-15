@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-20",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "xhigh",
+  "runtime": {
+    "dd_flow_cli": {
+      "router": "globally installed stable router",
+      "engine_version": "0.8.0-beta.20",
+      "engine_tag": "eval-engine-0.8.0-beta.20",
+      "engine_commit": "08c0fd4ba8f89c410bf8b6ad714f88dd87bdc80b",
+      "install_source": "local_development_snapshot"
+    }
+  },
+  "notes": "vNext PROTOCOLIZE delivery beta.8: native continuation from the canonical discussion after accepted SPECIFY; evaluates sizing, acceptance mapping and PRT/PSET materialization."
+}
