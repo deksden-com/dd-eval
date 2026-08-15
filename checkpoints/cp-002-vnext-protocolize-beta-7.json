@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-protocolize-beta-7",
+  "title": "cp-002 with complete vNext PROTOCOLIZE delivery and exact engine pin",
+  "source": {"repository": "https://github.com/deksden-com/dd-tasks.git", "tag": "eval-mb-3.2.0-vnext-protocolize-beta.7", "commit": "aac2d5379fcafb1330392e8eec8c6455cc983300"},
+  "product_baseline": {"checkpoint_id": "cp-002", "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07", "product_code_changed": false},
+  "memory_bank": {"version": "3.2.0-vnext-protocolize-beta.7", "dd_flow_cli": "0.8.0-beta.19", "engine": {"repository": "https://github.com/deksden-com/dd-flow-cli.git", "tag": "eval-engine-0.8.0-beta.19", "commit": "db0bdb8e2df7a4357e5845bc38cd4686a05fb82b"}},
+  "state": "accepted_immutable"
+}
