@@ -13,6 +13,9 @@ status: 'DRAFT'
   engine.
 - The project has a fresh `DD_FLOW_HOME`; do not reuse a database holding the
   pre-registry `flow_works` shape.
+- The current integrated engine is `dd-flow-cli@0.8.0-beta.24`. The beta
+  project compatibility file must select that exact snapshot before creating a
+  RUN.
 - Codex hooks are installed for the active `CODEX_HOME` and the harness can
   create a PreToolUse event for `dd-flow` Bash calls.
 - The canonical discussion fixture has already reached accepted PROTOCOLIZE
@@ -24,6 +27,12 @@ Launch the evaluated worker as a separate, visible Codex Desktop task by
 default. Do not launch this eval through `codex exec`: that is a different
 harness and is permitted only for an explicitly labelled CLI case or a
 mechanical smoke check. Record the Desktop task ID in the result.
+
+Do not delete, rename or rebuild the user's shared `~/.dd-flow` database to
+make an eval fresh. If Desktop cannot start the task with the designated
+isolated `DD_FLOW_HOME` and matching hook environment, record the environment
+blocker and repair that harness configuration first. A CLI-only substitute is
+not a Desktop comparison result.
 
 ## Preflight
 
