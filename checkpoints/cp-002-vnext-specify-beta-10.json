@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-specify-beta-10",
+  "title": "cp-002 product state with Markdown-first vNext SPECIFY completion",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-specify-beta.10",
+    "commit": "dc7346969e3189b4d632e50e4edffdab775d9967",
+    "annotated_tag_object": "2a4ac2e84f651c0af015e8df27baf26e88e8532e"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-specify-beta.10",
+    "flow_pack_commit": "dc7346969e3189b4d632e50e4edffdab775d9967",
+    "dd_flow_cli": "0.8.0-beta.9",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.9",
+      "commit": "ddb4eda269aa3ce26ac44d59118102175909b75d",
+      "annotated_tag_object": "8c50e66e88be9d370a4ac1d3e28fd2b1f52ed885",
+      "snapshot_integrity": "6e5ab6fee5a8856810738a2a9924a272afca2329f472d93471b0174505a10604"
+    }
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The product tree remains cp-002.",
+    "Beta.10 replaces the agent-authored vNext JSON result with one portable specify.md and standard deterministic stage reports.",
+    "The engine closes active stage, Work and Agent Turn projections when an operator cancels a RUN."
+  ]
+}

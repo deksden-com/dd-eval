@@ -2,11 +2,11 @@
   "schema_version": 1,
   "id": "EVAL-002-vnext-specify-task-priority",
   "title": "vNext SPECIFY: task priority",
-  "checkpoint": "cp-002-vnext-specify-beta-9",
+  "checkpoint": "cp-002-vnext-specify-beta-14",
   "purpose": "Prove the SPECIFY-first vNext flow from a primed feature-discussion session, before protocol creation.",
   "session_baseline": {
     "mode": "native_fork_preferred",
-    "definition": "baselines/codex-desktop-gpt-5-6-luna-max-beta-6.json",
+    "definition": "baselines/codex-desktop-gpt-5-6-luna-xhigh-beta-14.json",
     "prime_prompt": "prompts/session/00-prime.md",
     "discussion_prompt": "prompts/session/01-discussion.md",
     "fork_trigger_prompt": "prompts/session/02-start-flow.md",
@@ -24,7 +24,7 @@
     }
   },
   "materialization": {
-    "checkpoints": ["cp-002-vnext-specify-beta-1", "cp-002-vnext-specify-beta-2", "cp-002-vnext-specify-beta-3", "cp-002-vnext-specify-beta-4", "cp-002-vnext-specify-beta-5", "cp-002-vnext-specify-beta-6", "cp-002-vnext-specify-beta-8", "cp-002-vnext-specify-beta-9"],
+    "checkpoints": ["cp-002-vnext-specify-beta-1", "cp-002-vnext-specify-beta-2", "cp-002-vnext-specify-beta-3", "cp-002-vnext-specify-beta-4", "cp-002-vnext-specify-beta-5", "cp-002-vnext-specify-beta-6", "cp-002-vnext-specify-beta-8", "cp-002-vnext-specify-beta-9", "cp-002-vnext-specify-beta-10", "cp-002-vnext-specify-beta-11", "cp-002-vnext-specify-beta-12", "cp-002-vnext-specify-beta-13", "cp-002-vnext-specify-beta-14"],
     "supported_tracks": ["specify"],
     "prompt_delivery": "outside_repository",
     "source_history": "excluded",

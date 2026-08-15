@@ -7,7 +7,5 @@
 ответ, который нельзя честно вывести из проекта или из этой договорённости,
 задай вопрос.
 
-Ок, давай оформим протокол.
-
-> Legacy cold-start fixture. The scored vNext path uses the primed session
-> baseline and sends the identical trigger from `session/02-start-flow.md`.
+Пока ничего не оформляй: это обсуждение фичи. Если вопросов нет, кратко
+подтверди, как ты понял желаемое поведение, и дождись следующего сообщения.

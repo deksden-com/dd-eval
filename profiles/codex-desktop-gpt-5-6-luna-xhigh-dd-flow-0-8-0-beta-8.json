@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-8",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "xhigh",
+  "runtime": {
+    "dd_flow_cli": {
+      "router_version": "0.8.0-beta.8",
+      "engine_version": "0.8.0-beta.8",
+      "install_source": "local_development_snapshot"
+    }
+  },
+  "notes": "vNext SPECIFY profile: create a clean Desktop baseline session, complete canonical priming and feature discussion, then native-fork it for the scored trigger."
+}

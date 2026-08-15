@@ -296,6 +296,22 @@ harness task against the materialized
 repository. Do not expose hidden clarification, reference, review or acceptance
 materials to the evaluated agent.
 
+For a native fork, preserve the complete harness profile as well as the
+conversation context. `fork_thread` creates the child context but does not
+accept model settings. Send the case's exact trigger as the child's first and
+only message through `send_message_to_thread`, explicitly setting `model` and
+`thinking` from the selected profile. Thus the trigger text stays comparable
+while the child is pinned to the measured model and reasoning effort. If the
+harness UI reports a different effective profile, stop before scoring and
+archive the RUN as `invalid_harness_profile`; do not relabel it as the intended
+model.
+
+The Desktop full-access harness cannot make this boundary an OS security
+control. Its stage prompt must prohibit reads of other RUNs, transcripts,
+reviews and prior results, and the reviewer must audit the transcript for such
+reads. A run that reaches them is invalid for model comparison. Use a separate
+OS user, container or VM when hard filesystem isolation is required.
+
 The controller prompt is only a bootstrap instruction: after creating a Goal
 when the harness requires one, the agent's first flow action is the exact
 `stage start` command. It does not run standalone priming, CLI help, Git or

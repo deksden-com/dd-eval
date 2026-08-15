@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-11",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "xhigh",
+  "runtime": {
+    "dd_flow_cli": {
+      "router_version": "0.8.0-beta.11",
+      "engine_version": "0.8.0-beta.11",
+      "install_source": "local_development_snapshot"
+    }
+  },
+  "notes": "vNext SPECIFY beta.12 profile: canonical priming and discussion, then a native fork receiving only the normal flow trigger."
+}

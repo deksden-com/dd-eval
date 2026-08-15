@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-specify-beta-12",
+  "title": "cp-002 product state with atomic vNext SPECIFY entry and result",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-specify-beta.12",
+    "commit": "2058178809716ed4d83fc5c73384de32e109e87e",
+    "annotated_tag_object": "44de7c6f2db3d9445bca2e4469de2324d027a388"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-specify-beta.12",
+    "flow_pack_commit": "2058178809716ed4d83fc5c73384de32e109e87e",
+    "dd_flow_cli": "0.8.0-beta.11",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.11",
+      "commit": "4e933a3daf27a6151e04c40f6694f2e194784805",
+      "annotated_tag_object": "49a5a29088de22c93c760243e7f0a273279c7369",
+      "snapshot_integrity": "6f4e031625f8e3b7c689d8e8737be34566be4429e8020a5d631d86cee0dfe113"
+    }
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The product tree remains cp-002.",
+    "Beta.12 makes raw intake and the Markdown result atomic CLI inputs, removes handoff duplication and batches universal priming reads."
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "EVAL-002-codex-desktop-luna-xhigh-context-v1",
+  "case_id": "EVAL-002-vnext-specify-task-priority",
+  "profile_id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-8",
+  "checkpoint": "cp-002-vnext-specify-beta-9",
+  "state": "ready",
+  "session": {
+    "harness": "codex-desktop",
+    "host_id": "local",
+    "thread_id": "01a0020d-ef51-7a60-a572-ff8c1db36592",
+    "fork_turn_id": "01a00214-37d7-7d03-b34a-172e9e928b1b",
+    "model": "gpt-5.6-luna",
+    "reasoning": "xhigh"
+  },
+  "context_sequence": [
+    "../prompts/session/00-prime.md",
+    "../prompts/session/01-discussion.md"
+  ],
+  "fork_point": {
+    "after": "../prompts/session/01-discussion.md",
+    "trigger": "../prompts/session/02-start-flow.md",
+    "fork_thread_id": "01a00214-76a2-7311-9ba8-658b0ff9670b"
+  }
+}

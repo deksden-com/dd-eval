@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-specify-beta-11",
+  "title": "cp-002 product state with ordered vNext SPECIFY lifecycle",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-specify-beta.11",
+    "commit": "28fc0ca80d5704f97ff617ca5df7bab4b947f16b",
+    "annotated_tag_object": "d498c6cb19ddfd796221efe49d8fd8aaba37bb2d"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-specify-beta.11",
+    "flow_pack_commit": "28fc0ca80d5704f97ff617ca5df7bab4b947f16b",
+    "dd_flow_cli": "0.8.0-beta.10",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.10",
+      "commit": "da67f164a7e8bd98ffefb9f81b5dc33711862c95",
+      "annotated_tag_object": "b07c982ab0432f373302227546a44e6702428a0f",
+      "snapshot_integrity": "5adc540f07f5dc5b8b6194a89c071a3d06b7885900f795d0226ac8b665d3476e"
+    }
+  },
+  "state": "accepted_immutable",
+  "notes": [
+    "The product tree remains cp-002.",
+    "Beta.11 records a clean repository as clean and writes work_completed before run_completed."
+  ]
+}
