@@ -16,6 +16,8 @@ the canonical work performed during SPECIFY.
 `vnext-specify-result@2` records one portable problem-space contract:
 
 - problem, goal, actors, requirements, constraints, scope/non-goals;
+- stable `R-*` identifiers for requirements/constraints and stable `AC-*`
+  identifiers for acceptance criteria;
 - acceptance criteria, an observable acceptance scenario and verification
   contour, including fixtures and eval/experiment need;
 - assumptions and stable fixed/open `Q-*` questions;
@@ -29,6 +31,10 @@ the canonical work performed during SPECIFY.
 
 Runtime state, reports, stage identity and lifecycle transitions remain owned
 by `dd-flow`; they are not duplicated in the semantic artifact.
+
+PLAN and PROTOCOLIZE may only reference IDs present in this accepted result.
+The CLI validates uniqueness and section presence, while the agent remains the
+semantic owner of which statements are requirements or acceptance criteria.
 
 ## Canonical gap pass
 

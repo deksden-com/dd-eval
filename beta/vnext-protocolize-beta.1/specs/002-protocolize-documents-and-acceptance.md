@@ -8,9 +8,12 @@ status: 'DRAFT'
 
 ## Required input
 
-PROTOCOLIZE receives the accepted `specify.md`, delivery-document indexes,
-project/product map, project policy and known durable references. It excludes
-the full discussion transcript and implementation grounding.
+PROTOCOLIZE receives the accepted `specify.md`, stable `R-*`/`AC-*` identifiers,
+delivery-document indexes, compact content and exact paths for relevant
+epics/features, project/product map, project policy and known durable
+spec/ADR/scenario references. A list of epic directory names alone is not
+sufficient grounding. It excludes the full discussion transcript and
+implementation grounding.
 
 ## Required output
 
@@ -44,9 +47,19 @@ returns `requirement_gap` to SPECIFY without creating delivery documents.
   satisfied; none is a checklist artifact.
 - An internal refactor does not require an epic or feature.
 
+Linking an existing feature updates its reciprocal `related_protocols` link
+idempotently. A `link` action is not only an existence check. The result
+contract must support every advertised epic/feature create, link or update
+action; unsupported actions must not be promised by the prompt.
+
 ## Acceptance chain
 
-SPECIFY owns request-level acceptance. PROTOCOLIZE maps every material request
-criterion to one or more PRTs, and every PRT has exactly one independently
+SPECIFY owns request-level acceptance with stable `AC-*` identifiers.
+PROTOCOLIZE maps every material request criterion by ID to one or more PRTs,
+and every PRT has exactly one independently
 verifiable primary acceptance contract. PLAN later makes those contracts
 executable; it does not rewrite product behavior.
+
+If PROTOCOLIZE returns a requirement gap or user question, the returned resume
+entry must already exist and be executable. A declarative transition without a
+working answer/remediation lifecycle is invalid.

@@ -53,11 +53,15 @@ current-gate blocker.
 - `protocol-plan@2` validates for every PRT.
 - `plan-aspect-map@2` validates and has no unknown/pending required row.
 - all referenced accepted sources exist and accepted hashes/revisions match;
+- every PLAN requirement/criterion reference resolves to an accepted `R-*`,
+  `AC-*` or durable specification requirement;
 - Work graph tasks are non-empty, same-RUN dependencies resolve and the graph
   is acyclic;
 - no runnable CODE Work was published before successful PLAN finish;
 - stage report, timeline, exact rendered prompts, Work results and available
   Session/Turn links are readable;
+- the finish receipt returns the exact next command or an explicit gate rather
+  than making the worker search flow/help text;
 - in the controlled Codex eval, every started Work has its trusted real Session
   association; `unavailable` is acceptable only for a declared unsupported
   harness and never counts as complete coverage;
@@ -143,6 +147,8 @@ quality.
   during PLAN?
 - Is coverage proportional: compact local work stays local and substantive
   compatible review uses useful grouping?
+- Was plan depth kept independent from routing, so a compact vertical slice was
+  not treated as one semantic review unit merely because it had one PRT/item?
 - Are hard aspect dependencies real and soft `informs` relations non-blocking?
 - Did the parent accept results per unit, preserve accepted siblings and retry
   only rejected/crashed work?
@@ -197,6 +203,8 @@ structure only and does not require a duplicate `covers` field.
 - Were accepted results reused rather than repeated?
 - Did deterministic CLI work replace model-authored telemetry, reports and
   normalization?
+- Were hashes, Git facts, wall clock and usage provenance produced by CLI
+  rather than manual shell calculations or model-authored fields?
 
 Efficiency findings are normally minor unless waste causes context loss,
 missing results or a materially incomplete plan.

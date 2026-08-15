@@ -124,10 +124,14 @@ After drafting a plan, the member fixes an immutable or read-equivalent review
 snapshot. All aspect Works in one wave review that snapshot. The parent does
 not modify it until the wave returns.
 
-For a compact PRT, applicable aspects may be covered locally. For substantive
-independent read-only aspects, group compatible units up to three per Work and
-prefer one wave. A focused Work is used only for a genuinely independent
-critical boundary. Soft `informs` context does not create a dependency.
+Plan depth and review routing are independent. `compact_plan`, one PRT and one
+implementation item do not imply `local_compact`. Local coverage is suitable
+only for one genuinely tiny semantic unit or one short source scope. For
+substantive independent read-only aspects, including a conventional compact
+vertical slice spanning several contracts, group compatible units up to three
+per Work and prefer one wave. A focused Work is used only for a genuinely
+independent critical boundary. Soft `informs` context does not create a
+dependency.
 
 The member accepts grouped output per aspect. Accepted siblings remain accepted.
 A rejected unit receives one narrow correction Work against the next draft
@@ -170,7 +174,9 @@ All planning stays in one RUN:
 
 Member agents write only inside assigned boundaries. Shared durable documents
 have one root owner. Work state and dependencies remain in SQLite; there are no
-authored PSET job maps, secondary RUNs or runtime graph files.
+authored PSET job maps, secondary RUNs or editable runtime graph files. CLI
+refreshes the one generated Work projection required to inspect an archived
+RUN without the live database.
 
 ## Capacity probe
 
@@ -335,8 +341,10 @@ renderer remains deferred until a demonstrated debugging use case needs it.
 
 ## Acceptance cases
 
-1. A compact one-PRT PLAN performs bounded local grounding, creates one useful
-   plan and registers at least one CODE Work without probe or child review.
+1. A tiny one-unit PLAN may stay local without a probe; a compact-depth
+   one-PRT PLAN with substantive independent aspects uses grouped one-wave
+   review when capacity permits. Both create one useful plan and at least one
+   CODE Work.
 2. Independent grounding/member/aspect Works execute in one wave when capacity
    allows and sequentially with capacity one, without graph changes.
 3. Shared grounding/design is performed once and supplied to every consumer.

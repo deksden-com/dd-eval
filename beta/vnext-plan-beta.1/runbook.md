@@ -31,8 +31,11 @@ mechanical smoke check. Record the Desktop task ID in the result.
 pnpm --dir <dd-flow-cli> typecheck
 pnpm --dir <dd-flow-cli> lint
 pnpm --dir <dd-flow-cli> build
-pnpm --dir <dd-flow-cli> vitest run test/vnext-specify.test.ts
+pnpm --dir <dd-flow-cli> test
 ```
+
+Do not start the model eval while any deterministic C-01–C-19 fixture from
+specification 005 is missing or failing. C-20 is the model eval itself.
 
 Check the beta pack:
 
@@ -62,8 +65,17 @@ The successful finish must prove:
 - every map validates as `plan-aspect-map@2`;
 - the CODE batch has an `entry_work_id`;
 - `03-plan/stage-report.{json,md,html}` exist;
-- the temporary batch file is removed;
-- RUN next action is `start_code`.
+- the temporary batch file is removed only after the complete Work graph has
+  been committed and refreshed in the portable RUN projection;
+- every supported-harness PLAN/child Work has a trusted Session/Turn binding;
+- usage was refreshed for all RUN Sessions with source provenance;
+- the receipt contains the exact CODE start command and RUN is not marked
+  `waiting_for_user` without a real question.
+
+The task-priority case uses `compact_plan` depth but is a substantive
+multi-aspect vertical slice. It should prefer one grouped review wave when the
+actual pool permits it; do not score `local_compact` as correct merely because
+there is one PRT or one implementation item.
 
 ## CODE-entry proof
 

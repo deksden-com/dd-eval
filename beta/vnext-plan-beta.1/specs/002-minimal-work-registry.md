@@ -66,8 +66,9 @@ They do not duplicate stage waiting or correction states.
 
 ## Physical storage cutover
 
-The current beta `flow_works` table mixes a task with an unused partial Flow
-interpreter. This beta replaces that schema rather than preserving it. The new
+The current beta must expose exactly one Work table family. Rebuild
+`flow_works` and `flow_agent_turns` to the minimal shapes below and remove the
+temporary `vnext_works` and `vnext_agent_turns` tables and every caller. The new
 physical Work authority contains only:
 
 ```text
@@ -113,6 +114,9 @@ Removing these fields also removes the special-case selector queries and root
 Work mutation between stages. They are not replaced by a differently named
 cursor.
 
+There is no dual read, dual write, migration fallback or second Work registry
+inside a new beta runtime.
+
 ### RUN Flow identity
 
 Flow identity/version belongs to RUN, because RUN is the materialized Flow
@@ -148,6 +152,10 @@ fields. It remains `running` while its Flow has unfinished child Work and may
 complete only after all descendants are terminal and the Flow has reached an
 allowed exit. Its `result` is the final compact Flow handoff, not a duplicate
 RUN report.
+
+The registry rejects completion of a Work while any required descendant is
+`created` or `running`. Cancellation and failure settle descendants explicitly;
+silent reparenting or orphan completion is invalid.
 
 When a later stage needs its own agent coordinator or may overlap another
 stage, its accepted stage projection records one entry Work ID and all stage
@@ -385,6 +393,13 @@ The parent obtains all child statuses and optional results with one filtered
 PLAN may prepare future CODE tasks, but they become registered and runnable
 only through successful PLAN finish. The Work registry is the runtime graph;
 it does not publish a durable authored `code-work-graph.json`.
+
+SQLite remains the mutable authority, while CLI refreshes one generated
+RUN-local Work projection after every mutation. It contains the root ID,
+tasks, parentage, dependencies, statuses, compact results and Turn/Session
+references needed to inspect an archived RUN without its original live
+database. The projection is never agent-authored or accepted as mutation
+input.
 
 ## Explicit exclusions
 

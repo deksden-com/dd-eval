@@ -23,18 +23,21 @@ this draft does not claim an immutable beta checkpoint.
 - [002 — minimal Work registry](specs/002-minimal-work-registry.md)
 - [003 — PLAN/PSET execution and capacity](specs/003-plan-pset-execution-and-capacity.md)
 - [004 — PLAN quality gate](specs/004-plan-quality-gate.md)
+- [005 — integrated parity correction](specs/005-integrated-parity-correction.md)
 - [Controlled eval runbook](runbook.md)
 
 ## Intended implementation order
 
-1. Cut over RUN Flow identity and rebuild the vNext Work storage/CLI to the
+1. Apply specification 005 as the correction gate over the original bundle;
+   deterministic contract tests must pass before another model eval.
+2. Cut over RUN Flow identity and rebuild the vNext Work storage/CLI to the
    minimal registry contract from specification 002, with no compatibility
    path.
-2. Implement one-PRT PLAN start, correction, grounding, document promotion,
+3. Implement one-PRT PLAN start, correction, grounding, document promotion,
    prompt, finish, validation and reporting from specification 001.
-3. Add shared/member PSET Works, aspect fan-out, capacity-aware waves, final
+4. Add shared/member PSET Works, aspect fan-out, capacity-aware waves, final
    integration and atomic CODE Work projection from specification 003.
-4. Freeze one engine/flow pair and apply the quality gate from specification
+5. Freeze one engine/flow pair and apply the quality gate from specification
    004 to separate single-PRT and PSET eval cases.
 
 ## Implementation cutover checklist
@@ -54,6 +57,10 @@ One implementation change set must update:
 The first behavioral eval is the compact single-PRT case. The PSET topology is
 then evaluated as a separate case; it does not complicate the first score or
 serve as a fallback path for it.
+
+`compact_plan` describes plan depth, not review routing. The first single-PRT
+case is still a substantive multi-aspect vertical slice and therefore proves
+grouped one-wave routing when the available pool permits it.
 
 ## Proof boundary
 

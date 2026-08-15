@@ -176,8 +176,9 @@ The complete PLAN result is:
 - a truthful CODE entry handoff.
 
 There is no PSET `plan.json`, runtime plan copy, authored job map, graph report
-or second semantic summary. The SQLite Work registry is the concrete execution
-graph. CLI renders standard JSON, Markdown and HTML reports and summaries.
+or second semantic summary. The SQLite Work registry is the concrete mutable
+execution graph. CLI renders one read-only RUN-local Work projection for
+portability plus standard JSON, Markdown and HTML reports and summaries.
 
 The semantic plan deliberately remains repository-owned JSON rather than
 moving into SQLite. It is versioned, reviewable durable knowledge and the
@@ -210,7 +211,9 @@ hard edge only when the successor consumes a named predecessor output. Related
 topics and useful ordering may inform a task but do not block it.
 
 Requirement references accept stable IDs from accepted SPECIFY and linked
-durable specs; an unrelated `SPC-*` is not mandatory.
+durable specs; an unrelated `SPC-*` is not mandatory. SPECIFY owns explicit
+`R-*` and `AC-*` identifiers. PLAN may reference only identifiers present in
+accepted inputs and must never synthesize a plausible-looking missing ID.
 
 ## Acceptance and verification design
 
@@ -301,8 +304,9 @@ the trusted hook, and returns one rendered PLAN prompt. The prompt contains:
 - exact accepted input paths and checksums;
 - applicable project indexes/policies and bounded grounding entry points;
 - canonical aspect catalog paths;
-- exact `protocol-plan@2`, `plan-aspect-map@2` schema paths and compact valid
-  examples;
+- exact `protocol-plan@2`, `plan-aspect-map@2` schema paths and complete compact
+  valid examples embedded in the returned packet so the worker does not need a
+  separate schema/example read;
 - conventional writable plan/map/draft-batch paths;
 - Work registry commands needed by this route;
 - the exact finish command.
@@ -334,17 +338,18 @@ summary or graph file.
 
 Schema and documentation lint are restricted to the plans, maps and durable
 documents touched by this stage; PLAN finish does not lint the entire memory
-bank. After successful Work registration, CLI removes the temporary batch file
-and records its checksum, entry Work ID and registered IDs in the deterministic
-stage projection. On failure the batch remains in place for correction. SQLite
-is the only accepted runtime graph authority.
+bank. After successful Work registration, CLI refreshes the portable Work
+projection, then removes the temporary batch file and records its checksum,
+entry Work ID and registered IDs in the deterministic stage projection. On
+failure the batch remains in place for correction. SQLite is the only accepted
+mutation authority; the generated projection is read-only evidence.
 
 Validation failure leaves draft files writable and the current Turn
 correctable; it does not publish accepted hashes or runnable CODE Work. A
 material user question changes RUN/stage state to `waiting_for_user` while the
 root Work remains `running`; waiting is not a Work status. Successful finish
 closes the PLAN Turn and stage, keeps the root Work alive and returns the CODE
-directive without starting CODE.
+directive with the exact `stage start code` command without starting CODE.
 
 ## PLAN process
 
@@ -431,10 +436,11 @@ code_handoff
 ```
 
 `source_refs[]` accepts any stable accepted source kind (`specify`, `protocol`,
-`feature`, `epic`, `spec`, `adr`, `scenario`, `policy` or `other`) and requires
-`kind`, `id`, repository-relative `path`, `sha256` and zero or more stable
+`feature`, `epic`, `spec`, `adr`, `scenario`, `policy` or `other`). The agent
+authors `kind`, `id`, repository-relative `path` and zero or more stable
 requirement IDs. A version/revision is required only when the source contract
-has one.
+has one. `stage finish` resolves the accepted bytes and injects `sha256` before
+the final accepted-plan validation. The worker never calculates a source hash.
 
 `assessment` contains the four independent axes `scope_breadth`,
 `solution_novelty`, `solution_uncertainty` and `failure_impact`; each has an
@@ -503,8 +509,15 @@ protocol_id
 plan_id
 plan_revision
 catalog_ref { path, sha256 }
+routing { initial_state, selected_route, reason, groups[] }
 aspects[]
 ```
+
+`routing.initial_state` is always `orchestrator_local`; `selected_route` is
+`local_compact | single_wave_grouped | multi_wave_grouped | external_handoff`.
+Each semantic `groups[]` row lists the compatible aspect IDs intended to share
+one review packet. Actual capacity, probe attempts, Work/Turn/Session IDs and
+wave timings remain runtime facts and are not copied into the map.
 
 Every current catalog aspect appears exactly once. Each row requires:
 
