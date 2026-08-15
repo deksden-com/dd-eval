@@ -1,7 +1,7 @@
 ---
 file: 'beta/vnext-protocolize-beta.1/index.md'
 description: 'Beta contract for the SPECIFY → PROTOCOLIZE proving slice.'
-status: 'IN_IMPLEMENTATION'
+status: 'VALIDATED'
 ---
 
 # vNext PROTOCOLIZE beta 1
@@ -19,3 +19,9 @@ Flow pack target: `3.2.0-vnext-protocolize-beta.5`.
 - [001 — flow, handoff and Work contract](specs/001-flow-handoff-and-work.md)
 - [002 — PROTOCOLIZE delivery documents and acceptance](specs/002-protocolize-documents-and-acceptance.md)
 - [003 — catalog shelf and eval proof](specs/003-epic-catalog-and-eval.md)
+
+## Live proof
+
+`EVAL-003` passed in both handoff modes on beta.4, exposing and preserving two
+runtime defects. Beta.5 fixed the projection defect and passed the clean
+same-session rerun. Results live beside the case.
