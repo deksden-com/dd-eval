@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-protocolize-beta-6",
+  "title": "cp-002 with complete vNext PROTOCOLIZE delivery contract",
+  "source": {"repository": "https://github.com/deksden-com/dd-tasks.git", "tag": "eval-mb-3.2.0-vnext-protocolize-beta.6", "commit": "d89d09ab12030cc63e1b0c38296f5b2381047d7e"},
+  "product_baseline": {"checkpoint_id": "cp-002", "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07", "product_code_changed": false},
+  "memory_bank": {"version": "3.2.0-vnext-protocolize-beta.6", "dd_flow_cli": "0.8.0-beta.19", "engine": {"repository": "https://github.com/deksden-com/dd-flow-cli.git", "tag": "eval-engine-0.8.0-beta.19", "commit": "db0bdb8e2df7a4357e5845bc38cd4686a05fb82b"}},
+  "state": "accepted_immutable"
+}
