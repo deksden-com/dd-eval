@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "id": "cp-002-vnext-plan-review-beta-32",
+  "id": "cp-002-vnext-plan-review-beta-33",
   "title": "cp-002 with vNext PLAN-REVIEW gate",
   "source": {
     "repository": "https://github.com/deksden-com/dd-tasks.git",
-    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.32",
-    "commit": "6791dc77a96f21c0bc6e36670ab17bc2cc79ec5f"
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.33",
+    "commit": "03cf6757f17d819e1e40e641e97a5be742c5b51f"
   },
   "product_baseline": {
     "checkpoint_id": "cp-002",
@@ -13,7 +13,7 @@
     "product_code_changed": false
   },
   "memory_bank": {
-    "version": "3.2.0-vnext-plan-review-beta.32",
+    "version": "3.2.0-vnext-plan-review-beta.33",
     "dd_flow_cli": "0.8.0-beta.32",
     "engine": {
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
