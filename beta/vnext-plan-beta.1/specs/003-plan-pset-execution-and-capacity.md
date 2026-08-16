@@ -6,6 +6,11 @@ status: 'DRAFT'
 
 # 003 — PLAN/PSET execution and capacity
 
+> Specification 008 supersedes this document's per-stage/ephemeral probe
+> accounting and Session-binding details. Capacity is observed once at first
+> useful delegation in a RUN and reused as a RUN variable; every accepted
+> probe uses the same minimal Work lifecycle as other subagents.
+
 ## Goal
 
 Use one Work abstraction for grounding, planning, aspect review and later CODE
@@ -50,7 +55,7 @@ root RUN Work
 ```
 
 The root cannot complete while live descendants remain. It may continue through
-multiple Agent Turns and stages. Child failures are handled explicitly; they
+multiple Session interactions and stages. Child failures are handled explicitly; they
 must not disappear from a successful gate.
 
 ## Grounding routing
@@ -101,7 +106,7 @@ topology does not dictate one Session per member:
 
 - independent members may be planned in one worker wave;
 - one available worker may execute the same member Works sequentially;
-- one Session may take successive member Works through separate Agent Turns;
+- one Session may take successive member Work;
 - outputs remain separate regardless of execution packing.
 
 `blocked_by_protocols` primarily constrains implementation/delivery and does
@@ -180,21 +185,19 @@ RUN without the live database.
 
 ## Capacity probe
 
-Capacity is a property of the current harness, not a Work, plan decision or
-session-coverage requirement. The probe remains outside the Work registry:
+Capacity is a runtime observation, not a plan decision or flow flag. A RUN that
+never delegates does not probe. The first stage-specific dispatch that needs
+delegation either uses reliable harness capacity or creates up to 15 fresh
+probe Work and returns `capacity_probe_required` with exact start commands.
+Every accepted probe calls `work start`, holds its slot for the bounded
+interval, returns a minimal result through `work finish`, and exits. Hook
+identity makes an agent-authored id unnecessary.
 
-1. Probe only when more than one independent agent Work is ready, parallelism
-   is useful and current capacity is unknown.
-2. The orchestrator attempts up to 15 probe subagents concurrently.
-3. Every accepted probe holds its slot for approximately 60 seconds, then
-   returns its own subagent ID and no semantic analysis.
-4. The orchestrator counts unique returned IDs.
-5. That count limits the next real Work wave.
-
-Probe agents are not Work, need no dd-flow session registration and create no
-packets, reports or probe artifacts. The CLI needs no capacity table. A new
-harness or materially new controller context may probe again for the next
-useful fan-out.
+The caller repeats the same dispatch. It waits for running probes, then counts
+distinct completed probe Sessions, cancels never-started probe Work, stores
+only `runtime.subagents.available_slots` and creates the semantic wave. Later
+stages reuse it. Accepted probe Session/usage remain normal runtime facts and
+are excluded from semantic reviewer counts.
 
 Tiny or single-work paths never probe. Capacity affects packing only; it never
 changes applicability, depth, dependencies, task contents or independent-proof
@@ -203,17 +206,18 @@ requirements.
 ## Dispatch algorithm
 
 1. Register the complete currently known child graph with `work add-batch`.
-2. Query `work ls --ready`.
-3. If useful parallel Work exists and capacity is unknown, run one probe.
-4. Query `work ls --ready --limit <capacity>`.
-5. Launch each returned ID with the minimal `work start` instruction.
+2. Query ready Work.
+3. If useful delegation exists and capacity is absent, let this dispatch run
+   the probe handshake described above.
+4. Select ready Work up to stored capacity.
+5. Launch each returned ID with the exact `work start` instruction.
 6. Workers execute the rendered task and call `work finish` or `work fail`.
 7. Query ready Work again; completed dependencies expose the next wave.
 8. When every required child result is accepted, resume the parent for fan-in.
 
 The same graph runs with capacity one or many. Failed launch attempts leave
-unclaimed Work in `created`; the graph is not rewritten. A single reusable
-Session may execute sequential Works through separate Turns.
+unclaimed Work in `created`; the graph is not rewritten. A reusable Session may
+execute sequential Work.
 
 ## CODE Work projection
 
@@ -284,20 +288,22 @@ evidence. Structural CLI checks stay deterministic and small.
 both required from one worker.
 
 The root CODE worker calls `stage start code` exactly once. The command resolves
-and atomically starts the CODE coordinator Work recorded by PLAN, binds this
-Agent Turn, and performs stage-wide deterministic preparation:
+and atomically starts the CODE coordinator Work recorded by PLAN, registers its
+Session link, and performs stage-wide deterministic preparation:
 
 - validate the accepted PLAN handoff and registered CODE Work graph;
 - materialize/revalidate the selected workspace/worktree and bootstrap receipt;
 - resolve policy, baseline checks and current Git/runtime facts;
 - render the coordinator prompt and list its ready child Work IDs;
-- bind the root Session/Turn through the trusted stage-start hook event.
+- register the root Session through the trusted stage-start hook event.
 
 Each delegated CODE worker calls only `work start <WORK-ID>`. The task registered
 by PLAN already contains the canonical CODE worker instructions and its
 specific assignment. `work start` adds live per-Work facts, accepted dependency
-results, workspace/Git state and exact completion commands. It binds that
-worker's real Session/Turn through the Work-start hook fingerprint.
+results, workspace/Git state and exact completion commands. The Work-start hook
+records provider `session_id`, optional child `agent_id`, raw `turn_id` and
+transcript path, registers/reuses `sessions.id = agent_id ?? session_id`, and
+opens the Work/Session link.
 
 In a compact route the CODE coordinator task contains the implementation itself
 and has no child implementation Work. The root worker calls only `stage start

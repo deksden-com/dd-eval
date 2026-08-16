@@ -12,7 +12,7 @@ status: 'DRAFT'
 - `dd-flow-cli` is built from its beta branch and selected as the project
   engine.
 - The project has a fresh `DD_FLOW_HOME`; do not reuse a database holding the
-  pre-registry `flow_works` shape.
+  pre-cutover prefixed Work/Session schema.
 - The current integrated engine is `dd-flow-cli@0.8.0-beta.32`. The beta
   project compatibility file must select that exact snapshot before creating a
   RUN.
@@ -58,9 +58,35 @@ node -e 'for (const p of [
   ".memory-bank/dd-flow/vnext/mb-sdlc-vnext-protocolize.json",
   ".memory-bank/dd-flow/schemas/protocol-plan.schema.json",
   ".memory-bank/dd-flow/schemas/plan-aspect-map.schema.json",
-  ".memory-bank/dd-flow/schemas/plan-review-decision.schema.json"
+  ".memory-bank/dd-flow/schemas/plan-review-decision.schema.json",
+  ".memory-bank/dd-flow/schemas/plan-review-result.schema.json"
 ]) JSON.parse(require("node:fs").readFileSync(p, "utf8"))'
 ```
+
+Before the first delegated Work in the RUN, inspect the shared context:
+
+```bash
+dd-flow run vars ls <RUN-ID> --project-root <dd-tasks> --json
+```
+
+`policy.plan_review.requested_mode` must be present. A local-only RUN has no
+capacity requirement. A RUN that will delegate must obtain exactly one
+`runtime.subagents.available_slots` observation before packing its first
+worker batch; later stages reuse it and shrink batches after real refusals.
+
+`policy.plan_review.requested_mode` is not an ad hoc config field. It is the
+RUN-variable projection of the versioned `plan_review.mode` flow flag. Inspect
+and revise that policy only through:
+
+```bash
+dd-flow run flags status <RUN-ID> --project-root <dd-tasks> --json
+dd-flow run flags revise <RUN-ID> --expected-revision <n> \
+  --idempotency-key <key> --flag plan_review.mode=<mode> \
+  --reason <reason> --project-root <dd-tasks> --json
+```
+
+The flags revision and `policy.*` materialization must commit together.
+`run vars set` is only for bounded `user.*` values.
 
 ## PLAN run
 
@@ -79,11 +105,13 @@ The successful finish must prove:
 
 - every plan validates as `protocol-plan@2`;
 - every map validates as `plan-aspect-map@2`;
+- every delegated aspect is `pending`; only local self-checks may already have
+  a terminal verdict;
 - the proposed CODE batch remains present and has no registered entry Work;
 - `03-plan/stage-report.{json,md,html}` exist;
 - the receipt contains `start_plan_review`, not a CODE start command;
-- the PLAN Work has a trusted Session/Turn binding;
-- usage was refreshed for all RUN Sessions with source provenance;
+- the PLAN Work has a trusted Session link;
+- stage usage is explicitly provisional rather than presented as final;
 
 ## PLAN-REVIEW run
 
@@ -95,20 +123,31 @@ dd-flow stage start <RUN-ID> --stage plan-review --project-root <dd-tasks> --jso
 
 The start response has only two legal outcomes:
 
-- `review_off`: no prompt, reviewer Work or reviewer Agent Turn exists. The
+- `review_off`: no prompt, reviewer Work or reviewer Session exists. The
   CLI has atomically opened CODE; use the returned CODE command.
 - `review_required`: the returned prompt is authoritative. Run its exact
-  `plan-review dispatch` command, bind each returned Work to a fresh Desktop
-  task, then send that task its returned `work start` command. Reviewers return
-  `plan-review-result@1` JSON through `work finish` and never edit plan/product
-  files. The parent writes `decision.json` and runs its exact finish command.
+  `plan-review dispatch` command, launch each returned Work as a real fresh
+  subagent, and make the exact returned `work start` command its first action.
+  The hook binds the observed Session/agent identity. Reviewers return compact
+  per-aspect `plan-review-result@1` JSON through `work finish` and never edit
+  plan/product files. The parent writes `decision.json` and runs its exact
+  finish command.
+
+If the first dispatch returns `capacity_probe_required`, launch only its probe
+Work. After accepted probes finish, repeat the same `plan-review dispatch`.
+That call counts completed probe Sessions, cancels never-started probes, stores
+`runtime.subagents.available_slots` and returns the reviewer wave. There is no
+separate capacity command and no agent-authored probe id.
 
 For the compact task-priority case, `auto` should select `standard` and one
-grouped fresh-reviewer wave. A user request may be recorded before this stage:
+grouped fresh-reviewer wave. A user request is normalized once into the RUN
+variable `policy.plan_review.requested_mode` before this stage. The generic
+variable command may set only `user.*`; the flow/controller owns policy and
+runtime namespaces.
 
 ```bash
-dd-flow run config set <RUN-ID> --project-root <dd-tasks> \
-  --key plan_review.mode --value off|standard|deep --reason "..." --json
+dd-flow run vars get <RUN-ID> --project-root <dd-tasks> \
+  --key policy.plan_review.requested_mode --json
 ```
 
 The setting is frozen as soon as PLAN-REVIEW starts.
@@ -117,26 +156,41 @@ Successful PLAN-REVIEW must prove:
 
 - `04-plan-review/stage-report.{json,md,html}` exists;
 - the outcome is `off` or `accepted` and CODE Work is registered exactly once;
-- enabled review has at least one fresh reviewer Work/Session/Turn;
+- enabled review has at least one fresh reviewer Work/Session;
 - only latest accepted reviewer attempts gate CODE after targeted retry;
 - the proposed batch is removed only after CODE registration commits;
 - the exact CODE start command comes from the PLAN-REVIEW receipt.
 
-For a visible Desktop worker wave, the harness creates every child task, then
-runs `dd-flow work adapter-bind <WORK> --desktop-task <returned-task-id>`
-before it sends that child its returned `work start` command. The worker never
-receives or supplies a session ID. The one-time launch token in the returned
-command and the PreToolUse command fingerprint reject a foreign or reused hook
-event.
+For a visible worker wave, the harness creates every child agent and sends it
+the exact token-free `work start <WORK> --project-root <root>` command returned
+by dispatch. The worker never receives or supplies a Session or agent id.
+PreToolUse supplies both provider `session_id` and optional child `agent_id`;
+the runtime uses `sessions.id = agent_id ?? session_id`, derives its parent from
+the parent Work's open Session link, and atomically claims Work using the
+normalized operation/Work/project fingerprint.
+
+The evaluator records both identities. `session_id` names the provider host
+task/thread; `agent_id` names the child context when one exists. Neither is
+substituted for the other. Runtime grouping and usage use the stored Session
+id and its Work links.
+
+Every delegated Work uses the same lifecycle:
+
+1. `work start` is the first subagent action and returns the bounded task,
+   applicable RUN variables, result schema and exact completion commands;
+2. the subagent performs only that task;
+3. `work finish` or `work fail` is its final flow-owned lifecycle command;
+4. `work finish` records only provisional usage. The controller recalculates
+   final usage after the subagent returns.
 
 The task-priority case uses `compact_plan` depth but is a substantive
 multi-aspect vertical slice. It should prefer one grouped review wave when the
 actual pool permits it; do not score `local_compact` as correct merely because
 there is one PRT or one implementation item.
 
-When the Desktop adapter is available for the controlled eval, state the known
-review capacity in the parent task's stage context before PLAN routing. That is
-a runtime fact, not a user/product requirement: it changes packing only.
+Capacity is never typed into the parent prompt. The engine places the one
+RUN-level observation in `runtime.subagents.available_slots`; stage start and
+Work start include it automatically where applicable. It changes packing only.
 
 ## CODE-entry proof
 
@@ -146,11 +200,29 @@ Run only the entry, then stop before implementation:
 dd-flow stage start <RUN-ID> --stage code --project-root <dd-tasks> --json
 ```
 
-The result must contain the same coordinator Work ID, an Agent Turn ID and a
-self-contained worker prompt. For a compact case no child Work is required.
+The result must contain the same coordinator Work ID, its registered Session
+and a self-contained worker prompt. For a compact case no child Work is
+required.
 
 ## Eval evidence
 
-Archive the RUN unchanged. Collect its stage reports, timeline, Work list and
-session/turn IDs. Grade it using `004-plan-quality-gate.md`; do not fold PSET
-criteria into the single-PRT score.
+Archive the RUN unchanged. Collect its stage reports, timeline, Work tree,
+Session tree, Work/Session links, provider `session_id`, optional child
+`agent_id`, transcript paths and usage. Verify one Work association per
+delegated agent and no active Work after the stage stops. Grade it using
+`004-plan-quality-gate.md`; do not fold PSET criteria into the single-PRT
+score.
+
+The eval result must contain a compact identity table for the root and every
+launched child: Desktop task/thread id when available, Work id, Session id,
+provider `session_id`, optional `agent_id`, parent Session and transcript path.
+A missing child identity is an observability defect, not an empty value to
+infer later.
+
+After the root and all child responses return, run exactly once:
+
+```bash
+dd-flow stat usage --run <RUN-ID> --project-root <dd-tasks> --json
+```
+
+The result must be `final`; the evaluated agent never runs this command.

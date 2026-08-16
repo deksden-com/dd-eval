@@ -297,8 +297,8 @@ dd-flow stage start <RUN-ID> --stage plan --project-root <root> --json
 ```
 
 The command validates the legal transition and accepted SPECIFY/PROTOCOLIZE
-handoff, attaches `03-plan`, opens an Agent Turn on the RUN root Work through
-the trusted hook, and returns one rendered PLAN prompt. The prompt contains:
+handoff, attaches `03-plan`, registers the trusted Session on the RUN root
+Work, and returns one rendered PLAN prompt. The prompt contains:
 
 - resolved RUN/project/workspace/Git and handoff policy facts;
 - exact accepted input paths and checksums;
@@ -344,12 +344,13 @@ entry Work ID and registered IDs in the deterministic stage projection. On
 failure the batch remains in place for correction. SQLite is the only accepted
 mutation authority; the generated projection is read-only evidence.
 
-Validation failure leaves draft files writable and the current Turn
-correctable; it does not publish accepted hashes or runnable CODE Work. A
+Validation failure leaves draft files writable in the current Session; it does
+not publish accepted hashes or runnable CODE Work. A
 material user question changes RUN/stage state to `waiting_for_user` while the
 root Work remains `running`; waiting is not a Work status. Successful finish
-closes the PLAN Turn and stage, keeps the root Work alive and returns the CODE
-directive with the exact `stage start code` command without starting CODE.
+closes the PLAN Work/Session link and stage, keeps the root Work alive and
+returns the CODE directive with the exact `stage start code` command without
+starting CODE.
 
 ## PLAN process
 
@@ -516,7 +517,7 @@ aspects[]
 `routing.initial_state` is always `orchestrator_local`; `selected_route` is
 `local_compact | single_wave_grouped | multi_wave_grouped | external_handoff`.
 Each semantic `groups[]` row lists the compatible aspect IDs intended to share
-one review packet. Actual capacity, probe attempts, Work/Turn/Session IDs and
+one review packet. Actual capacity, probe attempts, Work/Session IDs and
 wave timings remain runtime facts and are not copied into the map.
 
 Every current catalog aspect appears exactly once. Each row requires:

@@ -61,6 +61,15 @@ for a normal eval run. It is allowed only for an explicitly labelled CLI-harness
 case or a narrowly scoped mechanical smoke check; such a run is not comparable
 to a Desktop-harness result.
 
+Every delegated agent in a flow eval must correspond to a registered Work.
+Its first lifecycle action is the exact token-free `dd-flow work start`
+command returned by the engine; its last flow-owned lifecycle action is
+`work finish` or `work fail`. The Codex hook, not the model, supplies identity.
+Results preserve Session id, provider `session_id`, optional child `agent_id`,
+parent Session and transcript path for the root and every child. Provider
+`turn_id` remains raw hook/JSONL metadata for usage calculation, not a dd-flow
+entity. Work completion does not claim that the external agent has stopped.
+
 ## Complete `dd-tasks` product
 
 `dd-tasks` is a small team task tracker. It is intentionally ordinary: enough

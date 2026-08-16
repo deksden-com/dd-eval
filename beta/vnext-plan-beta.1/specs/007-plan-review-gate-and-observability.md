@@ -6,6 +6,10 @@ status: 'DRAFT'
 
 # 007 — PLAN review gate and truthful observability
 
+> Specification 008 is authoritative for Work/Session storage, hook identity,
+> capacity and usage. There is no dd-flow Agent Turn entity. The PLAN-REVIEW
+> stage graph and semantic gate defined here remain authoritative.
+
 ## Goal
 
 Separate authoring a plan from independently challenging it without adding a
@@ -33,9 +37,9 @@ subagents, never mutate the plan and never become orchestration parents. The
 orchestrator evaluates their findings, changes the plan and proposed CODE
 graph when justified, and retries only affected groups.
 
-This specification also replaces ambiguous report counters with one
-deterministic Work / Session / Agent Turn / token-usage projection and requires
-the HTML report to present that projection accurately.
+This specification also replaces ambiguous report counters with deterministic
+Work, Session and token-usage projections and requires HTML to present them
+accurately.
 
 ## Why this is a flow correction
 
@@ -57,8 +61,8 @@ The systemic gap is role separation:
 4. There is no separately visible gate showing whether independent review was
    skipped, performed proportionally or requested in deep mode.
 
-The correction reuses the existing aspect catalog, Work registry, Agent Turn
-records, hook binding and targeted retry mechanism. It introduces no judge
+The correction reuses the existing aspect catalog, Work registry, Session
+links, hook binding and targeted retry mechanism. It introduces no judge
 agent, scheduler, queue, second coverage graph or model-authored HTML.
 
 ## Supersession boundary
@@ -69,7 +73,7 @@ CODE registration described by specifications 001, 003, 005 and section 2 of
 
 - one live RUN across non-terminal stages;
 - portable `run://` references;
-- one-time Work launch tokens and trusted Desktop adapter binding;
+- hook-observed, atomically claimed Work starts;
 - proportional capacity-aware packing;
 - retry of only rejected units;
 - terminal RUN events only at legal Flow exits.
@@ -100,7 +104,7 @@ PLAN must not:
 
 - launch independent reviewer Works;
 - claim independent reviewer evidence;
-- register the proposed CODE batch in `flow_works`;
+- register the proposed CODE batch in `works`;
 - return a CODE Work as ready;
 - claim `ready_for_code` when PLAN-REVIEW has not completed.
 
@@ -132,7 +136,7 @@ Only successful PLAN-REVIEW finish registers CODE Work.
   validate the candidate artifacts, record that independent review was
   skipped, register CODE Work, render reports and return the CODE command.
 - In `standard` or `deep`, CODE registration is forbidden until every required
-  latest reviewer Work/Turn/result is terminal and the orchestrator has
+  latest reviewer Work/Session/result is settled and the orchestrator has
   resolved every material finding.
 - A failed or blocked PLAN-REVIEW leaves the proposed batch as a file only. It
   must not leave a partially registered CODE graph.
@@ -233,8 +237,8 @@ and return the rendered PLAN-REVIEW prompt.
 
 `plan-review.prepare` must resolve whether review runs before any agent action:
 
-- `off`: return transition `off`; do not render `stage-prompt.md`, create a
-  PLAN-REVIEW Agent Turn or create reviewer Work;
+- `off`: return transition `off`; do not render `stage-prompt.md`, invoke a
+  PLAN-REVIEW agent action or create reviewer Work;
 - `standard` / `deep`: return `review_required`, materialize the complete
   startup packet and stop at the `plan-review.agent` boundary.
 
@@ -248,8 +252,7 @@ prompt is never generated and never needs to be "ignored" semantically.
 
 The PLAN owner remains the PLAN-REVIEW orchestrator.
 
-- The normal local/Desktop path continues in the same Session with a new
-  PLAN-REVIEW Agent Turn.
+- The normal local/Desktop path continues in the same Session.
 - There is no fresh judge Session.
 - The orchestrator alone creates reviewer Works through the harness/CLI.
 - Every reviewer runs in a fresh, clean Session and receives only its rendered
@@ -270,27 +273,31 @@ finish while a required reviewer child Work is `created` or `running`.
 
 ### Configuration
 
-Review policy is a RUN setting:
+Review policy is a flow flag whose resolved value is materialized as a RUN
+variable:
 
 ```text
-plan_review.mode: auto | off | standard | deep
+flow flag:   plan_review.mode = auto | off | standard | deep
+RUN value:   policy.plan_review.requested_mode = auto | off | standard | deep
 ```
 
-Every new RUN starts with `plan_review.mode: auto`. A project or cloud
-orchestrator may choose the initial value when it creates the RUN, but the
-resolved value belongs to that RUN; there is no project-level policy lookup at
-PLAN-REVIEW start.
+Flow flags are the versioned policy mechanism: they define defaults, presets,
+precedence, mandatory floors and revisions. RUN variables are the broader
+cross-stage context mechanism. A resolved flow flag is therefore one producer
+of `policy.*` variables; runtime observations and user variables are not flow
+flags.
 
-The setting is stored in the RUN record in SQLite and projected into
-`run.json` under `settings.plan_review`. Do not add a second config file or a
-separate policy table. Its projection includes:
+Every new RUN resolves `plan_review.mode`, defaulting to `auto`, and writes the
+resolved value and provenance to the authoritative RUN record in SQLite. The
+deterministic `run.json` projection includes it under `variables`; no
+`settings.plan_review`, second config file or separate policy table exists:
 
 ```json
 {
-  "settings": {
-    "plan_review": {
-      "mode": "auto",
-      "source": "default | user_instruction | controller",
+  "variables": {
+    "policy.plan_review.requested_mode": {
+      "value": "auto",
+      "source": "flow_flags",
       "reason": "...",
       "updated_at": "..."
     }
@@ -300,19 +307,22 @@ separate policy table. Its projection includes:
 
 The live agent or controller normalizes an explicit user instruction exactly
 once. For example, "без ревью плана" becomes `off`; "сделай глубокое ревью"
-becomes `deep`. It records the value through:
+becomes `deep`. It revises the flow flag through the existing optimistic,
+idempotent flow-flag command; it does not write a policy variable directly:
 
 ```bash
-dd-flow run config set <RUN> --key plan_review.mode --value off \
+dd-flow run flags revise <RUN> --expected-revision <n> \
+  --idempotency-key <key> --flag plan_review.mode=off \
   --reason "Explicit user instruction: без ревью плана" \
   --project-root <root> --json
 ```
 
-`dd-flow run config status <RUN> --project-root <root> --json` returns the
-saved value and provenance. Setting the same value is idempotent. Changing it
-is permitted only before `plan-review.default` starts; after that the setting
-is frozen for the stage attempt. A later change requires a new full stage
-attempt, not hand-editing SQLite or `run.json`.
+`dd-flow run flags status <RUN> --project-root <root> --json` returns the saved
+snapshot, revision and provenance. The engine materializes the updated
+`policy.*` value in the same transaction. Changing the review flag is permitted
+only before `plan-review.default` starts; after that the requested value is
+frozen for the stage attempt. A later change requires a new full stage attempt,
+not hand-editing SQLite or `run.json`.
 
 The CLI never parses the intake or reinterprets the user's prose. If no
 explicit instruction was normalized, `auto` remains the honest value.
@@ -400,17 +410,21 @@ mandatory even for one simple review unit.
   reviews when cross-protocol consistency is material.
 
 Capacity changes packing and wave count only. It does not change aspect
-applicability, selected review mode or acceptance criteria. The same bounded
-capacity/probe rules used by PLAN apply; probe attempts remain ephemeral.
+applicability, selected review mode or acceptance criteria. The stage-specific
+dispatch uses the one RUN-level probe handshake from specification 008.
 
 ## 4. Reviewer packet and adversarial contract
 
 The same canonical plan-aspect catalog is used for PLAN and PLAN-REVIEW. Do not
 create a second aspect catalog.
 
+Every reviewer Work is registered with
+`launch_policy: fresh_agent_required`. This is an assignment precondition
+consumed by the orchestrator and enforced by `work start`; it is not Session
+state owned by Work after launch.
+
 The rendered PLAN-REVIEW worker packet must include:
 
-- `session_mode: fresh_empty_session_required`;
 - Work, RUN, PRT/PSET and exact immutable plan revision/checksum;
 - accepted SPECIFY and PROTOCOLIZE references;
 - the full `aspect-worker.md` role prompt;
@@ -443,23 +457,20 @@ Reviewers do not repair. Their structured result conforms to one new compact
 ```json
 {
   "schema_id": "dd-flow/plan-review-result@1",
-  "work_id": "WORK-...",
   "plan_revision": 1,
   "overall_verdict": "pass | watch | needs_changes | blocked",
-  "aspect_results": [
+  "summary": "Short overall conclusion.",
+  "aspects": [
     {
       "aspect_id": "api_contract_design_review",
       "verdict": "pass | watch | needs_changes | blocked",
-      "confidence": "high | medium | low",
-      "sources_read": ["..."],
+      "summary": "The PATCH omission rule is ambiguous.",
+      "evidence_refs": [".memory-bank/protocol/PRT-007/plan.json"],
       "findings": [
         {
-          "finding_id": "F-001",
-          "severity": "blocker | high | medium | low | info",
-          "claim": "...",
-          "evidence_refs": ["..."],
-          "impact": "...",
-          "recommended_change": "..."
+          "severity": "high | medium | low | info",
+          "summary": "The plan does not define omitted priority behavior.",
+          "evidence_refs": [".memory-bank/protocol/PRT-007/plan.json"]
         }
       ]
     }
@@ -467,8 +478,10 @@ Reviewers do not repair. Their structured result conforms to one new compact
 }
 ```
 
-Agent-authored timestamps, Session IDs, Turn IDs, token counts, hashes and HTML
-are forbidden in this result. The CLI adds runtime identity and provenance.
+Every assigned aspect appears exactly once. Agent-authored finding ids,
+timestamps, Work/Session ids, token counts, hashes, confidence wrappers
+and HTML are absent. The CLI validates this semantic result, assigns stable
+finding ids and adds runtime identity/provenance.
 
 ## 5. Orchestrator reduction, correction and retry
 
@@ -501,7 +514,7 @@ CODE graph:
 
 1. increment the plan revision;
 2. update affected aspect rows and CODE batch together;
-3. preserve prior reviewer results as immutable Work/Turn history;
+3. preserve prior reviewer results and Work/Session links;
 4. dispatch a new Work only for affected review groups;
 5. validate the latest plan revision in every retry packet;
 6. accept only the latest result for each required group.
@@ -542,7 +555,7 @@ Agents always write to the current `04-plan-review/` workspace. Before a retry
 of the entire failed stage, the CLI moves its contents next to it under
 `04-plan-review-attempts/try-NNN/` and creates a clean current workspace. A
 targeted reviewer retry stays in the current stage and is preserved through
-immutable Work/Turn history. An agent never selects or writes an attempt path
+immutable Work result history. An agent never selects or writes an attempt path
 itself.
 
 No separate overall `summary.md`, reviewer aggregate memo, judge report,
@@ -570,7 +583,7 @@ input. The `off` path does not create it. Its enabled-mode contract is compact:
 
 The stage-start response and rendered prompt include this schema, field
 descriptions and one short valid example. The model does not supply hashes,
-paths, timestamps, Work/Session/Turn IDs, usage or CODE Work IDs; the CLI
+paths, timestamps, Work/Session IDs, usage or CODE Work IDs; the CLI
 derives them. `stage-report.json` deterministically copies the validated
 semantic fields and adds lifecycle, topology, provenance and observability.
 
@@ -620,7 +633,7 @@ dispatch/finish instructions and prompt content are absent.
 
 For `off`, this one command performs the atomic no-model gate, registers CODE,
 renders all reports and returns the exact CODE start command. It does not
-create a PLAN-REVIEW Agent Turn or reviewer Work.
+invoke a PLAN-REVIEW agent action or create reviewer Work.
 
 The JSON response extends the shared stage-start response with one compact
 `plan_review` object containing `requested_mode`, `effective_mode`,
@@ -659,7 +672,7 @@ idempotent operation:
 3. validates corrected `plan.json`, aspect maps and proposed CODE batch;
 4. registers the accepted CODE graph and stable key-to-Work-ID mapping;
 5. removes the consumed proposed batch only after the transaction commits;
-6. checkpoints associated usage once;
+6. records a provisional usage observation;
 7. writes `stage-report.json` and deterministically renders Markdown/HTML;
 8. returns `code.default`, the CODE workspace and exact CODE start command.
 
@@ -669,8 +682,8 @@ same accepted CODE mapping rather than creating duplicate Work.
 ## 8. Truthful observability projection
 
 SQLite remains the authority. JSON/Markdown/HTML are deterministic
-projections. Reporting must never use the number of snapshots as Session or
-coverage count.
+projections. Session counts come only from distinct stored Session rows linked
+to stage Work.
 
 Every PLAN-REVIEW report and RUN status exposes:
 
@@ -687,22 +700,14 @@ Every PLAN-REVIEW report and RUN status exposes:
     "plan_review_children": 0
   },
   "sessions": {
-    "registered": 0,
-    "orchestrators": 0,
-    "workers": 0,
-    "active": 0,
-    "stopped": 0
-  },
-  "agent_turns": {
     "total": 0,
-    "completed": 0,
-    "active": 0,
-    "failed": 0
+    "roots": 0,
+    "children": 0,
+    "reviewers": 0,
+    "open_work_links": 0
   },
   "usage": {
-    "coverage": "complete | partial | unavailable | not_applicable",
-    "sessions_expected": 0,
-    "sessions_measured": 0,
+    "status": "provisional | final | unavailable | not_applicable",
     "total_tokens": 0,
     "input_tokens": 0,
     "cache_read_input_tokens": 0,
@@ -710,7 +715,6 @@ Every PLAN-REVIEW report and RUN status exposes:
     "uncached_input_tokens": 0,
     "output_tokens": 0,
     "reasoning_output_tokens": 0,
-    "snapshots": 0,
     "observed_at": "timestamp"
   }
 }
@@ -718,41 +722,37 @@ Every PLAN-REVIEW report and RUN status exposes:
 
 Aggregation rules:
 
-1. Work counts come from all `flow_works` in the RUN;
+1. Work counts come from all `works` in the RUN;
    `plan_review_children` counts direct reviewer children of the PLAN-REVIEW
    parent.
-2. Session counts use distinct registered Session IDs associated with the RUN;
-   repeated registration/segments do not increase the count.
-3. Agent Turn counts use `flow_agent_turns` belonging to RUN Work.
-4. Usage chooses the latest measured snapshot per expected Session at the
-   report checkpoint, then sums those latest cumulative totals once.
-5. `total_tokens = input_tokens + output_tokens` when both are known.
-6. `reasoning_output_tokens` is a subset of `output_tokens`; it is displayed
+2. Session counts use distinct `sessions` reached through `work_sessions`;
+   repeated Work links do not increase the count.
+3. Stage finish records only provisional usage because the controlling agent
+   has not returned yet. `stat usage` later rereads transcripts and refreshes
+   final RUN/Session totals.
+4. `total_tokens = input_tokens + output_tokens` when both are known.
+5. `reasoning_output_tokens` is a subset of `output_tokens`; it is displayed
    separately and never added to total a second time.
-7. `cache_write_input_tokens` is nullable/optional when a provider does not
+6. `cache_write_input_tokens` is nullable/optional when a provider does not
    report it; missing provider data does not become zero evidence.
-8. `snapshots` is a diagnostic count only.
-9. `complete` means every Session expected by the current stage gate has a
-   measured latest snapshot. Future CODE Work does not make PLAN-REVIEW Session
-   coverage partial.
-10. `off` PLAN-REVIEW has Session/usage coverage `not_applicable` for reviewer
+7. `off` PLAN-REVIEW has Session/usage status `not_applicable` for reviewer
     Sessions, while the RUN aggregate may still report prior Sessions.
 
-PLAN-REVIEW finish checkpoints every associated expected Session once before this
-aggregation. Rendering is read-only and must not create another usage
-snapshot.
+PLAN-REVIEW finish records one provisional observation without asking the
+agent to run statistics. Exact flow usage is recalculated by the controller
+after agent responses have returned.
 
 Stage coverage explicitly lists:
 
-- PLAN-REVIEW orchestrator Session/Turn when mode is enabled;
+- PLAN-REVIEW orchestrator Session when mode is enabled;
 - expected reviewer Work IDs;
-- observed reviewer Session and Turn IDs;
-- missing expected reviewer Works/Sessions/Turns;
+- observed reviewer Sessions and Work links;
+- missing expected reviewer Work/Sessions;
 - pending future CODE Work separately from current-stage coverage.
 
 The current empty `expected/observed/missing` plus
-`expected_worker_units_missing` result is invalid when reviewer Work and Agent
-Turns are registered. Projection must derive the expected units from the
+`expected_worker_units_missing` result is invalid when reviewer Work/Sessions
+are registered. Projection must derive the expected units from the
 accepted PLAN-REVIEW routing and Work graph, not from optional manually populated
 `coverage_units_json` alone.
 
@@ -767,12 +767,12 @@ The HTML template must visibly present:
 1. RUN, PRT/PSET, PLAN revision and PLAN-REVIEW mode/policy source;
 2. overall gate outcome: `off`, `accepted`, `needs_changes`, `blocked` or
    `waiting_for_user`;
-3. review topology: aspect group → Work → Session → Turn → latest verdict;
+3. review topology: aspect group → Work → Session → latest verdict;
 4. findings ordered by severity, with evidence, orchestrator decision and
    decision reason;
 5. plan/batch revisions, accepted fixes and targeted retry lineage;
 6. CODE graph summary and whether it is registered/startable;
-7. Work, Session, Agent Turn and token-usage totals with coverage status;
+7. Work, Session and token-usage totals with truthful provisional/final status;
 8. timing and artifact links using portable/project-relative labels.
 
 The versioned template is tested once against valid/invalid report fixtures.
@@ -786,8 +786,8 @@ do not introduce a UI framework or a second report application for this view.
 ## 10. State and acceptance invariants
 
 - PLAN-REVIEW exists in every vNext RUN, including mode `off`.
-- Mode `off` creates zero reviewer Work and zero reviewer Agent Turns.
-- Any enabled PLAN-REVIEW creates at least one fresh reviewer Session/Work/Turn.
+- Mode `off` creates zero reviewer Work and reviewer Sessions.
+- Any enabled PLAN-REVIEW creates at least one fresh reviewer Session/Work.
 - The PLAN-REVIEW orchestrator is the existing PLAN owner; no judge agent exists.
 - Reviewer workers never spawn children and never mutate plan/product files.
 - CODE Work is absent before successful PLAN-REVIEW completion.
@@ -797,8 +797,8 @@ do not introduce a UI framework or a second report application for this view.
 - A corrected plan increments revision and re-runs only invalidated groups.
 - All required latest reviewer results target the accepted plan revision.
 - The RUN remains non-terminal after PLAN-REVIEW and points to `start_code`.
-- Reports count Works, Sessions, Turns and tokens from SQLite without snapshot
-  double counting.
+- Reports count Works and Sessions from SQLite; final tokens are recalculated
+  from each selected transcript without checkpoint double counting.
 - `run://` syntax and target existence are validated before dispatch/finish.
 
 ## 11. Required implementation changes
@@ -815,9 +815,11 @@ do not introduce a UI framework or a second report application for this view.
   deterministic-entry traversal rule;
 - make `plan-review.prepare` resolve policy before the agent boundary and
   omit all model-review artifacts/commands on the `off` path;
-- add minimal `run config status/set` support for `plan_review.mode`, stored in
-  the existing RUN record and `run.json` projection with source/reason;
-- freeze that RUN setting when PLAN-REVIEW starts and reject late mutation;
+- define `plan_review.mode` in the beta flow-flag catalog, materialize its
+  resolved value as `policy.plan_review.requested_mode`, and use the existing
+  `run flags status/revise` surface;
+- freeze that RUN policy value when PLAN-REVIEW starts and reject late
+  mutation;
 - move reviewer dispatch ownership from PLAN Work to PLAN-REVIEW Work;
 - replace the beta-only `plan reviews dispatch` command with
   `plan-review dispatch`, without an alias;
@@ -831,10 +833,10 @@ do not introduce a UI framework or a second report application for this view.
   finish input;
 - add orchestrator finding decisions and revision-aware targeted retry;
 - make CODE registration transactional/idempotent;
-- derive stage coverage from the Work/Turn graph;
-- aggregate latest-per-Session usage totals and expose snapshots separately;
-- make `stat usage` and stage/HTML reports call the same aggregation function,
-  so operator CLI totals and rendered totals cannot diverge;
+- derive stage coverage from Work/Session links;
+- remove synthetic Turn storage and snapshot-delta aggregation;
+- make `stat usage` reread transcripts, refresh `usage`, and supply the same
+  totals used by the RUN report;
 - reject malformed `run:/` references;
 - render the deterministic PLAN-REVIEW Markdown/HTML reports from one
   validated `stage-report.json` using the shared renderer shell;
@@ -845,7 +847,8 @@ do not introduce a UI framework or a second report application for this view.
 
 - insert PLAN-REVIEW between PLAN and CODE in the vNext flow graph;
 - update prime/SPECIFY/PLAN instructions so an explicit user review preference
-  is normalized once into RUN config; omitted preference leaves `auto`;
+  is normalized once through flow flags into RUN variables; omitted preference
+  leaves `auto`;
 - change PLAN instructions to prepare review routing and a proposed CODE graph,
   then stop at `start_plan_review`; the returned instruction must branch on
   `review_required` versus `review_off` without guessing the policy;
@@ -864,34 +867,35 @@ do not introduce a UI framework or a second report application for this view.
 - add one `standard` case proving at least one fresh reviewer and one wave;
 - add one `deep` case proving narrow assignments and user-selected focus;
 - add one `needs_changes → correction → targeted retry → accepted` case;
-- record parent/reviewer Session and Turn IDs plus deterministic usage totals.
+- record parent/reviewer Session ids, provider `session_id`, optional child
+  `agent_id`, Work links and deterministic usage totals.
 
 ## 12. Acceptance checks
 
 | ID | Proof |
 | --- | --- |
 | R-01 | PLAN finishes with proposed artifacts and `start_plan_review`, with no registered CODE Work |
-| R-02 | `review-mode off` creates no reviewer Work/Turn and atomically registers the proposed CODE graph |
+| R-02 | `review-mode off` creates no reviewer Work/Session and atomically registers the proposed CODE graph |
 | R-03 | `standard` creates at least one fresh reviewer Session and groups compatible aspects in the minimum wave count |
 | R-04 | `deep` separates user-focused/high-risk aspects and honours capacity without nested subagents |
-| R-05 | reviewer packets include canonical fresh-session role, leaf aspect prompts, immutable plan revision and exact lifecycle commands |
+| R-05 | reviewer Work require a fresh agent identity and packets include the canonical reviewer role, leaf aspect prompts, immutable plan revision and exact lifecycle commands |
 | R-06 | reviewer workers cannot mutate plan/product files or create child agents |
 | R-07 | the original orchestrator records an evidence-backed decision for every finding and ignores non-material preferences without blocking CODE |
 | R-08 | accepted material findings update plan/map/batch together, increment revision and retry only invalidated groups |
 | R-09 | repeated unchanged material finding after targeted correction blocks rather than looping forever |
 | R-10 | CODE registration occurs exactly once after `off` or accepted PLAN-REVIEW and returns one stable entry Work ID |
 | R-11 | PSET review preserves per-PRT verdicts and adds a final integration reviewer only when cross-PRT consistency is material |
-| R-12 | stage/RUN reports show truthful Work, Session and Turn counts derived from SQLite |
-| R-13 | usage totals use one latest measured snapshot per expected Session and show snapshot count separately |
+| R-12 | stage/RUN reports show truthful Work and Session counts derived from SQLite while preserving provider `session_id` and `agent_id` |
+| R-13 | `stat usage` rereads each selected transcript, counts relevant provider turns in memory once and persists sourced RUN/Session totals |
 | R-14 | reasoning output is not double-counted and missing cache-write data stays unknown rather than fabricated zero |
-| R-15 | enabled PLAN-REVIEW coverage is complete only when every expected reviewer Work has a bound Session and completed Turn/result |
+| R-15 | enabled PLAN-REVIEW coverage is complete only when every expected reviewer Work has a Session link and validated result |
 | R-16 | future unstarted CODE Work is reported as pending and does not make PLAN-REVIEW coverage partial |
 | R-17 | JSON, Markdown and HTML expose the same gate outcome, topology, findings, decisions, CODE readiness and observability totals |
 | R-18 | malformed `run:/`, missing `run://` targets and unsafe absolute semantic references fail before dispatch or CODE registration |
 | R-19 | `plan-review.prepare` selects `off` before the agent boundary and returns no prompt, reviewer Work or review commands |
 | R-20 | enabled start returns the complete decision schema, current workspace, rendered prompt and exact lifecycle commands without help/schema discovery |
-| R-21 | an explicit user preference is stored once in RUN config with source/reason, while omitted preference remains `auto` |
-| R-22 | PLAN-REVIEW reads only the frozen RUN setting; it neither parses intake nor accepts a late `--review-mode` override |
+| R-21 | an explicit user preference revises the flow flag once and materializes one sourced RUN policy variable, while omitted preference remains `auto` |
+| R-22 | PLAN-REVIEW reads only the frozen RUN policy variable; it neither parses intake nor accepts a late `--review-mode` override |
 
 ## Non-goals
 

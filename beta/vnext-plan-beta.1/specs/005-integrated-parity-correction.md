@@ -6,6 +6,10 @@ status: 'DRAFT'
 
 # 005 — Integrated parity correction
 
+> Specification 008 replaces this document's execution-storage and usage
+> mechanics. Current tables are `works`, `sessions`, `work_sessions`,
+> `hook_events` and `usage`; dd-flow has no Agent Turn entity.
+
 ## Goal
 
 Close the defects exposed by the first end-to-end vNext PLAN run as one
@@ -29,7 +33,7 @@ require. The engine would also have accepted materially weaker output.
 The root causes form six connected groups:
 
 1. semantic contracts were weaker than their owning specifications;
-2. PLAN bypassed the trusted stage/Turn/session lifecycle;
+2. PLAN bypassed the trusted stage/Session lifecycle;
 3. planning depth was conflated with aspect-review routing;
 4. stage packets omitted deterministic context and exact output shapes;
 5. document and requirement traceability was advisory rather than validated;
@@ -85,8 +89,8 @@ coverage mode and verdict are enums; applicable rows have a completed verdict
 and evidence/review references, while not-applicable rows have a reason.
 
 The map records the semantic route and grouping needed to explain coverage,
-but not mutable Session IDs, probe attempts or timing. Runtime Work/Turn
-records own actual dispatch.
+but not mutable Session IDs, probe attempts or timing. Runtime Work/Session
+links own actual dispatch.
 
 ### 1.4 Cross-artifact validation
 
@@ -114,8 +118,8 @@ For a supported Codex Desktop/CLI harness:
 
 - `stage start` consumes one trusted PreToolUse event;
 - the real Session is registered to RUN;
-- one Agent Turn is opened for the Work;
-- stage finish closes that exact Turn;
+- one Work/Session link is opened;
+- stage finish closes that exact link;
 - missing or ambiguous binding fails closed in a controlled eval.
 
 An unsupported harness may report binding as unavailable, but it cannot claim
@@ -136,7 +140,7 @@ exist and are tested.
 known deterministically that the stage needs:
 
 - RUN/Work/Stage identity and writable workspace;
-- trusted Session/Turn binding;
+- trusted Work/Session binding;
 - project/workspace/cwd and Git branch/HEAD/dirty/remotes;
 - engine/flow compatibility and permission result;
 - handoff policy and accepted predecessor paths/revisions;
@@ -183,11 +187,11 @@ For substantive independent read-only work:
 
 Capacity changes packing and wave count only. It never changes applicability,
 plan depth, task meaning, dependencies or the need for an independent verdict.
-Probe attempts are not Work and are not persisted as session coverage. Only
-the usable capacity result is needed while routing the current wave.
+Accepted probes are minimal Work/Session facts; unstarted attempts are not
+projected. Only usable capacity is stored as a RUN variable.
 
 PLAN must have an actual route from grouped aspect packets to child Work and
-trusted Agent Turns. Documenting `single_wave_grouped` without dispatching or
+trusted Sessions. Documenting `single_wave_grouped` without dispatching or
 accepting the corresponding units is invalid coverage.
 
 ## 5. Grounding, documents and acceptance
@@ -238,10 +242,9 @@ claims.
 
 ### 6.1 One Work authority
 
-Use only `flow_works` and `flow_agent_turns`, rebuilt to the minimal registry
-shape from specification 002. Remove `vnext_works` and `vnext_agent_turns` and
-all dual reads/writes. New beta databases use the new schema only; there is no
-legacy fallback.
+Use `works`, `sessions` and `work_sessions` from specification 008. Remove old
+prefixed/temporary tables and all dual reads/writes. New beta databases use the
+new schema only; there is no fallback.
 
 Parent Work cannot complete while a required descendant is `created` or
 `running`. Cancellation/failure closes descendants explicitly; reparenting is
@@ -252,7 +255,7 @@ not supported.
 SQLite is the mutable authority, but the RUN remains portable. After every Work
 mutation, CLI deterministically refreshes one RUN-local Work projection
 containing root ID, tasks, parentage, dependencies, status, compact results and
-Turn/session references. It is a projection, not a second editable graph.
+Session references. It is a projection, not a second editable graph.
 
 PLAN may remove the temporary input batch only after the accepted Work graph
 has been committed and projected. A RUN archive must remain understandable
@@ -260,23 +263,23 @@ without the original live SQLite database.
 
 ### 6.3 Usage provenance
 
-Stage finish and final eval collection refresh usage for every Session
-registered to the RUN, including coordinator, delegated and recovery Sessions.
-Aggregation uses session/Turn time boundaries and never duplicates one full
-Session total across several Works.
+Stage finish records only provisional usage for linked Sessions. After agent
+responses return, the controller runs `stat usage`, which rereads every Session
+transcript reached through RUN Work and refreshes final RUN/Session totals.
+Provider turn boundaries are parsed in memory and never persisted as entities.
 
 Each imported source records at least:
 
-- source kind and source Session ID;
+- source kind and stored Session ID;
 - source locator;
 - source size, mtime and SHA-256;
 - collection timestamp;
-- provider token-event timestamp and Turn ID when available;
+- provider token-event timestamp and raw turn id when available;
 - parser version and extraction status.
 
-Snapshots retain input, cache-read, cache-write when reported, reasoning and
-output categories. Reports show honest complete/partial/unavailable coverage;
-they do not rely on a manually set boolean.
+The `usage` projection retains input, cache-read, cache-write when reported,
+reasoning and output categories. Reports show honest provisional/final/
+unavailable status; they do not rely on a manually set boolean.
 
 ## 7. Deterministic finish and reports
 
@@ -285,7 +288,7 @@ Every stage finish uses the shared deterministic report pipeline:
 - validate semantic and cross-file contracts;
 - compute hashes and changed-file set;
 - run selected-file Memory Bank lint only when Memory Bank files changed;
-- close the bound Turn and checkpoint all registered Session usage;
+- close the bound Work/Session link and record provisional usage;
 - append structured timeline events with timestamps and duration;
 - render schema-valid JSON, Markdown and template-backed HTML;
 - refresh protocol summary and portable Work projection where applicable;
@@ -345,7 +348,7 @@ followed by a model-driven browser/DOM smoke.
 | C-02 | PLAN cannot reference a missing accepted requirement or criterion | negative cross-file test |
 | C-03 | `protocol-plan@2` rejects semantically empty nested contracts | invalid fixture set |
 | C-04 | aspect map covers the exact catalog with enum route/verdict fields | missing/duplicate/unknown tests |
-| C-05 | PLAN start binds the real Session and opens one Agent Turn | Desktop hook integration test |
+| C-05 | PLAN start registers the real Session and opens one Work/Session link | Desktop hook integration test |
 | C-06 | supported-harness missing/ambiguous binding fails closed | negative hook tests |
 | C-07 | PLAN start packet contains exact contracts, examples and finish command | prompt snapshot |
 | C-08 | finish receipt contains exact next-stage command or explicit gate | transition tests |
@@ -356,7 +359,7 @@ followed by a model-driven browser/DOM smoke.
 | C-13 | finish returns all relevant diagnostics and publishes no CODE Work on failure | atomic negative test |
 | C-14 | successful PLAN publishes one coordinator and traceable child DAG | stage integration test |
 | C-15 | parent Work cannot finish with active descendants | structured-concurrency test |
-| C-16 | only one Work/Turn table family participates in a new beta RUN | schema/SQL audit test |
+| C-16 | only `works`, `sessions` and `work_sessions` participate in a new beta RUN | schema/SQL audit test |
 | C-17 | archived RUN contains a complete generated Work projection | portability fixture |
 | C-18 | all registered RUN Sessions are included in usage aggregation with provenance | multi-session usage fixture |
 | C-19 | stage reports contain timings, binding, usage, validation and exact next action | schema/render snapshot |

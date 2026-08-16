@@ -58,8 +58,8 @@ current-gate blocker.
 - Work graph tasks are non-empty, same-RUN dependencies resolve and the graph
   is acyclic;
 - no runnable CODE Work was published before successful PLAN finish;
-- stage report, timeline, exact rendered prompts, Work results and available
-  Session/Turn links are readable;
+- stage report, timeline, exact rendered prompts, Work results and
+  Work/Session links are readable;
 - the finish receipt returns the exact next command or an explicit gate rather
   than making the worker search flow/help text;
 - in the controlled Codex eval, every started Work has its trusted real Session
@@ -217,7 +217,7 @@ The reviewer uses, as applicable:
 - relevant epic/feature/spec/ADR/scenario/policy sources;
 - every accepted `plan.json` and aspect map;
 - Work task/result list and dependency graph;
-- exact rendered prompts and Session/Turn IDs;
+- exact rendered prompts and Session identities;
 - stage reports/timeline/usage;
 - targeted source/test anchors cited by grounding;
 - the worker transcript only to explain process behavior, never as a substitute

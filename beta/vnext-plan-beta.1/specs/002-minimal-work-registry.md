@@ -6,6 +6,10 @@ status: 'DRAFT'
 
 # 002 — Minimal Work registry
 
+> Specification 008 is authoritative for Session registration, Work/Session
+> links, hooks, capacity and usage. This document defines only Work semantics
+> and commands. There is no dd-flow Agent Turn entity.
+
 ## Goal
 
 Give an orchestrator a small durable task list so it can plan more work than it
@@ -25,6 +29,8 @@ task
 depends_on
 status
 result
+launch_policy
+result_schema
 created_at
 started_at
 completed_at
@@ -37,39 +43,22 @@ parent. The same record represents grounding, planning, aspect, implementation
 or integration work; meaning comes from the task and Flow position, not a Work
 type or stage column.
 
-Session and Agent Turn links are recorded through the trusted hook when the
-harness provides them, but they are not required to define or schedule a Work.
-The agent never supplies a session ID.
+`launch_policy` is `reuse_allowed` or `fresh_agent_required`; it tells the
+orchestrator how this Work must be assigned and lets `work start` verify that
+precondition. It does not make Work the owner of a Session after launch.
+`result_schema` is a schema id or null; when present it defines the semantic
+answer format that `work finish` validates. The Work task still carries all
+task-specific input/output instructions.
 
-Every execution attempt has one immutable `flow_agent_turns` row with:
-
-```text
-turn_id
-work_id
-session_id
-hook_event_id
-status
-prompt_path
-result_path
-created_at
-completed_at
-```
-
-`session_id` and `hook_event_id` are nullable only when the harness provides no
-trusted binding. Prompt/result files are immutable RUN artifacts; a failed
-attempt receives a deterministic failure result. Retry creates a new Turn and
-never rewrites the old one. `work finish` and `work fail` close the one running
-Turn of that Work; absence or ambiguity is an error.
-
-Agent Turn states are only `running`, `completed`, `failed` and `cancelled`.
-They do not duplicate stage waiting or correction states.
+The hook registers the actual Session and opens a `work_sessions` link. The
+agent never supplies identity. Provider `turn_id` remains raw hook/transcript
+metadata and is not stored as a dd-flow lifecycle entity.
 
 ## Physical storage cutover
 
-The current beta must expose exactly one Work table family. Rebuild
-`flow_works` and `flow_agent_turns` to the minimal shapes below and remove the
-temporary `vnext_works` and `vnext_agent_turns` tables and every caller. The new
-physical Work authority contains only:
+The current beta must expose one `works` table and remove `flow_works`,
+`flow_agent_turns`, temporary vNext tables and every caller. The physical Work
+authority contains only:
 
 ```text
 work_id
@@ -80,6 +69,8 @@ task
 depends_on_json
 status
 result
+launch_policy
+result_schema
 created_at
 started_at
 updated_at
@@ -121,7 +112,7 @@ inside a new beta runtime.
 
 Flow identity/version belongs to RUN, because RUN is the materialized Flow
 launch. This cutover creates `dd-flow/flow-run@3`;
-`flow_runs.flow_kind` is replaced throughout the RUN schema, types, commands,
+`runs.flow_kind` is replaced throughout the RUN schema, types, commands,
 projections, guidance, dashboard and tests by:
 
 ```text
@@ -133,21 +124,21 @@ flow_version
 `mb-sdlc-vnext`; it is not changed from `vnext_specify` to
 `vnext_protocolize` as stages advance. `flow_version` is the accepted Flow
 definition version. Neither field is copied into Work. The separate
-`flow_sessions.flow_kind` classification (`planning`, `implementation`, merge
+Session-role classification (`planning`, `implementation`, merge
 roles and similar session purposes) is not a RUN Flow identity and remains
 unchanged.
 
 This is a single schema cutover. New vNext code does not read `flow_kind` as a
 fallback for RUN identity and does not publish both shapes. Legal stage
 transitions and deterministic actions belong to the Flow/stage runtime. Stage
-context and prompts live at their conventional RUN workspace paths and Agent
-Turns. Wait state belongs to RUN/session state.
+context and prompts live at their conventional RUN workspace paths. Wait state
+belongs to RUN/Work state.
 
 ### Root Work
 
 A root Work is the parentless logical process created with the RUN. Its `task`
 states the requested Flow outcome and stop target; it may span several stages
-and Agent Turns. It is not a stage cursor and receives no stage-specific
+and Session interactions. It is not a stage cursor and receives no stage-specific
 fields. It remains `running` while its Flow has unfinished child Work and may
 complete only after all descendants are terminal and the Flow has reached an
 allowed exit. Its `result` is the final compact Flow handoff, not a duplicate
@@ -209,8 +200,8 @@ cancelled
 
 `work start` atomically changes `created` to `running`. `finish`, `fail` and
 `cancel` perform terminal transitions. `retry` resets a failed Work to
-`created` for another Agent Turn while preserving the failed Turn and error
-history. It never retries an accepted semantic result: a rejected result gets
+`created` while preserving its closed Work/Session link and error history. It
+never retries an accepted semantic result: a rejected result gets
 a new narrow corrective Work so accepted sibling findings remain accepted.
 
 A parent cannot complete while any child is `created` or `running`. Failed or
@@ -220,9 +211,8 @@ fail honestly.
 
 Normal RUN completion requires a completed root Work and no non-terminal Work.
 Explicit RUN cancellation atomically cancels every `created` or `running` Work
-and open Agent Turn; a late worker finish is rejected. A controller may also
-interrupt the external agent process, but runtime correctness does not depend
-on successful interruption.
+and closes open Work/Session links; a late worker finish is rejected. A
+controller may separately interrupt the external agent process.
 
 ## CLI contract
 
@@ -251,17 +241,19 @@ work deps list <WORK> --json
 work deps add|remove <WORK> --on <WORK> [--on <WORK>...] --json
 work deps clear <WORK> --json
 work delete <WORK> --json
-work start <WORK> --json
-work finish <WORK> --result-stdin --json
-work fail <WORK> --reason <text> --json
+work start <WORK> --project-root <root> --json
+work finish <WORK> --result-stdin --project-root <root> --json
+work fail <WORK> --reason <text> --project-root <root> --json
 work retry <WORK> --reason <text> --json
 work cancel <WORK> --reason <text> --json
 ```
 
-A full Work ID resolves its project and RUN, so per-Work commands do not repeat
-`--project-root`, `--run`, stage or session arguments. Stage prompts always
-return full IDs and exact commands. Diagnostic short-ID resolution may use the
-existing project-scoped resolver, but agent prompts never depend on ambiguity.
+A full Work ID resolves its RUN after the runtime database is selected, but
+participating per-Work commands still carry the explicit canonical
+`--project-root` used by the hook fingerprint. They never accept a stage,
+Session or agent argument. Stage prompts always return full IDs and exact
+commands. Diagnostic short-ID resolution may use the existing project-scoped
+resolver, but agent prompts never depend on ambiguity.
 
 ### Batch creation
 
@@ -275,27 +267,34 @@ containing:
     {
       "key": "code-coordinator",
       "task": "Coordinate this CODE stage and integrate child results...",
-      "depends_on": []
+      "depends_on": [],
+      "launch_policy": "reuse_allowed",
+      "result_schema": null
     },
     {
       "key": "implementation",
       "task": "Implement the accepted plan...",
       "depends_on": [],
-      "parent": "code-coordinator"
+      "parent": "code-coordinator",
+      "launch_policy": "reuse_allowed",
+      "result_schema": null
     },
     {
       "key": "verification",
       "task": "Run the implementation-time checks...",
       "depends_on": ["implementation"],
-      "parent": "code-coordinator"
+      "parent": "code-coordinator",
+      "launch_policy": "fresh_agent_required",
+      "result_schema": null
     }
   ]
 }
 ```
 
 This file validates as `dd-flow/work-batch@1`: top-level fields are only
-optional `entry` and required non-empty `works`; each Work permits only `key`,
-non-empty Markdown `task`, `depends_on` and optional `parent`. Keys are unique.
+optional `entry` and required non-empty `works`; each Work requires `key`,
+non-empty Markdown `task`, `depends_on`, `launch_policy` and `result_schema`,
+and permits optional `parent`. Keys are unique.
 There is no second PLAN-specific batch schema.
 
 `key` is a batch-local reference. Optional `entry` names one local key and
@@ -358,8 +357,8 @@ work retry <WORK> --reason <text>
 ```
 
 Only `failed` Work may be retried. The command records the reason, preserves
-the failed Agent Turn, clears the current claim/timing fields and returns the
-Work to `created`. Task and dependencies remain unchanged. A stuck `running`
+the failed Work/Session link, clears current timing fields and returns Work to
+`created`. Task and dependencies remain unchanged. A stuck `running`
 Work must first be failed or cancelled explicitly; this beta has no lease-based
 automatic reassignment.
 
@@ -371,12 +370,13 @@ context and returns the rendered prompt plus exact finish/fail commands.
 
 PreToolUse treats the exact `dd-flow work start <WORK-ID>` invocation as a
 participating command. It computes a canonical fingerprint from operation,
-resolved project root and Work ID, records the real Session/Turn, and injects
-the opaque hook-event ID into the command. CLI claims that event idempotently
-before starting the Work. Desktop paths that execute the original command use
-the same fingerprint through the unchanged-command claim path to claim the one
-fresh matching event. Manual
-`--session-id` and fuzzy recent-event selection are not supported.
+resolved project root and Work ID, records provider `session_id`, optional
+child `agent_id`, `turn_id` and transcript path, and injects the opaque
+hook-event ID into the command. CLI claims that event idempotently before
+starting Work. Desktop paths that execute the original command use the same
+fingerprint through the unchanged-command claim path to claim the one fresh
+matching event. Manual `--session-id`, launch tokens, adapter binding and fuzzy
+recent-event selection are not supported.
 
 An unchanged-command claim considers only unconsumed events within the short
 hook window. No match leaves session binding honestly unavailable; more than
@@ -384,9 +384,10 @@ one match fails closed rather than guessing. A retry may reuse the same command
 fingerprint because the previous hook event is already consumed and the new
 PreToolUse invocation creates a fresh event.
 
-`work finish --result-stdin` stores the compact result and completes the Work.
-SQLite is authoritative for the result; CLI renders the Turn result file as an
-immutable audit projection of the same bytes, not a second editable source.
+`work finish --result-stdin` validates `result_schema` when present, stores the
+compact result, closes the open Work/Session link, completes Work and records a
+provisional usage observation. SQLite is authoritative for the result; CLI
+renders one immutable result projection of the same bytes.
 The parent obtains all child statuses and optional results with one filtered
 `work ls` call. The registry never parses the semantic task or result.
 
@@ -396,7 +397,7 @@ it does not publish a durable authored `code-work-graph.json`.
 
 SQLite remains the mutable authority, while CLI refreshes one generated
 RUN-local Work projection after every mutation. It contains the root ID,
-tasks, parentage, dependencies, statuses, compact results and Turn/Session
+tasks, parentage, dependencies, statuses, compact results and Session
 references needed to inspect an archived RUN without its original live
 database. The projection is never agent-authored or accepted as mutation
 input.
@@ -425,11 +426,11 @@ be expressed by the task, parent, dependencies, state and result.
   rejected without partial mutation.
 - Dependency add/remove/clear immediately changes derived readiness.
 - Only never-started unreferenced Work can be deleted.
-- A failed Work can be retried without losing its failed Turn history; a
+- A failed Work can be retried without losing its prior Work/Session link; a
   running Work cannot be silently stolen or reset.
 - A completed child result remains readable after its agent context is gone.
-- One Session may execute several Work through separate Agent Turns, while one
-  Work start cannot be claimed by two sessions.
+- One Session may execute several Work, while one running Work cannot have two
+  open Session links.
 - No removed Flow-cursor field, old status or `flow_jobs` record participates
   in a new vNext RUN.
 - Hook rewrite and unchanged-command claim paths bind the same Work start
