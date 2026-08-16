@@ -164,6 +164,35 @@ be used to overwrite an earlier measured total.
   content quality and elapsed time;
 - use the same single-PRT priority case before adding the separate PSET case.
 
+## 7. Parallel Desktop worker binding
+
+EVAL-006 proved that a hook presence check is not enough. Three visible
+Desktop worker tasks were created in one wave. Their `work start` commands were
+valid, but two observed PreToolUse events carried the Session identity of a
+different concurrent worker. The current `work start` accepted that event and
+would have attributed the wrong Agent Turn to the Work. The run was cancelled
+before any review verdict or PLAN acceptance.
+
+The correction has two layers:
+
+1. **CLI invariant.** A `work start` hook event is one-time claimed and must
+   match a canonical fingerprint of the exact `work start <WORK-ID>` command.
+   A stale, already-claimed or other-Work event fails closed. The event table
+   stores the canonical invocation fingerprint alongside its normal event key.
+2. **Trusted harness adapter.** Only an adapter that creates a fresh worker
+   Session may assign that worker Session to its Work before launch. The
+   assignment is adapter-owned, never an agent flag. `work start` compares the
+   observed hook Session with that assignment and fails closed on a mismatch.
+   Codex Desktop task creation already returns the worker task ID, so the
+   Desktop adapter can make the assignment deterministically. A plain CLI
+   harness without that capability keeps the existing unassigned mode, but it
+   cannot claim a multi-session eval is fully bound.
+
+The implementation must not use a model-supplied `--session-id`, a heuristic
+"latest session", or a retry that silently reuses another worker's event.
+Serialized workers may be used only as an explicitly labelled harness
+diagnostic; they are not proof that a one-wave route works.
+
 ## Acceptance checks
 
 | ID | Proof |
@@ -176,3 +205,5 @@ be used to overwrite an earlier measured total.
 | L-06 | portable RUN projection, map and Work task contain no unnormalised absolute artifact paths |
 | L-07 | PLAN start packet contains exact dispatch/start/finish commands and a valid grouped example |
 | L-08 | usage reports retain prior measured totals and use terminal checkpoint names only at terminal RUN state |
+| L-09 | parallel Desktop workers cannot start from a foreign, stale or reused hook event |
+| L-10 | the Desktop adapter binds the returned child-task identity to its Work before launch; a mismatch is blocked without creating an Agent Turn |
