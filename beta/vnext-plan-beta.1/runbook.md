@@ -1,7 +1,7 @@
 ---
 file: 'beta/vnext-plan-beta.1/runbook.md'
 description: 'Controlled preparation and execution of the vNext PLAN beta eval.'
-status: 'DRAFT'
+status: 'IN_PROGRESS'
 ---
 
 # vNext PLAN beta runbook
@@ -13,13 +13,39 @@ status: 'DRAFT'
   engine.
 - The project has a fresh `DD_FLOW_HOME`; do not reuse a database holding the
   pre-cutover prefixed Work/Session schema.
-- The current integrated engine is `dd-flow-cli@0.8.0-beta.32`. The beta
-  project compatibility file must select that exact snapshot before creating a
-  RUN.
+- The next integrated snapshot is `dd-flow-cli@0.8.0-beta.34`. Do not create
+  a new comparable RUN until the engine tag, the beta flow-pack compatibility
+  file and the eval checkpoint all select this exact snapshot.
 - Codex hooks are installed for the active `CODEX_HOME` and the harness can
   create a PreToolUse event for `dd-flow` Bash calls.
 - The canonical discussion fixture has already reached accepted PROTOCOLIZE
   with one PRT. PSET is a separate eval case.
+
+## Remaining beta.34 implementation
+
+The prior cutover is implemented; beta.34 is deliberately limited to the
+following closure work. Do these in order.
+
+1. **Lifecycle truthfulness.** Settle every terminal PLAN-REVIEW child
+   (including probes), close its Work/Session link and the root link, and make
+   reports state only facts available from the controller statistics commands.
+2. **Session and usage proof.** Cover parent/child Session derivation,
+   hook-command matching, fresh-reviewer isolation and one-read-per-source
+   transcript aggregation. Keep source timestamp, provider Session identity
+   and every token category in the recorded usage row.
+3. **Deterministic gate.** Run the full engine suite, fix any remaining test
+   failure at its cause, then rerun lint, typecheck, build and beta-pack
+   `mb-lint`. Do not weaken or skip a failing test.
+4. **Immutable beta artefacts.** Tag/push engine beta.34; update and tag/push
+   the dd-tasks beta flow pack and its compatibility contract; then create the
+   matching dd-eval profile and checkpoint. All three revisions must be
+   recorded before preparation.
+5. **One visible evaluation.** Materialize a new isolated workspace and
+   `DD_FLOW_HOME`, launch the normal Desktop task with the fixed profile, stop
+   at CODE entry, archive the complete RUN, and assess quality and timing.
+
+The run pauses at a genuine blocker; a CLI-only substitute is never reported
+as a Desktop result.
 
 ## Harness
 
@@ -111,7 +137,8 @@ The successful finish must prove:
 - `03-plan/stage-report.{json,md,html}` exist;
 - the receipt contains `start_plan_review`, not a CODE start command;
 - the PLAN Work has a trusted Session link;
-- stage usage is explicitly provisional rather than presented as final;
+- reports point to controller-owned source usage rather than presenting a
+  synthetic final total;
 
 ## PLAN-REVIEW run
 
@@ -166,7 +193,7 @@ the exact token-free `work start <WORK> --project-root <root>` command returned
 by dispatch. The worker never receives or supplies a Session or agent id.
 PreToolUse supplies both provider `session_id` and optional child `agent_id`;
 the runtime uses `sessions.id = agent_id ?? session_id`, derives its parent from
-the parent Work's open Session link, and atomically claims Work using the
+the parent Work's latest confirmed Session link, and atomically claims Work using the
 normalized operation/Work/project fingerprint.
 
 The evaluator records both identities. `session_id` names the provider host
@@ -180,8 +207,8 @@ Every delegated Work uses the same lifecycle:
    applicable RUN variables, result schema and exact completion commands;
 2. the subagent performs only that task;
 3. `work finish` or `work fail` is its final flow-owned lifecycle command;
-4. `work finish` records only provisional usage. The controller recalculates
-   final usage after the subagent returns.
+4. `work finish` closes the Work/Session link. The controller recalculates
+   usage from source only after the subagent returns.
 
 The task-priority case uses `compact_plan` depth but is a substantive
 multi-aspect vertical slice. It should prefer one grouped review wave when the

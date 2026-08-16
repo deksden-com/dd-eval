@@ -177,7 +177,8 @@ At a child `work start`, one database transaction:
 
 1. claims the single-use matching hook event;
 2. loads Work, RUN and parent Work;
-3. finds the one open `work_sessions` link for the parent Work;
+3. finds the parent's latest confirmed `work_sessions` link (open when the
+   parent is actively delegating, otherwise its most recently closed link);
 4. derives child Session id as `agent_id ?? session_id`;
 5. reuses that Session when it already exists, otherwise creates it with the
    parent Work's Session as `parent_id`;
@@ -278,9 +279,9 @@ For every reviewer, scout, verifier, code worker or accepted probe:
 6. call `work finish` or `work fail` as the last flow-owned command;
 7. let the harness end the provider turn after the agent returns.
 
-`work finish` validates the result, stores it, closes `work_sessions`, completes
-Work and takes a provisional usage observation. It does not claim to stop the
-Session or provider turn.
+`work finish` validates the result, stores it, closes `work_sessions` and
+completes Work. It does not measure usage, claim to stop the Session, or claim
+to stop the provider turn; the controller calculates usage later from source.
 
 ## 7. PLAN aspect and reviewer result contracts
 
@@ -415,8 +416,8 @@ own finish command.
 - share one deterministic Session-registration path between root stage start
   and Work start;
 - preserve both hook `session_id` and `agent_id`, derive `sessions.id`, and set
-  child parent from the parent Work's open Session link;
-- enforce parent immutability, one unambiguous open parent link and
+  child parent from the parent Work's latest confirmed Session link;
+- enforce parent immutability, one unambiguous confirmed parent link and
   `launch_policy` transactionally;
 - remove launch tokens, adapter binding and identity flags;
 - make stage-specific dispatch own the one RUN capacity observation;

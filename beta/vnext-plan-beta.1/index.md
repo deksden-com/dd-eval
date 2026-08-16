@@ -77,8 +77,10 @@ over with compatibility paths while an earlier contract is still unsettled.
    quality and timing against the reference runs. A real blocker pauses the
    sequence for root-cause analysis; otherwise archive the complete Run.
 
-The detailed execution requirements below remain authoritative; the list
-above is the operational order rather than a second specification.
+The detailed execution requirements below preserve the original cutover
+design. They are historical implementation context, not a second active
+checklist: where they conflict with the five beta.34 items above or
+specification 008, the newer contract wins.
 
 ### 1. Freeze the agreed contract
 
