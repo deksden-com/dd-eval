@@ -76,6 +76,27 @@ the literal `DD_FLOW_HOME=<isolated-home>`. The managed PreToolUse hook routes
 that event to the same home before it appends `--hook-event-id`; this is the
 only permitted runtime override for this beta harness.
 
+### Working-directory contract
+
+The evaluated Desktop task may start in a parent project directory (for
+example, `_Projects`) rather than in the materialized repository. Treat that
+as a supported harness condition, not a blocker and not a reason to register
+a temporary Desktop project.
+
+- Pass the materialization as the absolute `--project-root` on every lifecycle
+  command.
+- Use only the absolute artifact paths returned in the lifecycle prompt or
+  `work-context.json`. They are authoritative regardless of the shell cwd.
+- Never create a relative `.memory-bank/...`, `RUN-*`, or stage path. Before
+  writing, compare the target with the returned absolute project/stage root.
+- A command that needs trusted PreToolUse binding must be one direct
+  `DD_FLOW_HOME=<isolated-home> dd-flow …` invocation. Do not wrap it in
+  `cd &&`, a pipe, a heredoc or another compound shell expression; use an
+  existing absolute `--intake-file` when the bootstrap needs intake bytes.
+
+The operator creates the isolated engine snapshot before launch. The worker
+does not install or select engines.
+
 ## Preflight
 
 ```bash
