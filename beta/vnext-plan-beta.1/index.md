@@ -24,11 +24,12 @@ this draft does not claim an immutable beta checkpoint.
 - [003 — PLAN/PSET execution and capacity](specs/003-plan-pset-execution-and-capacity.md)
 - [004 — PLAN quality gate](specs/004-plan-quality-gate.md)
 - [005 — integrated parity correction](specs/005-integrated-parity-correction.md)
+- [006 — live PLAN wave and lifecycle convergence](specs/006-live-plan-wave-and-lifecycle.md)
 - [Controlled eval runbook](runbook.md)
 
 ## Intended implementation order
 
-1. Apply specification 005 as the correction gate over the original bundle;
+1. Apply specifications 005 and 006 as the correction gate over the original bundle;
    deterministic contract tests must pass before another model eval.
 2. Cut over RUN Flow identity and rebuild the vNext Work storage/CLI to the
    minimal registry contract from specification 002, with no compatibility

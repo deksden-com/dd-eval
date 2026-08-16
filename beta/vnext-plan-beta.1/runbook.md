@@ -13,7 +13,7 @@ status: 'DRAFT'
   engine.
 - The project has a fresh `DD_FLOW_HOME`; do not reuse a database holding the
   pre-registry `flow_works` shape.
-- The current integrated engine is `dd-flow-cli@0.8.0-beta.27`. The beta
+- The current integrated engine is `dd-flow-cli@0.8.0-beta.28`. The beta
   project compatibility file must select that exact snapshot before creating a
   RUN.
 - Codex hooks are installed for the active `CODEX_HOME` and the harness can
@@ -70,8 +70,10 @@ dd-flow stage start <RUN-ID> --stage plan --project-root <dd-tasks> --json
 ```
 
 The returned prompt is authoritative. The agent writes one `plan.json` and one
-`aspect-map.json` per PRT plus `<RUN>/03-plan/code-work-batch.json`, then runs
-the exact returned finish command.
+`aspect-map.json` per PRT plus `<RUN>/03-plan/code-work-batch.json`. For a
+grouped route it then runs the returned `plan reviews dispatch` command,
+launches every ready review Work with its returned command, accepts their
+verdicts into the map, and only then runs the exact PLAN finish command.
 
 The successful finish must prove:
 
@@ -85,6 +87,8 @@ The successful finish must prove:
 - usage was refreshed for all RUN Sessions with source provenance;
 - the receipt contains the exact CODE start command and RUN is not marked
   `waiting_for_user` without a real question.
+- `single_wave_grouped` has completed review Work/Agent Turns before CODE is
+  registered; a route label alone is not evidence.
 
 The task-priority case uses `compact_plan` depth but is a substantive
 multi-aspect vertical slice. It should prefer one grouped review wave when the
