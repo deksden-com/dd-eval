@@ -79,7 +79,7 @@ over with compatibility paths while an earlier contract is still unsettled.
 
 The detailed execution requirements below preserve the original cutover
 design. They are historical implementation context, not a second active
-checklist: where they conflict with the five beta.34 items above or
+checklist: where they conflict with the five beta.35 items above or
 specification 008, the newer contract wins.
 
 ### 1. Freeze the agreed contract

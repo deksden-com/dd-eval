@@ -21,5 +21,7 @@
       "commit": "312bbc523570cdf9181041c1d086630d0f19d906"
     }
   },
-  "state": "accepted_immutable"
+  "state": "superseded_incompatible",
+  "superseded_by": "cp-002-vnext-plan-review-beta-35",
+  "incompatibility": "The flow pack declares mb-sdlc-vnext-protocolize@3 while engine beta.34 admitted only @2 at bootstrap."
 }

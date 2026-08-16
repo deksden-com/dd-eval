@@ -13,7 +13,7 @@ status: 'IN_PROGRESS'
   engine.
 - The project has a fresh `DD_FLOW_HOME`; do not reuse a database holding the
   pre-cutover prefixed Work/Session schema.
-- The next integrated snapshot is `dd-flow-cli@0.8.0-beta.34`. Do not create
+- The next integrated snapshot is `dd-flow-cli@0.8.0-beta.35`. Do not create
   a new comparable RUN until the engine tag, the beta flow-pack compatibility
   file and the eval checkpoint all select this exact snapshot.
 - Codex hooks are installed for the active `CODEX_HOME` and the harness can
@@ -21,9 +21,9 @@ status: 'IN_PROGRESS'
 - The canonical discussion fixture has already reached accepted PROTOCOLIZE
   with one PRT. PSET is a separate eval case.
 
-## Remaining beta.34 implementation
+## Remaining beta.35 implementation
 
-The prior cutover is implemented; beta.34 is deliberately limited to the
+The prior cutover is implemented; beta.35 is deliberately limited to the
 following closure work. Do these in order.
 
 1. **Lifecycle truthfulness.** Settle every terminal PLAN-REVIEW child
@@ -36,7 +36,7 @@ following closure work. Do these in order.
 3. **Deterministic gate.** Run the full engine suite, fix any remaining test
    failure at its cause, then rerun lint, typecheck, build and beta-pack
    `mb-lint`. Do not weaken or skip a failing test.
-4. **Immutable beta artefacts.** Tag/push engine beta.34; update and tag/push
+4. **Immutable beta artefacts.** Tag/push engine beta.35; update and tag/push
    the dd-tasks beta flow pack and its compatibility contract; then create the
    matching dd-eval profile and checkpoint. All three revisions must be
    recorded before preparation.
@@ -46,6 +46,17 @@ following closure work. Do these in order.
 
 The run pauses at a genuine blocker; a CLI-only substitute is never reported
 as a Desktop result.
+
+Before handing the fresh RUN to a Desktop worker, install the pinned engine
+into its fresh flow home deterministically:
+
+```bash
+DD_FLOW_HOME=<isolated-home> dd-flow engine install --json
+```
+
+This is harness setup, not an evaluated agent action. Confirm the installed
+version matches the profile before the first `stage start`; a fresh home has no
+engine snapshot by design.
 
 ## Harness
 
