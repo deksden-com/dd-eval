@@ -13,7 +13,7 @@ status: 'DRAFT'
   engine.
 - The project has a fresh `DD_FLOW_HOME`; do not reuse a database holding the
   pre-registry `flow_works` shape.
-- The current integrated engine is `dd-flow-cli@0.8.0-beta.24`. The beta
+- The current integrated engine is `dd-flow-cli@0.8.0-beta.25`. The beta
   project compatibility file must select that exact snapshot before creating a
   RUN.
 - Codex hooks are installed for the active `CODEX_HOME` and the harness can
@@ -33,6 +33,11 @@ make an eval fresh. If Desktop cannot start the task with the designated
 isolated `DD_FLOW_HOME` and matching hook environment, record the environment
 blocker and repair that harness configuration first. A CLI-only substitute is
 not a Desktop comparison result.
+
+For an isolated Desktop run, prefix every `dd-flow` lifecycle invocation with
+the literal `DD_FLOW_HOME=<isolated-home>`. The managed PreToolUse hook routes
+that event to the same home before it appends `--hook-event-id`; this is the
+only permitted runtime override for this beta harness.
 
 ## Preflight
 
