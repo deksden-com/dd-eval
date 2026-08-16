@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-36",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "xhigh",
+  "runtime": {
+    "dd_flow_cli": {
+      "router": "globally installed stable router",
+      "engine_version": "0.8.0-beta.36",
+      "engine_tag": "eval-engine-0.8.0-beta.36",
+      "engine_commit": "00b292b640dcedb4c4c46b6d335c20d1f3d32003",
+      "install_source": "local_development_snapshot"
+    }
+  },
+  "notes": "vNext PLAN-REVIEW beta.36: absolute PLAN artifact paths tolerate a parent Desktop cwd."
+}
