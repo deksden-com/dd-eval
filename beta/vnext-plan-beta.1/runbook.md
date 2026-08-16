@@ -13,7 +13,7 @@ status: 'DRAFT'
   engine.
 - The project has a fresh `DD_FLOW_HOME`; do not reuse a database holding the
   pre-registry `flow_works` shape.
-- The current integrated engine is `dd-flow-cli@0.8.0-beta.25`. The beta
+- The current integrated engine is `dd-flow-cli@0.8.0-beta.26`. The beta
   project compatibility file must select that exact snapshot before creating a
   RUN.
 - Codex hooks are installed for the active `CODEX_HOME` and the harness can
