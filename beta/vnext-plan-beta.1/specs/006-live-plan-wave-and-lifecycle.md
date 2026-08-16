@@ -78,7 +78,10 @@ The normal PLAN agent sequence is:
 3. For a grouped route it calls one deterministic command:
    `dd-flow plan reviews dispatch <RUN> --project-root <root> --json`.
    It validates the draft, creates only the declared grouped review Work and
-   returns their IDs, ready order and exact `work start` commands.
+   returns their IDs, ready order and exact `work start` commands. Every
+   returned start command contains the one-time launch token **and** an
+   explicit project-root argument, so a Desktop task whose own cwd is not the
+   evaluated checkout can still be observed by the hook.
 4. The harness/orchestrator launches those ready Work in one wave when actual
    free capacity permits, otherwise in the minimum number of waves. The CLI
    does not pretend to be a scheduler and does not persist probe attempts.
@@ -88,6 +91,13 @@ The normal PLAN agent sequence is:
 6. The PLAN orchestrator consumes worker results, updates the corresponding
    aspect-map rows with the separate verdict/evidence references, and calls
    the existing PLAN finish command.
+
+When one latest result is `needs_changes`, the orchestrator corrects the
+draft/map and calls
+`dd-flow plan reviews dispatch <RUN> --retry-needs-changes --project-root <root> --json`.
+That command creates one new Work only for each currently rejected group; it
+does not re-run accepted groups. PLAN acceptance evaluates the latest attempt
+for every declared group.
 
 `stage finish --stage plan` accepts a grouped route only when every declared
 group has one completed Work, one completed trusted Agent Turn and a passing
@@ -243,3 +253,5 @@ diagnostic; they are not proof that a one-wave route works.
 | L-10 | the Desktop adapter binds the returned child-task identity to its Work before launch; the bound identity, not a mismatched hook payload, owns the Agent Turn |
 | L-11 | an additive task field that preserves existing access checks selects `compact_plan`, unless a named new trust or irreversible-data change exists |
 | L-12 | a compact vertical slice with independent data/API/UI/evidence review units does not collapse to `local_compact` merely because it has one PRT or CODE item |
+| L-13 | every generated worker start command carries both the exact launch token and an explicit project root, and a worker launched from another cwd is hook-observable |
+| L-14 | `needs_changes → corrected draft → --retry-needs-changes → pass` creates a new Work only for the rejected group and allows PLAN acceptance from the latest group attempts |
