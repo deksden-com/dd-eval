@@ -13,7 +13,7 @@ status: 'IN_PROGRESS'
   engine.
 - The project has a fresh `DD_FLOW_HOME`; do not reuse a database holding the
   pre-cutover prefixed Work/Session schema.
-- The next integrated snapshot is `dd-flow-cli@0.8.0-beta.36`. Do not create
+- The next integrated snapshot is `dd-flow-cli@0.8.0-beta.37`. Do not create
   a new comparable RUN until the engine tag, the beta flow-pack compatibility
   file and the eval checkpoint all select this exact snapshot.
 - Codex hooks are installed for the active `CODEX_HOME` and the harness can
@@ -49,9 +49,9 @@ DD_FLOW_HOME=<isolated-home> dd-flow status --project-root <materialization> --j
 Both commands must identify the versions pinned by the profile/checkpoint and
 report normal-write compatibility before the first `stage start`.
 
-## Remaining beta.36 implementation
+## Remaining beta.37 implementation
 
-The prior cutover is implemented; beta.36 is deliberately limited to the
+The prior cutover is implemented; beta.37 is deliberately limited to the
 following closure work. Do these in order.
 
 1. **Lifecycle truthfulness.** Settle every terminal PLAN-REVIEW child
@@ -64,7 +64,7 @@ following closure work. Do these in order.
 3. **Deterministic gate.** Run the full engine suite, fix any remaining test
    failure at its cause, then rerun lint, typecheck, build and beta-pack
    `mb-lint`. Do not weaken or skip a failing test.
-4. **Immutable beta artefacts.** Tag/push engine beta.36; update and tag/push
+4. **Immutable beta artefacts.** Tag/push engine beta.37; update and tag/push
    the dd-tasks beta flow pack and its compatibility contract; then create the
    matching dd-eval profile and checkpoint. All three revisions must be
    recorded before preparation.
