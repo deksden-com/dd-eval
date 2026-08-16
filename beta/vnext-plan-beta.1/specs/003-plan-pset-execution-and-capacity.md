@@ -183,21 +183,16 @@ authored PSET job maps, secondary RUNs or editable runtime graph files. CLI
 refreshes the one generated Work projection required to inspect an archived
 RUN without the live database.
 
-## Capacity probe
+## Capacity probe (runtime contract owned by specification 008)
 
-Capacity is a runtime observation, not a plan decision or flow flag. A RUN that
-never delegates does not probe. The first stage-specific dispatch that needs
-delegation either uses reliable harness capacity or creates up to 15 fresh
-probe Work and returns `capacity_probe_required` with exact start commands.
-Every accepted probe calls `work start`, holds its slot for the bounded
-interval, returns a minimal result through `work finish`, and exits. Hook
-identity makes an agent-authored id unnecessary.
-
-The caller repeats the same dispatch. It waits for running probes, then counts
-distinct completed probe Sessions, cancels never-started probe Work, stores
-only `runtime.subagents.available_slots` and creates the semantic wave. Later
-stages reuse it. Accepted probe Session/usage remain normal runtime facts and
-are excluded from semantic reviewer counts.
+Capacity is a runtime observation, not a plan decision or flow flag. The
+runtime contract is owned by specification 008: no probe Work or Session is
+created. The harness launches at most 15 independent leaf probes; each waits
+60 seconds and returns exactly `AGENT-NN`, while doing no tool/file/child work.
+The controller waits for all probes or 180 seconds total, terminates unfinished
+probes, counts only exact-token completions, and stores only
+`runtime.subagents.available_slots`. Probe launch requests and queued or
+incomplete probes are not capacity.
 
 Tiny or single-work paths never probe. Capacity affects packing only; it never
 changes applicability, depth, dependencies, task contents or independent-proof

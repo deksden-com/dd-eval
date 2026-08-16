@@ -233,22 +233,19 @@ There is no public capacity command. A RUN that never delegates never probes.
 The first stage-specific `dispatch` that has promoted delegated Work does this:
 
 1. if `runtime.subagents.available_slots` exists, pack against it;
-2. otherwise create up to 15 minimal fresh probe Work under the current
-   orchestrator Work;
-3. return `capacity_probe_required` and exact token-free `work start` commands;
-4. let the harness attempt those subagents concurrently;
-5. each accepted probe holds its slot for approximately 60 seconds, calls
-   `work finish` with a minimal result and exits;
-6. the caller repeats the same stage-specific `dispatch`;
-7. dispatch waits if an accepted probe is still running, otherwise counts
-   distinct completed probe Sessions, cancels never-started probe Work, stores
-   `runtime.subagents.available_slots` and creates the semantic wave.
+2. otherwise return `capacity_probe_required` with the exact leaf-probe packet;
+3. let the harness launch at most 15 independent probes concurrently;
+4. each probe performs no tool/file/child work, waits 60 seconds, and returns
+   exactly `AGENT-NN`;
+5. wait for all probe tasks or 180 seconds from the first launch;
+6. terminate unfinished probes, count only exact-token completions, and record
+   that one count as `runtime.subagents.available_slots`;
+7. repeat the same stage-specific `dispatch` and create the semantic wave.
 
-The probe result does not contain an agent id; the hook already registered it.
-Only available slots are projected into RUN variables. Probe Work/Session and
-usage remain normal runtime facts, are included in total RUN cost, and are
-excluded from semantic reviewer counts. Later launch refusal may reduce the
-stored slot count; it never changes applicability or dependencies.
+Probe tasks are harness observations, not dd-flow Work or Session. Their
+creation requests, queued tasks and incomplete executions do not count as
+capacity and are not projected into runtime usage. Later launch refusal may
+reduce the stored slot count; it never changes applicability or dependencies.
 
 ## 5. Token-free Work claim
 
