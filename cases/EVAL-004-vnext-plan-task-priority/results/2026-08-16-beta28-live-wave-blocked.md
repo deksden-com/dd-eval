@@ -23,6 +23,14 @@ status: 'BLOCKED'
 - The flow correctly prevented PLAN finish and CODE registration when those
   reviews did not complete.
 
+## Content watch
+
+The parent selected `full_plan` / `security_trust` because it planned
+regression checks for the existing authorization and archived-project gates.
+That is not a valid full-depth trigger for an additive priority field; the
+next beta must select `compact_plan` while keeping those checks as mandatory
+acceptance evidence.
+
 ## Blocker
 
 Three visible Desktop worker tasks were created concurrently:

@@ -134,6 +134,30 @@ The existing source provenance fields remain mandatory. Aggregate usage is
 computed from every registered RUN Session; zero deltas are valid but must not
 be used to overwrite an earlier measured total.
 
+## 5.1 Depth triggers are not regression obligations
+
+The task-priority run selected `full_plan` with `security_trust` solely because
+the plan must preserve existing authorization and archived-project behavior.
+That is an incorrect escalation. Regression checks for an existing invariant
+are mandatory acceptance evidence; they do not by themselves introduce a new
+trust boundary.
+
+- `security_trust` requires a new or changed authorization decision, a new
+  sensitive-data/trust boundary, or a material change to the existing security
+  model.
+- `irreversible_data` requires a destructive/non-reversible data effect, not
+  an additive defaulted field with a forward migration.
+- a cross-layer vertical slice and a moderate failure impact do not imply
+  `full_plan`.
+- absent one of the explicit triggers, select `compact_plan`; independent
+  aspect routing may still be one grouped review wave.
+
+The PLAN packet must state this distinction immediately beside the depth
+decision. Finish validates that `depth_trigger: none` accompanies a compact
+plan; the semantic quality gate evaluates any non-`none` trigger against its
+named concrete change rather than treating a generic preservation invariant as
+evidence.
+
 ## 6. Required changes
 
 ### `dd-flow-cli` beta engine
@@ -207,3 +231,4 @@ diagnostic; they are not proof that a one-wave route works.
 | L-08 | usage reports retain prior measured totals and use terminal checkpoint names only at terminal RUN state |
 | L-09 | parallel Desktop workers cannot start from a foreign, stale or reused hook event |
 | L-10 | the Desktop adapter binds the returned child-task identity to its Work before launch; a mismatch is blocked without creating an Agent Turn |
+| L-11 | an additive task field that preserves existing access checks selects `compact_plan`, unless a named new trust or irreversible-data change exists |
