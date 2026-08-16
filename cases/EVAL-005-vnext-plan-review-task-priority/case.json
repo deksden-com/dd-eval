@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "EVAL-005-vnext-plan-review-task-priority",
+  "title": "vNext PLAN-REVIEW: task priority",
+  "checkpoint": "cp-002-vnext-plan-review-beta-32",
+  "purpose": "Evaluate SPECIFY through independent PLAN-REVIEW and CODE entry on one substantive vertical slice.",
+  "tracks": {
+    "plan-review": {
+      "status": "ready",
+      "initial_prompt": "prompts/discussion.md",
+      "controller_initial_prompt": "prompts/controller-launch.md",
+      "review_prompt": "review/plan-review.md"
+    }
+  },
+  "materialization": {
+    "checkpoints": ["cp-002-vnext-plan-review-beta-32"],
+    "supported_tracks": ["plan-review"],
+    "prompt_delivery": "outside_repository",
+    "source_history": "excluded",
+    "source_remotes": "excluded",
+    "initial_branch": "main",
+    "initial_commit_message": "eval-input"
+  },
+  "results": {"plan-review": []}
+}
