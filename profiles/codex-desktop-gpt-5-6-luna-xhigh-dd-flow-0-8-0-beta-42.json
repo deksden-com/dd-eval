@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-42",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "xhigh",
+  "runtime": {
+    "dd_flow_cli": {
+      "router": "globally installed stable router",
+      "engine_version": "0.8.0-beta.42",
+      "engine_tag": "eval-engine-0.8.0-beta.42",
+      "engine_commit": "c4098603af28e1d1cd0f42e6fd1555909f53f0e4",
+      "install_source": "local_development_snapshot"
+    }
+  },
+  "notes": "vNext PLAN-REVIEW beta.42: one review wave; orchestrator applies accepted reviewer corrections in the same Work and finishes once without automatic re-review."
+}

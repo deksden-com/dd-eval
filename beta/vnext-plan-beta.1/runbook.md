@@ -13,7 +13,7 @@ status: 'IN_PROGRESS'
   engine.
 - The project has a fresh `DD_FLOW_HOME`; do not reuse a database holding the
   pre-cutover prefixed Work/Session schema.
-- The next integrated snapshot is `dd-flow-cli@0.8.0-beta.41`. Do not create
+- The next integrated snapshot is `dd-flow-cli@0.8.0-beta.42`. Do not create
   a new comparable RUN until the engine tag, the beta flow-pack compatibility
   file and the eval checkpoint all select this exact snapshot.
 - Codex hooks are installed for the active `CODEX_HOME` and the harness can
@@ -49,10 +49,10 @@ DD_FLOW_HOME=<isolated-home> dd-flow status --project-root <materialization> --j
 Both commands must identify the versions pinned by the profile/checkpoint and
 report normal-write compatibility before the first `stage start`.
 
-## beta.41 focus
+## beta.42 focus
 
-The prior cutover is implemented. beta.41 retains the bounded capacity
-observation and complete-review retry, and makes every generated worker
+The prior cutover is implemented. beta.42 retains the bounded capacity
+observation and makes every generated worker
 lifecycle command target the same isolated runtime.
 
 1. **Capacity observation.** `dispatch` asks for 15 independent leaf probe
@@ -64,17 +64,17 @@ lifecycle command target the same isolated runtime.
 2. **Worker packet.** The exact `work start`, `work finish`, and `work fail`
    commands returned to a fresh reviewer all include `DD_FLOW_HOME=<isolated-home>`.
    A worker uses those commands unchanged; it never substitutes its own home.
-3. **Review retry.** A `needs_changes` decision ends the current review Work
-   and archives the stage attempt. After correcting and incrementing PLAN,
-   start `plan-review` again; dispatch every current review group anew. Never
-   retry individual groups or reuse their previous evidence.
+3. **One-pass review.** Reviewer `needs_changes` is evidence, not the stage
+   outcome. The orchestrator classifies findings, applies accepted corrections
+   in the same Work, increments PLAN when semantics changed, and finishes once
+   with `accepted` plus a correction receipt. No automatic re-review is run.
 4. **Reviewer dispatch.** Reuse the RUN-level slot value to pack actual fresh
    reviewer Works into the smallest practical number of waves. The returned
    `work start` command includes the isolated `DD_FLOW_HOME` prefix.
 5. **Deterministic gate.** Run the engine suite, fix any remaining test
    failure at its cause, then rerun lint, typecheck, build and beta-pack
    `mb-lint`. Do not weaken or skip a failing test.
-6. **Immutable beta artefacts.** Tag/push engine beta.41; update and tag/push
+6. **Immutable beta artefacts.** Tag/push engine beta.42; update and tag/push
    the dd-tasks beta flow pack and its compatibility contract; then create the
    matching dd-eval profile and checkpoint. All three revisions must be
    recorded before preparation.

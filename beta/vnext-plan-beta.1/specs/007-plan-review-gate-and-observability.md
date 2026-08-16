@@ -10,6 +10,15 @@ status: 'DRAFT'
 > capacity and usage. There is no dd-flow Agent Turn entity. The PLAN-REVIEW
 > stage graph and semantic gate defined here remain authoritative.
 
+> **Beta.42 one-pass amendment.** Reviewer `needs_changes` is evidence, never
+> a stage-level outcome. The orchestrator classifies findings, applies accepted
+> corrections in the same Work, records a correction receipt with
+> `semantic_re_review: not_run_by_policy`, and finishes once with `accepted`.
+> The CLI checks only mechanical coherence; it does not claim semantic proof
+> and does not launch an automatic second review. `waiting_for_user` is used
+> only when no reasonable default exists; `blocked` means a real technical
+> blocker.
+
 ## Goal
 
 Separate authoring a plan from independently challenging it without adding a
