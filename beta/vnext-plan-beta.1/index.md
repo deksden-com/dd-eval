@@ -33,53 +33,49 @@ immutable beta checkpoint.
 
 ## Current state and remaining implementation plan
 
-Documentation is frozen at commit `640996e`; specification 008 is the active
-runtime contract. The beta CLI contains an uncommitted first pass of the clean
-cutover. It is deliberately not an engine checkpoint yet: the typecheck and
-tests have not been brought back to green, and the beta flow pack has not yet
-been switched to the new contracts.
+Specification 008 remains the active runtime contract. The first clean cutover
+is now committed in the two beta branches:
+
+- engine: `dd-flow-cli` `8d22c55`;
+- flow pack: `dd-tasks` `d16ccb1`.
+
+The narrow vNext and flow-pack checks pass. This is still not an immutable
+engine checkpoint: the final lifecycle/observability edge cases and the full
+deterministic suite must be closed before a model run is considered evidence.
 
 The remaining work is ordered deliberately. Later items must not be papered
 over with compatibility paths while an earlier contract is still unsettled.
 
-1. **Make the engine build and its storage model internally consistent.**
-   Finish the clean `runs / works / sessions / work_sessions / hook_events /
-   usage` cutover, remove the remaining synthetic-Turn names and callers, and
-   make the current refactor typecheck. A beta home with former temporary
-   tables must fail with an explicit fresh-home instruction; it must never
-   enter a legacy or dual-read path.
-2. **Finish hook-native Work and Session lifecycle.**
-   Root stage start and delegated `work start` must share one registration
-   transaction; no launch token, adapter bind, or agent-supplied Session id
-   remains. Confirm parent derivation, reuse/fresh launch policies, immutable
-   parentage and structured-concurrency settlement on every terminal path.
-3. **Complete the deterministic controller facilities.**
-   Finish RUN variables, the once-per-RUN capacity probe, `stat run sessions
-   ls`, and source-reading `stat usage`. The latter must return a current
-   projection with transcript-source facts and all token categories, while
-   keeping agents out of token accounting.
-4. **Finish PLAN and PLAN-REVIEW as first-class stages.**
-   Keep delegated PLAN rows pending until evidence is accepted; finish the
-   compact reviewer contract, fresh reviewer isolation, finding reduction,
-   retry and every terminal report/settlement path. Remove the old PLAN-owned
-   review dispatch rather than retaining it as an alias.
-5. **Switch the dd-tasks beta flow pack.**
-   Update the graph, prompts, schemas, examples and CODE entry so they use
-   the engine contracts above and preserve canonical PLAN grounding,
-   documentation, acceptance and aspect-routing semantics. PLAN must stop at
-   PLAN-REVIEW; CODE opens only from an accepted/off review outcome.
-6. **Prove the contracts deterministically.**
-   Rewrite obsolete tests that refer to Agent Turn, adapter binding and launch
-   tokens; add focused fixtures for hook identity, Work/Session trees,
-   capacity, usage recomputation, review isolation and all terminal paths.
-   Run typecheck, unit/integration suites and `mb-lint` on generated
-   artifacts.
-7. **Commit a reproducible beta checkpoint, then run the eval.**
-   Commit and push the CLI and flow-pack beta branches, create a fresh eval
-   workspace, run PLAN → PLAN-REVIEW from a normal Desktop task, archive all
-   Session ids and source artifacts, then compare quality, lifecycle and
-   timing with the reference runs. If the run exposes a blocker, investigate
-   it and stop there; otherwise close the evaluation with the evidence.
+1. **Close the remaining controller edge cases.**
+   Audit every terminal PLAN-REVIEW route, including unfinished capacity probes,
+   so it settles child Work and open links before the parent settles. Replace
+   residual placeholder coverage fields in reports with truthful deterministic
+   facts. Keep the clean `runs / works / sessions / work_sessions / hook_events
+   / usage` boundary: no Turn, launch-token, adapter-bind, legacy read, or
+   dual-write path.
+2. **Prove Session and usage semantics, not only their schema.**
+   Add fixtures for parent/child Session trees, shared-host subagents,
+   fresh-session isolation, exact hook matching and one-read-per-transcript
+   usage aggregation. A single transcript must not be counted twice when it
+   spans several Work links; its result must retain source timestamp, source
+   Session id and every reported token category.
+3. **Finish deterministic verification.**
+   Run the complete engine suite and fix the remaining non-vNext failures at
+   their cause (rather than excluding or weakening them). Re-run typecheck,
+   build, focused lifecycle tests and `mb-lint` on the beta flow pack. Verify
+   the installed hook resolves the selected beta engine.
+4. **Prepare one reproducible evaluation workspace.**
+   Create a fresh isolated project checkout and fresh `DD_FLOW_HOME`; record
+   exact repository revisions, engine version, model/reasoning profile and the
+   eventual root and child Session ids. Do not reuse a Run database or a
+   previous agent context.
+5. **Run and assess the visible Desktop evaluation.**
+   Start the standard Desktop task—not `codex exec`—at PLAN, let it pass
+   through PLAN-REVIEW and stop when CODE is opened but not executed. On
+   completion, collect deterministic lifecycle/usage facts and independently
+   assess grounding, plan semantics, routing, reviewer isolation, artefact
+   quality and timing against the reference runs. A real blocker pauses the
+   sequence for root-cause analysis; otherwise archive the complete Run.
 
 The detailed execution requirements below remain authoritative; the list
 above is the operational order rather than a second specification.
