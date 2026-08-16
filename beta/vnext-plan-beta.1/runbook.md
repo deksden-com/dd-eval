@@ -13,7 +13,7 @@ status: 'DRAFT'
   engine.
 - The project has a fresh `DD_FLOW_HOME`; do not reuse a database holding the
   pre-registry `flow_works` shape.
-- The current integrated engine is `dd-flow-cli@0.8.0-beta.29`. The beta
+- The current integrated engine is `dd-flow-cli@0.8.0-beta.32`. The beta
   project compatibility file must select that exact snapshot before creating a
   RUN.
 - Codex hooks are installed for the active `CODEX_HOME` and the harness can
@@ -57,7 +57,8 @@ Check the beta pack:
 node -e 'for (const p of [
   ".memory-bank/dd-flow/vnext/mb-sdlc-vnext-protocolize.json",
   ".memory-bank/dd-flow/schemas/protocol-plan.schema.json",
-  ".memory-bank/dd-flow/schemas/plan-aspect-map.schema.json"
+  ".memory-bank/dd-flow/schemas/plan-aspect-map.schema.json",
+  ".memory-bank/dd-flow/schemas/plan-review-decision.schema.json"
 ]) JSON.parse(require("node:fs").readFileSync(p, "utf8"))'
 ```
 
@@ -70,25 +71,56 @@ dd-flow stage start <RUN-ID> --stage plan --project-root <dd-tasks> --json
 ```
 
 The returned prompt is authoritative. The agent writes one `plan.json` and one
-`aspect-map.json` per PRT plus `<RUN>/03-plan/code-work-batch.json`. For a
-grouped route it then runs the returned `plan reviews dispatch` command,
-launches every ready review Work with its returned command, accepts their
-verdicts into the map, and only then runs the exact PLAN finish command.
+`aspect-map.json` per PRT plus `<RUN>/03-plan/code-work-batch.json`, then runs
+the exact PLAN finish command. PLAN does not start reviewers and does not
+register CODE Work.
 
 The successful finish must prove:
 
 - every plan validates as `protocol-plan@2`;
 - every map validates as `plan-aspect-map@2`;
-- the CODE batch has an `entry_work_id`;
+- the proposed CODE batch remains present and has no registered entry Work;
 - `03-plan/stage-report.{json,md,html}` exist;
-- the temporary batch file is removed only after the complete Work graph has
-  been committed and refreshed in the portable RUN projection;
-- every supported-harness PLAN/child Work has a trusted Session/Turn binding;
+- the receipt contains `start_plan_review`, not a CODE start command;
+- the PLAN Work has a trusted Session/Turn binding;
 - usage was refreshed for all RUN Sessions with source provenance;
-- the receipt contains the exact CODE start command and RUN is not marked
-  `waiting_for_user` without a real question.
-- `single_wave_grouped` has completed review Work/Agent Turns before CODE is
-  registered; a route label alone is not evidence.
+
+## PLAN-REVIEW run
+
+Start the stage from the PLAN owner Session:
+
+```bash
+dd-flow stage start <RUN-ID> --stage plan-review --project-root <dd-tasks> --json
+```
+
+The start response has only two legal outcomes:
+
+- `review_off`: no prompt, reviewer Work or reviewer Agent Turn exists. The
+  CLI has atomically opened CODE; use the returned CODE command.
+- `review_required`: the returned prompt is authoritative. Run its exact
+  `plan-review dispatch` command, bind each returned Work to a fresh Desktop
+  task, then send that task its returned `work start` command. Reviewers return
+  `plan-review-result@1` JSON through `work finish` and never edit plan/product
+  files. The parent writes `decision.json` and runs its exact finish command.
+
+For the compact task-priority case, `auto` should select `standard` and one
+grouped fresh-reviewer wave. A user request may be recorded before this stage:
+
+```bash
+dd-flow run config set <RUN-ID> --project-root <dd-tasks> \
+  --key plan_review.mode --value off|standard|deep --reason "..." --json
+```
+
+The setting is frozen as soon as PLAN-REVIEW starts.
+
+Successful PLAN-REVIEW must prove:
+
+- `04-plan-review/stage-report.{json,md,html}` exists;
+- the outcome is `off` or `accepted` and CODE Work is registered exactly once;
+- enabled review has at least one fresh reviewer Work/Session/Turn;
+- only latest accepted reviewer attempts gate CODE after targeted retry;
+- the proposed batch is removed only after CODE registration commits;
+- the exact CODE start command comes from the PLAN-REVIEW receipt.
 
 For a visible Desktop worker wave, the harness creates every child task, then
 runs `dd-flow work adapter-bind <WORK> --desktop-task <returned-task-id>`
