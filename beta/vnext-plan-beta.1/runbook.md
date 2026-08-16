@@ -13,7 +13,7 @@ status: 'IN_PROGRESS'
   engine.
 - The project has a fresh `DD_FLOW_HOME`; do not reuse a database holding the
   pre-cutover prefixed Work/Session schema.
-- The next integrated snapshot is `dd-flow-cli@0.8.0-beta.38`. Do not create
+- The next integrated snapshot is `dd-flow-cli@0.8.0-beta.39`. Do not create
   a new comparable RUN until the engine tag, the beta flow-pack compatibility
   file and the eval checkpoint all select this exact snapshot.
 - Codex hooks are installed for the active `CODEX_HOME` and the harness can
@@ -49,25 +49,31 @@ DD_FLOW_HOME=<isolated-home> dd-flow status --project-root <materialization> --j
 Both commands must identify the versions pinned by the profile/checkpoint and
 report normal-write compatibility before the first `stage start`.
 
-## beta.38 focus
+## beta.39 focus
 
-The prior cutover is implemented. beta.38 corrects one specific lifecycle
-defect: capacity probing is a bounded harness observation, never a batch of
-registered Work or Session records.
+The prior cutover is implemented. beta.39 retains the bounded capacity
+observation and removes partial review retries: any material PLAN correction
+closes the review attempt and requires one fresh complete review of the new
+revision.
 
 1. **Capacity observation.** `dispatch` asks for at most 15 empty fresh
    launches in one 60-second window. The controller records the observed count
    once with `plan-review capacity record`; no probe Work or Session exists.
-2. **Reviewer dispatch.** Reuse the RUN-level slot value to pack actual fresh
-   reviewer Works into the smallest practical number of waves.
-3. **Deterministic gate.** Run the engine suite, fix any remaining test
+2. **Review retry.** A `needs_changes` decision ends the current review Work
+   and archives the stage attempt. After correcting and incrementing PLAN,
+   start `plan-review` again; dispatch every current review group anew. Never
+   retry individual groups or reuse their previous evidence.
+3. **Reviewer dispatch.** Reuse the RUN-level slot value to pack actual fresh
+   reviewer Works into the smallest practical number of waves. The returned
+   `work start` command includes the isolated `DD_FLOW_HOME` prefix.
+4. **Deterministic gate.** Run the engine suite, fix any remaining test
    failure at its cause, then rerun lint, typecheck, build and beta-pack
    `mb-lint`. Do not weaken or skip a failing test.
-4. **Immutable beta artefacts.** Tag/push engine beta.38; update and tag/push
+5. **Immutable beta artefacts.** Tag/push engine beta.39; update and tag/push
    the dd-tasks beta flow pack and its compatibility contract; then create the
    matching dd-eval profile and checkpoint. All three revisions must be
    recorded before preparation.
-5. **One visible evaluation.** Materialize a new isolated workspace and
+6. **One visible evaluation.** Materialize a new isolated workspace and
    `DD_FLOW_HOME`, launch the normal Desktop task with the fixed profile, stop
    at CODE entry, archive the complete RUN, and assess quality and timing.
 
