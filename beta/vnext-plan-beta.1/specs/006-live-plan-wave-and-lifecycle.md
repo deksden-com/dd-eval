@@ -205,8 +205,11 @@ The correction has two layers:
    stores the canonical invocation fingerprint alongside its normal event key.
 2. **Trusted harness adapter.** Only an adapter that creates a fresh worker
    Session may assign that worker Session to its Work before launch. The
-   assignment is adapter-owned, never an agent flag. `work start` compares the
-   observed hook Session with that assignment and fails closed on a mismatch.
+   assignment is adapter-owned, never an agent flag. The adapter-issued
+   identity is the Turn/usage identity; the hook independently proves the
+   exact one-time launch command. A mismatching hook Session is retained as
+   observability evidence because the Desktop hook payload itself may be
+   misrouted under concurrency; it must never replace the adapter assignment.
    Codex Desktop task creation already returns the worker task ID, so the
    Desktop adapter can make the assignment deterministically. A plain CLI
    harness without that capability keeps the existing unassigned mode, but it
@@ -230,5 +233,5 @@ diagnostic; they are not proof that a one-wave route works.
 | L-07 | PLAN start packet contains exact dispatch/start/finish commands and a valid grouped example |
 | L-08 | usage reports retain prior measured totals and use terminal checkpoint names only at terminal RUN state |
 | L-09 | parallel Desktop workers cannot start from a foreign, stale or reused hook event |
-| L-10 | the Desktop adapter binds the returned child-task identity to its Work before launch; a mismatch is blocked without creating an Agent Turn |
+| L-10 | the Desktop adapter binds the returned child-task identity to its Work before launch; the bound identity, not a mismatched hook payload, owns the Agent Turn |
 | L-11 | an additive task field that preserves existing access checks selects `compact_plan`, unless a named new trust or irreversible-data change exists |
