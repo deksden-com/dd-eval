@@ -152,6 +152,13 @@ trust boundary.
 - absent one of the explicit triggers, select `compact_plan`; independent
   aspect routing may still be one grouped review wave.
 
+Similarly, one PRT, one CODE item or a missing implementation dependency does
+not prove `local_compact`. The route is local only when the review itself has
+one genuinely tiny semantic unit/short source scope. Independent data, public
+contract, UI and evidence concerns remain separate review units even when they
+are implemented as one vertical slice. With usable delegated capacity, three
+or more such substantive concerns select `single_wave_grouped`.
+
 The PLAN packet must state this distinction immediately beside the depth
 decision. Finish validates that `depth_trigger: none` accompanies a compact
 plan; the semantic quality gate evaluates any non-`none` trigger against its
@@ -235,3 +242,4 @@ diagnostic; they are not proof that a one-wave route works.
 | L-09 | parallel Desktop workers cannot start from a foreign, stale or reused hook event |
 | L-10 | the Desktop adapter binds the returned child-task identity to its Work before launch; the bound identity, not a mismatched hook payload, owns the Agent Turn |
 | L-11 | an additive task field that preserves existing access checks selects `compact_plan`, unless a named new trust or irreversible-data change exists |
+| L-12 | a compact vertical slice with independent data/API/UI/evidence review units does not collapse to `local_compact` merely because it has one PRT or CODE item |

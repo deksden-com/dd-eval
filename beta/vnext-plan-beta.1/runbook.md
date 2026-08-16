@@ -102,6 +102,10 @@ multi-aspect vertical slice. It should prefer one grouped review wave when the
 actual pool permits it; do not score `local_compact` as correct merely because
 there is one PRT or one implementation item.
 
+When the Desktop adapter is available for the controlled eval, state the known
+review capacity in the parent task's stage context before PLAN routing. That is
+a runtime fact, not a user/product requirement: it changes packing only.
+
 ## CODE-entry proof
 
 Run only the entry, then stop before implementation:
