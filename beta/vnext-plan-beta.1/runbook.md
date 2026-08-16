@@ -21,6 +21,34 @@ status: 'IN_PROGRESS'
 - The canonical discussion fixture has already reached accepted PROTOCOLIZE
   with one PRT. PSET is a separate eval case.
 
+## Coordinated engine / flow-pack pair
+
+An eval beta is an immutable pair, not an independently selectable CLI and
+Memory Bank revision:
+
+1. The `dd-flow-cli` beta tag supplies the router/engine snapshot.
+2. The `dd-tasks` beta tag supplies the flow pack and its
+   `.memory-bank/dd-flow/compatibility.json` contract.
+3. The `dd-eval` profile and checkpoint name those exact two commits/tags.
+
+The flow pack's required engine range must admit the selected snapshot before
+the RUN is materialized. A new engine behavior — including a prompt-only
+behavior change — requires a new flow-pack beta that updates this contract,
+then a new matching profile/checkpoint. Do not substitute a newer engine into
+an older pack, widen the gate locally, or relabel the result: compatibility
+must fail closed. Preserve such a failed invocation as blocker evidence, then
+prepare a fresh materialization from the coordinated pair.
+
+Operator check before launching a worker:
+
+```bash
+DD_FLOW_HOME=<isolated-home> dd-flow engine info --json
+DD_FLOW_HOME=<isolated-home> dd-flow status --project-root <materialization> --json
+```
+
+Both commands must identify the versions pinned by the profile/checkpoint and
+report normal-write compatibility before the first `stage start`.
+
 ## Remaining beta.36 implementation
 
 The prior cutover is implemented; beta.36 is deliberately limited to the
