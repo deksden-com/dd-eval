@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-40",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "xhigh",
+  "runtime": {
+    "dd_flow_cli": {
+      "router": "globally installed stable router",
+      "engine_version": "0.8.0-beta.40",
+      "engine_tag": "eval-engine-0.8.0-beta.40",
+      "engine_commit": "c71766dce6196016eda044a4aeda4a3b24ecb92d",
+      "install_source": "local_development_snapshot"
+    }
+  },
+  "notes": "vNext PLAN-REVIEW beta.40: fresh worker packets prefix start, finish and fail commands with the isolated runtime home."
+}
