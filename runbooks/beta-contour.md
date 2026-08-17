@@ -44,6 +44,13 @@ A **focused stage eval** measures exactly one stage: `SPECIFY`,
 - A focused result therefore measures the stage's own grounding, decisions,
   artifacts and handoff—not the quality of work done before it.
 
+Before sending either stage packet, record both baseline and fork in
+`dd-eval session add`, and verify that the fork has a different Session ID and
+its `parent_session_id` is the baseline Session ID. A fresh independently
+primed session is useful for diagnostics, but is **not** a comparable focused
+benchmark attempt; preserve it as such and reserve a new EVAL number for the
+native-fork retry.
+
 ### E2E integration eval
 
 An **E2E integration eval** measures one uninterrupted Subject flow over a
