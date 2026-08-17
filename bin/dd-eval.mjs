@@ -16,7 +16,7 @@ function usage() {
 
 Usage:
   dd-eval validate --case <case-id> [--source <dd-tasks>]
-  dd-eval prepare --case <case-id> --stages <csv> [--e2e] --controller-profile <id> --subject-profile <id> --judge-profile <id> --output <path> [--source <dd-tasks>]
+  dd-eval prepare --case <case-id> --stages <csv> [--e2e] --output <path> [--controller-profile <id>] [--subject-profile <id>] [--judge-profile <id>] [--source <dd-tasks>]
   dd-eval session add --eval <prepared-dir> --execution <id> --role <controller|subject_base|subject|judge_base|judge> --session-id <id> [--parent-session-id <id>]
   dd-eval sync --eval <prepared-dir> --execution <id> --project-root <path> [--flow-run <id>]
   dd-eval checkpoint --eval <prepared-dir> --execution <id>
@@ -58,7 +58,7 @@ try {
   } else if (family === "prepare") {
     result = await prepare({
       caseId: required(options, "case"), source: options.source || defaultSource(), output: required(options, "output"),
-      controllerProfileId: required(options, "controller-profile"), subjectProfileId: required(options, "subject-profile"), judgeProfileId: required(options, "judge-profile"),
+      controllerProfileId: options["controller-profile"], subjectProfileId: options["subject-profile"], judgeProfileId: options["judge-profile"],
       ...(options.stages ? { stageList: options.stages } : {}), e2e: options.e2e === true
     });
   } else if (family === "session" && command === "add") {

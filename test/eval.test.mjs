@@ -29,7 +29,25 @@ test("prepare creates a self-contained focused SPECIFY execution", async () => {
     assert.equal(manifest.schema_id, "dd-eval/run-manifest@1");
     assert.deepEqual(manifest.selection, { focused_stages: ["specify"], e2e: false });
     assert.equal(state.executions.specify.status, "prepared");
+    assert.equal(result.executions[0].project_root, path.join(result.output, "executions", "specify", "attempt-01", "project"));
     assert.match(await readFile(path.join(result.output, "executions", "specify", "attempt-01", "prompts", "subject.md"), "utf8"), /оформим протокол/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("case defaults select Luna Subject and Sol Judge, with explicit overrides recorded", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v2-profiles-"));
+  try {
+    const prepared = await prepare({ caseId, source, output: path.join(root, "default"), stageList: "specify" });
+    const manifest = JSON.parse(await readFile(path.join(prepared.output, "manifest.json"), "utf8"));
+    assert.equal(manifest.profiles.subject.model, "gpt-5.6-luna");
+    assert.equal(manifest.profiles.judge.model, "gpt-5.6-sol");
+    assert.equal(manifest.profile_selection.judge.source, "case_default");
+    const overridden = await prepare({ caseId, source, output: path.join(root, "override"), stageList: "specify", judgeProfileId: profile });
+    const overrideManifest = JSON.parse(await readFile(path.join(overridden.output, "manifest.json"), "utf8"));
+    assert.equal(overrideManifest.profiles.judge.model, "gpt-5.6-luna");
+    assert.equal(overrideManifest.profile_selection.judge.source, "command_override");
   } finally {
     await rm(root, { recursive: true, force: true });
   }

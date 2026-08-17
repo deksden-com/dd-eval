@@ -279,11 +279,15 @@ dd-eval validate --case sdlc-eval-2026-summer-task-priority
 dd-eval prepare \
   --case sdlc-eval-2026-summer-task-priority \
   --stages specify,protocolize,plan,plan-review --e2e \
-  --controller-profile <controller-profile> \
-  --subject-profile <subject-profile> \
-  --judge-profile <judge-profile> \
   --output /absolute/path/outside/dd-eval
 ```
+
+Each case has versioned default profiles. The current summer case runs the
+Subject as `gpt-5.6-luna` with `xhigh` reasoning and the independent Judge as
+`gpt-5.6-sol` with `high` reasoning. Pass any `--controller-profile`,
+`--subject-profile`, or `--judge-profile` flag only for an explicit per-run
+override; the manifest records both the effective profile and whether it came
+from the case default or command line.
 
 `prepare` resolves an exact source commit, materializes an independent project
 per execution, records prompt receipts, and uses `dd-flow run fixture import`
