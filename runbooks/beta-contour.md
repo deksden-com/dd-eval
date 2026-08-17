@@ -24,6 +24,45 @@ flow pack as an explicit matched pair, and use absolute paths for both.
 An unaccepted fixture/oracle is deliberately not runnable. Materialize and
 independently accept it before comparing a subject profile.
 
+## Eval modes
+
+Use one of two explicitly named modes; do not mix their evidence or score them
+as if they measured the same thing.
+
+### Focused stage eval
+
+A **focused stage eval** measures exactly one stage: `SPECIFY`,
+`PROTOCOLIZE`, `PLAN`, or `PLAN-REVIEW`.
+
+- Give the Subject a fresh fork of the canonical Subject priming session, then
+  the stage-specific subject packet. The Subject stops immediately after the
+  target stage finishes; it does not enter a successor stage.
+- Give the Judge a separate fresh fork of the canonical Judge priming session,
+  then only that stage's candidate packet and rubric.
+- `SPECIFY` starts from the user intake. Every later focused stage starts from
+  an accepted portable fixture for its exact predecessor state.
+- A focused result therefore measures the stage's own grounding, decisions,
+  artifacts and handoff—not the quality of work done before it.
+
+### E2E integration eval
+
+An **E2E integration eval** measures one uninterrupted Subject flow over a
+declared contour. For the summer case that contour is
+`SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW`, stopping at
+`plan_review_accepted` before `CODE`.
+
+- Prime one Subject session once, send the normal user trigger, and let it
+  carry the working context through the contour.
+- Prime one independent Judge session, then give it the isolated aggregate
+  candidate package after the Subject stops.
+- E2E evidence evaluates legal transitions, cross-stage handoff and the
+  resulting integrated plan. It is not a substitute for the focused evidence
+  of any individual stage.
+
+Run focused stage evals while evolving a stage. Run E2E integration evals when
+the interaction of the stages or a matched engine/flow-pack pair is the subject
+of the test.
+
 The beta contour is for flow and engine development. It does not replace the
 published-release eval: after promotion, one control run must use only released
 artifacts.
