@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-53",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "xhigh",
+  "runtime": {
+    "dd_flow_cli": {
+      "router": "globally installed stable router",
+      "engine_version": "0.8.0-beta.53",
+      "engine_tag": "eval-engine-0.8.0-beta.53",
+      "engine_commit": "b4377aa79984176c11b420e1a667a72341172fa3",
+      "install_source": "local_development_snapshot"
+    }
+  },
+  "notes": "vNext PLAN-REVIEW beta.53: portable stage fixtures carry an explicit accepted state."
+}

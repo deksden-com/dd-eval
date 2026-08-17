@@ -7,13 +7,13 @@ import { addSession, loadCase, prepare, validateInput } from "../lib/dd-eval.mjs
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
-const profile = "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-52";
+const profile = "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-53";
 
 test("the active suite accepts only the v2 case contract", async () => {
   const loaded = await loadCase(caseId);
   assert.equal(loaded.definition.schema_id, "dd-eval/case@2");
   const validated = await validateInput({ caseId, source });
-  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-52");
+  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-53");
 });
 
 test("prepare creates a self-contained focused SPECIFY execution", async () => {
