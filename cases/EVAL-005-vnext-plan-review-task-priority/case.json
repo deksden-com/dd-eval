@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "EVAL-005-vnext-plan-review-task-priority",
   "title": "vNext PLAN-REVIEW: task priority",
-  "checkpoint": "cp-002-vnext-plan-review-beta-45",
+  "checkpoint": "cp-002-vnext-plan-review-beta-46",
   "purpose": "Evaluate SPECIFY through independent PLAN-REVIEW and CODE entry on one substantive vertical slice.",
   "tracks": {
     "plan-review": {
@@ -13,7 +13,7 @@
     }
   },
   "materialization": {
-    "checkpoints": ["cp-002-vnext-plan-review-beta-45"],
+    "checkpoints": ["cp-002-vnext-plan-review-beta-46"],
     "supported_tracks": ["plan-review"],
     "prompt_delivery": "outside_repository",
     "source_history": "excluded",
