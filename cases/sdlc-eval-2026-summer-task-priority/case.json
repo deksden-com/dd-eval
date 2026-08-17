@@ -3,22 +3,22 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "draft_oracles_pending_human_acceptance",
-  "checkpoint": {"id": "cp-002-vnext-plan-review-beta-55", "commit": "490ba2d72e4ff47592ae82b3fad13ab52f46c3cd"},
-  "compatibility": {"engine_commit": "a8dbe3361bdccacf718d06c3ff77eed0ad913d6a", "flow_pack_commit": "490ba2d72e4ff47592ae82b3fad13ab52f46c3cd"},
+  "checkpoint": {"id": "cp-002-vnext-plan-review-beta-56", "commit": "242b298b916e7e97c8ff964d1b0f96e9cddb0840"},
+  "compatibility": {"engine_commit": "386ff3735346d4a9ef51e33e311463ed9131774b", "flow_pack_commit": "242b298b916e7e97c8ff964d1b0f96e9cddb0840"},
   "profiles": {
-    "controller": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-55"],
-    "subject": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-55"],
-    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-55", "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-55"]
+    "controller": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-56"],
+    "subject": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-56"],
+    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-56", "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-56"]
   },
   "default_profiles": {
-    "controller": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-55",
-    "subject": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-55",
-    "judge": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-55"
+    "controller": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-56",
+    "subject": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-56",
+    "judge": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-56"
   },
   "priming": {
     "controller_packet": "prompts/controller-prime.md",
-    "subject_baselines": ["baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-55.json"],
-    "judge_baselines": ["baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-55.json", "baselines/judge-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-55.json"]
+    "subject_baselines": ["baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-56.json"],
+    "judge_baselines": ["baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-56.json", "baselines/judge-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-56.json"]
   },
   "flow": {"handoff_mode": "same_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_run"},
   "stages": {

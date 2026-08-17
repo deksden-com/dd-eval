@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-56",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-sol",
+  "reasoning": "high",
+  "runtime": {"dd_flow_cli": {"router": "globally installed stable router", "engine_version": "0.8.0-beta.56", "engine_tag": "eval-engine-0.8.0-beta.56", "engine_commit": "386ff3735346d4a9ef51e33e311463ed9131774b", "install_source": "local_development_snapshot"}},
+  "notes": "Independent Judge profile for vNext beta.56."
+}
