@@ -3,12 +3,12 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "draft_oracles_pending_human_acceptance",
-  "checkpoint": {"id": "cp-002-vnext-plan-review-beta-53", "commit": "9a921b9120ae3060f361297a96a6c9b0942d0fbc"},
-  "compatibility": {"engine_commit": "b4377aa79984176c11b420e1a667a72341172fa3", "flow_pack_commit": "9a921b9120ae3060f361297a96a6c9b0942d0fbc"},
+  "checkpoint": {"id": "cp-002-vnext-plan-review-beta-54", "commit": "c304cb5f36376d35273a98dbcac2fbf44142e2f2"},
+  "compatibility": {"engine_commit": "eb0d2bfc7e683a14673b6e722968f8b90e725000", "flow_pack_commit": "c304cb5f36376d35273a98dbcac2fbf44142e2f2"},
   "profiles": {
-    "controller": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-53"],
-    "subject": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-53"],
-    "judge": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-53"]
+    "controller": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-54"],
+    "subject": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-54"],
+    "judge": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-54"]
   },
   "flow": {"handoff_mode": "same_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_run"},
   "stages": {

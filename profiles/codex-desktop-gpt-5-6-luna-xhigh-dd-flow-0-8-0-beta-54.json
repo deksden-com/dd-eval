@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-54",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "xhigh",
+  "runtime": {
+    "dd_flow_cli": {
+      "router": "globally installed stable router",
+      "engine_version": "0.8.0-beta.54",
+      "engine_tag": "eval-engine-0.8.0-beta.54",
+      "engine_commit": "eb0d2bfc7e683a14673b6e722968f8b90e725000",
+      "install_source": "local_development_snapshot"
+    }
+  },
+  "notes": "vNext PLAN-REVIEW beta.54: isolated fixture import preserves the configured review mode."
+}
