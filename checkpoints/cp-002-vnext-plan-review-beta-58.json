@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-plan-review-beta-58",
+  "title": "cp-002 with portable PLAN fixture parent binding beta.58",
+  "source": {"repository": "https://github.com/deksden-com/dd-tasks.git", "tag": "eval-flow-vnext-plan-review-beta.58", "commit": "aefd13b108e2f436d189ae3c6fbac6f47569e356"},
+  "product_baseline": {"checkpoint_id": "cp-002", "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07", "product_code_changed": false},
+  "memory_bank": {"version": "3.2.0-vnext-plan-review-beta.58", "dd_flow_cli": "0.8.0-beta.58", "engine": {"repository": "https://github.com/deksden-com/dd-flow-cli.git", "tag": "eval-engine-0.8.0-beta.58", "commit": "d5b44b32efd10dbf3b0650606ef7832daff668af"}},
+  "state": "ready_for_eval"
+}

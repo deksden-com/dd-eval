@@ -7,13 +7,13 @@ import { addSession, loadCase, prepare, sync, validateInput } from "../lib/dd-ev
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
-const profile = "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-57";
+const profile = "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-58";
 
 test("the active suite accepts only the v2 case contract", async () => {
   const loaded = await loadCase(caseId);
   assert.equal(loaded.definition.schema_id, "dd-eval/case@2");
   const validated = await validateInput({ caseId, source });
-  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-57");
+  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-58");
 });
 
 test("prepare creates a self-contained focused SPECIFY execution", async () => {
@@ -67,6 +67,18 @@ test("prepare gives each focused fixture import an isolated runtime home", async
     const manifest = JSON.parse(await readFile(path.join(prepared.output, "manifest.json"), "utf8"));
     assert.equal(manifest.executions[0].run_home, expected);
     assert.equal(prepared.executions[0].flow_run_id, "RUN-001-task-priority");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("prepare gives E2E its declared runtime home before the Subject starts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v2-e2e-home-"));
+  try {
+    const prepared = await prepare({ caseId, source, output: path.join(root, "run"), stageList: "", e2e: true });
+    const manifest = JSON.parse(await readFile(path.join(prepared.output, "manifest.json"), "utf8"));
+    assert.equal(manifest.executions[0].id, "e2e");
+    assert.equal(manifest.executions[0].dd_flow_home, path.join(prepared.output, "dd-flow-home"));
   } finally {
     await rm(root, { recursive: true, force: true });
   }
