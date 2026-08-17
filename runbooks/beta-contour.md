@@ -333,21 +333,26 @@ reviews and prior results, and the reviewer must audit the transcript for such
 reads. A run that reaches them is invalid for model comparison. Use a separate
 OS user, container or VM when hard filesystem isolation is required.
 
-### Desktop session titles
+### Eval numbers and Desktop session titles
+
+Before `prepare`, reserve the next monotonic `EVAL-<NNN>` number under
+`dd-eval-runs/`; do not reuse it after a failed or infrastructure-invalid
+attempt. The same number names the output directory, manifest archive and all
+Desktop tasks for that launch.
 
 Every created Desktop task gets a title at launch. Use this stable, sortable
 form:
 
 ```text
-E<case-number> · <bundle>-r<attempt> · <model>-<thinking> · <scope> · <role> · <subject>
+E<run-number> · b<bundle> · a<attempt> · <model>-<thinking> · <scope> · <role> · <subject>
 ```
 
 Examples:
 
 ```text
-E005 · b45-r18 · luna-xhigh · flow · coordinator · task-priority
-E005 · b45-r18 · luna-xhigh · plan-review · reviewer-02 · task-priority
-E005 · b45-r18 · luna-xhigh · capacity · probe-07 · task-priority
+E013 · b55 · a01 · luna-xhigh · flow · controller · task-priority
+E013 · b55 · a01 · luna-xhigh · specify · subject · task-priority
+E013 · b55 · a01 · sol-high · specify · judge · task-priority
 ```
 
 - `flow · coordinator` is a long-lived parent session that may cross several
@@ -355,12 +360,33 @@ E005 · b45-r18 · luna-xhigh · capacity · probe-07 · task-priority
 - A fresh worker uses its owned stage as `<scope>` and its deterministic role
   (`reviewer-01`, `coder-02`, and so on).
 - Capacity probes are visible but never registered as Works.
-- Increment `r<attempt>` for every new launch. Never reuse a title for a retry
+- Increment `a<attempt>` for a retry of the same `EVAL-<NNN>` launch. Never reuse a title for a retry
   or an infrastructure-invalid run.
 
 The full immutable case id, RUN id, Desktop task id and model profile stay in
 the run manifest and collected result; the title is an operator-facing index,
 not an identity contract.
+
+### Focused-stage controller tactic
+
+`prepare --stages <stage>` writes `executions/<stage>/attempt-01/prompts/controller.md`.
+The Controller follows it in addition to the role prime:
+
+1. Prime the Subject as a normal project session, then send the exact
+   `subject.md` trigger as its next user message. Do not add rubric, oracle or
+   scoring hints.
+2. Tell the Subject only the harness boundary: after a successful finish of
+   the focused stage, stop; the Controller owns the checkpoint and does not
+   let it start a later stage.
+3. As soon as the finish receipt is available, run `dd-eval sync` and then
+   `dd-eval checkpoint` before sending any follow-up. This copies the declared
+   candidate artifacts from the finished stage, not a later mutable RUN state.
+4. If a later stage is prepared, starts, or mutates the candidate before that
+   checkpoint, preserve the attempt as `invalid_infrastructure_flow`; do not
+   repair it in place or score it as a focused-stage result.
+5. Start the clean Judge only from an accepted oracle. With a draft oracle,
+   a read-only diagnostic may be useful, but it is explicitly non-official and
+   must never be accepted as the Judge score.
 
 The controller prompt is only a bootstrap instruction: after creating a Goal
 when the harness requires one, the agent's first flow action is the exact

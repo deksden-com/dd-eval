@@ -1,1 +1,1 @@
-{"criteria":[{"id":"gaps","weight":0.3,"essential":true},{"handoff","weight":0.3,"essential":true},{"acceptance","weight":0.2,"essential":false},{"grounding","weight":0.2,"essential":false}],"thresholds":{"pass":0.85,"fail":0.7}}
+{"criteria":[{"id":"gaps","weight":0.3,"essential":true},{"id":"handoff","weight":0.3,"essential":true},{"id":"acceptance","weight":0.2,"essential":false},{"id":"grounding","weight":0.2,"essential":false}],"thresholds":{"pass":0.85,"fail":0.7}}

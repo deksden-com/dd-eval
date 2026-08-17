@@ -7,13 +7,13 @@ import { addSession, loadCase, prepare, sync, validateInput } from "../lib/dd-ev
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
-const profile = "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-54";
+const profile = "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-55";
 
 test("the active suite accepts only the v2 case contract", async () => {
   const loaded = await loadCase(caseId);
   assert.equal(loaded.definition.schema_id, "dd-eval/case@2");
   const validated = await validateInput({ caseId, source });
-  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-54");
+  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-55");
 });
 
 test("prepare creates a self-contained focused SPECIFY execution", async () => {
@@ -31,6 +31,7 @@ test("prepare creates a self-contained focused SPECIFY execution", async () => {
     assert.equal(state.executions.specify.status, "prepared");
     assert.equal(result.executions[0].project_root, path.join(result.output, "executions", "specify", "attempt-01", "project"));
     assert.match(await readFile(path.join(result.output, "executions", "specify", "attempt-01", "prompts", "subject.md"), "utf8"), /оформим протокол/);
+    assert.match(await readFile(path.join(result.output, "executions", "specify", "attempt-01", "prompts", "controller.md"), "utf8"), /stop and do not follow/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

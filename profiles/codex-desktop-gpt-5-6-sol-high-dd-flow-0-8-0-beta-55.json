@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-55",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-sol",
+  "reasoning": "high",
+  "runtime": {
+    "dd_flow_cli": {
+      "router": "globally installed stable router",
+      "engine_version": "0.8.0-beta.55",
+      "engine_tag": "eval-engine-0.8.0-beta.55",
+      "engine_commit": "a8dbe3361bdccacf718d06c3ff77eed0ad913d6a",
+      "install_source": "local_development_snapshot"
+    }
+  },
+  "notes": "Independent Judge profile for the focused-stage beta.55 control run."
+}
