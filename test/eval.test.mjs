@@ -7,13 +7,13 @@ import { addSession, loadCase, prepare, sync, validateInput } from "../lib/dd-ev
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
-const profile = "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-55";
+const profile = "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-57";
 
 test("the active suite accepts only the v2 case contract", async () => {
   const loaded = await loadCase(caseId);
   assert.equal(loaded.definition.schema_id, "dd-eval/case@2");
   const validated = await validateInput({ caseId, source });
-  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-55");
+  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-57");
 });
 
 test("prepare creates a self-contained focused SPECIFY execution", async () => {
@@ -49,6 +49,24 @@ test("case defaults select Luna Subject and Sol Judge, with explicit overrides r
     const overrideManifest = JSON.parse(await readFile(path.join(overridden.output, "manifest.json"), "utf8"));
     assert.equal(overrideManifest.profiles.judge.model, "gpt-5.6-luna");
     assert.equal(overrideManifest.profile_selection.judge.source, "command_override");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("prepare gives each focused fixture import an isolated runtime home", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v2-fixture-home-"));
+  try {
+    const engine = path.join(root, "fake-dd-flow.mjs");
+    const received = path.join(root, "received-home.txt");
+    await writeFile(engine, `#!/usr/bin/env node\nimport { writeFileSync } from "node:fs";\nwriteFileSync(${JSON.stringify(received)}, process.env.DD_FLOW_HOME ?? "");\nconsole.log(JSON.stringify({ run_id: "RUN-001-task-priority", run_home: process.env.DD_FLOW_HOME }));\n`);
+    await chmod(engine, 0o755);
+    const prepared = await prepare({ caseId, source, output: path.join(root, "run"), stageList: "protocolize", engine });
+    const expected = path.join(prepared.output, "executions", "protocolize", "attempt-01", "dd-flow-home");
+    assert.match(await readFile(received, "utf8"), /\/run\.tmp-\d+\/executions\/protocolize\/attempt-01\/dd-flow-home$/);
+    const manifest = JSON.parse(await readFile(path.join(prepared.output, "manifest.json"), "utf8"));
+    assert.equal(manifest.executions[0].run_home, expected);
+    assert.equal(prepared.executions[0].flow_run_id, "RUN-001-task-priority");
   } finally {
     await rm(root, { recursive: true, force: true });
   }
