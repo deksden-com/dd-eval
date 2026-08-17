@@ -10,6 +10,11 @@
     "subject": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-54"],
     "judge": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-54"]
   },
+  "priming": {
+    "controller_packet": "prompts/controller-prime.md",
+    "subject_baselines": ["baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-54.json"],
+    "judge_baselines": ["baselines/judge-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-54.json"]
+  },
   "flow": {"handoff_mode": "same_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_run"},
   "stages": {
     "specify": {
