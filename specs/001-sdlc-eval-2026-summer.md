@@ -1,10 +1,11 @@
 ---
-file: 'specs/001-stage-isolated-and-e2e-eval-suite.md'
+file: 'specs/001-sdlc-eval-2026-summer.md'
 description: 'Versioned stage-isolated and end-to-end SDLC evaluation suite with primed Subject and Judge sessions, canonical fixtures, independent scoring and reproducible run evidence.'
 status: 'DRAFT'
+suite_id: 'sdlc-eval-2026-summer'
 ---
 
-# 001 — Stage-isolated and end-to-end SDLC eval suite
+# 001 — SDLC Eval 2026 Summer
 
 ## Goal
 
@@ -390,7 +391,7 @@ concepts. Do not introduce a second top-level case catalog.
 
 ```text
 specs/
-  001-stage-isolated-and-e2e-eval-suite.md
+  001-sdlc-eval-2026-summer.md
 
 prompts/
   roles/

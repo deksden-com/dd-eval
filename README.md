@@ -17,8 +17,8 @@ Current beta specifications live under [beta/](beta/README.md); they document
 candidate behavior without consuming canonical `SPC-*` numbering.
 
 Repository-level eval design specifications live under [specs/](specs/). The
-stage-isolated and end-to-end SDLC suite is defined by
-[specification 001](specs/001-stage-isolated-and-e2e-eval-suite.md).
+`sdlc-eval-2026-summer` suite is defined by
+[specification 001](specs/001-sdlc-eval-2026-summer.md).
 
 ## Evaluation model
 
