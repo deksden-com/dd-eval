@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-44",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "xhigh",
+  "runtime": { "dd_flow_cli": { "router": "globally installed stable router", "engine_version": "0.8.0-beta.44", "engine_tag": "eval-engine-0.8.0-beta.44", "engine_commit": "3dc65a2", "install_source": "local_development_snapshot" } },
+  "notes": "vNext PLAN-REVIEW beta.44: run-level capacity, immutable decision receipt, pending aspect state, preserved CODE batch and isolated session projections."
+}
