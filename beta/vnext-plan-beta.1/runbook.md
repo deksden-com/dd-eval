@@ -69,8 +69,12 @@ isolated runtime, and keeps any user clarification inside the active stage.
    in the same Work, increments PLAN when semantics changed, and finishes once
    with `accepted` plus a correction receipt. No automatic re-review is run.
 4. **Reviewer dispatch.** Reuse the RUN-level slot value to pack actual fresh
-   reviewer Works into the smallest practical number of waves. The returned
-   `work start` command includes the isolated `DD_FLOW_HOME` prefix.
+   reviewer Works into the smallest practical number of waves. PLAN receives
+   the exact capacity number, preserves genuine semantic boundaries, then
+   minimizes `ceil(group_count / capacity)` and finally the group count. It
+   avoids a preventable `capacity + 1` tail but never splits work merely to
+   fill slots or combines incompatible high-risk aspects. The returned `work
+   start` command includes the isolated `DD_FLOW_HOME` prefix.
 5. **Deterministic gate.** Run the engine suite, fix any remaining test
    failure at its cause, then rerun lint, typecheck, build and beta-pack
    `mb-lint`. Do not weaken or skip a failing test.
