@@ -29,6 +29,7 @@ immutable beta checkpoint.
 - [006 — live PLAN wave and lifecycle convergence](specs/006-live-plan-wave-and-lifecycle.md)
 - [007 — PLAN review gate and truthful observability](specs/007-plan-review-gate-and-observability.md)
 - [008 — RUN context and trusted subagent Work](specs/008-run-context-and-trusted-subagent-work.md)
+- [009 — in-stage HITL pause and resume](specs/009-in-stage-hitl-pause-resume.md)
 - [Controlled eval runbook](runbook.md)
 
 ## Current state and remaining implementation plan

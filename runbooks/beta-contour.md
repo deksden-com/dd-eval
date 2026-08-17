@@ -431,13 +431,16 @@ fact is required by contract or independently rediscovered in at least two
 RUNs, move it into the appropriate `stage start` packet in the next beta spec.
 Do not ask the evaluated agent to assess its own context packet.
 
-Normal stage completion or pause is owned by `stage finish` and the lifecycle
-state machine. The evaluated agent never calls `run complete`. That command is
-currently a controller-only manual override despite its historical name; use
-it only to terminate an infrastructure-invalid or deliberately aborted RUN,
-always with an explicit verdict. A beta engine change should expose this
-semantics as `run override` with a required reason and remove it from generated
-worker prompts.
+Normal stage completion is owned by `stage finish`. A material user question
+uses `stage pause`, which returns the exact `stage resume` command, including
+the selected `DD_FLOW_HOME` when it is non-default. The agent asks the returned
+user message and stops. On the next Turn it passes the raw user answer to
+`stage resume` before interpreting it; that command stores the answer and
+returns the continuation packet for the same stage, Work and attempt. The
+evaluated agent never calls `run complete`. That command is currently a
+controller-only manual override despite its historical name; use it only to
+terminate an infrastructure-invalid or deliberately aborted RUN, always with
+an explicit verdict.
 
 For an infrastructure-invalid run, stop its sessions and apply the manual
 controller override:
