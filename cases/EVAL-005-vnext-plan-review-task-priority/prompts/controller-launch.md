@@ -1,17 +1,12 @@
-# Worker bootstrap: vNext PLAN-REVIEW
+# Продолжение обсуждения
 
-You are a fresh agent session in the materialized repository
-`{{RUN_REPOSITORY}}`. The intake file is `{{INTAKE_FILE}}`.
+Продолжай работу в репозитории `{{RUN_REPOSITORY}}`.
 
-Read `.memory-bank/dd-flow/prime.md`, then read the intake as an already
-completed user discussion. The user now says: **«давай оформим протокол»**.
+Сначала пройди прайминг проекта по `.memory-bank/dd-flow/prime.md`. Затем
+прочитай `{{INTAKE_FILE}}`: это предыдущее обсуждение задачи с пользователем,
+которое уже состоялось в этой сессии.
 
-Follow the active vNext flow completely through `SPECIFY → PROTOCOLIZE → PLAN
-→ PLAN-REVIEW`, using only returned lifecycle prompts and commands. Do not
-implement product code, readiness, merge or deployment work. Stop immediately
-after PLAN-REVIEW has opened CODE, or at a legitimate user/blocker gate.
+Теперь пользователь говорит: **«давай оформим протокол и подготовим работу к
+реализации. К реализации пока не приступай»**.
 
-For enabled PLAN-REVIEW, dispatch the returned fresh reviewer Works and use
-the harness's supported subagent mechanism. Reviewers must not edit plan or
-product files. Preserve every lifecycle artifact; do not repair runtime state
-or reports by hand.
+Следуй принятому в проекте flow и его инструкциям.
