@@ -1,0 +1,1 @@
+{"criteria":[{"id":"grounding","weight":0.25,"essential":true},{"aspect-handling","weight":0.25,"essential":true},{"code-work-graph","weight":0.3,"essential":true},{"verification","weight":0.2,"essential":false}],"thresholds":{"pass":0.85,"fail":0.7}}

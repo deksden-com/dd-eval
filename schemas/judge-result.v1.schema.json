@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/judge-result@1",
+  "type": "object",
+  "required": ["schema_id", "run_validity", "hard_invariants", "criteria"],
+  "properties": {"schema_id": {"const": "dd-eval/judge-result@1"}, "run_validity": {"enum": ["valid", "invalid_infrastructure_flow", "contaminated"]}},
+  "additionalProperties": true
+}

@@ -1,0 +1,1 @@
+{"criteria":[{"id":"stage-quality","weight":0.4,"essential":true},{"handoff-integrity","weight":0.3,"essential":true},{"flow-legality","weight":0.15,"essential":false},{"readiness","weight":0.15,"essential":false}],"thresholds":{"pass":0.85,"fail":0.7}}

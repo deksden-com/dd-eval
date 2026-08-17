@@ -1,0 +1,6 @@
+{
+  "schema_id": "dd-eval/interaction-script@1",
+  "pauses": [
+    {"stage": "specify", "after_pause": 1, "response_file": "clarification-task-priority.md", "resume_same_stage": true}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "schema_id": "dd-eval/stage-fixture@1",
+  "fixture_id": "task-priority-plan-review-v1",
+  "target_stage": "plan-review",
+  "checkpoint": "cp-002-vnext-plan-review-beta-51",
+  "predecessors": ["specify", "protocolize", "plan"],
+  "project_overlay": [],
+  "status": "draft_pending_canonical_materialization"
+}

@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/stage-fixture@1",
+  "type": "object",
+  "required": ["schema_id", "fixture_id", "target_stage", "checkpoint", "predecessors", "project_overlay"],
+  "properties": {"schema_id": {"const": "dd-eval/stage-fixture@1"}, "fixture_id": {"type": "string"}, "target_stage": {"type": "string"}},
+  "additionalProperties": true
+}

@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/run-state@1",
+  "type": "object",
+  "required": ["schema_id", "run_id", "status", "executions"],
+  "properties": {"schema_id": {"const": "dd-eval/run-state@1"}},
+  "additionalProperties": true
+}

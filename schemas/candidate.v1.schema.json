@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/candidate@1",
+  "type": "object",
+  "required": ["schema_id", "run_id", "execution_id", "attempt", "artifacts"],
+  "properties": {"schema_id": {"const": "dd-eval/candidate@1"}},
+  "additionalProperties": true
+}

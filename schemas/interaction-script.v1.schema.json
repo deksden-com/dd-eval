@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/interaction-script@1",
+  "type": "object",
+  "required": ["schema_id", "pauses"],
+  "properties": {"schema_id": {"const": "dd-eval/interaction-script@1"}, "pauses": {"type": "array"}},
+  "additionalProperties": false
+}

@@ -1,0 +1,61 @@
+{
+  "schema_id": "dd-eval/case@2",
+  "suite_id": "sdlc-eval-2026-summer",
+  "id": "sdlc-eval-2026-summer-task-priority",
+  "status": "draft_oracles_pending_human_acceptance",
+  "checkpoint": {"id": "cp-002-vnext-plan-review-beta-51", "commit": "a59d0593b029bdb183aabf0eb0ea605e5d234597"},
+  "compatibility": {"engine_commit": "a6d1009fdbbd6757ea60546038a2dc669b7b0cbb", "flow_pack_commit": "a59d0593b029bdb183aabf0eb0ea605e5d234597"},
+  "profiles": {
+    "controller": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-51"],
+    "subject": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-51"],
+    "judge": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-51"]
+  },
+  "flow": {"handoff_mode": "same_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_run"},
+  "stages": {
+    "specify": {
+      "fixture": null,
+      "subject_packet": "prompts/subject-specify.md",
+      "judge_packet": "prompts/judge-specify.md",
+      "rubric": "rubrics/specify.json",
+      "oracle": "oracles/specify.json",
+      "interactions": "interactions/specify.json",
+      "candidate_files": [{"origin": "run", "path": "01-specify/specify.md"}, {"origin": "run", "path": "01-specify/stage-report.json"}]
+    },
+    "protocolize": {
+      "fixture": "fixtures/protocolize.json",
+      "subject_packet": "prompts/subject-protocolize.md",
+      "judge_packet": "prompts/judge-protocolize.md",
+      "rubric": "rubrics/protocolize.json",
+      "oracle": "oracles/protocolize.json",
+      "interactions": "interactions/empty.json",
+      "candidate_files": [{"origin": "run", "path": "02-protocolize/protocolize-result.json"}, {"origin": "run", "path": "02-protocolize/stage-report.json"}]
+    },
+    "plan": {
+      "fixture": "fixtures/plan.json",
+      "subject_packet": "prompts/subject-plan.md",
+      "judge_packet": "prompts/judge-plan.md",
+      "rubric": "rubrics/plan.json",
+      "oracle": "oracles/plan.json",
+      "interactions": "interactions/empty.json",
+      "candidate_files": [{"origin": "run", "path": "03-plan/stage-report.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}]
+    },
+    "plan-review": {
+      "fixture": "fixtures/plan-review.json",
+      "subject_packet": "prompts/subject-plan-review.md",
+      "judge_packet": "prompts/judge-plan-review.md",
+      "rubric": "rubrics/plan-review.json",
+      "oracle": "oracles/plan-review.json",
+      "interactions": "interactions/empty.json",
+      "candidate_files": [{"origin": "run", "path": "04-plan-review/decision.receipt.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}]
+    }
+  },
+  "e2e": {
+    "subject_packet": "prompts/subject-e2e.md",
+    "judge_packet": "prompts/judge-e2e.md",
+    "rubric": "rubrics/e2e.json",
+    "oracle": "oracles/e2e.json",
+    "interactions": "interactions/specify.json",
+    "stop_boundary": "plan_review_accepted",
+    "candidate_files": [{"origin": "run", "path": "01-specify/specify.md"}, {"origin": "run", "path": "02-protocolize/stage-report.json"}, {"origin": "run", "path": "03-plan/stage-report.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}]
+  }
+}

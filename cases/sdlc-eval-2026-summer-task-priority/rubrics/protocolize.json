@@ -1,0 +1,1 @@
+{"criteria":[{"id":"scope","weight":0.3,"essential":true},{"slicing","weight":0.25,"essential":true},{"durable-documents","weight":0.25,"essential":false},{"handoff","weight":0.2,"essential":false}],"thresholds":{"pass":0.85,"fail":0.7}}

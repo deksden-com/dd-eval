@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/case@2",
+  "type": "object",
+  "required": ["schema_id", "suite_id", "id", "checkpoint", "compatibility", "profiles", "flow", "stages", "e2e"],
+  "properties": {"schema_id": {"const": "dd-eval/case@2"}, "suite_id": {"type": "string"}, "id": {"type": "string"}},
+  "additionalProperties": true
+}
