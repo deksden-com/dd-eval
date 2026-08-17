@@ -16,6 +16,10 @@ runner rather than introducing a separate beta toolchain.
 Current beta specifications live under [beta/](beta/README.md); they document
 candidate behavior without consuming canonical `SPC-*` numbering.
 
+Repository-level eval design specifications live under [specs/](specs/). The
+stage-isolated and end-to-end SDLC suite is defined by
+[specification 001](specs/001-stage-isolated-and-e2e-eval-suite.md).
+
 ## Evaluation model
 
 An evaluation run starts from an immutable `dd-tasks` checkpoint and measures a
