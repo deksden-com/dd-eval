@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-45",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "xhigh",
+  "runtime": { "dd_flow_cli": { "router": "globally installed stable router", "engine_version": "0.8.0-beta.45", "engine_tag": "eval-engine-0.8.0-beta.45", "engine_commit": "98f1375e727d64ac7c676762704866231c3be731", "install_source": "local_development_snapshot" } },
+  "notes": "vNext PLAN-REVIEW beta.45: all beta44 fixes plus retry-safe immutable decision receipts."
+}
