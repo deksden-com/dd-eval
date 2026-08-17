@@ -63,7 +63,7 @@ test("prepare gives each focused fixture import an isolated runtime home", async
     await chmod(engine, 0o755);
     const prepared = await prepare({ caseId, source, output: path.join(root, "run"), stageList: "protocolize", engine });
     const expected = path.join(prepared.output, "executions", "protocolize", "attempt-01", "dd-flow-home");
-    assert.match(await readFile(received, "utf8"), /\/run\.tmp-\d+\/executions\/protocolize\/attempt-01\/dd-flow-home$/);
+    assert.equal(await readFile(received, "utf8"), expected);
     const manifest = JSON.parse(await readFile(path.join(prepared.output, "manifest.json"), "utf8"));
     assert.equal(manifest.executions[0].run_home, expected);
     assert.equal(prepared.executions[0].flow_run_id, "RUN-001-task-priority");
