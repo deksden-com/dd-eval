@@ -196,10 +196,11 @@ pnpm build
 node ./dist/cli.js engine install --json
 ```
 
-Use the normal `DD_FLOW_HOME`. A separate beta home would split hooks, session
-bindings and usage observations from the normal router and create another
-thing to configure. Immutable snapshots and the exact project compatibility
-pin already provide isolation.
+Each prepared eval has one explicit, isolated `DD_FLOW_HOME`. Install the
+selected engine snapshot into that same home and use it for every `dd-flow`
+command issued during that eval. The home is part of the frozen harness input:
+it prevents state from another run being mistaken for this run's binding,
+usage or artifacts.
 
 Run all project commands through the globally installed stable router, not by
 calling `dist/cli.js` directly. Confirm selection before preparing an eval:
@@ -312,6 +313,35 @@ reviews and prior results, and the reviewer must audit the transcript for such
 reads. A run that reaches them is invalid for model comparison. Use a separate
 OS user, container or VM when hard filesystem isolation is required.
 
+### Desktop session titles
+
+Every created Desktop task gets a title at launch. Use this stable, sortable
+form:
+
+```text
+E<case-number> · <bundle>-r<attempt> · <model>-<thinking> · <scope> · <role> · <subject>
+```
+
+Examples:
+
+```text
+E005 · b45-r18 · luna-xhigh · flow · coordinator · task-priority
+E005 · b45-r18 · luna-xhigh · plan-review · reviewer-02 · task-priority
+E005 · b45-r18 · luna-xhigh · capacity · probe-07 · task-priority
+```
+
+- `flow · coordinator` is a long-lived parent session that may cross several
+  stages; do not rename it on each transition.
+- A fresh worker uses its owned stage as `<scope>` and its deterministic role
+  (`reviewer-01`, `coder-02`, and so on).
+- Capacity probes are visible but never registered as Works.
+- Increment `r<attempt>` for every new launch. Never reuse a title for a retry
+  or an infrastructure-invalid run.
+
+The full immutable case id, RUN id, Desktop task id and model profile stay in
+the run manifest and collected result; the title is an operator-facing index,
+not an identity contract.
+
 The controller prompt is only a bootstrap instruction: after creating a Goal
 when the harness requires one, the agent's first flow action is the exact
 `stage start` command. It does not run standalone priming, CLI help, Git or
@@ -319,6 +349,36 @@ compatibility discovery first. The rendered `worker_prompt_markdown` returned
 by `stage start` is the complete stage prompt and includes the bounded priming,
 project grounding, task intake, write boundary and finish contract needed for
 that stage.
+
+### Hook-safe command form
+
+Codex runs `PreToolUse` hooks in a separate process. A shell-level
+`export DD_FLOW_HOME=...` is not inherited by that process, even though the
+following `dd-flow` command itself sees the export. Therefore every eval
+command that invokes `dd-flow` **must** carry the isolated home as an inline
+prefix on that exact command:
+
+```sh
+DD_FLOW_HOME="<eval-dd-flow-home>" dd-flow <command> ...
+```
+
+Do not rely on a preceding `export`, a shell profile, an alias, or a compound
+pipeline. For bootstrap intake, put the prefix before `dd-flow` and feed the
+heredoc by redirection rather than `cat |`:
+
+```sh
+DD_FLOW_HOME="<eval-dd-flow-home>" dd-flow stage start \
+  --bootstrap --stage specify --project-root "<materialized-project>" \
+  --subject "<slug>" --intake-stdin --json <<'USER_INTAKE'
+<verbatim discussed user request>
+USER_INTAKE
+```
+
+This is an operational harness rule, not stage guidance: the evaluated worker
+still receives only the ordinary project task and flow instructions. The
+launcher or generated flow command supplies the prefix. A missing trusted
+binding is an infrastructure-invalid run; never recover it by manually adding
+a session id or editing runtime state.
 
 Debug in the smallest useful stage:
 
