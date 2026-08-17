@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { addSession, loadCase, prepare, validateInput } from "../lib/dd-eval.mjs";
+import { addSession, loadCase, prepare, sync, validateInput } from "../lib/dd-eval.mjs";
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -64,6 +64,22 @@ test("session recording is idempotent and remains separate from flow state", asy
     const second = await addSession({ evalRoot: prepared.output, executionId: "specify", role: "subject", sessionId: "session-1" });
     assert.equal(first.idempotent, false);
     assert.equal(second.idempotent, true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("sync persists the discovered RUN location for checkpointing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v2-sync-"));
+  try {
+    const prepared = await prepare({ caseId, source, output: path.join(root, "run"), stageList: "specify" });
+    const engine = path.join(root, "fake-dd-flow.mjs");
+    await writeFile(engine, `#!/usr/bin/env node\nconst args = process.argv.slice(2).join(" ");\nif (args.startsWith("run status")) console.log(JSON.stringify({ run: { run_home_path: "/tmp/run", status: "done" }, index: { stage_runs: [{ stage: "specify", status: "done" }] } }));\nelse console.log(JSON.stringify({}));\n`);
+    await chmod(engine, 0o755);
+    await sync({ evalRoot: prepared.output, executionId: "specify", projectRoot: path.join(prepared.output, "executions", "specify", "attempt-01", "project"), flowRunId: "run-1", engine });
+    const manifest = JSON.parse(await readFile(path.join(prepared.output, "manifest.json"), "utf8"));
+    assert.equal(manifest.executions[0].flow_run_id, "run-1");
+    assert.equal(manifest.executions[0].run_home, "/tmp/run");
   } finally {
     await rm(root, { recursive: true, force: true });
   }
