@@ -114,9 +114,11 @@ only project priming, the already completed discussion and the user's natural
 request to formalize and prepare the work without implementing it. Do not tell
 the worker that it is in an eval, name the stages being graded, enumerate
 expected lifecycle actions, explain reviewer topology, or disclose quality
-checks. Harness identity, isolated paths, model, stop detection and collection
-belong to the external controller. Send the rendered controller prompt
-verbatim; do not prepend an eval-specific overlay.
+checks. Harness identity, model, stop detection and collection belong to the
+external controller. If the Desktop launcher cannot set cwd and environment
+out of band, it may prepend only the neutral execution context (`cd
+<materialization>` and `export DD_FLOW_HOME=<isolated-home>`), followed by the
+rendered controller prompt verbatim. Do not prepend an eval-specific overlay.
 
 For an isolated Desktop run, prefix every `dd-flow` lifecycle invocation with
 the literal `DD_FLOW_HOME=<isolated-home>`. The managed PreToolUse hook routes
