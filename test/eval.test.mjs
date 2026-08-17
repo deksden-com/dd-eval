@@ -30,7 +30,9 @@ test("prepare creates a self-contained focused SPECIFY execution", async () => {
     assert.deepEqual(manifest.selection, { focused_stages: ["specify"], e2e: false });
     assert.equal(state.executions.specify.status, "prepared");
     assert.equal(result.executions[0].project_root, path.join(result.output, "executions", "specify", "attempt-01", "project"));
-    assert.match(await readFile(path.join(result.output, "executions", "specify", "attempt-01", "prompts", "subject.md"), "utf8"), /оформим протокол/);
+    const subjectPacket = await readFile(path.join(result.output, "executions", "specify", "attempt-01", "prompts", "subject.md"), "utf8");
+    assert.match(subjectPacket, /поддержку приоритета задач/);
+    assert.match(subjectPacket, /оформим протокол/);
     assert.match(await readFile(path.join(result.output, "executions", "specify", "attempt-01", "prompts", "controller.md"), "utf8"), /stop and do not follow/);
   } finally {
     await rm(root, { recursive: true, force: true });
