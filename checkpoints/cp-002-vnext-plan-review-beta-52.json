@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-plan-review-beta-52",
+  "title": "cp-002 with portable stage-fixture beta.52",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-flow-vnext-plan-review-beta.52",
+    "commit": "34fa16defd52638fbe58deabe713bd07a2691d21"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.52",
+    "dd_flow_cli": "0.8.0-beta.52",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.52",
+      "commit": "4e690340eebdc550719fa0bccb01b659c22221fd"
+    }
+  },
+  "state": "ready_for_eval"
+}

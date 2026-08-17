@@ -4,6 +4,26 @@ This runbook defines the shortest controlled loop for changing the project
 `dd-flow` pack and `dd-flow-cli`, exercising them in `dd-tasks`, and promoting
 only proven changes to the Memory Bank canon.
 
+## Active eval-controller boundary
+
+Use the `dd-eval` v2 lifecycle for the active summer suite. Run it from a
+visible Desktop Controller task, not `codex exec`; keep the engine binary and
+flow pack as an explicit matched pair, and use absolute paths for both.
+
+1. `dd-eval validate` checks the case and checkpoint before any workspace is
+   made.
+2. `dd-eval prepare` materializes one independent project per focused stage or
+   E2E execution. Isolated stages import only an **accepted** portable fixture
+   through the matched `dd-flow` binary. Do not copy `DD_FLOW_HOME`.
+3. Record base, forked Subject and Judge Session IDs with `dd-eval session
+   add`; then use `dd-eval sync` to collect engine-owned session and usage
+   projections. The worker never supplies identity itself.
+4. Stop at the declared stage boundary, `checkpoint` its declared artifacts,
+   run a read-only Judge, accept its schema-valid result, then `finalize`.
+
+An unaccepted fixture/oracle is deliberately not runnable. Materialize and
+independently accept it before comparing a subject profile.
+
 The beta contour is for flow and engine development. It does not replace the
 published-release eval: after promotion, one control run must use only released
 artifacts.

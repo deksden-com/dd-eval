@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-52",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "xhigh",
+  "runtime": {
+    "dd_flow_cli": {
+      "router": "globally installed stable router",
+      "engine_version": "0.8.0-beta.52",
+      "engine_tag": "eval-engine-0.8.0-beta.52",
+      "engine_commit": "4e690340eebdc550719fa0bccb01b659c22221fd",
+      "install_source": "local_development_snapshot"
+    }
+  },
+  "notes": "vNext PLAN-REVIEW beta.52: portable stage-fixture boundary for stage-isolated evals."
+}

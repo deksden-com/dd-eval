@@ -25,14 +25,13 @@ Repository-level eval design specifications live under [specs/](specs/). The
 An evaluation run starts from an immutable `dd-tasks` checkpoint and measures a
 specific harness/model profile, not a model in isolation.
 
-The first two evaluation tracks are:
+The active planning suite follows the actual vNext order:
 
-1. **Planning:** run `protocol -> specify -> plan`. The initial request is
-   deliberately incomplete. Score which relevant gaps the agent discovers and
-   which questions it asks. Then give every agent the same complete clarification
-   packet and score the resulting protocol and plan.
-2. **Implementation:** give every agent the same accepted `ready_for_code`
-   package and run the code flow. Score flow conformance, implementation quality,
+1. **Planning:** `SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW`. The initial
+   request is deliberately incomplete. Score relevant gaps, questions, the
+   portable handoff, executable plan, and any material review findings.
+2. **Implementation:** is a separate future suite. It will receive an accepted
+   `ready_for_code` package and score flow conformance, implementation quality,
    and deterministic acceptance scenarios.
 
 Reviews must distinguish three things:
@@ -262,50 +261,42 @@ Exact case boundaries may change while authoring the canonical implementation,
 but a published checkpoint never moves. Use annotated Git tags pointing to an
 accepted commit.
 
-## Initial smoke evaluation
+## Active SDLC suite
 
 The command-line executable is named `dd-eval`. `dd-deval` is not an alias and
 must not appear in manifests, documentation, reports, or automation.
 
-The first bounded end-to-end run uses Codex CLI with `gpt-5.6-luna` and maximum
-reasoning. Its purpose is to validate the evaluation procedure rather than to
-compare models. The smoke case is a small vertical task-priority feature that
-exercises SPECIFY gap handling, PLAN, PostgreSQL/API/UI implementation,
-deterministic verification, readiness, merge, and result collection without the
-duration of a full checkpoint-03 implementation.
+`sdlc-eval-2026-summer-task-priority` is the initial bounded planning case. It
+supports independent checks of `SPECIFY`, `PROTOCOLIZE`, `PLAN` and
+`PLAN-REVIEW`, plus a pre-CODE end-to-end contour ending at
+`plan_review_accepted`.
 
-The eval baseline is `cp-002`, which resolves immutably to dd-tasks tag
-`checkpoint-03-preview-access-policy` and commit
-`15021169f90245c6d9254488b8a3ba0621b5bc07`. Eval checkpoint ids and product
-checkpoint tag names are separate namespaces; the mapping lives in
-`checkpoints/cp-002.json` and neither identifier is moved after publication.
+The case binds its exact product checkpoint, flow-pack commit and engine commit
+in `case.json`; checkpoints and product tags remain separate namespaces.
 
-The first CLI increment implements only the planning-input contract needed by
-that run:
-
-```text
-node ./bin/dd-eval.mjs validate --case EVAL-001-task-priority
-node ./bin/dd-eval.mjs prepare \
-  --case EVAL-001-task-priority \
-  --profile codex-gpt-5-6-luna-max \
-  --track planning \
-  --output /absolute/path/to/run-repository
+```sh
+dd-eval validate --case sdlc-eval-2026-summer-task-priority
+dd-eval prepare \
+  --case sdlc-eval-2026-summer-task-priority \
+  --stages specify,protocolize,plan,plan-review --e2e \
+  --controller-profile <controller-profile> \
+  --subject-profile <subject-profile> \
+  --judge-profile <judge-profile> \
+  --output /absolute/path/outside/dd-eval
 ```
 
-`prepare` resolves an exact source commit, exports tracked files without source
-history or remotes, initializes a new repository with one deterministic
-`eval-input` commit, and writes `<output>.run.json` outside the evaluated
-repository. The harness sends the public prompt separately; clarification,
-reference, review, and acceptance files never enter the agent repository. The
-command rejects tracked secrets, `.tasks`, hidden eval paths, an incorrect tag,
-and a non-reproducible output tree. The same case and track therefore produce
-the same tree and input commit for every harness/model profile.
+`prepare` resolves an exact source commit, materializes an independent project
+per execution, records prompt receipts, and uses `dd-flow run fixture import`
+for isolated stages. The Subject never receives evaluation wording, rubrics or
+oracles. Draft fixtures and draft oracles deliberately fail closed.
 
-Implementation materialization is intentionally blocked until the planning
-smoke produces an accepted flow-native `ready_for_code` snapshot. Reference
-specification, plan, reviewer prompts, and the deterministic acceptance contract
-already live under `cases/EVAL-001-task-priority/`; they are operator materials,
-not a fabricated project flow state.
+The Controller records every root/child session, syncs engine-owned runtime
+evidence and usage when available, checkpoints candidate artifacts, then gives
+a clean Judge session only the corresponding packet. Final reports are rendered
+from accepted Judge results.
+
+The older smoke-run material below is retained as historical evidence; it is
+not an active CLI contract.
 
 ## Materialized run repositories
 
