@@ -1,31 +1,31 @@
 {
   "schema_id": "dd-eval/canonical-stage-checkpoint@2",
   "case_id": "sdlc-eval-2026-summer-task-priority",
-  "revision": "REV-005",
+  "revision": "REV-006",
   "stage": "specify",
   "status": "accepted",
   "runtime_snapshot": {
-    "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-005/checkpoints/specify-entry/snapshot",
-    "sha256": "d3653ce189b62f14d0417adb4a78fe0b9462847ea15ccc3687d2334f3750ab5d"
+    "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-006/checkpoints/specify-entry/snapshot",
+    "sha256": "37b90669e02747fe246d5de090fc7b29e3c08594b95d7294ed7b9626ed3dde4a"
   },
   "subject": {
-    "canonical_session_id": "01a015b7-fe27-7401-8967-0dafbc85e170",
-    "checkpoint_session_id": "01a015b9-4e58-76f1-a3cf-b8c9a2a41eb7",
+    "canonical_session_id": "01a015d4-fffc-7a32-a571-1c51d02b3494",
+    "checkpoint_session_id": "01a015d6-5318-78b1-8e58-ea31688eac43",
     "agent_id": null
   },
-  "captured_at": "2026-08-18T16:34:31.016Z",
+  "captured_at": "2026-08-18T17:06:31.787Z",
   "engine_receipt": {
     "ok": true,
-    "snapshot": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/checkpoints/specify-entry/snapshot",
+    "snapshot": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/checkpoints/specify-entry/snapshot",
     "schema_id": "dd-flow/eval-run-snapshot@1",
     "run_id": "RUN-001-task-priority",
     "project_id": "PRJ-001-project",
-    "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/workspace/project",
-    "dd_flow_home": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/runtime",
+    "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/workspace/project",
+    "dd_flow_home": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/runtime",
     "stage_entry": "specify",
-    "created_at": "2026-08-18T16:34:30.964Z",
-    "runtime_sha256": "26f647f0f2d55a8ea999565886951a2eb2a12e05cd3ca7d47bbef098ae5cf7eb",
-    "project_sha256": "85d53b710dda930b18056471c245de65934b3898155a67ef5f3bd0990608f4dc",
+    "created_at": "2026-08-18T17:06:31.730Z",
+    "runtime_sha256": "3c11c553b20cb762525af1536df90f075ee42ccaff44c490fa90c11da29ee5fc",
+    "project_sha256": "5b9a1f6edacc57ab3f698268f754183b3474c5ddd22bd4fe1b736063509e9e2f",
     "source_status": {
       "ok": true,
       "run": {
@@ -33,8 +33,8 @@
         "short_id": "RUN-001",
         "slug": "task-priority",
         "project_id": "PRJ-001-project",
-        "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/workspace/project",
-        "workspace_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/workspace/project",
+        "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/workspace/project",
+        "workspace_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/workspace/project",
         "flow_kind": "vnext_protocolize",
         "subject": {
           "type": "discussion",
@@ -43,14 +43,14 @@
         "status": "running",
         "verdict": "pending",
         "next_action": "start_specify",
-        "runtime_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority/run.json",
-        "run_dir": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
-        "run_index_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority/run.json",
-        "run_home_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
+        "runtime_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority/run.json",
+        "run_dir": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
+        "run_index_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority/run.json",
+        "run_home_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
         "layout_version": "home_run_v2",
         "artifact_root_kind": "dd_flow_home",
-        "created_at": "2026-08-18T16:32:48.534Z",
-        "updated_at": "2026-08-18T16:32:48.534Z",
+        "created_at": "2026-08-18T17:04:18.906Z",
+        "updated_at": "2026-08-18T17:04:18.906Z",
         "completed_at": null
       },
       "index": {
@@ -66,23 +66,23 @@
           "title": "project"
         },
         "workspace": {
-          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/workspace/project",
-          "workspace_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/workspace/project",
-          "branch": "main",
-          "base": "5b25fa3136853a74c5df031ddb0611d69b74a3a0",
+          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/workspace/project",
+          "workspace_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/workspace/project",
+          "branch": "master",
+          "base": "2d62e801888ea77146f4a4733cdbeeee84995868",
           "manager": "official-worktrunk"
         },
         "run_home": {
           "storage": "dd_flow_home",
-          "path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
+          "path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
           "relative_path": "runs/RUN-001-task-priority"
         },
         "execution": {
-          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/workspace/project",
-          "workspace_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/workspace/project",
+          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/workspace/project",
+          "workspace_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/workspace/project",
           "git": {
-            "branch": "main",
-            "head": "5b25fa3136853a74c5df031ddb0611d69b74a3a0",
+            "branch": "master",
+            "head": "2d62e801888ea77146f4a4733cdbeeee84995868",
             "status": "clean"
           }
         },
@@ -94,9 +94,9 @@
         "status": "running",
         "verdict": "pending",
         "next_action": "start_specify",
-        "created_at": "2026-08-18T16:32:48.534Z",
-        "updated_at": "2026-08-18T16:32:48.534Z",
-        "started_at": "2026-08-18T16:32:48.534Z",
+        "created_at": "2026-08-18T17:04:18.906Z",
+        "updated_at": "2026-08-18T17:04:18.906Z",
+        "started_at": "2026-08-18T17:04:18.906Z",
         "timing_status": "measured",
         "runtime_revision": 1,
         "snapshot_revision": 1,
@@ -122,7 +122,7 @@
           },
           "snapshot_revision": 1,
           "resolution_status": "valid",
-          "resolved_at": "2026-08-18T16:32:48.534Z",
+          "resolved_at": "2026-08-18T17:04:18.906Z",
           "values": {},
           "compatibility_projection": {
             "task_profile_revision": null,
@@ -138,7 +138,7 @@
             "mode": "auto",
             "source": "default",
             "reason": "No explicit review preference was recorded.",
-            "updated_at": "2026-08-18T16:32:48.534Z"
+            "updated_at": "2026-08-18T17:04:18.906Z"
           }
         },
         "session_coverage": {
@@ -176,23 +176,23 @@
           "title": "project"
         },
         "workspace": {
-          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/workspace/project",
-          "workspace_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/workspace/project",
-          "branch": "main",
-          "base": "5b25fa3136853a74c5df031ddb0611d69b74a3a0",
+          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/workspace/project",
+          "workspace_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/workspace/project",
+          "branch": "master",
+          "base": "2d62e801888ea77146f4a4733cdbeeee84995868",
           "manager": "official-worktrunk"
         },
         "run_home": {
           "storage": "dd_flow_home",
-          "path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
+          "path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
           "relative_path": "runs/RUN-001-task-priority"
         },
         "execution": {
-          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/workspace/project",
-          "workspace_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-005/workspace/project",
+          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/workspace/project",
+          "workspace_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-006/workspace/project",
           "git": {
-            "branch": "main",
-            "head": "5b25fa3136853a74c5df031ddb0611d69b74a3a0",
+            "branch": "master",
+            "head": "2d62e801888ea77146f4a4733cdbeeee84995868",
             "status": "clean"
           }
         },
@@ -204,9 +204,9 @@
         "status": "running",
         "verdict": "pending",
         "next_action": "start_specify",
-        "created_at": "2026-08-18T16:32:48.534Z",
-        "updated_at": "2026-08-18T16:32:48.534Z",
-        "started_at": "2026-08-18T16:32:48.534Z",
+        "created_at": "2026-08-18T17:04:18.906Z",
+        "updated_at": "2026-08-18T17:04:18.906Z",
+        "started_at": "2026-08-18T17:04:18.906Z",
         "timing_status": "measured",
         "runtime_revision": 1,
         "snapshot_revision": 1,
@@ -232,7 +232,7 @@
           },
           "snapshot_revision": 1,
           "resolution_status": "valid",
-          "resolved_at": "2026-08-18T16:32:48.534Z",
+          "resolved_at": "2026-08-18T17:04:18.906Z",
           "values": {},
           "compatibility_projection": {
             "task_profile_revision": null,
@@ -248,7 +248,7 @@
             "mode": "auto",
             "source": "default",
             "reason": "No explicit review preference was recorded.",
-            "updated_at": "2026-08-18T16:32:48.534Z"
+            "updated_at": "2026-08-18T17:04:18.906Z"
           }
         },
         "session_coverage": {
@@ -299,19 +299,19 @@
       {
         "phase": "start",
         "message": "Starting run snapshot",
-        "at": "2026-08-18T16:34:31.011Z"
+        "at": "2026-08-18T17:06:31.782Z"
       },
       {
         "phase": "done",
         "message": "run snapshot finished",
-        "at": "2026-08-18T16:34:31.011Z"
+        "at": "2026-08-18T17:06:31.782Z"
       }
     ]
   },
-  "accepted_at": "2026-08-18T16:34:44.107Z",
+  "accepted_at": "2026-08-18T17:06:50.693Z",
   "acceptance_review": {
-    "path": "checkpoint-reviews/REV-005/specify.md",
-    "sha256": "cc7d48c21939806f4e893e56a5239a3f08dae05f95b56dd751733e3f49310004",
-    "accepted_at": "2026-08-18T16:34:44.109Z"
+    "path": "checkpoint-reviews/REV-006/specify.md",
+    "sha256": "c6473f620e460d3df4566507401a63fd55aee09a26f77722008cc8f3d4663f83",
+    "accepted_at": "2026-08-18T17:06:50.694Z"
   }
 }

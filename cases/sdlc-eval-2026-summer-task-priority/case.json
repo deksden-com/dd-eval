@@ -3,21 +3,21 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "canonical_chain_preparing",
-  "checkpoint": {"id": "cp-002-vnext-plan-review-beta-62", "commit": "1ab44add88f797b7584164fa41baaff4dfc734b5"},
-  "compatibility": {"engine_commit": "0f82137e1f29a38a353d3f1b522a9a61d20b18ec", "flow_pack_commit": "1ab44add88f797b7584164fa41baaff4dfc734b5"},
+  "checkpoint": {"id": "cp-002-vnext-plan-review-beta-63", "commit": "82af32d8ef0c3b279ca4b58f0769bf42f2b263c1"},
+  "compatibility": {"engine_commit": "347e31d3047dcdb85f0f4a16eca1190c0122a229", "flow_pack_commit": "82af32d8ef0c3b279ca4b58f0769bf42f2b263c1"},
   "profiles": {
-    "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-61"],
-    "subject": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-61"],
-    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-61"]
+    "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-62"],
+    "subject": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-62"],
+    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-62"]
   },
   "default_profiles": {
-    "controller": "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-61",
-    "subject": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-61",
-    "judge": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-61"
+    "controller": "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-62",
+    "subject": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-62",
+    "judge": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-62"
   },
   "priming": {
     "controller_packet": "prompts/controller-prime.md",
-    "subject_baseline": "baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-61-rev006.json"
+    "subject_baseline": "baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-62-rev007.json"
   },
   "flow": {"handoff_mode": "same_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_run"},
   "canonical_checkpoints": {
