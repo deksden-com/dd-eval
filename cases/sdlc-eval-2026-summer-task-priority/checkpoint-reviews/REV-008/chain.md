@@ -1,4 +1,9 @@
-# REV-008 / canonical chain closure
+# REV-008 / invalid canonical-chain attempt
+
+> Superseded: this attempt is preserved as diagnostic evidence only. The
+> frozen `PLAN-REVIEW-entry` Session was incorrectly used to execute the
+> stage, so the fourth checkpoint does not meet the immutable-session
+> invariant and must not be used for an eval.
 
 The canonical Subject chain stopped at the declared E2E boundary
 `plan_review_accepted`; CODE was not started.
@@ -22,6 +27,6 @@ priority-only PATCH boundary, defaults, ordering, fixtures, cleanup and
 verification evidence explicit. RUN status is `running` with
 `verdict=plan_review_accepted` and its only next legal stage is CODE.
 
-The canonical chain is now ready for independent expectation/oracle authoring
-and scored-eval readiness work. It is deliberately not yet
-`scored_eval_ready`: stage and E2E expectations are still draft.
+The completed artifacts remain useful diagnostic evidence, but this revision
+is not canonical input. A new complete revision must create and preserve all
+four frozen entry Sessions before it can be accepted.
