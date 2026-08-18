@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-plan-review-beta-60",
+  "title": "cp-002 vNext PLAN-REVIEW beta.60",
+  "source": {"repository": "https://github.com/deksden-com/dd-tasks.git", "tag": "eval-flow-vnext-plan-review-beta.60", "commit": "02c8426a79586eeb1112fb69f1c50c0ef4ec5c36"},
+  "product_baseline": {"checkpoint_id": "cp-002", "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07", "product_code_changed": false},
+  "memory_bank": {"version": "3.2.0-vnext-plan-review-beta.60", "dd_flow_cli": "0.8.0-beta.60", "engine": {"repository": "https://github.com/deksden-com/dd-flow-cli.git", "tag": "eval-engine-0.8.0-beta.60", "commit": "2040bc709739b8789605a4182d96e550b58a0ee6"}},
+  "state": "ready_for_canonical_authoring"
+}
