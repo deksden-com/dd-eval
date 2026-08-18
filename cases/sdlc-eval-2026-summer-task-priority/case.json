@@ -2,7 +2,7 @@
   "schema_id": "dd-eval/case@3",
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
-  "status": "canonical_checkpoints_pending_capture",
+  "status": "canonical_chain_captured_pending_expectations",
   "checkpoint": {"id": "cp-002-vnext-plan-review-beta-59", "commit": "03a797ccb913f09cc6f288b0bb6436f1be4241ce"},
   "compatibility": {"engine_commit": "eb547e46dce496b7dc63cf73b15d9386d2a338c5", "flow_pack_commit": "03a797ccb913f09cc6f288b0bb6436f1be4241ce"},
   "profiles": {
