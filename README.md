@@ -21,7 +21,8 @@ Repository-level eval design specifications live under [specs/](specs/). The
 [specification 001](specs/001-sdlc-eval-2026-summer.md); its canonical
 stage-checkpoint execution model is refined by
 [specification 002](specs/002-canonical-stage-checkpoint-evaluation.md) and the
-[operator runbook](runbooks/canonical-stage-checkpoints.md).
+[operator runbook](runbooks/canonical-stage-checkpoints.md). Non-Git attempts,
+canonical snapshots and retention follow the [storage runbook](runbooks/eval-storage.md).
 
 ## Evaluation model
 

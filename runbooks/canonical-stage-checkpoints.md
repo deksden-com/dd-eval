@@ -7,6 +7,9 @@ It implements [specification 002](../specs/002-canonical-stage-checkpoint-evalua
 The active CLI and case use `case@3`; the old portable fixture path is
 diagnostic-only and must not be used for a scored run.
 
+All non-Git data belongs below `DD_EVAL_HOME`; set it before creating a
+canonical workspace or an attempt. See [eval storage and retention](eval-storage.md).
+
 ## Choose the measurement
 
 Use exactly one of these meanings:
@@ -21,17 +24,17 @@ Examples:
 
 ```sh
 dd-eval prepare --case sdlc-eval-2026-summer-task-priority \
-  --focus specify --output /absolute/path/to/EVAL-101
+  --focus specify --output "$DD_EVAL_HOME/attempts/active/EVAL-101--summer--focus-specify"
 
 dd-eval prepare --case sdlc-eval-2026-summer-task-priority \
   --focus specify,protocolize,plan,plan-review \
-  --output /absolute/path/to/EVAL-102
+  --output "$DD_EVAL_HOME/attempts/active/EVAL-102--summer--focus-all"
 
 dd-eval prepare --case sdlc-eval-2026-summer-task-priority \
-  --segment plan..plan-review --output /absolute/path/to/EVAL-103
+  --segment plan..plan-review --output "$DD_EVAL_HOME/attempts/active/EVAL-103--summer--segment-plan-review"
 
 dd-eval prepare --case sdlc-eval-2026-summer-task-priority \
-  --e2e --output /absolute/path/to/EVAL-104
+  --e2e --output "$DD_EVAL_HOME/attempts/active/EVAL-104--summer--e2e"
 ```
 
 Several values passed to `--focus` create several independent executions. They

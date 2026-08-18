@@ -8,6 +8,8 @@ only proven changes to the Memory Bank canon.
 
 Use the canonical checkpoint lifecycle in
 [the eval runbook](canonical-stage-checkpoints.md) for the active summer suite.
+Keep every non-Git beta eval artifact below `DD_EVAL_HOME`, following the
+[storage runbook](eval-storage.md).
 Run it from a
 visible Desktop Controller task, not `codex exec`; keep the engine binary and
 flow pack as an explicit matched pair, and use absolute paths for both.
