@@ -4,7 +4,7 @@
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "canonical_checkpoints_pending_capture",
   "checkpoint": {"id": "cp-002-vnext-plan-review-beta-58", "commit": "aefd13b108e2f436d189ae3c6fbac6f47569e356"},
-  "compatibility": {"engine_commit": "327af3d59064d57c73c814b9a3b595a34ed639dc", "flow_pack_commit": "aefd13b108e2f436d189ae3c6fbac6f47569e356"},
+  "compatibility": {"engine_commit": "327af3d52f66f994ace7789fb560af8738e95f88", "flow_pack_commit": "aefd13b108e2f436d189ae3c6fbac6f47569e356"},
   "profiles": {
     "controller": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-58"],
     "subject": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-58"],
