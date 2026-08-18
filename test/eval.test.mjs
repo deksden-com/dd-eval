@@ -13,7 +13,7 @@ test("the active suite uses canonical stage checkpoints", async () => {
   assert.equal(loaded.definition.schema_id, "dd-eval/case@3");
   assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review"]);
   const validated = await validateInput({ caseId, source });
-  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-59");
+  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-64");
 });
 
 test("a scored run fails closed when its accepted snapshot is unavailable", async () => {

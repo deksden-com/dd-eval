@@ -22,7 +22,8 @@ Repository-level eval design specifications live under [specs/](specs/). The
 stage-checkpoint execution model is refined by
 [specification 002](specs/002-canonical-stage-checkpoint-evaluation.md) and the
 [launch-readiness cutover](specs/003-canonical-eval-launch-readiness.md), plus
-the [operator runbook](runbooks/canonical-stage-checkpoints.md). Non-Git attempts,
+the [case-creation runbook](runbooks/create-eval-case.md) and
+[eval execution runbook](runbooks/execute-eval.md). Non-Git attempts,
 canonical snapshots and retention follow the [storage runbook](runbooks/eval-storage.md).
 
 ## Evaluation model
@@ -306,8 +307,8 @@ override; the manifest records both the effective profile and whether it came
 from the case default or command line.
 
 `prepare` resolves the selected canonical stage-entry checkpoint, restores an
-independent copy of its exact project and RUN, and returns the frozen Subject
-checkpoint Session plus ordinary continuation packet. It never reconstructs a
+independent copy of its exact project and RUN, and returns the current starter
+Subject Session plus ordinary continuation packet. It never reconstructs a
 later stage from a portable semantic fixture. The Subject never receives
 evaluation wording, rubrics or expectations. Draft checkpoints and draft expectations
 fail closed.

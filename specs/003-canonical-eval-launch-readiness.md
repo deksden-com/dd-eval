@@ -138,8 +138,8 @@ Authoring readiness verifies:
 Scored readiness additionally verifies for the selected mode:
 
 - every needed checkpoint is accepted and its snapshot checksum is valid;
-- every needed native-fork baseline and frozen checkpoint Session is accepted,
-  reachable and has not advanced after capture;
+- every needed native-fork baseline, frozen checkpoint Session and current
+  starter Session is accepted, reachable and has not advanced after creation;
 - every needed oracle has status `accepted`;
 - checkpoint chain revision, project tree, engine, flow pack and handoff mode
   are identical across all selected entries;
@@ -259,15 +259,17 @@ The shortest safe order is:
    `gpt-5.6-terra/high` without creating a Controller baseline.
 5. **Capture `REV-001`:** run the canonical chain once, review each predecessor
    result and accept all four entry checkpoints.
-6. **Accept references:** complete stage/E2E oracles against the frozen chain.
-7. **Prove launch:** run `validate --require scored`, restore each checkpoint in
+6. **Create starter Sessions:** make one untouched buffer fork per accepted
+   checkpoint and commit their current IDs in `starter-sessions.json`.
+7. **Accept references:** complete stage/E2E oracles against the frozen chain.
+8. **Prove launch:** run `validate --require scored`, restore each checkpoint in
    a disposable attempt, then execute one focused SPECIFY smoke with a fresh
-   Subject fork and fresh Judge fork.
-8. **Freeze the eval definition:** commit and tag `dd-eval` only after the smoke
+   Subject fork from the current starter and a fresh Judge fork.
+9. **Freeze the eval definition:** commit and tag `dd-eval` only after the smoke
    passes; then run the requested focused/segment/E2E matrix.
 
-Steps 1–3 are code/config implementation. Steps 4–6 require real Desktop
-sessions and semantic review. Step 7 is the launch acceptance test.
+Steps 1–3 are code/config implementation. Steps 4–7 require real Desktop
+sessions and semantic review. Step 8 is the launch acceptance test.
 
 ## Required checks
 
@@ -322,9 +324,11 @@ This specification is complete when:
    reachable, idle frozen Subject Sessions that never advanced after capture;
 3. beta.59 Subject/Judge baselines and all needed oracles are accepted, and the
    actual Terra/high Controller identity is recorded;
-4. `validate --require scored` passes with no blocker;
-5. a focused SPECIFY smoke reaches a candidate checkpoint and an accepted
+4. all four current starter Sessions are reachable, idle, directly parented by
+   their frozen checkpoint Sessions and recorded in `starter-sessions.json`;
+5. `validate --require scored` passes with no blocker;
+6. a focused SPECIFY smoke reaches a candidate checkpoint and an accepted
    Judge result using only documented commands and paths below
    `DD_EVAL_HOME`;
-6. the exact beta.59 engine, flow-pack and eval-definition commits/tags are
+7. the exact beta.59 engine, flow-pack and eval-definition commits/tags are
    recorded in the result.

@@ -7,7 +7,11 @@
   "compatibility": {"engine_commit": "5a070630aa21f8cd4e5cc8b4a82a386144815f1a", "flow_pack_commit": "93eefe97c96a93d59e158406f0fd7f97a354ad9c"},
   "profiles": {
     "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-63"],
-    "subject": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-63"],
+    "subject": [
+      "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-63",
+      "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-63",
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-63"
+    ],
     "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-63"]
   },
   "default_profiles": {

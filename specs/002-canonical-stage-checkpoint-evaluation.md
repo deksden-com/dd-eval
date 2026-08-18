@@ -18,7 +18,8 @@ The system uses one mechanism:
 
 ```text
 canonical stage-entry checkpoint
-  → fork the frozen checkpoint Subject Session
+  → maintain an untouched starter fork
+  → fork the starter Subject Session for one attempt
   → restore an independent copy of the checkpoint project and RUN
   → execute the selected stage or contiguous segment
   → capture candidate evidence at every selected boundary
@@ -49,8 +50,10 @@ the boundary.
 - **Canonical-chain Session** — the moving Subject Session that executes the
   accepted chain from one stage to the next.
 - **Frozen checkpoint Session** — an idle child fork created from the
-  canonical-chain Session at a clean stage boundary. It receives no message,
-  performs no turn and is the parent used by later eval attempts.
+  canonical-chain Session at a clean stage boundary. It receives no message and
+  performs no turn. It is recovery material for the starter Session.
+- **Starter Session** — an untouched replaceable fork of one frozen checkpoint
+  Session. Routine Controllers see and fork only this Session.
 
 ## Required canonical checkpoints
 
@@ -141,8 +144,9 @@ The record does not embed raw transcripts, SQLite or project archives. It
 points to immutable external archives and stores their checksums. Compact,
 non-secret stage artifacts needed by Judge or human review may remain in Git.
 
-The frozen checkpoint Session is referenced, not copied into the repository.
-Native eval execution forks its latest completed state; it does not ask the
+The frozen checkpoint Session and current starter Session are referenced, not
+copied into the repository. Native eval execution forks the starter's latest
+completed state; it does not ask the
 harness to seek back into the moving canonical-chain Session. A provider that
 cannot preserve or fork that frozen Session uses the recorded ordered message
 sequence to create a `portable_replay` attempt; such an attempt is labelled
@@ -232,7 +236,8 @@ the canonical chain workspace.
 
 For a native-fork attempt the Controller:
 
-1. resolves the frozen checkpoint Session and verifies that it never advanced;
+1. resolves the current starter Session without receiving canonical Session
+   IDs and verifies that the starter never advanced;
 2. creates a provider fork using the requested Subject model/reasoning profile;
 3. records both parent and child Session IDs before the evaluated stage starts;
 4. restores the paired project/RUN into fresh attempt paths;
@@ -369,7 +374,9 @@ Session ID is evidence to inspect, not a conversational handoff to the Judge.
    checkpoint for this suite.
 10. Deep-review all checkpoint manifests, oracles and expected findings without
     using a candidate that will later be scored to author its own oracle.
-11. Commit the compact checkpoint records and accepted oracles; tag the eval
+11. Create one untouched starter fork from every frozen checkpoint Session and
+    record current starter IDs in `cases/<case-id>/starter-sessions.json`.
+12. Commit the compact checkpoint records, starter registry and accepted oracles; tag the eval
     definition. Keep project/RUN/transcript archives external and immutable.
 
 If any upstream canonical artifact changes, create a new canonical-chain
@@ -388,9 +395,9 @@ The Controller executes these steps in order:
 6. verify restore receipt, target stage, graph entry, project tree and zero
    stale Work-session bindings; the resumable root coordinator Work may remain
    active at the legal stage boundary;
-7. fork the frozen checkpoint Subject Session with the selected profile;
-8. record canonical parent, frozen checkpoint parent, evaluated child and
-   effective profile;
+7. resolve and fork the current starter Subject Session with the selected
+   profile;
+8. record the starter parent, evaluated child and effective profile;
 9. send the exact ordinary continuation/trigger packet;
 10. monitor the provider task and use `dd-eval sync` after each returned turn;
 11. on declared HITL pause, send exactly the scripted response and resume the
@@ -433,8 +440,8 @@ Every result records:
 
 - mode and selected stage/range;
 - canonical-chain and checkpoint IDs;
-- canonical-chain Session/optional source turn, frozen checkpoint Session and
-  evaluated fork Session ID;
+- starter Session and evaluated fork Session ID; canonical-chain and frozen
+  checkpoint Session IDs remain checkpoint-definition evidence;
 - canonical and evaluated model/reasoning profiles;
 - restore receipts and source/attempt project/RUN identities;
 - transcript locator and exact evaluated transcript slice;
@@ -468,10 +475,13 @@ costs remain separate.
 1. Add strict `case@3` and `stage-checkpoint@1` schemas.
 2. Replace fixture fields with per-stage checkpoint references.
 3. Replace `--stages` with `--focus`; add one contiguous `--segment` selector.
-4. Implement canonical checkpoint capture/accept and attempt restore.
+4. Implement canonical checkpoint capture/accept, the per-case starter Session
+   registry and attempt restore.
 5. Generate ordinary Subject continuation packets from restore receipts.
 6. Capture per-stage candidates inside segment and E2E executions.
-7. Record native fork/replay identity and exact transcript slices.
+7. Resolve starter IDs from the committed registry without a Controller
+   override; record starter/evaluated native fork identity and exact transcript
+   slices.
 8. Prepare separate Judge packets per focused/segment stage and one E2E packet.
 9. Delete executable stage-fixture code, schema, tests and active case files.
 

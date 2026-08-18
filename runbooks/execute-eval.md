@@ -1,4 +1,4 @@
-# Canonical checkpoint eval runbook
+# Execute an eval
 
 This runbook is the operator procedure for focused-stage, contiguous-segment
 and E2E executions of `sdlc-eval-2026-summer`.
@@ -18,6 +18,17 @@ contract from specification 003 is implemented and passes.
 
 All non-Git data belongs below `DD_EVAL_HOME`; set it before creating a
 canonical workspace or an attempt. See [eval storage and retention](eval-storage.md).
+
+## Execute a committed scenario
+
+A scenario under `cases/<case-id>/scenarios/` fixes a concrete comparison
+matrix: profiles, selected stages, E2E inclusion, execution order and comparison
+rule. The Controller reads the scenario first, records its path and the clean
+`dd-eval` commit, then applies this runbook to every execution it declares.
+
+The scenario may select existing `dd-eval prepare` options; it does not replace
+the case definition, starter registry, stage rubrics or this lifecycle. Do not
+invent missing matrix entries or silently substitute an old result.
 
 ## Choose the measurement
 
@@ -61,7 +72,9 @@ Before preparing an attempt, verify:
 5. every selected stage has an accepted canonical entry checkpoint;
 6. every selected rubric and oracle is accepted;
 7. checkpoint archives exist and their checksums match;
-8. the canonical Subject and Judge parent Sessions are reachable;
+8. the current starter Subject Sessions and Judge priming parent are reachable;
+   during case creation or starter recovery, the canonical Subject Sessions
+   must also be reachable;
 9. the output path is new and outside the `dd-eval` checkout.
 
 Use absolute paths. A Controller may start in any working directory, but every
@@ -204,10 +217,8 @@ Controller tool does not expose that boundary selection. Once the pair is
 accepted, continue only the original canonical Session. Never send a message
 to the frozen checkpoint Session.
 
-When an eval starts, the Controller forks the latest state of the frozen child
-and restores an independent copy of its paired project/RUN snapshot. Thus every
-focused stage starts from the exact conversation and filesystem/runtime state
-without reconstructing context or depending on hidden app-server APIs.
+The frozen child is the recovery source for a starter Session; it is not exposed
+to routine eval operation. See [Create an eval case](create-eval-case.md).
 
 ### 4. Freeze definition evidence
 
@@ -222,12 +233,45 @@ Commit and tag:
 Keep project bundles, RUN snapshots, SQLite and raw transcripts in the declared
 external archive. Record locators, sizes and checksums in Git.
 
+### 5. Create the starter Sessions
+
+After all required checkpoints are accepted, create one untouched starter
+Session for every checkpoint:
+
+1. fork the frozen checkpoint Session;
+2. name the child `START <case-id> <STAGE>-entry`;
+3. send the child no message;
+4. write its current Session ID under the matching stage in
+   `cases/<case-id>/starter-sessions.json`;
+5. verify that the starter is reachable, idle and directly parented by the
+   frozen checkpoint Session;
+6. commit and push the updated starter registry before running an eval.
+
+The two Git locations have different audiences:
+
+- `cases/<case-id>/checkpoints/<stage>.json` records the canonical-chain and
+  frozen checkpoint Session IDs. Only checkpoint creation and starter recovery
+  use them.
+- `cases/<case-id>/starter-sessions.json` records the current starter Session
+  ID for each stage. Routine Controller operation uses only this file.
+
+There is no starter revision. Recreating a starter produces the same logical
+input with a new provider Session ID. Replace that stage's ID in the registry;
+completed attempts retain the exact old starter ID in their own evidence.
+
+If a starter receives a message or otherwise advances, do not use it. Mark or
+archive that provider task for operator clarity, fork a replacement from the
+canonical checkpoint Session, and replace the registry ID. Never advance or
+replace the canonical checkpoint Session during this recovery.
+
 ## Prepare an attempt
 
 `dd-eval prepare` performs all deterministic work before a Subject fork:
 
 1. validates definition and profile identities;
-2. resolves the checkpoint for the selected start stage;
+2. reads `cases/<case-id>/starter-sessions.json`, resolves the selected stage's
+   current starter Session and verifies that its checkpoint and chain IDs match
+   the selected canonical snapshot;
 3. creates a new attempt directory;
 4. restores the project archive and verifies HEAD/tree;
 5. creates an empty isolated `DD_FLOW_HOME`;
@@ -240,7 +284,7 @@ The returned JSON must include:
 
 - execution ID and mode;
 - canonical checkpoint and chain IDs;
-- canonical-chain Session and frozen checkpoint Subject Session;
+- current starter Subject Session ID;
 - requested model/reasoning profile;
 - attempt project root, `DD_FLOW_HOME`, RUN ID and RUN home;
 - exact Subject task title;
@@ -248,12 +292,16 @@ The returned JSON must include:
 
 If prepare returns a mismatch or restore incident, stop. Do not copy files,
 rewrite SQLite, change a Session ID or reconstruct upstream state manually.
+The routine Controller packet must not expose canonical-chain or frozen
+checkpoint Session IDs. The Controller does not supply a starter ID by flag;
+the committed starter registry is authoritative.
 
 ## Launch the Subject
 
 ### Native fork
 
-1. Fork the latest completed state of the frozen checkpoint Subject Session.
+1. Fork the latest completed state of the starter Subject Session returned by
+   `dd-eval prepare`.
 2. Explicitly select the requested Subject model and reasoning profile.
 3. Give the task the title returned by `dd-eval`.
 4. Set the task workspace to the restored project root when the harness permits;
@@ -263,10 +311,15 @@ rewrite SQLite, change a Session ID or reconstruct upstream state manually.
 ```sh
 dd-eval session add --eval "<eval-root>" --execution "<execution-id>" \
   --role subject --session-id "<fork-session-id>" \
-  --parent-session-id "<checkpoint-session-id>"
+  --parent-session-id "<starter-session-id>"
 ```
 
 6. Send the generated Subject continuation without editing it.
+
+The evaluated Session must differ from the starter and its recorded parent
+must equal the current starter ID. A direct fork from a canonical checkpoint is
+an operator error: preserve the incident, do not run the Subject, and prepare a
+new attempt through the starter registry.
 
 The continuation contains ordinary workflow information only: current working
 directory, inline `DD_FLOW_HOME`, exact normal stage command/trigger, trusted
@@ -422,6 +475,8 @@ if they were portable inputs.
 Preserve but do not score an attempt when:
 
 - checkpoint/session/archive cannot be verified;
+- the evaluated Subject was not forked from the current starter Session;
+- a starter or canonical checkpoint Session received an eval message;
 - restored project or RUN does not match the checkpoint;
 - engine and flow pack are not the declared pair;
 - selected model silently changes or falls back;
@@ -442,6 +497,9 @@ a new attempt number.
   RUN and Session checkpoint.
 - Do not copy `DD_FLOW_HOME` with `cp` or edit SQLite directly.
 - Do not reuse a canonical checkpoint directory as an attempt workspace.
+- Do not expose or directly fork canonical checkpoint Sessions during routine
+  eval operation.
+- Do not send work to a starter Session; fork it first.
 - Do not use one Judge conversation for several candidates.
 - Do not treat focused and E2E scores as the same measurement.
 - Do not add a general scheduler, snapshot server or fixture compatibility

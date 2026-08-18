@@ -41,10 +41,16 @@ Filesystem manifests are the source of truth. Do not add a registry SQLite
 database yet. A future `registry.sqlite` may be a rebuildable index only; it
 must never be required to discover, reproduce, retain, or delete an attempt.
 
+Canonical Session IDs remain in the Git checkpoint records. Current starter
+Session IDs remain in `cases/<case-id>/starter-sessions.json`; they are provider
+references, not non-Git archives. Routine Controllers resolve only the starter
+registry. Case creation and starter recovery are the only procedures that read
+canonical Session IDs.
+
 `sessions.json` records provider Session ID, Agent ID, role, parent Session,
 optional source turn evidence, model/reasoning profile and observed usage. It
-explicitly distinguishes the moving canonical-chain Session, frozen checkpoint
-Session and evaluated child. Provider JSONL is not copied by default. Preserve
+records the starter parent and evaluated child used by the attempt; canonical
+Session identities stay in checkpoint evidence. Provider JSONL is not copied by default. Preserve
 raw transcripts only through an explicit archive decision and record their
 external locator and checksum.
 

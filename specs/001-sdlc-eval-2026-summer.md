@@ -28,8 +28,8 @@ by a poor SPECIFY result, or by information lost during handoff. A focused
 stage run alone cannot show whether a model preserves its own decisions across
 the whole flow.
 
-Focused runs therefore fork the canonical Subject Session and restore the exact
-canonical project/RUN state immediately before the selected stage. They do not
+Focused runs therefore fork the current starter Subject Session and restore the
+exact canonical project/RUN state immediately before the selected stage. They do not
 reconstruct that state from portable semantic fixtures. The end-to-end run
 starts from the canonical SPECIFY-entry checkpoint and produces its own result
 at every later boundary.
@@ -158,9 +158,9 @@ There is one run-local Controller Session and a reusable Judge priming Session.
 The current Desktop Controller is not a canonical fork parent: it reads the
 versioned Controller packet and runbook in its real task, and the run report
 records its actual Session ID and model profile. Subject focused and segment
-attempts fork the frozen checkpoint Subject Session stored for the selected
-stage entry, not the moving canonical-chain Session and not one generic Subject
-base Session.
+attempts fork the current untouched starter Session stored for the selected
+stage entry, not the frozen canonical checkpoint Session, moving
+canonical-chain Session or one generic Subject base Session.
 
 ### Controller priming
 
@@ -223,9 +223,10 @@ native fork or compared as equivalent for cache, latency or context-retention
 metrics.
 
 Before any attempt, the Controller verifies the selected stage-entry checkpoint
-record: canonical-chain parent, frozen checkpoint Session, canonical producer
-profile, effective attempt profile, definition/project/runtime identities,
-ordered message hashes and archive checksums. Canonical-chain priming quality
+and resolves the current starter registry: checkpoint identity, starter
+Session, canonical producer profile, effective attempt profile,
+definition/project/runtime identities, ordered message hashes and archive
+checksums. Canonical-chain priming quality
 and cost are reported separately and are not repeatedly added to focused-stage
 latency.
 
@@ -576,9 +577,11 @@ candidate run must never be used to generate the oracle that scores itself.
 Every run report records:
 
 - Controller Session ID;
-- canonical-chain Subject Session ID and optional source turn evidence;
-- frozen checkpoint Subject Session ID;
-- evaluated Subject Session ID and checkpoint parent;
+- canonical-chain Subject Session ID and optional source turn evidence in the
+  checkpoint definition;
+- frozen checkpoint Subject Session ID in the checkpoint definition;
+- current starter Session ID and evaluated Subject child Session ID in the
+  attempt evidence;
 - every Subject subagent Session and agent ID;
 - Judge base priming Session ID;
 - Judge Session ID and fork parent;
@@ -642,7 +645,7 @@ dd-eval finalize
 - `prepare` restores the selected stage-entry project/RUN checkpoint, creates
   the immutable manifest, initial `state.json` and independent execution
   workspaces, then returns the exact Subject fork action.
-- `session add` records a harness-provided Controller, checkpoint parent,
+- `session add` records a harness-provided Controller, starter parent,
   evaluated Subject or Judge
   Session ID and optional parent ID. Subject child Sessions are reconciled from
   trusted `dd-flow stat run sessions ls` output rather than copied by hand.
