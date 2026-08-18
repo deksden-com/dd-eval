@@ -1,8 +1,8 @@
 {
-  "schema_id": "dd-eval/case@2",
+  "schema_id": "dd-eval/case@3",
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
-  "status": "draft_oracles_pending_human_acceptance",
+  "status": "canonical_checkpoints_pending_capture",
   "checkpoint": {"id": "cp-002-vnext-plan-review-beta-58", "commit": "aefd13b108e2f436d189ae3c6fbac6f47569e356"},
   "compatibility": {"engine_commit": "d5b44b32efd10dbf3b0650606ef7832daff668af", "flow_pack_commit": "aefd13b108e2f436d189ae3c6fbac6f47569e356"},
   "profiles": {
@@ -21,9 +21,14 @@
     "judge_baselines": ["baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-58.json", "baselines/judge-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-58.json"]
   },
   "flow": {"handoff_mode": "same_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_run"},
+  "canonical_checkpoints": {
+    "specify": "checkpoints/specify.json",
+    "protocolize": "checkpoints/protocolize.json",
+    "plan": "checkpoints/plan.json",
+    "plan-review": "checkpoints/plan-review.json"
+  },
   "stages": {
     "specify": {
-      "fixture": null,
       "subject_packet": "prompts/subject-specify.md",
       "judge_packet": "prompts/judge-specify.md",
       "rubric": "rubrics/specify.json",
@@ -32,7 +37,6 @@
       "candidate_files": [{"origin": "run", "path": "01-specify/specify.md"}, {"origin": "run", "path": "01-specify/stage-report.json"}]
     },
     "protocolize": {
-      "fixture": "fixtures/protocolize.json",
       "subject_packet": "prompts/subject-protocolize.md",
       "judge_packet": "prompts/judge-protocolize.md",
       "rubric": "rubrics/protocolize.json",
@@ -41,7 +45,6 @@
       "candidate_files": [{"origin": "run", "path": "02-protocolize/protocolize-result.json"}, {"origin": "run", "path": "02-protocolize/stage-report.json"}]
     },
     "plan": {
-      "fixture": "fixtures/plan.json",
       "subject_packet": "prompts/subject-plan.md",
       "judge_packet": "prompts/judge-plan.md",
       "rubric": "rubrics/plan.json",
@@ -50,7 +53,6 @@
       "candidate_files": [{"origin": "run", "path": "03-plan/stage-report.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}]
     },
     "plan-review": {
-      "fixture": "fixtures/plan-review.json",
       "subject_packet": "prompts/subject-plan-review.md",
       "judge_packet": "prompts/judge-plan-review.md",
       "rubric": "rubrics/plan-review.json",

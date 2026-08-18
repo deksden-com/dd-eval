@@ -164,7 +164,8 @@ row-copy logic.
 - verifies that the dedicated home contains only the selected canonical
   project/RUN;
 - creates a consistent database snapshot and archives that dedicated runtime
-  home, including the RUN workspace;
+  home, including the RUN workspace, together with the exact project tree
+  excluding only its Git metadata;
 - preserves completed predecessor history, variables, settings, receipts and
   Work/session evidence required to understand that history;
 - writes an immutable manifest plus content-addressed files;
@@ -172,7 +173,9 @@ row-copy logic.
 
 `snapshot restore`:
 
-- requires a fresh isolated `DD_FLOW_HOME` and prepared project root;
+- requires a fresh isolated `DD_FLOW_HOME` and prepared project root, then
+  replaces the prepared tree with the archived canonical tree while preserving
+  the target checkout's Git metadata;
 - verifies archive, engine, flow-pack and project-tree compatibility;
 - rebases every runtime and workspace path to the attempt locations;
 - preserves the RUN ID inside the isolated home unless the engine has a hard

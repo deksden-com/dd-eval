@@ -269,10 +269,8 @@ accepted commit.
 The command-line executable is named `dd-eval`. `dd-deval` is not an alias and
 must not appear in manifests, documentation, reports, or automation.
 
-The commands below are the target `case@3` contract from specification 002.
-The current beta branch still contains the superseded `case@2` portable-fixture
-implementation; it is not valid for a new scored run and must be migrated before
-using this procedure.
+The commands below implement the `case@3` contract from specification 002.
+Portable stage fixtures are not executable input for a scored run.
 
 `sdlc-eval-2026-summer-task-priority` is the initial bounded planning case. It
 supports independent checks of `SPECIFY`, `PROTOCOLIZE`, `PLAN` and

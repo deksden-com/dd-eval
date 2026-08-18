@@ -741,7 +741,7 @@ specs/
   001-sdlc-eval-2026-summer.md
 
 schemas/
-  case.v2.schema.json
+  case.v3.schema.json
   stage-checkpoint.v1.schema.json
   interaction-script.v1.schema.json
   run-manifest.v1.schema.json

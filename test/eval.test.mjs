@@ -1,118 +1,28 @@
 import assert from "node:assert/strict";
-import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { addSession, loadCase, prepare, sync, validateInput } from "../lib/dd-eval.mjs";
+import { loadCase, prepare, validateInput } from "../lib/dd-eval.mjs";
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
-const profile = "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-58";
 
-test("the active suite accepts only the v2 case contract", async () => {
+test("the active suite uses canonical stage checkpoints", async () => {
   const loaded = await loadCase(caseId);
-  assert.equal(loaded.definition.schema_id, "dd-eval/case@2");
+  assert.equal(loaded.definition.schema_id, "dd-eval/case@3");
+  assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review"]);
   const validated = await validateInput({ caseId, source });
   assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-58");
 });
 
-test("prepare creates a self-contained focused SPECIFY execution", async () => {
-  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v2-"));
+test("a scored run fails closed until its canonical checkpoint is captured", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v3-"));
   try {
-    const result = await prepare({
-      caseId, source, output: path.join(root, "run"), stageList: "specify",
-      controllerProfileId: profile, subjectProfileId: profile, judgeProfileId: profile
-    });
-    assert.equal(result.executions.length, 1);
-    const manifest = JSON.parse(await readFile(path.join(result.output, "manifest.json"), "utf8"));
-    const state = JSON.parse(await readFile(path.join(result.output, "state.json"), "utf8"));
-    assert.equal(manifest.schema_id, "dd-eval/run-manifest@1");
-    assert.deepEqual(manifest.selection, { focused_stages: ["specify"], e2e: false });
-    assert.equal(state.executions.specify.status, "prepared");
-    assert.equal(result.executions[0].project_root, path.join(result.output, "executions", "specify", "attempt-01", "project"));
-    const subjectPacket = await readFile(path.join(result.output, "executions", "specify", "attempt-01", "prompts", "subject.md"), "utf8");
-    assert.match(subjectPacket, /поддержку приоритета задач/);
-    assert.match(subjectPacket, /оформим протокол/);
-    assert.match(await readFile(path.join(result.output, "executions", "specify", "attempt-01", "prompts", "controller.md"), "utf8"), /stop and do not follow/);
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
-
-test("case defaults select Luna Subject and Sol Judge, with explicit overrides recorded", async () => {
-  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v2-profiles-"));
-  try {
-    const prepared = await prepare({ caseId, source, output: path.join(root, "default"), stageList: "specify" });
-    const manifest = JSON.parse(await readFile(path.join(prepared.output, "manifest.json"), "utf8"));
-    assert.equal(manifest.profiles.subject.model, "gpt-5.6-luna");
-    assert.equal(manifest.profiles.judge.model, "gpt-5.6-sol");
-    assert.equal(manifest.profile_selection.judge.source, "case_default");
-    const overridden = await prepare({ caseId, source, output: path.join(root, "override"), stageList: "specify", judgeProfileId: profile });
-    const overrideManifest = JSON.parse(await readFile(path.join(overridden.output, "manifest.json"), "utf8"));
-    assert.equal(overrideManifest.profiles.judge.model, "gpt-5.6-luna");
-    assert.equal(overrideManifest.profile_selection.judge.source, "command_override");
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
-
-test("prepare gives each focused fixture import an isolated runtime home", async () => {
-  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v2-fixture-home-"));
-  try {
-    const engine = path.join(root, "fake-dd-flow.mjs");
-    const received = path.join(root, "received-home.txt");
-    await writeFile(engine, `#!/usr/bin/env node\nimport { writeFileSync } from "node:fs";\nwriteFileSync(${JSON.stringify(received)}, process.env.DD_FLOW_HOME ?? "");\nconsole.log(JSON.stringify({ run_id: "RUN-001-task-priority", run_home: process.env.DD_FLOW_HOME }));\n`);
-    await chmod(engine, 0o755);
-    const prepared = await prepare({ caseId, source, output: path.join(root, "run"), stageList: "protocolize", engine });
-    const expected = path.join(prepared.output, "executions", "protocolize", "attempt-01", "dd-flow-home");
-    assert.equal(await readFile(received, "utf8"), expected);
-    const manifest = JSON.parse(await readFile(path.join(prepared.output, "manifest.json"), "utf8"));
-    assert.equal(manifest.executions[0].run_home, expected);
-    assert.equal(prepared.executions[0].flow_run_id, "RUN-001-task-priority");
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
-
-test("prepare gives E2E its declared runtime home before the Subject starts", async () => {
-  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v2-e2e-home-"));
-  try {
-    const prepared = await prepare({ caseId, source, output: path.join(root, "run"), stageList: "", e2e: true });
-    const manifest = JSON.parse(await readFile(path.join(prepared.output, "manifest.json"), "utf8"));
-    assert.equal(manifest.executions[0].id, "e2e");
-    assert.equal(manifest.executions[0].dd_flow_home, path.join(prepared.output, "dd-flow-home"));
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
-
-test("session recording is idempotent and remains separate from flow state", async () => {
-  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v2-session-"));
-  try {
-    const prepared = await prepare({
-      caseId, source, output: path.join(root, "run"), stageList: "specify",
-      controllerProfileId: profile, subjectProfileId: profile, judgeProfileId: profile
-    });
-    const first = await addSession({ evalRoot: prepared.output, executionId: "specify", role: "subject", sessionId: "session-1" });
-    const second = await addSession({ evalRoot: prepared.output, executionId: "specify", role: "subject", sessionId: "session-1" });
-    assert.equal(first.idempotent, false);
-    assert.equal(second.idempotent, true);
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
-
-test("sync persists the discovered RUN location for checkpointing", async () => {
-  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v2-sync-"));
-  try {
-    const prepared = await prepare({ caseId, source, output: path.join(root, "run"), stageList: "specify" });
-    const engine = path.join(root, "fake-dd-flow.mjs");
-    await writeFile(engine, `#!/usr/bin/env node\nconst args = process.argv.slice(2).join(" ");\nif (args.startsWith("run status")) console.log(JSON.stringify({ run: { run_home_path: "/tmp/run", status: "done" }, index: { stage_runs: [{ stage: "specify", status: "done" }] } }));\nelse console.log(JSON.stringify({}));\n`);
-    await chmod(engine, 0o755);
-    await sync({ evalRoot: prepared.output, executionId: "specify", projectRoot: path.join(prepared.output, "executions", "specify", "attempt-01", "project"), flowRunId: "run-1", engine });
-    const manifest = JSON.parse(await readFile(path.join(prepared.output, "manifest.json"), "utf8"));
-    assert.equal(manifest.executions[0].flow_run_id, "run-1");
-    assert.equal(manifest.executions[0].run_home, "/tmp/run");
+    await assert.rejects(
+      prepare({ caseId, source, output: path.join(root, "run"), stageList: "specify" }),
+      /canonical checkpoint is not accepted/
+    );
   } finally {
     await rm(root, { recursive: true, force: true });
   }

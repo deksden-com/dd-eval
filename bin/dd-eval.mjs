@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import {
   addSession,
+  acceptCanonicalCheckpoint,
+  captureCanonicalCheckpoint,
   checkpoint,
   defaultSource,
   finalize,
@@ -16,7 +18,9 @@ function usage() {
 
 Usage:
   dd-eval validate --case <case-id> [--source <dd-tasks>]
-  dd-eval prepare --case <case-id> --stages <csv> [--e2e] --output <path> [--controller-profile <id>] [--subject-profile <id>] [--judge-profile <id>] [--source <dd-tasks>]
+  dd-eval checkpoint capture --case <case-id> --stage <stage> --project-root <path> --flow-run <RUN> --subject-session <id> --archive <path> --output <checkpoint.json> [--dd-flow-home <path>] [--fork-point <id>]
+  dd-eval checkpoint accept --case <case-id> --stage <stage> --record <checkpoint.json>
+  dd-eval prepare --case <case-id> (--focus <csv>|--segment <start..end>|--e2e) --output <path> [--controller-profile <id>] [--subject-profile <id>] [--judge-profile <id>] [--source <dd-tasks>]
   dd-eval session add --eval <prepared-dir> --execution <id> --role <controller|subject_base|subject|judge_base|judge> --session-id <id> [--parent-session-id <id>]
   dd-eval sync --eval <prepared-dir> --execution <id> --project-root <path> [--flow-run <id>]
   dd-eval checkpoint --eval <prepared-dir> --execution <id>
@@ -59,12 +63,16 @@ try {
     result = await prepare({
       caseId: required(options, "case"), source: options.source || defaultSource(), output: required(options, "output"),
       controllerProfileId: options["controller-profile"], subjectProfileId: options["subject-profile"], judgeProfileId: options["judge-profile"],
-      ...(options.stages ? { stageList: options.stages } : {}), e2e: options.e2e === true
+      ...(options.focus ? { stageList: options.focus } : {}), ...(options.segment ? { segment: options.segment } : {}), e2e: options.e2e === true
     });
   } else if (family === "session" && command === "add") {
     result = await addSession({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), role: required(options, "role"), sessionId: required(options, "session-id"), ...(options["parent-session-id"] ? { parentSessionId: options["parent-session-id"] } : {}) });
   } else if (family === "sync") {
     result = await sync({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), projectRoot: required(options, "project-root"), ...(options["flow-run"] ? { flowRunId: options["flow-run"] } : {}) });
+  } else if (family === "checkpoint" && command === "capture") {
+    result = await captureCanonicalCheckpoint({ caseId: required(options, "case"), stage: required(options, "stage"), projectRoot: required(options, "project-root"), flowRunId: required(options, "flow-run"), runtimeHome: options["dd-flow-home"] || process.env.DD_FLOW_HOME || required(options, "dd-flow-home"), subjectSessionId: required(options, "subject-session"), archive: required(options, "archive"), output: required(options, "output"), ...(options["fork-point"] ? { forkPoint: options["fork-point"] } : {}) });
+  } else if (family === "checkpoint" && command === "accept") {
+    result = await acceptCanonicalCheckpoint({ caseId: required(options, "case"), stage: required(options, "stage"), recordFile: required(options, "record") });
   } else if (family === "checkpoint") {
     result = await checkpoint({ evalRoot: required(options, "eval"), executionId: required(options, "execution") });
   } else if (family === "judge" && command === "prepare") {

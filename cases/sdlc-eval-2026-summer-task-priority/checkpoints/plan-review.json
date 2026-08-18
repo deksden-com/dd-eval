@@ -1,0 +1,7 @@
+{
+  "schema_id": "dd-eval/canonical-stage-checkpoint@1",
+  "stage": "plan-review",
+  "status": "pending_capture",
+  "runtime_snapshot": null,
+  "subject": null
+}

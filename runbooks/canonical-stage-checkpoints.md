@@ -4,8 +4,8 @@ This runbook is the operator procedure for focused-stage, contiguous-segment
 and E2E executions of `sdlc-eval-2026-summer`.
 
 It implements [specification 002](../specs/002-canonical-stage-checkpoint-evaluation.md).
-Until the CLI and active case have migrated to `case@3`, the old portable
-fixture path is diagnostic-only and must not be used for a scored run.
+The active CLI and case use `case@3`; the old portable fixture path is
+diagnostic-only and must not be used for a scored run.
 
 ## Choose the measurement
 
@@ -87,13 +87,21 @@ DD_FLOW_HOME="<canonical-home>" dd-eval checkpoint capture \
   --project-root "<canonical-project>" \
   --flow-run "<run-id>" \
   --subject-session "<session-id>" \
-  --fork-point "<provider-turn-id>"
+  --fork-point "<provider-turn-id>" \
+  --archive "/absolute/archive/sdlc-eval-2026-summer/specify-entry" \
+  --output "/absolute/archive/sdlc-eval-2026-summer/specify-entry.json"
 ```
 
 Capture must report `target_stage=specify`, an unstarted RUN, no pending HITL,
 no active child Work and a clean runtime check. Review the discussion and boundary, then accept
-the checkpoint through `dd-eval checkpoint accept`; never change the captured
-record by hand.
+the checkpoint through:
+
+```sh
+dd-eval checkpoint accept --case sdlc-eval-2026-summer-task-priority \
+  --stage specify --record "/absolute/archive/sdlc-eval-2026-summer/specify-entry.json"
+```
+
+Never change the captured record by hand.
 
 ### 3. Advance one canonical stage at a time
 
