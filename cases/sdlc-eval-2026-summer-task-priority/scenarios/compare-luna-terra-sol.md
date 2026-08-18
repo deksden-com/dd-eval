@@ -52,6 +52,7 @@ configuration between profiles. A changed definition starts a new comparison.
 ```sh
 dd-eval prepare \
   --case sdlc-eval-2026-summer-task-priority \
+  --scenario scenarios/compare-luna-terra-sol.md \
   --focus specify,protocolize,plan,plan-review \
   --e2e \
   --controller-profile codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-63 \

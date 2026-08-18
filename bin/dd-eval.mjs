@@ -22,7 +22,7 @@ Usage:
   dd-eval starter set --case <case-id> --stage <stage> --session-id <id> --parent-session-id <frozen-checkpoint-id>
   dd-eval checkpoint capture --case <case-id> --stage <stage> --project-root <path> --flow-run <RUN> --canonical-subject-session <id> --checkpoint-subject-session <id> [--revision REV-NNN] [--dd-flow-home <path>]
   dd-eval checkpoint accept --case <case-id> --stage <stage> --record <capture.json> --review <review.md>
-  dd-eval prepare --case <case-id> (--focus <csv>|--segment <start..end>|--e2e) [--output <DD_EVAL_HOME-contained-path>] [--controller-profile <id>] [--subject-profile <id>] [--judge-profile <id>] [--source <dd-tasks>]
+  dd-eval prepare --case <case-id> (--focus <csv>|--segment <start..end>|--e2e) [--scenario <relative-case-path>] [--output <DD_EVAL_HOME-contained-path>] [--controller-profile <id>] [--subject-profile <id>] [--judge-profile <id>] [--source <dd-tasks>]
   dd-eval session add --eval <prepared-dir> --execution <id> --role <controller|subject_base|subject|judge> --session-id <id> [--parent-session-id <id>] [--agent-id <id>]
   dd-eval sync --eval <prepared-dir> --execution <id> --project-root <path> [--flow-run <id>]
   dd-eval checkpoint --eval <prepared-dir> --execution <id>
@@ -67,7 +67,7 @@ try {
     result = await prepare({
       caseId: required(options, "case"), source: options.source || defaultSource(), output: options.output,
       controllerProfileId: options["controller-profile"], subjectProfileId: options["subject-profile"], judgeProfileId: options["judge-profile"],
-      ...(options.focus ? { stageList: options.focus } : {}), ...(options.segment ? { segment: options.segment } : {}), e2e: options.e2e === true
+      ...(options.focus ? { stageList: options.focus } : {}), ...(options.segment ? { segment: options.segment } : {}), ...(options.scenario ? { scenario: options.scenario } : {}), e2e: options.e2e === true
     });
   } else if (family === "session" && command === "add") {
     result = await addSession({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), role: required(options, "role"), sessionId: required(options, "session-id"), ...(options["parent-session-id"] ? { parentSessionId: options["parent-session-id"] } : {}), ...(options["agent-id"] ? { agentId: options["agent-id"] } : {}) });
