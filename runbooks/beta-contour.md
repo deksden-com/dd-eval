@@ -6,27 +6,30 @@ only proven changes to the Memory Bank canon.
 
 ## Active eval-controller boundary
 
-Use the `dd-eval` v2 lifecycle for the active summer suite. Run it from a
+Use the canonical checkpoint lifecycle in
+[the eval runbook](canonical-stage-checkpoints.md) for the active summer suite.
+Run it from a
 visible Desktop Controller task, not `codex exec`; keep the engine binary and
 flow pack as an explicit matched pair, and use absolute paths for both.
 
 1. `dd-eval validate` checks the case and checkpoint before any workspace is
    made.
-2. `dd-eval prepare` materializes one independent project per focused stage or
-   E2E execution. Isolated stages import only an **accepted** portable fixture
-   through the matched `dd-flow` binary. Do not copy `DD_FLOW_HOME`.
-3. Record base, forked Subject and Judge Session IDs with `dd-eval session
+2. `dd-eval prepare` restores the selected canonical project/RUN stage-entry
+   checkpoint through the matched `dd-flow` engine. Do not copy `DD_FLOW_HOME`
+   or reconstruct predecessor stages from semantic fixtures.
+3. Fork the checkpoint Subject Session, then record parent/fork Subject and
+   fresh Judge Session IDs with `dd-eval session
    add`; then use `dd-eval sync` to collect engine-owned session and usage
    projections. The worker never supplies identity itself.
 4. Stop at the declared stage boundary, `checkpoint` its declared artifacts,
    run a read-only Judge, accept its schema-valid result, then `finalize`.
 
-An unaccepted fixture/oracle is deliberately not runnable. Materialize and
-independently accept it before comparing a subject profile.
+An unaccepted checkpoint or oracle is deliberately not runnable. Build and
+independently accept the canonical chain before comparing a Subject profile.
 
 ## Eval modes
 
-Use one of two explicitly named modes; do not mix their evidence or score them
+Use one of three explicitly named modes; do not mix their evidence or score them
 as if they measured the same thing.
 
 ### Focused stage eval
@@ -34,22 +37,26 @@ as if they measured the same thing.
 A **focused stage eval** measures exactly one stage: `SPECIFY`,
 `PROTOCOLIZE`, `PLAN`, or `PLAN-REVIEW`.
 
-- Give the Subject a fresh fork of the canonical Subject priming session, then
-  the stage-specific subject packet. The Subject stops immediately after the
+- Give the Subject a fresh fork of that stage's canonical entry-checkpoint
+  Session and a restored copy of the paired project/RUN. The Subject stops immediately after the
   target stage finishes; it does not enter a successor stage.
 - Give the Judge a separate fresh fork of the canonical Judge priming session,
   then only that stage's candidate packet and rubric.
-- `SPECIFY` starts from the user intake. Every later focused stage starts from
-  an accepted portable fixture for its exact predecessor state.
+- Every focused stage starts from its own accepted canonical entry checkpoint.
 - A focused result therefore measures the stage's own grounding, decisions,
   artifacts and handoff—not the quality of work done before it.
 
-Before sending either stage packet, record both baseline and fork in
+Before sending either stage packet, record both checkpoint parent and fork in
 `dd-eval session add`, and verify that the fork has a different Session ID and
-its `parent_session_id` is the baseline Session ID. A fresh independently
-primed session is useful for diagnostics, but is **not** a comparable focused
-benchmark attempt; preserve it as such and reserve a new EVAL number for the
-native-fork retry.
+its `parent_session_id` is the checkpoint Session ID.
+
+### Contiguous segment eval
+
+A **segment eval** starts from the canonical checkpoint for the first stage and
+executes one contiguous range, for example `PLAN → PLAN-REVIEW`, in the same
+Subject attempt. Capture every stage boundary before continuing. Each included
+stage receives a separate fresh Judge fork. No canonical intermediate result is
+inserted inside the segment.
 
 ### E2E integration eval
 
@@ -58,17 +65,17 @@ declared contour. For the summer case that contour is
 `SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW`, stopping at
 `plan_review_accepted` before `CODE`.
 
-- Prime one Subject session once, send the normal user trigger, and let it
-  carry the working context through the contour.
-- Prime one independent Judge session, then give it the isolated aggregate
+- Fork the canonical `specify-entry` Subject Session, send the normal user
+  trigger, and let it carry the working context through the contour.
+- Fork one independent Judge session, then give it the aggregate
   candidate package after the Subject stops.
 - E2E evidence evaluates legal transitions, cross-stage handoff and the
   resulting integrated plan. It is not a substitute for the focused evidence
   of any individual stage.
 
-Run focused stage evals while evolving a stage. Run E2E integration evals when
-the interaction of the stages or a matched engine/flow-pack pair is the subject
-of the test.
+Run focused stage evals while evolving one stage, segment evals for a particular
+handoff, and E2E integration evals when the whole contour or matched
+engine/flow-pack pair is the subject of the test.
 
 The beta contour is for flow and engine development. It does not replace the
 published-release eval: after promotion, one control run must use only released
@@ -415,12 +422,14 @@ not an identity contract.
 
 ### Focused-stage controller tactic
 
-`prepare --stages <stage>` writes `executions/<stage>/attempt-01/prompts/controller.md`.
+`prepare --focus <stage>` restores that stage's canonical entry checkpoint and
+writes `executions/focus-<stage>/attempt-01/prompts/controller.md`.
 The Controller follows it in addition to the role prime:
 
-1. Prime the Subject as a normal project session, then send the exact
-   `subject.md` trigger as its next user message. Do not add rubric, oracle or
-   scoring hints.
+1. Fork the checkpoint Subject Session at its exact recorded boundary, select
+   the requested profile, record the parent/fork IDs, then send the exact
+   generated `subject.md` continuation. Do not add rubric, oracle or scoring
+   hints.
 2. Tell the Subject only the harness boundary: after a successful finish of
    the focused stage, stop; the Controller owns the checkpoint and does not
    let it start a later stage.

@@ -1,6 +1,6 @@
 ---
 file: 'specs/001-sdlc-eval-2026-summer.md'
-description: 'Versioned stage-isolated and end-to-end SDLC evaluation suite with primed Subject and Judge sessions, canonical fixtures, independent scoring and reproducible run evidence.'
+description: 'Versioned focused-stage, contiguous-segment and end-to-end SDLC evaluation suite with canonical stage-entry checkpoints, independent scoring and reproducible run evidence.'
 status: 'DRAFT'
 suite_id: 'sdlc-eval-2026-summer'
 ---
@@ -11,47 +11,51 @@ suite_id: 'sdlc-eval-2026-summer'
 
 Evaluate AI agents at two complementary levels:
 
-1. isolate `SPECIFY`, `PROTOCOLIZE`, `PLAN` and `PLAN-REVIEW` so each stage can
-   be compared against a stable canonical input and expected result;
+1. focus on `SPECIFY`, `PROTOCOLIZE`, `PLAN` and `PLAN-REVIEW` so each stage can
+   be compared from the same canonical project, RUN and Session boundary;
 2. run the complete chain to measure information preservation, handoff quality
    and cumulative behavior across the same stage checkpoints.
 
 The suite must support focused comparison of harness/model profiles without
 turning the evaluated agent's prompt into an eval-specific instruction. Every
-result must identify the exact Git state, prompts, fixtures, runtime and Session
+result must identify the exact Git state, prompts, checkpoint, runtime and Session
 tree that produced it.
 
 ## Why both forms are required
 
 An end-to-end run alone cannot identify whether a weak PLAN was caused by PLAN,
-by a poor SPECIFY result, or by information lost during handoff. A stage-only
-run alone cannot show whether a model preserves decisions across the whole
-flow.
+by a poor SPECIFY result, or by information lost during handoff. A focused
+stage run alone cannot show whether a model preserves its own decisions across
+the whole flow.
 
-Stage-isolated runs therefore consume an accepted canonical result from the
-preceding stage. The end-to-end run starts from the original user discussion
-and produces its own result at every checkpoint.
+Focused runs therefore fork the canonical Subject Session and restore the exact
+canonical project/RUN state immediately before the selected stage. They do not
+reconstruct that state from portable semantic fixtures. The end-to-end run
+starts from the canonical SPECIFY-entry checkpoint and produces its own result
+at every later boundary.
 
 ```text
-canonical discussion
-  ├─ SPECIFY eval
-  │
-  └─ canonical SPECIFY result
-       ├─ PROTOCOLIZE eval
-       │
-       └─ canonical protocol set
-            ├─ PLAN eval
-            │
-            └─ canonical imperfect PLAN revision 1
-                 └─ PLAN-REVIEW eval
+canonical chain
+  ├─ checkpoint: specify-entry ───────→ focused SPECIFY
+  ├─ checkpoint: protocolize-entry ───→ focused PROTOCOLIZE
+  ├─ checkpoint: plan-entry ──────────→ focused PLAN
+  └─ checkpoint: plan-review-entry ───→ focused PLAN-REVIEW
 
-canonical discussion
+checkpoint: plan-entry
+  └─ segment: PLAN → PLAN-REVIEW
+
+checkpoint: specify-entry
   └─ E2E: SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW
 ```
 
-The canonical PLAN used by PLAN-REVIEW is a **review fixture**, not a claim that
-the plan is correct. It intentionally contains a known, documented set of
-reviewable defects.
+The canonical PLAN at `plan-review-entry` is an accepted review input, not a
+claim that the plan is correct. It intentionally contains a known, documented
+set of reviewable defects. The full checkpoint also preserves its real RUN and
+Session context.
+
+The detailed checkpoint and execution contract is
+[specification 002](002-canonical-stage-checkpoint-evaluation.md), which
+supersedes the portable stage-fixture mechanism previously described here.
 
 ## Roles
 
@@ -92,10 +96,12 @@ normal project and flow instructions. Its prompt must not disclose:
 ### Judge
 
 The Judge evaluates only after the candidate task has returned, every child
-agent has completed or failed, no candidate Work is `created` or `running`, and
-the stage has reached its expected boundary. A provider Session may remain
-resumable; Session deletion or artificial closure is not required. A Judge is
-read-only with respect to candidate artifacts.
+agent and stage-owned Work has completed or failed, no child Work is active,
+and the stage has reached its expected boundary. The root coordinator Work and
+provider Session may remain resumable at a focused or segment boundary; they
+must have no active agent turn or stale Work-session binding. Session deletion
+or artificial closure is not required. A Judge is read-only with respect to
+candidate artifacts.
 
 It receives the applicable rubric, canonical expectations, candidate artifacts,
 Session evidence and runtime metrics. It returns a schema-valid evaluation;
@@ -106,21 +112,26 @@ model may judge a less expensive Subject model.
 
 ## Run selection
 
-One Controller run accepts two independent selections:
+One Controller run accepts focused-stage and E2E selections. A contiguous
+segment is prepared separately so its single Subject continuation is explicit:
 
 ```yaml
-focused_stages:
+focus:
   - specify
   - protocolize
   - plan
   - plan-review
 e2e: true
+
+segment: plan..plan-review
 ```
 
-- `focused_stages` may contain any subset of the four stages.
+- `focus` may contain any subset of the four stages; every item is independent.
+- `segment` names one inclusive contiguous range and starts from only the first
+  stage's canonical entry checkpoint.
 - `e2e` independently enables the complete chain.
 - `all stages + e2e` is the full suite, not one shared Subject run.
-- Each focused stage is materialized and executed independently.
+- Each focused stage is restored and executed independently.
 - Focused runs execute sequentially by default so they do not distort the
   shared subagent capacity. Parallel execution requires isolated runtime pools.
 
@@ -143,10 +154,9 @@ Each case pins the flow conditions that affect comparability:
 
 ## Priming and stage conditioning
 
-There are reusable base priming Sessions, followed by stage-specific forks.
-There is no claim that three permanent Session lines are sufficient by
-themselves: every fork receives additional versioned instructions for its exact
-stage and role.
+There are reusable Controller and Judge priming Sessions. Subject focused and
+segment attempts fork the canonical Subject Session stored in the selected
+stage-entry checkpoint, not one generic Subject base Session.
 
 ### Controller priming
 
@@ -165,30 +175,28 @@ flag, Subject profile and Judge profile.
 
 ### Subject priming
 
-A Subject base Session is created for each exact
-`harness + model + reasoning + project checkpoint + priming prompt` identity.
-It performs normal project priming and receives no hidden eval material.
+A canonical Subject chain is created for each exact
+`harness + project checkpoint + engine + flow pack + canonical prompt sequence`
+identity. It performs normal project priming and user discussion, then produces
+one accepted Session/RUN/project checkpoint at every stage entry.
 
-Each focused stage forks that base Session and then receives a versioned
-stage-specific Subject packet:
-
-- the normal stage trigger;
-- the materialized project and RUN paths;
-- the accepted upstream handoff or original user discussion;
-- normal flow instructions and stop condition;
-- no rubric, oracle or eval terminology.
+Each focused stage forks its own checkpoint Session and receives only the
+generated ordinary continuation packet: restored project/RUN paths, the normal
+stage trigger and the harness-owned stop boundary. The upstream handoff is
+already present in the forked conversation and restored RUN. No rubric, oracle
+or eval terminology is included.
 
 If a natural user conversation is needed before the trigger, the exact ordered
-messages are part of the case fixture. Free-form Controller "warm-up" questions
+messages are part of the case definition. Free-form Controller "warm-up" questions
 are forbidden because they can leak hints and make runs incomparable.
 
-An E2E Subject is another fork of the same base Session. It receives the
-canonical discussion and normal start trigger, then follows the flow without
-canonical intermediate results.
+An E2E Subject forks `specify-entry`, receives the normal start trigger, and
+follows the flow without canonical intermediate results.
 
-A native fork must preserve the Subject model, reasoning and harness profile.
-Changing the model after a fork invalidates comparability. A different profile
-gets its own base priming Session.
+A native fork must execute the explicitly selected Subject model, reasoning and
+harness profile. A profile different from the canonical-chain producer is
+allowed and is the point of focused model comparison; both profiles are
+recorded. An unrequested change or silent fallback invalidates comparability.
 
 The case records `session_seed_mode`:
 
@@ -201,13 +209,11 @@ The two modes are reported separately. A replay run must not be labelled as a
 native fork or compared as equivalent for cache, latency or context-retention
 metrics.
 
-Before any child run, the Controller records a priming checkpoint with the base
-Session ID, effective harness/model/reasoning, definition and project commits,
-ordered message hashes, fork point, elapsed time and usage. A model/profile
-mismatch or incomplete priming sequence invalidates every fork from that base.
-Priming quality is a separately reported diagnostic: applicable entry points
-read, unnecessary broad reads, errors and readiness for the stage packet. Its
-cost is never hidden inside or repeatedly added to focused-stage latency.
+Before any attempt, the Controller verifies the selected stage-entry checkpoint
+record: parent Session/fork point, canonical producer profile, effective
+attempt profile, definition/project/runtime identities, ordered message hashes
+and archive checksums. Canonical-chain priming quality and cost are reported
+separately and are not repeatedly added to focused-stage latency.
 
 ### Judge priming
 
@@ -245,17 +251,18 @@ Controller-authored follow-up instructions invalidate prompt comparability.
 
 ## Case contract and selection
 
-Active cases use one contract, `dd-eval/case@2`. The runtime must not interpret
-the old `tracks` shape as a fallback. Existing historical results remain
-immutable evidence, while active cases are migrated before this suite can run.
+Active cases use one contract, `dd-eval/case@3`. The runtime must not interpret
+`case@2`, `stage-fixture@1` or the old `tracks` shape as a fallback. Existing
+historical results remain immutable evidence, while active cases are migrated
+before this suite can run.
 
 The case manifest contains only configuration needed to reproduce the suite:
 
 - schema, suite, case and definition-version IDs;
 - immutable project checkpoint and exact flow-pack/engine identities;
 - allowed/default Controller, Subject and Judge profiles;
-- one entry per stage with fixture, interaction script, Subject packet, Judge
-  packet, rubric, oracle and allowed terminal boundary;
+- one entry per stage with canonical stage-entry checkpoint, interaction script,
+  Subject packet, Judge packet, rubric, oracle and allowed terminal boundary;
 - the E2E packet, checkpoints, interaction script and terminal boundary;
 - pinned flow settings: handoff mode, plan-review mode and capacity policy;
 - result thresholds and paths relative to the case directory.
@@ -265,7 +272,7 @@ The first CLI surface is deliberately small:
 ```sh
 dd-eval prepare \
   --case sdlc-eval-2026-summer-task-priority \
-  --stages specify,protocolize,plan,plan-review \
+  --focus specify,protocolize,plan,plan-review \
   --e2e \
   --controller-profile <id> \
   --subject-profile <id> \
@@ -273,16 +280,17 @@ dd-eval prepare \
   --output <outside-dd-eval-path>
 ```
 
-`--stages` is a comma-separated subset and `--e2e` is an independent boolean
-flag. At least one focused stage or `--e2e` is required. A separate `--suite`
+`--focus` is a comma-separated subset and `--e2e` is an independent boolean
+flag. `--segment <start>..<end>` prepares one contiguous chain separately. At
+least one focused stage, one segment or `--e2e` is required. A separate `--suite`
 selector is unnecessary because `case.json` already names its suite. `prepare`
 validates every referenced file and compatibility identity before creating any
 candidate workspace; unknown keys, missing files and mismatched identities fail
 closed.
 
-## Canonical stage fixtures
+## Canonical stage-entry checkpoints
 
-Every isolated stage owns:
+Every focused stage owns:
 
 - input artifacts;
 - hard invariants;
@@ -292,63 +300,24 @@ Every isolated stage owns:
 - Judge packet template;
 - expected terminal boundary.
 
-### Portable stage-fixture contract
+An upstream semantic document by itself is not a runnable checkpoint.
+PROTOCOLIZE, PLAN and PLAN-REVIEW also require their real flow state, RUN
+variables, durable Memory Bank files, project tree and conversation context.
 
-An upstream semantic document by itself is not a runnable stage fixture.
-PROTOCOLIZE, PLAN and PLAN-REVIEW also require a legal flow state, RUN
-variables, durable Memory Bank files and the correct project tree. The suite
-therefore uses `dd-eval/stage-fixture@1`.
+Each stage therefore references a `dd-eval/stage-checkpoint@1` record pairing:
 
-A fixture contains no SQLite database and no absolute path, Session, provider,
-usage or timestamp identity. It records:
+- an immutable project boundary commit/archive;
+- an engine-owned snapshot of the exact RUN at the stage entry;
+- the provider Subject Session ID and exact native-fork point;
+- the target stage, graph entry, handoff mode and compatibility identities;
+- hashes of predecessor receipts, RUN variables and prompts;
+- clean-boundary evidence and human acceptance.
 
-- suite, case, fixture and target-stage IDs;
-- immutable base checkpoint;
-- visible project-file overlay and checksums;
-- portable upstream semantic results and durable artifacts;
-- completed predecessor stages and accepted outcomes;
-- flow kind, subject and required RUN variables;
-- pinned handoff/review/capacity settings;
-- target graph entry and expected start boundary;
-- fixture schema and content checksum.
-
-Fixture input visible to the Subject is separate from hidden expected/oracle
-material. Applying the visible overlay and initializing runtime state produces
-one deterministic `eval-input` commit.
-
-The engine, not `dd-eval` and not an agent, owns runtime materialization through
-an operator-only portable boundary:
-
-```sh
-dd-flow run fixture export <run-id> \
-  --after-stage <stage> \
-  --project-root <canonical-project> \
-  --output <fixture.json>
-
-dd-flow run fixture import \
-  --fixture <fixture.json> \
-  --project-root <prepared-project> \
-  --json
-```
-
-`export` captures an accepted canonical RUN boundary while excluding Sessions,
-Works, usage and machine paths. `import` validates the fixture and selected
-engine/flow pack, registers the materialized project root, allocates a fresh
-RUN, rebuilds only the predecessor state required by the target entry, marks
-that history as `canonical_fixture`, and leaves the target stage unstarted.
-Imported history must never claim that an evaluated agent performed it.
-
-`import --json` returns the new RUN ID, runtime workspace, target stage and
-validated graph entry. `dd-eval prepare` stores that receipt and uses those
-returned values; it does not rediscover or infer them from paths.
-
-The importer is idempotent for one prepared execution and fails closed on a
-path, engine, flow-pack, artifact or checksum mismatch. `dd-eval` must never
-write `dd-flow` SQLite tables directly or copy an old `DD_FLOW_HOME` containing
-absolute roots and stale Session identity.
-
-Fixture export/import is the only required new engine surface for isolated
-stages. It is not a general RUN backup framework.
+`dd-flow run snapshot create/restore` owns runtime capture, path rebasing and
+stale-binding removal. `dd-eval` owns project restore, checkpoint selection,
+Subject forking instructions and attempt evidence. Neither an agent nor
+`dd-eval` edits SQLite. The complete contract and required commands are in
+[specification 002](002-canonical-stage-checkpoint-evaluation.md).
 
 ### SPECIFY
 
@@ -366,7 +335,7 @@ Expected analysis covers:
 - acceptance contract;
 - a durable handoff sufficient for a fresh PROTOCOLIZE Session.
 
-The SPECIFY case is intentionally interactive when its fixture declares
+The SPECIFY case is intentionally interactive when its checkpoint discussion declares
 material gaps. The Subject first reaches `waiting_for_user` with its questions.
 The Controller then delivers the case's exact canonical clarification packet,
 resumes the same stage and lets it produce the final SPECIFY result. Every
@@ -495,9 +464,9 @@ It evaluates both stage quality and cross-stage behavior:
 - appropriate subagent routing and grouping;
 - final readiness for CODE.
 
-Canonical predecessor fixtures are immutable inputs for isolated stages.
+Canonical stage-entry checkpoints are immutable inputs for focused stages.
 Reference answers remain semantic comparison material rather than exact-output
-contracts in both isolated and E2E judgments. A different but grounded E2E
+contracts in both focused and E2E judgments. A different but grounded E2E
 decision is not a failure merely because it differs from the reference wording
 or decomposition.
 
@@ -541,7 +510,7 @@ Every Judge returns `dd-eval/judge-result@1` with:
 - efficiency and observability findings that do not silently lower semantic
   quality;
 - owner for every finding: `subject`, `flow`, `engine`, `harness`,
-  `controller` or `fixture`;
+  `controller` or `checkpoint`;
 - severity: `critical`, `high`, `medium` or `low`;
 - score vector, deterministic aggregate inputs and final verdict.
 
@@ -582,18 +551,17 @@ a new eval-definition commit and oracle version. Rescoring an old candidate
 against that version creates a new Judge attempt linked to the same immutable
 candidate evidence.
 
-The initial `task-priority` case is not ready until its canonical SPECIFY,
-PROTOCOLIZE, PLAN and PLAN-REVIEW fixtures and accepted oracles have been
-created and reviewed. A candidate run must never be used to generate the oracle
-that scores itself.
+The initial `task-priority` case is not ready until its four canonical
+stage-entry checkpoints and accepted oracles have been created and reviewed. A
+candidate run must never be used to generate the oracle that scores itself.
 
 ## Session and usage evidence
 
 Every run report records:
 
 - Controller Session ID;
-- Subject base priming Session ID;
-- Subject root Session ID and fork parent;
+- canonical checkpoint Subject Session ID and fork point;
+- evaluated Subject Session ID and checkpoint parent;
 - every Subject subagent Session and agent ID;
 - Judge base priming Session ID;
 - Judge Session ID and fork parent;
@@ -604,8 +572,9 @@ Every run report records:
 - token usage by unique Session and aggregate totals;
 - observed subagent capacity and review waves.
 
-Priming is measured once per base Session and reported separately. Its cost is
-not repeatedly added to each fork's stage latency.
+Canonical-chain priming is measured once and reported separately. Its cost is
+not repeatedly added to each checkpoint fork's stage latency. Judge priming is
+likewise measured once per Judge base Session.
 
 The Controller does not ask Subject or Judge agents to estimate usage. Usage is
 collected from trusted harness/runtime evidence after all relevant agent turns
@@ -614,7 +583,7 @@ have stopped.
 Usage is reported in separate, non-overlapping groups:
 
 - Controller;
-- Subject base priming;
+- canonical Subject-chain priming;
 - Subject focused-stage or E2E root work;
 - Subject child/reviewer agents, including capacity-probe overhead separately;
 - Judge base priming;
@@ -653,19 +622,21 @@ dd-eval judge accept
 dd-eval finalize
 ```
 
-- `prepare` creates the immutable manifest, initial `state.json` and independent
-  execution workspaces.
-- `session add` records a harness-provided Controller, base, root or Judge
+- `prepare` restores the selected stage-entry project/RUN checkpoint, creates
+  the immutable manifest, initial `state.json` and independent execution
+  workspaces, then returns the exact Subject fork action.
+- `session add` records a harness-provided Controller, checkpoint parent,
+  evaluated Subject or Judge
   Session ID and optional parent ID. Subject child Sessions are reconciled from
   trusted `dd-flow stat run sessions ls` output rather than copied by hand.
 - `sync` reads trusted flow state after a Subject task returns. It records a
   declared pause or terminal boundary and returns the next legal Controller
   action, including the exact interaction-script message when applicable. It
   does not send a message or make a semantic decision.
-- `checkpoint` reads the selected project and flow RUN, validates the expected
+- `checkpoint --stage` reads the selected project and flow RUN, validates the expected
   boundary, copies the case-declared compact artifacts, calculates checksums and
-  writes immutable `candidate.json` evidence. It is also the required E2E
-  barrier between stages.
+  writes immutable `candidate.json` evidence. It is the required barrier
+  between segment/E2E stages as well as the focused-stage stop boundary.
 - `judge prepare` renders the read-only packet from the candidate, rubric,
   oracle and normalized evidence.
 - `judge accept` schema-validates one Judge response and stores it unchanged.
@@ -685,10 +656,10 @@ dd-eval session add --eval <prepared-dir> --execution <id> \
 dd-eval sync --eval <prepared-dir> --execution <id> \
   --project-root <path> --flow-run <id>
 dd-eval checkpoint --eval <prepared-dir> --execution <id> \
-  --project-root <path> --flow-run <id>
-dd-eval judge prepare --eval <prepared-dir> --execution <id>
+  --stage <finished-stage>
+dd-eval judge prepare --eval <prepared-dir> --execution <id> [--stage <stage>]
 dd-eval judge accept --eval <prepared-dir> --execution <id> \
-  --result <judge-result.json>
+  [--stage <stage>] --result <judge-result.json>
 dd-eval finalize --eval <prepared-dir>
 ```
 
@@ -738,7 +709,7 @@ Before launch, the Controller records a clean definition checkpoint containing:
 - flow-pack version, commit and tag;
 - engine version, commit and tag;
 - harness profiles;
-- checksums of source templates, rendered prompts, fixtures, rubrics and oracle.
+- checksums of source templates, rendered prompts, checkpoints, rubrics and oracle.
 
 Dirty source trees are not comparable. Experimental beta inputs still require
 immutable commits and tags before launch.
@@ -771,7 +742,7 @@ specs/
 
 schemas/
   case.v2.schema.json
-  stage-fixture.v1.schema.json
+  stage-checkpoint.v1.schema.json
   interaction-script.v1.schema.json
   run-manifest.v1.schema.json
   run-state.v1.schema.json
@@ -786,15 +757,18 @@ prompts/
 
 cases/sdlc-eval-2026-summer-task-priority/
   case.json
+  checkpoints/
+    specify-entry.json
+    protocolize-entry.json
+    plan-entry.json
+    plan-review-entry.json
   baselines/
-    subject-<profile>.json
     judge-<profile>.json
   prompts/
     subject-prime.md
     subject-e2e.md
   stages/
     specify/
-      fixture.json
       input/
       expected/
       interactions.json
@@ -858,17 +832,17 @@ case contract.
 
 The implementation changes only the component that owns each fact:
 
-- `dd-eval` owns case schemas, fixtures, role/stage packets, preparation,
+- `dd-eval` owns case schemas, checkpoint records, role/stage packets, preparation,
   Controller lifecycle, Judge packets, scoring and reports;
-- `dd-flow-cli` owns portable RUN fixture export/import and trusted flow
-  Session/usage queries;
+- `dd-flow-cli` owns exact selected-RUN snapshot capture/restore and trusted
+  flow Session/usage queries;
 - the beta flow pack owns ordinary stage prompts, artifacts and legal
   transitions; it must contain no eval-specific wording;
 - the canonical `dd-memorybank` is unchanged until the beta flow has been
   validated and intentionally promoted.
 
-Implementation migrates active case manifests and CLI/tests from `tracks` to
-`dd-eval/case@2`, then removes the old runtime branch. Historical case/result
+Implementation migrates the active case manifest and CLI/tests to
+`dd-eval/case@3`, then removes the old runtime branches. Historical case/result
 files remain readable as files but are not accepted as executable definitions.
 README and active runbooks must describe
 `SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW`, the new selectors and the external
@@ -883,7 +857,8 @@ The result manifest and report identify at minimum:
 - selected focused stages and E2E flag;
 - definition, project, flow-pack and engine Git identities;
 - Subject, Controller and Judge profiles;
-- every base/fork/child Session ID;
+- every checkpoint-parent/fork/child Subject Session ID and every Judge
+  base/fork/child Session ID;
 - exact rendered prompts and checksums;
 - artifacts and stage terminal states;
 - per-stage and total time/usage;
@@ -898,11 +873,12 @@ The result manifest and report identify at minimum:
 The first implementation of this specification is accepted when:
 
 1. the first task-priority case and all active cases validate as
-   `dd-eval/case@2`; the CLI has no executable `tracks` fallback;
+   `dd-eval/case@3`; the CLI has no executable `case@2`, fixture or `tracks`
+   fallback;
 2. any focused-stage subset and E2E can be selected independently;
-3. fixture export/import reconstructs a legal fresh RUN at each target entry
-   without copying SQLite, machine identity or fake agent history;
-4. each focused stage starts from its canonical fixture in a fresh Subject fork
+3. checkpoint snapshot restore reconstructs the exact accepted RUN/project
+   boundary at each target entry under new paths without stale active bindings;
+4. each focused stage starts from its canonical entry checkpoint in a fresh Subject fork
    or explicitly reported portable replay with an exact packet sequence;
 5. scripted HITL delivers the exact response, resumes the same stage and treats
    undeclared pauses or premature completion as candidate behavior;
@@ -920,17 +896,17 @@ The first implementation of this specification is accepted when:
     the report, with usage deduplicated by physical Session;
 12. timing separates materialization, priming, active work, scripted wait,
     probes, review waves and judging;
-13. the report records exact Git identities and prompt, fixture, rubric and
-    oracle checksums;
+13. the report records exact Git identities and prompt, checkpoint, rubric and
+   oracle checksums;
 14. `report.json` deterministically renders equivalent Markdown and HTML;
 15. a completed compact result is committed without definition changes, raw
     transcripts, runtime databases or candidate oracle leakage;
-16. the first case's canonical fixtures and oracles are independently reviewed,
-    human-accepted and immutable before they score a Subject;
+16. the first case's canonical checkpoints and oracles are independently reviewed,
+   human-accepted and immutable before they score a Subject;
 17. rerunning the same definition/profile preserves comparable inputs, while a
-    changed rubric, packet, fixture, engine or flow pack has a new visible
-    identity;
-18. current CLI tests cover preparation, fixture mismatch, interaction pauses,
+    changed rubric, packet, checkpoint, engine or flow pack has a new visible
+   identity;
+18. current CLI tests cover preparation, checkpoint mismatch, interaction pauses,
     immutable checkpoints, attempts, Judge validation, unique-Session usage,
     deterministic scoring/rendering and safe finalization.
 
@@ -938,14 +914,14 @@ The first implementation of this specification is accepted when:
 
 Implement the smallest vertical slices that can be verified independently:
 
-1. add the schemas, migrate the one active suite case to `case@2`, update
-   validation/selectors and delete the executable `tracks` branch;
-2. add and test portable fixture export/import in `dd-flow-cli`;
+1. add the schemas, migrate the one active suite case to `case@3`, update
+   validation/selectors and delete executable fixture/old-contract branches;
+2. add and test selected-RUN snapshot capture/restore in `dd-flow-cli`;
 3. implement preparation, Controller state, checkpointing, Judge acceptance,
    scoring/rendering and finalization in `dd-eval`;
-4. author and human-accept the task-priority prompts, fixtures, interaction
+4. author and human-accept the task-priority prompts, checkpoints, interaction
    scripts, rubrics and oracles;
-5. run one isolated smoke per stage, then one E2E smoke, freeze the definition
+5. run one focused smoke per stage, one segment smoke and one E2E smoke, freeze the definition
    commit/tag and only then compare additional Subject profiles.
 
 Do not build a daemon, web UI, generic scheduler, artifact service or database

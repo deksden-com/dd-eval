@@ -18,7 +18,10 @@ candidate behavior without consuming canonical `SPC-*` numbering.
 
 Repository-level eval design specifications live under [specs/](specs/). The
 `sdlc-eval-2026-summer` suite is defined by
-[specification 001](specs/001-sdlc-eval-2026-summer.md).
+[specification 001](specs/001-sdlc-eval-2026-summer.md); its canonical
+stage-checkpoint execution model is refined by
+[specification 002](specs/002-canonical-stage-checkpoint-evaluation.md) and the
+[operator runbook](runbooks/canonical-stage-checkpoints.md).
 
 ## Evaluation model
 
@@ -266,6 +269,11 @@ accepted commit.
 The command-line executable is named `dd-eval`. `dd-deval` is not an alias and
 must not appear in manifests, documentation, reports, or automation.
 
+The commands below are the target `case@3` contract from specification 002.
+The current beta branch still contains the superseded `case@2` portable-fixture
+implementation; it is not valid for a new scored run and must be migrated before
+using this procedure.
+
 `sdlc-eval-2026-summer-task-priority` is the initial bounded planning case. It
 supports independent checks of `SPECIFY`, `PROTOCOLIZE`, `PLAN` and
 `PLAN-REVIEW`, plus a pre-CODE end-to-end contour ending at
@@ -278,7 +286,17 @@ in `case.json`; checkpoints and product tags remain separate namespaces.
 dd-eval validate --case sdlc-eval-2026-summer-task-priority
 dd-eval prepare \
   --case sdlc-eval-2026-summer-task-priority \
-  --stages specify,protocolize,plan,plan-review --e2e \
+  --focus specify,protocolize,plan,plan-review --e2e \
+  --output /absolute/path/outside/dd-eval
+```
+
+To evaluate a contiguous handoff in one Subject continuation, prepare it
+separately:
+
+```sh
+dd-eval prepare \
+  --case sdlc-eval-2026-summer-task-priority \
+  --segment plan..plan-review \
   --output /absolute/path/outside/dd-eval
 ```
 
@@ -289,10 +307,11 @@ Subject as `gpt-5.6-luna` with `xhigh` reasoning and the independent Judge as
 override; the manifest records both the effective profile and whether it came
 from the case default or command line.
 
-`prepare` resolves an exact source commit, materializes an independent project
-per execution, records prompt receipts, and uses `dd-flow run fixture import`
-for isolated stages. The Subject never receives evaluation wording, rubrics or
-oracles. Draft fixtures and draft oracles deliberately fail closed.
+`prepare` resolves the selected canonical stage-entry checkpoint, restores an
+independent copy of its exact project and RUN, and returns the Subject Session
+fork point plus ordinary continuation packet. It never reconstructs a later
+stage from a portable semantic fixture. The Subject never receives evaluation
+wording, rubrics or oracles. Draft checkpoints and draft oracles fail closed.
 
 The Controller records every root/child session, syncs engine-owned runtime
 evidence and usage when available, checkpoints candidate artifacts, then gives
