@@ -2,9 +2,9 @@
   "schema_id": "dd-eval/case@3",
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
-  "status": "canonical_chain_preparing",
-  "checkpoint": {"id": "cp-002-vnext-plan-review-beta-60", "commit": "02c8426a79586eeb1112fb69f1c50c0ef4ec5c36"},
-  "compatibility": {"engine_commit": "2040bc709739b8789605a4182d96e550b58a0ee6", "flow_pack_commit": "02c8426a79586eeb1112fb69f1c50c0ef4ec5c36"},
+  "status": "canonical_chain_rejected_pending_beta62",
+  "checkpoint": {"id": "cp-002-vnext-plan-review-beta-61", "commit": "33095178da566c5e1b9223c1acd99a726f0cef9d"},
+  "compatibility": {"engine_commit": "2040bc709739b8789605a4182d96e550b58a0ee6", "flow_pack_commit": "33095178da566c5e1b9223c1acd99a726f0cef9d"},
   "profiles": {
     "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-60"],
     "subject": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-60"],
@@ -17,7 +17,7 @@
   },
   "priming": {
     "controller_packet": "prompts/controller-prime.md",
-    "subject_baseline": "baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-60.json"
+    "subject_baseline": "baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-60-rev005.json"
   },
   "flow": {"handoff_mode": "same_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_run"},
   "canonical_checkpoints": {
