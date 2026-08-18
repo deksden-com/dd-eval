@@ -126,8 +126,9 @@ rendered controller prompt verbatim. Do not prepend an eval-specific overlay.
 
 For an isolated Desktop run, prefix every `dd-flow` lifecycle invocation with
 the literal `DD_FLOW_HOME=<isolated-home>`. The managed PreToolUse hook routes
-that event to the same home before it appends `--hook-event-id`; this is the
-only permitted runtime override for this beta harness.
+the event to that home. The lifecycle command claims its fresh, exact command
+fingerprint automatically, including hosts that cannot rewrite a nested Bash
+call. A worker never supplies `--hook-event-id` or a session id.
 
 ### Working-directory contract
 
