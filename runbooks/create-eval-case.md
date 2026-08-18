@@ -48,20 +48,20 @@ expectations/                  accepted references when available
 {
   "schema_id": "dd-eval/starter-sessions@1",
   "case_id": "<case-id>",
-  "canonical_chain_id": "<chain-id>",
+  "revision": "REV-<NNN>",
   "sessions": {
     "specify": {
-      "checkpoint_id": "<checkpoint-id>",
       "session_id": "<starter-session-id>"
     }
   }
 }
 ```
 
-Add one entry for every runnable stage. Do not copy canonical Session IDs into
-this registry; they already live in the checkpoint records. An attempt copies
-the resolved starter ID into its own `sessions.json` together with the new
-evaluated child ID and their parent relationship.
+Add one entry for every runnable stage. `revision` must equal the one shared by
+all canonical checkpoint records. Do not copy canonical Session IDs into this
+registry; they already live in the checkpoint records. An attempt copies the
+resolved starter ID into its own `sessions.json` together with the new evaluated
+child ID and their parent relationship.
 
 ID ownership is fixed:
 
@@ -88,8 +88,16 @@ checkpoint.
    `checkpoints/<stage>.json`.
 4. For each accepted checkpoint, fork the frozen Session once, title the child
    `START <case-id> <STAGE>-entry`, and send it no message.
-5. Record only that child ID and checkpoint identity in
-   `starter-sessions.json`.
+5. Register only that child ID by calling:
+
+   ```sh
+   dd-eval starter set --case <case-id> --stage <stage> \
+     --session-id <starter-session-id> \
+     --parent-session-id <frozen-checkpoint-session-id>
+   ```
+
+   The command checks the declared parent against the accepted checkpoint and
+   updates `starter-sessions.json`.
 6. Verify every starter is reachable, idle and directly parented by the
    expected frozen checkpoint Session.
 7. Commit and push the case definition and current starter registry.

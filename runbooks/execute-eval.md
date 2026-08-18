@@ -9,12 +9,10 @@ diagnostic-only and must not be used for a scored run.
 
 The implementation cutover and launch gates are defined by
 [specification 003](../specs/003-canonical-eval-launch-readiness.md). At the
-time that specification was written, the active case was **not launch-ready**:
-its beta.58 engine identities disagreed, all canonical checkpoints and
-The Subject session baseline is pending, and all expectations are drafts. Do
-not interpret a
-successful structural `validate` as permission to launch until the readiness
-contract from specification 003 is implemented and passes.
+time that specification was written, its beta.58 facts were historical. The
+active case is launchable only when its current
+`dd-eval validate --require scored` gate passes; a structural authoring check
+is not permission to launch.
 
 All non-Git data belongs below `DD_EVAL_HOME`; set it before creating a
 canonical workspace or an attempt. See [eval storage and retention](eval-storage.md).
