@@ -10,9 +10,9 @@ diagnostic-only and must not be used for a scored run.
 The implementation cutover and launch gates are defined by
 [specification 003](../specs/003-canonical-eval-launch-readiness.md). At the
 time that specification was written, the active case was **not launch-ready**:
-its beta.58 engine identities disagreed, all canonical checkpoints and existing
-session baselines were pending, the Controller baseline was absent, and all
-oracles were drafts. Do not interpret a
+its beta.58 engine identities disagreed, all canonical checkpoints and
+Subject/Judge session baselines were pending, and all oracles were drafts. Do
+not interpret a
 successful structural `validate` as permission to launch until the readiness
 contract from specification 003 is implemented and passes.
 
@@ -61,7 +61,7 @@ Before preparing an attempt, verify:
 5. every selected stage has an accepted canonical entry checkpoint;
 6. every selected rubric and oracle is accepted;
 7. checkpoint archives exist and their checksums match;
-8. the canonical Controller, Subject and Judge parent Sessions are reachable;
+8. the canonical Subject and Judge parent Sessions are reachable;
 9. the output path is new and outside the `dd-eval` checkout.
 
 Use absolute paths. A Controller may start in any working directory, but every
@@ -70,6 +70,10 @@ command must name the intended case, eval directory and project root explicitly.
 Run evals as visible Codex Desktop tasks by default. `codex exec` is only for an
 explicit CLI-harness case or mechanical smoke and is not comparable to a
 Desktop attempt.
+
+The initial suite uses the current Controller task on `gpt-5.6-terra/high`.
+There is no canonical Controller Session to create or fork. Record the actual
+Controller Session ID and profile in the run evidence.
 
 ## Readiness gates
 
@@ -169,6 +173,20 @@ prime + discussion
 If a predecessor artifact changes, increment the canonical-chain revision and
 recapture all downstream checkpoints. A checkpoint is immutable after
 acceptance.
+
+### What “capture the current Session” means
+
+At every stage entry, record the current canonical Subject Session ID and the
+exact idle turn boundary, then snapshot the matching project tree and
+RUN/`DD_FLOW_HOME`. Capture does **not** fork the Session and does not stop the
+canonical continuation. The canonical Subject continues to the next stage
+after the checkpoint is accepted.
+
+The fork happens later, when an eval starts from that checkpoint. The
+Controller then forks the recorded Subject boundary and restores an independent
+copy of the paired project/RUN snapshot. Thus every focused stage starts from
+the same conversation and filesystem/runtime state without creating four
+unrelated canonical conversations.
 
 ### 4. Freeze definition evidence
 

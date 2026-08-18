@@ -154,9 +154,12 @@ Each case pins the flow conditions that affect comparability:
 
 ## Priming and stage conditioning
 
-There are reusable Controller and Judge priming Sessions. Subject focused and
-segment attempts fork the canonical Subject Session stored in the selected
-stage-entry checkpoint, not one generic Subject base Session.
+There is one run-local Controller Session and a reusable Judge priming Session.
+The current Desktop Controller is not a canonical fork parent: it reads the
+versioned Controller packet and runbook in its real task, and the run report
+records its actual Session ID and model profile. Subject focused and segment
+attempts fork the canonical Subject Session stored in the selected stage-entry
+checkpoint, not one generic Subject base Session.
 
 ### Controller priming
 
@@ -172,6 +175,11 @@ The Controller prime teaches:
 
 The concrete Controller run prompt supplies the case, selected stages, E2E
 flag, Subject profile and Judge profile.
+
+For the initial suite the Controller is `gpt-5.6-terra` with `high` reasoning.
+No reusable Controller baseline Session is created. Add one only if a later
+eval explicitly measures Controller behavior or needs comparable Controller
+forks across runs.
 
 ### Subject priming
 

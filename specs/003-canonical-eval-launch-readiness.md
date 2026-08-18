@@ -37,7 +37,7 @@ the suite is not ready for a scored run.
 | Product checkpoint | `cp-002-vnext-plan-review-beta-58` still identifies engine commit `d5b44b3…` and a portable-fixture flow pack | case, profile and checkpoint disagree |
 | Flow pack | `dd-tasks` is tagged beta.58 and pins engine beta.58 | it cannot select a uniquely versioned snapshot engine |
 | Checkpoints | all four case checkpoint records are `pending_capture` | no focused, segment or E2E input is runnable |
-| Session baselines | active Subject and Judge records are `pending_creation`; the reusable Controller baseline required by specification 001 is not represented | Controller, Subject and Judge fork provenance is incomplete |
+| Session baselines | active Subject and Judge records are `pending_creation` | native Subject and Judge fork parents are unknown |
 | Oracles | all stage and E2E oracles are `draft_pending_human_acceptance` | Judge preparation correctly fails closed |
 | Storage | `DD_EVAL_HOME` is documented but is not created or enforced by `dd-eval` | attempts and canonical archives can again leak into `_Projects` |
 | Validation | `validate` checks the case/tag shape but not full launch readiness | a green validation result can conceal the blockers above |
@@ -174,12 +174,10 @@ predecessor result; schema validity alone cannot accept it. The CLI hashes the
 review and writes the accepted record. Neither file is edited in place after
 acceptance.
 
-### 5. Record native session baselines explicitly
+### 5. Record native Subject and Judge baselines explicitly
 
-Create beta.59 Controller and Subject baselines with `gpt-5.6-luna/xhigh`, and
-a beta.59 Judge baseline with `gpt-5.6-sol/high`. Add
-`priming.controller_baselines` to the case contract instead of treating the
-Controller packet as a Session. Each record contains:
+Create a beta.59 Subject baseline with `gpt-5.6-luna/xhigh` and a beta.59 Judge
+baseline with `gpt-5.6-sol/high`. Each record contains:
 
 - provider/harness, profile and model/reasoning;
 - parent Session ID and exact fork point;
@@ -187,12 +185,17 @@ Controller packet as a Session. Each record contains:
 - ordered priming message paths and hashes;
 - creation time and `accepted` status.
 
-The Controller baseline receives the eval repository, procedure and stop/error
-policy. The Subject baseline receives ordinary project priming and canonical
-user discussion only. The Judge baseline receives evaluation-method and
-repository priming but no candidate or stage oracle. Stage-specific material
-is supplied only after forking. A checkpoint may reference a later Subject fork
-point in the canonical chain; the baseline remains the root provenance.
+The Subject baseline receives ordinary project priming and canonical user
+discussion only. The Judge baseline receives evaluation-method and repository
+priming but no candidate or stage oracle. Stage-specific material is supplied
+only after forking. A checkpoint may reference a later Subject fork point in
+the canonical chain; the baseline remains the root provenance.
+
+The Controller is the current managed Codex Desktop task running
+`gpt-5.6-terra/high`. It reads the versioned Controller packet and runbook, but
+has no reusable baseline and is never a Subject/Judge fork parent. Each result
+still records its actual Controller Session ID, model and reasoning so the
+operational provenance is explicit.
 
 ### 6. Author one canonical chain, not four reconstructed fixtures
 
@@ -245,8 +248,9 @@ The shortest safe order is:
    aggregate readiness output.
 3. **Tighten capture:** checkpoint `@2`, review-backed acceptance, Session/
    Agent/fork provenance and exact compatibility checks.
-4. **Create session parents:** one accepted Controller baseline, one accepted
-   Subject baseline and one accepted Judge baseline for beta.59.
+4. **Create session parents:** one accepted Subject baseline and one accepted
+   Judge baseline for beta.59; configure the actual Controller profile as
+   `gpt-5.6-terra/high` without creating a Controller baseline.
 5. **Capture `REV-001`:** run the canonical chain once, review each predecessor
    result and accept all four entry checkpoints.
 6. **Accept references:** complete stage/E2E oracles against the frozen chain.
@@ -307,8 +311,8 @@ This specification is complete when:
 1. `validate --require authoring` passes before canonical capture;
 2. all four `REV-001` entry checkpoints restore independently and point to
    reachable native Subject fork boundaries;
-3. beta.59 Controller/Subject/Judge baselines and all needed oracles are
-   accepted;
+3. beta.59 Subject/Judge baselines and all needed oracles are accepted, and the
+   actual Terra/high Controller identity is recorded;
 4. `validate --require scored` passes with no blocker;
 5. a focused SPECIFY smoke reaches a candidate checkpoint and an accepted
    Judge result using only documented commands and paths below
