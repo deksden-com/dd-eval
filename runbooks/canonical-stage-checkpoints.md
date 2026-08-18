@@ -154,7 +154,10 @@ Never change the captured record by hand.
 For each stage:
 
 1. continue the moving canonical Subject according to the configured handoff;
-2. send the ordinary stage trigger;
+2. send the ordinary stage trigger plus one controller boundary: complete only
+   this stage, then stop immediately after its successful `stage finish` and
+   wait for the next user message. The boundary prevents an in-turn next-stage
+   directive from crossing a checkpoint that has not yet been captured.
 3. deliver only the case's declared interaction response, if requested;
 4. stop immediately after successful stage finish;
 5. check semantic quality before accepting it as canonical input;
