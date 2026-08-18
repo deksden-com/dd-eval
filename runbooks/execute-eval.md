@@ -276,8 +276,10 @@ replace the canonical checkpoint Session during this recovery.
    the selected canonical snapshot;
 3. creates a new attempt directory;
 4. restores the project archive and verifies HEAD/tree;
-5. creates an empty isolated `DD_FLOW_HOME`;
-6. asks the matched `dd-flow` engine to restore the paired RUN snapshot;
+5. creates an empty isolated `DD_FLOW_HOME` and restores the paired RUN snapshot;
+6. materializes only the checkpoint-bound immutable engine snapshot from the
+   canonical runtime, rebases its local manifest path, then verifies its
+   checksum against `engine-binding.json`;
 7. verifies the target graph entry and absence of stale active bindings;
 8. writes immutable manifest/state files and rendered operator/Subject packets;
 9. returns exactly one next action: `fork_subject`.
