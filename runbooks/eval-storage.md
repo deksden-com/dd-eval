@@ -20,7 +20,11 @@ checkouts, `DD_FLOW_HOME` directories, or snapshots under `_Projects`.
 
 ```text
 $DD_EVAL_HOME/
-  canonical/<case-id>/REV-<n>/<stage>-entry/  immutable project/RUN snapshots
+  sequence.json                                next local EVAL number only
+  canonical/<case-id>/REV-<NNN>/
+    workspace/project/                         canonical chain checkout
+    workspace/runtime/                         dedicated canonical DD_FLOW_HOME
+    checkpoints/<stage>-entry/                 immutable project/RUN snapshots
   attempts/active/<EVAL-id>/                  complete live attempt
   attempts/archive/<EVAL-id>/                 explicitly retained complete attempt
   tmp/                                         disposable CLI staging only
@@ -57,9 +61,17 @@ runtime SQLite database, engine cache, or raw transcript.
    when an operator explicitly needs forensic replay.
 4. `tmp/` has no retention promise and is removed after each command.
 
-Each new attempt receives a generated, monotonic `EVAL-<n>--<case>--<mode>`
-directory. The manifest—not the directory spelling—records model, engine,
-flow-pack and case revision.
+Each new attempt receives a generated, monotonic
+`EVAL-<zero-padded-number>--<case>--<mode>` directory. `sequence.json` is a
+small counter updated under an exclusive filesystem lock; it is not a registry
+and contains no run metadata. The manifest—not the directory spelling—records
+model, engine, flow-pack and case revision.
+
+Canonical checkpoint records committed to Git use paths relative to
+`DD_EVAL_HOME`. Absolute source paths may appear only as historical evidence
+inside a snapshot manifest, never as the locator used to restore it.
+Compact checkpoint acceptance reviews are source material and remain in Git at
+`cases/<case-id>/checkpoint-reviews/REV-<NNN>/`.
 
 ## Storage operations
 
@@ -77,3 +89,7 @@ absolute paths, retention reason and reclaimed bytes. `gc apply` accepts only
 that plan and never deletes canonical snapshots or active attempts without an
 explicit selection. Do not build a scheduler, daemon, or SQLite registry for
 this milestone.
+
+Only home resolution, layout creation, eval ID allocation and path containment
+are launch blockers. The `storage` and `gc` commands may be implemented after
+the first accepted canonical run.

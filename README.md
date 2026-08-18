@@ -21,7 +21,8 @@ Repository-level eval design specifications live under [specs/](specs/). The
 [specification 001](specs/001-sdlc-eval-2026-summer.md); its canonical
 stage-checkpoint execution model is refined by
 [specification 002](specs/002-canonical-stage-checkpoint-evaluation.md) and the
-[operator runbook](runbooks/canonical-stage-checkpoints.md). Non-Git attempts,
+[launch-readiness cutover](specs/003-canonical-eval-launch-readiness.md), plus
+the [operator runbook](runbooks/canonical-stage-checkpoints.md). Non-Git attempts,
 canonical snapshots and retention follow the [storage runbook](runbooks/eval-storage.md).
 
 ## Evaluation model
@@ -285,8 +286,7 @@ in `case.json`; checkpoints and product tags remain separate namespaces.
 dd-eval validate --case sdlc-eval-2026-summer-task-priority
 dd-eval prepare \
   --case sdlc-eval-2026-summer-task-priority \
-  --focus specify,protocolize,plan,plan-review --e2e \
-  --output /absolute/path/outside/dd-eval
+  --focus specify,protocolize,plan,plan-review --e2e
 ```
 
 To evaluate a contiguous handoff in one Subject continuation, prepare it
@@ -295,8 +295,7 @@ separately:
 ```sh
 dd-eval prepare \
   --case sdlc-eval-2026-summer-task-priority \
-  --segment plan..plan-review \
-  --output /absolute/path/outside/dd-eval
+  --segment plan..plan-review
 ```
 
 Each case has versioned default profiles. The current summer case runs the

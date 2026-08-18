@@ -7,6 +7,15 @@ It implements [specification 002](../specs/002-canonical-stage-checkpoint-evalua
 The active CLI and case use `case@3`; the old portable fixture path is
 diagnostic-only and must not be used for a scored run.
 
+The implementation cutover and launch gates are defined by
+[specification 003](../specs/003-canonical-eval-launch-readiness.md). At the
+time that specification was written, the active case was **not launch-ready**:
+its beta.58 engine identities disagreed, all canonical checkpoints and existing
+session baselines were pending, the Controller baseline was absent, and all
+oracles were drafts. Do not interpret a
+successful structural `validate` as permission to launch until the readiness
+contract from specification 003 is implemented and passes.
+
 All non-Git data belongs below `DD_EVAL_HOME`; set it before creating a
 canonical workspace or an attempt. See [eval storage and retention](eval-storage.md).
 
@@ -52,7 +61,7 @@ Before preparing an attempt, verify:
 5. every selected stage has an accepted canonical entry checkpoint;
 6. every selected rubric and oracle is accepted;
 7. checkpoint archives exist and their checksums match;
-8. the canonical Subject and Judge parent Sessions are reachable;
+8. the canonical Controller, Subject and Judge parent Sessions are reachable;
 9. the output path is new and outside the `dd-eval` checkout.
 
 Use absolute paths. A Controller may start in any working directory, but every
@@ -62,15 +71,40 @@ Run evals as visible Codex Desktop tasks by default. `codex exec` is only for an
 explicit CLI-harness case or mechanical smoke and is not comparable to a
 Desktop attempt.
 
+## Readiness gates
+
+Use the two gates for different purposes:
+
+```sh
+dd-eval validate --case sdlc-eval-2026-summer-task-priority \
+  --source "/absolute/path/to/dd-tasks-beta" --require authoring
+
+dd-eval validate --case sdlc-eval-2026-summer-task-priority \
+  --source "/absolute/path/to/dd-tasks-beta" --require scored
+```
+
+- `authoring` must pass before creating a canonical Subject Session or
+  checkpoint archive.
+- `scored` must pass before `prepare`, Subject launch or Judge launch.
+
+The command returns all blockers at once. Never work around a failed gate by
+editing a checkpoint, profile, Session ID, engine binding or SQLite file.
+
 ## Build the canonical chain
 
 Do this once per exact case-definition, engine and flow-pack revision.
 
 ### 1. Prepare one canonical workspace
 
-- Create one isolated project repository and one empty dedicated
-  `DD_FLOW_HOME`. It may contain only this canonical project's single RUN;
-  checkpoint capture fails if unrelated runtime records exist.
+- Allocate the next canonical revision below
+  `$DD_EVAL_HOME/canonical/<case-id>/REV-<NNN>/` with `workspace/project`,
+  `workspace/runtime` and `checkpoints`. Do not put the archive inside the
+  project or runtime tree it captures. Compact checkpoint reviews live in the
+  Git case at `checkpoint-reviews/REV-<NNN>/`.
+- Materialize the exact tagged beta project into `workspace/project` and
+  install the exact matched engine into `workspace/runtime`. That runtime may
+  contain only this canonical project's single RUN; checkpoint capture fails
+  if unrelated records exist.
 - Create the canonical Subject Session with the declared canonical profile.
 - Send the normal project prime and the exact versioned case discussion.
 - Do not mention the eval, rubric, oracle or expected answers.
@@ -81,7 +115,8 @@ Do this once per exact case-definition, engine and flow-pack revision.
 
 ### 2. Capture `specify-entry`
 
-The Controller runs the planned capture command:
+The Controller runs capture from any cwd using absolute project/runtime paths.
+The archive and pending record default to the current canonical revision:
 
 ```sh
 DD_FLOW_HOME="<canonical-home>" dd-eval checkpoint capture \
@@ -90,18 +125,17 @@ DD_FLOW_HOME="<canonical-home>" dd-eval checkpoint capture \
   --project-root "<canonical-project>" \
   --flow-run "<run-id>" \
   --subject-session "<session-id>" \
-  --fork-point "<provider-turn-id>" \
-  --archive "/absolute/archive/sdlc-eval-2026-summer/specify-entry" \
-  --output "/absolute/archive/sdlc-eval-2026-summer/specify-entry.json"
+  --fork-point "<provider-turn-id>"
 ```
 
 Capture must report `target_stage=specify`, an unstarted RUN, no pending HITL,
-no active child Work and a clean runtime check. Review the discussion and boundary, then accept
-the checkpoint through:
+no active child Work and a clean runtime check. Write the compact review at the
+returned path, then accept the checkpoint through:
 
 ```sh
 dd-eval checkpoint accept --case sdlc-eval-2026-summer-task-priority \
-  --stage specify --record "/absolute/archive/sdlc-eval-2026-summer/specify-entry.json"
+  --stage specify --record "<returned-capture.json>" \
+  --review "<returned-review.md>"
 ```
 
 Never change the captured record by hand.

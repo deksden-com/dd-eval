@@ -101,7 +101,9 @@ semantically unreviewed stage accepted merely because its schema is valid.
 ## Stage-checkpoint contract
 
 The active case contract moves to `dd-eval/case@3` and references one
-`dd-eval/stage-checkpoint@1` record per stage. There is no executable fallback
+stage-checkpoint record per stage. Specification 003 replaces the initial
+`dd-eval/stage-checkpoint@1` draft with the stricter
+`dd-eval/canonical-stage-checkpoint@2` launch contract. There is no executable fallback
 to `case@2` or `stage-fixture@1`.
 
 A stage-checkpoint record contains:

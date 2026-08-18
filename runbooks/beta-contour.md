@@ -143,6 +143,10 @@ The bundle iteration and component prerelease numbers do not have to match.
 If beta.2 changes only the flow, retain the already proven engine version and
 record that exact pairing. Never rebuild changed engine code under an old beta
 version; increment its prerelease number so engine resolution is unambiguous.
+Profiles and checkpoint records follow the same immutability rule: never change
+an existing profile ID to point at a different engine commit, and never change
+an existing checkpoint ID to point at a different flow commit. Create the next
+profile/checkpoint even when the model and product baseline are unchanged.
 
 ## Beta specification bundle
 

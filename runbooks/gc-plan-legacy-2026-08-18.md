@@ -1,15 +1,16 @@
 # Legacy eval garbage-collection plan — 2026-08-18
 
-Status: **planned, not applied**.
+Status: **applied on 2026-08-18**.
 
 The active `case@3` has no accepted canonical checkpoints. The user decided
 that no previous local eval attempt needs to be retained as a reference. These
 attempts predate the canonical stage-checkpoint contract and are not valid input
 for a scored run.
 
-## Delete targets
+## Applied targets
 
-Delete these exact non-Git runtime roots after the preflight below:
+These exact non-Git runtime roots were moved to macOS Trash and are absent from
+`_Projects`:
 
 ```text
 /Users/deksden/Documents/_Projects/dd-eval-runs
@@ -40,7 +41,10 @@ dd-tasks.beta-vnext-plan-review
 dd-memorybank.beta-vnext-specify
 ```
 
-## Apply procedure
+Approximately 1.0 GB of obsolete eval/runtime data was removed from the active
+workspace. It remains recoverable until Trash is emptied.
+
+## Procedure used
 
 1. Confirm no live Desktop task or shell process has a working directory below
    a target root.
@@ -48,11 +52,12 @@ dd-memorybank.beta-vnext-specify
    this document.
 3. Create and verify `$DD_EVAL_HOME` before the next eval. It is not part of
    the deletion set.
-4. Delete only the four explicit roots above; do not use an unbounded glob,
-   repository root, or home directory as a deletion target.
+4. Move only the four explicit roots above to Trash; do not use an unbounded
+   glob, repository root, or home directory as a deletion target.
 5. Verify that all four roots are absent and record reclaimed space.
 6. Start new evaluations only beneath `$DD_EVAL_HOME` according to
    [eval storage and retention](eval-storage.md).
 
 The future `dd-eval gc plan` command replaces this hand-authored plan for new
-attempts. It remains read-only until the operator explicitly applies it.
+attempts. A generated plan remains read-only until the operator explicitly
+applies it.
