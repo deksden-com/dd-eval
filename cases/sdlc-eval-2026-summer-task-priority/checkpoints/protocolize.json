@@ -1,5 +1,5 @@
 {
-  "schema_id": "dd-eval/canonical-stage-checkpoint@1",
+  "schema_id": "dd-eval/canonical-stage-checkpoint@2",
   "stage": "protocolize",
   "status": "pending_capture",
   "runtime_snapshot": null,

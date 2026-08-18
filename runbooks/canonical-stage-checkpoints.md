@@ -11,7 +11,7 @@ The implementation cutover and launch gates are defined by
 [specification 003](../specs/003-canonical-eval-launch-readiness.md). At the
 time that specification was written, the active case was **not launch-ready**:
 its beta.58 engine identities disagreed, all canonical checkpoints and
-Subject/Judge session baselines were pending, and all oracles were drafts. Do
+The Subject session baseline is pending, and all expectations are drafts. Do
 not interpret a
 successful structural `validate` as permission to launch until the readiness
 contract from specification 003 is implemented and passes.
@@ -207,7 +207,7 @@ Commit and tag:
 
 - case manifest and checkpoint records;
 - prompt/message manifests and hashes;
-- interactions, rubrics and accepted oracles;
+- interactions, rubrics and accepted expectations;
 - engine/flow/project identities;
 - compact human checkpoint reviews.
 

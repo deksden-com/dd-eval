@@ -3,22 +3,21 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "canonical_checkpoints_pending_capture",
-  "checkpoint": {"id": "cp-002-vnext-plan-review-beta-58", "commit": "aefd13b108e2f436d189ae3c6fbac6f47569e356"},
-  "compatibility": {"engine_commit": "327af3d52f66f994ace7789fb560af8738e95f88", "flow_pack_commit": "aefd13b108e2f436d189ae3c6fbac6f47569e356"},
+  "checkpoint": {"id": "cp-002-vnext-plan-review-beta-59", "commit": "03a797ccb913f09cc6f288b0bb6436f1be4241ce"},
+  "compatibility": {"engine_commit": "eb547e46dce496b7dc63cf73b15d9386d2a338c5", "flow_pack_commit": "03a797ccb913f09cc6f288b0bb6436f1be4241ce"},
   "profiles": {
-    "controller": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-58"],
-    "subject": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-58"],
-    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-58", "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-58"]
+    "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-59"],
+    "subject": ["codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-59"],
+    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-59"]
   },
   "default_profiles": {
-    "controller": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-58",
-    "subject": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-58",
-    "judge": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-58"
+    "controller": "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-59",
+    "subject": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-59",
+    "judge": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-59"
   },
   "priming": {
     "controller_packet": "prompts/controller-prime.md",
-    "subject_baselines": ["baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-58.json"],
-    "judge_baselines": ["baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-58.json", "baselines/judge-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-58.json"]
+    "subject_baseline": "baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-59.json"
   },
   "flow": {"handoff_mode": "same_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_run"},
   "canonical_checkpoints": {
@@ -32,7 +31,7 @@
       "subject_packet": "prompts/subject-specify.md",
       "judge_packet": "prompts/judge-specify.md",
       "rubric": "rubrics/specify.json",
-      "oracle": "oracles/specify.json",
+      "expectations": "expectations/specify.json",
       "interactions": "interactions/specify.json",
       "candidate_files": [{"origin": "run", "path": "01-specify/specify.md"}, {"origin": "run", "path": "01-specify/stage-report.json"}]
     },
@@ -40,7 +39,7 @@
       "subject_packet": "prompts/subject-protocolize.md",
       "judge_packet": "prompts/judge-protocolize.md",
       "rubric": "rubrics/protocolize.json",
-      "oracle": "oracles/protocolize.json",
+      "expectations": "expectations/protocolize.json",
       "interactions": "interactions/empty.json",
       "candidate_files": [{"origin": "run", "path": "02-protocolize/protocolize-result.json"}, {"origin": "run", "path": "02-protocolize/stage-report.json"}]
     },
@@ -48,7 +47,7 @@
       "subject_packet": "prompts/subject-plan.md",
       "judge_packet": "prompts/judge-plan.md",
       "rubric": "rubrics/plan.json",
-      "oracle": "oracles/plan.json",
+      "expectations": "expectations/plan.json",
       "interactions": "interactions/empty.json",
       "candidate_files": [{"origin": "run", "path": "03-plan/stage-report.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}]
     },
@@ -56,7 +55,7 @@
       "subject_packet": "prompts/subject-plan-review.md",
       "judge_packet": "prompts/judge-plan-review.md",
       "rubric": "rubrics/plan-review.json",
-      "oracle": "oracles/plan-review.json",
+      "expectations": "expectations/plan-review.json",
       "interactions": "interactions/empty.json",
       "candidate_files": [{"origin": "run", "path": "04-plan-review/decision.receipt.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}]
     }
@@ -65,7 +64,7 @@
     "subject_packet": "prompts/subject-e2e.md",
     "judge_packet": "prompts/judge-e2e.md",
     "rubric": "rubrics/e2e.json",
-    "oracle": "oracles/e2e.json",
+    "expectations": "expectations/e2e.json",
     "interactions": "interactions/specify.json",
     "stop_boundary": "plan_review_accepted",
     "candidate_files": [{"origin": "run", "path": "01-specify/specify.md"}, {"origin": "run", "path": "02-protocolize/stage-report.json"}, {"origin": "run", "path": "03-plan/stage-report.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}]

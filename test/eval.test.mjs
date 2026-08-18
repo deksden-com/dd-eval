@@ -13,17 +13,20 @@ test("the active suite uses canonical stage checkpoints", async () => {
   assert.equal(loaded.definition.schema_id, "dd-eval/case@3");
   assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review"]);
   const validated = await validateInput({ caseId, source });
-  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-58");
+  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-59");
 });
 
 test("a scored run fails closed until its canonical checkpoint is captured", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v3-"));
+  const previousHome = process.env.DD_EVAL_HOME;
+  process.env.DD_EVAL_HOME = root;
   try {
     await assert.rejects(
       prepare({ caseId, source, output: path.join(root, "run"), stageList: "specify" }),
       /canonical checkpoint is not accepted/
     );
   } finally {
+    if (previousHome === undefined) delete process.env.DD_EVAL_HOME; else process.env.DD_EVAL_HOME = previousHome;
     await rm(root, { recursive: true, force: true });
   }
 });

@@ -1,16 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "dd-eval/canonical-stage-checkpoint@1",
+  "$id": "dd-eval/canonical-stage-checkpoint@2",
   "type": "object",
   "required": ["schema_id", "stage", "status"],
   "properties": {
-    "schema_id": {"const": "dd-eval/canonical-stage-checkpoint@1"},
+    "schema_id": {"const": "dd-eval/canonical-stage-checkpoint@2"},
     "stage": {"enum": ["specify", "protocolize", "plan", "plan-review"]},
     "status": {"enum": ["pending_capture", "accepted"]},
-    "runtime_snapshot": {"type": ["string", "null"]},
+    "runtime_snapshot": {"type": ["object", "null"], "properties": {"locator": {"type": "string"}, "sha256": {"type": "string"}}},
     "subject": {
       "type": ["object", "null"],
-      "properties": {"session_id": {"type": "string"}, "turn_id": {"type": ["string", "null"]}, "fork_point": {"type": ["string", "null"]}}
+      "properties": {"canonical_session_id": {"type": "string"}, "checkpoint_session_id": {"type": "string"}, "agent_id": {"type": ["string", "null"]}}
     }
   },
   "additionalProperties": true

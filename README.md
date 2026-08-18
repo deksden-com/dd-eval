@@ -309,7 +309,7 @@ from the case default or command line.
 independent copy of its exact project and RUN, and returns the frozen Subject
 checkpoint Session plus ordinary continuation packet. It never reconstructs a
 later stage from a portable semantic fixture. The Subject never receives
-evaluation wording, rubrics or oracles. Draft checkpoints and draft oracles
+evaluation wording, rubrics or expectations. Draft checkpoints and draft expectations
 fail closed.
 
 The Controller records every root/child session, syncs engine-owned runtime
