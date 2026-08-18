@@ -138,8 +138,8 @@ Authoring readiness verifies:
 Scored readiness additionally verifies for the selected mode:
 
 - every needed checkpoint is accepted and its snapshot checksum is valid;
-- every needed native-fork baseline is accepted and has a reachable Session
-  ID and fork point;
+- every needed native-fork baseline and frozen checkpoint Session is accepted,
+  reachable and has not advanced after capture;
 - every needed oracle has status `accepted`;
 - checkpoint chain revision, project tree, engine, flow pack and handoff mode
   are identical across all selected entries;
@@ -161,7 +161,8 @@ An accepted record requires:
 - home-relative snapshot locator and content checksum;
 - project commit/tree, flow-pack version/commit and engine version/commit/tag;
 - RUN ID, legal next stage and clean-boundary receipt;
-- Subject provider, harness, model, reasoning, Session ID and fork point;
+- Subject provider, harness, model and reasoning; canonical-chain Session ID,
+  optional completed source turn evidence and frozen checkpoint Session ID;
 - Agent ID when the harness exposes it, otherwise an explicit unavailable
   reason;
 - handoff mode, completed predecessor receipts and RUN-variable checksum;
@@ -180,7 +181,7 @@ Create a beta.59 Subject baseline with `gpt-5.6-luna/xhigh` and a beta.59 Judge
 baseline with `gpt-5.6-sol/high`. Each record contains:
 
 - provider/harness, profile and model/reasoning;
-- parent Session ID and exact fork point;
+- Session ID and optional last completed turn evidence;
 - Agent ID when available;
 - ordered priming message paths and hashes;
 - creation time and `accepted` status.
@@ -188,8 +189,8 @@ baseline with `gpt-5.6-sol/high`. Each record contains:
 The Subject baseline receives ordinary project priming and canonical user
 discussion only. The Judge baseline receives evaluation-method and repository
 priming but no candidate or stage oracle. Stage-specific material is supplied
-only after forking. A checkpoint may reference a later Subject fork point in
-the canonical chain; the baseline remains the root provenance.
+only after forking. Every stage checkpoint references its own frozen Subject
+child; the baseline remains the root provenance of the moving canonical chain.
 
 The Controller is the current managed Codex Desktop task running
 `gpt-5.6-terra/high`. It reads the versioned Controller packet and runbook, but
@@ -216,9 +217,12 @@ prime + canonical discussion
 ```
 
 At every entry, the target stage is unstarted, HITL is clear, no child Work is
-active and the Subject is idle at the recorded fork point. The Controller
-records the actual Desktop Session ID immediately; it never invents or repairs
-one after capture.
+active and the canonical Subject is idle. Before allowing that Session to
+continue, the Controller creates one same-directory child fork, gives it the
+title `CANON <case-id> REV-<NNN> <STAGE>-entry`, sends it no prompt, records its
+Session ID and pairs it with the project/RUN snapshot. The original canonical
+Session—not the frozen child—then continues. The Controller never invents or
+repairs a Session ID after capture.
 
 If an accepted predecessor changes, create `REV-002` and recapture every
 downstream checkpoint. Never patch one accepted checkpoint in place and never
@@ -246,8 +250,10 @@ The shortest safe order is:
 2. **Finish the small eval runtime gap:** `DD_EVAL_HOME` resolver/layout,
    generated eval ID, path guard, home-relative checkpoint locator and
    aggregate readiness output.
-3. **Tighten capture:** checkpoint `@2`, review-backed acceptance, Session/
-   Agent/fork provenance and exact compatibility checks.
+3. **Tighten capture:** checkpoint `@2`, review-backed acceptance, separate
+   `--canonical-subject-session` and `--checkpoint-subject-session` inputs,
+   optional source-turn evidence, Session/Agent parentage and exact
+   compatibility checks.
 4. **Create session parents:** one accepted Subject baseline and one accepted
    Judge baseline for beta.59; configure the actual Controller profile as
    `gpt-5.6-terra/high` without creating a Controller baseline.
@@ -287,6 +293,8 @@ sessions and semantic review. Step 7 is the launch acceptance test.
 - one validation call reports every known mismatch;
 - beta.58 profile immutability regression;
 - checkpoint `@2` capture, review acceptance and checksum tamper rejection;
+- rejection when the frozen checkpoint Session is missing, has the wrong
+  parent or has advanced after creation;
 - focused/segment/E2E preparation from the correct accepted checkpoint;
 - restore leaves the requested target stage unstarted and no stale binding;
 - draft baseline, draft oracle or mixed chain revision fails closed.
@@ -297,6 +305,7 @@ The first launch does **not** require:
 
 - a SQLite eval registry;
 - automatic provider Session creation/forking;
+- a custom Codex app-server adapter for historical `lastTurnId` forks;
 - a background controller or scheduler;
 - portable semantic stage fixtures;
 - storage dashboards, automatic retention or timed garbage collection;
@@ -310,7 +319,7 @@ This specification is complete when:
 
 1. `validate --require authoring` passes before canonical capture;
 2. all four `REV-001` entry checkpoints restore independently and point to
-   reachable native Subject fork boundaries;
+   reachable, idle frozen Subject Sessions that never advanced after capture;
 3. beta.59 Subject/Judge baselines and all needed oracles are accepted, and the
    actual Terra/high Controller identity is recorded;
 4. `validate --require scored` passes with no blocker;

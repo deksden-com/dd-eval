@@ -122,14 +122,19 @@ Do this once per exact case-definition, engine and flow-pack revision.
 The Controller runs capture from any cwd using absolute project/runtime paths.
 The archive and pending record default to the current canonical revision:
 
+1. Fork the idle canonical Subject into a same-directory child.
+2. Rename the child to `CANON <case-id> REV-<NNN> SPECIFY-entry`.
+3. Do not send any message to that child.
+4. Use the returned child Session ID in capture:
+
 ```sh
 DD_FLOW_HOME="<canonical-home>" dd-eval checkpoint capture \
   --case sdlc-eval-2026-summer-task-priority \
   --stage specify \
   --project-root "<canonical-project>" \
   --flow-run "<run-id>" \
-  --subject-session "<session-id>" \
-  --fork-point "<provider-turn-id>"
+  --canonical-subject-session "<moving-session-id>" \
+  --checkpoint-subject-session "<frozen-fork-session-id>"
 ```
 
 Capture must report `target_stage=specify`, an unstarted RUN, no pending HITL,
@@ -148,13 +153,17 @@ Never change the captured record by hand.
 
 For each stage:
 
-1. fork or continue the canonical Subject according to the configured handoff;
+1. continue the moving canonical Subject according to the configured handoff;
 2. send the ordinary stage trigger;
 3. deliver only the case's declared interaction response, if requested;
 4. stop immediately after successful stage finish;
 5. check semantic quality before accepting it as canonical input;
 6. perform the normal handoff for the next stage;
-7. capture and accept the next stage-entry checkpoint before starting it.
+7. while the target Session is idle, create one same-directory child fork and
+   send it no prompt;
+8. name that child `CANON <case-id> REV-<NNN> <STAGE>-entry`;
+9. snapshot the matching project/RUN and accept the pair before starting the
+   target stage in the moving canonical Session.
 
 The resulting order is:
 
@@ -176,17 +185,21 @@ acceptance.
 
 ### What “capture the current Session” means
 
-At every stage entry, record the current canonical Subject Session ID and the
-exact idle turn boundary, then snapshot the matching project tree and
-RUN/`DD_FLOW_HOME`. Capture does **not** fork the Session and does not stop the
-canonical continuation. The canonical Subject continues to the next stage
-after the checkpoint is accepted.
+At every stage entry, keep the canonical Subject idle, immediately create one
+child fork of its latest completed history, and leave that child untouched.
+Then snapshot the matching project tree and RUN/`DD_FLOW_HOME`. The accepted
+checkpoint records the moving canonical Session, optional source turn evidence
+and the separate frozen child Session.
 
-The fork happens later, when an eval starts from that checkpoint. The
-Controller then forks the recorded Subject boundary and restores an independent
-copy of the paired project/RUN snapshot. Thus every focused stage starts from
-the same conversation and filesystem/runtime state without creating four
-unrelated canonical conversations.
+Do not rely on forking an arbitrary old turn later: the current Desktop
+Controller tool does not expose that boundary selection. Once the pair is
+accepted, continue only the original canonical Session. Never send a message
+to the frozen checkpoint Session.
+
+When an eval starts, the Controller forks the latest state of the frozen child
+and restores an independent copy of its paired project/RUN snapshot. Thus every
+focused stage starts from the exact conversation and filesystem/runtime state
+without reconstructing context or depending on hidden app-server APIs.
 
 ### 4. Freeze definition evidence
 
@@ -219,7 +232,7 @@ The returned JSON must include:
 
 - execution ID and mode;
 - canonical checkpoint and chain IDs;
-- parent Subject Session and fork point;
+- canonical-chain Session and frozen checkpoint Subject Session;
 - requested model/reasoning profile;
 - attempt project root, `DD_FLOW_HOME`, RUN ID and RUN home;
 - exact Subject task title;
@@ -232,7 +245,7 @@ rewrite SQLite, change a Session ID or reconstruct upstream state manually.
 
 ### Native fork
 
-1. Fork the exact checkpoint Subject Session at its recorded turn boundary.
+1. Fork the latest completed state of the frozen checkpoint Subject Session.
 2. Explicitly select the requested Subject model and reasoning profile.
 3. Give the task the title returned by `dd-eval`.
 4. Set the task workspace to the restored project root when the harness permits;

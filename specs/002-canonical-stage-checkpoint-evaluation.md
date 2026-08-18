@@ -18,7 +18,7 @@ The system uses one mechanism:
 
 ```text
 canonical stage-entry checkpoint
-  → fork the checkpoint Subject Session
+  → fork the frozen checkpoint Subject Session
   → restore an independent copy of the checkpoint project and RUN
   → execute the selected stage or contiguous segment
   → capture candidate evidence at every selected boundary
@@ -35,8 +35,8 @@ the boundary.
 
 - **Canonical chain** — one accepted Subject execution through the complete
   suite contour. It is used only to produce reusable stage-entry checkpoints.
-- **Stage-entry checkpoint** — an immutable paired snapshot of project/RUN
-  state and the exact Subject Session fork point immediately before one stage.
+- **Stage-entry checkpoint** — an immutable pair: a project/RUN snapshot and a
+  frozen Subject Session fork created immediately before one stage.
 - **Focused eval** — restores one stage-entry checkpoint, executes exactly that
   stage and scores it.
 - **Segment eval** — restores the checkpoint at the first stage of a contiguous
@@ -46,9 +46,11 @@ the boundary.
 - **Candidate checkpoint** — immutable evidence captured after an evaluated
   stage. It is an output of an attempt, not a reusable stage-entry checkpoint
   unless it is separately accepted into a later canonical-chain revision.
-- **Subject checkpoint Session** — the provider Session that is ready to enter
-  the target stage. It may be the continuing Session or a prepared fresh
-  handoff Session, according to the flow's configured handoff mode.
+- **Canonical-chain Session** — the moving Subject Session that executes the
+  accepted chain from one stage to the next.
+- **Frozen checkpoint Session** — an idle child fork created from the
+  canonical-chain Session at a clean stage boundary. It receives no message,
+  performs no turn and is the parent used by later eval attempts.
 
 ## Required canonical checkpoints
 
@@ -73,11 +75,16 @@ Session as Subject. The exact versioned discussion/intake messages are stored
 as input evidence. The forked Subject's first flow action remains `stage start`
 for that RUN; no extra agent-visible “flow launch” stage is introduced.
 
-For `same_session`, the checkpoint Session is the canonical continuing Subject
-Session. For `new_session`, the checkpoint is captured only after the normal
-handoff has created and primed the target Session. In both cases the saved fork
-point is the moment at which the ordinary target-stage trigger is the next user
-action.
+For `same_session`, the Controller forks the continuing canonical-chain Subject
+Session at the boundary. For `new_session`, it first performs the normal
+handoff, then forks the prepared target Session. In both cases the resulting
+child is frozen before the ordinary target-stage trigger is sent to the moving
+Session.
+
+The current Codex Desktop Controller adapter can fork only the latest completed
+history of a task; it cannot request an arbitrary old turn. Therefore a turn ID
+recorded for evidence is not a deferred-fork mechanism. The frozen child must
+be created immediately while the source Session is still at the boundary.
 
 ## Clean-boundary invariant
 
@@ -94,6 +101,10 @@ true:
 8. the matched engine and flow-pack identities equal the case definition;
 9. the effective handoff mode and RUN variables have been materialized;
 10. the Controller has not edited Subject artifacts to make the boundary pass.
+
+After those checks, acceptance additionally requires the newly created frozen
+checkpoint Session to be reachable, parented by the recorded canonical Session
+and still contain no turn of its own.
 
 Checkpoint capture fails closed when any condition is false. It never marks a
 semantically unreviewed stage accepted merely because its schema is valid.
@@ -116,9 +127,10 @@ A stage-checkpoint record contains:
 - source RUN ID and runtime snapshot checksum/archive locator;
 - source `project_root`, `DD_FLOW_HOME` and RUN workspace paths as historical
   evidence only;
-- Subject provider, Session ID, optional provider turn/fork-point ID, harness,
+- Subject provider, canonical-chain Session ID, optional source completed turn
+  ID, frozen checkpoint Session ID, frozen-session creation receipt, harness,
   model and reasoning profile;
-- handoff mode and the identity of the Session that must be forked;
+- handoff mode and verified canonical-parent/checkpoint-child relationship;
 - completed predecessor stages and their accepted receipt checksums;
 - expected target stage and legal graph entry;
 - RUN-variable and flow-setting checksums;
@@ -129,11 +141,12 @@ The record does not embed raw transcripts, SQLite or project archives. It
 points to immutable external archives and stores their checksums. Compact,
 non-secret stage artifacts needed by Judge or human review may remain in Git.
 
-The checkpoint Session is referenced, not copied into the repository. Native
-forking uses the provider Session ID and exact turn boundary. A provider that
-cannot fork uses the recorded ordered message sequence to create a
-`portable_replay` attempt; such an attempt is labelled separately and is not
-latency/cache-equivalent to a native fork.
+The frozen checkpoint Session is referenced, not copied into the repository.
+Native eval execution forks its latest completed state; it does not ask the
+harness to seek back into the moving canonical-chain Session. A provider that
+cannot preserve or fork that frozen Session uses the recorded ordered message
+sequence to create a `portable_replay` attempt; such an attempt is labelled
+separately and is not latency/cache-equivalent to a native fork.
 
 ## Runtime snapshot ownership
 
@@ -219,7 +232,7 @@ the canonical chain workspace.
 
 For a native-fork attempt the Controller:
 
-1. resolves the checkpoint Session and exact fork point;
+1. resolves the frozen checkpoint Session and verifies that it never advanced;
 2. creates a provider fork using the requested Subject model/reasoning profile;
 3. records both parent and child Session IDs before the evaluated stage starts;
 4. restores the paired project/RUN into fresh attempt paths;
@@ -375,8 +388,9 @@ The Controller executes these steps in order:
 6. verify restore receipt, target stage, graph entry, project tree and zero
    stale Work-session bindings; the resumable root coordinator Work may remain
    active at the legal stage boundary;
-7. fork the checkpoint Subject Session with the selected profile;
-8. record parent/child Session IDs, fork point and effective profile;
+7. fork the frozen checkpoint Subject Session with the selected profile;
+8. record canonical parent, frozen checkpoint parent, evaluated child and
+   effective profile;
 9. send the exact ordinary continuation/trigger packet;
 10. monitor the provider task and use `dd-eval sync` after each returned turn;
 11. on declared HITL pause, send exactly the scripted response and resume the
@@ -419,7 +433,8 @@ Every result records:
 
 - mode and selected stage/range;
 - canonical-chain and checkpoint IDs;
-- checkpoint Subject Session/fork point and attempt fork Session ID;
+- canonical-chain Session/optional source turn, frozen checkpoint Session and
+  evaluated fork Session ID;
 - canonical and evaluated model/reasoning profiles;
 - restore receipts and source/attempt project/RUN identities;
 - transcript locator and exact evaluated transcript slice;

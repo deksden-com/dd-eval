@@ -19,8 +19,8 @@ flow pack as an explicit matched pair, and use absolute paths for both.
 2. `dd-eval prepare` restores the selected canonical project/RUN stage-entry
    checkpoint through the matched `dd-flow` engine. Do not copy `DD_FLOW_HOME`
    or reconstruct predecessor stages from semantic fixtures.
-3. Fork the checkpoint Subject Session, then record parent/fork Subject and
-   fresh Judge Session IDs with `dd-eval session
+3. Fork the frozen checkpoint Subject Session, then record parent/fork Subject
+   and fresh Judge Session IDs with `dd-eval session
    add`; then use `dd-eval sync` to collect engine-owned session and usage
    projections. The worker never supplies identity itself.
 4. Stop at the declared stage boundary, `checkpoint` its declared artifacts,
@@ -432,8 +432,8 @@ not an identity contract.
 writes `executions/focus-<stage>/attempt-01/prompts/controller.md`.
 The Controller follows it in addition to the role prime:
 
-1. Fork the checkpoint Subject Session at its exact recorded boundary, select
-   the requested profile, record the parent/fork IDs, then send the exact
+1. Fork the latest completed state of the frozen checkpoint Subject Session,
+   select the requested profile, record the parent/fork IDs, then send the exact
    generated `subject.md` continuation. Do not add rubric, oracle or scoring
    hints.
 2. Tell the Subject only the harness boundary: after a successful finish of

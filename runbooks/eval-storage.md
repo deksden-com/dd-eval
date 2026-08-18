@@ -42,9 +42,11 @@ database yet. A future `registry.sqlite` may be a rebuildable index only; it
 must never be required to discover, reproduce, retain, or delete an attempt.
 
 `sessions.json` records provider Session ID, Agent ID, role, parent Session,
-fork point, model/reasoning profile and observed usage. Provider JSONL is not
-copied by default. Preserve raw transcripts only through an explicit archive
-decision and record their external locator and checksum.
+optional source turn evidence, model/reasoning profile and observed usage. It
+explicitly distinguishes the moving canonical-chain Session, frozen checkpoint
+Session and evaluated child. Provider JSONL is not copied by default. Preserve
+raw transcripts only through an explicit archive decision and record their
+external locator and checksum.
 
 The compact, comparison-worthy result is committed under
 `cases/<case-id>/results/<EVAL-id>/`. It contains manifests, selected artifacts,

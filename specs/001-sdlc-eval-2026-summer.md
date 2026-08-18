@@ -158,8 +158,9 @@ There is one run-local Controller Session and a reusable Judge priming Session.
 The current Desktop Controller is not a canonical fork parent: it reads the
 versioned Controller packet and runbook in its real task, and the run report
 records its actual Session ID and model profile. Subject focused and segment
-attempts fork the canonical Subject Session stored in the selected stage-entry
-checkpoint, not one generic Subject base Session.
+attempts fork the frozen checkpoint Subject Session stored for the selected
+stage entry, not the moving canonical-chain Session and not one generic Subject
+base Session.
 
 ### Controller priming
 
@@ -186,7 +187,11 @@ forks across runs.
 A canonical Subject chain is created for each exact
 `harness + project checkpoint + engine + flow pack + canonical prompt sequence`
 identity. It performs normal project priming and user discussion, then produces
-one accepted Session/RUN/project checkpoint at every stage entry.
+one accepted Session/RUN/project checkpoint at every stage entry. At each
+boundary the Controller immediately creates an idle child fork of the current
+canonical-chain Session. That child receives no prompt and never advances; it
+is the frozen checkpoint Session. The original canonical-chain Session
+continues to the next stage.
 
 Each focused stage forks its own checkpoint Session and receives only the
 generated ordinary continuation packet: restored project/RUN paths, the normal
@@ -218,10 +223,11 @@ native fork or compared as equivalent for cache, latency or context-retention
 metrics.
 
 Before any attempt, the Controller verifies the selected stage-entry checkpoint
-record: parent Session/fork point, canonical producer profile, effective
-attempt profile, definition/project/runtime identities, ordered message hashes
-and archive checksums. Canonical-chain priming quality and cost are reported
-separately and are not repeatedly added to focused-stage latency.
+record: canonical-chain parent, frozen checkpoint Session, canonical producer
+profile, effective attempt profile, definition/project/runtime identities,
+ordered message hashes and archive checksums. Canonical-chain priming quality
+and cost are reported separately and are not repeatedly added to focused-stage
+latency.
 
 ### Judge priming
 
@@ -312,11 +318,13 @@ An upstream semantic document by itself is not a runnable checkpoint.
 PROTOCOLIZE, PLAN and PLAN-REVIEW also require their real flow state, RUN
 variables, durable Memory Bank files, project tree and conversation context.
 
-Each stage therefore references a `dd-eval/stage-checkpoint@1` record pairing:
+Each stage therefore references a stage-checkpoint record pairing:
 
 - an immutable project boundary commit/archive;
 - an engine-owned snapshot of the exact RUN at the stage entry;
-- the provider Subject Session ID and exact native-fork point;
+- the moving canonical-chain Subject Session ID, optional completed source turn
+  evidence and the separate frozen checkpoint Subject Session created from
+  that boundary;
 - the target stage, graph entry, handoff mode and compatibility identities;
 - hashes of predecessor receipts, RUN variables and prompts;
 - clean-boundary evidence and human acceptance.
@@ -568,7 +576,8 @@ candidate run must never be used to generate the oracle that scores itself.
 Every run report records:
 
 - Controller Session ID;
-- canonical checkpoint Subject Session ID and fork point;
+- canonical-chain Subject Session ID and optional source turn evidence;
+- frozen checkpoint Subject Session ID;
 - evaluated Subject Session ID and checkpoint parent;
 - every Subject subagent Session and agent ID;
 - Judge base priming Session ID;
