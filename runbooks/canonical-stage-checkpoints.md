@@ -158,6 +158,11 @@ For each stage:
    this stage, then stop immediately after its successful `stage finish` and
    wait for the next user message. The boundary prevents an in-turn next-stage
    directive from crossing a checkpoint that has not yet been captured.
+   For an isolated `DD_FLOW_HOME`, materialize raw intake first and make the
+   lifecycle invocation a separate, single Bash command using
+   `DD_FLOW_HOME=<absolute-path> dd-flow ... --intake-file <absolute-path>`.
+   Do not pipe or compose it with a heredoc: the trusted PreToolUse hook
+   deliberately rewrites only the single lifecycle command with its event key.
 3. deliver only the case's declared interaction response, if requested;
 4. stop immediately after successful stage finish;
 5. check semantic quality before accepting it as canonical input;
