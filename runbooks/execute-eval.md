@@ -28,6 +28,10 @@ The scenario may select existing `dd-eval prepare` options; it does not replace
 the case definition, starter registry, stage rubrics or this lifecycle. Do not
 invent missing matrix entries or silently substitute an old result.
 
+For each restored execution, `prepare` renders the Subject packet with the
+current project root, inline `DD_FLOW_HOME` and exact normal `stage start`
+command. Send that packet unchanged after forking the current starter Session.
+
 ## Choose the measurement
 
 Use exactly one of these meanings:
