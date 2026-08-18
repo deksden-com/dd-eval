@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-61",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-luna",
+  "reasoning": "xhigh",
+  "runtime": {"dd_flow_cli": {"router": "globally installed stable router", "engine_version": "0.8.0-beta.61", "engine_tag": "eval-engine-0.8.0-beta.61", "engine_commit": "0f82137e1f29a38a353d3f1b522a9a61d20b18ec", "install_source": "local_development_snapshot"}},
+  "notes": "Subject profile for canonical vNext beta 62 runs."
+}
