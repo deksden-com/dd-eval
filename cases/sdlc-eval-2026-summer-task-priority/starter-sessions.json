@@ -1,19 +1,19 @@
 {
   "schema_id": "dd-eval/starter-sessions@1",
   "case_id": "sdlc-eval-2026-summer-task-priority",
-  "revision": "REV-015",
+  "revision": "REV-017",
   "sessions": {
     "specify": {
-      "session_id": "01a01b72-3023-7613-8b20-d7122152428e"
+      "session_id": "01a01bbf-3eb9-7e22-807b-35fd4715bc2a"
     },
     "protocolize": {
-      "session_id": "01a01b72-2dd0-7693-b153-b29966a717eb"
+      "session_id": "01a01bbf-38fd-7b43-9af7-32c61c14ee44"
     },
     "plan": {
-      "session_id": "01a01b72-320e-7c40-b51a-a58619e77880"
+      "session_id": "01a01bbf-41d0-7092-87c3-2d44a11c4004"
     },
     "plan-review": {
-      "session_id": "01a01b72-3448-7610-8506-4f80cd331b46"
+      "session_id": "01a01bbf-3c81-7fa3-a2d6-9d06bcfa0105"
     }
   }
 }

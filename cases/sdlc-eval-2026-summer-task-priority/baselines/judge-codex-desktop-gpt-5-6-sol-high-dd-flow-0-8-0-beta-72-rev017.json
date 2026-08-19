@@ -1,1 +1,11 @@
-{"schema_id":"dd-eval/baseline-session@1","case_id":"sdlc-eval-2026-summer-task-priority","revision":"REV-017","role":"judge","profile_id":"codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-72","status":"pending_capture"}
+{
+  "schema_id": "dd-eval/session-baseline@1",
+  "role": "judge",
+  "profile": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-72",
+  "seed_mode": "native_fork",
+  "status": "accepted",
+  "session_id": "01a01bc0-0159-7351-acc6-2d277e157967",
+  "created_at": "2026-08-19T20:12:43Z",
+  "messages": [{"role": "user", "path": "prompts/judge-prime.md", "sha256": "76ee82546ffeeecc80c3a1f24c70f16180fe4ba44e762acab49880d517f6b431"}],
+  "prohibited_material": ["historical candidates", "stage expectations", "stage oracles before fork"]
+}
