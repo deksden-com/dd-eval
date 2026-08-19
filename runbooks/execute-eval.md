@@ -176,7 +176,11 @@ For each stage:
 2. send the ordinary stage trigger plus one controller boundary: complete only
    this stage, then stop immediately after its successful `stage finish` and
    wait for the next user message. The boundary prevents an in-turn next-stage
-   directive from crossing a checkpoint that has not yet been captured.
+   directive from crossing a checkpoint that has not yet been captured. For a
+   canonical chain restored from an unstarted entry snapshot, use the exact
+   generated `stage start <RUN> --stage <stage>` command for that prepared RUN;
+   do not resend a bare user-level bootstrap trigger, because bootstrap creates
+   a second RUN and cannot preserve the checkpoint boundary.
    For an isolated `DD_FLOW_HOME`, materialize raw intake first and make the
    `stage start` / `stage finish` invocation a separate, single Bash command using
    `DD_FLOW_HOME=<absolute-path> dd-flow ... --intake-file <absolute-path>`.
