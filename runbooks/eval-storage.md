@@ -22,7 +22,8 @@ checkouts, `DD_FLOW_HOME` directories, or snapshots under `_Projects`.
 $DD_EVAL_HOME/
   sequence.json                                next local EVAL number only
   canonical/<case-id>/REV-<NNN>/
-    workspace/project/                         canonical chain checkout
+    workspace/project/                         canonical stable checkout
+    workspace/workspace/                       canonical feature worktree when routed
     workspace/runtime/                         dedicated canonical DD_FLOW_HOME
     checkpoints/<stage>-entry/                 immutable project/RUN snapshots
   attempts/active/<EVAL-id>/                  complete live attempt
@@ -32,8 +33,11 @@ $DD_EVAL_HOME/
 
 An attempt contains `manifest.json`, `state.json`, `sessions.json`, generated
 prompts, candidate and Judge evidence, its project checkout, and its dedicated
-`runtime/` (`DD_FLOW_HOME`). Canonical snapshots contain the project tree and
-dedicated runtime captured by `dd-flow`.
+`runtime/` (`DD_FLOW_HOME`). Canonical snapshots contain the stable project
+tree and dedicated runtime captured by `dd-flow`. From the PROTOCOLIZE route
+onward they also contain the separate feature workspace and named branch; on
+restore `dd-flow` recreates it beside the fresh stable checkout. It never
+silently points a routed RUN back at the stable checkout.
 
 ## Truth and sessions
 

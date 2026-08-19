@@ -191,7 +191,9 @@ For each stage:
 4. stop immediately after successful stage finish;
 5. check semantic quality before accepting it as canonical input;
 6. perform the normal handoff for the next stage;
-7. while the target Session is idle, create one same-directory child fork and
+7. after PROTOCOLIZE, verify the finished report records the required feature
+   workspace route and that the PRT/feature documents live in that workspace,
+   not in the stable checkout; then, while the target Session is idle, create one same-directory child fork and
    send it no prompt;
 8. name that child `CANON <case-id> REV-<NNN> <STAGE>-entry`;
 9. snapshot the matching project/RUN and accept the pair before starting the
@@ -219,9 +221,11 @@ acceptance.
 
 At every stage entry, keep the canonical Subject idle, immediately create one
 child fork of its latest completed history, and leave that child untouched.
-Then snapshot the matching project tree and RUN/`DD_FLOW_HOME`. The accepted
-checkpoint records the moving canonical Session, optional source turn evidence
-and the separate frozen child Session.
+Then snapshot the matching stable project tree, active RUN workspace and
+`DD_FLOW_HOME`. The accepted checkpoint records the moving canonical Session,
+optional source turn evidence and the separate frozen child Session. A routed
+PLAN entry therefore includes both stable checkout and feature-worktree state;
+the snapshot mechanism recreates the latter as a real worktree on restore.
 
 Do not rely on forking an arbitrary old turn later: the current Desktop
 Controller tool does not expose that boundary selection. Once the pair is
