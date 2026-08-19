@@ -174,11 +174,16 @@ For each stage:
    wait for the next user message. The boundary prevents an in-turn next-stage
    directive from crossing a checkpoint that has not yet been captured.
    For an isolated `DD_FLOW_HOME`, materialize raw intake first and make the
-   lifecycle invocation a separate, single Bash command using
+   `stage start` / `stage finish` invocation a separate, single Bash command using
    `DD_FLOW_HOME=<absolute-path> dd-flow ... --intake-file <absolute-path>`.
-   Do not pipe or compose it with a heredoc: the trusted PreToolUse hook
-   deliberately rewrites only the single lifecycle command with its event key.
-3. deliver only the case's declared interaction response, if requested;
+   Do not pipe or compose those commands with a heredoc. A generated
+   `stage resume --answer-stdin` is the exception: use its generated template
+   unchanged, with the literal inline `DD_FLOW_HOME` immediately before
+   `dd-flow`; the trusted hook recognises that piped stdin form.
+3. deliver the declared response exactly when it matches the interaction script.
+   An additional Subject question is valid candidate behaviour: preserve the
+   question and answer it substantively, resume the same stage, and retain the
+   interaction as Judge evidence rather than treating it as an operational error;
 4. stop immediately after successful stage finish;
 5. check semantic quality before accepting it as canonical input;
 6. perform the normal handoff for the next stage;
@@ -364,10 +369,22 @@ When `sync` returns `deliver_declared_interaction`:
 2. send the exact versioned response bytes;
 3. let the same stage resume;
 4. do not complete or rewind the stage;
-5. do not invent a response for an undeclared pause.
 
-An undeclared pause is candidate behavior. Preserve it and stop the attempt at
-that boundary.
+When `sync` returns `deliver_observed_interaction`:
+
+1. preserve the returned stage, pause ID and question path;
+2. answer the question substantively from the materials already available to
+   the Subject; if the answer requires a genuine product decision without a
+   reasonable default, obtain that decision from the user;
+3. send the answer, then let the same stage resume with its generated command;
+4. do not label the attempt invalid solely because the question was undeclared;
+5. do not help the Subject with an evaluation, rubric or hidden expected result.
+
+`dd-flow` persists each question/answer pair under `intake/hitl`; candidate
+checkpointing copies it into the candidate receipt. The Judge must assess both
+whether the extra question was materially justified and whether its answer was
+already present in the Subject's supplied context. An extra question is neither
+automatically a defect nor automatically a virtue.
 
 ### Stage finish barrier
 
@@ -410,7 +427,8 @@ For each focused stage and each stage inside a segment:
 1. fork the canonical Judge priming Session into a fresh Session;
 2. record its parent and child IDs;
 3. run `dd-eval judge prepare` for that candidate stage;
-4. send the generated packet unchanged;
+4. send the generated packet unchanged. It includes any captured
+   `run/intake/hitl` interaction evidence; Judge it as observed model behavior;
 5. wait for the Judge and accept its schema-valid result unchanged.
 
 ```sh
