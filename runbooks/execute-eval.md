@@ -376,7 +376,9 @@ When `sync` returns `deliver_observed_interaction`:
 2. answer the question substantively from the materials already available to
    the Subject; if the answer requires a genuine product decision without a
    reasonable default, obtain that decision from the user;
-3. send the answer, then let the same stage resume with its generated command;
+3. send only the raw user answer to the Subject — never append Controller
+   instructions to that message — then let the same stage resume with its
+   generated command;
 4. do not label the attempt invalid solely because the question was undeclared;
 5. do not help the Subject with an evaluation, rubric or hidden expected result.
 
