@@ -31,6 +31,7 @@ immutable beta checkpoint.
 - [008 — RUN context and trusted subagent Work](specs/008-run-context-and-trusted-subagent-work.md)
 - [009 — in-stage HITL pause and resume](specs/009-in-stage-hitl-pause-resume.md)
 - [010 — capacity-aware review packing](specs/010-capacity-aware-review-packing.md)
+- [011 — restored starter-fork handoff](specs/011-restored-starter-fork-handoff.md)
 - [Controlled eval runbook](runbook.md)
 
 ## Current state and remaining implementation plan
