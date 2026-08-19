@@ -371,6 +371,24 @@ Follow only the `next_action` returned by `sync`.
 
 ### HITL pause
 
+#### Versioned answer pool
+
+Each case keeps its reusable, product-specific answers under
+`cases/<case-id>/interactions/`. A declared interaction references its exact
+`response_file`; together those files form the **answer pool** for HITL.
+
+- The Controller sends a matching pool answer byte-for-byte. It does not
+  paraphrase, combine or silently strengthen it.
+- For an observed question, first check whether one pool answer directly and
+  completely resolves it. If so, send that exact file and preserve the
+  question/answer receipt as observed evidence.
+- If no pool answer applies and there is no reasonable product default, obtain
+  the decision from the user. Preserve the raw answer in the current RUN. Before
+  the next canonical run, add the clarified answer to the pool in a new
+  committed case revision; do not rewrite a completed attempt's evidence.
+- A pool answer is eval input, not a general Memory Bank fact. Promote it to
+  project knowledge separately only when it describes accepted product behavior.
+
 When `sync` returns `deliver_declared_interaction`:
 
 1. verify that stage and pause ordinal match the interaction script;
