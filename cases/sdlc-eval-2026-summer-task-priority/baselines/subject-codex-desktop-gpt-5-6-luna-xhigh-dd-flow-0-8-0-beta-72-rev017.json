@@ -1,1 +1,11 @@
-{"schema_id":"dd-eval/baseline-session@1","case_id":"sdlc-eval-2026-summer-task-priority","revision":"REV-017","role":"subject","profile_id":"codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-72","status":"pending_capture"}
+{
+  "schema_id": "dd-eval/session-baseline@1",
+  "role": "subject",
+  "profile": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-72",
+  "seed_mode": "native_fork",
+  "status": "accepted",
+  "session_id": "01a01ba3-29a8-76c0-9c5c-c2b230c36d59",
+  "created_at": "2026-08-19T20:07:53Z",
+  "messages": [{"role": "user", "path": "prompts/subject-prime.md", "sha256": "9d627ef89420a73adb6c2eb0fa70d716865606c3a0b0be96b429523968642018"}],
+  "prohibited_material": ["rubrics", "expectations", "judge packets", "eval terminology"]
+}
