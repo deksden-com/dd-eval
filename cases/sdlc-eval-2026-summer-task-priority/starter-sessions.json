@@ -2,5 +2,18 @@
   "schema_id": "dd-eval/starter-sessions@1",
   "case_id": "sdlc-eval-2026-summer-task-priority",
   "revision": "REV-015",
-  "sessions": {}
+  "sessions": {
+    "specify": {
+      "session_id": "01a01b72-3023-7613-8b20-d7122152428e"
+    },
+    "protocolize": {
+      "session_id": "01a01b72-2dd0-7693-b153-b29966a717eb"
+    },
+    "plan": {
+      "session_id": "01a01b72-320e-7c40-b51a-a58619e77880"
+    },
+    "plan-review": {
+      "session_id": "01a01b72-3448-7610-8506-4f80cd331b46"
+    }
+  }
 }
