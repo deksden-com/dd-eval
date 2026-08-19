@@ -3,7 +3,9 @@
   "role": "subject",
   "profile": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-67",
   "seed_mode": "native_fork",
-  "status": "pending_creation",
+  "status": "accepted",
+  "session_id": "01a01b23-c375-7c62-975b-35640afaccb5",
+  "created_at": "2026-08-19T17:49:57Z",
   "messages": [{"role": "user", "path": "prompts/subject-prime.md", "sha256": "9d627ef89420a73adb6c2eb0fa70d716865606c3a0b0be96b429523968642018"}],
   "prohibited_material": ["rubrics", "expectations", "judge packets", "eval terminology"]
 }
