@@ -3,26 +3,26 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "canonical_authoring_ready",
-  "checkpoint": {"id": "cp-002-vnext-workspace-route-beta-71"},
+  "checkpoint": {"id": "cp-002-vnext-workspace-route-beta-72"},
   "profiles": {
-    "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-70"],
+    "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-71"],
     "subject": [
-      "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-70",
-      "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-70",
-      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-70"
+      "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-71",
+      "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-71",
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-71"
     ],
-    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-70"]
+    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-71"]
   },
   "default_profiles": {
-    "controller": "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-70",
-    "subject": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-70",
-    "judge": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-70"
+    "controller": "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-71",
+    "subject": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-71",
+    "judge": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-71"
   },
   "priming": {
     "controller_packet": "prompts/controller-prime.md",
-    "subject_baseline": "baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-70-rev016.json"
+    "subject_baseline": "baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-71-rev016.json"
   },
-  "judge_baseline": "baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-70-rev016.json",
+  "judge_baseline": "baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-71-rev016.json",
   "flow": {"handoff_mode": "same_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_run"},
   "canonical_checkpoints": {
     "specify": "checkpoints/REV-016/specify.json",

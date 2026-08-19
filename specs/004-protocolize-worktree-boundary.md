@@ -87,10 +87,14 @@ feature documents into that workspace, and return an exact next-stage command
 plus `cwd`. It must not create or select a worktree.
 
 For `feature_worktree`, PLAN start and every later stage that writes project
-files must verify that the hook event cwd is the recorded `workspace_root`.
-PROTOCOLIZE is the only transition-stage exception: it may run from the stable
-session because it writes solely to its RUN stage workspace. Its finish
-requires a new agent session from the returned feature-worktree cwd.
+files receive the recorded `workspace_root` and all write targets as absolute
+paths. The trusted hook records the actual agent cwd for audit, but does not
+reject an otherwise correctly bound Desktop session merely because the harness
+cannot create it with a dynamic worktree cwd. PROTOCOLIZE is the only
+transition-stage exception: it may run from the stable session because it
+writes solely to its RUN stage workspace. Its finish requests a new session
+and returns the recommended feature-worktree cwd; the CLI itself validates the
+recorded Git route rather than trusting the session cwd.
 
 ## Prompt and flow contract changes
 
