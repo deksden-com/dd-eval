@@ -3,8 +3,9 @@
   "role": "judge",
   "profile": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-64",
   "seed_mode": "native_fork",
-  "status": "pending_judge_prime",
-  "session_id": null,
-  "messages": [{"role": "user", "path": "prompts/judge-prime.md"}],
+  "status": "accepted",
+  "session_id": "01a01904-7cf7-7202-93f0-b460d85df66f",
+  "created_at": "2026-08-19T07:55:54Z",
+  "messages": [{"role": "user", "path": "prompts/judge-prime.md", "sha256": "76ee82546ffeeecc80c3a1f24c70f16180fe4ba44e762acab49880d517f6b431"}],
   "prohibited_material": ["historical candidates", "stage expectations", "stage oracles before fork"]
 }
