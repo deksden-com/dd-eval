@@ -1,1 +1,11 @@
-{"status":"draft_pending_human_acceptance","items":[],"provenance":{"source":"integration expectations are authored after canonical chain acceptance"}}
+{
+  "schema_id": "dd-eval/expectations@1",
+  "status": "accepted",
+  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "e2e", "canonical_revision": "REV-009", "source_sha256": "211094a9dd56c74853f7686c09e59ef332320bf5b9b3c52108296d452fa6d4d8" },
+  "items": [
+    { "id": "EXP-E2E-001", "expectation": "Preserve the settled task-priority decisions through SPECIFY, PROTOCOLIZE, PLAN and PLAN-REVIEW without scope drift." },
+    { "id": "EXP-E2E-002", "expectation": "Use the declared HITL response only for the material SPECIFY gap and resume the same stage." },
+    { "id": "EXP-E2E-003", "expectation": "End at accepted PLAN-REVIEW with a code-ready work graph; never start CODE." }
+  ],
+  "provenance": { "reviewed_against": "REV-009 canonical chain closure", "approved_by": "deksden", "approved_at": "2026-08-19T04:45:44Z" }
+}

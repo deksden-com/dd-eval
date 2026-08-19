@@ -1,1 +1,8 @@
-{"status":"draft_pending_human_acceptance","findings":[],"provenance":{"source":"to be authored independently before scoring"}}
+{
+  "schema_id": "dd-eval/oracle@1",
+  "status": "accepted",
+  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "specify", "canonical_revision": "REV-009", "rubric_sha256": "105a177c490d32e8d78aec7d5fc977c5436b4bc47eaae615b271c791140fd38f" },
+  "findings": [],
+  "conclusion": "Independent review found no mandatory negative finding in the accepted canonical SPECIFY; deviations are judged against the semantic expectations and rubric.",
+  "provenance": { "approved_by": "deksden", "approved_at": "2026-08-19T04:45:44Z" }
+}

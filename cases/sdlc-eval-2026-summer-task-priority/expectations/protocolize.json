@@ -1,1 +1,11 @@
-{"status":"draft_pending_human_acceptance","items":[],"provenance":{"source":"to be authored independently from the canonical completion before scoring"}}
+{
+  "schema_id": "dd-eval/expectations@1",
+  "status": "accepted",
+  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "protocolize", "canonical_revision": "REV-009", "source_sha256": "a5391c3d687ce5aae1be02b3dc0f45269be24e07781211a4ab74ae87c647ad81" },
+  "items": [
+    { "id": "EXP-PROTOCOLIZE-001", "expectation": "Create one coherent vertical protocol rather than unrelated partial protocols." },
+    { "id": "EXP-PROTOCOLIZE-002", "expectation": "Keep the four-value/default, narrow archived-task exception, authorization and stable-order decisions intact." },
+    { "id": "EXP-PROTOCOLIZE-003", "expectation": "Record the feature/protocol document ownership and a durable handoff for PLAN." }
+  ],
+  "provenance": { "reviewed_against": "REV-009 canonical PROTOCOLIZE", "approved_by": "deksden", "approved_at": "2026-08-19T04:45:44Z" }
+}

@@ -1,1 +1,11 @@
-{"status":"draft_pending_human_acceptance","items":[],"provenance":{"source":"to be authored independently from the canonical completion before scoring"}}
+{
+  "schema_id": "dd-eval/expectations@1",
+  "status": "accepted",
+  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "plan-review", "canonical_revision": "REV-009", "source_sha256": "a5f81abcefd5ce4a06b7e5760cb60c038d2b69b17cc4d8e1040269bee6481086" },
+  "items": [
+    { "id": "EXP-REVIEW-001", "expectation": "Use fresh read-only reviewers with grouping appropriate to the measured capacity; do not create nested reviewer trees." },
+    { "id": "EXP-REVIEW-002", "expectation": "Classify material findings and apply accepted corrections once to the plan and dependent work graph." },
+    { "id": "EXP-REVIEW-003", "expectation": "Finish with a clear decision, corrected-plan revision when needed, and no automatic second review cycle or CODE start." }
+  ],
+  "provenance": { "reviewed_against": "REV-009 canonical PLAN-REVIEW", "approved_by": "deksden", "approved_at": "2026-08-19T04:45:44Z" }
+}

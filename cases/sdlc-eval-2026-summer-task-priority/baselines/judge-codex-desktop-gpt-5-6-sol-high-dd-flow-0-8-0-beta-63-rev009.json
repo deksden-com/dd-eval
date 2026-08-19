@@ -1,0 +1,14 @@
+{
+  "schema_id": "dd-eval/session-baseline@1",
+  "role": "judge",
+  "profile": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-63",
+  "seed_mode": "native_fork",
+  "status": "accepted",
+  "session_id": "01a01856-6ba3-7230-bc1f-9f965507edb1",
+  "created_at": "2026-08-19T04:45:18Z",
+  "messages": [
+    { "role": "user", "path": "prompts/judge-prime.md", "sha256": "76ee82546ffeeecc80c3a1f24c70f16180fe4ba44e762acab49880d517f6b431" }
+  ],
+  "prohibited_material": ["historical candidates", "stage expectations", "stage oracles before fork"],
+  "acceptance": { "approved_by": "deksden", "approved_at": "2026-08-19T04:45:44Z", "evidence": "baseline thread completed neutral Judge priming without candidate material" }
+}

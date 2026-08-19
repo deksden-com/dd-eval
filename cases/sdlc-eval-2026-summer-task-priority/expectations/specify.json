@@ -1,1 +1,11 @@
-{"status":"draft_pending_human_acceptance","items":[],"provenance":{"source":"to be authored independently from the canonical completion before scoring"}}
+{
+  "schema_id": "dd-eval/expectations@1",
+  "status": "accepted",
+  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "specify", "canonical_revision": "REV-009", "source_sha256": "a6addbd64ee9e11290e6af26e8805f94b77a3ddf61a932a2b1f4143e462dec7b" },
+  "items": [
+    { "id": "EXP-SPECIFY-001", "expectation": "Resolve the priority vocabulary, default/backfill, archive exception and ordering rule without inventing a new product direction." },
+    { "id": "EXP-SPECIFY-002", "expectation": "Produce a portable handoff covering persistence, API authorization, list/edit UI and deterministic acceptance evidence." },
+    { "id": "EXP-SPECIFY-003", "expectation": "Ask only the material unresolved product question, then resume the same stage after the declared answer." }
+  ],
+  "provenance": { "reviewed_against": "REV-009 canonical SPECIFY", "approved_by": "deksden", "approved_at": "2026-08-19T04:45:44Z" }
+}

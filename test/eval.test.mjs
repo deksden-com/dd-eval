@@ -15,6 +15,8 @@ test("the active suite uses canonical stage checkpoints", async () => {
   const validated = await validateInput({ caseId, source, requireMode: "scored" });
   assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-64");
   assert.equal(validated.starters.sessions.specify.session_id.length > 0, true);
+  assert.equal(validated.judgeBaseline.status, "accepted");
+  assert.equal(validated.judgeBaseline.role, "judge");
 });
 
 test("a scored run fails closed when its accepted snapshot is unavailable", async () => {

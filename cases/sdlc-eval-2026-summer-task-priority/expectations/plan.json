@@ -1,1 +1,11 @@
-{"status":"draft_pending_human_acceptance","items":[],"provenance":{"source":"to be authored independently from the canonical completion before scoring"}}
+{
+  "schema_id": "dd-eval/expectations@1",
+  "status": "accepted",
+  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "plan", "canonical_revision": "REV-009", "source_sha256": "3b10f70ea169b727ad4036823d384d77b7d39605ad316ec72de0d753230c97f1" },
+  "items": [
+    { "id": "EXP-PLAN-001", "expectation": "Ground the plan in the accepted handoff and current project surfaces rather than assuming a greenfield design." },
+    { "id": "EXP-PLAN-002", "expectation": "Plan an executable graph covering persistence/legacy migration, task API and authorization, UI, scenario/docs and verification." },
+    { "id": "EXP-PLAN-003", "expectation": "Make archive-only priority PATCH, atomic mixed-payload rejection, unchanged list ordering and deterministic legacy evidence falsifiable." }
+  ],
+  "provenance": { "reviewed_against": "REV-009 canonical PLAN revision 2", "approved_by": "deksden", "approved_at": "2026-08-19T04:45:44Z" }
+}
