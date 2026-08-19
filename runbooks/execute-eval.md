@@ -326,7 +326,10 @@ dd-eval session add --eval "<eval-root>" --execution "<execution-id>" \
 6. Send the generated Subject continuation without editing it.
 
 The evaluated Session must differ from the starter and its recorded parent
-must equal the current starter ID. A direct fork from a canonical checkpoint is
+must equal the current starter ID. A restored stage-entry snapshot deliberately
+has no live canonical binding: its first Subject is the fork of this starter,
+which satisfies the project’s `same_session` policy for the candidate attempt.
+A direct fork from a canonical checkpoint is
 an operator error: preserve the incident, do not run the Subject, and prepare a
 new attempt through the starter registry.
 
