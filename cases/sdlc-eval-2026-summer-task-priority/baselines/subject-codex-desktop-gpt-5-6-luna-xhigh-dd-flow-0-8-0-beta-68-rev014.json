@@ -1,0 +1,11 @@
+{
+  "schema_id": "dd-eval/session-baseline@1",
+  "role": "subject",
+  "profile": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-68",
+  "seed_mode": "native_fork",
+  "status": "accepted",
+  "session_id": "01a01b3d-ee59-7c20-bc5f-6ed878392df8",
+  "created_at": "2026-08-19T18:18:30Z",
+  "messages": [{"role": "user", "path": "prompts/subject-prime.md", "sha256": "9d627ef89420a73adb6c2eb0fa70d716865606c3a0b0be96b429523968642018"}],
+  "prohibited_material": ["rubrics", "expectations", "judge packets", "eval terminology"]
+}
