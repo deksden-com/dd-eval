@@ -125,7 +125,13 @@ Do this once per exact case-definition, engine and flow-pack revision.
   project or runtime tree it captures. Compact checkpoint reviews live in the
   Git case at `checkpoint-reviews/REV-<NNN>/`.
 - Materialize the exact tagged beta project into `workspace/project` and
-  install the exact matched engine into `workspace/runtime`. That runtime may
+  install the exact matched engine into `workspace/runtime`. Because a Git
+  archive has no `.git` directory, initialise the materialized project on the
+  `integration_branch` declared in its
+  `.memory-bank/dd-flow/project-workspace.json` (for this case: `git init -b
+  main`), then commit the exact archived tree. Verify `HEAD` is clean on that
+  branch before allocating a RUN. Do not let the host's default branch name
+  silently substitute for the project policy. That runtime may
   contain only this canonical project's single RUN; checkpoint capture fails
   if unrelated records exist.
 - Create the canonical Subject Session with the declared canonical profile.

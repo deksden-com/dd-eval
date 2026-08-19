@@ -20,15 +20,15 @@
   },
   "priming": {
     "controller_packet": "prompts/controller-prime.md",
-    "subject_baseline": "baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-72-rev016.json"
+    "subject_baseline": "baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-72-rev017.json"
   },
-  "judge_baseline": "baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-72-rev016.json",
+  "judge_baseline": "baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-72-rev017.json",
   "flow": {"handoff_mode": "same_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_run"},
   "canonical_checkpoints": {
-    "specify": "checkpoints/REV-016/specify.json",
-    "protocolize": "checkpoints/REV-016/protocolize.json",
-    "plan": "checkpoints/REV-016/plan.json",
-    "plan-review": "checkpoints/REV-016/plan-review.json"
+    "specify": "checkpoints/REV-017/specify.json",
+    "protocolize": "checkpoints/REV-017/protocolize.json",
+    "plan": "checkpoints/REV-017/plan.json",
+    "plan-review": "checkpoints/REV-017/plan-review.json"
   },
   "stages": {
     "specify": {
