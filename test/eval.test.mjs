@@ -3,7 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { loadCase, prepare, validateInput } from "../lib/dd-eval.mjs";
+import { loadCase, prepare, subjectTaskTitle, validateInput } from "../lib/dd-eval.mjs";
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -20,6 +20,13 @@ test("the active suite uses canonical stage checkpoints", async () => {
   assert.equal(validated.starters.sessions.specify.session_id.length > 0, true);
   assert.equal(validated.judgeBaseline.status, "accepted");
   assert.equal(validated.judgeBaseline.role, "judge");
+});
+
+test("prepare task titles are deterministic and sortable", () => {
+  assert.equal(
+    subjectTaskTitle({ outputRoot: "/tmp/EVAL-006--case--focus", caseId, executionId: "plan-review", profile: { model: "gpt-5.6-luna", reasoning: "xhigh" } }),
+    "E006 · sdlc-eval-2026-summer-task-priority · a01 · luna-xhigh · PLAN-REVIEW · subject"
+  );
 });
 
 test("a scored run fails closed when its accepted snapshot is unavailable", async () => {

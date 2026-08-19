@@ -301,7 +301,8 @@ The returned JSON must include:
 - requested model/reasoning profile;
 - attempt project root, `DD_FLOW_HOME`, RUN ID and RUN home;
 - exact Subject task title;
-- exact ordinary continuation message to send after the fork.
+- exact ordinary continuation message and its immutable path/hash to send after
+  the fork.
 
 If prepare returns a mismatch or restore incident, stop. Do not copy files,
 rewrite SQLite, change a Session ID or reconstruct upstream state manually.

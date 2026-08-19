@@ -405,15 +405,15 @@ Every created Desktop task gets a title at launch. Use this stable, sortable
 form:
 
 ```text
-E<run-number> · b<bundle> · a<attempt> · <model>-<thinking> · <scope> · <role> · <subject>
+E<run-number> · <case-id> · a<attempt> · <model>-<thinking> · <scope> · <role>
 ```
 
 Examples:
 
 ```text
-E013 · b55 · a01 · luna-xhigh · flow · controller · task-priority
-E013 · b55 · a01 · luna-xhigh · specify · subject · task-priority
-E013 · b55 · a01 · sol-high · specify · judge · task-priority
+E013 · sdlc-eval-2026-summer-task-priority · a01 · luna-xhigh · flow · controller
+E013 · sdlc-eval-2026-summer-task-priority · a01 · luna-xhigh · specify · subject
+E013 · sdlc-eval-2026-summer-task-priority · a01 · sol-high · specify · judge
 ```
 
 - `flow · coordinator` is a long-lived parent session that may cross several
