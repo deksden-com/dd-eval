@@ -4,7 +4,7 @@ This runbook is the operator procedure for focused-stage, contiguous-segment
 and E2E executions of `sdlc-eval-2026-summer`.
 
 It implements [specification 002](../specs/002-canonical-stage-checkpoint-evaluation.md).
-The active CLI and case use `case@3`; the old portable fixture path is
+The active CLI and case use `case@4`; the old portable fixture path is
 diagnostic-only and must not be used for a scored run.
 
 The implementation cutover and launch gates are defined by
@@ -27,6 +27,9 @@ rule. The Controller reads the scenario first, records its path and the clean
 The scenario may select existing `dd-eval prepare` options; it does not replace
 the case definition, starter registry, stage rubrics or this lifecycle. Do not
 invent missing matrix entries or silently substitute an old result.
+The case's `checkpoint.id` resolves the immutable input checkpoint in the
+repository-level `checkpoints/` directory. That file, rather than a scenario
+or profile, is the sole source of the project, flow-pack and engine pair.
 
 For each restored execution, `prepare` renders the Subject packet with the
 current project root, inline `DD_FLOW_HOME` and exact normal `stage start`
@@ -68,8 +71,9 @@ the two forms interchangeably.
 Before preparing an attempt, verify:
 
 1. `dd-eval` is clean and its definition commit is recorded;
-2. `dd-tasks` checkpoint, project flow pack and `dd-flow` engine are committed;
-3. the engine and flow pack are the matched pair declared by the case;
+2. the case points to one immutable input checkpoint file;
+3. that checkpoint's `dd-tasks` source, flow pack and `dd-flow` engine are
+   committed and form the intended matched pair;
 4. the requested Controller, Subject and Judge profiles are declared;
 5. every selected stage has an accepted canonical entry checkpoint;
 6. every selected rubric and oracle is accepted;
@@ -275,7 +279,7 @@ replace the canonical checkpoint Session during this recovery.
 
 `dd-eval prepare` performs all deterministic work before a Subject fork:
 
-1. validates definition and profile identities;
+1. validates the case, its input checkpoint and profile identities;
 2. reads `cases/<case-id>/starter-sessions.json`, resolves the selected stage's
    current starter Session and verifies that its checkpoint and chain IDs match
    the selected canonical snapshot;

@@ -29,17 +29,18 @@ new attempt directory.
 
 ## Case files
 
-Commit these definition files under `cases/<case-id>/`:
+Commit the case files and its one shared input checkpoint:
 
 ```text
-case.json
-checkpoints/<stage>.json       canonical and frozen checkpoint Session IDs
-starter-sessions.json          current starter Session IDs
-scenarios/                      versioned comparison plans
-prompts/                       versioned ordinary Subject inputs
-interactions/                  declared HITL responses
-rubrics/                       Judge criteria
-expectations/                  accepted references when available
+checkpoints/<input-id>.json                 SSOT for the project, flow-pack and engine pair
+cases/<case-id>/case.json                   points to that input checkpoint by id
+cases/<case-id>/checkpoints/<stage>.json    canonical and frozen checkpoint Session IDs
+cases/<case-id>/starter-sessions.json       current starter Session IDs
+cases/<case-id>/scenarios/                  versioned comparison plans
+cases/<case-id>/prompts/                    versioned ordinary Subject inputs
+cases/<case-id>/interactions/               declared HITL responses
+cases/<case-id>/rubrics/                    Judge criteria
+cases/<case-id>/expectations/               accepted references when available
 ```
 
 `starter-sessions.json` is deliberately small:
@@ -79,16 +80,21 @@ checkpoint.
 
 ## Creation procedure
 
-1. Freeze the case inputs: project checkpoint, matched engine/flow pack,
-   profiles, prompts, interactions and rubrics.
-2. Build the single canonical Subject chain using
+1. Create one immutable input checkpoint at
+   `checkpoints/<input-id>.json`. It is the sole source of truth for the
+   evaluated project source/tag/commit and its matched flow-pack and engine
+   version/tag/commit. Put only `checkpoint.id` in `case.json`; do not repeat
+   a pair SHA, version or tag in the case, a scenario, or a profile.
+2. Freeze the profiles, prompts, interactions and rubrics. Profiles describe
+   the Desktop harness, model and reasoning only; they do not select an engine.
+3. Build the single canonical Subject chain using
    [the eval execution runbook](execute-eval.md).
-3. At every accepted stage entry, store the moving canonical Session ID and
+4. At every accepted stage entry, store the moving canonical Session ID and
    untouched frozen checkpoint Session ID in
    `checkpoints/<stage>.json`.
-4. For each accepted checkpoint, fork the frozen Session once, title the child
+5. For each accepted checkpoint, fork the frozen Session once, title the child
    `START <case-id> <STAGE>-entry`, and send it no message.
-5. Register only that child ID by calling:
+6. Register only that child ID by calling:
 
    ```sh
    dd-eval starter set --case <case-id> --stage <stage> \
@@ -98,15 +104,17 @@ checkpoint.
 
    The command checks the declared parent against the accepted checkpoint and
    updates `starter-sessions.json`.
-6. Verify every starter is reachable, idle and directly parented by the
+7. Verify every starter is reachable, idle and directly parented by the
    expected frozen checkpoint Session.
-7. Commit and push the case definition and current starter registry.
-8. Run authoring/scored validation before the first attempt.
+8. Commit and push the input checkpoint, case definition and current starter
+   registry.
+9. Run authoring/scored validation before the first attempt.
 
 If the case will compare a fixed profile matrix, add one scenario under
 `scenarios/`. Keep generic lifecycle rules in `runbooks/execute-eval.md`; the
 scenario contains only the concrete profiles, selections, order and comparison
-policy.
+policy. Resolve profile IDs from the current case; a scenario must never copy
+the input checkpoint's beta version, tag or SHA.
 
 ## Starter recovery
 

@@ -22,23 +22,25 @@ are diagnostic evidence only and are not substituted into this comparison.
 ## Fixed inputs
 
 - Case: `sdlc-eval-2026-summer-task-priority`.
-- Controller: `codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-63`.
-- Judge: `codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-63`.
+- Controller and Judge: the current `case.json` defaults.
 - Focused stages: `specify,protocolize,plan,plan-review`.
 - E2E: enabled; stop at `plan_review_accepted`; CODE remains unstarted.
 - One fresh Subject fork from the applicable current starter Session per
   execution.
 - One fresh Judge fork per focused candidate and one fresh Judge fork per E2E
   candidate.
-- The same committed case definition, starter registry, project checkpoint,
-  engine, flow pack, permissions and Desktop harness apply to every profile.
+- The same committed case definition, starter registry, input checkpoint,
+  permissions and Desktop harness apply to every profile. The input checkpoint
+  is the sole source of the engine/flow pair.
 
-Subject profiles:
+Subject profile selection is resolved from the current `case.json` by matching
+the model/reasoning pair below; the scenario deliberately does not repeat
+engine or flow identifiers:
 
 ```text
-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-63
-codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-63
-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-63
+gpt-5.6-luna / xhigh
+gpt-5.6-terra / high
+gpt-5.6-sol / high
 ```
 
 Do not edit prompts, interactions, rubrics, expectations, starters or runtime
@@ -55,9 +57,7 @@ dd-eval prepare \
   --scenario scenarios/compare-luna-terra-sol.md \
   --focus specify,protocolize,plan,plan-review \
   --e2e \
-  --controller-profile codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-63 \
-  --subject-profile <subject-profile> \
-  --judge-profile codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-63 \
+  --subject-profile <current-case-profile-for-model-and-reasoning> \
   --source <absolute-dd-tasks-beta-root>
 ```
 

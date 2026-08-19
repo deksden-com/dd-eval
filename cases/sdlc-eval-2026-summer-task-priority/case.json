@@ -1,10 +1,9 @@
 {
-  "schema_id": "dd-eval/case@3",
+  "schema_id": "dd-eval/case@4",
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "scored_eval_ready",
-  "checkpoint": {"id": "cp-002-vnext-plan-review-beta-65", "commit": "a5f156939a260412bf299966a144d8cf21ae5781"},
-  "compatibility": {"engine_commit": "b277ff50b13bd98378866e673ad95ce8f64e068d", "flow_pack_commit": "a5f156939a260412bf299966a144d8cf21ae5781"},
+  "checkpoint": {"id": "cp-002-vnext-plan-review-beta-65"},
   "profiles": {
     "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-64"],
     "subject": [

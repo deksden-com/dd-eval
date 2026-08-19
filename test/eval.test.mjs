@@ -10,10 +10,13 @@ const caseId = "sdlc-eval-2026-summer-task-priority";
 
 test("the active suite uses canonical stage checkpoints", async () => {
   const loaded = await loadCase(caseId);
-  assert.equal(loaded.definition.schema_id, "dd-eval/case@3");
+  assert.equal(loaded.definition.schema_id, "dd-eval/case@4");
+  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-002-vnext-plan-review-beta-65" });
+  assert.equal("compatibility" in loaded.definition, false);
   assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review"]);
   const validated = await validateInput({ caseId, source, requireMode: "scored" });
-  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-64");
+  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-65");
+  assert.equal(validated.checkpoint.memory_bank.engine.commit, "b277ff50b13bd98378866e673ad95ce8f64e068d");
   assert.equal(validated.starters.sessions.specify.session_id.length > 0, true);
   assert.equal(validated.judgeBaseline.status, "accepted");
   assert.equal(validated.judgeBaseline.role, "judge");

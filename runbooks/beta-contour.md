@@ -144,10 +144,11 @@ The bundle iteration and component prerelease numbers do not have to match.
 If beta.2 changes only the flow, retain the already proven engine version and
 record that exact pairing. Never rebuild changed engine code under an old beta
 version; increment its prerelease number so engine resolution is unambiguous.
-Profiles and checkpoint records follow the same immutability rule: never change
-an existing profile ID to point at a different engine commit, and never change
-an existing checkpoint ID to point at a different flow commit. Create the next
-profile/checkpoint even when the model and product baseline are unchanged.
+Input checkpoints are immutable: never change an existing checkpoint ID to
+point at a different flow or engine commit. Create the next checkpoint when the
+pair changes, even if the model and product baseline are unchanged. Profiles
+describe only the harness/model/reasoning selection; they are not a second
+source of engine identity.
 
 ## Beta specification bundle
 
@@ -337,13 +338,13 @@ Create a new immutable checkpoint JSON in `dd-eval/checkpoints/`, for example
 - beta flow pack id and source commit;
 - selected beta engine version and `dd-flow-cli` commit/tag.
 
-Add the checkpoint id to the case's `materialization.checkpoints`. Never edit an
-old beta checkpoint to point at a newer commit.
+Set that checkpoint's id as the case's sole `checkpoint.id`. Never repeat the
+pair's version, tag or SHA in `case.json`, scenarios or profiles, and never
+edit an old beta checkpoint to point at a newer commit.
 
 Use an existing harness profile shape. Its CLI path remains the stable global
-router. Record the expected selected engine version and commit in the profile
-runtime metadata or notes. The authoritative engine identity for an actual RUN
-is still its generated immutable `engine-binding.json`.
+router. The exact selected engine comes from the input checkpoint and is
+verified against the actual RUN's generated immutable `engine-binding.json`.
 
 This checkpoint approach deliberately reuses `dd-eval validate` and
 `dd-eval prepare`; no beta overlay or new prepare flags are needed.

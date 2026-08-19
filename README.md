@@ -272,7 +272,7 @@ accepted commit.
 The command-line executable is named `dd-eval`. `dd-deval` is not an alias and
 must not appear in manifests, documentation, reports, or automation.
 
-The commands below implement the `case@3` contract from specification 002.
+The commands below implement the `case@4` contract from specification 002.
 Portable stage fixtures are not executable input for a scored run.
 
 `sdlc-eval-2026-summer-task-priority` is the initial bounded planning case. It
@@ -280,8 +280,9 @@ supports independent checks of `SPECIFY`, `PROTOCOLIZE`, `PLAN` and
 `PLAN-REVIEW`, plus a pre-CODE end-to-end contour ending at
 `plan_review_accepted`.
 
-The case binds its exact product checkpoint, flow-pack commit and engine commit
-in `case.json`; checkpoints and product tags remain separate namespaces.
+The case's `checkpoint.id` points to one immutable repository-level input
+checkpoint. That file binds the exact product checkpoint, flow-pack and engine;
+the case, scenarios and profiles reference it instead of copying those values.
 
 ```sh
 dd-eval validate --case sdlc-eval-2026-summer-task-priority
