@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-workspace-route-beta-69",
+  "title": "cp-002 vNext detached-Git workspace route beta.69",
+  "source": {"repository": "https://github.com/deksden-com/dd-tasks.git", "tag": "eval-flow-vnext-plan-review-beta.69", "commit": "859c54b1d0a405e08caf54f5f9305b2d59503354"},
+  "product_baseline": {"checkpoint_id": "cp-002", "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07", "product_code_changed": false},
+  "memory_bank": {"version": "3.2.0-vnext-plan-review-beta.69", "dd_flow_cli": "0.8.0-beta.68", "engine": {"repository": "https://github.com/deksden-com/dd-flow-cli.git", "tag": "eval-engine-0.8.0-beta.68", "commit": "431bba1a585edafb34e73ffb60280842f4fe441d"}},
+  "state": "ready_for_canonical_authoring"
+}

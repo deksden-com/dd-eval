@@ -3,7 +3,7 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "canonical_authoring",
-  "checkpoint": {"id": "cp-002-vnext-workspace-route-beta-68"},
+  "checkpoint": {"id": "cp-002-vnext-workspace-route-beta-69"},
   "profiles": {
     "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-67"],
     "subject": [
@@ -25,10 +25,10 @@
   "judge_baseline": "baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-67-rev012.json",
   "flow": {"handoff_mode": "same_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_run"},
   "canonical_checkpoints": {
-    "specify": "checkpoints/REV-013/specify.json",
-    "protocolize": "checkpoints/REV-013/protocolize.json",
-    "plan": "checkpoints/REV-013/plan.json",
-    "plan-review": "checkpoints/REV-013/plan-review.json"
+    "specify": "checkpoints/REV-014/specify.json",
+    "protocolize": "checkpoints/REV-014/protocolize.json",
+    "plan": "checkpoints/REV-014/plan.json",
+    "plan-review": "checkpoints/REV-014/plan-review.json"
   },
   "stages": {
     "specify": {
