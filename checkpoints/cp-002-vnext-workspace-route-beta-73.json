@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-workspace-route-beta-73",
+  "title": "cp-002 vNext protocolize-start workspace route beta.73",
+  "source": {"repository": "https://github.com/deksden-com/dd-tasks.git", "tag": "eval-flow-vnext-plan-review-beta.73", "commit": "6a06f4e66de5db41f5e6654515d155ab8d66e6d6"},
+  "product_baseline": {"checkpoint_id": "cp-002", "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07", "product_code_changed": false},
+  "memory_bank": {"version": "3.2.0-vnext-plan-review-beta.73", "dd_flow_cli": "0.8.0-beta.72", "engine": {"repository": "https://github.com/deksden-com/dd-flow-cli.git", "tag": "eval-engine-0.8.0-beta.72", "commit": "655e9a69f17ead9fbc8ef0f03a32a8d170d2ef51"}},
+  "state": "ready_for_canonical_authoring"
+}
