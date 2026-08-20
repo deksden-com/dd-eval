@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-006-vnext-one-pass-blocked-review-beta-81",
+  "title": "cp-006 vNext one-pass blocked reviewer evidence beta.81",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-flow-vnext-plan-review-beta.81",
+    "commit": "392219ada3c50143108b7b5c8893cc198663f8b5"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.81",
+    "dd_flow_cli": "0.8.0-beta.78",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.78",
+      "commit": "a1f5008f8af0c47c9ec342e50b9d451918845005"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}
