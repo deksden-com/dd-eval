@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-runtime-bound-commands-beta-77",
+  "title": "cp-002 vNext runtime-bound lifecycle commands beta.77",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-flow-vnext-plan-review-beta.77",
+    "commit": "4aa385d45b8c31481a18f22f0407403df52736a5"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.77",
+    "dd_flow_cli": "0.8.0-beta.75",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.75",
+      "commit": "9568cf28da7adb1c1e746de63744209cbed17aa3"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}
