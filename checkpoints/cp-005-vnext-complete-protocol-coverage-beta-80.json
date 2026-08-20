@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-005-vnext-complete-protocol-coverage-beta-80",
+  "title": "cp-005 vNext complete protocol acceptance coverage beta.80",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-flow-vnext-plan-review-beta.80",
+    "commit": "86f4397bb4d3121275cd8f099b6e5fa925dcbf42"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.80",
+    "dd_flow_cli": "0.8.0-beta.77",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.77",
+      "commit": "9ca9d8ea14be33912898b2dcc7ab5667a68b2a71"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}

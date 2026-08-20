@@ -3,32 +3,32 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "canonical_authoring_ready",
-  "checkpoint": {"id": "cp-004-vnext-workspace-route-and-policy-beta-79"},
+  "checkpoint": {"id": "cp-005-vnext-complete-protocol-coverage-beta-80"},
   "profiles": {
-    "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-76"],
+    "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-77"],
     "subject": [
-      "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-76",
-      "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-76",
-      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-76"
+      "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-77",
+      "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-77",
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-77"
     ],
-    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-76"]
+    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-77"]
   },
   "default_profiles": {
-    "controller": "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-76",
-    "subject": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-76",
-    "judge": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-76"
+    "controller": "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-77",
+    "subject": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-77",
+    "judge": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-77"
   },
   "priming": {
     "controller_packet": "prompts/controller-prime.md",
-    "subject_baseline": "baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-76-rev022.json"
+    "subject_baseline": "baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-77-rev023.json"
   },
-  "judge_baseline": "baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-76-rev022.json",
-  "flow": {"handoff_mode": "same_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_plan_review"},
+  "judge_baseline": "baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-77-rev023.json",
+  "flow": {"handoff_mode": "new_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_plan_review"},
   "canonical_checkpoints": {
-    "specify": "checkpoints/REV-022/specify.json",
-    "protocolize": "checkpoints/REV-022/protocolize.json",
-    "plan": "checkpoints/REV-022/plan.json",
-    "plan-review": "checkpoints/REV-022/plan-review.json"
+    "specify": "checkpoints/REV-023/specify.json",
+    "protocolize": "checkpoints/REV-023/protocolize.json",
+    "plan": "checkpoints/REV-023/plan.json",
+    "plan-review": "checkpoints/REV-023/plan-review.json"
   },
   "stages": {
     "specify": {
