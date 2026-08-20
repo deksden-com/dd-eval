@@ -420,7 +420,11 @@ E013 · sdlc-eval-2026-summer-task-priority · a01 · sol-high · specify · jud
   stages; do not rename it on each transition.
 - A fresh worker uses its owned stage as `<scope>` and its deterministic role
   (`reviewer-01`, `coder-02`, and so on).
-- Capacity probes are visible but never registered as Works.
+- Capacity probes are visible but never registered as Works. They are strictly
+  disposable: launch the one concurrent burst, observe the limit, then cancel
+  every unfinished probe and close/delete every finished probe task that the
+  Desktop harness permits before any productive worker starts. A probe may
+  never remain live and consume capacity for reviewer or CODE work.
 - Increment `a<attempt>` for a retry of the same `EVAL-<NNN>` launch. Never reuse a title for a retry
   or an infrastructure-invalid run.
 
