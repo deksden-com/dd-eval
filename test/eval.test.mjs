@@ -3,7 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { loadCase, prepare, subjectTaskTitle, validateInput } from "../lib/dd-eval.mjs";
+import { loadCase, prepare, subjectContinuation, subjectTaskTitle, validateInput } from "../lib/dd-eval.mjs";
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -24,6 +24,15 @@ test("prepare task titles are deterministic and sortable", () => {
     subjectTaskTitle({ outputRoot: "/tmp/EVAL-006--case--focus", caseId, executionId: "plan-review", profile: { model: "gpt-5.6-luna", reasoning: "xhigh" } }),
     "E006 · sdlc-eval-2026-summer-task-priority · a01 · luna-xhigh · PLAN-REVIEW · subject"
   );
+});
+
+test("a feature-worktree prompt separates the workspace from stable project identity", () => {
+  const prompt = subjectContinuation({
+    stage: "plan", projectRoot: "/eval/project", workspaceRoot: "/eval/workspace", ddFlowHome: "/eval/dd-flow-home", flowRunId: "RUN-001", packet: "packet", focused: true
+  });
+  assert.match(prompt, /Рабочий каталог восстановленной стадии: \/eval\/workspace/);
+  assert.match(prompt, /--project-root '\/eval\/project'/);
+  assert.match(prompt, /не заменяй его рабочим каталогом/);
 });
 
 test("a scored run fails closed when its canonical runtime snapshots are absent", async () => {
