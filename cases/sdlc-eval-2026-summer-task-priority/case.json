@@ -56,7 +56,7 @@
       "expectations": "expectations/plan.json",
       "oracle": "oracles/plan.json",
       "interactions": "interactions/empty.json",
-      "candidate_files": [{"origin": "run", "path": "03-plan/stage-report.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}]
+      "candidate_files": [{"origin": "workspace", "path": ".memory-bank/protocol/PRT-007-task-priority/plan.json"}, {"origin": "run", "path": "03-plan/aspect-map.json"}, {"origin": "run", "path": "03-plan/stage-report.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}]
     },
     "plan-review": {
       "subject_packet": "prompts/subject-plan-review.md",
@@ -76,6 +76,6 @@
     "oracle": "oracles/e2e.json",
     "interactions": "interactions/specify.json",
     "stop_boundary": "plan_review_accepted",
-    "candidate_files": [{"origin": "run", "path": "01-specify/specify.md"}, {"origin": "run", "path": "02-protocolize/stage-report.json"}, {"origin": "run", "path": "03-plan/stage-report.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}]
+    "candidate_files": [{"origin": "run", "path": "01-specify/specify.md"}, {"origin": "run", "path": "02-protocolize/protocolize-result.json"}, {"origin": "workspace", "path": ".memory-bank/protocol/PRT-007-task-priority/plan.json"}, {"origin": "run", "path": "03-plan/aspect-map.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}, {"origin": "run", "path": "04-plan-review/decision.receipt.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}]
   }
 }
