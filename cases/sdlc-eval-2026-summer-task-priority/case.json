@@ -25,10 +25,10 @@
   "judge_baseline": "baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-80-rev026.json",
   "flow": {"handoff_mode": "new_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_plan_review"},
   "canonical_checkpoints": {
-    "specify": "checkpoints/REV-026/specify.json",
-    "protocolize": "checkpoints/REV-026/protocolize.json",
-    "plan": "checkpoints/REV-026/plan.json",
-    "plan-review": "checkpoints/REV-026/plan-review.json"
+    "specify": "checkpoints/REV-028/specify.json",
+    "protocolize": "checkpoints/REV-028/protocolize.json",
+    "plan": "checkpoints/REV-028/plan.json",
+    "plan-review": "checkpoints/REV-028/plan-review.json"
   },
   "stages": {
     "specify": {
