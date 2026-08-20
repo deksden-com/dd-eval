@@ -450,6 +450,22 @@ For focused mode, the next action must be `stop_subject`. For segment mode it is
 If the Subject starts or mutates a successor before capture, mark the attempt
 `invalid_infrastructure_flow`; do not repair or score it.
 
+### E2E handoff ownership
+
+`handoff_mode: new_session` is a Controller operation, not an instruction for
+the running Subject to improvise. After the completed stage has crossed its
+barrier, the Controller forks a fresh Subject from the E2E execution's recorded
+starter Session, registers that child in the same E2E execution, and sends only
+the exact successor `stage start` command returned by the completed stage. The
+fresh Subject uses the existing E2E project root and `DD_FLOW_HOME`; its stage
+prompt reads the accepted predecessor artifacts. This preserves clean provider
+context without substituting a canonical intermediate result.
+
+For `same_session`, continue the existing Subject. In either mode, record every
+Subject Session ID before its first flow command. Never tell a Subject to create
+or select a provider Session itself, and never let it start a successor before
+the Controller has recorded the completed-stage boundary.
+
 ### Completion gate
 
 Before judging, verify:
