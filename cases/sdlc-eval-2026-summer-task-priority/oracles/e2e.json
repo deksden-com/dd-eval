@@ -1,8 +1,8 @@
 {
   "schema_id": "dd-eval/oracle@1",
   "status": "accepted",
-  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "e2e", "canonical_revision": "REV-028", "rubric_sha256": "e175f9d8a9478b3efbe509a7aaf80ba841e83a16bed597734f0a3f6a5c38d410" },
+  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "e2e", "canonical_revision": "REV-029", "rubric_sha256": "e175f9d8a9478b3efbe509a7aaf80ba841e83a16bed597734f0a3f6a5c38d410" },
   "findings": [],
-  "conclusion": "Independent review of the accepted REV-028 canonical E2E chain found no mandatory negative finding; candidate cross-stage loss, invention or illegal flow remains Judge-scored.",
-  "provenance": { "approved_by": "eval-controller", "approved_at": "2026-08-20T13:50:00Z" }
+  "conclusion": "Canonical REV-029 E2E chain has no mandatory negative finding; candidate cross-stage loss, invention or illegal flow remains Judge-scored.",
+  "provenance": { "approved_by": "eval-controller", "approved_at": "2026-08-20T16:53:00Z" }
 }
