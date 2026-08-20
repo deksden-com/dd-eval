@@ -1,8 +1,8 @@
 {
   "schema_id": "dd-eval/oracle@1",
   "status": "accepted",
-  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "plan", "canonical_revision": "REV-026", "rubric_sha256": "0331dd88c77bcf364587ec4d97eebad83f43f10bccf970c16eceed975ad1f75e" },
+  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "plan", "canonical_revision": "REV-028", "rubric_sha256": "0331dd88c77bcf364587ec4d97eebad83f43f10bccf970c16eceed975ad1f75e" },
   "findings": [],
-  "conclusion": "Independent review of the accepted REV-026 canonical PLAN found no mandatory negative finding; the Judge must still identify candidate-specific plan defects.",
+  "conclusion": "Independent review of the accepted REV-028 canonical PLAN found no mandatory negative finding; the Judge must still identify candidate-specific plan defects.",
   "provenance": { "approved_by": "eval-controller", "approved_at": "2026-08-20T13:50:00Z" }
 }

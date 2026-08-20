@@ -1,11 +1,11 @@
 {
   "schema_id": "dd-eval/expectations@1",
   "status": "accepted",
-  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "protocolize", "canonical_revision": "REV-026", "source_sha256": "298b48716c1e09eb01f7887c1d3281b5b2b110269f0000ab5a0e8b7a125c965c" },
+  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "protocolize", "canonical_revision": "REV-028", "source_sha256": "298b48716c1e09eb01f7887c1d3281b5b2b110269f0000ab5a0e8b7a125c965c" },
   "items": [
     { "id": "EXP-PROTOCOLIZE-001", "expectation": "Create one coherent vertical protocol rather than unrelated partial protocols." },
     { "id": "EXP-PROTOCOLIZE-002", "expectation": "Keep the four-value/default, archived-project read-only, authorization and stable-order decisions intact without adding task archival." },
     { "id": "EXP-PROTOCOLIZE-003", "expectation": "Record the feature/protocol document ownership and a durable handoff for PLAN." }
   ],
-  "provenance": { "reviewed_against": "REV-026 canonical PROTOCOLIZE checkpoint", "approved_by": "eval-controller", "approved_at": "2026-08-20T13:50:00Z" }
+  "provenance": { "reviewed_against": "REV-028 canonical PROTOCOLIZE checkpoint", "approved_by": "eval-controller", "approved_at": "2026-08-20T13:50:00Z" }
 }

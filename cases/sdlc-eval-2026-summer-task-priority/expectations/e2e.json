@@ -1,11 +1,11 @@
 {
   "schema_id": "dd-eval/expectations@1",
   "status": "accepted",
-  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "e2e", "canonical_revision": "REV-026", "source_sha256": "c5bb1afb253a08cb1af81075882b4c7510d7ef7c01770028467bed31bcfc5335" },
+  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "e2e", "canonical_revision": "REV-028", "source_sha256": "c5bb1afb253a08cb1af81075882b4c7510d7ef7c01770028467bed31bcfc5335" },
   "items": [
     { "id": "EXP-E2E-001", "expectation": "Preserve the settled four-value/default, archived-project read-only and stable-order decisions through SPECIFY, PROTOCOLIZE, PLAN and PLAN-REVIEW without scope drift." },
     { "id": "EXP-E2E-002", "expectation": "Use declared HITL responses only for material gaps, resume the same stage, and do not add task archiving when the current product has no such capability." },
     { "id": "EXP-E2E-003", "expectation": "End at accepted PLAN-REVIEW with a code-ready work graph; never start CODE." }
   ],
-  "provenance": { "reviewed_against": "REV-026 canonical chain closure", "approved_by": "eval-controller", "approved_at": "2026-08-20T13:50:00Z" }
+  "provenance": { "reviewed_against": "REV-028 canonical chain closure", "approved_by": "eval-controller", "approved_at": "2026-08-20T13:50:00Z" }
 }

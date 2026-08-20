@@ -1,11 +1,11 @@
 {
   "schema_id": "dd-eval/expectations@1",
   "status": "accepted",
-  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "plan-review", "canonical_revision": "REV-026", "source_sha256": "1f4379140b1f30e4b4d9e1471b677a5f861305179ecd7b188ce58888f39b7950" },
+  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "plan-review", "canonical_revision": "REV-028", "source_sha256": "1f4379140b1f30e4b4d9e1471b677a5f861305179ecd7b188ce58888f39b7950" },
   "items": [
     { "id": "EXP-REVIEW-001", "expectation": "Use fresh read-only reviewers with grouping appropriate to the measured capacity; do not create nested reviewer trees." },
     { "id": "EXP-REVIEW-002", "expectation": "Classify material findings and apply accepted corrections once to the plan and dependent work graph." },
     { "id": "EXP-REVIEW-003", "expectation": "Finish with a clear decision, corrected-plan revision when needed, and no automatic second review cycle or CODE start." }
   ],
-  "provenance": { "reviewed_against": "REV-026 canonical PLAN-REVIEW checkpoint", "approved_by": "eval-controller", "approved_at": "2026-08-20T13:50:00Z" }
+  "provenance": { "reviewed_against": "REV-028 canonical PLAN-REVIEW checkpoint", "approved_by": "eval-controller", "approved_at": "2026-08-20T13:50:00Z" }
 }
