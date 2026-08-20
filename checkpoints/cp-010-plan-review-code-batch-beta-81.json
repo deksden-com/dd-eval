@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-010-plan-review-code-batch-beta-81",
+  "title": "cp-010 vNext PLAN-REVIEW CODE-batch coherence beta.81",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-flow-vnext-plan-review-beta.84",
+    "commit": "c1a76b3124a1465aef591a2d0615a309660bcde7"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.84",
+    "dd_flow_cli": "0.8.0-beta.81",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.81",
+      "commit": "f94df7e77f8a90978bcc309171125ddbe326bc66"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}

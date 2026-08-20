@@ -3,7 +3,7 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "canonical_authoring_ready",
-  "checkpoint": {"id": "cp-009-plan-review-code-batch-beta-81"},
+  "checkpoint": {"id": "cp-010-plan-review-code-batch-beta-81"},
   "profiles": {
     "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-80"],
     "subject": [
