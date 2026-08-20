@@ -1,8 +1,8 @@
 {
   "schema_id": "dd-eval/oracle@1",
   "status": "accepted",
-  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "protocolize", "canonical_revision": "REV-009", "rubric_sha256": "7cb498e8cd6c401a99828a580cb910dfc5aef6ceeaebba877cac0fe215d2f34b" },
+  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "protocolize", "canonical_revision": "REV-026", "rubric_sha256": "7cb498e8cd6c401a99828a580cb910dfc5aef6ceeaebba877cac0fe215d2f34b" },
   "findings": [],
-  "conclusion": "Independent review found no mandatory negative finding in the accepted canonical PROTOCOLIZE; semantic quality remains rubric-scored.",
-  "provenance": { "approved_by": "deksden", "approved_at": "2026-08-19T04:45:44Z" }
+  "conclusion": "Independent review of the accepted REV-026 canonical PROTOCOLIZE found no mandatory negative finding; semantic quality remains rubric-scored.",
+  "provenance": { "approved_by": "eval-controller", "approved_at": "2026-08-20T13:50:00Z" }
 }

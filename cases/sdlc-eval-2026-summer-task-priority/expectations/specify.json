@@ -1,11 +1,11 @@
 {
   "schema_id": "dd-eval/expectations@1",
   "status": "accepted",
-  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "specify", "canonical_revision": "REV-009", "source_sha256": "a6addbd64ee9e11290e6af26e8805f94b77a3ddf61a932a2b1f4143e462dec7b" },
+  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "specify", "canonical_revision": "REV-026", "source_sha256": "cfcf0f373182dfd720ae232f0854b9d6fb487a119770586d8635420690f456a2" },
   "items": [
-    { "id": "EXP-SPECIFY-001", "expectation": "Resolve the priority vocabulary, default/backfill, archive exception and ordering rule without inventing a new product direction." },
+    { "id": "EXP-SPECIFY-001", "expectation": "Resolve the four-value vocabulary, no_priority default/backfill, archived-project read-only rule and stable ordering without inventing task archiving." },
     { "id": "EXP-SPECIFY-002", "expectation": "Produce a portable handoff covering persistence, API authorization, list/edit UI and deterministic acceptance evidence." },
-    { "id": "EXP-SPECIFY-003", "expectation": "Ask only the material unresolved product question, then resume the same stage after the declared answer." }
+    { "id": "EXP-SPECIFY-003", "expectation": "Ask only materially unresolved product questions, then resume the same stage after the declared answer." }
   ],
-  "provenance": { "reviewed_against": "REV-009 canonical SPECIFY", "approved_by": "deksden", "approved_at": "2026-08-19T04:45:44Z" }
+  "provenance": { "reviewed_against": "REV-026 canonical SPECIFY checkpoint", "approved_by": "eval-controller", "approved_at": "2026-08-20T13:50:00Z" }
 }

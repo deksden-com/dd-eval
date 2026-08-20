@@ -26,14 +26,14 @@ test("prepare task titles are deterministic and sortable", () => {
   );
 });
 
-test("a scored run fails closed until its canonical checkpoints are accepted", async () => {
+test("a scored run fails closed when its canonical runtime snapshots are absent", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v3-"));
   const previousHome = process.env.DD_EVAL_HOME;
   process.env.DD_EVAL_HOME = root;
   try {
     await assert.rejects(
       prepare({ caseId, source, output: path.join(root, "run"), stageList: "specify" }),
-      /canonical checkpoint is not accepted/
+      /runtime snapshot is missing/
     );
   } finally {
     if (previousHome === undefined) delete process.env.DD_EVAL_HOME; else process.env.DD_EVAL_HOME = previousHome;
