@@ -65,7 +65,7 @@
       "expectations": "expectations/plan-review.json",
       "oracle": "oracles/plan-review.json",
       "interactions": "interactions/empty.json",
-      "candidate_files": [{"origin": "run", "path": "04-plan-review/decision.receipt.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}]
+      "candidate_files": [{"origin": "workspace", "path": ".memory-bank/protocol/PRT-007-task-priority/plan.json"}, {"origin": "run", "path": "03-plan/aspect-map.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}, {"origin": "run", "path": "04-plan-review/decision.receipt.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}]
     }
   },
   "e2e": {
