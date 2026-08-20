@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-002-vnext-review-capacity-beta-76",
+  "title": "cp-002 vNext stage-local PLAN-REVIEW capacity beta.76",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-flow-vnext-plan-review-beta.76",
+    "commit": "6d6599ab3aeafb211437bc4123a207313021570c"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.76",
+    "dd_flow_cli": "0.8.0-beta.74",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.74",
+      "commit": "db94fc6a77d4c0b1029737fec04e20ff8e1231a1"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}
