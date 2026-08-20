@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-004-vnext-workspace-route-and-policy-beta-79",
+  "title": "cp-004 vNext managed workspace and policy-preserving specify beta.79",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-flow-vnext-plan-review-beta.79",
+    "commit": "d10bf716ec8521a819d3e044e8412c6eda7f19bd"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.79",
+    "dd_flow_cli": "0.8.0-beta.76",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.76",
+      "commit": "1d8b8855913807668ccc46182786244c6404e9e6"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}
