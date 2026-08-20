@@ -8,18 +8,15 @@ import { loadCase, prepare, subjectTaskTitle, validateInput } from "../lib/dd-ev
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
 
-test("the active suite uses canonical stage checkpoints", async () => {
+test("the active suite declares its next canonical checkpoint chain", async () => {
   const loaded = await loadCase(caseId);
   assert.equal(loaded.definition.schema_id, "dd-eval/case@4");
-  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-002-vnext-plan-review-beta-65" });
+  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-007-vnext-workspace-handoff-beta-82" });
   assert.equal("compatibility" in loaded.definition, false);
   assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review"]);
-  const validated = await validateInput({ caseId, source, requireMode: "scored" });
-  assert.equal(validated.checkpoint.id, "cp-002-vnext-plan-review-beta-65");
-  assert.equal(validated.checkpoint.memory_bank.engine.commit, "b277ff50b13bd98378866e673ad95ce8f64e068d");
-  assert.equal(validated.starters.sessions.specify.session_id.length > 0, true);
-  assert.equal(validated.judgeBaseline.status, "accepted");
-  assert.equal(validated.judgeBaseline.role, "judge");
+  const validated = await validateInput({ caseId, source, requireMode: "authoring" });
+  assert.equal(validated.checkpoint.id, "cp-007-vnext-workspace-handoff-beta-82");
+  assert.equal(validated.checkpoint.memory_bank.engine.commit, "3d7b9126974efa3e0afe44f7e9d1ea863e55e4f4");
 });
 
 test("prepare task titles are deterministic and sortable", () => {
@@ -29,14 +26,14 @@ test("prepare task titles are deterministic and sortable", () => {
   );
 });
 
-test("a scored run fails closed when its accepted snapshot is unavailable", async () => {
+test("a scored run fails closed until its canonical checkpoints are accepted", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-eval-v3-"));
   const previousHome = process.env.DD_EVAL_HOME;
   process.env.DD_EVAL_HOME = root;
   try {
     await assert.rejects(
       prepare({ caseId, source, output: path.join(root, "run"), stageList: "specify" }),
-      /runtime snapshot is missing/
+      /canonical checkpoint is not accepted/
     );
   } finally {
     if (previousHome === undefined) delete process.env.DD_EVAL_HOME; else process.env.DD_EVAL_HOME = previousHome;

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-007-vnext-workspace-handoff-beta-82",
+  "title": "cp-007 vNext workspace handoff beta.82",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-flow-vnext-plan-review-beta.82",
+    "commit": "e06db2644d9cd23ed8778ebae6cce8eb3b920a58"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.82",
+    "dd_flow_cli": "0.8.0-beta.79",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.79",
+      "commit": "3d7b9126974efa3e0afe44f7e9d1ea863e55e4f4"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}
