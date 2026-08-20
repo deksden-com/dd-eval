@@ -135,12 +135,17 @@ Do this once per exact case-definition, engine and flow-pack revision.
   contain only this canonical project's single RUN; checkpoint capture fails
   if unrelated records exist.
 - Create the canonical Subject Session with the declared canonical profile.
-- Send the normal project prime and the exact versioned case discussion.
+- Send the normal project prime and the exact versioned case discussion **up
+  to, but not including, the user-level flow trigger**. The moving Subject must
+  stay idle after the discussion; do not let a project-level trigger select a
+  global/default runtime before the isolated RUN checkpoint exists.
 - Do not mention the eval, rubric, oracle or expected answers.
 - Stop when the next natural user message would trigger SPECIFY.
 - Allocate the vNext RUN with the matched engine, but do not start SPECIFY and
   do not bind the Controller Session as its Subject. Preserve the exact
-  versioned discussion/intake messages for the later stage-start packet.
+  versioned discussion/intake messages for the later stage-start packet. After
+  the SPECIFY-entry capture, the generated isolated `stage start` command is
+  the sole allowed first-stage trigger.
 
 ### 2. Capture `specify-entry`
 
