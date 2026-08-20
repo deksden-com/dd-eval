@@ -11,12 +11,12 @@ const caseId = "sdlc-eval-2026-summer-task-priority";
 test("the active suite declares its next canonical checkpoint chain", async () => {
   const loaded = await loadCase(caseId);
   assert.equal(loaded.definition.schema_id, "dd-eval/case@4");
-  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-007-vnext-workspace-handoff-beta-82" });
+  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-008-vnext-snapshot-readonly-beta-83" });
   assert.equal("compatibility" in loaded.definition, false);
   assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review"]);
   const validated = await validateInput({ caseId, source, requireMode: "authoring" });
-  assert.equal(validated.checkpoint.id, "cp-007-vnext-workspace-handoff-beta-82");
-  assert.equal(validated.checkpoint.memory_bank.engine.commit, "3d7b9126974efa3e0afe44f7e9d1ea863e55e4f4");
+  assert.equal(validated.checkpoint.id, "cp-008-vnext-snapshot-readonly-beta-83");
+  assert.equal(validated.checkpoint.memory_bank.engine.commit, "98100c85822dc5f55cfa547f054ee6cb39dfc067");
 });
 
 test("prepare task titles are deterministic and sortable", () => {

@@ -3,32 +3,32 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "canonical_authoring_ready",
-  "checkpoint": {"id": "cp-007-vnext-workspace-handoff-beta-82"},
+  "checkpoint": {"id": "cp-008-vnext-snapshot-readonly-beta-83"},
   "profiles": {
-    "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-79"],
+    "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-80"],
     "subject": [
-      "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-79",
-      "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-79",
-      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-79"
+      "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-80",
+      "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-80",
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-80"
     ],
-    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-79"]
+    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-80"]
   },
   "default_profiles": {
-    "controller": "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-79",
-    "subject": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-79",
-    "judge": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-79"
+    "controller": "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-80",
+    "subject": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-80",
+    "judge": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-80"
   },
   "priming": {
     "controller_packet": "prompts/controller-prime.md",
-    "subject_baseline": "baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-79-rev025.json"
+    "subject_baseline": "baselines/subject-codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-80-rev026.json"
   },
-  "judge_baseline": "baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-79-rev025.json",
+  "judge_baseline": "baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-80-rev026.json",
   "flow": {"handoff_mode": "new_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_plan_review"},
   "canonical_checkpoints": {
-    "specify": "checkpoints/REV-025/specify.json",
-    "protocolize": "checkpoints/REV-025/protocolize.json",
-    "plan": "checkpoints/REV-025/plan.json",
-    "plan-review": "checkpoints/REV-025/plan-review.json"
+    "specify": "checkpoints/REV-026/specify.json",
+    "protocolize": "checkpoints/REV-026/protocolize.json",
+    "plan": "checkpoints/REV-026/plan.json",
+    "plan-review": "checkpoints/REV-026/plan-review.json"
   },
   "stages": {
     "specify": {
