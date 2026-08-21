@@ -1,0 +1,13 @@
+{
+  "schema_id": "dd-eval/comparison-result@1",
+  "candidates": [
+    {"model": "gpt-5.6-luna xhigh", "run_id": "EVAL-021", "e2e_outcome": 0.625, "e2e_flow": 0.725, "minutes": 35.5, "total_tokens": 16232000, "tool_calls": 230, "verdict": "fail"},
+    {"model": "gpt-5.6-terra high", "run_id": "EVAL-022", "e2e_outcome": 1, "e2e_flow": 1, "minutes": 21.8, "total_tokens": 7706252, "tool_calls": 170, "verdict": "pass"},
+    {"model": "gpt-5.6-sol high", "run_id": "EVAL-023", "e2e_outcome": 0.875, "e2e_flow": 0.8625, "minutes": 34.27, "total_tokens": 13364731, "tool_calls": 222, "verdict": "pass"}
+  ],
+  "conclusion": "Terra is the only candidate with full E2E Outcome and Flow scores and is also fastest, cheapest, and lowest in tool calls. Sol produces the strongest early-stage handoffs and a code-ready E2E result with minor traceability debt. Luna's strong review cannot compensate for a blocking final CODE handoff.",
+  "golden_candidates": [
+    {"source": "EVAL-022", "scope": "e2e", "proposal": "Promote the reset-safe migration, exact one-key archived PATCH boundary, and deterministic legacy-row verification pattern as a candidate strong decision."},
+    {"source": "EVAL-023", "scope": "plan-review", "proposal": "Promote the broad review coverage with duplicate consolidation as a candidate review pattern, while retaining the one-wave efficiency constraint."}
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "schema_id": "dd-eval/report@2",
+  "run_id": "EVAL-021-023-methodology-v2",
+  "case_id": "sdlc-eval-2026-summer-task-priority",
+  "methodology": {
+    "path": "methodology/evaluation-methodology.md",
+    "sha256": "bb9ba381c514d5a943c32ecf1eacc74318ee4eab476bde578218c68d080d29d5",
+    "assessment_path": "cases/sdlc-eval-2026-summer-task-priority/assessment.json",
+    "assessment_sha256": "cb346f7744215aab1fceb27dcec65dbbadee483053347d0d6ee4dbf9148f4c7a",
+    "mode": "retrospective_rejudge",
+    "evidence_completeness": "limited",
+    "limitations": [
+      "Semantic scoring reuses immutable candidates and accepted independent report@1 Judge findings; no new fresh Judge sessions were run.",
+      "Tool-call totals were reconstructed from the retained Codex JSONL locators recorded by dd-flow rather than regenerated through the newer database schema."
+    ]
+  },
+  "executions": [
+    {
+      "model": "gpt-5.6-luna",
+      "reasoning": "xhigh",
+      "run_id": "EVAL-021",
+      "focused": {
+        "specify": {"outcome": {"score": 1, "verdict": "pass", "vector": [4, 4, 4, 4]}, "flow": {"score": 1, "verdict": "pass", "vector": [4, 4, 4]}, "efficiency": {"minutes": 4.94, "total_tokens": 732000, "uncached_input_tokens": 260000, "tool_calls": 20, "sessions": 1}},
+        "protocolize": {"outcome": {"score": 0.75, "verdict": "fail", "vector": [2, 4, 4, 2]}, "flow": {"score": 1, "verdict": "pass", "vector": [4, 4, 4]}, "efficiency": {"minutes": 1.02, "total_tokens": 255000, "uncached_input_tokens": 168000, "tool_calls": 22, "sessions": 1}, "findings": [{"severity": "material", "summary": "The durable protocol handoff loses the explicit archived-project priority-only mutation boundary."}]},
+        "plan": {"outcome": {"score": 0.625, "verdict": "fail", "vector": [4, 2, 2, 2]}, "flow": {"score": 0.9125, "verdict": "pass", "vector": [3, 3, 4]}, "efficiency": {"minutes": 10.38, "total_tokens": 2984000, "uncached_input_tokens": 335000, "tool_calls": 45, "sessions": 1}, "findings": [{"severity": "material", "summary": "The plan omits scenario/docs work, a database-enforced value invariant, atomic archived-project priority-only mutation, and deterministic pre-0002 legacy proof."}]},
+        "plan-review": {"outcome": {"score": 0.9375, "verdict": "pass", "vector": [4, 4, 4, 3]}, "flow": {"score": 1, "verdict": "pass", "vector": [4, 4, 4]}, "efficiency": {"minutes": 14.5, "total_tokens": 9575000, "uncached_input_tokens": 828000, "tool_calls": 153, "sessions": 6}, "findings": [{"severity": "minor", "summary": "http.ts is listed as an affected contract surface but only as a read path; the actual contract can be implemented in the owned route/service surfaces, so this is traceability debt rather than a CODE blocker."}]}
+      },
+      "e2e": {
+        "outcome": {"score": 0.625, "verdict": "fail", "vector": [3, 2, 3, 2]},
+        "flow": {"score": 0.725, "verdict": "fail", "vector": [4, 2, 4, 2]},
+        "efficiency": {"minutes": 35.5, "total_tokens": 16232000, "uncached_input_tokens": 1355000, "tool_calls": 230, "sessions": 9, "reviewers": 5},
+        "findings": [
+          {"severity": "blocking", "summary": "The final CODE handoff declares two must-read files that do not yet exist and are themselves CODE deliverables."},
+          {"severity": "material", "summary": "Completed work sessions remain active and lifecycle observability is only partial."}
+        ]
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "reasoning": "high",
+      "run_id": "EVAL-022",
+      "focused": {
+        "specify": {"outcome": {"score": 1, "verdict": "pass", "vector": [4, 4, 4, 4]}, "flow": {"score": 1, "verdict": "pass", "vector": [4, 4, 4]}, "efficiency": {"minutes": 4.63, "total_tokens": 645000, "uncached_input_tokens": 88000, "tool_calls": 18, "sessions": 1}},
+        "protocolize": {"outcome": {"score": 0.9, "verdict": "findings", "vector": [4, 4, 4, 2]}, "flow": {"score": 1, "verdict": "pass", "vector": [4, 4, 4]}, "efficiency": {"minutes": 1.04, "total_tokens": 245000, "uncached_input_tokens": 84000, "tool_calls": 22, "sessions": 1}, "findings": [{"severity": "material", "summary": "The archived-project priority-only mutation boundary remains implicit in the PLAN handoff."}]},
+        "plan": {"outcome": {"score": 0.625, "verdict": "fail", "vector": [4, 2, 2, 2]}, "flow": {"score": 0.6625, "verdict": "fail", "vector": [3, 2, 3]}, "efficiency": {"minutes": 7.95, "total_tokens": 1412000, "uncached_input_tokens": 85000, "tool_calls": 34, "sessions": 1}, "findings": [{"severity": "material", "summary": "The runtime batch collapses the implementation into one broad dependency-free Work and omits database enforcement, atomic archived mutation, direct invalid-write proof, and executable pre-0002 migration evidence."}]},
+        "plan-review": {"outcome": {"score": 1, "verdict": "pass", "vector": [4, 4, 4, 4]}, "flow": {"score": 0.825, "verdict": "findings", "vector": [4, 4, 2]}, "efficiency": {"minutes": 12.79, "total_tokens": 8410000, "uncached_input_tokens": 615000, "tool_calls": 143, "sessions": 6}, "findings": [{"severity": "material", "summary": "The corrected aspect-map digest does not match the decision/stage receipts; this weakens closure evidence but does not undo the substantive corrections."}]}
+      },
+      "e2e": {
+        "outcome": {"score": 1, "verdict": "pass", "vector": [4, 4, 4, 4]},
+        "flow": {"score": 1, "verdict": "pass", "vector": [4, 4, 4, 4]},
+        "efficiency": {"minutes": 21.8, "total_tokens": 7706252, "uncached_input_tokens": 706444, "tool_calls": 170, "sessions": 9, "reviewers": 5},
+        "findings": []
+      }
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "reasoning": "high",
+      "run_id": "EVAL-023",
+      "focused": {
+        "specify": {"outcome": {"score": 1, "verdict": "pass", "vector": [4, 4, 4, 4]}, "flow": {"score": 1, "verdict": "pass", "vector": [4, 4, 4]}, "efficiency": {"minutes": 4.31, "total_tokens": 457000, "uncached_input_tokens": 41000, "tool_calls": 16, "sessions": 1}},
+        "protocolize": {"outcome": {"score": 1, "verdict": "pass", "vector": [4, 4, 4, 4]}, "flow": {"score": 1, "verdict": "pass", "vector": [4, 4, 4]}, "efficiency": {"minutes": 1.24, "total_tokens": 346000, "uncached_input_tokens": 90000, "tool_calls": 23, "sessions": 1}},
+        "plan": {"outcome": {"score": 0.625, "verdict": "fail", "vector": [4, 2, 2, 2]}, "flow": {"score": 0.6625, "verdict": "fail", "vector": [3, 2, 3]}, "efficiency": {"minutes": 10.41, "total_tokens": 2583000, "uncached_input_tokens": 191000, "tool_calls": 42, "sessions": 1}, "findings": [{"severity": "material", "summary": "One broad Work omits migration-reset ownership, mixed PATCH atomicity evidence, dependency edges, and deterministic pre-0002 legacy proof."}]},
+        "plan-review": {"outcome": {"score": 0.9375, "verdict": "pass", "vector": [4, 4, 4, 3]}, "flow": {"score": 0.9125, "verdict": "pass", "vector": [4, 4, 3]}, "efficiency": {"minutes": 11.86, "total_tokens": 6461000, "uncached_input_tokens": 434000, "tool_calls": 126, "sessions": 6}, "findings": [{"severity": "minor", "summary": "Two malformed run:/ source references remain after being marked fixed; the practical CODE must-read locators are correct."}]}
+      },
+      "e2e": {
+        "outcome": {"score": 0.875, "verdict": "pass", "vector": [4, 3, 3, 4]},
+        "flow": {"score": 0.8625, "verdict": "pass", "vector": [4, 3, 4, 3]},
+        "efficiency": {"minutes": 34.27, "total_tokens": 13364731, "uncached_input_tokens": 945579, "tool_calls": 222, "sessions": 10, "reviewers": 6},
+        "findings": [{"severity": "minor", "summary": "Malformed run:/ references leave traceability debt but do not block the correct CODE handoff."}]
+      }
+    }
+  ]
+}
