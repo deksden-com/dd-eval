@@ -43,7 +43,7 @@ gpt-5.6-terra / high
 gpt-5.6-sol / high
 ```
 
-Do not edit prompts, interactions, rubrics, expectations, starters or runtime
+Do not edit prompts, interactions, assessment, starters or runtime
 configuration between profiles. A changed definition starts a new comparison.
 
 ## Controller procedure
@@ -70,7 +70,8 @@ dd-eval prepare \
 5. Follow `runbooks/execute-eval.md` for every execution. Never continue a
    starter or canonical Session directly.
 6. Judge every candidate from a fresh Judge fork. Do not tell the Judge which
-   Subject model produced it. Accept only the declared rubric and evidence.
+   Subject model produced it. Supply only the declared assessment, methodology
+   and candidate evidence.
 7. Preserve invalid attempts, but exclude them from quality comparison. Retry
    only infrastructure-invalid executions from a new Subject fork and record
    both attempts.
@@ -80,31 +81,31 @@ dd-eval prepare \
 
 Compare quality and efficiency separately.
 
-Quality is reported per stage and for E2E using:
+Quality is reported per stage and for E2E on two independent planes:
 
-- run validity and flow conformance;
-- every rubric criterion, including whether an essential criterion passed;
-- weighted stage score;
-- critical, major and minor findings;
-- missed requirements, unsupported invention and information loss;
-- quality of the produced handoff to the next stage.
+- **Outcome Quality:** 0–4 anchored scores for the declared outcome criteria,
+  essential-criterion gates, and blocking/material/minor/cosmetic findings;
+- **Flow Reliability:** the corresponding 0–4 evidence for following the
+  workflow contract, reported separately from Outcome Quality;
+- **Efficiency facts:** wall time, token classes, sessions, tool calls and
+  retries, without a compensating score.
 
 A profile is practically **not worse than Sol** for one stage when all are true:
 
 1. both executions are valid;
-2. it passes every essential criterion passed by Sol;
-3. it has no additional critical or major finding;
-4. its weighted score is no more than `0.03` below Sol.
+2. it meets every essential Outcome Quality criterion met by Sol;
+3. it has no additional blocking or material Outcome Quality finding;
+4. its deterministic Outcome Quality score is no more than `0.03` below Sol.
 
 Efficiency never compensates for a critical or major quality defect. Report it
 separately using wall time, total/input/cache-read/reasoning/output tokens,
 Subject and child Session counts, CLI calls, retries and unnecessary repeated
 work.
 
-The Judge's Subject-model label remains hidden during individual scoring. The
-Controller performs the final cross-profile synthesis from accepted Judge
-results and flags close or surprising Sol-vs-Sol-Judge differences for human
-review.
+The Judge's Subject-model label remains hidden during individual scoring. A
+fresh Grand Judge receives anonymized accepted reports and may propose golden
+or methodology changes; only a human accepts those proposals. The Controller
+performs no semantic synthesis.
 
 ## Required report
 

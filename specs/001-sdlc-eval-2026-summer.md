@@ -7,6 +7,10 @@ suite_id: 'sdlc-eval-2026-summer'
 
 # 001 — SDLC Eval 2026 Summer
 
+> The scoring, reference/governance and report-rendering sections below are
+> superseded by [specification 005](005-outcome-assessment-and-sites-publication.md).
+> Checkpoint topology and execution intent remain active.
+
 ## Goal
 
 Evaluate AI agents at two complementary levels:

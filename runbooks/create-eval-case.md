@@ -39,8 +39,7 @@ cases/<case-id>/starter-sessions.json       current starter Session IDs
 cases/<case-id>/scenarios/                  versioned comparison plans
 cases/<case-id>/prompts/                    versioned ordinary Subject inputs
 cases/<case-id>/interactions/               declared HITL responses
-cases/<case-id>/rubrics/                    Judge criteria
-cases/<case-id>/expectations/               accepted references when available
+cases/<case-id>/assessment.json             accepted criteria and golden reference
 ```
 
 `starter-sessions.json` is deliberately small:
@@ -85,7 +84,9 @@ checkpoint.
    evaluated project source/tag/commit and its matched flow-pack and engine
    version/tag/commit. Put only `checkpoint.id` in `case.json`; do not repeat
    a pair SHA, version or tag in the case, a scenario, or a profile.
-2. Freeze the profiles, prompts, interactions and rubrics. Profiles describe
+2. Freeze the profiles, prompts, interactions and one accepted assessment.
+   The assessment defines outcome/flow criteria, golden decisions, valid
+   alternatives and known risks. Profiles describe
    the Desktop harness, model and reasoning only; they do not select an engine.
 3. Build the single canonical Subject chain using
    [the eval execution runbook](execute-eval.md).

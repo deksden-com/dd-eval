@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "node --test",
-    "validate": "node ./bin/dd-eval.mjs validate --case sdlc-eval-2026-summer-task-priority"
+    "validate": "node ./bin/dd-eval.mjs validate --case sdlc-eval-2026-summer-task-priority --source ../dd-tasks.beta-vnext-plan-review"
   },
   "engines": {
     "node": ">=22.0.0"

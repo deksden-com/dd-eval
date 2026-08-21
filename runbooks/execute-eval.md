@@ -4,7 +4,7 @@ This runbook is the operator procedure for focused-stage, contiguous-segment
 and E2E executions of `sdlc-eval-2026-summer`.
 
 It implements [specification 002](../specs/002-canonical-stage-checkpoint-evaluation.md).
-The active CLI and case use `case@4`; the old portable fixture path is
+The active CLI and case use `case@5`; the old portable fixture path is
 diagnostic-only and must not be used for a scored run.
 
 The implementation cutover and launch gates are defined by
@@ -25,7 +25,7 @@ rule. The Controller reads the scenario first, records its path and the clean
 `dd-eval` commit, then applies this runbook to every execution it declares.
 
 The scenario may select existing `dd-eval prepare` options; it does not replace
-the case definition, starter registry, stage rubrics or this lifecycle. Do not
+the case definition, starter registry, accepted assessment or this lifecycle. Do not
 invent missing matrix entries or silently substitute an old result.
 The case's `checkpoint.id` resolves the immutable input checkpoint in the
 repository-level `checkpoints/` directory. That file, rather than a scenario
@@ -76,7 +76,7 @@ Before preparing an attempt, verify:
    committed and form the intended matched pair;
 4. the requested Controller, Subject and Judge profiles are declared;
 5. every selected stage has an accepted canonical entry checkpoint;
-6. every selected rubric and oracle is accepted;
+6. the selected case assessment is accepted and matches the case hash;
 7. checkpoint archives exist and their checksums match;
 8. the current starter Subject Sessions and Judge priming parent are reachable;
    during case creation or starter recovery, the canonical Subject Sessions
@@ -139,7 +139,7 @@ Do this once per exact case-definition, engine and flow-pack revision.
   to, but not including, the user-level flow trigger**. The moving Subject must
   stay idle after the discussion; do not let a project-level trigger select a
   global/default runtime before the isolated RUN checkpoint exists.
-- Do not mention the eval, rubric, oracle or expected answers.
+- Do not mention the eval, assessment, golden reference or expected answers.
 - Stop when the next natural user message would trigger SPECIFY.
 - Allocate the vNext RUN with the matched engine, but do not start SPECIFY and
   do not bind the Controller Session as its Subject. Preserve the exact
@@ -256,7 +256,7 @@ Commit and tag:
 
 - case manifest and checkpoint records;
 - prompt/message manifests and hashes;
-- interactions, rubrics and accepted expectations;
+- interactions and the accepted assessment;
 - engine/flow/project identities;
 - compact human checkpoint reviews.
 
@@ -359,8 +359,8 @@ new attempt through the starter registry.
 
 The continuation contains ordinary workflow information only: current working
 directory, inline `DD_FLOW_HOME`, exact normal stage command/trigger, trusted
-restore receipt and the requested stop boundary. It contains no eval, rubric,
-oracle or Judge terminology.
+restore receipt and the requested stop boundary. It contains no eval,
+assessment, golden reference or Judge terminology.
 
 Every `dd-flow` shell command uses the inline form:
 
@@ -425,7 +425,8 @@ When `sync` returns `deliver_observed_interaction`:
    instructions to that message — then let the same stage resume with its
    generated command;
 4. do not label the attempt invalid solely because the question was undeclared;
-5. do not help the Subject with an evaluation, rubric or hidden expected result.
+5. do not help the Subject with an evaluation, assessment criteria or hidden
+   golden material.
 
 `dd-flow` persists each question/answer pair under `intake/hitl`; candidate
 checkpointing copies it into the candidate receipt. The Judge must assess both
@@ -521,9 +522,10 @@ Finalization must:
 - refresh usage after all Subject and Judge turns have stopped;
 - deduplicate usage by physical Session;
 - keep Controller, Subject, Subject children, Judge and Judge children separate;
-- render JSON, Markdown and HTML from one report truth;
+- render the deterministic JSON and Markdown report from one report truth;
 - retain exact checkpoint, fork, model, prompt and artifact identities;
-- archive runtime/transcript evidence and record checksums/locators;
+- record runtime/transcript evidence checksums/locators when explicitly
+  archived;
 - copy only compact validated results into the case result directory.
 
 Commit and push the result separately from the frozen definition. Never commit
@@ -566,7 +568,7 @@ Preserve but do not score an attempt when:
 - engine and flow pack are not the declared pair;
 - selected model silently changes or falls back;
 - hook binding is absent and identity is manually substituted;
-- Controller leaks rubric/oracle/eval guidance to Subject;
+- Controller leaks assessment/golden/eval guidance to Subject;
 - a successor stage starts before its capture barrier;
 - candidate files are edited after capture;
 - Judge shares Subject context or mutates candidate state.

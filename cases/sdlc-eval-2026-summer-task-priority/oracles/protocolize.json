@@ -1,8 +1,0 @@
-{
-  "schema_id": "dd-eval/oracle@1",
-  "status": "accepted",
-  "scope": { "case_id": "sdlc-eval-2026-summer-task-priority", "stage": "protocolize", "canonical_revision": "REV-029", "rubric_sha256": "7cb498e8cd6c401a99828a580cb910dfc5aef6ceeaebba877cac0fe215d2f34b" },
-  "findings": [],
-  "conclusion": "Canonical REV-029 PROTOCOLIZE created one vertical PRT, its feature record and a managed feature-worktree route; semantic quality remains rubric-scored.",
-  "provenance": { "approved_by": "eval-controller", "approved_at": "2026-08-20T16:53:00Z" }
-}

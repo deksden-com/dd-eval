@@ -8,7 +8,8 @@ applies to every case and beta contour.
 `DD_EVAL_HOME` is the sole root for non-Git eval data. Its default is
 `~/.dd-eval`; an operator may set it to another absolute path, for example a
 dedicated external volume. `dd-eval` source, case definitions, prompts,
-rubrics and compact accepted results remain in the Git checkout.
+accepted assessment/golden material and compact accepted results remain in the
+Git checkout.
 
 ```sh
 export DD_EVAL_HOME="$HOME/.dd-eval"
@@ -77,7 +78,8 @@ Each new attempt receives a generated, monotonic
 `EVAL-<zero-padded-number>--<case>--<mode>` directory. `sequence.json` is a
 small counter updated under an exclusive filesystem lock; it is not a registry
 and contains no run metadata. The manifest—not the directory spelling—records
-model, engine, flow-pack and case revision.
+model, engine, flow-pack, case revision and the clean `dd-eval` definition
+commit/tree that produced the attempt.
 
 Canonical checkpoint records committed to Git use paths relative to
 `DD_EVAL_HOME`. Absolute source paths may appear only as historical evidence

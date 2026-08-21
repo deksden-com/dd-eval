@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/report@2",
+  "type": "object",
+  "required": ["schema_id", "run_id", "case_id", "methodology", "executions"],
+  "properties": {
+    "schema_id": {"const": "dd-eval/report@2"},
+    "run_id": {"type": "string"},
+    "case_id": {"type": "string"},
+    "methodology": {"type": "object"},
+    "executions": {"type": "array"}
+  },
+  "additionalProperties": false
+}

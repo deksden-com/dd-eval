@@ -27,7 +27,7 @@ flow pack as an explicit matched pair, and use absolute paths for both.
 4. Stop at the declared stage boundary, `checkpoint` its declared artifacts,
    run a read-only Judge, accept its schema-valid result, then `finalize`.
 
-An unaccepted checkpoint or oracle is deliberately not runnable. Build and
+An unaccepted checkpoint or assessment is deliberately not runnable. Build and
 independently accept the canonical chain before comparing a Subject profile.
 
 ## Eval modes
@@ -44,7 +44,8 @@ A **focused stage eval** measures exactly one stage: `SPECIFY`,
   copy of the paired canonical project/RUN checkpoint. The Subject stops immediately after the
   target stage finishes; it does not enter a successor stage.
 - Give the Judge a separate fresh fork of the canonical Judge priming session,
-  then only that stage's candidate packet and rubric.
+  then only that stage's candidate packet, the shared methodology and the
+  applicable `assessment.json` scope.
 - Every focused stage starts from its own accepted canonical entry checkpoint.
 - A focused result therefore measures the stage's own grounding, decisions,
   artifacts and handoff—not the quality of work done before it.
@@ -440,7 +441,7 @@ The Controller follows it in addition to the role prime:
 
 1. Fork the latest completed state of the current starter Subject Session,
    select the requested profile, record the parent/fork IDs, then send the exact
-   generated `subject.md` continuation. Do not add rubric, oracle or scoring
+   generated `subject.md` continuation. Do not add assessment, golden or scoring
    hints.
 2. Tell the Subject only the harness boundary: after a successful finish of
    the focused stage, stop; the Controller owns the checkpoint and does not
@@ -451,7 +452,7 @@ The Controller follows it in addition to the role prime:
 4. If a later stage is prepared, starts, or mutates the candidate before that
    checkpoint, preserve the attempt as `invalid_infrastructure_flow`; do not
    repair it in place or score it as a focused-stage result.
-5. Start the clean Judge only from an accepted oracle. With a draft oracle,
+5. Start the clean Judge only from an accepted assessment. With a draft assessment,
    a read-only diagnostic may be useful, but it is explicitly non-official and
    must never be accepted as the Judge score.
 

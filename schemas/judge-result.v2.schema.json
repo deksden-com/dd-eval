@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/judge-result@2",
+  "type": "object",
+  "required": ["schema_id", "scope", "run_validity", "outcome", "flow", "findings", "golden", "conclusion"],
+  "properties": {
+    "schema_id": {"const": "dd-eval/judge-result@2"},
+    "scope": {"type": "string"},
+    "run_validity": {"enum": ["valid", "invalid_infrastructure_flow", "contaminated"]},
+    "outcome": {"type": "array"},
+    "flow": {"type": "array"},
+    "findings": {"type": "array"},
+    "golden": {"type": "object"},
+    "conclusion": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

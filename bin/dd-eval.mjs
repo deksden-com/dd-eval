@@ -2,6 +2,8 @@
 import {
   addSession,
   acceptCanonicalCheckpoint,
+  compareAccept,
+  comparePrepare,
   captureCanonicalCheckpoint,
   checkpoint,
   defaultSource,
@@ -26,8 +28,10 @@ Usage:
   dd-eval session add --eval <prepared-dir> --execution <id> --role <controller|subject_base|subject|judge> --session-id <id> [--parent-session-id <id>] [--agent-id <id>]
   dd-eval sync --eval <prepared-dir> --execution <id> --project-root <path> [--flow-run <id>]
   dd-eval checkpoint --eval <prepared-dir> --execution <id>
-  dd-eval judge prepare --eval <prepared-dir> --execution <id>
+  dd-eval judge prepare --eval <prepared-dir> --execution <id> [--rejudge]
   dd-eval judge accept --eval <prepared-dir> --execution <id> --result <judge-result.json>
+  dd-eval compare prepare --evals <eval-dir,...> --output <comparison-dir>
+  dd-eval compare accept --comparison <comparison-dir> --result <comparison-result.json>
   dd-eval finalize --eval <prepared-dir>
 `;
 }
@@ -39,7 +43,7 @@ function parse(argv) {
     const token = argv[index];
     if (!token.startsWith("--")) { positional.push(token); continue; }
     const key = token.slice(2);
-    if (key === "e2e") { options[key] = true; continue; }
+    if (["e2e", "rejudge"].includes(key)) { options[key] = true; continue; }
     const value = argv[index + 1];
     if (value === undefined || value.startsWith("--")) throw new Error(`--${key} requires a value`);
     options[key] = value;
@@ -80,9 +84,13 @@ try {
   } else if (family === "checkpoint") {
     result = await checkpoint({ evalRoot: required(options, "eval"), executionId: required(options, "execution") });
   } else if (family === "judge" && command === "prepare") {
-    result = await judgePrepare({ evalRoot: required(options, "eval"), executionId: required(options, "execution") });
+    result = await judgePrepare({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), rejudge: options.rejudge === true });
   } else if (family === "judge" && command === "accept") {
     result = await judgeAccept({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), result: required(options, "result") });
+  } else if (family === "compare" && command === "prepare") {
+    result = await comparePrepare({ evalRoots: required(options, "evals"), output: required(options, "output") });
+  } else if (family === "compare" && command === "accept") {
+    result = await compareAccept({ comparisonRoot: required(options, "comparison"), result: required(options, "result") });
   } else if (family === "finalize") {
     result = await finalize({ evalRoot: required(options, "eval") });
   } else {

@@ -20,8 +20,9 @@ Repository-level eval design specifications live under [specs/](specs/). The
 `sdlc-eval-2026-summer` suite is defined by
 [specification 001](specs/001-sdlc-eval-2026-summer.md); its canonical
 stage-checkpoint execution model is refined by
-[specification 002](specs/002-canonical-stage-checkpoint-evaluation.md) and the
-[launch-readiness cutover](specs/003-canonical-eval-launch-readiness.md), plus
+[specification 002](specs/002-canonical-stage-checkpoint-evaluation.md), the
+[launch-readiness cutover](specs/003-canonical-eval-launch-readiness.md) and
+[outcome-assessment/publication specification 005](specs/005-outcome-assessment-and-sites-publication.md), plus
 the [case-creation runbook](runbooks/create-eval-case.md) and
 [eval execution runbook](runbooks/execute-eval.md). Non-Git attempts,
 canonical snapshots and retention follow the [storage runbook](runbooks/eval-storage.md).
@@ -45,6 +46,11 @@ Reviews must distinguish three things:
 - the agent found and read the applicable project and flow rules;
 - it applied those rules correctly;
 - the resulting specification, plan, or code is good.
+
+Outcome quality is the primary score. Flow reliability is reported separately;
+time, tokens and tool calls are efficiency facts rather than a compensating
+score. Each active case has one accepted `assessment.json` that defines its
+criteria, golden decisions, valid alternatives and known risks.
 
 Hidden checks may hide how a requirement is tested, but must not introduce a
 requirement absent from the task, clarification packet, project Memory Bank, or
@@ -272,7 +278,7 @@ accepted commit.
 The command-line executable is named `dd-eval`. `dd-deval` is not an alias and
 must not appear in manifests, documentation, reports, or automation.
 
-The commands below implement the `case@4` contract from specification 002.
+The commands below implement the `case@5` contract from specifications 002 and 005.
 Portable stage fixtures are not executable input for a scored run.
 
 `sdlc-eval-2026-summer-task-priority` is the initial bounded planning case. It
@@ -311,7 +317,7 @@ from the case default or command line.
 independent copy of its exact project and RUN, and returns the current starter
 Subject Session plus ordinary continuation packet. It never reconstructs a
 later stage from a portable semantic fixture. The Subject never receives
-evaluation wording, rubrics or expectations. Draft checkpoints and draft expectations
+evaluation wording, assessment criteria or golden decisions. Draft checkpoints and draft assessment
 fail closed.
 
 The Controller records every root/child session, syncs engine-owned runtime
@@ -326,8 +332,8 @@ not an active CLI contract.
 
 The `dd-eval` CLI exports the tree from an exact `dd-tasks` commit into a
 new repository. It does not give the agent the canonical repository's history,
-remote, later refs, evaluation cases, rubrics, clarification answers, or
-reference result.
+remote, later refs, evaluation cases, assessment/golden material,
+clarification answers, or reference result.
 
 A run repository starts with one `eval-input` commit. The agent's final state is
 tagged or committed as `eval-output`. The run manifest retained here binds both
@@ -341,7 +347,7 @@ evaluation proves the required interface.
 ### Memory Bank 2.16.0 rerun
 
 The first controlled flow-version rerun keeps `EVAL-001-task-priority` and its
-prompts/rubric unchanged while selecting a second immutable checkpoint:
+prompts and assessment unchanged while selecting a second immutable checkpoint:
 
 ```text
 node ./bin/dd-eval.mjs prepare \

@@ -1,1 +1,0 @@
-{"criteria":[{"id":"material-findings","weight":0.35,"essential":true},{"id":"evidence","weight":0.2,"essential":false},{"id":"prioritization","weight":0.2,"essential":false},{"id":"correction","weight":0.25,"essential":true}],"thresholds":{"pass":0.85,"fail":0.7}}

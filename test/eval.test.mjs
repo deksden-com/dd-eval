@@ -1,16 +1,17 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { loadCase, prepare, subjectContinuation, subjectTaskTitle, validateInput } from "../lib/dd-eval.mjs";
+import { comparePrepare, loadCase, prepare, scoreEvaluation, subjectContinuation, subjectTaskTitle, validateInput } from "../lib/dd-eval.mjs";
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
 
 test("the active suite declares its next canonical checkpoint chain", async () => {
   const loaded = await loadCase(caseId);
-  assert.equal(loaded.definition.schema_id, "dd-eval/case@4");
+  assert.equal(loaded.definition.schema_id, "dd-eval/case@5");
+  assert.equal(loaded.assessment.schema_id, "dd-eval/assessment@1");
   assert.deepEqual(loaded.definition.checkpoint, { id: "cp-010-plan-review-code-batch-beta-81" });
   assert.equal("compatibility" in loaded.definition, false);
   assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review"]);
@@ -47,5 +48,37 @@ test("a scored run fails closed when its canonical runtime snapshots are absent"
   } finally {
     if (previousHome === undefined) delete process.env.DD_EVAL_HOME; else process.env.DD_EVAL_HOME = previousHome;
     await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("outcome gates stay independent from flow and efficiency", async () => {
+  const loaded = await loadCase(caseId);
+  const assessment = loaded.assessment.scopes.specify;
+  const result = scoreEvaluation({
+    run_validity: "valid",
+    outcome: assessment.outcome.map((criterion) => ({ id: criterion.id, score: criterion.id === "gaps" ? 2 : 4 })),
+    flow: assessment.flow.map((criterion) => ({ id: criterion.id, score: 4 })),
+    findings: []
+  }, assessment);
+  assert.equal(result.outcome.verdict, "fail");
+  assert.equal(result.flow.score, 1);
+});
+
+test("Grand Judge preparation anonymizes completed eval roots", async () => {
+  const home = await mkdtemp(path.join(tmpdir(), "dd-eval-comparison-"));
+  const previousHome = process.env.DD_EVAL_HOME;
+  process.env.DD_EVAL_HOME = home;
+  try {
+    const roots = ["one", "two"].map((name) => path.join(home, name));
+    for (const root of roots) {
+      await mkdir(root, { recursive: true });
+      await writeFile(path.join(root, "report.json"), JSON.stringify({ schema_id: "dd-eval/report@2", run_id: path.basename(root), case_id: caseId, methodology: {}, executions: [] }));
+      await writeFile(path.join(root, "manifest.json"), JSON.stringify({ schema_id: "dd-eval/run-manifest@1" }));
+    }
+    const prepared = await comparePrepare({ evalRoots: roots.join(","), output: path.join(home, "comparison") });
+    assert.deepEqual(prepared.candidates, ["A", "B"]);
+  } finally {
+    if (previousHome === undefined) delete process.env.DD_EVAL_HOME; else process.env.DD_EVAL_HOME = previousHome;
+    await rm(home, { recursive: true, force: true });
   }
 });
