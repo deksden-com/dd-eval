@@ -33,7 +33,9 @@ efficiency is factual supporting data rather than a quality score.
 
 1. Build the site with Sites using `prompts/roles/report-site.md`.
 2. Verify the report data, mobile layout and accessible numeric alternatives to
-   charts.
+   charts. For radars, verify stable model colors, distinguishable line styles,
+   light non-muddy fills, vertex markers, a visible legend and exact 0–4 values
+   in the adjacent table. Never encode a model by color alone.
 3. Publish only with the access level explicitly requested or approved by the
    user.
 4. Write `publication.json` next to the report with the report hash,
