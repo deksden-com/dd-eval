@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { comparePrepare, judgeResultInstructions, judgeResultPath, loadCase, prepare, scoreEvaluation, subjectContinuation, subjectTaskTitle, validateInput } from "../lib/dd-eval.mjs";
+import { addSession, comparePrepare, judgeResultInstructions, judgeResultPath, loadCase, prepare, scoreEvaluation, subjectContinuation, subjectTaskTitle, validateInput } from "../lib/dd-eval.mjs";
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -42,6 +42,13 @@ test("Judge packet has one deterministic write-only result destination", () => {
   assert.equal(result, "/eval/run/judge/specify/candidate-01/judge-02.result.json");
   assert.match(judgeResultInstructions(result), /only artifact you may create or modify/);
   assert.match(judgeResultInstructions(result), /judge-02\.result\.json/);
+});
+
+test("Session registration rejects placeholder IDs before touching eval state", async () => {
+  await assert.rejects(
+    addSession({ evalRoot: "/missing", executionId: "specify", role: "subject", sessionId: "undefined" }),
+    /real provider Session ID/
+  );
 });
 
 test("a feature-worktree prompt separates the workspace from stable project identity", () => {

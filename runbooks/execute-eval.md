@@ -377,6 +377,11 @@ dd-eval session add --eval "<eval-root>" --execution "<execution-id>" \
   --parent-session-id "<starter-session-id>"
 ```
 
+When a Controller calls a Desktop API through an automation wrapper, first
+decode its returned payload and extract the actual opaque `threadId`. Never
+pass a missing value, `undefined`, or a title-derived ID to `dd-eval session
+add`; the CLI rejects those placeholders before it writes attempt state.
+
 6. Send the generated Subject continuation without editing it, using the exact
    requested model and reasoning returned by `prepare`. Use the same explicit
    profile when delivering a HITL answer or any later continuation in that
