@@ -360,8 +360,9 @@ the committed starter registry is authoritative.
    `dd-eval prepare`.
 2. A fork preserves the selected starter's context, but Desktop applies the
    Controller's default model to a new turn unless its send operation explicitly
-   supplies the selected Subject model and reasoning. Send the first continuation
-   with exactly the profile returned by `prepare` (for example
+   supplies the selected Subject model and reasoning. Send every Controller
+   message that starts or resumes Subject work with exactly the profile returned
+   by `prepare` (for example
    `model: gpt-5.6-luna`, `thinking: xhigh`). This explicit assignment is part
    of launch, not a user-visible model change. `dd-eval sync` verifies the
    resulting provider turn; a mismatch invalidates the attempt before judging.
@@ -377,7 +378,9 @@ dd-eval session add --eval "<eval-root>" --execution "<execution-id>" \
 ```
 
 6. Send the generated Subject continuation without editing it, using the exact
-   requested model and reasoning returned by `prepare`.
+   requested model and reasoning returned by `prepare`. Use the same explicit
+   profile when delivering a HITL answer or any later continuation in that
+   Subject Session.
 
 The evaluated Session must differ from the starter and its recorded parent
 must equal the current starter ID. A restored stage-entry snapshot deliberately
@@ -521,7 +524,8 @@ For each focused stage and each stage inside a segment:
 1. fork the canonical Judge priming Session into a fresh Session;
 2. record its parent and child IDs;
 3. run `dd-eval judge prepare` for that candidate stage;
-4. send the generated packet unchanged. It includes any captured
+4. send the generated packet unchanged with the exact declared Judge model and
+   reasoning. It includes any captured
    `run/intake/hitl` interaction evidence; Judge it as observed model behavior;
 5. wait for the Judge. The generated packet names one deterministic
    `judge-XX.result.json` destination in the attempt's `judge/` directory;
