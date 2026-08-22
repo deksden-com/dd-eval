@@ -6,6 +6,7 @@ import {
   comparePrepare,
   captureCanonicalCheckpoint,
   checkpoint,
+  continuation,
   defaultSource,
   finalize,
   judgeAccept,
@@ -29,6 +30,7 @@ Usage:
   dd-eval session add --eval <prepared-dir> --execution <id> --role <controller|subject_base|subject|judge> --session-id <id> [--parent-session-id <id>] [--agent-id <id>]
   dd-eval sync --eval <prepared-dir> --execution <id> --project-root <path> [--flow-run <id>]
   dd-eval checkpoint --eval <prepared-dir> --execution <id>
+  dd-eval continuation --eval <prepared-dir> --execution <id> --from-stage <stage>
   dd-eval judge prepare --eval <prepared-dir> --execution <id> [--rejudge]
   dd-eval judge accept --eval <prepared-dir> --execution <id> --result <judge-result.json>
   dd-eval judge reject --eval <prepared-dir> --execution <id> --reason <why-result-cannot-be-accepted>
@@ -85,6 +87,8 @@ try {
     result = await acceptCanonicalCheckpoint({ caseId: required(options, "case"), stage: required(options, "stage"), recordFile: required(options, "record"), reviewFile: required(options, "review") });
   } else if (family === "checkpoint") {
     result = await checkpoint({ evalRoot: required(options, "eval"), executionId: required(options, "execution") });
+  } else if (family === "continuation") {
+    result = await continuation({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), fromStage: required(options, "from-stage") });
   } else if (family === "judge" && command === "prepare") {
     result = await judgePrepare({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), rejudge: options.rejudge === true });
   } else if (family === "judge" && command === "accept") {

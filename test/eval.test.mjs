@@ -63,11 +63,12 @@ test("Session registration rejects placeholder IDs before touching eval state", 
 
 test("a feature-worktree prompt separates the workspace from stable project identity", () => {
   const prompt = subjectContinuation({
-    stage: "plan", projectRoot: "/eval/project", workspaceRoot: "/eval/workspace", ddFlowHome: "/eval/dd-flow-home", flowRunId: "RUN-001", packet: "packet", focused: true
+    stage: "plan", projectRoot: "/eval/project", workspaceRoot: "/eval/workspace", ddFlowHome: "/eval/dd-flow-home", flowRunId: "RUN-001", packet: "packet"
   });
   assert.match(prompt, /Рабочий каталог восстановленной стадии: \/eval\/workspace/);
   assert.match(prompt, /--project-root '\/eval\/project'/);
   assert.match(prompt, /не заменяй его рабочим каталогом/);
+  assert.match(prompt, /Controller сначала синхронизирует/);
 });
 
 test("a scored run fails closed when its canonical runtime snapshots are absent", async () => {

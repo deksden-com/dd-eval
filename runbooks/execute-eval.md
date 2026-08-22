@@ -512,7 +512,16 @@ context without substituting a canonical intermediate result.
 For `same_session`, continue the existing Subject. In either mode, record every
 Subject Session ID before its first flow command. Never tell a Subject to create
 or select a provider Session itself, and never let it start a successor before
-the Controller has recorded the completed-stage boundary.
+the Controller has recorded the completed-stage boundary. Every generated
+Subject continuation stops after one stage, including E2E. After checkpointing,
+the Controller obtains the next immutable packet with:
+
+```sh
+dd-eval continuation --eval "<eval-root>" --execution e2e --from-stage "<finished-stage>"
+```
+
+It sends that exact returned packet to the permitted successor Session; it does
+not synthesize a next-stage command or reuse the original E2E request.
 
 ### Completion gate
 
