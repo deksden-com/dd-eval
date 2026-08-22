@@ -358,8 +358,13 @@ the committed starter registry is authoritative.
 
 1. Fork the latest completed state of the starter Subject Session returned by
    `dd-eval prepare`.
-2. Keep the inherited model and reasoning profile. A native fork must already
-   come from the selected profile's starter; never switch its model after fork.
+2. A fork preserves the selected starter's context, but Desktop applies the
+   Controller's default model to a new turn unless its send operation explicitly
+   supplies the selected Subject model and reasoning. Send the first continuation
+   with exactly the profile returned by `prepare` (for example
+   `model: gpt-5.6-luna`, `thinking: xhigh`). This explicit assignment is part
+   of launch, not a user-visible model change. `dd-eval sync` verifies the
+   resulting provider turn; a mismatch invalidates the attempt before judging.
 3. Give the task the title returned by `dd-eval`.
 4. Set the task workspace to the restored project root when the harness permits;
    otherwise tell the Subject the absolute root in the generated continuation.
@@ -371,7 +376,8 @@ dd-eval session add --eval "<eval-root>" --execution "<execution-id>" \
   --parent-session-id "<starter-session-id>"
 ```
 
-6. Send the generated Subject continuation without editing it.
+6. Send the generated Subject continuation without editing it, using the exact
+   requested model and reasoning returned by `prepare`.
 
 The evaluated Session must differ from the starter and its recorded parent
 must equal the current starter ID. A restored stage-entry snapshot deliberately
