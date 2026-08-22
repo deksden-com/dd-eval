@@ -287,15 +287,17 @@ external archive. Record locators, sizes and checksums in Git.
 ### 5. Create the starter Sessions
 
 After all required checkpoints are accepted, create one untouched starter
-Session for every checkpoint:
+Session for every checkpoint and Subject profile. For the canonical profile,
+the parent is the frozen checkpoint Session. For another profile, first accept
+its ordinary prime baseline and use that baseline as the protected parent.
 
-1. fork the frozen checkpoint Session;
+1. fork the applicable protected source Session;
 2. name the child `START <case-id> <STAGE>-entry`;
 3. send the child no message;
 4. write its current Session ID under the matching stage in
    `cases/<case-id>/starter-sessions.json`;
 5. verify that the starter is reachable, idle and directly parented by the
-   frozen checkpoint Session;
+   declared protected source Session;
 6. commit and push the updated starter registry before running an eval.
 
 The two Git locations have different audiences:
@@ -356,7 +358,8 @@ the committed starter registry is authoritative.
 
 1. Fork the latest completed state of the starter Subject Session returned by
    `dd-eval prepare`.
-2. Explicitly select the requested Subject model and reasoning profile.
+2. Keep the inherited model and reasoning profile. A native fork must already
+   come from the selected profile's starter; never switch its model after fork.
 3. Give the task the title returned by `dd-eval`.
 4. Set the task workspace to the restored project root when the harness permits;
    otherwise tell the Subject the absolute root in the generated continuation.

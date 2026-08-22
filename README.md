@@ -316,8 +316,10 @@ override; the manifest records both the effective profile and whether it came
 from the case default or command line.
 
 `prepare` resolves the selected canonical stage-entry checkpoint, restores an
-independent copy of its exact project and RUN, and returns the current starter
-Subject Session plus ordinary continuation packet. It never reconstructs a
+independent copy of its exact project and RUN, and returns the selected
+profile's current starter Subject Session plus ordinary continuation packet. A
+native fork never changes model: each Subject profile has its own primed
+baseline and protected starters. It never reconstructs a
 later stage from a portable semantic fixture. The Subject never receives
 evaluation wording, assessment criteria or golden decisions. Draft checkpoints and draft assessment
 fail closed.

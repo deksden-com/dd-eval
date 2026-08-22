@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -18,6 +18,16 @@ test("the active suite declares its next canonical checkpoint chain", async () =
   const validated = await validateInput({ caseId, source, requireMode: "authoring" });
   assert.equal(validated.checkpoint.id, "cp-011-lossless-executable-plan-beta-85");
   assert.equal(validated.checkpoint.memory_bank.engine.commit, "0306ac68da9190d6ccfa099a257a5e8b91ef9f69");
+});
+
+test("each evaluated Subject profile has its own protected starter set", async () => {
+  const loaded = await loadCase(caseId);
+  const registry = JSON.parse(await readFile(path.join(import.meta.dirname, "..", "cases", caseId, "starter-sessions.json"), "utf8"));
+  assert.equal(registry.schema_id, "dd-eval/starter-sessions@2");
+  for (const profile of loaded.definition.profiles.subject) {
+    assert.ok(loaded.definition.priming.subject_baselines[profile]);
+    assert.deepEqual(Object.keys(registry.subjects[profile].sessions), ["specify", "protocolize", "plan", "plan-review"]);
+  }
 });
 
 test("prepare task titles are deterministic and sortable", () => {

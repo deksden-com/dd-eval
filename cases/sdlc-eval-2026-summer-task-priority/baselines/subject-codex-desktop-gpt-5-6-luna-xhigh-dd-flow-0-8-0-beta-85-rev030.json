@@ -1,1 +1,28 @@
-{"schema_id":"dd-eval/session-baseline@1","case_id":"sdlc-eval-2026-summer-task-priority","revision":"REV-030","role":"subject","profile":"codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-85","status":"pending_capture"}
+{
+  "schema_id": "dd-eval/session-baseline@1",
+  "case_id": "sdlc-eval-2026-summer-task-priority",
+  "revision": "REV-030",
+  "role": "subject",
+  "profile": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-85",
+  "seed_mode": "native_fork",
+  "status": "accepted",
+  "session_id": "01a029fb-3514-7d10-bf6d-ec0c0a94b853",
+  "created_at": "2026-08-22T15:01:44Z",
+  "messages": [
+    {
+      "role": "user",
+      "path": "prompts/subject-prime.md",
+      "sha256": "9d627ef89420a73adb6c2eb0fa70d716865606c3a0b0be96b429523968642018"
+    }
+  ],
+  "prohibited_material": [
+    "historical candidates",
+    "stage expectations",
+    "stage oracles before fork"
+  ],
+  "acceptance": {
+    "approved_by": "eval-controller",
+    "approved_at": "2026-08-22T15:01:44Z",
+    "evidence": "Native Luna xhigh session completed project priming and the ordinary user discussion before the canonical SPECIFY chain."
+  }
+}

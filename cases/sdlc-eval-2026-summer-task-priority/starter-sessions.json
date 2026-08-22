@@ -1,19 +1,67 @@
 {
-  "schema_id": "dd-eval/starter-sessions@1",
+  "schema_id": "dd-eval/starter-sessions@2",
   "case_id": "sdlc-eval-2026-summer-task-priority",
-  "revision": "REV-029",
-  "sessions": {
-    "specify": {
-      "session_id": "01a02018-8650-7811-9d9d-87651c97b5a3"
+  "revision": "REV-030",
+  "subjects": {
+    "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-85": {
+      "sessions": {
+        "specify": {
+          "session_id": "01a02a2e-b7da-7692-a449-84189fa56473",
+          "parent_session_id": "01a029fe-3acd-7312-bf52-7e843f6f6c39"
+        },
+        "protocolize": {
+          "session_id": "01a02a2e-d3f1-78b2-9abe-8f9089d238d0",
+          "parent_session_id": "01a02a02-83cf-73e2-b4fa-496b8c1451eb"
+        },
+        "plan": {
+          "session_id": "01a02a2e-ee49-7a20-ac9b-87ebf3ff33e4",
+          "parent_session_id": "01a02a05-7907-7bd2-960b-35c88f52586f"
+        },
+        "plan-review": {
+          "session_id": "01a02a2f-0791-7e43-b96e-134dd7eaa141",
+          "parent_session_id": "01a02a1e-4251-7db1-96c2-18917d586ef4"
+        }
+      }
     },
-    "protocolize": {
-      "session_id": "01a02018-88dd-7110-9200-f444d24804e9"
+    "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-85": {
+      "sessions": {
+        "specify": {
+          "session_id": "01a02a73-0531-7b73-8ecb-5bd5724ce713",
+          "parent_session_id": "01a02a3a-3535-7ae3-944c-254e4b06cd88"
+        },
+        "protocolize": {
+          "session_id": "01a02a72-ff6f-77a2-9363-6514bfe2e576",
+          "parent_session_id": "01a02a3a-3535-7ae3-944c-254e4b06cd88"
+        },
+        "plan": {
+          "session_id": "01a02a73-0264-7fc2-b762-3d5e050d3881",
+          "parent_session_id": "01a02a3a-3535-7ae3-944c-254e4b06cd88"
+        },
+        "plan-review": {
+          "session_id": "01a02a73-076d-7762-8aef-43465a554b6e",
+          "parent_session_id": "01a02a3a-3535-7ae3-944c-254e4b06cd88"
+        }
+      }
     },
-    "plan": {
-      "session_id": "01a02018-8def-7493-9219-93d8b14ecf69"
-    },
-    "plan-review": {
-      "session_id": "01a02018-9256-7122-b6fd-0d695b9105db"
+    "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-85": {
+      "sessions": {
+        "specify": {
+          "session_id": "01a02a73-09e5-7e43-b599-e1e525739e9e",
+          "parent_session_id": "01a02a3a-30af-7ad0-b7f8-965bb5767a64"
+        },
+        "protocolize": {
+          "session_id": "01a02a73-0c46-7830-95fa-b68b221580fe",
+          "parent_session_id": "01a02a3a-30af-7ad0-b7f8-965bb5767a64"
+        },
+        "plan": {
+          "session_id": "01a02a73-0ed5-7e91-aa97-4c2fcf43da8d",
+          "parent_session_id": "01a02a3a-30af-7ad0-b7f8-965bb5767a64"
+        },
+        "plan-review": {
+          "session_id": "01a02a73-11ae-7b32-8230-cd81f9fdcb6f",
+          "parent_session_id": "01a02a3a-30af-7ad0-b7f8-965bb5767a64"
+        }
+      }
     }
   }
 }

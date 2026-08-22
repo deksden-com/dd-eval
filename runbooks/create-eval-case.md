@@ -5,7 +5,7 @@ the starter Sessions used by routine eval runs.
 
 ## Session layers
 
-Each focused stage has three Session layers:
+For the canonical Subject profile, each focused stage has three Session layers:
 
 ```text
 frozen canonical checkpoint Session
@@ -22,6 +22,11 @@ frozen canonical checkpoint Session
 
 Starter Sessions have no revisions. If one is accidentally advanced, replace
 it with a new untouched fork of the same canonical checkpoint Session.
+
+Every additional Subject profile has its own accepted, ordinary prime baseline
+and one untouched starter per stage forked from that baseline. This is
+necessary because a native provider fork keeps its model. The project/RUN
+checkpoint is shared across profiles; conversational state is not.
 
 Project/RUN checkpoint archives remain immutable canonical inputs. They do not
 need a duplicate starter layer: `dd-eval prepare` always restores them into a
@@ -42,26 +47,32 @@ cases/<case-id>/interactions/               declared HITL responses
 cases/<case-id>/assessment.json             accepted criteria and golden reference
 ```
 
-`starter-sessions.json` is deliberately small:
+`starter-sessions.json` is deliberately small but profile-keyed:
 
 ```json
 {
-  "schema_id": "dd-eval/starter-sessions@1",
+  "schema_id": "dd-eval/starter-sessions@2",
   "case_id": "<case-id>",
   "revision": "REV-<NNN>",
-  "sessions": {
-    "specify": {
-      "session_id": "<starter-session-id>"
+  "subjects": {
+    "<subject-profile-id>": {
+      "sessions": {
+        "specify": {
+          "session_id": "<starter-session-id>",
+          "parent_session_id": "<protected-source-session-id>"
+        }
+      }
     }
   }
 }
 ```
 
-Add one entry for every runnable stage. `revision` must equal the one shared by
-all canonical checkpoint records. Do not copy canonical Session IDs into this
-registry; they already live in the checkpoint records. An attempt copies the
-resolved starter ID into its own `sessions.json` together with the new evaluated
-child ID and their parent relationship.
+Add one entry for every runnable stage and every allowed Subject profile.
+`revision` must equal the one shared by all canonical checkpoint records. For
+the canonical profile, the protected source is the frozen checkpoint Session;
+for another profile it is that profile's accepted baseline. An attempt copies
+the resolved starter ID into its own `sessions.json` together with the new
+evaluated child ID and their parent relationship.
 
 ID ownership is fixed:
 
@@ -98,23 +109,28 @@ checkpoint.
 4. At every accepted stage entry, store the moving canonical Session ID and
    untouched frozen checkpoint Session ID in
    `checkpoints/<stage>.json`.
-5. For each accepted checkpoint, fork the frozen Session once, title the child
-   `START <case-id> <STAGE>-entry`, and send it no message.
-6. Register only that child ID by calling:
+5. Prime every allowed Subject profile with the same ordinary project prime and
+   user discussion. Accept and record those profile baselines before creating
+   starters.
+6. For the canonical profile, fork each frozen checkpoint Session once. For
+   every other profile, fork that profile's baseline once per stage. Title each
+   child `START <case-id> <PROFILE> <STAGE>-entry` and send it no message.
+7. Register each child by calling:
 
    ```sh
-   dd-eval starter set --case <case-id> --stage <stage> \
+   dd-eval starter set --case <case-id> --stage <stage> --subject-profile <profile> \
      --session-id <starter-session-id> \
      --parent-session-id <frozen-checkpoint-session-id>
    ```
 
-   The command checks the declared parent against the accepted checkpoint and
+   The command checks the declared parent against either the accepted frozen
+   checkpoint (canonical profile) or the accepted profile baseline, then
    updates `starter-sessions.json`.
-7. Verify every starter is reachable, idle and directly parented by the
-   expected frozen checkpoint Session.
-8. Commit and push the input checkpoint, case definition and current starter
+8. Verify every starter is reachable, idle and directly parented by its
+   protected source Session.
+9. Commit and push the input checkpoint, case definition and current starter
    registry.
-9. Run authoring/scored validation before the first attempt.
+10. Run authoring/scored validation before the first attempt.
 
 If the case will compare a fixed profile matrix, add one scenario under
 `scenarios/`. Keep generic lifecycle rules in `runbooks/execute-eval.md`; the

@@ -21,7 +21,7 @@ function usage() {
 
 Usage:
   dd-eval validate --case <case-id> [--require authoring|scored] [--source <dd-tasks>]
-  dd-eval starter set --case <case-id> --stage <stage> --session-id <id> --parent-session-id <frozen-checkpoint-id>
+  dd-eval starter set --case <case-id> --stage <stage> --subject-profile <id> --session-id <id> --parent-session-id <protected-source-id>
   dd-eval checkpoint capture --case <case-id> --stage <stage> --project-root <path> --flow-run <RUN> --canonical-subject-session <id> --checkpoint-subject-session <id> [--revision REV-NNN] [--dd-flow-home <path>]
   dd-eval checkpoint accept --case <case-id> --stage <stage> --record <capture.json> --review <review.md>
   dd-eval prepare --case <case-id> (--focus <csv>|--segment <start..end>|--e2e) [--scenario <relative-case-path>] [--output <DD_EVAL_HOME-contained-path>] [--controller-profile <id>] [--subject-profile <id>] [--judge-profile <id>] [--source <dd-tasks>]
@@ -66,7 +66,7 @@ try {
     result = await validateInput({ caseId: required(options, "case"), source: options.source || defaultSource(), requireMode: options.require || "authoring" });
     result = { case_id: result.definition.id, checkpoint_id: result.checkpoint.id, source_commit: result.checkpoint.source.commit, require: options.require || "authoring" };
   } else if (family === "starter" && command === "set") {
-    result = await setStarterSession({ caseId: required(options, "case"), stage: required(options, "stage"), sessionId: required(options, "session-id"), parentSessionId: required(options, "parent-session-id") });
+    result = await setStarterSession({ caseId: required(options, "case"), stage: required(options, "stage"), profileId: required(options, "subject-profile"), sessionId: required(options, "session-id"), parentSessionId: required(options, "parent-session-id") });
   } else if (family === "prepare") {
     result = await prepare({
       caseId: required(options, "case"), source: options.source || defaultSource(), output: options.output,

@@ -885,10 +885,13 @@ the stated mechanical proof.
    immutable `dd-eval` input checkpoint that names both tags, versions and
    commits.  Historical checkpoints remain immutable comparison material.
 7. Build a fresh canonical Subject chain from normal priming and normal user
-   discussion.  At each natural stage boundary, review the semantic result,
-   capture the project/RUN state and frozen Subject Session, then make one
-   untouched starter Session from it.
-8. Only after the four checkpoints and four starters pass the scored readiness
+   discussion. At each natural stage boundary, review the semantic result,
+   capture the project/RUN state and frozen Subject Session, then make an
+   untouched starter Session for the canonical Subject profile. Prime every
+   other declared Subject profile with the same ordinary discussion and create
+   its own protected stage starters. A native fork inherits its model; never
+   change model after forking.
+8. Only after the four checkpoints and profile-specific starters pass the scored readiness
    gate, execute the fixed Luna/Terra/Sol matrix.  A Controller may answer a
    legitimate question substantively; it records the exchange for the Judge
    instead of treating it as a harness failure.

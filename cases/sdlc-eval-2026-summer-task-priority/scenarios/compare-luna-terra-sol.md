@@ -11,9 +11,9 @@ planning flow:
 
 The comparison has two parts:
 
-1. four independent focused stages per profile, each starting from the same
-   stage-specific starter Session and canonical project/RUN checkpoint;
-2. one E2E planning contour per profile, starting from the same SPECIFY starter
+1. four independent focused stages per profile, each starting from that
+   profile's stage-specific starter Session and the same canonical project/RUN checkpoint;
+2. one E2E planning contour per profile, starting from that profile's SPECIFY starter
    and producing its own downstream artifacts.
 
 This is 15 Subject executions: 12 focused and 3 E2E. Historical Luna beta runs
@@ -25,8 +25,9 @@ are diagnostic evidence only and are not substituted into this comparison.
 - Controller and Judge: the current `case.json` defaults.
 - Focused stages: `specify,protocolize,plan,plan-review`.
 - E2E: enabled; stop at `plan_review_accepted`; CODE remains unstarted.
-- One fresh Subject fork from the applicable current starter Session per
-  execution.
+- One fresh Subject fork from the selected profile's applicable current starter
+  Session per execution. A native fork retains its model; it must never switch
+  model after forking.
 - One fresh Judge fork per focused candidate and one fresh Judge fork per E2E
   candidate.
 - The same committed case definition, starter registry, input checkpoint,
