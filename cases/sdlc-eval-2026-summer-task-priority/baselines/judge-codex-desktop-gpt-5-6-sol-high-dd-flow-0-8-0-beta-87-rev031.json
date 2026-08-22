@@ -1,1 +1,14 @@
-{"schema_id":"dd-eval/session-baseline@1","case_id":"sdlc-eval-2026-summer-task-priority","revision":"REV-031","role":"judge","profile":"codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-87","seed_mode":"native_fork","status":"pending","session_id":null}
+{
+  "schema_id": "dd-eval/session-baseline@1",
+  "case_id": "sdlc-eval-2026-summer-task-priority",
+  "revision": "REV-031",
+  "role": "judge",
+  "profile": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-87",
+  "seed_mode": "native_fork",
+  "status": "accepted",
+  "session_id": "01a02baf-333e-7041-ae21-88ba99410473",
+  "created_at": "2026-08-22T22:54:58Z",
+  "messages": [{"role": "user", "path": "prompts/judge-prime.md"}],
+  "prohibited_material": ["historical candidates", "stage oracles before fork"],
+  "acceptance": {"approved_by": "eval-controller", "approved_at": "2026-08-22T22:56:09Z", "evidence": "Native Sol high Judge session completed the neutral read-only Judge prime with no candidate evidence."}
+}

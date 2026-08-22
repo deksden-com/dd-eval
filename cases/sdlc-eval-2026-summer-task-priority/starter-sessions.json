@@ -1,65 +1,65 @@
 {
   "schema_id": "dd-eval/starter-sessions@2",
   "case_id": "sdlc-eval-2026-summer-task-priority",
-  "revision": "REV-030",
+  "revision": "REV-031",
   "subjects": {
-    "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-85": {
+    "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-87": {
       "sessions": {
         "specify": {
-          "session_id": "01a02a2e-b7da-7692-a449-84189fa56473",
-          "parent_session_id": "01a029fe-3acd-7312-bf52-7e843f6f6c39"
+          "session_id": "01a02bb1-e522-7312-b364-4dafc2a26e2e",
+          "parent_session_id": "01a02b84-6291-71c2-930f-1ee8a46926d3"
         },
         "protocolize": {
-          "session_id": "01a02a2e-d3f1-78b2-9abe-8f9089d238d0",
-          "parent_session_id": "01a02a02-83cf-73e2-b4fa-496b8c1451eb"
+          "session_id": "01a02bb1-eab0-7b52-9f77-b56cd835cc3c",
+          "parent_session_id": "01a02b8b-0c6b-78a1-9fa1-58acadecd7b1"
         },
         "plan": {
-          "session_id": "01a02a2e-ee49-7a20-ac9b-87ebf3ff33e4",
-          "parent_session_id": "01a02a05-7907-7bd2-960b-35c88f52586f"
+          "session_id": "01a02bb1-f17c-7961-8567-ac982c7bdace",
+          "parent_session_id": "01a02b8f-5de8-7761-bc74-b667d77e539a"
         },
         "plan-review": {
-          "session_id": "01a02a2f-0791-7e43-b96e-134dd7eaa141",
-          "parent_session_id": "01a02a1e-4251-7db1-96c2-18917d586ef4"
+          "session_id": "01a02bb1-f709-7be1-9168-cd05ab414894",
+          "parent_session_id": "01a02b99-d29e-7bf2-a0d2-ce12d988098d"
         }
       }
     },
-    "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-85": {
+    "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-87": {
       "sessions": {
         "specify": {
-          "session_id": "01a02a73-0531-7b73-8ecb-5bd5724ce713",
-          "parent_session_id": "01a02a3a-3535-7ae3-944c-254e4b06cd88"
+          "session_id": "01a02bb1-fcc1-7912-b7f6-07134874fda5",
+          "parent_session_id": "01a02bac-3c1c-7b82-b7ca-42344a302a2b"
         },
         "protocolize": {
-          "session_id": "01a02a72-ff6f-77a2-9363-6514bfe2e576",
-          "parent_session_id": "01a02a3a-3535-7ae3-944c-254e4b06cd88"
+          "session_id": "01a02bb2-0219-70f1-babf-62eb29c4b2db",
+          "parent_session_id": "01a02bac-3c1c-7b82-b7ca-42344a302a2b"
         },
         "plan": {
-          "session_id": "01a02a73-0264-7fc2-b762-3d5e050d3881",
-          "parent_session_id": "01a02a3a-3535-7ae3-944c-254e4b06cd88"
+          "session_id": "01a02bb2-0866-7de3-b1dc-3475f35270cb",
+          "parent_session_id": "01a02bac-3c1c-7b82-b7ca-42344a302a2b"
         },
         "plan-review": {
-          "session_id": "01a02a73-076d-7762-8aef-43465a554b6e",
-          "parent_session_id": "01a02a3a-3535-7ae3-944c-254e4b06cd88"
+          "session_id": "01a02bb2-0dd3-7c03-a748-a654df4d4e43",
+          "parent_session_id": "01a02bac-3c1c-7b82-b7ca-42344a302a2b"
         }
       }
     },
-    "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-85": {
+    "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-87": {
       "sessions": {
         "specify": {
-          "session_id": "01a02a73-09e5-7e43-b599-e1e525739e9e",
-          "parent_session_id": "01a02a3a-30af-7ad0-b7f8-965bb5767a64"
+          "session_id": "01a02bb2-1280-76a2-92bd-2ddf50a069b7",
+          "parent_session_id": "01a02bac-59bd-7381-9f34-737039562979"
         },
         "protocolize": {
-          "session_id": "01a02a73-0c46-7830-95fa-b68b221580fe",
-          "parent_session_id": "01a02a3a-30af-7ad0-b7f8-965bb5767a64"
+          "session_id": "01a02bb2-18f2-73c3-8ae4-1dcad7478b66",
+          "parent_session_id": "01a02bac-59bd-7381-9f34-737039562979"
         },
         "plan": {
-          "session_id": "01a02a73-0ed5-7e91-aa97-4c2fcf43da8d",
-          "parent_session_id": "01a02a3a-30af-7ad0-b7f8-965bb5767a64"
+          "session_id": "01a02bb2-1e4c-73f0-b50c-61a33a3c27d7",
+          "parent_session_id": "01a02bac-59bd-7381-9f34-737039562979"
         },
         "plan-review": {
-          "session_id": "01a02a73-11ae-7b32-8230-cd81f9fdcb6f",
-          "parent_session_id": "01a02a3a-30af-7ad0-b7f8-965bb5767a64"
+          "session_id": "01a02bb2-251f-7172-b57e-1d687ef739bc",
+          "parent_session_id": "01a02bac-59bd-7381-9f34-737039562979"
         }
       }
     }
