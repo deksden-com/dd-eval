@@ -57,6 +57,8 @@ recognize a grounded alternative.
 
 Judges may propose golden candidates. They never mutate the reference. A human
 accepts a proposal by editing `assessment.json` in a new Git commit.
+Accepted strong decisions are positive, reusable patterns rather than extra
+mandatory outcomes: a grounded candidate may use an equally strong alternative.
 
 ## Roles
 

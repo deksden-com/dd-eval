@@ -21,6 +21,7 @@
           {"id": "GOLD-SPECIFY-001", "statement": "Resolve the four-value vocabulary, no_priority default/backfill and stable ordering without inventing task archiving."},
           {"id": "GOLD-SPECIFY-002", "statement": "Produce a portable handoff covering persistence, authorization, list/edit UI and deterministic acceptance evidence."}
         ],
+        "accepted_strong_decisions": [],
         "accepted_alternatives": [],
         "known_risks": [
           {"id": "RISK-SPECIFY-001", "severity": "material", "statement": "Ask only materially unresolved questions and resume the same stage after the answer."}
@@ -45,6 +46,7 @@
           {"id": "GOLD-PROTOCOLIZE-001", "statement": "Keep the four values/default, authorization, archived-task editing and stable ordering in one bounded vertical protocol."},
           {"id": "GOLD-PROTOCOLIZE-002", "statement": "Create linked durable feature and protocol records and leave PLAN a portable handoff."}
         ],
+        "accepted_strong_decisions": [],
         "accepted_alternatives": [],
         "known_risks": [
           {"id": "RISK-PROTOCOLIZE-001", "severity": "material", "statement": "Do not add a task-archiving capability that the product does not have."}
@@ -69,6 +71,10 @@
           {"id": "GOLD-PLAN-001", "statement": "Ground the plan in accepted handoff and current persistence, API, service, web and test surfaces."},
           {"id": "GOLD-PLAN-002", "statement": "Plan an executable graph covering persistence/legacy migration, API authorization, UI, scenario/docs and verification."},
           {"id": "GOLD-PLAN-003", "statement": "Make default/backfill, database-enforced values, atomic archived-project priority-only mutation, unchanged list ordering and deterministic legacy evidence falsifiable."}
+        ],
+        "accepted_strong_decisions": [
+          {"id": "STRONG-PLAN-001", "statement": "A strong persistence plan chooses a reset-safe representation, proves upgrade behavior with a row created under the pre-change schema, then verifies backfill, preserved data and ordering after the migration.", "source": "EVAL-022"},
+          {"id": "STRONG-PLAN-002", "statement": "A strong authorization plan defines the archived-project exception as an exact priority-only mutation boundary and proves that mixed or extra-field payloads are rejected without mutation.", "source": "EVAL-022"}
         ],
         "accepted_alternatives": [
           {"id": "ALT-PLAN-001", "statement": "A different work decomposition is valid when ownership, ordering and proof remain equally executable."}
@@ -97,6 +103,9 @@
           {"id": "GOLD-REVIEW-001", "statement": "Identify material migration, authorization, state-transition, verification and handoff defects where present."},
           {"id": "GOLD-REVIEW-002", "statement": "Apply accepted corrections to the final plan and regenerated CODE work graph without claiming unmade fixes."}
         ],
+        "accepted_strong_decisions": [
+          {"id": "STRONG-REVIEW-001", "statement": "A strong review covers every applicable aspect in one capacity-aware reviewer wave where practical, consolidates duplicate findings by root cause, prioritizes material defects and applies the accepted corrections once.", "source": "EVAL-023"}
+        ],
         "accepted_alternatives": [],
         "known_risks": [
           {"id": "RISK-REVIEW-001", "severity": "material", "statement": "Do not let a mechanically valid decision receipt mask an uncorrected material defect."}
@@ -122,6 +131,7 @@
           {"id": "GOLD-E2E-001", "statement": "Preserve four-value/default, stable-order and narrow archived-project priority-only decisions through all stages without scope drift."},
           {"id": "GOLD-E2E-002", "statement": "End at accepted PLAN-REVIEW with a code-ready work graph and never start CODE."}
         ],
+        "accepted_strong_decisions": [],
         "accepted_alternatives": [],
         "known_risks": [
           {"id": "RISK-E2E-001", "severity": "material", "statement": "Loss, invention or contradiction between durable handoffs is material even when individual stage artifacts look plausible."}
