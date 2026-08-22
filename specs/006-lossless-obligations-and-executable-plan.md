@@ -698,6 +698,124 @@ Implement in this dependency order so every step has a runnable check:
 13. compare with the retained previous eval using the assessment-version rule;
 14. promote to canon only after the full comparison is accepted.
 
+## 10.1 Detailed implementation plan
+
+This is the executable work breakdown for this specification.  Complete the
+packages in order unless the listed dependency is already accepted.  A package
+is not complete merely because its code compiles: its stated contract test or
+diagnostic must pass.  Keep the change on the matched beta branches until
+package 20 is accepted.
+
+### Foundation and SPECIFY
+
+1. **Freeze the cutover boundary.** Record the exact beta engine commit, beta
+   pack commit, input case and assessment revision in the beta bundle index.
+   Do not mutate historical RUNs or add a compatibility reader.
+2. **Add the SPECIFY schema.** Add the closed `dd-flow/specify@1` JSON Schema
+   to the engine and the project-local flow-pack schema directory.  It must
+   enforce the four semantic sections, non-empty R/AC arrays and stable IDs.
+3. **Replace SPECIFY semantic input.** Make `stage finish --stage specify`
+   accept JSON only; collect parse, schema and obligation-ID errors in one
+   response while leaving the stage running on failure.
+4. **Implement the deterministic projection.** Atomically write normalized
+   `specify.json`, then render byte-stable `specify.md`, reports and both
+   hashes.  No stage may subsequently parse R/AC semantics from Markdown.
+5. **Make the worker path self-sufficient.** Update start packets, help and
+   the SPECIFY prompt to include the exact schema, a minimal valid example,
+   pause/resume instructions and the exact JSON-stdin finish command.  The
+   worker must not search the repository for a schema or a command example.
+6. **Prove SPECIFY in tests.** Cover valid and invalid JSON, aggregate errors,
+   duplicate/wrong R/AC IDs, empty sections, atomic failure, renderer
+   stability and report hashes.  Update all fixtures to the new source.
+
+### PROTOCOLIZE
+
+7. **Advance the PROTOCOLIZE contract.** Add a closed
+   `vnext-protocolize-result@2` schema and replace `acceptance_coverage` with
+   `obligation_ownership`.  Remove the old field and every reader of it.
+8. **Read accepted obligations once.** Load exact R/AC statements exclusively
+   from `specify.json`; expose them in the PROTOCOLIZE start packet and fail
+   closed if accepted input is unavailable or inconsistent.
+9. **Validate lossless allocation.** Require every R/AC exactly once, valid
+   non-empty member ownership, no unknown IDs, and at least one AC per member
+   before any durable document is published.
+10. **Materialize ownership deterministically.** Join ownership with exact
+    accepted statements while rendering PRT and PSET documents.  Preserve the
+    agent's topology, boundaries and roles, but never let paraphrase replace
+    an obligation.  Add no-partial-write and exact-rendering tests.
+
+### PLAN and the executable graph
+
+11. **Advance the PLAN schema to `protocol-plan@3`.** Keep only semantic
+    planning fields; move identity, source hashes, runtime policy and CODE
+    handoff facts to CLI-owned projections.  Update every project-local schema
+    and fixture at the same time.
+12. **Remove agent-authored batches.** Delete batch input instructions,
+    examples and validation paths from PLAN.  The only agent-authored outputs
+    are a semantic `plan.json` and its aspect map.
+13. **Build one shared PLAN closure.** Extract one deterministic validator and
+    projector that all PLAN completion paths call.  It loads protocol ownership
+    and accepted SPECIFY obligations, validates plan semantics, and is the
+    sole writer of `code-work-batch.json`.
+14. **Enforce complete realization.** Validate that every PRT-owned R/AC is
+    referenced by one or more items, each AC has an observable proof path,
+    and no item claims another PRT's obligation.  Aspect maps must point to a
+    concrete plan item, decision, acceptance or evidence target.
+15. **Validate an executable graph.** Check local and PSET dependencies,
+    cycles, portable project/RUN paths, root-read availability,
+    predecessor-produced reads, and ordered multi-writer ownership.  Use the
+    conservative PSET root-to-terminal edge rule; do not introduce
+    cross-protocol item syntax.
+16. **Generate stable CODE work.** Project `code-work-batch@1` from the final
+    plans with keys `<PRT-ID>:<PLAN-ITEM-ID>`, checksums, rendered task text,
+    paths, verification and stop conditions.  Prove deterministic identical
+    output for identical plans and rejection of stale or impossible graphs.
+
+### PLAN-REVIEW, CODE entry and pack cutover
+
+17. **Advance the review decision to `@3`.** Keep only the decision and
+    semantic correction paths.  A reviewer/orchestrator may edit plans and
+    aspect maps, never the generated batch; changed semantics require a plan
+    revision increment.
+18. **Unify review-on and review-off closure.** In both paths run the shared
+    PLAN validator, regenerate the batch, validate the CODE handoff and
+    atomically register CODE Works.  Review-off creates no synthetic decision
+    and review-on does not automatically repeat a review after a correction.
+19. **Harden CODE entry.** Construct root handoff from existing accepted
+    artifacts and runtime facts only; permit a child read of a missing file
+    only when an ordered predecessor writes it.  Reject future outputs in root
+    input, stale revisions and unresolved `run://` references.
+20. **Update the matched flow pack.** Change stage manifests, prompts, indexes,
+    help snapshots and project schemas in one commit.  Prompts describe normal
+    flow work—not the eval, a preferred answer or a model comparison.  Remove
+    every old-contract reference rather than retaining a fallback.
+
+### Acceptance and eval evidence
+
+21. **Run mechanical and disposable integration gates.** Run typecheck, all
+    unit/contract tests and a disposable chain from SPECIFY finish through
+    CODE Work registration.  Inspect the semantic artifacts, lifecycle
+    receipts and handoff; repair root defects and repeat only this diagnostic
+    until the matched pair is sound.
+22. **Create fresh evidence and compare models.** Commit/tag the accepted pair,
+    create a new input checkpoint and canonical SPECIFY→PROTOCOLIZE→PLAN→
+    PLAN-REVIEW chain, accept four stage entries and create protected starters.
+    Then run 12 focused executions and three E2E executions for Luna, Terra
+    and Sol under the updated assessment.  Keep old results historical or
+    statically rejudge them as limited evidence; promote only after the new
+    comparison is accepted.
+
+### Explicit exclusions during implementation
+
+- Do not change product behavior, business defaults or the task-priority case
+  merely to satisfy the validator.
+- Do not create `obligations.json`, a second plan graph, an agent batch
+  workaround, a legacy parser, compatibility mode or a general workflow DSL.
+- Do not let deterministic validation masquerade as semantic review, or let
+  semantic prose override a deterministic fact.
+- Do not create canonical checkpoints, starter Sessions or scored results from
+  a partially migrated engine/pack pair.
+
 ## Definition of done
 
 The change is complete only when:
