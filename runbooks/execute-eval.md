@@ -354,6 +354,15 @@ the committed starter registry is authoritative.
 
 ## Launch the Subject
 
+### Capacity-aware controller scheduling
+
+The Controller may run independent low-fan-out stages such as SPECIFY and
+PROTOCOLIZE for several profiles in parallel. It must run PLAN and PLAN-REVIEW
+for one Subject profile at a time: those stages may perform a capacity probe and
+launch child review Work. Starting several parent orchestrators first can occupy
+the entire provider pool and make every probe wait for capacity that none can
+release. Finish, sync and judge one such stage before launching the next profile.
+
 ### Native fork
 
 1. Fork the latest completed state of the starter Subject Session returned by
