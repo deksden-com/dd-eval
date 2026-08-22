@@ -6,6 +6,7 @@ import {
   comparePrepare,
   captureCanonicalCheckpoint,
   checkpoint,
+  stageCheckpoint,
   continuation,
   defaultSource,
   finalize,
@@ -30,6 +31,7 @@ Usage:
   dd-eval session add --eval <prepared-dir> --execution <id> --role <controller|subject_base|subject|judge> --session-id <id> [--parent-session-id <id>] [--agent-id <id>]
   dd-eval sync --eval <prepared-dir> --execution <id> --project-root <path> [--flow-run <id>]
   dd-eval checkpoint --eval <prepared-dir> --execution <id>
+  dd-eval checkpoint stage --eval <prepared-dir> --execution <id> --stage <stage>
   dd-eval continuation --eval <prepared-dir> --execution <id> --from-stage <stage>
   dd-eval judge prepare --eval <prepared-dir> --execution <id> [--rejudge]
   dd-eval judge accept --eval <prepared-dir> --execution <id> --result <judge-result.json>
@@ -85,6 +87,8 @@ try {
     result = await captureCanonicalCheckpoint({ caseId: required(options, "case"), stage: required(options, "stage"), revision: options.revision, projectRoot: required(options, "project-root"), flowRunId: required(options, "flow-run"), runtimeHome: options["dd-flow-home"] || process.env.DD_FLOW_HOME || required(options, "dd-flow-home"), canonicalSubjectSessionId: required(options, "canonical-subject-session"), checkpointSubjectSessionId: required(options, "checkpoint-subject-session"), ...(options["agent-id"] ? { agentId: options["agent-id"] } : {}) });
   } else if (family === "checkpoint" && command === "accept") {
     result = await acceptCanonicalCheckpoint({ caseId: required(options, "case"), stage: required(options, "stage"), recordFile: required(options, "record"), reviewFile: required(options, "review") });
+  } else if (family === "checkpoint" && command === "stage") {
+    result = await stageCheckpoint({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), stage: required(options, "stage") });
   } else if (family === "checkpoint") {
     result = await checkpoint({ evalRoot: required(options, "eval"), executionId: required(options, "execution") });
   } else if (family === "continuation") {

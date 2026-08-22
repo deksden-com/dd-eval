@@ -484,12 +484,22 @@ automatically a defect nor automatically a virtue.
 ### Stage finish barrier
 
 When a selected stage finishes, immediately capture it before sending any
-successor instruction:
+successor instruction. In a focused run this is the final candidate checkpoint:
 
 ```sh
 dd-eval checkpoint --eval "<eval-root>" \
   --execution "<execution-id>" --stage "<finished-stage>"
 ```
+
+For E2E or a multi-stage segment, capture the finished boundary instead:
+
+```sh
+dd-eval checkpoint stage --eval "<eval-root>" \
+  --execution e2e --stage "<finished-stage>"
+```
+
+The receipt is immutable evidence that the predecessor was done before its
+successor was created; `dd-eval continuation` refuses to run without it.
 
 For focused mode, the next action must be `stop_subject`. For segment mode it is
 `continue_segment` until the final selected stage. For E2E it is
