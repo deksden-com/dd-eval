@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { addSession, comparePrepare, judgeResultInstructions, judgeResultPath, judgeResultTemplate, loadCase, prepare, scoreEvaluation, subjectContinuation, subjectTaskTitle, validateInput } from "../lib/dd-eval.mjs";
+import { addSession, comparePrepare, judgeResultInstructions, judgeResultPath, judgeResultTemplate, loadCase, prepare, scoreEvaluation, subjectContinuation, subjectTaskTitle, syncLifecycleStatus, validateInput } from "../lib/dd-eval.mjs";
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -96,6 +96,12 @@ test("outcome gates stay independent from flow and efficiency", async () => {
   }, assessment);
   assert.equal(result.outcome.verdict, "fail");
   assert.equal(result.flow.score, 1);
+});
+
+test("sync recognizes the current paused RUN status as a user wait", () => {
+  assert.equal(syncLifecycleStatus({ profileStatus: "matched", stageStatus: "paused", runStatus: "paused" }), "waiting_for_user");
+  assert.equal(syncLifecycleStatus({ profileStatus: "matched", stageStatus: null, runStatus: "waiting_for_user" }), "waiting_for_user");
+  assert.equal(syncLifecycleStatus({ profileStatus: "matched", stageStatus: "done", runStatus: "completed" }), "candidate_ready");
 });
 
 test("Grand Judge preparation anonymizes completed eval roots", async () => {
