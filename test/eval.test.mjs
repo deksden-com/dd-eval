@@ -12,12 +12,12 @@ test("the active suite declares its next canonical checkpoint chain", async () =
   const loaded = await loadCase(caseId);
   assert.equal(loaded.definition.schema_id, "dd-eval/case@5");
   assert.equal(loaded.assessment.schema_id, "dd-eval/assessment@1");
-  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-010-plan-review-code-batch-beta-81" });
+  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-011-lossless-executable-plan-beta-85" });
   assert.equal("compatibility" in loaded.definition, false);
   assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review"]);
   const validated = await validateInput({ caseId, source, requireMode: "authoring" });
-  assert.equal(validated.checkpoint.id, "cp-010-plan-review-code-batch-beta-81");
-  assert.equal(validated.checkpoint.memory_bank.engine.commit, "f94df7e77f8a90978bcc309171125ddbe326bc66");
+  assert.equal(validated.checkpoint.id, "cp-011-lossless-executable-plan-beta-85");
+  assert.equal(validated.checkpoint.memory_bank.engine.commit, "0306ac68da9190d6ccfa099a257a5e8b91ef9f69");
 });
 
 test("prepare task titles are deterministic and sortable", () => {
