@@ -517,15 +517,19 @@ For each focused stage and each stage inside a segment:
 3. run `dd-eval judge prepare` for that candidate stage;
 4. send the generated packet unchanged. It includes any captured
    `run/intake/hitl` interaction evidence; Judge it as observed model behavior;
-5. wait for the Judge and accept its schema-valid result unchanged.
+5. wait for the Judge. The generated packet names one deterministic
+   `judge-XX.result.json` destination in the attempt's `judge/` directory;
+   the Judge writes its schema-valid result there and modifies no candidate
+   artifact;
+6. accept that exact result unchanged.
 
 ```sh
 dd-eval judge prepare --eval "<eval-root>" \
-  --execution "<execution-id>" --stage "<stage>"
+  --execution "<execution-id>"
 
 dd-eval judge accept --eval "<eval-root>" \
-  --execution "<execution-id>" --stage "<stage>" \
-  --result "<judge-result.json>"
+  --execution "<execution-id>" \
+  --result "<judge-XX.result.json>"
 ```
 
 E2E uses one fresh Judge fork and the aggregate E2E packet. That packet includes

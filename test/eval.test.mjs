@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { comparePrepare, loadCase, prepare, scoreEvaluation, subjectContinuation, subjectTaskTitle, validateInput } from "../lib/dd-eval.mjs";
+import { comparePrepare, judgeResultInstructions, judgeResultPath, loadCase, prepare, scoreEvaluation, subjectContinuation, subjectTaskTitle, validateInput } from "../lib/dd-eval.mjs";
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -35,6 +35,13 @@ test("prepare task titles are deterministic and sortable", () => {
     subjectTaskTitle({ outputRoot: "/tmp/EVAL-006--case--focus", caseId, executionId: "plan-review", profile: { model: "gpt-5.6-luna", reasoning: "xhigh" } }),
     "E006 · sdlc-eval-2026-summer-task-priority · a01 · luna-xhigh · PLAN-REVIEW · subject"
   );
+});
+
+test("Judge packet has one deterministic write-only result destination", () => {
+  const result = judgeResultPath("/eval/run", "specify", 1, 2);
+  assert.equal(result, "/eval/run/judge/specify/candidate-01/judge-02.result.json");
+  assert.match(judgeResultInstructions(result), /only artifact you may create or modify/);
+  assert.match(judgeResultInstructions(result), /judge-02\.result\.json/);
 });
 
 test("a feature-worktree prompt separates the workspace from stable project identity", () => {
