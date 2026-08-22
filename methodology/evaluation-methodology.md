@@ -73,6 +73,28 @@ mandatory outcomes: a grounded candidate may use an equally strong alternative.
 The Judge receives mechanical evidence calculated by the tools. It must not
 repeat checksum or lifecycle bookkeeping instead of reviewing the substance.
 
+## Stage semantics
+
+- **SPECIFY** is judged on a portable problem-space contract. Its `R-*` and
+  `AC-*` obligations must be complete, precise and acceptance-oriented;
+  mechanically parseable identifiers are necessary but earn no semantic
+  credit by themselves.
+- **PROTOCOLIZE** is judged on lossless allocation of accepted obligations to
+  the smallest valid delivery topology. It must not gain credit for paraphrasing
+  the request, nor lose credit merely because deterministic rendering preserves
+  the exact wording.
+- **PLAN** is judged on grounded decisions, complete obligation realization,
+  an executable implementation graph and falsifiable verification. A generated
+  CODE projection is evidence of graph integrity, not proof that the plan is a
+  good solution.
+- **PLAN-REVIEW** is judged on independent semantic challenge, prioritization,
+  accepted corrections and the readiness of the resulting plan for CODE. It is
+  not a second schema-validation pass.
+
+When a deterministic projection is derived from a semantic source, Judges
+score the source and its downstream fitness. They report a projection mismatch
+as a flow defect and must not reward duplicated agent-authored bookkeeping.
+
 ## Evidence and rejudging
 
 Candidate artifacts and their receipt are immutable. A later Judge result is a
@@ -80,6 +102,11 @@ new numbered judgment over the same candidate, carrying the assessment and
 methodology hashes. Exact reruns use canonical stage-entry checkpoints. Static
 rejudging uses retained candidate evidence; a report must state whether that
 evidence is `complete` or `limited`.
+
+Scores produced under different criterion axes are not compared as if they
+shared one scale. When an assessment changes, either statically rejudge the old
+candidate under the new assessment or show the historical and new-method lanes
+separately. Never silently mix their weighted scores or radar axes.
 
 ## Reporting
 

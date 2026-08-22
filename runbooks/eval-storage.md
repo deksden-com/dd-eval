@@ -59,6 +59,15 @@ Session identities stay in checkpoint evidence. Provider JSONL is not copied by 
 raw transcripts only through an explicit archive decision and record their
 external locator and checksum.
 
+Archiving a completed provider task is allowed after its Session ID and compact
+candidate/Judge evidence are saved. It is an organizational operation, not the
+eval archive and not a substitute for retaining filesystem evidence. Keep
+frozen canonical checkpoint Sessions and current starter Sessions reachable
+and preferably unarchived; routine eval operation depends on them. Never delete
+a provider task needed for transcript forensics. If an archived evaluated
+Session must be inspected again, unarchive it and use the Session ID recorded in
+the compact result.
+
 The compact, comparison-worthy result is committed under
 `cases/<case-id>/results/<EVAL-id>/`. It contains manifests, selected artifacts,
 Judge result, score, timing and usage summaries—not the project checkout,

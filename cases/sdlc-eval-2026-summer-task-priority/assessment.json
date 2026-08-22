@@ -4,11 +4,11 @@
   "status": "accepted",
   "scopes": {
     "specify": {
-      "note": "Judge the quality of the clarified problem and portable handoff, not the number of questions.",
+      "note": "Judge the clarified problem, complete R/AC obligations and portable handoff, not the number of questions or parseable identifiers.",
       "outcome": [
         {"id": "gaps", "weight": 0.3, "essential": true},
-        {"id": "handoff", "weight": 0.3, "essential": true},
-        {"id": "acceptance", "weight": 0.2, "essential": false},
+        {"id": "obligations", "weight": 0.25, "essential": true},
+        {"id": "handoff", "weight": 0.25, "essential": true},
         {"id": "grounding", "weight": 0.2, "essential": false}
       ],
       "flow": [
@@ -19,7 +19,7 @@
       "golden": {
         "required_outcomes": [
           {"id": "GOLD-SPECIFY-001", "statement": "Resolve the four-value vocabulary, no_priority default/backfill and stable ordering without inventing task archiving."},
-          {"id": "GOLD-SPECIFY-002", "statement": "Produce a portable handoff covering persistence, authorization, list/edit UI and deterministic acceptance evidence."}
+          {"id": "GOLD-SPECIFY-002", "statement": "Express persistence, authorization, list/edit UI, preserved ordering and deterministic acceptance evidence as complete, precise R/AC obligations in a portable handoff."}
         ],
         "accepted_strong_decisions": [],
         "accepted_alternatives": [],
@@ -29,47 +29,48 @@
       }
     },
     "protocolize": {
-      "note": "Judge vertical slicing and durable ownership without demanding textual similarity to the canonical protocol.",
+      "note": "Judge lossless obligation allocation, vertical slicing and durable ownership without rewarding a paraphrase of SPECIFY.",
       "outcome": [
-        {"id": "scope", "weight": 0.3, "essential": true},
+        {"id": "obligation-preservation", "weight": 0.35, "essential": true},
         {"id": "slicing", "weight": 0.25, "essential": true},
-        {"id": "durable-documents", "weight": 0.25, "essential": false},
+        {"id": "durable-documents", "weight": 0.2, "essential": false},
         {"id": "handoff", "weight": 0.2, "essential": true}
       ],
       "flow": [
-        {"id": "workspace-policy", "weight": 0.4, "essential": true},
-        {"id": "stage-integrity", "weight": 0.3, "essential": true},
+        {"id": "workspace-policy", "weight": 0.3, "essential": true},
+        {"id": "deterministic-materialization", "weight": 0.4, "essential": true},
         {"id": "evidence", "weight": 0.3, "essential": false}
       ],
       "golden": {
         "required_outcomes": [
-          {"id": "GOLD-PROTOCOLIZE-001", "statement": "Keep the four values/default, authorization, archived-task editing and stable ordering in one bounded vertical protocol."},
+          {"id": "GOLD-PROTOCOLIZE-001", "statement": "Allocate every accepted R/AC obligation, including four values/default, authorization, archived-project editing and stable ordering, to the smallest bounded vertical protocol topology without semantic loss."},
           {"id": "GOLD-PROTOCOLIZE-002", "statement": "Create linked durable feature and protocol records and leave PLAN a portable handoff."}
         ],
         "accepted_strong_decisions": [],
         "accepted_alternatives": [],
         "known_risks": [
-          {"id": "RISK-PROTOCOLIZE-001", "severity": "material", "statement": "Do not add a task-archiving capability that the product does not have."}
+          {"id": "RISK-PROTOCOLIZE-001", "severity": "material", "statement": "Do not add a task-archiving capability that the product does not have."},
+          {"id": "RISK-PROTOCOLIZE-002", "severity": "material", "statement": "Identifier coverage is incomplete when exact accepted requirement or acceptance semantics are lost during protocol materialization."}
         ]
       }
     },
     "plan": {
       "note": "Judge an executable implementation and verification graph. Compactness is valuable only when ownership and proof remain clear.",
       "outcome": [
-        {"id": "grounding", "weight": 0.25, "essential": true},
+        {"id": "grounding", "weight": 0.2, "essential": true},
         {"id": "decision-quality", "weight": 0.2, "essential": true},
-        {"id": "code-work-graph", "weight": 0.3, "essential": true},
+        {"id": "executable-work-graph", "weight": 0.35, "essential": true},
         {"id": "verification", "weight": 0.25, "essential": true}
       ],
       "flow": [
-        {"id": "routing", "weight": 0.3, "essential": false},
-        {"id": "work-ownership", "weight": 0.35, "essential": true},
+        {"id": "routing", "weight": 0.2, "essential": false},
+        {"id": "projection-integrity", "weight": 0.45, "essential": true},
         {"id": "evidence", "weight": 0.35, "essential": true}
       ],
       "golden": {
         "required_outcomes": [
           {"id": "GOLD-PLAN-001", "statement": "Ground the plan in accepted handoff and current persistence, API, service, web and test surfaces."},
-          {"id": "GOLD-PLAN-002", "statement": "Plan an executable graph covering persistence/legacy migration, API authorization, UI, scenario/docs and verification."},
+          {"id": "GOLD-PLAN-002", "statement": "Use PLAN as the semantic source for an executable graph covering persistence/legacy migration, API authorization, UI, scenario/docs and verification; derive CODE Works without a second hand-authored graph."},
           {"id": "GOLD-PLAN-003", "statement": "Make default/backfill, database-enforced values, atomic archived-project priority-only mutation, unchanged list ordering and deterministic legacy evidence falsifiable."}
         ],
         "accepted_strong_decisions": [
@@ -81,34 +82,38 @@
         ],
         "known_risks": [
           {"id": "RISK-PLAN-001", "severity": "material", "statement": "A plan that only validates values at the API but omits a database invariant is incomplete."},
-          {"id": "RISK-PLAN-002", "severity": "material", "statement": "A separate archived-project read followed by mutation does not prove atomic priority-only behavior."}
+          {"id": "RISK-PLAN-002", "severity": "material", "statement": "A separate archived-project read followed by mutation does not prove atomic priority-only behavior."},
+          {"id": "RISK-PLAN-003", "severity": "material", "statement": "Every CODE read must resolve at entry or be produced by exactly one transitive predecessor; a manually duplicated or stale batch is not code-ready."}
         ]
       }
     },
     "plan-review": {
       "note": "Judge critical inspection and correction quality; do not reward duplicate or cosmetic findings as depth.",
       "outcome": [
-        {"id": "material-findings", "weight": 0.35, "essential": true},
+        {"id": "material-findings", "weight": 0.3, "essential": true},
         {"id": "evidence", "weight": 0.2, "essential": true},
-        {"id": "prioritization", "weight": 0.2, "essential": true},
-        {"id": "correction", "weight": 0.25, "essential": true}
+        {"id": "prioritization", "weight": 0.15, "essential": true},
+        {"id": "correction", "weight": 0.2, "essential": true},
+        {"id": "code-readiness", "weight": 0.15, "essential": true}
       ],
       "flow": [
-        {"id": "reviewer-isolation", "weight": 0.35, "essential": true},
-        {"id": "routing", "weight": 0.3, "essential": false},
-        {"id": "closure", "weight": 0.35, "essential": true}
+        {"id": "reviewer-isolation", "weight": 0.3, "essential": true},
+        {"id": "routing", "weight": 0.25, "essential": false},
+        {"id": "closure", "weight": 0.25, "essential": true},
+        {"id": "code-registration", "weight": 0.2, "essential": true}
       ],
       "golden": {
         "required_outcomes": [
           {"id": "GOLD-REVIEW-001", "statement": "Identify material migration, authorization, state-transition, verification and handoff defects where present."},
-          {"id": "GOLD-REVIEW-002", "statement": "Apply accepted corrections to the final plan and regenerated CODE work graph without claiming unmade fixes."}
+          {"id": "GOLD-REVIEW-002", "statement": "Apply accepted corrections to the PLAN source, then deterministically regenerate a CODE-ready work graph and handoff without claiming unmade fixes."}
         ],
         "accepted_strong_decisions": [
           {"id": "STRONG-REVIEW-001", "statement": "A strong review covers every applicable aspect in one capacity-aware reviewer wave where practical, consolidates duplicate findings by root cause, prioritizes material defects and applies the accepted corrections once.", "source": "EVAL-023"}
         ],
         "accepted_alternatives": [],
         "known_risks": [
-          {"id": "RISK-REVIEW-001", "severity": "material", "statement": "Do not let a mechanically valid decision receipt mask an uncorrected material defect."}
+          {"id": "RISK-REVIEW-001", "severity": "material", "statement": "Do not let a mechanically valid decision receipt mask an uncorrected material defect."},
+          {"id": "RISK-REVIEW-002", "severity": "material", "statement": "Do not place future CODE outputs in root must_read or manually patch a generated CODE batch instead of correcting PLAN."}
         ]
       }
     },

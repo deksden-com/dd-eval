@@ -22,7 +22,9 @@ Repository-level eval design specifications live under [specs/](specs/). The
 stage-checkpoint execution model is refined by
 [specification 002](specs/002-canonical-stage-checkpoint-evaluation.md), the
 [launch-readiness cutover](specs/003-canonical-eval-launch-readiness.md) and
-[outcome-assessment/publication specification 005](specs/005-outcome-assessment-and-sites-publication.md), plus
+[outcome-assessment/publication specification 005](specs/005-outcome-assessment-and-sites-publication.md).
+The next beta contract is defined by
+[lossless-obligation and executable-PLAN specification 006](specs/006-lossless-obligations-and-executable-plan.md), plus
 the [case-creation runbook](runbooks/create-eval-case.md) and
 [eval execution runbook](runbooks/execute-eval.md). Non-Git attempts,
 canonical snapshots and retention follow the [storage runbook](runbooks/eval-storage.md).

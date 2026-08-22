@@ -30,6 +30,25 @@ flow pack as an explicit matched pair, and use absolute paths for both.
 An unaccepted checkpoint or assessment is deliberately not runnable. Build and
 independently accept the canonical chain before comparing a Subject profile.
 
+## Semantic-contract tuning loop
+
+When a change alters stage meaning, an artifact schema or a deterministic
+handoff, use two gates rather than publishing after unit tests:
+
+1. make the matched beta engine/flow change and run its contract tests;
+2. run one disposable diagnostic chain across every changed boundary;
+3. inspect semantic output and lifecycle evidence, fix the root contract, and
+   repeat the diagnostic only as needed;
+4. after the pair is sound, create one new canonical chain from SPECIFY entry
+   and replace all downstream starters;
+5. run the comparison scenario declared for that change.
+
+For specification 006 the diagnostic boundary is
+`PROTOCOLIZE → PLAN → PLAN-REVIEW → CODE handoff`. The acceptance comparison is
+the full four-stage focused Luna/Terra/Sol matrix plus the three planned E2E
+runs. The small diagnostic is a development gate, not a scored substitute for
+that matrix.
+
 ## Eval modes
 
 Use one of three explicitly named modes; do not mix their evidence or score them

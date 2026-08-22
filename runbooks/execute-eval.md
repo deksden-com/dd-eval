@@ -232,6 +232,20 @@ If a predecessor artifact changes, increment the canonical-chain revision and
 recapture all downstream checkpoints. A checkpoint is immutable after
 acceptance.
 
+If a matched engine/flow change alters SPECIFY obligations, PROTOCOLIZE
+ownership, PLAN schema/projection or PLAN-REVIEW closure, rebuild the canonical
+chain from `specify-entry` even when the user discussion is unchanged. The
+checkpoint pins the whole runnable pair, so splicing downstream entries from an
+older pair is not a valid scored comparison.
+
+When the accepted assessment axes also change, do not compare old weighted
+scores directly with the new run. Statically rejudge retained old candidate
+evidence under the new assessment when possible and mark incomplete transcript
+or runtime evidence as `limited`; otherwise present the historical score in a
+separate lane. For specification 006, execute all four focused stages for all
+three declared Subject profiles and the three declared E2E runs after the new
+canonical chain is accepted.
+
 ### What “capture the current Session” means
 
 At every stage entry, keep the canonical Subject idle, immediately create one
