@@ -1,7 +1,7 @@
 ---
 file: 'beta/lossless-executable-plan-beta.87/index.md'
 description: 'Matched beta bundle for the lossless SPECIFY → CODE handoff cutover.'
-status: 'IN_PROGRESS'
+status: 'ACCEPTED_FOR_CANONICAL_AUTHORING'
 ---
 
 # Lossless executable PLAN — beta.87
@@ -9,9 +9,10 @@ status: 'IN_PROGRESS'
 This is the active implementation bundle for
 [specification 006](../../specs/006-lossless-obligations-and-executable-plan.md).
 It replaces the previous beta semantic handoff with one breaking, matched
-engine/flow-pack contract.  It is not a canonical checkpoint and must not be
-used for a scored model run until its disposable diagnostic and release gates
-are accepted.
+engine/flow-pack contract. It is not itself a canonical checkpoint. Its
+disposable diagnostic and release gates have passed; the next required step is
+to rebuild and accept the canonical conversation/RUN chain before any scored
+model run.
 
 ## Matched working pair
 
@@ -45,3 +46,36 @@ contract into a second checklist.
 
 Historical beta bundles and checkpoints are comparison evidence only.  They
 are neither compatibility inputs nor fallback fixtures for this bundle.
+
+## Accepted diagnostic
+
+On 2026-08-22 a disposable, isolated run used the exact installed engine
+snapshot and completed the lifecycle through CODE entry:
+
+```text
+SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW (off) → CODE work registration
+```
+
+The diagnostic established all of the following without a legacy reader or
+manual artifact mutation:
+
+- SPECIFY published `specify.json` and its deterministic Markdown projection;
+- PROTOCOLIZE created the policy-required feature worktree and published the
+  protocol result there;
+- PLAN accepted `plan.json`, its aspect map and the deterministic
+  `code-work-batch.json` projection;
+- review-off performed the same deterministic PLAN closure before CODE entry;
+- CODE entry registered the executable Work from the batch with its prompt,
+  paths, requirement references and verification command.
+
+The run deliberately stopped at CODE entry: it was a handoff-contract
+diagnostic, not a product implementation. Its disposable workspace was sent to
+Trash after inspection. This is sufficient evidence for the matched pair; the
+canonical chain is a separate, versioned acceptance step.
+
+## Immutable tags
+
+| Component | Tag |
+| --- | --- |
+| Engine | `eval-engine-0.8.0-beta.87` |
+| Flow pack | `eval-mb-3.2.0-vnext-plan-review-beta.87` |

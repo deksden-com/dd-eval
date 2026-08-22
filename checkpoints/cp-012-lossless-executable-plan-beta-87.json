@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-012-lossless-executable-plan-beta-87",
+  "title": "cp-012 lossless obligations and executable PLAN beta.87",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.87",
+    "commit": "3b4c3cfc1a1c50934d254c09387cd8c6faa8ed78"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.87",
+    "dd_flow_cli": "0.8.0-beta.87",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.87",
+      "commit": "a863668eb71c3706115a01361a4e0d121523df49"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}
