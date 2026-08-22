@@ -49,6 +49,24 @@ acceptance comparison is the full four-stage focused Luna/Terra/Sol matrix plus
 the three planned E2E runs. The small diagnostic is a development gate, not a
 scored substitute for that matrix.
 
+### Specification-006 delivery gate
+
+Follow the six waves in [the delivery ledger](../specs/006-lossless-obligations-and-executable-plan.md#11-delivery-ledger)
+without skipping from a compiling engine to a scored comparison:
+
+1. semantic SPECIFY JSON and projection;
+2. lossless PROTOCOLIZE ownership;
+3. semantic PLAN plus generated executable graph;
+4. PLAN-REVIEW/CODE closure;
+5. matched-pair tests and one disposable lifecycle diagnostic;
+6. a new checkpoint, canonical chain, untouched starters and the 15-run
+   comparative matrix.
+
+The beta Controller records the current wave and its evidence in the beta
+bundle index. A new beta version is warranted only when a behavior or contract
+changes; a repeated diagnostic against the same committed pair is an attempt,
+not a version.
+
 ## Eval modes
 
 Use one of three explicitly named modes; do not mix their evidence or score them

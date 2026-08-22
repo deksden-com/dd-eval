@@ -33,6 +33,38 @@ A field is structured only when deterministic code uses it for validation,
 routing, projection or a lifecycle transition. Information read only by an
 agent, Judge or human remains in a small number of large Markdown sections.
 
+### 0.1 Artifact-shape policy
+
+`JSON` is for the semantic facts that later deterministic steps must preserve
+or check.  It is not an instruction to atomize normal reasoning into dozens
+of shallow fields.  A stage therefore uses this split:
+
+- stable identities, ownership, dependencies, paths, revisions and references
+  are explicit JSON fields;
+- exact accepted requirements and acceptance criteria are explicit JSON arrays;
+- a substantial but non-mechanical explanation stays as Markdown inside one of
+  the declared large JSON string sections;
+- human-readable `.md`, HTML and report files are deterministic projections
+  when their content can be derived from an accepted JSON source.
+
+This preserves complete meaning without making the agent fill a questionnaire.
+It also gives every later stage one unambiguous semantic source.  Do not create
+an additional prose file merely to store the same meaning under another name.
+
+### 0.2 Source-of-truth table
+
+| Concern | Semantic source | Deterministic projection or receipt | Never agent-authored |
+| --- | --- | --- | --- |
+| clarified intent | `01-specify/specify.json` | `specify.md`, stage report, hashes | a second obligation list |
+| allocation to delivery slices | `02-protocolize/protocolize-result.json` | PRT/PSET documents and links | paraphrased replacement R/AC text |
+| implementation decisions | each `03-plan/<PRT>/plan.json` and aspect map | generated CODE graph | a second runtime PLAN graph |
+| executable CODE work | final semantic plans plus accepted ownership | `03-plan/code-work-batch.json`, registered Works | manual batch edits |
+| PLAN review decision | `04-plan-review/decision.json` | corrected PLAN closure and receipt | a synthetic decision for review-off |
+
+The table is deliberately short.  If a future field cannot name the source it
+extends and the deterministic consumer that needs it, it does not belong in a
+new contract.
+
 This rule prevents two opposite failures:
 
 - unstructured prose that later stages can only recover with regular
@@ -815,6 +847,63 @@ package 20 is accepted.
   semantic prose override a deterministic fact.
 - Do not create canonical checkpoints, starter Sessions or scored results from
   a partially migrated engine/pack pair.
+
+## 11. Delivery ledger
+
+The numbered packages in section 10.1 are the normative implementation order.
+This ledger makes their ownership and completion evidence explicit.  Finish a
+row before starting a dependent row; do not substitute a manual inspection for
+the stated mechanical proof.
+
+| Wave | Packages | Repository and change | Required evidence before the next wave |
+| --- | --- | --- | --- |
+| A — semantic intake | 1–6 | `dd-flow-cli`: SPECIFY schema, validator, atomic writer and projection. `dd-tasks`: identical local schema, manifests and normal-stage prompt. | Typecheck/build; SPECIFY contract tests; exact engine/pack schema parity; a valid JSON result renders identical Markdown twice. |
+| B — lossless allocation | 7–10 | `dd-flow-cli`: PROTOCOLIZE v2 schema, ownership validator and renderer. `dd-tasks`: result contract, prompt, local schema and handoff references. | Contract tests reject unknown, missing and duplicated R/AC; durable PRT/PSET output contains the exact accepted statements. |
+| C — executable planning | 11–16 | `dd-flow-cli`: PLAN v3 validator, coverage/path/graph checks and one batch projector. `dd-tasks`: PLAN schema, prompt and examples that author only semantic plans. | PLAN tests cover coverage, proof, graph and path failures; identical inputs produce byte-identical batches; no prompt or live reader accepts an agent batch. |
+| D — review and CODE boundary | 17–20 | `dd-flow-cli`: decision v3, shared closure, review-off and CODE-root checks. `dd-tasks`: review/CODE prompts, manifests, indexes and help. | Review-on and review-off produce the same registered CODE graph for unchanged semantic PLAN; invalid corrections leave prior artifacts untouched; no future output is in CODE root input. |
+| E — acceptance evidence | 21 | Both beta branches: matched prerelease versions, clean commits and a disposable lifecycle diagnostic. | `typecheck`, relevant test suites, schema parity, pack document checks, and one observed SPECIFY → CODE-registration chain all pass. |
+| F — comparative proof | 22 | `dd-eval`: one new input checkpoint, canonical chain, starter registry, updated assessment and scenario evidence. | Four accepted stage entries, untouched starters, then 12 focused and 3 E2E completed and judged runs; reports record pair identity and all Session IDs. |
+
+### 11.1 Exact execution sequence
+
+1. Work only on the two matched beta branches.  Record each behavior change in
+   this specification before or alongside its implementation; do not patch the
+   stable canon while the behavior is unproven.
+2. Implement waves A–D as one coherent breaking cutover: remove the superseded
+   beta contract at its readers and prompts rather than teaching live code to
+   guess which version it received.
+3. At each wave boundary, run the smallest test set that falsifies the changed
+   contract.  Repair the shared validator, renderer or handoff constructor
+   rather than adding stage-specific exceptions.
+4. Bump both prerelease identities and make one matched, clean engine/pack
+   pair.  Build the engine with the exact pack identity embedded and verify the
+   installed router selects it for the diagnostic RUN.
+5. Run the disposable diagnostic on a new isolated workspace.  It is allowed
+   to expose a root defect; discard it after diagnosis.  Do not score it, reuse
+   it as a fixture, or change the user task to make it pass.
+6. When the diagnostic is sound, tag the two exact commits and write one new
+   immutable `dd-eval` input checkpoint that names both tags, versions and
+   commits.  Historical checkpoints remain immutable comparison material.
+7. Build a fresh canonical Subject chain from normal priming and normal user
+   discussion.  At each natural stage boundary, review the semantic result,
+   capture the project/RUN state and frozen Subject Session, then make one
+   untouched starter Session from it.
+8. Only after the four checkpoints and four starters pass the scored readiness
+   gate, execute the fixed Luna/Terra/Sol matrix.  A Controller may answer a
+   legitimate question substantively; it records the exchange for the Judge
+   instead of treating it as a harness failure.
+9. Judge outcome quality, flow reliability and efficiency independently under
+   the accepted assessment.  Aggregate only after every declared run reaches a
+   terminal state; publish comparison and golden-dataset recommendations as
+   evidence, not as edits to the historical candidates.
+
+### 11.2 Completion decision
+
+The Controller may request canonical promotion only when wave F is accepted.
+If a failure is semantic or a contract defect, return to the earliest affected
+wave, issue a new beta pair and start a new canonical chain.  If it is only an
+invalid disposable attempt or harness interruption, repair the harness and
+repeat that attempt without mutating accepted checkpoint evidence.
 
 ## Definition of done
 
