@@ -44,10 +44,10 @@ handoff, use two gates rather than publishing after unit tests:
 5. run the comparison scenario declared for that change.
 
 For specification 006 the diagnostic boundary is
-`PROTOCOLIZE → PLAN → PLAN-REVIEW → CODE handoff`. The acceptance comparison is
-the full four-stage focused Luna/Terra/Sol matrix plus the three planned E2E
-runs. The small diagnostic is a development gate, not a scored substitute for
-that matrix.
+`SPECIFY finish → PROTOCOLIZE → PLAN → PLAN-REVIEW → CODE handoff`. The
+acceptance comparison is the full four-stage focused Luna/Terra/Sol matrix plus
+the three planned E2E runs. The small diagnostic is a development gate, not a
+scored substitute for that matrix.
 
 ## Eval modes
 

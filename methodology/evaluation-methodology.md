@@ -78,7 +78,9 @@ repeat checksum or lifecycle bookkeeping instead of reviewing the substance.
 - **SPECIFY** is judged on a portable problem-space contract. Its `R-*` and
   `AC-*` obligations must be complete, precise and acceptance-oriented;
   mechanically parseable identifiers are necessary but earn no semantic
-  credit by themselves.
+  credit by themselves. `specify.json` is the semantic source; `specify.md` is
+  its deterministic reading projection. The Judge uses the JSON for exact
+  obligation coverage and the Markdown for readable contextual review.
 - **PROTOCOLIZE** is judged on lossless allocation of accepted obligations to
   the smallest valid delivery topology. It must not gain credit for paraphrasing
   the request, nor lose credit merely because deterministic rendering preserves
@@ -94,6 +96,48 @@ repeat checksum or lifecycle bookkeeping instead of reviewing the substance.
 When a deterministic projection is derived from a semantic source, Judges
 score the source and its downstream fitness. They report a projection mismatch
 as a flow defect and must not reward duplicated agent-authored bookkeeping.
+
+### Criterion interpretation for the planning contour
+
+Use these meanings whenever the active assessment contains the named id.
+
+| Scope | Criterion | Judge meaning |
+| --- | --- | --- |
+| SPECIFY outcome | `gaps` | Finds and resolves material ambiguity proportionately; does not reward question count or speculative analysis. |
+| SPECIFY outcome | `obligations` | R/AC are complete, precise, mutually coherent and include material defaults, invariants, exceptions and negative boundaries. |
+| SPECIFY outcome | `handoff` | A fresh PROTOCOLIZE Session can act without the discussion transcript and without inventing product semantics. |
+| SPECIFY outcome | `grounding` | Uses relevant project truth and stops reading once the material uncertainty is resolved. |
+| SPECIFY flow | `hitl` | Pauses only for a decision with no reasonable default, preserves the same stage and correctly incorporates the answer. |
+| SPECIFY flow | `stage-integrity` | Produces the accepted JSON SSOT and deterministic projection once, then stops at the declared boundary. |
+| SPECIFY flow | `evidence` | Stage report and retained inputs make the result and its sources inspectable. |
+| PROTOCOLIZE outcome | `obligation-preservation` | Every accepted R/AC keeps its exact meaning and has explicit protocol ownership; no material obligation is lost or invented. |
+| PROTOCOLIZE outcome | `slicing` | Uses the smallest valid vertical single-PRT/PSET topology with real dependency boundaries. |
+| PROTOCOLIZE outcome | `durable-documents` | Applies positive triggers for feature/epic/spec/ADR/scenario links and leaves useful indexed records without placeholders. |
+| PROTOCOLIZE outcome | `handoff` | PLAN receives clear protocol boundaries, owned obligations and topology without premature implementation design. |
+| PROTOCOLIZE flow | `workspace-policy` | Uses only the CLI-provisioned workspace/branch route. |
+| PROTOCOLIZE flow | `deterministic-materialization` | Lets CLI allocate ids and render exact obligations; no manual durable-document duplication or partial publication. |
+| PROTOCOLIZE flow | `evidence` | Result, ownership map, generated durable links and stage report are traceable. |
+| PLAN outcome | `grounding` | Grounds decisions in accepted obligations, PRT boundaries and relevant current project surfaces. |
+| PLAN outcome | `decision-quality` | Chooses the simplest adequate architecture and records only material decisions, risks and document changes. |
+| PLAN outcome | `executable-work-graph` | Every owned obligation maps to concrete ordered plan items with resolvable inputs, bounded outputs and no unsafe concurrency. |
+| PLAN outcome | `verification` | Gives falsifiable positive, negative, migration and cleanup evidence proportionate to the accepted behavior. |
+| PLAN flow | `routing` | Uses local work or grouped subagents proportionately; breadth alone does not force deep routing. |
+| PLAN flow | `projection-integrity` | PLAN remains the semantic SSOT and the generated CODE graph matches its revision, dependencies and paths. |
+| PLAN flow | `evidence` | Plan, aspect map, generated graph and stage report make coverage and readiness inspectable. |
+| PLAN-REVIEW outcome | `material-findings` | Finds consequential semantic, verification or executability defects rather than maximizing finding count. |
+| PLAN-REVIEW outcome | `evidence` | Ties findings to accepted obligations, plan items and project facts. |
+| PLAN-REVIEW outcome | `prioritization` | Consolidates duplicates and separates blocking/material issues from minor preferences. |
+| PLAN-REVIEW outcome | `correction` | Applies accepted findings once to the PLAN SSOT without claiming unmade changes. |
+| PLAN-REVIEW outcome | `code-readiness` | Final PLAN and generated graph can start CODE with complete, resolvable inputs. |
+| PLAN-REVIEW flow | `reviewer-isolation` | Uses genuinely fresh read-only reviewer Sessions when review is enabled. |
+| PLAN-REVIEW flow | `routing` | Groups compatible aspects toward minimal capacity-aware waves without dropping applicable review. |
+| PLAN-REVIEW flow | `closure` | Classifies all material findings, handles HITL in-stage and closes once without an automatic second review. |
+| PLAN-REVIEW flow | `code-registration` | CLI revalidates/reprojects and registers CODE Works atomically from the final PLAN. |
+
+For E2E, `stage-quality` aggregates these semantic meanings without averaging
+away a material stage defect; `cross-stage-integrity` checks preservation of
+accepted obligations and decisions; `correction-quality` checks that review
+improves the actual PLAN; and `readiness` checks the final executable graph.
 
 ## Evidence and rejudging
 

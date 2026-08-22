@@ -1,7 +1,7 @@
 ---
 file: 'specs/006-lossless-obligations-and-executable-plan.md'
-description: 'Preserve accepted obligations through PROTOCOLIZE and derive the CODE graph from PLAN as its single semantic source.'
-status: 'DRAFT'
+description: 'Use structured SPECIFY obligations, lossless protocol ownership and a PLAN-derived CODE Work graph.'
+status: 'ACCEPTED'
 suite_id: 'sdlc-eval-2026-summer'
 extends: '004-protocolize-worktree-boundary.md'
 ---
@@ -10,250 +10,710 @@ extends: '004-protocolize-worktree-boundary.md'
 
 ## Goal
 
-Make the path from clarified user intent to CODE mechanically lossless without
-moving semantic decisions into deterministic code:
+Make the path from clarified user intent to CODE mechanically lossless while
+keeping semantic work with the agent:
 
 ```text
-SPECIFY obligations
-  -> PROTOCOLIZE ownership
-  -> PLAN implementation graph
-  -> deterministic CODE Work projection
+specify.json semantic SSOT
+  -> specify.md deterministic human projection
+  -> PROTOCOLIZE obligation ownership
+  -> plan.json semantic implementation graph
+  -> code-work-batch.json deterministic runtime projection
   -> PLAN-REVIEW semantic challenge and correction
+  -> validated CODE Works
 ```
 
 The agent decides meaning, delivery boundaries, implementation and proof. The
-CLI preserves identifiers, exact accepted text, graph integrity and file
-references. No stage manually rewrites a downstream projection that can be
-derived from the accepted source.
+CLI validates and projects facts it can determine exactly. No stage manually
+rewrites a downstream artifact that can be derived from an accepted source.
+
+## Design rule
+
+A field is structured only when deterministic code uses it for validation,
+routing, projection or a lifecycle transition. Information read only by an
+agent, Judge or human remains in a small number of large Markdown sections.
+
+This rule prevents two opposite failures:
+
+- unstructured prose that later stages can only recover with regular
+  expressions; and
+- a large JSON questionnaire whose fields have no executable purpose.
+
+Do not add a second obligation file, a parallel PLAN graph, compatibility
+fallbacks or task-specific business heuristics.
+
+## Scope and non-goals
+
+This specification changes the beta flow and engine contracts for SPECIFY,
+PROTOCOLIZE, PLAN, PLAN-REVIEW and their handoffs. It also changes the active
+eval assessment and requires a new canonical checkpoint chain.
+
+It does not:
+
+- change the task-priority product request or its golden business decisions;
+- implement CODE, merge or deployment behavior;
+- introduce a general workflow DSL or a second task scheduler;
+- make Judges responsible for deterministic schema validation;
+- preserve readability of the old beta stage contracts inside the new engine.
+
+Historical eval artifacts remain historical evidence. The new beta pair does
+not read them as live stage input.
 
 ## Current defects
 
 1. SPECIFY writes `R-*` and `AC-*` bullets in Markdown. The CLI finds their
-   identifiers with regular expressions, but does not expose a structured list
-   containing the exact statement and kind. This is machine-detectable, not a
-   complete machine-readable obligation contract.
-2. PROTOCOLIZE maps only `AC-*`. It manually compresses requirements into
-   member scope and primary acceptance, so an accepted constraint, exception or
-   negative rule can disappear even when all acceptance identifiers pass the
-   current validator.
-3. PLAN is asked to author both `plan.json` and `code-work-batch.json`. They
-   describe the same implementation graph twice and can diverge. The supplied
-   one-Work example also biases a model toward collapsing a multi-surface plan.
-4. Current PLAN validation checks identifier existence and acyclicity, but not
-   complete obligation ownership, CODE input availability, unique output
-   ownership or consistency between the accepted PLAN revision and the batch.
-5. PLAN-REVIEW asks the orchestrator to update PLAN and manually regenerate the
-   batch. A mechanically valid review receipt can therefore coexist with a
-   stale or non-executable CODE handoff.
+   identifiers with regular expressions but does not retain exact statements
+   in a structured contract.
+2. PROTOCOLIZE maps only `AC-*`. An accepted requirement, invariant, exception
+   or negative boundary can disappear even when current coverage validation
+   passes.
+3. PROTOCOLIZE manually paraphrases accepted scope into each PRT. This makes
+   semantic preservation depend on model repetition rather than ownership.
+4. PLAN authors both `plan.json` and `code-work-batch.json`. These are two
+   representations of one graph and can diverge.
+5. PLAN validates identifier existence and local acyclicity, but not complete
+   obligation realization, input availability or conflicting file ownership.
+6. PLAN-REVIEW applies corrections to PLAN and manually regenerates the batch.
+   A valid decision receipt can therefore coexist with a stale CODE handoff.
+7. The current handoff can put future CODE outputs in root `must_read`, making
+   the accepted graph impossible to start.
 
-## 1. SPECIFY obligation contract
+## 1. SPECIFY semantic source
 
-`specify.md` remains the human-readable semantic source of truth. Do not add a
-second agent-authored JSON result.
+### 1.1 Agent result
 
-The two normative sections use one parseable bullet form:
-
-```markdown
-## Requirements
-
-- R-001: Exact accepted requirement or constraint.
-
-## Acceptance criteria
-
-- AC-001: Exact observable acceptance statement.
-```
-
-Each material functional rule, non-functional constraint, preserved invariant,
-exception and negative boundary receives one `R-*` entry. Each observable
-acceptance obligation receives one `AC-*` entry. Context, rationale, research,
-assumptions and verification notes remain prose in their natural sections and
-must not be promoted to obligations merely to satisfy a counter.
-
-At successful SPECIFY finish the CLI parses only these two sections, rejects
-duplicates, empty statements, wrong prefixes and malformed bullets, and writes
-`01-specify/obligations.json` as a deterministic projection:
+The successful agent result is `01-specify/specify.json`, conforming to
+`dd-flow/specify@1`. It is the sole semantic source of truth:
 
 ```json
 {
-  "schema_id": "dd-flow/specify-obligations@1",
-  "source": "specify.md",
-  "obligations": [
-    { "id": "R-001", "kind": "requirement", "statement": "..." },
-    { "id": "AC-001", "kind": "acceptance", "statement": "..." }
-  ]
+  "schema_id": "dd-flow/specify@1",
+  "summary": "A concise clarified outcome.",
+  "requirements": [
+    {
+      "id": "R-001",
+      "statement": "An exact accepted requirement, constraint or invariant."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "An exact observable acceptance obligation."
+    }
+  ],
+  "sections": {
+    "problem_and_scope": "Markdown covering the problem, goal, actors, in-scope and out-of-scope behavior.",
+    "acceptance_and_verification": "Markdown covering the scenario, happy/alternate/error paths, automated/manual proof, fixtures, cleanup and proof limits.",
+    "gaps_defaults_and_project_facts": "Markdown covering the baseline pass, method applicability, findings, research, settled defaults, assumptions and binding project facts.",
+    "assessment_and_protocolize_handoff": "Markdown covering task assessment, plan floor, delivery-shape seed, material sources and verification seeds."
+  }
 }
 ```
 
-The projection copies text exactly and is always regenerated from
-`specify.md`; it is never edited by an agent. This is the only new SPECIFY
-artifact required by this specification.
+The four section values are large Markdown strings. Their internal content is
+governed by the SPECIFY prompt and evaluated semantically; the CLI checks only
+that each required section is a non-empty string. Do not split their prose into
+fields until deterministic code has a real consumer for such a field.
+
+The JSON Schema is closed: all shown top-level fields and all four section keys
+are required, `requirements` and `acceptance_criteria` are non-empty, and
+`additionalProperties` is false at every structured object boundary. The CLI
+normalizes accepted JSON to two-space indentation and one final newline before
+hashing and rendering it.
+
+The JSON has no `outcome`, timestamps, checksums, runtime paths, Git facts,
+session data or empty `questions` array. Lifecycle supplies the outcome and CLI
+supplies runtime facts. A material unanswered question uses the existing
+`stage pause`/`stage resume` contract and cannot appear in a successfully
+finished SPECIFY result.
+
+### 1.2 Obligation rules
+
+- Every material functional rule, non-functional constraint, preserved
+  invariant, exception and negative boundary receives one `R-*` entry.
+- Every independently observable acceptance obligation receives one `AC-*`
+  entry.
+- IDs match `^R-[0-9]{3,}$` or `^AC-[0-9]{3,}$`, are unique within the result
+  and retain array order.
+- Statements are non-empty exact accepted semantics, not implementation steps,
+  phase labels or references such as “as discussed above”.
+- Context and rationale stay in the large sections. Do not manufacture an
+  obligation merely to make the list longer.
+
+The CLI performs structural validation only. It cannot decide whether the
+agent omitted a material business rule; that remains a Judge concern.
+
+### 1.3 Deterministic Markdown projection
+
+After validating and storing `specify.json`, the CLI always renders
+`01-specify/specify.md`. The agent never writes or edits this file.
+
+The renderer uses one stable layout:
+
+```markdown
+# Summary
+
+<summary>
+
+# User problem and scope
+
+<sections.problem_and_scope>
+
+# Requirements
+
+- R-001: <statement>
+
+# Acceptance criteria
+
+- AC-001: <statement>
+
+# Acceptance and verification
+
+<sections.acceptance_and_verification>
+
+# Gaps, defaults and project facts
+
+<sections.gaps_defaults_and_project_facts>
+
+# Assessment and PROTOCOLIZE handoff
+
+<sections.assessment_and_protocolize_handoff>
+```
+
+The renderer escapes or normalizes only what is required for valid headings
+and stable final newlines. It does not summarize, rewrite or reorder semantic
+content. A renderer test proves byte-stable output for the same accepted JSON.
+
+### 1.4 SPECIFY lifecycle
+
+`stage start ... --stage specify` returns one complete packet containing:
+
+- trusted runtime/grounding context;
+- the full `dd-flow/specify@1` JSON Schema with field descriptions;
+- one minimal valid result example;
+- the existing pause command;
+- one exact JSON-stdin finish command.
+
+The Subject must not search for another schema or example. The successful path
+is one `stage finish` call with JSON on stdin. Finish must:
+
+1. parse the input and collect all schema errors;
+2. report all structural errors together with JSON paths;
+3. validate R/AC ID format and uniqueness;
+4. write `specify.json` atomically;
+5. render `specify.md` atomically;
+6. generate the normal JSON, Markdown and HTML stage reports;
+7. record hashes for both accepted JSON and rendered Markdown in the stage
+   report, without creating a separate receipt;
+8. close SPECIFY and return the exact PROTOCOLIZE continuation.
+
+No successful finish may leave only one of the two files. A validation or write
+failure leaves the stage running and does not publish a partial accepted
+result.
+
+The flow manifests change the SPECIFY agent action from
+`result_format: markdown` to `result_format: json`.
 
 ## 2. PROTOCOLIZE is allocation, not paraphrase
 
-Replace `acceptance_coverage` with one `obligation_ownership` array. Every
-obligation from `obligations.json` appears in exactly one ownership record and
-names one or more valid temporary protocol member keys:
+### 2.1 Input
+
+The PROTOCOLIZE start packet names both accepted artifacts:
+
+- `specify.json` — semantic SSOT and machine-readable R/AC list;
+- `specify.md` — deterministic reading projection.
+
+The CLI also renders the exact R/AC list in the start packet, so the agent does
+not need to discover or regex it. In any conflict, which would be an engine
+defect, `specify.json` is authoritative and the stage fails closed.
+
+### 2.2 Result contract
+
+Replace `dd-flow/vnext-protocolize-result@1.acceptance_coverage` with
+`dd-flow/vnext-protocolize-result@2.obligation_ownership`:
 
 ```json
 {
+  "schema_id": "dd-flow/vnext-protocolize-result@2",
   "obligation_ownership": [
-    { "obligation_id": "R-001", "member_keys": ["primary"] },
-    { "obligation_id": "AC-001", "member_keys": ["primary"] }
+    {"obligation_id": "R-001", "member_keys": ["primary"]},
+    {"obligation_id": "AC-001", "member_keys": ["primary"]}
   ]
 }
 ```
 
-An ownership record is unique by obligation id. Multiple member keys are valid
-only when the same request-level obligation genuinely crosses vertical slices;
-they are not a way to copy every obligation into every protocol. Every protocol
-member must own at least one `AC-*` criterion.
+The rest of the current delivery, member, topology, durable-link and feature
+contract remains unless a field is proven unused during implementation.
+
+Each R/AC id appears in exactly one ownership record. `member_keys` is a
+non-empty unique list of existing temporary member keys. Multiple member keys
+are allowed only for a genuinely cross-slice obligation; they are not a default
+and do not permit blanket duplication. Every member owns at least one `AC-*`.
+
+### 2.3 Agent responsibility
 
 The PROTOCOLIZE agent must:
 
-- choose the smallest valid single-PRT/PSET delivery shape;
-- allocate every accepted `R-*` and `AC-*` without rewriting its meaning;
-- define member goal, role, boundaries, dependencies and concise primary
-  acceptance;
-- create or link durable epic/feature/spec/ADR/scenario records only under
-  their existing positive triggers.
+1. choose the smallest valid single-PRT or PSET topology;
+2. allocate every accepted R/AC obligation without changing its statement;
+3. define member goal, role, boundary, dependency and concise primary
+   acceptance;
+4. apply positive triggers for epic/feature/spec/ADR/scenario documents;
+5. pause within PROTOCOLIZE for a new material decision with no reasonable
+   default, then resume the same Work.
 
-The agent must not manually copy obligation statements into its result. At
-finish the CLI joins ownership with `obligations.json` and renders the exact
-accepted statements into each PRT/PSET handoff. Member scope remains useful
-boundary prose, but it cannot replace or override owned obligations. The CLI
-rejects missing, unknown or duplicate ownership records before publishing any
-durable document.
+It must not rerun SPECIFY, rewrite accepted obligations, design implementation,
+create the worktree, allocate durable ids or write durable documents directly.
 
-## 3. PLAN is the semantic and graph SSOT
+### 2.4 Deterministic materialization
 
-The agent authors `plan.json` and its aspect map. It no longer authors
-`code-work-batch.json`.
+PROTOCOLIZE finish validates complete ownership before any durable write. It
+joins ownership with the exact statements from `specify.json` and renders under
+every generated PRT:
 
-Each PLAN item already supplies the semantic fields needed for one CODE Work:
+- `Owned requirements` with exact assigned `R-*` statements;
+- `Owned acceptance criteria` with exact assigned `AC-*` statements;
+- member boundary, primary acceptance and links supplied by PROTOCOLIZE.
 
-- stable local item id, title, summary and implementation details;
-- `depends_on`;
-- owned `requirement_refs`;
-- `execution_context.required_read` and `write_scope`;
-- checks, stop conditions and expected verification evidence.
+The PSET document renders the complete ownership map and dependency topology.
+Boundary prose may explain a slice but cannot replace or override owned
+obligations. Unknown, missing or duplicate ownership, an ownerless member, or a
+member without acceptance prevents all durable publication.
 
-Keep this existing shape unless implementation proves one of those fields
-cannot be projected unambiguously. Do not introduce a parallel Work DSL into
-PLAN. For a PSET, local PLAN dependencies and the accepted protocol dependency
-graph together define the global graph; the deterministic projection uses
-stable `<PRT-ID>:<PLAN-ITEM-ID>` Work keys.
+## 3. PLAN is the implementation SSOT
 
-PLAN finish performs one atomic operation:
+### 3.1 Agent-authored artifacts
 
-1. validate every plan and aspect map and return all discovered validation
-   errors together;
-2. require every obligation owned by that PRT to be referenced by at least one
-   PLAN item, and every `AC-*` to have an acceptance entry and proof path;
-3. validate local item dependencies and accepted cross-protocol dependencies;
-4. derive `03-plan/code-work-batch.json` from the accepted PLAN files;
-5. require every root `read_path` to exist in the accepted project/RUN state;
-   a later Work may instead read a path produced by exactly one transitive
-   predecessor;
-6. reject unresolved paths, output ownership conflicts and dependency cycles;
-7. record source PLAN revision/checksums in the projection and complete PLAN.
+For every PRT, the PLAN agent authors:
 
-The generated CODE batch is a disposable deterministic projection. Its Work
-task is rendered from the PLAN item; it contains no model-authored facts absent
-from PLAN. Compact and full plans may differ in explanatory depth, but both
-must preserve complete obligation coverage and an executable graph.
+- `.memory-bank/protocol/<PRT>/plan.json`;
+- `<RUN>/03-plan/<PRT>/aspect-map.json`.
 
-Aspect routing remains semantic. An aspect map records applicability and links
-an applicable aspect to concrete PLAN item, decision, acceptance or evidence
-references. Before independent review its review status is `pending`; PLAN
-cannot declare that a future reviewer passed it.
+It does not author `code-work-batch.json`. Remove that path, schema and example
+from the PLAN output instructions. Do not keep a hidden compatibility option or
+CLI flag that accepts an agent-authored batch.
 
-## 4. PLAN-REVIEW contract
+The plan schema advances to `dd-flow/protocol-plan@3`. Preserve the current
+useful semantic fields: goal, independent assessment axes, decisions,
+document updates, plan items and acceptance proof. Remove agent-owned runtime
+or handoff fields when their values are already known by the CLI. In
+particular, root CODE `must_read`, workspace route, bootstrap, source hashes and
+runtime policy facts are generated or normalized by CLI rather than invented by
+the PLAN agent.
 
-PLAN-REVIEW receives the accepted PLAN files, aspect maps and the generated
-batch with their exact revision/checksums. Reviewers inspect semantics,
-evidence and executability; they do not review JSON projection style or repeat
-deterministic schema checks.
+PLAN start may prepopulate deterministic identity/source metadata in each
+target plan file. The agent owns only semantic fields; finish validates that
+CLI-owned identity and source references were not changed.
 
-The orchestrator classifies findings and applies accepted corrections once to
-the PLAN SSOT and aspect map. It never edits `code-work-batch.json`. On finish,
-the CLI:
+The stored `protocol-plan@3` top level is deliberately limited to:
 
-1. validates the review decision and correction references;
+```json
+{
+  "schema_id": "dd-flow/protocol-plan@3",
+  "plan_id": "PLAN-001",
+  "protocol_id": "PRT-001-example",
+  "revision": 1,
+  "title": "...",
+  "summary": "...",
+  "source_refs": [],
+  "goal": {},
+  "assessment": {},
+  "decisions": [],
+  "document_updates": [],
+  "items": [],
+  "acceptance": []
+}
+```
+
+CLI owns `schema_id`, `plan_id`, `protocol_id`, initial `revision` and
+`source_refs`; the agent owns the remaining semantic fields and a review
+correction may increment `revision`. Remove `policy_context` and `code_handoff`
+from the semantic plan. Their runtime facts are already known by the CLI, while
+their useful semantic invariants belong in `goal`, decisions or plan items.
+
+### 3.2 Minimum PLAN item contract
+
+Each PLAN item provides everything needed to derive one CODE Work:
+
+- stable local `id`;
+- `title`, `summary` and implementation `details`;
+- local `depends_on` item ids;
+- non-empty `requirement_refs` owned by that PRT;
+- semantic spine and preserved invariants;
+- project-relative or `run://` `required_read` paths;
+- exact project-relative `write_scope` file paths;
+- focused checks, stop conditions and expected evidence.
+
+`required_read` contains paths, not prose such as “owning service”. Project
+paths are relative, RUN paths use `run://<RUN-ID>/...`, and semantic plans never
+store host-absolute paths. A new output may appear in `write_scope` before it
+exists; a root read may not.
+
+Every obligation assigned to the PRT is referenced by at least one plan item.
+Every assigned `AC-*` also has one acceptance entry linking the criterion to
+the plan items and observable proof. A plan item cannot claim an obligation
+owned only by another PRT.
+
+### 3.3 PSET graph
+
+Local `depends_on` defines the graph inside a protocol. The accepted PSET member
+`blocked_by` topology supplies cross-protocol ordering.
+
+For the first implementation, every root Work of a blocked member depends on
+every terminal Work of the blocking member. This conservative projection is
+deterministic and safe. Do not add cross-protocol plan-item reference syntax
+until a real case demonstrates that the conservative edge is materially too
+broad.
+
+### 3.4 Deterministic CODE projection
+
+PLAN finish derives `<RUN>/03-plan/code-work-batch.json`. Stable Work keys are
+`<PRT-ID>:<PLAN-ITEM-ID>`. Each Work projection contains:
+
+- source protocol, plan id, plan revision and item id;
+- task text rendered from the plan item;
+- requirement refs;
+- resolved portable read/write paths;
+- verification and stop conditions;
+- derived Work dependencies.
+
+The projection contains source plan checksums. It has no independent semantic
+field that can disagree with PLAN.
+
+Its minimum stored shape is:
+
+```json
+{
+  "schema_id": "dd-flow/code-work-batch@1",
+  "entry": "code",
+  "sources": [
+    {
+      "plan_id": "PLAN-001",
+      "protocol_id": "PRT-001-example",
+      "revision": 1,
+      "sha256": "<CLI-generated>"
+    }
+  ],
+  "works": [
+    {
+      "key": "PRT-001-example:P1",
+      "protocol_id": "PRT-001-example",
+      "plan_id": "PLAN-001",
+      "plan_item_id": "P1",
+      "task": "<CLI-rendered from the plan item>",
+      "requirement_refs": ["R-001", "AC-001"],
+      "read_paths": ["apps/api/src/example.ts"],
+      "write_paths": ["apps/api/src/example.ts"],
+      "verification": ["pnpm --filter @example/api test"],
+      "stop_conditions": ["Stop on a conflicting accepted invariant."],
+      "depends_on": []
+    }
+  ]
+}
+```
+
+The exact `task` renderer combines title, summary, details, semantic spine,
+checks and stop conditions in a fixed order. CODE `work start` may enrich the
+worker prompt with trusted runtime facts and the source plan item, but it must
+not reinterpret or replace this assignment.
+
+PLAN finish validates in one atomic operation and reports all independent
+errors together:
+
+1. every plan and aspect-map schema;
+2. owned-obligation coverage and AC proof paths;
+3. local and PSET dependency references;
+4. graph acyclicity;
+5. portable path syntax and path containment;
+6. root read availability in accepted project/RUN state;
+7. later read availability from at least one transitive predecessor when the
+   path did not exist at entry;
+8. write conflicts: several Works may name the same file only when their graph
+   orders those writers; unordered writers are rejected;
+9. aspect-map coverage and links to concrete plan items, decisions, acceptance
+   or evidence;
+10. deterministic batch generation and source checksums.
+
+If any check fails, PLAN remains running and no new accepted batch/report is
+published. Compact and full plans differ in reasoning depth, never in
+obligation coverage or graph executability.
+
+Before independent review, applicable aspects have review status `pending`.
+PLAN cannot predeclare a future reviewer result as `pass`.
+
+## 4. PLAN-REVIEW consumes and corrects PLAN
+
+### 4.1 Review input and routing
+
+PLAN-REVIEW receives accepted plans, aspect maps and the generated batch with
+exact plan revision/checksums. Reviewers inspect semantic decisions, evidence,
+obligation realization and graph executability. They do not repeat schema or
+projection-format validation.
+
+The existing routing remains:
+
+- at least one genuinely fresh reviewer Session when review is enabled;
+- compatible aspects grouped toward one capacity-aware wave;
+- narrower groups for real trust, irreversible or hard-risk boundaries;
+- one review pass by default;
+- the orchestrator classifies findings and owns corrections.
+
+### 4.2 Correction contract
+
+The orchestrator applies accepted findings only to `plan.json` and the relevant
+aspect map. It never edits `code-work-batch.json` and does not list that
+generated path as if it were an agent-authored correction.
+
+Advance the decision contract to `dd-flow/plan-review-decision@3`. Keep it
+small: outcome, summary, finding decisions and a correction block containing
+status, previous revision, changed semantic plan/map paths and concise summary.
+Checksums, generated paths and registration facts belong to the CLI receipt and
+stage report.
+
+```json
+{
+  "schema_id": "dd-flow/plan-review-decision@3",
+  "outcome": "accepted",
+  "summary": "Concise evidence-backed decision.",
+  "finding_decisions": [
+    {
+      "finding_id": "F-001",
+      "decision": "accepted_fix",
+      "reason": "Why the finding is material and applicable."
+    }
+  ],
+  "correction": {
+    "status": "applied",
+    "previous_plan_revision": 1,
+    "changed_paths": [
+      ".memory-bank/protocol/PRT-001-example/plan.json",
+      "run://RUN-001/03-plan/PRT-001-example/aspect-map.json"
+    ],
+    "summary": "What semantic defect was corrected."
+  }
+}
+```
+
+When no material correction is accepted, `correction.status` is
+`not_required`, `changed_paths` is empty and the previous revision remains the
+accepted revision. The generated batch never appears in `changed_paths`.
+
+### 4.3 Finish and review-off
+
+PLAN-REVIEW finish:
+
+1. validates reviewer completion and the decision;
 2. requires a PLAN revision increment when semantics changed;
-3. reruns PLAN validation;
-4. regenerates the batch from the final PLAN;
+3. reruns the same PLAN validator;
+4. regenerates `code-work-batch.json` from final PLAN;
 5. validates the resolved CODE handoff;
-6. registers CODE Works atomically and returns the exact CODE entry command.
+6. registers CODE Works atomically;
+7. writes final before/after revisions, checksums, projection and registration
+   facts to the deterministic receipt/report;
+8. returns the exact CODE entry command.
 
-When review is off, the same deterministic PLAN validation/projection and CODE
-registration path runs without reviewer dispatch or a synthetic review
-decision. A review finding may cite a PLAN item or its derived Work key, but a
-fix always targets the PLAN item.
+When RUN `plan_review.mode` is `off`, the stage performs no model review and
+creates no synthetic decision. The same deterministic final PLAN validation,
+batch generation, handoff validation and CODE registration path still runs.
 
-The existing one-pass policy remains: accepted findings are corrected, then
-the stage closes without an automatic second review. Deterministic validation
-can reject an invalid correction, but the orchestrator is not required to
-"prove" every semantic fix with deterministic code.
+Accepted findings are fixed once. There is no automatic second review. A
+deterministic validator may reject a broken correction, but the orchestrator is
+not required to prove semantic correctness through deterministic code.
 
-## 5. Handoff integrity
+## 5. Stage handoff integrity
 
-Every stage finish returns only inputs that the next stage can use now.
+Every stage finish returns only information usable by the next stage now.
 
-- CLI-generated root `must_read` contains existing accepted SPECIFY,
-  PROTOCOLIZE, PLAN and RUN artifacts only.
+- Root `must_read` contains existing accepted SPECIFY, PROTOCOLIZE, PLAN and
+  RUN artifacts generated by CLI.
 - Future CODE outputs never appear in root `must_read`.
-- A child Work input exists at CODE start or has exactly one transitive
-  predecessor that owns that output path.
-- Unknown `run://` references, multiple producers and stale PLAN/batch
-  revisions are rejected.
-- Agent-authored handoff prose may explain invariants and blockers, but cannot
-  override the resolved deterministic paths.
+- A CODE Work read path exists at CODE entry or is produced by an ordered
+  transitive predecessor.
+- Unordered multiple writers, unresolved portable references, path escapes,
+  stale plan/batch revisions and unknown `run://` references are rejected.
+- Agent-authored prose may explain invariants or blockers but cannot override
+  deterministic workspace, source or path facts.
 
-This rule is stage-generic. Do not add task-priority-specific path or business
-heuristics to the engine.
+The validator is stage-generic. It must not know task-priority values, archived
+project semantics or another case-specific business rule.
 
-## 6. Evaluation changes
+## 6. Flow-pack changes
 
-The Subject prompts remain ordinary flow prompts. They do not mention the eval
-or teach the model the golden answer.
+Update the beta pack as one matched change:
+
+- `vnext/mb-sdlc-vnext-specify.json` and
+  `vnext/mb-sdlc-vnext-protocolize.json`: SPECIFY result format becomes JSON;
+- `vnext/specify.md`: explain the minimal JSON contract, the four large
+  semantic sections, R/AC obligations and exact lifecycle commands;
+- `vnext/protocolize.md`: define lossless obligation allocation rather than
+  acceptance-only coverage or requirement paraphrase;
+- `vnext/plan.md`: remove agent-authored CODE batch and explain PLAN-owned Work
+  derivation, coverage and path requirements;
+- `vnext/plan-review.md`: instruct corrections to PLAN only and distinguish
+  semantic review from deterministic reprojection;
+- `vnext/start.md`, indexes and handoff references: identify `specify.json` as
+  SSOT and `specify.md` as projection.
+
+Prompts remain normal project-flow instructions. They do not mention the eval,
+golden answers or model comparison.
+
+## 7. Engine changes
+
+Keep stage-specific code in the existing service modules and extract only
+shared deterministic logic with more than one real caller.
+
+### SPECIFY
+
+- add `src/schemas/vnext-specify.schema.json`;
+- replace Markdown parsing in `vnext-specify.ts` with schema validation;
+- implement the deterministic Markdown renderer;
+- change stage data to `specify.json`, while reporting both JSON and Markdown;
+- update help, lifecycle input and run guidance paths.
+
+### PROTOCOLIZE
+
+- update `VnextProtocolizeResult` in `vnext-contracts.ts`;
+- add a schema for `vnext-protocolize-result@2` instead of template-only shape
+  checking;
+- replace acceptance-only validation with full obligation ownership;
+- render exact R/AC statements into PRT/PSET documents.
+
+### PLAN and projection
+
+- advance `protocol-plan.schema.json` to the accepted `@3` contract;
+- remove agent-batch discovery and related CLI options/examples;
+- create one PLAN validation/projection function shared by PLAN finish,
+  PLAN-REVIEW finish and review-off closure;
+- derive and validate CODE Work graph/path ownership from PLAN;
+- keep `code-work-batch.json` as a reportable projection, not an input SSOT.
+
+### PLAN-REVIEW and CODE entry
+
+- advance `plan-review-decision.schema.json` to `@3`;
+- remove the requirement that agent correction paths include the generated
+  batch;
+- regenerate the batch and register Works only after final validation;
+- generate root CODE handoff paths from accepted artifacts and runtime facts.
+
+### Cutover
+
+This is a breaking beta contract. Remove old readers and fallbacks in the same
+change:
+
+- no live `specify.md` semantic input;
+- no `obligations.json`;
+- no `acceptance_coverage`;
+- no agent-authored `code-work-batch.json`;
+- no `protocol-plan@2` or plan-review-decision@2 fallback in the new beta
+  engine.
+
+Historical eval reports are not migrated. A new matched beta engine/flow pair,
+input checkpoint and canonical chain identify the cutover.
+
+## 8. Verification
+
+### Unit and contract tests
+
+SPECIFY tests cover valid JSON, malformed JSON, all schema errors returned
+together, missing/duplicate/wrong-prefix R/AC, empty semantic sections, stable
+Markdown rendering, atomic failure and deterministic report hashes.
+
+PROTOCOLIZE tests cover complete R/AC ownership, unknown/duplicate/missing
+obligations, multi-member ownership, member without AC, no partial durable
+writes, and exact-statement rendering.
+
+PLAN tests cover obligation coverage, AC proof links, local/PSET cycles,
+unknown dependencies, root missing reads, predecessor-produced reads, portable
+RUN refs, path escape, unordered writer conflict, ordered shared-file writes,
+deterministic identical projection and stale revision rejection.
+
+PLAN-REVIEW tests cover no-change acceptance, semantic correction with revision
+increment, invalid correction, batch reprojection, no manual batch requirement,
+review-off closure, CODE registration atomicity and future output rejection in
+root handoff.
+
+### Integration diagnostics
+
+Before creating canonical checkpoints, run one disposable chain across:
+
+```text
+SPECIFY finish
+  -> PROTOCOLIZE ownership/materialization
+  -> PLAN validation/projection
+  -> PLAN-REVIEW correction or no-change
+  -> CODE Work registration and start packet
+```
+
+Inspect semantic artifacts as well as lifecycle receipts. Repeat only while a
+contract defect remains. This diagnostic is not a scored substitute for the
+full eval.
+
+## 9. Evaluation contract
 
 Focused Judges evaluate:
 
-- SPECIFY: complete, precise and portable obligations plus justified gaps;
-- PROTOCOLIZE: lossless obligation allocation and correct delivery topology;
-- PLAN: grounded implementation decisions, complete obligation coverage,
-  executable graph and falsifiable verification;
-- PLAN-REVIEW: material semantic findings, prioritization, accepted
-  corrections and final CODE readiness.
+- SPECIFY: complete, precise R/AC obligations; proportionate gap work; useful
+  large semantic sections; portable PROTOCOLIZE handoff;
+- PROTOCOLIZE: lossless obligation ownership, smallest valid topology and
+  correct durable links/materialization;
+- PLAN: grounded decisions, complete obligation realization, executable graph
+  and falsifiable verification;
+- PLAN-REVIEW: material semantic findings, evidence, prioritization, accepted
+  correction and final CODE readiness.
 
-Deterministic validity is flow evidence, not semantic quality credit. A CLI
-pass cannot hide a weak decision; a harmless formatting defect cannot outweigh
-a strong outcome.
+Deterministic validity is flow evidence, not semantic-quality credit. A CLI
+pass cannot hide a weak decision, and a harmless formatting issue cannot
+outweigh a strong outcome.
 
-Because this changes both the matched engine/flow pair and the assessment
-axes, historical published scores are not directly comparable. Retained old
-candidates may be statically rejudged under the new assessment and labelled
-with `evidence_completeness: limited`; the new run uses complete evidence.
+Because the axes and matched pair change, old published weighted scores are not
+directly comparable with the new run. Retained old candidates may be statically
+rejudged under the new assessment with `evidence_completeness: limited`; old
+historical scores otherwise remain in a separate lane.
 
-## 7. Delivery and validation sequence
+The acceptance run is deliberately complete:
 
-Use the shortest controlled beta loop:
+- focused SPECIFY, PROTOCOLIZE, PLAN and PLAN-REVIEW for Luna, Terra and Sol:
+  12 Subject executions;
+- one full E2E for each model: 3 Subject executions;
+- fresh stage/E2E Judges under the updated assessment.
 
-1. implement the parser/projection and lifecycle changes in the matched beta
-   engine and beta flow pack;
-2. run unit tests for malformed obligations, complete ownership, plan coverage,
-   projection determinism, path producers, conflicts, stale revisions and
-   review-off/review-on closure;
-3. run one fast diagnostic chain through
-   PROTOCOLIZE → PLAN → PLAN-REVIEW → CODE handoff;
-4. fix contract defects until that diagnostic is semantically and mechanically
-   sound;
-5. create a new canonical revision from SPECIFY entry, capture all four stage
-   entries, accept them and create new untouched starter Sessions;
-6. run the full focused Luna/Terra/Sol matrix for SPECIFY, PROTOCOLIZE, PLAN and
-   PLAN-REVIEW, then the three planned E2E executions;
-7. judge under the new assessment and compare the new run with a clearly
-   labelled static rejudgment of retained old evidence.
+## 10. Implementation order
 
-Do not mutate the old canonical revision or its results. Do not promote the
-beta pair to canon before the diagnostic and full comparison are accepted.
+Implement in this dependency order so every step has a runnable check:
+
+1. add SPECIFY schema, JSON finish and Markdown/report projection;
+2. update flow manifests/prompts and SPECIFY tests;
+3. add PROTOCOLIZE v2 ownership schema, validation and durable rendering;
+4. advance PLAN schema, remove manual batch input and implement deterministic
+   projection/path validation;
+5. update PLAN-REVIEW decision/finish and review-off closure;
+6. update CODE entry to consume only the validated generated graph;
+7. update engine help, indexes, snapshots and all affected tests;
+8. release one matched beta pair and run the integration diagnostic;
+9. fix diagnostic defects without changing the case task;
+10. commit/tag the accepted pair, create a new input checkpoint, and build a
+    new canonical chain from SPECIFY entry;
+11. accept all four stage-entry checkpoints and create untouched starters;
+12. execute and judge the full 15-run comparison;
+13. compare with the retained previous eval using the assessment-version rule;
+14. promote to canon only after the full comparison is accepted.
+
+## Definition of done
+
+The change is complete only when:
+
+- one agent-authored `specify.json` produces byte-stable `specify.md`;
+- no live stage regex-parses R/AC from Markdown;
+- every accepted R/AC is owned by PROTOCOLIZE and realized by PLAN;
+- agents never author or repair `code-work-batch.json`;
+- PLAN and PLAN-REVIEW use the same deterministic projection/validator;
+- CODE root and child inputs resolve under the accepted graph;
+- review-on and review-off both register the same valid CODE graph for the same
+  final PLAN;
+- all contract/integration tests pass;
+- the new canonical chain and starter Sessions are accepted;
+- the full Luna/Terra/Sol focused and E2E comparison is completed under the
+  updated assessment.
+
+Do not mutate the old canonical revision, starter registry or completed eval
+results. Do not promote the beta pair before these conditions hold.

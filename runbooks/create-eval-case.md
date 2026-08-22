@@ -88,6 +88,11 @@ checkpoint.
    The assessment defines outcome/flow criteria, golden decisions, valid
    alternatives and known risks. Profiles describe
    the Desktop harness, model and reasoning only; they do not select an engine.
+   Candidate files must include every semantic SSOT needed by the Judge and any
+   deterministic projection whose integrity is scored as flow evidence. For the
+   specification-006 contour this means both `specify.json` and `specify.md`,
+   while `code-work-batch.json` is retained as generated evidence rather than a
+   second semantic answer.
 3. Build the single canonical Subject chain using
    [the eval execution runbook](execute-eval.md).
 4. At every accepted stage entry, store the moving canonical Session ID and

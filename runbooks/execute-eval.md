@@ -246,6 +246,13 @@ separate lane. For specification 006, execute all four focused stages for all
 three declared Subject profiles and the three declared E2E runs after the new
 canonical chain is accepted.
 
+For the specification-006 pair, focused SPECIFY and E2E candidate manifests
+retain both `01-specify/specify.json` and its deterministic
+`01-specify/specify.md` projection. Judges use the former for exact obligation
+coverage and the latter for readable semantic review. PLAN and PLAN-REVIEW
+candidate manifests retain generated `code-work-batch.json` as flow evidence;
+it is never treated as a separately authored semantic answer.
+
 ### What “capture the current Session” means
 
 At every stage entry, keep the canonical Subject idle, immediately create one

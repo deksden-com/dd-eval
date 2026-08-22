@@ -83,7 +83,7 @@
         "known_risks": [
           {"id": "RISK-PLAN-001", "severity": "material", "statement": "A plan that only validates values at the API but omits a database invariant is incomplete."},
           {"id": "RISK-PLAN-002", "severity": "material", "statement": "A separate archived-project read followed by mutation does not prove atomic priority-only behavior."},
-          {"id": "RISK-PLAN-003", "severity": "material", "statement": "Every CODE read must resolve at entry or be produced by exactly one transitive predecessor; a manually duplicated or stale batch is not code-ready."}
+          {"id": "RISK-PLAN-003", "severity": "material", "statement": "Every CODE read must resolve at entry or be produced by an ordered transitive predecessor; unordered writers and a manually duplicated or stale batch are not code-ready."}
         ]
       }
     },
