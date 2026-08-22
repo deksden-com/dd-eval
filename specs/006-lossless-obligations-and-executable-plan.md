@@ -924,3 +924,126 @@ The change is complete only when:
 
 Do not mutate the old canonical revision, starter registry or completed eval
 results. Do not promote the beta pair before these conditions hold.
+
+## 12. Operational implementation plan
+
+This section turns the normative packages above into the one working order for
+an implementation session.  It adds no contract and does not replace the
+delivery ledger.  Its purpose is to make the intended end state, the boundary
+between deterministic and agent work, and every acceptance checkpoint visible
+in one place.
+
+### 12.1 Target state
+
+At the end of this change, the same accepted semantic fact moves through the
+flow without being retyped by an agent:
+
+```text
+Subject writes specify.json
+  -> CLI renders specify.md
+  -> Subject allocates R/AC ids to protocol members
+  -> CLI materializes exact owned statements in PRT/PSET documents
+  -> Subject writes semantic plan.json and aspect map
+  -> CLI validates it and derives code-work-batch.json
+  -> Reviewer/orchestrator corrects only semantic PLAN artifacts
+  -> CLI revalidates, reprojections and registers CODE Works
+```
+
+The intentional ownership split is fixed throughout the work:
+
+| Owner | May decide or write | Must not do |
+| --- | --- | --- |
+| Subject | user intent, R/AC statements, slice boundaries, plan semantics, review decisions | write projections, runtime paths, hashes or CODE batches |
+| Reviewer | identify material semantic defects and recommend/follow accepted corrections | substitute schema validation or edit generated runtime artifacts |
+| CLI | validate structure and graph facts, render/copy projections, calculate hashes, register Works and transition lifecycle | infer missing business requirements or silently repair semantics |
+| Judge | assess outcome quality, reliability and efficiency from preserved evidence | grant semantic credit merely because a deterministic check passed |
+
+### 12.2 Work sequence
+
+1. **Establish the exact beta baseline.** Record the engine and flow-pack
+   commits, versions, input checkpoint and assessment revision in the beta
+   index.  Work only on the matched beta branches.  Historical runs remain
+   read-only evidence.
+2. **Finish the SPECIFY cutover as one vertical slice.** Add the closed
+   `specify@1` schema in both repositories, change the finish input to JSON,
+   validate all independent errors together, atomically write normalized JSON
+   and deterministic Markdown, then update the start packet and normal flow
+   prompt.  Prove schema parity, atomic failure, stable rendering and report
+   hashes before touching PROTOCOLIZE.
+3. **Make protocolization an allocation step.** Replace the old
+   acceptance-only coverage with full R/AC ownership.  Load the accepted JSON
+   once, reject any incomplete or contradictory map before writes, and render
+   exact assigned statements into PRT/PSET documents.  Preserve only the
+   agent-authored topology and boundary explanation as prose.
+4. **Make PLAN the only implementation source.** Advance to
+   `protocol-plan@3`; remove runtime/handoff fields and every input path for
+   an agent-authored batch.  The plan item contract must carry the semantic
+   task, owned obligation references, portable reads/writes, checks, stop
+   conditions and evidence.  No host-absolute path enters semantic PLAN.
+5. **Implement one shared PLAN closure.** Use the same validator/projector at
+   PLAN finish, PLAN-REVIEW finish and review-off closure.  It validates
+   obligation realization, AC proof, local/PSET dependencies, cycles, path
+   availability and ordered writers, then is the only writer of
+   `code-work-batch.json`.
+6. **Close review and CODE on the generated graph.** Advance the decision
+   contract to `@3`; accept semantic plan/map corrections only, require a
+   revision bump for semantic changes and regenerate the batch afterwards.
+   Review-on and review-off both use the shared closure and atomically
+   register identical CODE Works for an unchanged final PLAN.  CODE entry
+   receives only existing accepted inputs or reads produced by ordered
+   predecessors.
+7. **Remove superseded live behavior.** Update stage manifests, prompts,
+   help, indexes, local schemas and test fixtures in the same cutover.  Delete
+   old readers and examples; do not retain a fallback parser, compatibility
+   flag, parallel obligation list or secondary PLAN graph.
+8. **Verify each cutover boundary cheaply.** After each vertical slice, run
+   the smallest contract tests that can falsify it.  Before beta acceptance,
+   run the complete engine contract suite, typecheck, lint, strict build,
+   flow-pack document check and exact schema-parity check.  Repair a shared
+   validator, renderer or handoff constructor at its root rather than adding a
+   stage exception.
+9. **Run one disposable lifecycle diagnostic.** In a new isolated project and
+   runtime with the exact installed beta engine, execute
+   `SPECIFY finish -> PROTOCOLIZE -> PLAN -> PLAN-REVIEW -> CODE registration`.
+   Inspect semantic artifacts and lifecycle receipts, including the generated
+   CODE graph.  A failed diagnostic is disposable; fix the beta pair and rerun
+   only this diagnostic until the pair is sound.
+10. **Freeze the accepted pair.** Commit and tag the exact clean engine and
+    flow-pack commits.  Only then create a new immutable eval input checkpoint
+    recording the pair identity, assessment identity and source project.
+11. **Rebuild canonical evidence from the new boundary.** Start a normal
+    primed Subject session and ordinary user discussion, capture the natural
+    `specify`, `protocolize`, `plan` and `plan-review` entries in order, accept
+    their project/RUN snapshots and create untouched starter forks.  Never
+    splice an old downstream checkpoint into this new pair.
+12. **Run the declared comparison, then decide promotion.** Execute the four
+    focused stages for Luna, Terra and Sol plus their three E2E chains, all
+    from starter sessions.  Judge semantic quality, flow reliability and
+    efficiency independently.  Compare historical candidates only in the
+    separate assessment-version lane.  Promotion is allowed only after this
+    matrix and all acceptance evidence are complete.
+
+### 12.3 Mandatory acceptance checks by transition
+
+| Transition | Deterministic check | Human/Judge check |
+| --- | --- | --- |
+| SPECIFY -> PROTOCOLIZE | valid closed JSON, stable projection, both hashes | R/AC list is complete, precise and not implementation prose |
+| PROTOCOLIZE -> PLAN | every R/AC is owned; each member owns an AC; no partial materialization | smallest valid topology and meaningful boundaries |
+| PLAN -> PLAN-REVIEW | every owned obligation realized; graph, paths and writer order are valid; batch is a projection | grounded decisions, adequate verification and useful aspect coverage |
+| PLAN-REVIEW -> CODE | final revision validates; batch regenerated; Works registered atomically | findings are material, evidence-backed and corrections improve the plan |
+| beta pair -> scored eval | exact matched pair and clean disposable chain | canonical stage entries are semantically acceptable and starters untouched |
+
+### 12.4 Stop and rollback rules
+
+- A structural or lifecycle defect stops at the earliest affected package;
+  fix that shared cause and rerun the smallest falsifying check.
+- A semantic weakness found in a diagnostic does not get hidden by a schema
+  rule.  Improve the normal stage prompt or the review method only when the
+  weakness is systemic, then issue a new matched beta pair.
+- A failed or interrupted disposable diagnostic is discarded, not edited into
+  evidence.
+- A new beta pair invalidates downstream canonical checkpoints.  Rebuild the
+  chain from `specify-entry`; do not mutate already accepted historical
+  records.
+- No step may weaken a closed contract, preserve a legacy fallback or change
+  the user task merely to make a test pass.
