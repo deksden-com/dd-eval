@@ -538,6 +538,10 @@ For each focused stage and each stage inside a segment:
    artifact;
 6. accept that exact result unchanged.
 
+If the result violates its mechanical schema, do not repair it in the
+Controller. Preserve the invalid packet/result and reject that judgment with a
+short factual reason; then create a fresh Judge fork and use `--rejudge`.
+
 ```sh
 dd-eval judge prepare --eval "<eval-root>" \
   --execution "<execution-id>"
@@ -545,6 +549,10 @@ dd-eval judge prepare --eval "<eval-root>" \
 dd-eval judge accept --eval "<eval-root>" \
   --execution "<execution-id>" \
   --result "<judge-XX.result.json>"
+
+dd-eval judge reject --eval "<eval-root>" \
+  --execution "<execution-id>" \
+  --reason "result violates the declared schema"
 ```
 
 E2E uses one fresh Judge fork and the aggregate E2E packet. That packet includes

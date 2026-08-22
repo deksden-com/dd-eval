@@ -42,6 +42,8 @@ test("Judge packet has one deterministic write-only result destination", () => {
   assert.equal(result, "/eval/run/judge/specify/candidate-01/judge-02.result.json");
   assert.match(judgeResultInstructions(result), /only artifact you may create or modify/);
   assert.match(judgeResultInstructions(result), /judge-02\.result\.json/);
+  assert.match(judgeResultInstructions(result), /exact lowercase scope/);
+  assert.match(judgeResultInstructions(result), /lowercase kebab-case/);
 });
 
 test("Session registration rejects placeholder IDs before touching eval state", async () => {

@@ -9,6 +9,7 @@ import {
   defaultSource,
   finalize,
   judgeAccept,
+  judgeReject,
   judgePrepare,
   prepare,
   setStarterSession,
@@ -30,6 +31,7 @@ Usage:
   dd-eval checkpoint --eval <prepared-dir> --execution <id>
   dd-eval judge prepare --eval <prepared-dir> --execution <id> [--rejudge]
   dd-eval judge accept --eval <prepared-dir> --execution <id> --result <judge-result.json>
+  dd-eval judge reject --eval <prepared-dir> --execution <id> --reason <why-result-cannot-be-accepted>
   dd-eval compare prepare --evals <eval-dir,...> --output <comparison-dir>
   dd-eval compare accept --comparison <comparison-dir> --result <comparison-result.json>
   dd-eval finalize --eval <prepared-dir>
@@ -87,6 +89,8 @@ try {
     result = await judgePrepare({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), rejudge: options.rejudge === true });
   } else if (family === "judge" && command === "accept") {
     result = await judgeAccept({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), result: required(options, "result") });
+  } else if (family === "judge" && command === "reject") {
+    result = await judgeReject({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), reason: required(options, "reason") });
   } else if (family === "compare" && command === "prepare") {
     result = await comparePrepare({ evalRoots: required(options, "evals"), output: required(options, "output") });
   } else if (family === "compare" && command === "accept") {
