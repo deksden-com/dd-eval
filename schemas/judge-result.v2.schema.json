@@ -5,13 +5,17 @@
   "required": ["schema_id", "scope", "run_validity", "outcome", "flow", "findings", "golden", "conclusion"],
   "properties": {
     "schema_id": {"const": "dd-eval/judge-result@2"},
-    "scope": {"type": "string"},
+    "scope": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
     "run_validity": {"enum": ["valid", "invalid_infrastructure_flow", "contaminated"]},
-    "outcome": {"type": "array"},
-    "flow": {"type": "array"},
-    "findings": {"type": "array"},
-    "golden": {"type": "object"},
+    "outcome": {"$ref": "#/$defs/criteria"},
+    "flow": {"$ref": "#/$defs/criteria"},
+    "findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "golden": {"type": "object", "required": ["covered", "missed", "alternatives", "novel"], "properties": {"covered": {"type": "array"}, "missed": {"type": "array"}, "alternatives": {"type": "array"}, "novel": {"type": "array"}}, "additionalProperties": false},
     "conclusion": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "criteria": {"type": "array", "items": {"type": "object", "required": ["id", "score", "not_applicable", "rationale", "evidence"], "properties": {"id": {"type": "string"}, "score": {"type": ["integer", "null"], "minimum": 0, "maximum": 4}, "not_applicable": {"type": "boolean"}, "rationale": {"type": "string", "minLength": 1}, "evidence": {"type": "array"}}, "additionalProperties": false}},
+    "finding": {"type": "object", "required": ["id", "severity", "summary", "evidence", "impact"], "properties": {"id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"}, "severity": {"enum": ["blocking", "material", "minor", "cosmetic"]}, "summary": {"type": "string", "minLength": 1}, "evidence": {"type": "array"}, "impact": {"type": "string", "minLength": 1}}, "additionalProperties": false}
   },
   "additionalProperties": false
 }

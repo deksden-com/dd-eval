@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { addSession, comparePrepare, judgeResultInstructions, judgeResultPath, loadCase, prepare, scoreEvaluation, subjectContinuation, subjectTaskTitle, validateInput } from "../lib/dd-eval.mjs";
+import { addSession, comparePrepare, judgeResultInstructions, judgeResultPath, judgeResultTemplate, loadCase, prepare, scoreEvaluation, subjectContinuation, subjectTaskTitle, validateInput } from "../lib/dd-eval.mjs";
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -44,6 +44,14 @@ test("Judge packet has one deterministic write-only result destination", () => {
   assert.match(judgeResultInstructions(result), /judge-02\.result\.json/);
   assert.match(judgeResultInstructions(result), /exact lowercase scope/);
   assert.match(judgeResultInstructions(result), /lowercase kebab-case/);
+});
+
+test("Judge template mirrors the runtime result contract", async () => {
+  const loaded = await loadCase(caseId);
+  const value = judgeResultTemplate("specify", loaded.assessment.scopes.specify);
+  assert.deepEqual(value.outcome.map((item) => item.id), loaded.assessment.scopes.specify.outcome.map((item) => item.id));
+  assert.deepEqual(value.flow.map((item) => item.id), loaded.assessment.scopes.specify.flow.map((item) => item.id));
+  assert.deepEqual(Object.keys(value.golden), ["covered", "missed", "alternatives", "novel"]);
 });
 
 test("Session registration rejects placeholder IDs before touching eval state", async () => {
