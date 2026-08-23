@@ -51,12 +51,12 @@ item sorts first.
 
 The accepted `code-work-batch` has no CODE coordinator `entry`. PLAN-REVIEW
 registers every item atomically under the root Work and returns their resolved
-IDs. The generic Work batch command may retain an optional entry for another
-flow that genuinely delegates a coordinator cohort; CODE does not use it.
+IDs. `code-work-batch@2` contains only the real implementation Works; no generic
+or CODE-specific synthetic entry is retained.
 
-The orchestrator may execute a tiny Work locally when reuse is allowed, but the
-normal multi-item route delegates ready Works to child Sessions. This is a
-routing decision, not a different graph.
+Every CODE and repair Work requires a fresh child Session. The root orchestrator
+only dispatches the graph, observes returned state, initiates bounded repair and
+finishes the stage; it does not implement a hidden tiny Work locally.
 
 ## 2. PLAN owns worker-context semantics
 
@@ -104,8 +104,8 @@ included only when the Work changes that class of document. A scenario, ADR or
 spec is included only when it governs the Work. MBB, dd-flow catalogs and all
 project indexes are not default worker reads.
 
-A reused Session may retain this orientation, but the rendered packet still
-names the accepted source paths and hashes so its contract is inspectable.
+The rendered fresh-Session packet names the accepted source paths and source
+hash so its contract is inspectable without the planning transcript.
 
 ## 4. Lossless Work packet
 
@@ -123,30 +123,38 @@ A CODE payload contains:
 ```json
 {
   "schema_id": "dd-flow/code-work-packet@1",
+  "key": "PRT-007-example:P1",
+  "launch_policy": "fresh_agent_required",
   "source": {
     "plan_id": "PLAN-007",
+    "protocol_id": "PRT-007-example",
     "plan_item_id": "P1",
     "revision": 1,
     "sha256": "..."
   },
-  "goal": {
+  "task": "Markdown implementation instruction.",
+  "semantic_spine": {
     "user_outcome": "...",
     "component_responsibility": "...",
     "must_preserve": ["..."],
-    "non_goals": ["..."]
+    "non_goals": ["..."],
+    "acceptance_contribution": "..."
   },
   "requirements": [
     {"id": "R-001", "statement": "..."},
     {"id": "AC-001", "statement": "..."}
   ],
-  "task": "Markdown implementation instruction.",
+  "acceptance": [],
+  "document_updates": [],
   "required_read": ["project-relative/path"],
   "discovery_boundary": ["project-relative/path or a narrow search rule"],
   "write_scope": ["project-relative/path"],
   "checks": ["pnpm ..."],
   "expected_evidence": ["..."],
   "proof_limits": ["..."],
-  "stop_conditions": ["..."]
+  "stop_conditions": ["..."],
+  "depends_on": [],
+  "result_schema": "dd-flow/code-work-result@1"
 }
 ```
 
@@ -164,7 +172,7 @@ The target PLAN item keeps the existing semantic split with one correction:
 
 This removes the current duplication between `execution_context.checks` and
 `verification.checks` without inventing another context object. Every declared
-check is required. CLI derives stable receipt IDs from Work ID and list order;
+check is required. CLI allocates opaque receipt IDs for each execution attempt;
 the planner does not author check IDs or `required` booleans.
 
 ## 5. Rendered worker prompt
