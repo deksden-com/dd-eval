@@ -74,8 +74,9 @@
           {"id": "GOLD-PLAN-003", "statement": "Make default/backfill, database-enforced values, atomic archived-project priority-only mutation, unchanged list ordering and deterministic legacy evidence falsifiable."}
         ],
         "accepted_strong_decisions": [
-          {"id": "STRONG-PLAN-001", "statement": "A strong persistence plan chooses a reset-safe representation, proves upgrade behavior with a row created under the pre-change schema, then verifies backfill, preserved data and ordering after the migration.", "source": "EVAL-022"},
-          {"id": "STRONG-PLAN-002", "statement": "A strong authorization plan defines the archived-project exception as an exact priority-only mutation boundary and proves that mixed or extra-field payloads are rejected without mutation.", "source": "EVAL-022"}
+          {"id": "STRONG-PLAN-001", "statement": "A strong persistence plan chooses a reset-safe representation and covers every introduced stateful database object in all supported create, migrate, repeatable reset and cleanup paths; it proves upgrade behavior with a row created under the pre-change schema, then verifies backfill, preserved data and ordering after the migration.", "source": "EVAL-022; reinforced by CMP-011 (EVAL-032—034)"},
+          {"id": "STRONG-PLAN-002", "statement": "A strong authorization plan defines the archived-project exception as an exact priority-only mutation boundary and proves that mixed or extra-field payloads are rejected without mutation.", "source": "EVAL-022"},
+          {"id": "STRONG-PLAN-003", "statement": "A create-time default and omission during a partial update are different contracts: the default applies when the entity is created, while an omitted PATCH field preserves the stored value; verification proves both behaviors independently.", "source": "CMP-011 (EVAL-032—034)"}
         ],
         "accepted_alternatives": [
           {"id": "ALT-PLAN-001", "statement": "A different work decomposition is valid when ownership, ordering and proof remain equally executable."}
@@ -113,7 +114,8 @@
         "accepted_alternatives": [],
         "known_risks": [
           {"id": "RISK-REVIEW-001", "severity": "material", "statement": "Do not let a mechanically valid decision receipt mask an uncorrected material defect."},
-          {"id": "RISK-REVIEW-002", "severity": "material", "statement": "Do not place future CODE outputs in root must_read or manually patch a generated CODE batch instead of correcting PLAN."}
+          {"id": "RISK-REVIEW-002", "severity": "material", "statement": "Do not place future CODE outputs in root must_read or manually patch a generated CODE batch instead of correcting PLAN."},
+          {"id": "RISK-REVIEW-003", "severity": "material", "statement": "A blocked applicable review is not complete: run it after its dependencies resolve, or explicitly justify why the dependency or review is no longer applicable."}
         ]
       }
     },
