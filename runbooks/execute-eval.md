@@ -603,6 +603,13 @@ Finalization must:
 
 - refresh usage after all Subject and Judge turns have stopped;
 - deduplicate usage by physical Session;
+- for a focused execution, request usage with `--stage <stage>`; for a segment,
+  pass the comma-separated selected stages; only E2E requests whole-RUN usage;
+- derive focused/segment wall time from the selected lifecycle stage records,
+  never from the first stage present in the restored RUN;
+- fail synchronization when the usage command itself fails. Provider fields
+  may be explicitly `unavailable` in a valid response; silently replacing a
+  CLI/statistics failure with absent usage is forbidden;
 - keep Controller, Subject, Subject children, Judge and Judge children separate;
 - render the deterministic JSON and Markdown report from one report truth;
 - retain exact checkpoint, fork, model, prompt and artifact identities;

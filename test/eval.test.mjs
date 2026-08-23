@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { addSession, comparePrepare, judgeResultInstructions, judgeResultPath, judgeResultTemplate, loadCase, prepare, scoreEvaluation, subjectContinuation, subjectTaskTitle, syncLifecycleStatus, validateInput } from "../lib/dd-eval.mjs";
+import { addSession, comparePrepare, efficiency, judgeResultInstructions, judgeResultPath, judgeResultTemplate, loadCase, prepare, scoreEvaluation, subjectContinuation, subjectTaskTitle, syncLifecycleStatus, validateInput } from "../lib/dd-eval.mjs";
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -97,6 +97,19 @@ test("outcome gates stay independent from flow and efficiency", async () => {
   }, assessment);
   assert.equal(result.outcome.verdict, "fail");
   assert.equal(result.flow.score, 1);
+});
+
+test("efficiency reports only the focused stage or selected segment", () => {
+  const flow = { usage: { totals: { total_tokens: 42 }, sessions: [{ session_id: "focused" }], scope: { kind: "stage", stage: "code" } }, status: { index: { stage_runs: [
+    { stage: "specify", started_at: "2026-01-01T00:00:00.000Z", completed_at: "2026-01-01T00:01:00.000Z" },
+    { stage: "plan", started_at: "2026-01-01T00:02:00.000Z", completed_at: "2026-01-01T00:05:00.000Z" },
+    { stage: "plan-review", started_at: "2026-01-01T00:05:00.000Z", completed_at: "2026-01-01T00:07:00.000Z" },
+    { stage: "code", started_at: "2026-01-01T00:10:00.000Z", completed_at: "2026-01-01T00:20:00.000Z" }
+  ] } } };
+  assert.equal(efficiency(flow, "code").active_stage_ms, 600_000);
+  assert.equal(efficiency(flow, "code").elapsed_ms, 600_000);
+  assert.equal(efficiency(flow, "plan+plan-review").active_stage_ms, 300_000);
+  assert.equal(efficiency(flow, "plan+plan-review").elapsed_ms, 300_000);
 });
 
 test("sync recognizes the current paused RUN status as a user wait", () => {

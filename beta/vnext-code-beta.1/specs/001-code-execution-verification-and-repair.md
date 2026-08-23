@@ -58,6 +58,13 @@ Every CODE and repair Work requires a fresh child Session. The root orchestrator
 only dispatches the graph, observes returned state, initiates bounded repair and
 finishes the stage; it does not implement a hidden tiny Work locally.
 
+The harness terminal state is authoritative. A quiet child is still working
+until the harness reports `completed`, `failed`, `cancelled` or an explicit
+request for attention. Silence, a long tool call or an empty poll is never
+evidence that a child is idle or hung. The orchestrator must not interrupt,
+restart or replace such a child. It closes a disposable child only after its
+Work has settled and the harness has reported a terminal agent turn.
+
 ## 2. PLAN owns worker-context semantics
 
 PLAN has already grounded the accepted task in the project. It therefore owns
@@ -284,6 +291,20 @@ resulting accepted set once after concurrent mutation stops, for example:
 The project profile, not the model at CODE finish, chooses these commands.
 Manual/external proof remains an explicit later gate or named blocker.
 
+Commands that require project/runtime parameters use project-owned aliases in
+the same check profile. PLAN sees those aliases in its start packet and writes
+the alias, not an incomplete raw command. PLAN finish resolves aliases,
+substitutes deterministic values such as the current RUN ID and rejects raw
+forms covered by `require_alias_for`. Invalid commands therefore cannot enter
+the registered CODE graph.
+
+Check execution is asynchronous. Stdout and stderr stream directly into the
+receipt files; the CLI emits a start message, a periodic heartbeat for a long
+command and a terminal message on stderr while preserving the final JSON on
+stdout. Sequential execution is retained because project checks commonly
+share build output, databases or other mutable resources; arbitrary parallel
+execution would make their semantics unsafe.
+
 Successful finish records check receipts, graph coverage and a deterministic
 stage report, then returns CODE-REVIEW or `ready_for_merge` according to RUN
 policy. It does not perform semantic CODE review inside the deterministic gate.
@@ -308,7 +329,8 @@ The repair packet is composed deterministically from:
 The repair Work depends on every selected origin Work. Its default read context
 is the complete original packet set plus the new receipt and result facts. Its
 default write scope is the union of the selected origin scopes; any expansion
-must be explicit in the repair objective. Its focused checks include the
+must be explicit with repeated `--write-scope` arguments and described in the
+repair objective. Its focused checks include the
 failing aggregate command and the affected original checks. The complete
 project gate is still rerun only at CODE finish.
 
@@ -328,6 +350,7 @@ dd-flow work repair add \
   --run <RUN> \
   --from-check <CHECK-RECEIPT> \
   --origin-work <WORK> [--origin-work <WORK>...] \
+  [--write-scope <PATH>...] \
   --task-stdin
 ```
 
@@ -386,6 +409,12 @@ contains:
 - changed paths and declared proof limits;
 - next gate;
 - timing and separately collected usage/tool-call facts when available.
+
+For each command, the accepted report references only its latest receipt.
+Failed superseded attempts remain immutable in SQLite and on disk for
+diagnostics, but they are not presented as current passing evidence. Stage
+wall time is computed from lifecycle `started_at` and `completed_at` timestamps
+in `run.json`; the model never estimates it.
 
 The agent does not hand-author stage report JSON, Markdown, HTML, summary or
 telemetry.
@@ -456,6 +485,8 @@ and prompt rendering.
 
 1. Make `work finish` execute every declared focused command before changing
    terminal state and record immutable receipts.
+   Use asynchronous child processes and progress heartbeats; do not buffer a
+   long command behind a silent synchronous call.
 2. Keep a failed Work running and return all failures together to the same
    worker.
 3. Make CODE finish validate descendant closure, dependency order, obligation

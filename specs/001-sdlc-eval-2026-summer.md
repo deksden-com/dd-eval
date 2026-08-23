@@ -625,6 +625,15 @@ usage deduplicates physical provider Sessions; several Work links to one
 Session do not create several copies of its tokens. Work/stage attribution is a
 view over unique Session deltas, not a second total.
 
+A focused-stage query clips every continuing Work/Session window to that
+stage's lifecycle timestamps. It excludes inherited canonical stages even when
+the root Session spans the whole RUN. A segment query uses the interval from
+the first selected stage start through the last selected stage finish. E2E
+alone uses the whole RUN. Tool-call counts use the same window and count each
+physical Session once. A tool failure is counted only from provider error
+metadata, a non-zero recorded exit code or a structured tool result with
+`ok: false`; error-looking prose is not a failure signal.
+
 Native-fork input/cache tokens emitted by the fork are real execution cost and
 remain visible. The already completed base-priming total is recorded once.
 Input, cache read, cache write, uncached input, output and reasoning output are
@@ -632,7 +641,8 @@ kept as separate counters; an unavailable provider field remains unavailable.
 
 Timing distinguishes materialization, priming, active stage work, scripted HITL
 wait, capacity probe, reviewer waves, Judge work and total controller wall
-clock. Stage quality latency uses lifecycle timestamps and reports scripted
+clock. Stage quality latency uses lifecycle timestamps, excludes unrelated
+predecessor stages and reports scripted
 human-wait time separately rather than silently including or discarding it.
 
 Runs with different observed delegated capacity remain valid but are compared
