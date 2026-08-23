@@ -52,7 +52,7 @@ dd-eval prepare --case sdlc-eval-2026-summer-task-priority \
   --focus specify --output "$DD_EVAL_HOME/attempts/active/EVAL-101--summer--focus-specify"
 
 dd-eval prepare --case sdlc-eval-2026-summer-task-priority \
-  --focus specify,protocolize,plan,plan-review \
+  --focus specify,protocolize,plan,plan-review,code \
   --output "$DD_EVAL_HOME/attempts/active/EVAL-102--summer--focus-all"
 
 dd-eval prepare --case sdlc-eval-2026-summer-task-priority \
@@ -226,6 +226,8 @@ prime + discussion
   → PLAN revision 1
   → capture plan-review-entry
   → PLAN-REVIEW canonical-chain validation
+  → capture code-entry
+  → CODE canonical-chain validation
 ```
 
 If a predecessor artifact changes, increment the canonical-chain revision and
@@ -233,7 +235,8 @@ recapture all downstream checkpoints. A checkpoint is immutable after
 acceptance.
 
 If a matched engine/flow change alters SPECIFY obligations, PROTOCOLIZE
-ownership, PLAN schema/projection or PLAN-REVIEW closure, rebuild the canonical
+ownership, PLAN schema/projection, PLAN-REVIEW closure or CODE execution,
+rebuild the canonical
 chain from `specify-entry` even when the user discussion is unchanged. The
 checkpoint pins the whole runnable pair, so splicing downstream entries from an
 older pair is not a valid scored comparison.
@@ -242,7 +245,7 @@ When the accepted assessment axes also change, do not compare old weighted
 scores directly with the new run. Statically rejudge retained old candidate
 evidence under the new assessment when possible and mark incomplete transcript
 or runtime evidence as `limited`; otherwise present the historical score in a
-separate lane. For specification 006, execute all four focused stages for all
+separate lane. For the current contour, execute all declared focused stages for all
 three declared Subject profiles and the three declared E2E runs after the new
 canonical chain is accepted.
 

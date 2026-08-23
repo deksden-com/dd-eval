@@ -1,25 +1,29 @@
 {
   "schema_id": "dd-eval/starter-sessions@2",
   "case_id": "sdlc-eval-2026-summer-task-priority",
-  "revision": "REV-031",
+  "revision": "REV-032",
   "subjects": {
     "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-87": {
       "sessions": {
         "specify": {
-          "session_id": "01a02bb1-e522-7312-b364-4dafc2a26e2e",
-          "parent_session_id": "01a02b84-6291-71c2-930f-1ee8a46926d3"
+          "session_id": "01a03009-f065-77d2-8d3f-8df27167d9be",
+          "parent_session_id": "01a02fef-11b1-79b3-8bad-46878ca07575"
         },
         "protocolize": {
-          "session_id": "01a02bb1-eab0-7b52-9f77-b56cd835cc3c",
-          "parent_session_id": "01a02b8b-0c6b-78a1-9fa1-58acadecd7b1"
+          "session_id": "01a03009-f262-75d0-b191-b12b4f0851b7",
+          "parent_session_id": "01a02ff4-4bdf-7c10-8dbf-c2cc4888c162"
         },
         "plan": {
-          "session_id": "01a02bb1-f17c-7961-8567-ac982c7bdace",
-          "parent_session_id": "01a02b8f-5de8-7761-bc74-b667d77e539a"
+          "session_id": "01a03009-f527-7493-a5ad-699dd7ee1738",
+          "parent_session_id": "01a02ff6-6337-70e0-8089-c8cf936f8f21"
         },
         "plan-review": {
-          "session_id": "01a02bb1-f709-7be1-9168-cd05ab414894",
-          "parent_session_id": "01a02b99-d29e-7bf2-a0d2-ce12d988098d"
+          "session_id": "01a03009-f8ba-7863-ab4c-dd24ff9e77c7",
+          "parent_session_id": "01a02ffd-b307-7e31-bbac-ceabd497c6d0"
+        },
+        "code": {
+          "session_id": "01a03009-d53b-7442-b9dd-6bd454a8578b",
+          "parent_session_id": "01a03006-5050-7051-a7fd-9fde1d61d7b6"
         }
       }
     },
@@ -40,6 +44,10 @@
         "plan-review": {
           "session_id": "01a02bb2-0dd3-7c03-a748-a654df4d4e43",
           "parent_session_id": "01a02bac-3c1c-7b82-b7ca-42344a302a2b"
+        },
+        "code": {
+          "session_id": "01a0300a-8563-73b2-92b3-4932a79d55ab",
+          "parent_session_id": "01a02bac-3c1c-7b82-b7ca-42344a302a2b"
         }
       }
     },
@@ -59,6 +67,10 @@
         },
         "plan-review": {
           "session_id": "01a02bb2-251f-7172-b57e-1d687ef739bc",
+          "parent_session_id": "01a02bac-59bd-7381-9f34-737039562979"
+        },
+        "code": {
+          "session_id": "01a0300a-87de-76a3-9605-95cc43c13c34",
           "parent_session_id": "01a02bac-59bd-7381-9f34-737039562979"
         }
       }

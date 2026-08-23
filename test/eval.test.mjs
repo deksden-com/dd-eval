@@ -12,12 +12,12 @@ test("the active suite declares its next canonical checkpoint chain", async () =
   const loaded = await loadCase(caseId);
   assert.equal(loaded.definition.schema_id, "dd-eval/case@5");
   assert.equal(loaded.assessment.schema_id, "dd-eval/assessment@1");
-  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-012-lossless-executable-plan-beta-87" });
+  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-013-verified-code-execution-beta-88" });
   assert.equal("compatibility" in loaded.definition, false);
-  assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review"]);
+  assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review", "code"]);
   const validated = await validateInput({ caseId, source, requireMode: "authoring" });
-  assert.equal(validated.checkpoint.id, "cp-012-lossless-executable-plan-beta-87");
-  assert.equal(validated.checkpoint.memory_bank.engine.commit, "a863668eb71c3706115a01361a4e0d121523df49");
+  assert.equal(validated.checkpoint.id, "cp-013-verified-code-execution-beta-88");
+  assert.equal(validated.checkpoint.memory_bank.engine.commit, "f8eb0d9ac6bcc1a2542932626528451770a1fc78");
 });
 
 test("each evaluated Subject profile has its own protected starter set", async () => {
@@ -26,7 +26,7 @@ test("each evaluated Subject profile has its own protected starter set", async (
   assert.equal(registry.schema_id, "dd-eval/starter-sessions@2");
   for (const profile of loaded.definition.profiles.subject) {
     assert.ok(loaded.definition.priming.subject_baselines[profile]);
-    assert.deepEqual(Object.keys(registry.subjects[profile].sessions), ["specify", "protocolize", "plan", "plan-review"]);
+    assert.deepEqual(Object.keys(registry.subjects[profile].sessions), ["specify", "protocolize", "plan", "plan-review", "code"]);
   }
 });
 

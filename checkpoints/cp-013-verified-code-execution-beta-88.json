@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-013-verified-code-execution-beta-88",
+  "title": "cp-013 verified CODE execution beta.88",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.88",
+    "commit": "6734b7b5e00a009f383e713df6ece1750512a913"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.88",
+    "dd_flow_cli": "0.8.0-beta.88",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.88",
+      "commit": "f8eb0d9ac6bcc1a2542932626528451770a1fc78"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}

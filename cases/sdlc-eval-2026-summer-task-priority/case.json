@@ -3,7 +3,7 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "ready",
-  "checkpoint": {"id": "cp-012-lossless-executable-plan-beta-87"},
+  "checkpoint": {"id": "cp-013-verified-code-execution-beta-88"},
   "assessment": "assessment.json",
   "profiles": {
     "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-87"],
@@ -31,10 +31,11 @@
   "judge_baseline": "baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-87-rev031.json",
   "flow": {"handoff_mode": "new_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_plan_review"},
   "canonical_checkpoints": {
-    "specify": "checkpoints/REV-031/specify.json",
-    "protocolize": "checkpoints/REV-031/protocolize.json",
-    "plan": "checkpoints/REV-031/plan.json",
-    "plan-review": "checkpoints/REV-031/plan-review.json"
+    "specify": "checkpoints/REV-032/specify.json",
+    "protocolize": "checkpoints/REV-032/protocolize.json",
+    "plan": "checkpoints/REV-032/plan.json",
+    "plan-review": "checkpoints/REV-032/plan-review.json",
+    "code": "checkpoints/REV-032/code.json"
   },
   "stages": {
     "specify": {
@@ -56,6 +57,11 @@
       "subject_packet": "prompts/subject-plan-review.md",
       "interactions": "interactions/empty.json",
       "candidate_files": [{"origin": "workspace", "path": ".memory-bank/protocol/{protocol_id}/plan.json"}, {"origin": "run", "path": "03-plan/{protocol_id}/aspect-map.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}, {"origin": "run", "path": "04-plan-review/decision.receipt.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}]
+    },
+    "code": {
+      "subject_packet": "prompts/subject-code.md",
+      "interactions": "interactions/empty.json",
+      "candidate_files": [{"origin": "run", "path": "05-code/stage-report.json"}, {"origin": "run", "path": "05-code/stage-report.md"}, {"origin": "workspace", "path": "{code_changed_files}"}]
     }
   },
   "e2e": {

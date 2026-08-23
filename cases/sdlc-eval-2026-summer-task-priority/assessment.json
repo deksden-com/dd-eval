@@ -245,6 +245,40 @@
         ]
       }
     },
+    "code": {
+      "note": "Judge the implemented product change, proof and traceability. Reward the smallest correct implementation; do not reward extra architecture or documentation volume.",
+      "outcome": [
+        {"id": "functional-correctness", "weight": 0.3, "essential": true},
+        {"id": "requirement-coverage", "weight": 0.2, "essential": true},
+        {"id": "verification-quality", "weight": 0.2, "essential": true},
+        {"id": "implementation-quality", "weight": 0.15, "essential": true},
+        {"id": "evidence-traceability", "weight": 0.15, "essential": true}
+      ],
+      "flow": [
+        {"id": "work-graph-execution", "weight": 0.3, "essential": true},
+        {"id": "fresh-worker-context", "weight": 0.2, "essential": true},
+        {"id": "focused-checks", "weight": 0.2, "essential": true},
+        {"id": "aggregate-gate", "weight": 0.2, "essential": true},
+        {"id": "repair-discipline", "weight": 0.1, "essential": false}
+      ],
+      "golden": {
+        "required_outcomes": [
+          {"id": "GOLD-CODE-001", "statement": "Implement the exact four priority values, no_priority create/backfill default and database constraint without adding task archiving, priority sorting or unrelated architecture."},
+          {"id": "GOLD-CODE-002", "statement": "Preserve ordinary ordering and enforce the archived-project exception as a priority-only mutation, including rejection of mixed writes without partial mutation."},
+          {"id": "GOLD-CODE-003", "statement": "Expose readable and editable priority through the existing typed API and accessible task UI, while archived tasks remain readable and read-only."},
+          {"id": "GOLD-CODE-004", "statement": "Prove migration, negative validation, authorization, UI and acceptance behavior with focused receipts followed by the project aggregate check profile."}
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [
+          {"id": "ALT-CODE-001", "statement": "Implementation details may differ when the same external behavior, invariants and evidence are preserved with less complexity."}
+        ],
+        "known_risks": [
+          {"id": "RISK-CODE-001", "severity": "material", "statement": "A passing aggregate gate does not replace focused proof of migration, authorization and negative no-write behavior."},
+          {"id": "RISK-CODE-002", "severity": "material", "statement": "Do not claim CODE complete while planned Works are unresolved or their required checks lack receipts."},
+          {"id": "RISK-CODE-003", "severity": "material", "statement": "Repair work must remain linked to the failed origin work and use the original bounded context plus the failure evidence."}
+        ]
+      }
+    },
     "e2e": {
       "note": "Judge the complete chain for preservation, correction and code readiness. Stage quality and flow reliability remain separate vectors.",
       "outcome": [
