@@ -12,12 +12,12 @@ test("the active suite declares its next canonical checkpoint chain", async () =
   const loaded = await loadCase(caseId);
   assert.equal(loaded.definition.schema_id, "dd-eval/case@5");
   assert.equal(loaded.assessment.schema_id, "dd-eval/assessment@1");
-  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-011-lossless-executable-plan-beta-85" });
+  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-012-lossless-executable-plan-beta-87" });
   assert.equal("compatibility" in loaded.definition, false);
   assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review"]);
   const validated = await validateInput({ caseId, source, requireMode: "authoring" });
-  assert.equal(validated.checkpoint.id, "cp-011-lossless-executable-plan-beta-85");
-  assert.equal(validated.checkpoint.memory_bank.engine.commit, "0306ac68da9190d6ccfa099a257a5e8b91ef9f69");
+  assert.equal(validated.checkpoint.id, "cp-012-lossless-executable-plan-beta-87");
+  assert.equal(validated.checkpoint.memory_bank.engine.commit, "a863668eb71c3706115a01361a4e0d121523df49");
 });
 
 test("each evaluated Subject profile has its own protected starter set", async () => {

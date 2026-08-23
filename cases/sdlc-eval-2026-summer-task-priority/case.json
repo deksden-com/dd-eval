@@ -50,18 +50,18 @@
     "plan": {
       "subject_packet": "prompts/subject-plan.md",
       "interactions": "interactions/empty.json",
-      "candidate_files": [{"origin": "workspace", "path": ".memory-bank/protocol/PRT-007-task-priority-support/plan.json"}, {"origin": "run", "path": "03-plan/PRT-007-task-priority-support/aspect-map.json"}, {"origin": "run", "path": "03-plan/stage-report.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}]
+      "candidate_files": [{"origin": "workspace", "path": ".memory-bank/protocol/{protocol_id}/plan.json"}, {"origin": "run", "path": "03-plan/{protocol_id}/aspect-map.json"}, {"origin": "run", "path": "03-plan/stage-report.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}]
     },
     "plan-review": {
       "subject_packet": "prompts/subject-plan-review.md",
       "interactions": "interactions/empty.json",
-      "candidate_files": [{"origin": "workspace", "path": ".memory-bank/protocol/PRT-007-task-priority-support/plan.json"}, {"origin": "run", "path": "03-plan/PRT-007-task-priority-support/aspect-map.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}, {"origin": "run", "path": "04-plan-review/decision.receipt.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}]
+      "candidate_files": [{"origin": "workspace", "path": ".memory-bank/protocol/{protocol_id}/plan.json"}, {"origin": "run", "path": "03-plan/{protocol_id}/aspect-map.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}, {"origin": "run", "path": "04-plan-review/decision.receipt.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}]
     }
   },
   "e2e": {
     "subject_packet": "prompts/subject-e2e.md",
     "interactions": "interactions/specify.json",
     "stop_boundary": "plan_review_accepted",
-    "candidate_files": [{"origin": "run", "path": "01-specify/specify.json"}, {"origin": "run", "path": "01-specify/specify.md"}, {"origin": "run", "path": "02-protocolize/protocolize-result.json"}, {"origin": "workspace", "path": ".memory-bank/protocol/PRT-007-task-priority-support/plan.json"}, {"origin": "run", "path": "03-plan/PRT-007-task-priority-support/aspect-map.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}, {"origin": "run", "path": "04-plan-review/decision.receipt.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}]
+    "candidate_files": [{"origin": "run", "path": "01-specify/specify.json"}, {"origin": "run", "path": "01-specify/specify.md"}, {"origin": "run", "path": "02-protocolize/protocolize-result.json"}, {"origin": "workspace", "path": ".memory-bank/protocol/{protocol_id}/plan.json"}, {"origin": "run", "path": "03-plan/{protocol_id}/aspect-map.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}, {"origin": "run", "path": "04-plan-review/decision.receipt.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}]
   }
 }
