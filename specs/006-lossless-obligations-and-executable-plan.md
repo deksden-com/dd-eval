@@ -59,6 +59,7 @@ an additional prose file merely to store the same meaning under another name.
 | allocation to delivery slices | `02-protocolize/protocolize-result.json` | PRT/PSET documents and links | paraphrased replacement R/AC text |
 | implementation decisions | each `03-plan/<PRT>/plan.json` and aspect map | generated CODE graph | a second runtime PLAN graph |
 | executable CODE work | final semantic plans plus accepted ownership | `03-plan/code-work-batch.json`, registered Works | manual batch edits |
+| fresh-worker context | accepted plan items plus project standards and exact R/AC | generated CODE Work packets | worker rediscovery or a second authored context plan |
 | PLAN review decision | `04-plan-review/decision.json` | corrected PLAN closure and receipt | a synthetic decision for review-off |
 
 The table is deliberately short.  If a future field cannot name the source it
@@ -109,6 +110,9 @@ not read them as live stage input.
    A valid decision receipt can therefore coexist with a stale CODE handoff.
 7. The current handoff can put future CODE outputs in root `must_read`, making
    the accepted graph impossible to start.
+8. Work registration currently collapses structured CODE context into a task
+   string, losing read/write boundaries, accepted semantics and verification
+   needed by a fresh worker.
 
 ## 1. SPECIFY semantic source
 

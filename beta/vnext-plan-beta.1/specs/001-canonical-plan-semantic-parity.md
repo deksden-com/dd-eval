@@ -111,6 +111,33 @@ Every executable plan item uses the accepted grounding to name exact
 `required_read`, `discovery_boundary`, `write_scope` and checks. Vague discovery
 such as “inspect the project” is not a CODE handoff.
 
+### Fresh CODE worker context
+
+PLAN owns the semantic context for every later CODE Work. The planner has
+already grounded the task and must not transfer that discovery burden to each
+implementer. For every item it selects the smallest sufficient set of:
+
+- project orientation and engineering/coding standards;
+- current owning source and representative neighboring implementation;
+- current tests and fixtures that demonstrate the local pattern;
+- applicable feature, scenario, spec, ADR and operations documents;
+- exact accepted requirements, acceptance criteria, invariants and non-goals;
+- write scope, consumed predecessor outputs, checks, evidence, proof limits and
+  stop conditions.
+
+The handoff is good when a fresh Session can implement the item without the
+planning transcript, broad Memory Bank traversal or invention of missing
+behavior. Reading the full project `prime.md`, MBB catalog or dd-flow runtime
+contract is not the default CODE context. A fresh worker receives the compact
+project/engineering orientation plus the exact task-applicable sources chosen
+by PLAN.
+
+PLAN-REVIEW judges this context semantically for every item. The CLI validates
+only file existence, containment, obligation references, dependency order and
+write conflicts. A case-specific eval may keep hidden golden worker contexts
+for comparing whether PLAN selected the important sources and proof without
+forcing one exact decomposition.
+
 ## Durable document ownership
 
 Delivery documents retain distinct roles:
@@ -204,6 +231,11 @@ Each plan preserves:
 - Git, workspace, delivery and later-gate handoffs;
 - precise current blockers or future named deferrals;
 - complete references for CODE prompt rendering.
+
+The generated CODE packet preserves the complete semantic spine, resolved
+requirement/acceptance statements, required reads, write scope, document
+updates, verification evidence and proof limits. A compact `task` paragraph is
+not allowed to replace or erase these accepted fields at registration.
 
 Every newly authored executable item has non-empty details sufficient for a
 developer who knows the stack but not the planning Session. `depends_on` is a

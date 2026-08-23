@@ -57,10 +57,11 @@
     "plan": {
       "note": "Judge an executable implementation and verification graph. Compactness is valuable only when ownership and proof remain clear.",
       "outcome": [
-        {"id": "grounding", "weight": 0.2, "essential": true},
-        {"id": "decision-quality", "weight": 0.2, "essential": true},
-        {"id": "executable-work-graph", "weight": 0.35, "essential": true},
-        {"id": "verification", "weight": 0.25, "essential": true}
+        {"id": "grounding", "weight": 0.15, "essential": true},
+        {"id": "decision-quality", "weight": 0.15, "essential": true},
+        {"id": "executable-work-graph", "weight": 0.25, "essential": true},
+        {"id": "verification", "weight": 0.25, "essential": true},
+        {"id": "worker-context", "weight": 0.2, "essential": true}
       ],
       "flow": [
         {"id": "routing", "weight": 0.2, "essential": false},
@@ -85,6 +86,130 @@
           {"id": "RISK-PLAN-001", "severity": "material", "statement": "A plan that only validates values at the API but omits a database invariant is incomplete."},
           {"id": "RISK-PLAN-002", "severity": "material", "statement": "A separate archived-project read followed by mutation does not prove atomic priority-only behavior."},
           {"id": "RISK-PLAN-003", "severity": "material", "statement": "Every CODE read must resolve at entry or be produced by an ordered transitive predecessor; unordered writers and a manually duplicated or stale batch are not code-ready."}
+        ],
+        "worker_contexts": [
+          {
+            "id": "GOLD-CONTEXT-PERSISTENCE",
+            "responsibility": "Persist, constrain, default and migrate task priority without changing unrelated task data or ordering.",
+            "essential_sources": [
+              "current task schema and migration ledger",
+              "existing migration runner and deterministic fixtures",
+              "database integration tests and SCN-002 data contract",
+              "project engineering/coding standards"
+            ],
+            "essential_semantics": [
+              "four exact machine values and no_priority default/backfill",
+              "NOT NULL and database-enforced allowed values",
+              "pre-change row upgrade with preserved data, stable IDs and ordering",
+              "no task archive lifecycle or unrelated migration rewrite"
+            ],
+            "expected_ownership": [
+              "task schema",
+              "one new additive migration",
+              "deterministic priority fixtures"
+            ],
+            "required_proof": [
+              "isolated pre-change migration proof",
+              "invalid direct persistence rejection",
+              "ledger/checksum and unchanged-data evidence"
+            ],
+            "avoid": [
+              "redesigning the migration system",
+              "broad UI or deployment context"
+            ]
+          },
+          {
+            "id": "GOLD-CONTEXT-API",
+            "responsibility": "Propagate priority through authorized task CRUD and the typed client contract.",
+            "essential_sources": [
+              "CoreService task operations and archive/membership guards",
+              "existing Hono task routes and error contract",
+              "API contract/integration tests",
+              "typed web product API",
+              "project engineering/coding standards"
+            ],
+            "essential_semantics": [
+              "create omission defaults while update omission preserves",
+              "priority-only and mixed partial updates",
+              "invalid/null/wrong-type values reject without mutation",
+              "archived reads remain available while mutations use the existing guard",
+              "outsider and cross-workspace requests remain safe",
+              "priority-only mutation preserves ordinary task ordering"
+            ],
+            "expected_ownership": [
+              "service validation and persistence",
+              "existing HTTP routes",
+              "typed client contract"
+            ],
+            "required_proof": [
+              "positive four-value round trip",
+              "negative input matrix with no-write evidence",
+              "archive, restore and isolation matrix"
+            ],
+            "avoid": [
+              "new endpoint or authorization path",
+              "priority sorting/filtering"
+            ]
+          },
+          {
+            "id": "GOLD-CONTEXT-UI",
+            "responsibility": "Render and edit readable priority in the existing task list/detail workflow.",
+            "essential_sources": [
+              "existing ProductApp task list/detail/form code",
+              "typed product API and local CSS",
+              "component tests and existing Playwright task scenario",
+              "SCN-002 and project engineering/coding standards"
+            ],
+            "essential_semantics": [
+              "exact No priority, Low, Medium and High labels",
+              "untouched edit preserves priority",
+              "archived values remain readable and controls are read-only",
+              "existing loading, empty, error, focus and ordering behavior remains",
+              "desktop and narrow viewport remain usable"
+            ],
+            "expected_ownership": [
+              "existing task UI and local styling",
+              "bounded label/options map and accessible native control"
+            ],
+            "required_proof": [
+              "component assertions for all values and archived state",
+              "keyboard/focus and no-overflow browser evidence"
+            ],
+            "avoid": [
+              "new route, state system, UI library or visual taxonomy",
+              "unrelated API/database internals beyond the accepted contract"
+            ]
+          },
+          {
+            "id": "GOLD-CONTEXT-ACCEPTANCE",
+            "responsibility": "Close feature acceptance, durable documentation and evidence across persistence, API and UI.",
+            "essential_sources": [
+              "all focused test suites changed by preceding responsibilities",
+              "SCN-002 fixture/reset/browser contour",
+              "product and feature records",
+              "protocol evidence passport and documentation standards",
+              "project check profiles"
+            ],
+            "essential_semantics": [
+              "every accepted R/AC maps to executed evidence",
+              "stateful database and browser gates are isolated and serialized",
+              "local evidence does not claim CI, deployment or production",
+              "feature-worktree delivery remains a later gate"
+            ],
+            "expected_ownership": [
+              "focused integration, unit and browser tests",
+              "scenario/product/feature/protocol evidence updates"
+            ],
+            "required_proof": [
+              "full deterministic local acceptance matrix",
+              "criterion-level evidence and proof limits",
+              "format, lint, typecheck, build and documentation gates after stateful checks"
+            ],
+            "avoid": [
+              "a second test harness or eval machinery",
+              "remote deploy or production claims"
+            ]
+          }
         ]
       }
     },
@@ -106,7 +231,8 @@
       "golden": {
         "required_outcomes": [
           {"id": "GOLD-REVIEW-001", "statement": "Identify material migration, authorization, state-transition, verification and handoff defects where present."},
-          {"id": "GOLD-REVIEW-002", "statement": "Apply accepted corrections to the PLAN source, then deterministically regenerate a CODE-ready work graph and handoff without claiming unmade fixes."}
+          {"id": "GOLD-REVIEW-002", "statement": "Apply accepted corrections to the PLAN source, then deterministically regenerate a CODE-ready work graph and handoff without claiming unmade fixes."},
+          {"id": "GOLD-REVIEW-003", "statement": "Verify that every resulting CODE Work gives a fresh worker sufficient bounded project context, and correct missing, excessive or wrongly owned context before registration."}
         ],
         "accepted_strong_decisions": [
           {"id": "STRONG-REVIEW-001", "statement": "A strong review covers every applicable aspect in one capacity-aware reviewer wave where practical, consolidates duplicate findings by root cause, prioritizes material defects and applies the accepted corrections once.", "source": "EVAL-023"}

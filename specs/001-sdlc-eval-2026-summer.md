@@ -401,7 +401,14 @@ Expected analysis covers:
 - required feature/specification/ADR/scenario updates;
 - executable CODE Work graph and dependencies;
 - verification expected from each Work;
-- sufficiency for code workers with clean context.
+- sufficiency for code workers with clean context, including exact project
+  sources/tests, applicable standards and durable documents, accepted
+  semantics, write boundaries, checks and proof limits selected by PLAN.
+
+The case may carry hidden golden worker contexts per semantic implementation
+responsibility. The Judge maps them to candidate items without requiring the
+same item count or decomposition and distinguishes missing essential context
+from harmless wording differences or useful bounded alternatives.
 
 ### PLAN-REVIEW
 

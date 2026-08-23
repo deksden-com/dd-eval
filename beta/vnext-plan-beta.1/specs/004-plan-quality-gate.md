@@ -119,6 +119,24 @@ quality.
   horizontal ceremony?
 - Could a developer execute each item without the planning transcript?
 
+### 5.1 Fresh-worker context sufficiency
+
+- Does each item identify the current owning source and representative tests?
+- Does it include every applicable feature, scenario, spec, ADR, project
+  standard and local configuration needed for this task, but not a broad
+  untargeted Memory Bank traversal?
+- Are exact accepted R/AC statements, invariants, non-goals, write scope,
+  predecessor results, checks, evidence and proof limits preserved in the
+  generated CODE packet?
+- Can a clean worker distinguish accepted intent from implementation advice and
+  stop rather than invent a missing material decision?
+- Does the generated packet preserve context that exists in PLAN, or does
+  registration collapse it into a lossy task summary?
+
+For an eval case, compare these responsibilities against the hidden golden
+worker-context set semantically. Different item boundaries are valid when the
+union remains complete, bounded and executable.
+
 ### 6. Acceptance and verification
 
 - Does every material criterion map to a check or scenario at an honest gate?
@@ -167,9 +185,10 @@ Mark this section `not_applicable` for a single-PRT eval.
 
 ### 10. CODE Work graph
 
-- Is there exactly one CODE coordinator entry Work for this stage cohort?
-- Does the coordinator implement directly for the compact route or own
-  dispatch/fan-in for the delegated route, without duplicating both?
+- Does the existing root SDLC orchestrator remain the CODE orchestrator without
+  a synthetic coordinator Work or coordinator subagent?
+- Are accepted implementation Works direct descendants of the root Work and
+  independently runnable according to their dependencies?
 - Does task prose trace every required plan item and acceptance contribution to
   at least one implementation Work?
 - Is every Work justified by accepted plans rather than orchestration ceremony?
@@ -179,8 +198,9 @@ Mark this section `not_applicable` for a single-PRT eval.
   unsafe write conflicts?
 - Is every task self-contained after `work start` injects runtime facts and
   predecessor results?
-- Can `stage start code` recover the cohort solely from the accepted coordinator
-  ID, without a Work stage/type selector?
+- Can `stage start code` recover the accepted graph from the RUN and accepted
+  batch while continuing the root Work, without treating the first
+  implementation item as a coordinator?
 
 This is a semantic review of plans and task Markdown. The CLI validates graph
 structure only and does not require a duplicate `covers` field.

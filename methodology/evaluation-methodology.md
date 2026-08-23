@@ -88,7 +88,10 @@ repeat checksum or lifecycle bookkeeping instead of reviewing the substance.
 - **PLAN** is judged on grounded decisions, complete obligation realization,
   an executable implementation graph and falsifiable verification. A generated
   CODE projection is evidence of graph integrity, not proof that the plan is a
-  good solution.
+  good solution. Each plan item is also judged as a fresh-worker context:
+  whether it selects the smallest sufficient project sources, standards,
+  accepted semantics, boundaries and proof for a code worker without the
+  planning transcript.
 - **PLAN-REVIEW** is judged on independent semantic challenge, prioritization,
   accepted corrections and the readiness of the resulting plan for CODE. It is
   not a second schema-validation pass.
@@ -121,6 +124,7 @@ Use these meanings whenever the active assessment contains the named id.
 | PLAN outcome | `decision-quality` | Chooses the simplest adequate architecture and records only material decisions, risks and document changes. |
 | PLAN outcome | `executable-work-graph` | Every owned obligation maps to concrete ordered plan items with resolvable inputs, bounded outputs and no unsafe concurrency. |
 | PLAN outcome | `verification` | Gives falsifiable positive, negative, migration and cleanup evidence proportionate to the accepted behavior. |
+| PLAN outcome | `worker-context` | Gives each fresh code worker sufficient and bounded source, standard, requirement, write-scope and verification context; does not outsource grounding to the worker. |
 | PLAN flow | `routing` | Uses local work or grouped subagents proportionately; breadth alone does not force deep routing. |
 | PLAN flow | `projection-integrity` | PLAN remains the semantic SSOT and the generated CODE graph matches its revision, dependencies and paths. |
 | PLAN flow | `evidence` | Plan, aspect map, generated graph and stage report make coverage and readiness inspectable. |
@@ -138,6 +142,25 @@ For E2E, `stage-quality` aggregates these semantic meanings without averaging
 away a material stage defect; `cross-stage-integrity` checks preservation of
 accepted obligations and decisions; `correction-quality` checks that review
 improves the actual PLAN; and `readiness` checks the final executable graph.
+
+### Golden worker contexts
+
+An assessment may define `golden.worker_contexts` for PLAN. Each row describes
+one semantic implementation responsibility and the context a fresh worker
+needs: essential sources/tests, obligations, invariants, write ownership,
+proof and harmful irrelevant context. Rows do not prescribe candidate item IDs
+or one decomposition.
+
+The Judge maps candidate items to these responsibilities semantically and
+evaluates both directions:
+
+- missing essential context that forces rediscovery or invention;
+- excess irrelevant context that broadens scope or hides the actual task.
+
+The union of several candidate packets may satisfy one golden responsibility,
+or one coherent packet may satisfy several. Exact wording is never required.
+The Judge also reports a projection-integrity defect when PLAN contains the
+needed context but the generated CODE packet loses it.
 
 ## Evidence and rejudging
 

@@ -19,6 +19,11 @@ registers the graph that CODE will run. Engine and flow-pack versions are
 allocated only when implementation is ready; this draft does not claim an
 immutable beta checkpoint.
 
+The downstream execution contract is continued by
+[vNext CODE beta 1](../vnext-code-beta.1/index.md). PLAN is responsible for the
+complete fresh-worker context; CODE must not recover information lost during
+batch registration through another project-wide discovery pass.
+
 ## Included specifications
 
 - [001 — canonical PLAN semantic parity](specs/001-canonical-plan-semantic-parity.md)

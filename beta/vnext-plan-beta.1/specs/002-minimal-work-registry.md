@@ -26,6 +26,7 @@ work_id
 run_id
 parent_work_id
 task
+payload_json nullable
 depends_on
 status
 result
@@ -36,12 +37,15 @@ started_at
 completed_at
 ```
 
-`task` is Markdown and contains all semantic instructions, input references,
-write paths, output expectations and checks. These are not duplicated into
-typed Work fields. `result` is the worker's compact semantic handoff to the
+`task` is the compact Markdown assignment. `payload_json` is an optional
+immutable structured execution packet when a flow already owns a validated
+projection such as `code-work-packet@1` or a repair packet. It prevents the
+registry from discarding accepted paths, obligations, checks and proof limits.
+It is stored as one value rather than duplicated into input, output and
+verification columns. `result` is the worker's compact semantic handoff to the
 parent. The same record represents grounding, planning, aspect, implementation
-or integration work; meaning comes from the task and Flow position, not a Work
-type or stage column.
+or integration work; meaning comes from the task, optional packet and Flow
+position, not a Work type or stage column.
 
 `launch_policy` is `reuse_allowed` or `fresh_agent_required`; it tells the
 orchestrator how this Work must be assigned and lets `work start` verify that
@@ -66,6 +70,7 @@ project_id
 run_id
 parent_work_id
 task
+payload_json
 depends_on_json
 status
 result
@@ -385,9 +390,11 @@ fingerprint because the previous hook event is already consumed and the new
 PreToolUse invocation creates a fresh event.
 
 `work finish --result-stdin` validates `result_schema` when present, stores the
-compact result, closes the open Work/Session link, completes Work and records a
-provisional usage observation. SQLite is authoritative for the result; CLI
-renders one immutable result projection of the same bytes.
+compact result, executes any required command checks declared by a validated
+execution packet, closes the open Work/Session link, completes Work and records
+a provisional usage observation. A failed required check leaves Work running
+and returns all failure receipts together. SQLite is authoritative for the
+result and check receipts; CLI renders immutable projections.
 The parent obtains all child statuses and optional results with one filtered
 `work ls` call. The registry never parses the semantic task or result.
 
@@ -408,6 +415,7 @@ This beta does not add:
 
 - Work type, stage, subject, executor, priority or lease fields;
 - separate input-artifact, output-path or verification fields;
+- a second authored context document beside the accepted execution packet;
 - deterministic Work records;
 - a dependency table;
 - a scheduler daemon;
