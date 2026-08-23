@@ -296,7 +296,7 @@
       "golden": {
         "required_outcomes": [
           {"id": "GOLD-E2E-001", "statement": "Preserve four-value/default, stable-order and narrow archived-project priority-only decisions through all stages without scope drift."},
-          {"id": "GOLD-E2E-002", "statement": "End at accepted PLAN-REVIEW with a code-ready work graph and never start CODE."}
+          {"id": "GOLD-E2E-002", "statement": "Complete CODE from the accepted work graph, satisfy the accepted R/AC, pass focused and aggregate verification, and stop before MERGE."}
         ],
         "accepted_strong_decisions": [],
         "accepted_alternatives": [],

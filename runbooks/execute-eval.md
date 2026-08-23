@@ -505,8 +505,10 @@ The receipt is immutable evidence that the predecessor was done before its
 successor was created; `dd-eval continuation` refuses to run without it.
 
 For focused mode, the next action must be `stop_subject`. For segment mode it is
-`continue_segment` until the final selected stage. For E2E it is
-`continue_e2e` until `plan_review_accepted`.
+`continue_segment` until the final selected stage. For E2E it is `continue_e2e`
+through the captured CODE boundary. The full-chain case ends only after CODE
+has completed its planned Works and aggregate gate; MERGE remains outside this
+evaluation.
 
 If the Subject starts or mutates a successor before capture, mark the attempt
 `invalid_infrastructure_flow`; do not repair or score it.
