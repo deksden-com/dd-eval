@@ -652,6 +652,13 @@ Obtain the authoritative list with `dd-flow stat run sessions ls --run
 model report. This is required so a reviewer can reopen the Codex sessions,
 locate their JSONL transcripts, and reconcile usage with the stored RUN.
 
+Run `dd-flow stat usage --run <RUN-ID> --project-root <run-repository> --json`
+after all provider turns settle and before the Session list above. This refresh
+is also the deterministic Session finalizer: a completed disposable child may
+remain `idle` immediately after `work finish`, but must become `stopped` once
+its JSONL ends in `task_complete`. Record empty usage or a still-idle settled
+child as a regression defect, never as zero usage.
+
 Keep bulky forensic artifacts outside Git under one immutable archive
 directory:
 

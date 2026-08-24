@@ -593,6 +593,24 @@ Before judging, verify:
 - trusted Session topology and usage have been synced;
 - effective model/reasoning equals the requested profile.
 
+After the provider reports every Subject and child turn settled, run the
+engine-owned reconciliation once, using the execution's exact engine/pack pair:
+
+```sh
+DD_FLOW_HOME="<execution-runtime>" dd-flow stat usage \
+  --run "<RUN-ID>" --project-root "<execution-project>" --json
+DD_FLOW_HOME="<execution-runtime>" dd-flow stat run sessions ls \
+  --run "<RUN-ID>" --project-root "<execution-project>" --json
+```
+
+`stat usage` rereads the registered Codex JSONL sources, records the current
+usage projection and changes an `idle` Work Session to `stopped` only when its
+latest provider lifecycle event is `task_complete`. It must return at least one
+Session row whenever the RUN has transcript-backed Sessions. Treat an empty
+usage projection, a transcript-backed completed child left `idle`, or a
+`provisional` result after every provider turn has settled as an observability
+defect. Do not infer token totals from wall time and do not edit SQLite.
+
 ## Judge procedure
 
 Do not continue the Subject Session as Judge.

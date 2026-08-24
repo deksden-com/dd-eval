@@ -41,6 +41,23 @@ reported 6/6.
    project”, without adding a new archive feature. This is candidate model
    behaviour, not a product failure.
 
+## Mandatory regression checks for the next eval
+
+The beta.94 fix is implemented but remains unproven by a real eval. In the
+next full run, explicitly verify all of the following:
+
+- the PLAN-REVIEW coordinator creates fresh child Sessions before any reviewer
+  `work start`; there are no rejected attempts caused by claiming reviewer Work
+  in the coordinator Session;
+- RUN completion creates a non-empty preliminary `usage` projection;
+- after all Subject and child turns settle, one `dd-flow stat usage` refresh
+  includes every transcript-backed Session and reports terminal usage;
+- the same refresh changes completed disposable reviewers and CODE workers
+  from `idle` to `stopped`, while a genuinely reusable or live Session is not
+  closed prematurely;
+- `stat run sessions ls` and the persisted RUN projection agree after that
+  reconciliation.
+
 ## Known-good evidence
 
 - The executable-check contract rejected an accidental raw browser command in
