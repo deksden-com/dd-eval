@@ -37,5 +37,5 @@ input checkpoint's CLI version.
 - CODE bootstrap runs in CODE, emits progress and leaves a reusable receipt;
 - `code_completed` is terminal and is the E2E boundary;
 - vNext reports contain no `session_coverage` or `usage_coverage` claims;
-- a beta.88 snapshot cannot be restored for a beta.90 input checkpoint;
+- a beta.88 snapshot cannot be restored for a beta.91 input checkpoint;
 - targeted vNext and eval-runner tests pass.
