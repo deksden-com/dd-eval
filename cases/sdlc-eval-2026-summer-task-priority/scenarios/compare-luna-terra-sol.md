@@ -3,7 +3,7 @@
 ## Purpose
 
 Measure where these three Subject profiles differ while executing the same
-planning flow:
+SDLC flow through accepted CODE:
 
 - `gpt-5.6-luna` / `xhigh`;
 - `gpt-5.6-terra` / `high`;
@@ -11,23 +11,25 @@ planning flow:
 
 The comparison has two parts:
 
-1. four independent focused stages per profile, each starting from that
-   profile's stage-specific starter Session and the same canonical project/RUN checkpoint;
+1. five independent focused stages per profile, each starting from the shared
+   stage starter Session and the same canonical project/RUN checkpoint, with
+   the evaluated profile explicitly selected on the first new message;
 2. one clean E2E planning contour per profile on the explicitly selected profile
    and producing its own downstream artifacts.
 
-This is 15 Subject executions: 12 focused and 3 E2E. Historical Luna beta runs
+This is 18 Subject executions: 15 focused and 3 E2E. Historical Luna beta runs
 are diagnostic evidence only and are not substituted into this comparison.
 
 ## Fixed inputs
 
 - Case: `sdlc-eval-2026-summer-task-priority`.
 - Controller and Judge: the current `case.json` defaults.
-- Focused stages: `specify,protocolize,plan,plan-review`.
-- E2E: enabled; stop at `plan_review_accepted`; CODE remains unstarted.
-- One fresh Subject fork from the selected profile's applicable current starter
-  Session per execution. A native fork retains its model; it must never switch
-  model after forking.
+- Focused stages: `specify,protocolize,plan,plan-review,code`.
+- E2E: enabled; stop at `code_accepted`; MERGE remains unstarted.
+- One fresh Subject fork from the stage's shared starter Session per focused
+  execution. Select the requested model/reasoning on its first new message and
+  reject a mismatch before scoring. E2E uses a clean Subject Session on the
+  requested profile, followed by the ordinary prime and user flow request.
 - One fresh Judge fork per focused candidate and one fresh Judge fork per E2E
   candidate.
 - The same committed case definition, starter registry, input checkpoint,
@@ -56,7 +58,7 @@ configuration between profiles. A changed definition starts a new comparison.
 dd-eval prepare \
   --case sdlc-eval-2026-summer-task-priority \
   --scenario scenarios/compare-luna-terra-sol.md \
-  --focus specify,protocolize,plan,plan-review \
+  --focus specify,protocolize,plan,plan-review,code \
   --e2e \
   --subject-profile <current-case-profile-for-model-and-reasoning> \
   --source <absolute-dd-tasks-beta-root>
@@ -64,8 +66,8 @@ dd-eval prepare \
 
 3. Execute focused candidates stage-major to reduce time-dependent environment
    drift: all three SPECIFY candidates, then all three PROTOCOLIZE candidates,
-   then PLAN and PLAN-REVIEW. Within a stage use the profile order Luna, Terra,
-   Sol.
+   then PLAN, PLAN-REVIEW and CODE. Within a stage use the profile order Luna,
+   Terra, Sol.
 4. Execute the three E2E candidates after all focused candidates, in the same
    profile order.
 5. Follow `runbooks/execute-eval.md` for every execution. Never continue a
@@ -113,7 +115,7 @@ performs no semantic synthesis.
 The comparison report records:
 
 - scenario path and `dd-eval` definition commit;
-- all 15 execution IDs, starter parents, Subject Sessions and Judge Sessions;
+- all 18 execution IDs, focused starter parents, Subject Sessions and Judge Sessions;
 - effective model/reasoning verified by the harness;
 - a stage-by-profile quality table;
 - a separate efficiency table;
