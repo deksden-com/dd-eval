@@ -43,7 +43,7 @@ reported 6/6.
 
 ## Mandatory regression checks for the next eval
 
-The beta.95 fix is implemented but remains unproven by a real eval. In the
+The beta.96 fix is implemented but remains unproven by a real eval. In the
 next full run, explicitly verify all of the following:
 
 - the PLAN-REVIEW coordinator creates fresh child Sessions before any reviewer
