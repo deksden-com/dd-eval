@@ -33,7 +33,10 @@ or profile, is the sole source of the project, flow-pack and engine pair.
 
 For each restored execution, `prepare` renders the Subject packet with the
 current project root, inline `DD_FLOW_HOME` and exact normal `stage start`
-command. Send that packet unchanged after forking the current starter Session.
+command. For a focused stage or segment, fork the shared stage starter and send
+that packet as the first new message with the requested model and reasoning
+explicitly selected. E2E is different: create a clean Subject Session directly
+on the requested profile and perform the ordinary prime, discussion and flow.
 
 ## Choose the measurement
 
@@ -43,7 +46,7 @@ Use exactly one of these meanings:
 | --- | --- | --- | --- |
 | focused | canonical entry checkpoint for one stage | exactly that stage | one fresh Judge fork |
 | segment | canonical entry checkpoint for the first stage | every stage in one contiguous range | one fresh Judge fork per stage |
-| E2E | canonical `specify-entry` checkpoint | complete declared contour | one fresh E2E Judge fork |
+| E2E | clean Subject Session plus restored canonical `specify-entry` project/RUN state | complete declared contour | one fresh E2E Judge fork |
 
 Examples:
 
@@ -78,7 +81,7 @@ Before preparing an attempt, verify:
 5. every selected stage has an accepted canonical entry checkpoint;
 6. the selected case assessment is accepted and matches the case hash;
 7. checkpoint archives exist and their checksums match;
-8. the current starter Subject Sessions and Judge priming parent are reachable;
+8. the current shared stage starter Sessions and Judge priming parent are reachable;
    during case creation or starter recovery, the canonical Subject Sessions
    must also be reachable;
 9. the output path is new and outside the `dd-eval` checkout.
@@ -93,6 +96,14 @@ Desktop attempt.
 The initial suite uses the current Controller task on `gpt-5.6-terra/high`.
 There is no canonical Controller Session to create or fork. Record the actual
 Controller Session ID and profile in the run evidence.
+
+Resolve the effective model profile before every provider launch. A mono-model
+run applies that profile to the root Subject, every stage continuation and each
+fresh configurable child. Stage- and child-level overrides are allowed only
+when the scenario declares them. A context-inheriting child uses the parent's
+model when the harness does not support an override; reject an incompatible
+request instead of silently substituting another model. Record requested and
+observed profiles separately for every Session.
 
 ## Readiness gates
 

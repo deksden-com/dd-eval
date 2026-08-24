@@ -22,6 +22,7 @@ The bundle separates three proofs:
 ## Included specification
 
 - [001 — CODE execution, verification and repair](specs/001-code-execution-verification-and-repair.md)
+- [002 — E2E runtime corrections](specs/002-e2e-runtime-corrections.md)
 
 ## Required implementation sequence
 
@@ -38,6 +39,10 @@ The bundle separates three proofs:
    historical Work;
 8. add deterministic fixtures, a focused CODE eval and only then extend the
    end-to-end suite.
+9. close the beta.89 E2E defects as one runtime cutover: preserve check aliases,
+   separate infrastructure blockers from HITL, make model selection explicit,
+   deduplicate usage by physical Session and enforce capacity-aware review
+   packing.
 
 The contract migration is deliberately narrow: reuse `semantic_spine`,
 `execution_context`, `verification`, the generated `code-work-batch` and the

@@ -21,14 +21,10 @@ test("the active suite declares its next canonical checkpoint chain", async () =
   assert.equal(validated.checkpoint.memory_bank.engine.commit, "f64524dc16204813aabc32f69a7ecaa918b376c5");
 });
 
-test("each evaluated Subject profile has its own protected starter set", async () => {
-  const loaded = await loadCase(caseId);
+test("each stage has one model-neutral protected starter", async () => {
   const registry = JSON.parse(await readFile(path.join(import.meta.dirname, "..", "cases", caseId, "starter-sessions.json"), "utf8"));
-  assert.equal(registry.schema_id, "dd-eval/starter-sessions@2");
-  for (const profile of loaded.definition.profiles.subject) {
-    assert.ok(loaded.definition.priming.subject_baselines[profile]);
-    assert.deepEqual(Object.keys(registry.subjects[profile].sessions), ["specify", "protocolize", "plan", "plan-review", "code"]);
-  }
+  assert.equal(registry.schema_id, "dd-eval/starter-sessions@3");
+  assert.deepEqual(Object.keys(registry.sessions), ["specify", "protocolize", "plan", "plan-review", "code"]);
 });
 
 test("prepare task titles are deterministic and sortable", () => {

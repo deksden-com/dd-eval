@@ -13,7 +13,7 @@ The comparison has two parts:
 
 1. four independent focused stages per profile, each starting from that
    profile's stage-specific starter Session and the same canonical project/RUN checkpoint;
-2. one E2E planning contour per profile, starting from that profile's SPECIFY starter
+2. one clean E2E planning contour per profile on the explicitly selected profile
    and producing its own downstream artifacts.
 
 This is 15 Subject executions: 12 focused and 3 E2E. Historical Luna beta runs

@@ -891,11 +891,11 @@ the stated mechanical proof.
 7. Build a fresh canonical Subject chain from normal priming and normal user
    discussion. At each natural stage boundary, review the semantic result,
    capture the project/RUN state and frozen Subject Session, then make an
-   untouched starter Session for the canonical Subject profile. Prime every
-   other declared Subject profile with the same ordinary discussion and create
-   its own protected stage starters. A native fork inherits its model; never
-   change model after forking.
-8. Only after the four checkpoints and profile-specific starters pass the scored readiness
+   untouched shared starter Session for each stage. Focused attempts fork that
+   shared Session and explicitly select their evaluated model and reasoning on
+   the first new message. Do not duplicate checkpoint Sessions or starters by
+   model profile.
+8. Only after the four checkpoints and shared starters pass the scored readiness
    gate, execute the fixed Luna/Terra/Sol matrix.  A Controller may answer a
    legitimate question substantively; it records the exchange for the Judge
    instead of treating it as a harness failure.

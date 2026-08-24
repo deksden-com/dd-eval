@@ -77,7 +77,8 @@ as if they measured the same thing.
 A **focused stage eval** measures exactly one stage: `SPECIFY`,
 `PROTOCOLIZE`, `PLAN`, or `PLAN-REVIEW`.
 
-- Give the Subject a fresh fork of that stage's starter Session and a restored
+- Give the Subject a fresh fork of that stage's shared starter Session, select
+  the requested model/reasoning explicitly on the first new message, and a restored
   copy of the paired canonical project/RUN checkpoint. The Subject stops immediately after the
   target stage finishes; it does not enter a successor stage.
 - Give the Judge a separate fresh fork of the canonical Judge priming session,
@@ -106,7 +107,8 @@ declared contour. For the summer case that contour is
 `SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW`, stopping at
 `plan_review_accepted` before `CODE`.
 
-- Fork the current `specify-entry` starter Subject Session, send the normal user
+- Create a clean Subject Session on the requested profile, perform the normal
+  prime and discussion, restore the canonical `specify-entry` project/RUN state, send the normal user
   trigger, and let it carry the working context through the contour.
 - Fork one independent Judge session, then give it the aggregate
   candidate package after the Subject stops.
@@ -476,8 +478,9 @@ not an identity contract.
 writes `executions/focus-<stage>/attempt-01/prompts/controller.md`.
 The Controller follows it in addition to the role prime:
 
-1. Fork the latest completed state of the current starter Subject Session,
-   select the requested profile, record the parent/fork IDs, then send the exact
+1. For a focused stage or segment, fork the current shared starter Subject
+   Session, select the requested profile on the first new message, record the
+   parent/fork IDs, then send the exact
    generated `subject.md` continuation. Do not add assessment, golden or scoring
    hints.
 2. Tell the Subject only the harness boundary: after a successful finish of
