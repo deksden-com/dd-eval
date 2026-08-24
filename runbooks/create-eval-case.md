@@ -89,7 +89,12 @@ checkpoint.
    `checkpoints/<input-id>.json`. It is the sole source of truth for the
    evaluated project source/tag/commit and its matched flow-pack and engine
    version/tag/commit. Put only `checkpoint.id` in `case.json`; do not repeat
-   a pair SHA, version or tag in the case, a scenario, or a profile.
+   a pair SHA, version or tag in the case, a scenario, or a profile. Before
+   creating the canonical chain, verify that this pinned pair is also declared
+   by the archived project's `compatibility.json` and `manifest.json`, and that
+   the isolated runtime contains exactly that engine. This prevents a
+   plausible-looking archive and separately installed engine from failing at
+   the first normal `stage start`.
 2. Freeze the profiles, prompts, interactions and one accepted assessment.
    The assessment defines outcome/flow criteria, golden decisions, valid
    alternatives and known risks. Profiles describe

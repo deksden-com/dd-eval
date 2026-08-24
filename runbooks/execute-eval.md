@@ -146,6 +146,22 @@ Do this once per exact case-definition, engine and flow-pack revision.
   silently substitute for the project policy. That runtime may
   contain only this canonical project's single RUN; checkpoint capture fails
   if unrelated records exist.
+- Verify the **declared pair** before allocating the RUN: the project’s
+  `.memory-bank/dd-flow/compatibility.json` and `manifest.json` must name the
+  same Memory Bank/engine beta that the input checkpoint pins. Installing an
+  engine snapshot alone is insufficient: a stale compatibility declaration
+  makes the router correctly reject normal write commands. Repair and tag the
+  pair first; never work around it by installing the stale engine as well.
+- Allocate the unstarted canonical RUN with the vNext entry command, not a
+  stage bootstrap. For the current flow this is:
+
+  ```sh
+  DD_FLOW_HOME="<canonical-runtime>" dd-flow run prepare-vnext-specify \
+    --project-root "<canonical-project>" --slug task-priority --json
+  ```
+
+  Record the returned RUN ID. This is the only command that may create the
+  unstarted RUN captured at `specify-entry`.
 - Create the canonical Subject Session with the declared canonical profile.
 - Send the normal project prime and the exact versioned case discussion **up
   to, but not including, the user-level flow trigger**. The moving Subject must
@@ -153,11 +169,10 @@ Do this once per exact case-definition, engine and flow-pack revision.
   global/default runtime before the isolated RUN checkpoint exists.
 - Do not mention the eval, assessment, golden reference or expected answers.
 - Stop when the next natural user message would trigger SPECIFY.
-- Allocate the vNext RUN with the matched engine, but do not start SPECIFY and
-  do not bind the Controller Session as its Subject. Preserve the exact
-  versioned discussion/intake messages for the later stage-start packet. After
-  the SPECIFY-entry capture, the generated isolated `stage start` command is
-  the sole allowed first-stage trigger.
+- Do not start SPECIFY or bind the Controller Session as its Subject. Preserve
+  the exact versioned discussion/intake messages for the later stage-start
+  packet. After the SPECIFY-entry capture, the generated isolated `stage start`
+  command is the sole allowed first-stage trigger.
 
 ### 2. Capture `specify-entry`
 
@@ -211,6 +226,19 @@ For each stage:
    `stage resume --answer-stdin` is the exception: use its generated template
    unchanged, with the literal inline `DD_FLOW_HOME` immediately before
    `dd-flow`; the trusted hook recognises that piped stdin form.
+   SPECIFY is special: materialize the immutable raw discussion/trigger in the
+   prepared RUN first, then make the Subject’s first flow command exactly
+
+   ```sh
+   DD_FLOW_HOME="<canonical-runtime>" dd-flow stage start "<RUN-ID>" \
+     --stage specify --project-root "<canonical-project>" \
+     --intake-file "<absolute-RUN-intake-file>" --json
+   ```
+
+   The Subject, rather than the Controller, invokes this command. Its normal
+   PreToolUse hook therefore binds the real Subject Session to the root Work.
+   Do not use `--bootstrap`, `--session-id`, a controller-issued stage start,
+   or a relative path in this contour.
 3. deliver the declared response exactly when it matches the interaction script.
    An additional Subject question is valid candidate behaviour: preserve the
    question and answer it substantively, resume the same stage, and retain the
