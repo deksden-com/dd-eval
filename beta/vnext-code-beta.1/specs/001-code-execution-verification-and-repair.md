@@ -22,6 +22,7 @@ accepted plan.json
   → capacity-aware implementation waves
   → focused Work checks
   → graph fan-in
+  → mandatory semantic verification against accepted PLAN
   → aggregate CODE gate
   → repair Work when needed
   → CODE-REVIEW or ready_for_merge
@@ -253,10 +254,27 @@ changed paths, check facts, Session facts and later usage projections.
 Checks that are commands belong here. A semantic/manual inspection becomes an
 explicit Work or later review; it is not disguised as a deterministic command.
 
-## 8. Aggregate CODE gate
+## 8. Aggregate CODE verification and gate
 
 When no implementation Work remains active, the root orchestrator calls CODE
-stage finish. The CLI performs one deterministic gate.
+stage finish. Before the deterministic gate accepts, the root orchestrator
+must semantically verify that the combined implementation fulfils the accepted
+PLAN. This verification is part of CODE even when later CODE-REVIEW is off.
+
+### Semantic plan conformance
+
+The CLI prepares a traceability projection from accepted requirements and
+acceptance criteria through plan items and CODE Works to changed paths, checks
+and receipts. The orchestrator inspects the actual combined implementation and
+submits the small `dd-flow/code-verification@1` result defined by the downstream
+CODE-REVIEW beta specification.
+
+The result must confirm that every current-gate accepted obligation and plan
+item is implemented, the Works integrate coherently, planned documentation and
+negative cases exist, invariants/non-goals remain true, proof limits are honest
+and the diff contains no unexplained scope expansion. A non-passing verdict or
+unresolved item keeps CODE open for bounded repair. The CLI validates the
+projection and evidence links but never claims semantic correctness itself.
 
 ### Graph closure
 
@@ -305,9 +323,10 @@ stdout. Sequential execution is retained because project checks commonly
 share build output, databases or other mutable resources; arbitrary parallel
 execution would make their semantics unsafe.
 
-Successful finish records check receipts, graph coverage and a deterministic
-stage report, then returns CODE-REVIEW or `ready_for_merge` according to RUN
-policy. It does not perform semantic CODE review inside the deterministic gate.
+Successful finish records semantic plan-conformance, check receipts, graph
+coverage and a deterministic stage report, then returns CODE-REVIEW or
+`ready_for_merge` according to RUN policy. Independent semantic CODE review is
+still a distinct later stage.
 
 ## 9. Repair after aggregate failure
 
@@ -424,6 +443,7 @@ telemetry.
 This beta does not add:
 
 - a second CODE coordinator agent or coordinator Work;
+- a separate implementation-verification stage;
 - full `prime.md` for each code worker;
 - a second plan/context database;
 - automatic semantic diagnosis of a failed test;
@@ -533,5 +553,5 @@ stage-report renderer.
 6. Aggregate failures produce bounded repair Works carrying original context
    plus the diagnostic delta.
 7. Any repair invalidates and reruns the aggregate gate.
-8. Reports are deterministic, and semantic review remains a separate later
-   concern.
+8. CODE records mandatory semantic plan-conformance; independent quality
+   review remains a separate later concern.

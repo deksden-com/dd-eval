@@ -13,11 +13,13 @@ The accepted PLAN produces child Works, the CLI preserves their complete
 execution packets, and the orchestrator schedules the ready graph against the
 RUN-level subagent capacity.
 
-The bundle separates three proofs:
+The bundle separates four proofs:
 
 1. each Work completed its bounded task and focused checks;
-2. the complete CODE graph and project check profile are green after fan-in;
-3. later CODE-REVIEW may independently judge semantic implementation quality.
+2. the root orchestrator semantically verified the combined implementation
+   against the accepted PLAN;
+3. the complete CODE graph and project check profile are green after fan-in;
+4. later CODE-REVIEW may independently judge implementation quality.
 
 ## Included specification
 
@@ -51,5 +53,6 @@ existing Work registry. Update their schemas, validators, renderers and tests
 in place; do not introduce a parallel authored context document or a second
 task store.
 
-This beta does not yet define CODE-REVIEW or MERGE semantics. It leaves a
-truthful handoff for those later stages.
+CODE-REVIEW semantics continue in
+[vNext CODE-REVIEW beta 1](../vnext-code-review-beta.1/index.md). This bundle
+does not define MERGE semantics.
