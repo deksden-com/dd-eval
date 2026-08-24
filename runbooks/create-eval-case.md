@@ -119,6 +119,11 @@ checkpoint.
      --parent-session-id <frozen-checkpoint-session-id>
    ```
 
+   After every fully accepted new canonical revision, the first `starter set`
+   call intentionally replaces the old revision's registry. It does so only
+   after it has verified that every stage checkpoint belongs to the same
+   accepted revision; do not edit `starter-sessions.json` by hand.
+
    The command checks the declared parent against the accepted frozen
    checkpoint and updates `starter-sessions.json`.
 8. Verify every starter is reachable, idle and directly parented by its
