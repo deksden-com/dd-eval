@@ -345,6 +345,11 @@ The resolved package version must equal the exact beta pin. Record its
 `snapshot_root` and integrity checksum. A missing, broad, stable, unhealthy, or
 unexpected selection stops the run before an agent is launched.
 
+Do not assume that `dd-flow` follows the beta checkout merely because that
+checkout was built. Verify `dd-flow --version` after linking/installing it; an
+older global shim is a harness defect and must be corrected before a canonical
+or scored run starts.
+
 For an eval that measures agent usage or token accounting, make session binding
 a launch gate rather than a best-effort diagnostic. Its controller's first
 command uses `stage start --require-session-binding`; the installed PreToolUse

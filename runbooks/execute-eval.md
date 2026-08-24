@@ -129,6 +129,12 @@ editing a checkpoint, profile, Session ID, engine binding or SQLite file.
 
 Do this once per exact case-definition, engine and flow-pack revision.
 
+The checkpoint file is the single source of the project/engine pair. Before
+authoring begins, `dd-flow --version` and the project's compatibility pin must
+equal that file. A globally linked older CLI is a blocker: relink or install
+the matched engine, then start a new canonical revision rather than mutating a
+partially authored one.
+
 ### 1. Prepare one canonical workspace
 
 - Allocate the next canonical revision below
@@ -173,6 +179,12 @@ Do this once per exact case-definition, engine and flow-pack revision.
   the exact versioned discussion/intake messages for the later stage-start
   packet. After the SPECIFY-entry capture, the generated isolated `stage start`
   command is the sole allowed first-stage trigger.
+
+For every later stage, capture the entry snapshot **after** its predecessor is
+accepted and **before** sending the target-stage command. The recorded
+canonical Subject Session is preserved history. Create a disposable starter
+fork from it, then fork that starter for actual stage work; a failed or
+accidentally continued worker never changes the protected canonical session.
 
 ### 2. Capture `specify-entry`
 
