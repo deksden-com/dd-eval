@@ -50,6 +50,8 @@ next full run, explicitly verify all of the following:
   `work start`; there are no rejected attempts caused by claiming reviewer Work
   in the coordinator Session;
 - RUN completion creates a non-empty preliminary `usage` projection;
+- `code_completed` closes the root Work and its Work/Session binding; no
+  `running` Work/Session link remains in the terminal RUN;
 - after all Subject and child turns settle, one `dd-flow stat usage` refresh
   includes every transcript-backed Session and reports terminal usage;
 - the same refresh changes completed disposable reviewers and CODE workers

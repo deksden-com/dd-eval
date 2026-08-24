@@ -586,7 +586,8 @@ Before judging, verify:
 - provider Subject task idle;
 - no child agent is running;
 - no child or stage-owned Work is `created`, `running` or `paused`; the root
-  coordinator Work may remain resumable at the legal boundary;
+  coordinator Work may remain resumable at a non-terminal legal boundary, but
+  must be `completed` when the configured stop target completes the RUN;
 - no provider turn or Work-session binding remains active;
 - all selected candidate checkpoints exist;
 - project and RUN files have not changed after their capture;
