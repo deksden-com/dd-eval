@@ -76,7 +76,8 @@ Before preparing an attempt, verify:
 1. `dd-eval` is clean and its definition commit is recorded;
 2. the case points to one immutable input checkpoint file;
 3. that checkpoint's `dd-tasks` source, flow pack and `dd-flow` engine are
-   committed and form the intended matched pair;
+   committed and form the intended matched pair; `dd-eval prepare` rejects a
+   restored binding with any other engine version;
 4. the requested Controller, Subject and Judge profiles are declared;
 5. every selected stage has an accepted canonical entry checkpoint;
 6. the selected case assessment is accepted and matches the case hash;

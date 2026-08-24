@@ -43,8 +43,8 @@ handoff, use two gates rather than publishing after unit tests:
    and replace all downstream starters;
 5. run the comparison scenario declared for that change.
 
-For specification 006 the diagnostic boundary is
-`SPECIFY finish → PROTOCOLIZE → PLAN → PLAN-REVIEW → CODE handoff`. The
+For specifications 006–007 the diagnostic boundary is
+`SPECIFY finish → PROTOCOLIZE → PLAN → PLAN-REVIEW → CODE completion`. The
 acceptance comparison is the full four-stage focused Luna/Terra/Sol matrix plus
 the three planned E2E runs. The small diagnostic is a development gate, not a
 scored substitute for that matrix.
@@ -66,6 +66,16 @@ The beta Controller records the current wave and its evidence in the beta
 bundle index. A new beta version is warranted only when a behavior or contract
 changes; a repeated diagnostic against the same committed pair is an attempt,
 not a version.
+
+### Execution-profile invariant
+
+`project-execution.json` is the one project-owned source for a RUN's session
+handoff, review mode, terminal target and CODE bootstrap command. `dd-flow`
+copies it into the RUN once. `project-workspace.json` owns only checkout route
+and branch policy. The controller must not override either setting by editing a
+restored RUN. `dd-eval validate` verifies the project profile and
+`dd-eval prepare` verifies that the restored engine binding is exactly the
+version named by the input checkpoint.
 
 ## Eval modes
 
@@ -104,8 +114,8 @@ inserted inside the segment.
 
 An **E2E integration eval** measures one uninterrupted Subject flow over a
 declared contour. For the summer case that contour is
-`SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW`, stopping at
-`plan_review_accepted` before `CODE`.
+`SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW → CODE`, stopping at terminal
+`code_completed`.
 
 - Create a clean Subject Session on the requested profile, perform the normal
   prime and discussion, restore the canonical `specify-entry` project/RUN state, send the normal user

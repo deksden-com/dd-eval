@@ -24,7 +24,8 @@ stage-checkpoint execution model is refined by
 [launch-readiness cutover](specs/003-canonical-eval-launch-readiness.md) and
 [outcome-assessment/publication specification 005](specs/005-outcome-assessment-and-sites-publication.md).
 The next planning beta contract is defined by
-[lossless-obligation and executable-PLAN specification 006](specs/006-lossless-obligations-and-executable-plan.md), plus
+[lossless-obligation and executable-PLAN specification 006](specs/006-lossless-obligations-and-executable-plan.md),
+[execution-profile and CODE-completion specification 007](specs/007-execution-profile-and-code-completion.md), plus
 the [case-creation runbook](runbooks/create-eval-case.md) and
 [eval execution runbook](runbooks/execute-eval.md). Non-Git attempts,
 canonical snapshots and retention follow the [storage runbook](runbooks/eval-storage.md).

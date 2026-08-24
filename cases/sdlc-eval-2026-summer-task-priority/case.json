@@ -3,7 +3,7 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "ready",
-  "checkpoint": {"id": "cp-014-full-code-e2e-beta-89"},
+  "checkpoint": {"id": "cp-015-full-code-e2e-beta-90"},
   "assessment": "assessment.json",
   "profiles": {
     "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-87"],
@@ -29,7 +29,7 @@
     }
   },
   "judge_baseline": "baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-87-rev031.json",
-  "flow": {"handoff_mode": "new_session", "plan_review_mode": "standard", "capacity_policy": "probe_once_per_plan_review"},
+  "flow": {"handoff_mode": "new_session", "plan_review_mode": "auto", "capacity_policy": "probe_once_per_run"},
   "canonical_checkpoints": {
     "specify": "checkpoints/REV-032/specify.json",
     "protocolize": "checkpoints/REV-032/protocolize.json",
@@ -67,7 +67,7 @@
   "e2e": {
     "subject_packet": "prompts/subject-e2e.md",
     "interactions": "interactions/specify.json",
-    "stop_boundary": "code_accepted",
+    "stop_boundary": "code_completed",
     "candidate_files": [{"origin": "run", "path": "01-specify/specify.json"}, {"origin": "run", "path": "01-specify/specify.md"}, {"origin": "run", "path": "02-protocolize/protocolize-result.json"}, {"origin": "workspace", "path": ".memory-bank/protocol/{protocol_id}/plan.json"}, {"origin": "run", "path": "03-plan/{protocol_id}/aspect-map.json"}, {"origin": "run", "path": "03-plan/code-work-batch.json"}, {"origin": "run", "path": "04-plan-review/decision.receipt.json"}, {"origin": "run", "path": "04-plan-review/stage-report.json"}, {"origin": "run", "path": "05-code/stage-report.json"}, {"origin": "run", "path": "05-code/stage-report.md"}, {"origin": "workspace", "path": "{code_changed_files}"}]
   }
 }

@@ -23,6 +23,7 @@ The bundle separates three proofs:
 
 - [001 — CODE execution, verification and repair](specs/001-code-execution-verification-and-repair.md)
 - [002 — E2E runtime corrections](specs/002-e2e-runtime-corrections.md)
+- [007 — frozen execution profile and CODE completion](../../specs/007-execution-profile-and-code-completion.md)
 
 ## Required implementation sequence
 

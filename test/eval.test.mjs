@@ -13,7 +13,7 @@ test("the active suite declares its next canonical checkpoint chain", async () =
   assert.equal(loaded.definition.schema_id, "dd-eval/case@5");
   assert.equal(loaded.assessment.schema_id, "dd-eval/assessment@1");
   assert.deepEqual(loaded.definition.checkpoint, { id: "cp-014-full-code-e2e-beta-89" });
-  assert.equal(loaded.definition.e2e.stop_boundary, "code_accepted");
+  assert.equal(loaded.definition.e2e.stop_boundary, "code_completed");
   assert.equal("compatibility" in loaded.definition, false);
   assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review", "code"]);
   const validated = await validateInput({ caseId, source, requireMode: "authoring" });
