@@ -279,6 +279,36 @@
         ]
       }
     },
+    "code-review": {
+      "note": "Judge independent quality scrutiny separately from CODE verification. Reward evidence-backed material findings and disciplined closure; do not reward cosmetic churn.",
+      "outcome": [
+        {"id": "material-defect-detection", "weight": 0.35, "essential": true},
+        {"id": "finding-classification", "weight": 0.2, "essential": true},
+        {"id": "repair-or-deferral-quality", "weight": 0.25, "essential": true},
+        {"id": "review-boundary", "weight": 0.2, "essential": true}
+      ],
+      "flow": [
+        {"id": "fresh-readonly-reviewers", "weight": 0.3, "essential": true},
+        {"id": "capacity-aware-waves", "weight": 0.15, "essential": false},
+        {"id": "work-and-session-traceability", "weight": 0.2, "essential": true},
+        {"id": "closure-record", "weight": 0.2, "essential": true},
+        {"id": "no-unneeded-rerun", "weight": 0.15, "essential": false}
+      ],
+      "golden": {
+        "required_outcomes": [
+          {"id": "GOLD-CODE-REVIEW-001", "statement": "Find and close material deviations from accepted obligations, invariants, proof limits and engineering rules using direct evidence."},
+          {"id": "GOLD-CODE-REVIEW-002", "statement": "Keep mandatory CODE verification distinct from independent review and reject taste-only or scope-expanding findings."}
+        ],
+        "accepted_strong_decisions": [
+          {"id": "STRONG-CODE-REVIEW-001", "statement": "A strong review groups compatible aspects into capacity-aware waves, gives every reviewer a fresh read-only session, and makes one evidence-backed disposition for each material finding."}
+        ],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {"id": "RISK-CODE-REVIEW-001", "severity": "material", "statement": "Do not use DEF to hide P0/P1, a failed current acceptance criterion, or an unproven assertion."},
+          {"id": "RISK-CODE-REVIEW-002", "severity": "material", "statement": "Do not repeat a full review after a bounded repair unless it expands a trust, security, data or concurrency boundary."}
+        ]
+      }
+    },
     "e2e": {
       "note": "Judge the complete chain for preservation, correction and code readiness. Stage quality and flow reliability remain separate vectors.",
       "outcome": [
