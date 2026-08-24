@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-017-full-code-e2e-beta-92",
+  "title": "cp-017 full CODE E2E beta.92",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.92",
+    "commit": "1ddca9fd243e24260a7df171c7e8ca2e3fdbc5cc"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": true
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.92",
+    "dd_flow_cli": "0.8.0-beta.92",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.92",
+      "commit": "64afccb92658074bdd008d2b7e506c0e91e7481d"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}

@@ -12,13 +12,13 @@ test("the active suite declares its next canonical checkpoint chain", async () =
   const loaded = await loadCase(caseId);
   assert.equal(loaded.definition.schema_id, "dd-eval/case@5");
   assert.equal(loaded.assessment.schema_id, "dd-eval/assessment@1");
-  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-016-full-code-e2e-beta-91" });
+  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-017-full-code-e2e-beta-92" });
   assert.equal(loaded.definition.e2e.stop_boundary, "code_completed");
   assert.equal("compatibility" in loaded.definition, false);
   assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review", "code"]);
   const validated = await validateInput({ caseId, source, requireMode: "authoring" });
-  assert.equal(validated.checkpoint.id, "cp-016-full-code-e2e-beta-91");
-  assert.equal(validated.checkpoint.memory_bank.engine.commit, "ba8dce93d0494dd60141d68881455efcdf10cb91");
+  assert.equal(validated.checkpoint.id, "cp-017-full-code-e2e-beta-92");
+  assert.equal(validated.checkpoint.memory_bank.engine.commit, "64afccb92658074bdd008d2b7e506c0e91e7481d");
 });
 
 test("each stage has one model-neutral protected starter", async () => {
