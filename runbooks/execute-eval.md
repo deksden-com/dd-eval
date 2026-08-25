@@ -500,6 +500,29 @@ dd-eval sync --eval "<eval-root>" --execution "<execution-id>" \
 
 Follow only the `next_action` returned by `sync`.
 
+### Full E2E observation rule
+
+An E2E attempt observes normal flow behaviour; it is not an interactive repair
+session. The Controller advances through every legal stage boundary and records
+each observed defect: incorrect contract use, lost context, unjustified
+question, invalid artifact, failed gate, missing evidence, observability
+inconsistency, unnecessary wait or redundant tool action.
+
+For every defect, retain its first affected stage, concise factual evidence and
+whether the flow still continued correctly. Do **not** edit the candidate,
+change flow code, coach the Subject, restart a completed stage, or launch a
+replacement worker to repair an observation while the E2E attempt is live.
+Those actions would turn one measured run into several different runs.
+
+Stop only for a real blocker: no legal continuation can be produced; an
+engine/pair/restore or identity gate fails; a required user decision has no
+reasonable default and cannot be obtained; or the provider/harness cannot
+continue. Preserve the partial attempt and its defect log then. A non-blocking
+defect remains evidence: record it, follow the normal next action and finish
+the declared contour. Once the Subject is idle at the terminal boundary, run
+the clean Judge procedure and generate the detailed report from immutable
+attempt evidence.
+
 ### HITL pause
 
 #### Versioned answer pool
@@ -568,9 +591,9 @@ successor was created; `dd-eval continuation` refuses to run without it.
 
 For focused mode, the next action must be `stop_subject`. For segment mode it is
 `continue_segment` until the final selected stage. For E2E it is `continue_e2e`
-through the captured CODE boundary. The full-chain case ends only after CODE
-has completed its planned Works and aggregate gate; MERGE remains outside this
-evaluation.
+through the captured CODE-REVIEW boundary. The full-chain case ends only after
+CODE has completed its planned Works and aggregate gate and CODE-REVIEW has
+closed its accepted findings; MERGE remains outside this evaluation.
 
 If the Subject starts or mutates a successor before capture, mark the attempt
 `invalid_infrastructure_flow`; do not repair or score it.
@@ -732,7 +755,8 @@ if they were portable inputs.
 - no canonical intermediate result is substituted;
 - all intermediate boundaries are captured;
 - E2E Judge assesses both stage vectors and cross-stage preservation;
-- CODE remains unstarted for the summer planning suite.
+- the configured terminal boundary is reached (currently `code_review_completed`);
+- MERGE remains outside the summer suite.
 
 ## Invalid attempts
 
