@@ -567,6 +567,11 @@ If the Subject starts or mutates a successor before capture, mark the attempt
 
 ### E2E handoff ownership
 
+`handoff_mode: same_session` is the default. The root Subject is the
+orchestrator and continues every sequential stage in the same provider
+Session. A fresh provider Session is for a delegated child Work (research,
+review, code or repair), never an implicit stage boundary.
+
 `handoff_mode: new_session` is a Controller operation, not an instruction for
 the running Subject to improvise. After the completed stage has crossed its
 barrier, the Controller forks a fresh Subject from the E2E execution's recorded
