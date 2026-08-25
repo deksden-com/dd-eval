@@ -228,6 +228,13 @@ dd-eval checkpoint accept --case sdlc-eval-2026-summer-task-priority \
 
 Never change the captured record by hand.
 
+Before `checkpoint accept`, update **only** the matching
+`canonical_checkpoints.<stage>` entry in `case.json` to the returned
+`checkpoints/REV-<NNN>/<stage>.json` path.  `checkpoint accept` writes to that
+declared path; leaving an older REV there silently replaces the old canonical
+record.  Commit the accepted record, compact review, and case-pointer update
+together after the whole canonical chain is accepted.
+
 ### 3. Advance one canonical stage at a time
 
 For each stage:
@@ -274,7 +281,9 @@ For each stage:
    send it no prompt;
 8. name that child `CANON <case-id> REV-<NNN> <STAGE>-entry`;
 9. snapshot the matching project/RUN and accept the pair before starting the
-   target stage in the moving canonical Session.
+   target stage in the moving canonical Session. Before acceptance, repoint
+   only that stage's `canonical_checkpoints` entry to the new revision path as
+   described above.
 
 The resulting order is:
 

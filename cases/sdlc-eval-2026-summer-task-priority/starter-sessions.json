@@ -2,5 +2,30 @@
   "schema_id": "dd-eval/starter-sessions@3",
   "case_id": "sdlc-eval-2026-summer-task-priority",
   "revision": "REV-040",
-  "sessions": {}
+  "sessions": {
+    "specify": {
+      "session_id": "01a038de-69cb-7293-ac3f-6719d86de5cd",
+      "parent_session_id": "01a03880-cae4-7bf3-a51a-708fe15f41e7"
+    },
+    "protocolize": {
+      "session_id": "01a038de-b2a0-7262-b760-fcad1d8327eb",
+      "parent_session_id": "01a03887-b13b-7173-901f-34471a337f69"
+    },
+    "plan": {
+      "session_id": "01a038de-b762-7311-bdd4-bfb95036619c",
+      "parent_session_id": "01a0388a-36d2-7933-a83f-7e0b57223e13"
+    },
+    "plan-review": {
+      "session_id": "01a038de-c10f-76e1-a9c5-54f07df80531",
+      "parent_session_id": "01a03895-2369-7080-8dc0-48a0d1feb78b"
+    },
+    "code": {
+      "session_id": "01a038de-cb1d-7063-aadf-2f5b6b9a8da5",
+      "parent_session_id": "01a038a0-e224-7d43-bc1b-a5a67edeaaf4"
+    },
+    "code-review": {
+      "session_id": "01a038de-d6b2-7940-b619-2baef884742b",
+      "parent_session_id": "01a038c1-2892-7da2-a705-785e472783dc"
+    }
+  }
 }

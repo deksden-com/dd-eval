@@ -333,6 +333,11 @@ command issued during that eval. The home is part of the frozen harness input:
 it prevents state from another run being mistaken for this run's binding,
 usage or artifacts.
 
+Do not copy a pre-existing engine directory into a new `DD_FLOW_HOME`: its
+manifest contains an absolute snapshot path and an integrity checksum. Install
+the exact built engine into the new home with the normal installer, then run
+`engine doctor`; a copied snapshot is intentionally rejected as unhealthy.
+
 Run all project commands through the globally installed stable router, not by
 calling `dist/cli.js` directly. Confirm selection before preparing an eval:
 
