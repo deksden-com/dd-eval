@@ -604,6 +604,10 @@ Git status/diff and every changed or untracked workspace file (never the whole
 repository or dependency directories). `candidate.json` is an integrity index,
 not a list restricting which captured files a Judge may read.
 
+A completed CODE verification may cite only materialized paths in that RUN or
+its workspace. A claimed browser, migration or other proof without a retained
+artifact is a failed verification contract, not a successful check.
+
 For focused mode, the next action must be `stop_subject`. For segment mode it is
 `continue_segment` until the final selected stage. For E2E it is `continue_e2e`
 through the captured CODE-REVIEW boundary. The full-chain case ends only after
