@@ -19,8 +19,15 @@ ignored files. `CODE` runs the frozen bootstrap command once, stores
 `05-code/workspace-readiness.json`, reuses a matching successful receipt, and
 shows heartbeat progress while it runs. It then executes the registered CODE
 Work graph and the aggregate deterministic checks. A successful CODE finish
-sets the RUN terminal verdict to `code_completed`; a later CODE review is an
-optional future stage, not an invented intermediate state.
+records the durable verdict `code_completed`. It is terminal when CODE-REVIEW
+is disabled or outside the requested stop target; otherwise the same live RUN
+advances to optional CODE-REVIEW without manufacturing a completion event.
+
+Long CODE and CODE-REVIEW commands stream `dd-flow/progress@1` JSONL on stderr
+and reserve stdout for one final JSON result. Repeating a completed stage start
+or finish returns the existing prompt/report without another attempt, another
+check run or changed terminal timestamps. `completeFlowRun` accepts terminal
+statuses only; live transitions use `advanceFlowRun`.
 
 Stage reports must not claim synthetic session or usage coverage. They contain
 their measured timing and point to factual `dd-flow stat` queries, which are
@@ -35,7 +42,8 @@ input checkpoint's CLI version.
 - a RUN retains the same frozen execution profile after the project file changes;
 - PLAN receives one recorded capacity value before it groups aspects;
 - CODE bootstrap runs in CODE, emits progress and leaves a reusable receipt;
-- `code_completed` is terminal and is the E2E boundary;
+- `code_completed` is a stable CODE verdict; the configured E2E boundary may be
+  `code_review_completed`;
 - vNext reports contain no `session_coverage` or `usage_coverage` claims;
 - a beta.88 snapshot cannot be restored for a beta.91 input checkpoint;
 - targeted vNext and eval-runner tests pass.

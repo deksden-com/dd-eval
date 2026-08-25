@@ -598,6 +598,12 @@ dd-eval checkpoint stage --eval "<eval-root>" \
 The receipt is immutable evidence that the predecessor was done before its
 successor was created; `dd-eval continuation` refuses to run without it.
 
+At the terminal boundary, `dd-eval checkpoint` captures a self-contained
+candidate evidence directory. For E2E this is the complete RUN tree, the final
+Git status/diff and every changed or untracked workspace file (never the whole
+repository or dependency directories). `candidate.json` is an integrity index,
+not a list restricting which captured files a Judge may read.
+
 For focused mode, the next action must be `stop_subject`. For segment mode it is
 `continue_segment` until the final selected stage. For E2E it is `continue_e2e`
 through the captured CODE-REVIEW boundary. The full-chain case ends only after
@@ -709,9 +715,24 @@ dd-eval judge reject --eval "<eval-root>" \
 E2E uses one fresh Judge fork and the aggregate E2E packet. That packet includes
 all stage candidates and asks for per-stage vectors plus cross-stage findings.
 
-The Judge is read-only. It may inspect candidate artifacts and transcript
-evidence but may not modify Subject files, resume Subject work or repair the
-candidate.
+The packet gives one absolute `candidate_evidence_root`. The Judge may read any
+file recursively under that directory and nothing outside it. The Judge is
+read-only: it may not modify Subject files, resume Subject work or repair the
+candidate. A missing, unreadable or checksum-mismatched captured artifact makes
+evidence completeness limited/invalid; filesystem existence alone is not
+complete evidence.
+
+### Long CLI operations
+
+Use generated lifecycle commands exactly as returned. Commands that may run
+checks or bootstrap a workspace include `--json --progress-jsonl`: stderr is a
+stream of `dd-flow/progress@1` JSON lines and stdout contains exactly one final
+JSON result. Preserve the shell tool's process/session handle and poll that same
+invocation until it exits. Never discard the handle by returning only its first
+stdout chunk, and never reissue `stage finish` or `work finish` merely because
+final stdout is still pending. Reissuing after a confirmed terminal receipt is
+allowed only as an idempotency check; it must return the stored result without
+rerunning checks or changing timestamps.
 
 ## Finalize and retain
 
