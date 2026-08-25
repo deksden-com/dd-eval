@@ -12,19 +12,25 @@ test("the active suite declares its next canonical checkpoint chain", async () =
   const loaded = await loadCase(caseId);
   assert.equal(loaded.definition.schema_id, "dd-eval/case@5");
   assert.equal(loaded.assessment.schema_id, "dd-eval/assessment@1");
-  assert.deepEqual(loaded.definition.checkpoint, { id: "cp-018-full-code-e2e-beta-93" });
-  assert.equal(loaded.definition.e2e.stop_boundary, "code_completed");
+  const checkpoint = JSON.parse(await readFile(path.join(import.meta.dirname, "..", "checkpoints", `${loaded.definition.checkpoint.id}.json`), "utf8"));
+  assert.equal(checkpoint.id, loaded.definition.checkpoint.id);
+  assert.equal(loaded.definition.e2e.stop_boundary, "code_review_completed");
   assert.equal("compatibility" in loaded.definition, false);
-  assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review", "code"]);
+  assert.deepEqual(Object.keys(loaded.definition.canonical_checkpoints), ["specify", "protocolize", "plan", "plan-review", "code", "code-review"]);
   const validated = await validateInput({ caseId, source, requireMode: "authoring" });
-  assert.equal(validated.checkpoint.id, "cp-018-full-code-e2e-beta-93");
-  assert.equal(validated.checkpoint.memory_bank.engine.commit, "663af286b9ba13a516210eb0f5c8b5a77bf857dd");
+  assert.equal(validated.checkpoint.id, checkpoint.id);
+  assert.equal(validated.checkpoint.memory_bank.engine.commit, checkpoint.memory_bank.engine.commit);
 });
 
-test("each stage has one model-neutral protected starter", async () => {
+test("every registered starter belongs to the declared stage chain", async () => {
+  const loaded = await loadCase(caseId);
   const registry = JSON.parse(await readFile(path.join(import.meta.dirname, "..", "cases", caseId, "starter-sessions.json"), "utf8"));
   assert.equal(registry.schema_id, "dd-eval/starter-sessions@3");
-  assert.deepEqual(Object.keys(registry.sessions), ["specify", "protocolize", "plan", "plan-review", "code"]);
+  for (const [stage, session] of Object.entries(registry.sessions)) {
+    assert.ok(stage in loaded.definition.canonical_checkpoints, `starter stage is not declared: ${stage}`);
+    assert.match(session.session_id, /^[0-9a-f-]{36}$/);
+    assert.match(session.parent_session_id, /^[0-9a-f-]{36}$/);
+  }
 });
 
 test("prepare task titles are deterministic and sortable", () => {

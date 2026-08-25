@@ -345,6 +345,12 @@ The resolved package version must equal the exact beta pin. Record its
 `snapshot_root` and integrity checksum. A missing, broad, stable, unhealthy, or
 unexpected selection stops the run before an agent is launched.
 
+This remains mandatory during diagnosis. A direct service invocation from the
+current checkout can prove where a defect lives, but its output is not accepted
+as RUN evidence and must not advance the frozen lifecycle. Preserve the failed
+RUN, increment the beta engine version, update and tag the matched flow pack,
+then use a fresh RUN for the confirming eval.
+
 Do not assume that `dd-flow` follows the beta checkout merely because that
 checkout was built. Verify `dd-flow --version` after linking/installing it; an
 older global shim is a harness defect and must be corrected before a canonical

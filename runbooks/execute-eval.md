@@ -125,6 +125,14 @@ dd-eval validate --case sdlc-eval-2026-summer-task-priority \
 The command returns all blockers at once. Never work around a failed gate by
 editing a checkpoint, profile, Session ID, engine binding or SQLite file.
 
+The same rule applies after Subject work has started. Every lifecycle command
+must enter through the normal `dd-flow` router and the RUN-bound immutable
+engine. A Controller must not import an engine service, call a checkout's
+`dist/cli.js`, or otherwise bypass routing to finish a failed stage. Such a
+result belongs to a different engine and is invalid as stage evidence. Keep the
+failed RUN unchanged, release a new matched engine/flow pair and start a new
+revision.
+
 ## Build the canonical chain
 
 Do this once per exact case-definition, engine and flow-pack revision.
@@ -149,7 +157,9 @@ partially authored one.
   `.memory-bank/dd-flow/project-workspace.json` (for this case: `git init -b
   main`), then commit the exact archived tree. Verify `HEAD` is clean on that
   branch before allocating a RUN. Do not let the host's default branch name
-  silently substitute for the project policy. That runtime may
+  silently substitute for the project policy. Do not clone or check out the
+  beta development branch directly as the canonical project: its branch name
+  is not the evaluated project's integration branch. That runtime may
   contain only this canonical project's single RUN; checkpoint capture fails
   if unrelated records exist.
 - Verify the **declared pair** before allocating the RUN: the project’s
@@ -750,6 +760,8 @@ a new attempt number.
 - Do not start PLAN from an isolated protocol document without its canonical
   RUN and Session checkpoint.
 - Do not copy `DD_FLOW_HOME` with `cp` or edit SQLite directly.
+- Do not bypass the RUN-bound engine with direct service imports, checkout
+  binaries or ad-hoc database calls.
 - Do not reuse a canonical checkpoint directory as an attempt workspace.
 - Do not expose or directly fork canonical checkpoint Sessions during routine
   eval operation.
