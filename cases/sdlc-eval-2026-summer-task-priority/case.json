@@ -3,7 +3,7 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "ready",
-  "checkpoint": {"id": "cp-028-adapter-bound-entry-beta-107"},
+  "checkpoint": {"id": "cp-029-verification-evidence-beta-108"},
   "assessment": "assessment.json",
   "profiles": {
     "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-87"],
