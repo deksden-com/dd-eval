@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-028-adapter-bound-entry-beta-107",
+  "title": "cp-028 adapter-bound entry beta.107",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.107",
+    "commit": "cc6f89dff8907659b8cba01f9d36718e82f66187"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": true
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.107",
+    "dd_flow_cli": "0.8.0-beta.104",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.104",
+      "commit": "8521474a9c661afe5143b97b1aa393fd798eed38"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}

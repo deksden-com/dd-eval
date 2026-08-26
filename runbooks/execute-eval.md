@@ -125,6 +125,24 @@ The PreToolUse hook rejects ambiguous compound lifecycle commands and returns
 the exact standalone retry. Retry that command in the same Session: a hook
 failure is not a reason to create a replacement Session.
 
+### E2E entry adapter packet
+
+For a clean E2E Subject Session, the Controller materializes the raw user
+discussion before sending the explicit formalization trigger. It writes only
+the user request, confirmed answers and constraints to a dedicated intake file
+inside the prepared attempt; it must not add an inferred solution, plan or
+question. The Controller then gives the Subject one adapter-bound launch
+packet containing the absolute `DD_FLOW_HOME`, project root, short subject
+slug and intake-file path. The Subject uses that exact standalone
+`DD_FLOW_HOME=... dd-flow stage start --bootstrap ... --intake-file ...`
+command after the user says “оформи протокол”.
+
+Do not let a clean E2E Subject fall back to its default `~/.dd-flow` runtime,
+invent a `/tmp` runtime, or pipe intake through Bash. The prepared runtime and
+the PreToolUse hook event must be the same runtime; an inline `DD_FLOW_HOME=`
+prefix is therefore part of the lifecycle command, not a cosmetic shell
+detail.
+
 After start, trust the returned stage/Work packet. It is the authoritative
 working directory, context, command and completion contract; opening CLI help
 or reconstructing commands is a defect unless the packet itself is incomplete.
