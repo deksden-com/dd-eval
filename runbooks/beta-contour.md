@@ -753,6 +753,14 @@ branches.
 
 ## Exit criteria
 
+Before accepting a pair that changes verification, inspect one disposable RUN
+for the full chain `AC -> CHK -> receipt -> stage report`. The receipt must name
+the declaration, current workspace fingerprint and exact artifact hashes; Work
+checks must be stored under the Work attempt. A repair after CODE-REVIEW must
+use the frozen decision, one repair Work and the full aggregate CODE gate,
+without a second review wave. Record any missing or false-positive link as a
+pair defect, not as a Subject-model defect.
+
 The beta contour is complete when:
 
 - a beta RUN passes its mechanical and semantic gates;

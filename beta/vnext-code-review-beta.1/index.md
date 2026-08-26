@@ -26,6 +26,7 @@ coverage map or project-wide audit flow.
 ## Included specification
 
 - [001 — independent CODE-REVIEW and bounded repair](specs/001-independent-code-review-and-bounded-repair.md)
+- [002 — verification receipts and two-phase closure](specs/002-verification-receipts-and-two-phase-closure.md)
 
 ## Required implementation sequence
 

@@ -866,6 +866,12 @@ a new attempt number.
 
 ## Do not do
 
+During analysis, distinguish semantic evidence from executable receipts. Judge
+whether acceptance meaning is correct, and separately verify mechanically that
+every due `CHK-*` has a current receipt. Later gates are `not_due`; they are not
+failures and must never be scored as passes. If CODE-REVIEW requests repair,
+capture both Finish phases and confirm there was no repeated reviewer wave.
+
 - Do not import `fixtures/*.json` to emulate upstream stages.
 - Do not start PLAN from an isolated protocol document without its canonical
   RUN and Session checkpoint.
