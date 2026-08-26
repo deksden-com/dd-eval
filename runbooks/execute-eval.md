@@ -242,6 +242,7 @@ The archive and pending record default to the current canonical revision:
 ```sh
 DD_FLOW_HOME="<canonical-home>" dd-eval checkpoint capture \
   --case sdlc-eval-2026-summer-task-priority \
+  --revision REV-<NNN> \
   --stage specify \
   --project-root "<canonical-project>" \
   --flow-run "<run-id>" \
