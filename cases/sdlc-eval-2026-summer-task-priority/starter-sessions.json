@@ -1,31 +1,31 @@
 {
   "schema_id": "dd-eval/starter-sessions@3",
   "case_id": "sdlc-eval-2026-summer-task-priority",
-  "revision": "REV-046",
+  "revision": "REV-053",
   "sessions": {
     "specify": {
-      "session_id": "01a03de0-f7cf-76a0-8f44-60193d905d68",
-      "parent_session_id": "01a03d7c-cef2-7fe2-8140-168d9f636526"
+      "session_id": "01a04065-f6d5-7f70-adce-85e56b1c46aa",
+      "parent_session_id": "01a03ff5-1468-7501-a810-3887cecd24ad"
     },
     "protocolize": {
-      "session_id": "01a03de1-09eb-7982-a192-70710842ec1a",
-      "parent_session_id": "01a03d84-3894-78a0-a5ed-c184c57fc891"
+      "session_id": "01a04066-13d2-7322-ad18-a72e2293466b",
+      "parent_session_id": "01a03ffc-23c4-7b31-b88b-1ce961d8aa18"
     },
     "plan": {
-      "session_id": "01a03de1-2e05-7e70-8272-fc3209dbc1b7",
-      "parent_session_id": "01a03d86-7bae-7223-8806-8d1a0056bd35"
+      "session_id": "01a04066-2c9a-7520-8cd8-4f4d5342ea10",
+      "parent_session_id": "01a03ffe-3cec-7a43-9a8e-6e2b278e3dd8"
     },
     "plan-review": {
-      "session_id": "01a03de1-4189-7992-a055-14cfac976e60",
-      "parent_session_id": "01a03d92-d852-7c42-aac0-545df7d5d91b"
+      "session_id": "01a04066-4991-7d32-bcbd-bc15f7d3302f",
+      "parent_session_id": "01a0400a-4c6a-7163-981f-1460e37bf37c"
     },
     "code": {
-      "session_id": "01a03de1-4f4e-7c41-9eb6-35132f1dc297",
-      "parent_session_id": "01a03da0-0b72-7c90-8ed0-48bdef50fe9b"
+      "session_id": "01a04066-73d1-7f60-9752-a186c8bfcf96",
+      "parent_session_id": "01a0401c-19d7-7121-8711-bb830fbecc56"
     },
     "code-review": {
-      "session_id": "01a03de1-5fb5-7691-94b4-5e1ee6b2f1f0",
-      "parent_session_id": "01a03dbd-fe1b-7ae1-b787-c2d887ed24ba"
+      "session_id": "01a04066-8e7a-7732-8ee5-1f3bb76aa4b1",
+      "parent_session_id": "01a0404c-89bc-7901-9f6a-c9d72f00821d"
     }
   }
 }
