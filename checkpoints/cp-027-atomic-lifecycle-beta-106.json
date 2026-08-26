@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-027-atomic-lifecycle-beta-106",
+  "title": "cp-027 atomic lifecycle beta.106",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.106",
+    "commit": "4c24976dcac87da72bde291ced7d863cad521d97"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": true
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.106",
+    "dd_flow_cli": "0.8.0-beta.103",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.103",
+      "commit": "860f927d67661838ba87f098d90e5b069c638b73"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}
