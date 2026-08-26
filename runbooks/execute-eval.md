@@ -17,6 +17,12 @@ is not permission to launch.
 All non-Git data belongs below `DD_EVAL_HOME`; set it before creating a
 canonical workspace or an attempt. See [eval storage and retention](eval-storage.md).
 
+Before any Subject or Judge task is created, prepare a new attempt with
+`dd-eval prepare`. Its output must be a new directory below
+`$DD_EVAL_HOME/attempts/active`. The Controller, Subject and Judge may read
+canonical checkpoints, but must never execute inside or modify a canonical
+workspace. A prepared attempt is the only writable eval workspace.
+
 ## Execute a committed scenario
 
 A scenario under `cases/<case-id>/scenarios/` fixes a concrete comparison
@@ -104,7 +110,34 @@ fresh configurable child. Stage- and child-level overrides are allowed only
 when the scenario declares them. A context-inheriting child uses the parent's
 model when the harness does not support an override; reject an incompatible
 request instead of silently substituting another model. Record requested and
-observed profiles separately for every Session.
+observed profiles separately for every productive Session. Before judgment,
+`dd-eval sync` compares the declared profile with every Session associated with
+the RUN, including reviewer and repair workers. Any unexplained model or
+reasoning mismatch invalidates the attempt.
+
+## Subject lifecycle command contract
+
+The first technical action after a stage or Work task is delivered is its exact
+generated `dd-flow stage start` or `dd-flow work start` command. Run it as one
+standalone Bash invocation. Do not prepend `cat`, `git`, a skill read, `cd`, or
+another check; do not append `&&`, `;`, a pipe, a subshell, or a second command.
+The PreToolUse hook rejects ambiguous compound lifecycle commands and returns
+the exact standalone retry. Retry that command in the same Session: a hook
+failure is not a reason to create a replacement Session.
+
+After start, trust the returned stage/Work packet. It is the authoritative
+working directory, context, command and completion contract; opening CLI help
+or reconstructing commands is a defect unless the packet itself is incomplete.
+Long finish/check operations stream progress. Keep polling the same tool
+process until it exits; silence is not permission to interrupt a worker or
+repeat a non-idempotent operation.
+
+For a Work graph, launch only entries reported as ready. A hard `depends_on`
+edge is an execution constraint: blocked Work must not start, even when one
+wave would be faster. After a Work finishes, use `newly_ready` or refresh the
+ready list and schedule the next wave. The planning decision whether an edge
+should have been hard or merely informative is evaluated separately; the
+runtime always enforces the graph it received.
 
 ## Readiness gates
 

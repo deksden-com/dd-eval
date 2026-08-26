@@ -80,7 +80,7 @@ test("a scored run fails closed when its canonical runtime snapshots are absent"
   process.env.DD_EVAL_HOME = root;
   try {
     await assert.rejects(
-      prepare({ caseId, source, output: path.join(root, "run"), stageList: "specify" }),
+      prepare({ caseId, source, output: path.join(root, "attempts", "active", "run"), stageList: "specify" }),
       /(canonical checkpoint is not accepted|runtime snapshot is missing)/
     );
   } finally {

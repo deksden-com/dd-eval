@@ -15,8 +15,9 @@ Git checkout.
 export DD_EVAL_HOME="$HOME/.dd-eval"
 ```
 
-Until the CLI enforces this placement itself, every `dd-eval prepare --output`
-path must be below `$DD_EVAL_HOME/attempts/active`. Do not create eval project
+The CLI enforces that every `dd-eval prepare --output` path is below
+`$DD_EVAL_HOME/attempts/active`, and later commands accept only a prepared
+attempt below `attempts/active` or `attempts/archive`. Do not create eval project
 checkouts, `DD_FLOW_HOME` directories, or snapshots under `_Projects`.
 
 ```text
@@ -82,6 +83,10 @@ runtime SQLite database, engine cache, or raw transcript.
    complete attempt. Move the complete directory to `attempts/archive/` only
    when an operator explicitly needs forensic replay.
 4. `tmp/` has no retention promise and is removed after each command.
+
+Canonical directories are read-only sources. If a Controller or worker is
+ever pointed at `canonical/` as its writable eval root, stop before launching
+the provider task and prepare a fresh attempt instead.
 
 Each new attempt receives a generated, monotonic
 `EVAL-<zero-padded-number>--<case>--<mode>` directory. `sequence.json` is a
