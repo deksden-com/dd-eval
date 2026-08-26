@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-025-resume-integrity-beta-103",
+  "title": "cp-025 stdin resume integrity beta.103",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.103",
+    "commit": "f35295762bb258c37b6c80debfac74ba797042cd"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": true
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.103",
+    "dd_flow_cli": "0.8.0-beta.102",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.102",
+      "commit": "3fef16dcf273571f17e4bf45b7203d25b3bb7aad"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}
