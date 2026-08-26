@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-024-execution-integrity-beta-102",
+  "title": "cp-024 execution-integrity beta.102",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.102",
+    "commit": "e18392a183ccd3591b21ef4c44328b1cfe9b8585"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": true
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.102",
+    "dd_flow_cli": "0.8.0-beta.101",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.101",
+      "commit": "3d1b7677d3636341959dec332661e5657aace690"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}
