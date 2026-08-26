@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-030-consistent-entry-guidance-beta-109",
+  "title": "cp-030 consistent entry guidance beta.109",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.109",
+    "commit": "b634e788b6081896ccf94991e64134e6f74ed52d"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": true
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.109",
+    "dd_flow_cli": "0.8.0-beta.106",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.106",
+      "commit": "02ab8419fad5d1c33a43b1acd4845b4b4eab0407"
+    }
+  },
+  "state": "ready_for_canonical_authoring"
+}
