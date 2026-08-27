@@ -104,6 +104,33 @@ The initial suite uses the current Controller task on `gpt-5.6-terra/high`.
 There is no canonical Controller Session to create or fork. Record the actual
 Controller Session ID and profile in the run evidence.
 
+### Controller liveness
+
+Provider task status and flow stage status, not the presence of a current tool
+call, determine liveness. A running Subject may spend substantial time in
+reasoning, compaction or artifact composition without a tool invocation. The
+Controller waits; it records the delay as efficiency evidence and does not
+convert it into a blocker.
+
+Interrupt only for an explicit Subject blocker, requested HITL, provider or
+runtime failure, user cancellation, or a separately confirmed no-progress
+incident. Before declaring the last case, inspect current task status, RUN
+status and fresh artifact events. A newly written file or a running stage is
+progress. If status remains ambiguous, obtain another read-only provider/task
+snapshot; do not inject a liveness prompt into the evaluated Subject, instruct
+it to stop or claim that an artifact is absent without checking its exact path.
+Absence of an active tool call by itself is never a reason to interrupt.
+
+| Observed state | Controller action |
+| --- | --- |
+| provider task is running | wait |
+| flow stage is running | wait |
+| no active tool call | wait; record only as efficiency evidence |
+| Subject requests user input | follow the case HITL contract |
+| Subject explicitly reports a blocker | preserve evidence and stop |
+| provider/runtime returns an error | preserve evidence and stop |
+| task ends without successful stage finish | record a flow defect |
+
 Resolve the effective model profile before every provider launch. A mono-model
 run applies that profile to the root Subject, every stage continuation and each
 fresh configurable child. Stage- and child-level overrides are allowed only
@@ -148,7 +175,9 @@ working directory, context, command and completion contract; opening CLI help
 or reconstructing commands is a defect unless the packet itself is incomplete.
 Long finish/check operations stream progress. Keep polling the same tool
 process until it exits; silence is not permission to interrupt a worker or
-repeat a non-idempotent operation.
+repeat a non-idempotent operation. The same rule applies between tool calls:
+reasoning-only time is not a blocker and the Controller waits for provider task
+completion or an explicit attention state.
 
 For a Work graph, launch only entries reported as ready. A hard `depends_on`
 edge is an execution constraint: blocked Work must not start, even when one
@@ -300,6 +329,8 @@ For each stage:
    generated `stage start <RUN> --stage <stage>` command for that prepared RUN;
    do not resend a bare user-level bootstrap trigger, because bootstrap creates
    a second RUN and cannot preserve the checkpoint boundary.
+   While that task is running, apply the Controller-liveness rules above. Do
+   not infer a blocker from a quiet interval or an absent tool invocation.
    For an isolated `DD_FLOW_HOME`, materialize raw intake first and make the
    `stage start` / `stage finish` invocation a separate, single Bash command using
    `DD_FLOW_HOME=<absolute-path> dd-flow ... --intake-file <absolute-path>`.
