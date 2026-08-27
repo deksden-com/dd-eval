@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-032-runtime-state-beta-111",
+  "title": "cp-032 coherent vNext runtime state beta.111",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.111",
+    "commit": "97546050fe066052fd023d0ee99a3f848ebd749d"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.111",
+    "dd_flow_cli": "0.8.0-beta.108",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.108",
+      "commit": "9f7f85a497c01116d0b2309bf2ec7d0af316c1fc"
+    }
+  },
+  "state": "ready_for_canonical_capture"
+}
