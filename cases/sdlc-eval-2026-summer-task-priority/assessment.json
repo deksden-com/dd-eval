@@ -72,7 +72,8 @@
         "required_outcomes": [
           {"id": "GOLD-PLAN-001", "statement": "Ground the plan in accepted handoff and current persistence, API, service, web and test surfaces."},
           {"id": "GOLD-PLAN-002", "statement": "Use PLAN as the semantic source for an executable graph covering persistence/legacy migration, API authorization, UI, scenario/docs and verification; derive CODE Works without a second hand-authored graph."},
-          {"id": "GOLD-PLAN-003", "statement": "Make default/backfill, database-enforced values, atomic archived-project priority-only mutation, unchanged list ordering and deterministic legacy evidence falsifiable."}
+          {"id": "GOLD-PLAN-003", "statement": "Make default/backfill, database-enforced values, atomic archived-project priority-only mutation, unchanged list ordering and deterministic legacy evidence falsifiable."},
+          {"id": "GOLD-PLAN-004", "statement": "Select evidence for every accepted obligation through one CHK catalogue; when existing project checks are insufficient, plan the exact new @check alias, its provider Work, consumer ordering and honest proof limits rather than silently omitting the proof."}
         ],
         "accepted_strong_decisions": [
           {"id": "STRONG-PLAN-001", "statement": "A strong persistence plan chooses a reset-safe representation and covers every introduced stateful database object in all supported create, migrate, repeatable reset and cleanup paths; it proves upgrade behavior with a row created under the pre-change schema, then verifies backfill, preserved data and ordering after the migration.", "source": "EVAL-022; reinforced by CMP-011 (EVAL-032—034)"},

@@ -407,6 +407,12 @@ Commit and tag:
 - engine/flow/project identities;
 - compact human checkpoint reviews.
 
+When the matched pair changes verification semantics, also retain the exact
+local test evidence for both supported declarations: an already available
+check and a planned `@check/...` alias materialized by its declared provider
+Work. This is pair-validation evidence, not an additional Subject obligation;
+the E2E Judge later evaluates whether the Subject selected meaningful proof.
+
 Keep project bundles, RUN snapshots, SQLite and raw transcripts in the declared
 external archive. Record locators, sizes and checksums in Git.
 
