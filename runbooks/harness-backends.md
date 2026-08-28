@@ -26,8 +26,11 @@ Grok Build `1.0.12`, ACP protocol `1`, `grok-4.6` and an explicit reasoning
 effort. `dd-grok doctor` rejects version or observed-profile drift.
 
 The execution-scoped daemon owns one direct `grok agent --no-leader` process,
-an isolated `GROK_HOME`, its global `PreToolUse` hook, append-only journal and
-a `0600` Unix socket. The hook resolves the Session through the daemon, then
+an isolated `GROK_HOME` and child-process `HOME`, its global `PreToolUse` hook,
+append-only journal and a `0600` Unix socket. Before startup it generates a
+minimal config (auto-update and external compatibility disabled) and verifies
+that `grok inspect --json` sees no foreign config, skills, hooks, plugins, MCP
+or permission sources. The hook resolves the Session through the daemon, then
 submits the event to `dd-flow grok event handle`. Grok hooks can allow or deny
 but cannot rewrite terminal input; `dd-flow` therefore claims one fresh event
 by its immutable lifecycle match key.

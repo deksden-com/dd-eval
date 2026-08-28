@@ -1,6 +1,6 @@
 # Specification 013: Grok Build harness integration
 
-Status: planned  
+Status: implemented; live conformance passed
 Date: 2026-08-28  
 Owner: `dd-eval`  
 Affected repositories: `dd-eval`, `dd-flow-cli`  
@@ -25,13 +25,13 @@ integration:
 
 | Repository | Base branch | Base revision | Feature branch |
 | --- | --- | --- | --- |
-| `dd-eval` | `beta/vnext-plan-review` | `fe58857` | `feat/grok-harness` |
-| `dd-flow-cli` | `main` | `0d9b12f` | `feat/grok-harness` |
+| `dd-eval` | `beta/vnext-plan-review` | current beta branch | `feat/grok-harness` |
+| `dd-flow-cli` | `main` | `30f822c` | `feat/grok-harness` |
 
 The local Grok Build baseline observed during research is:
 
 ```text
-grok 1.0.11 (6870d7b2fdb7)
+grok 1.0.12 (ece2b556c271)
 platform: macOS arm64
 models: grok-4.6, grok-4.5
 grok-4.6 effort: low, medium, high, xhigh
@@ -184,7 +184,7 @@ The initial profile is expected to resemble:
 ```json
 {
   "schema_version": 1,
-  "id": "grok-acp-grok-4-6-xhigh",
+  "id": "grok-acp-xai-grok-4-6-high",
   "harness": "grok-acp",
   "runtime_family": "grok",
   "driver": "dd-grok",
@@ -192,7 +192,7 @@ The initial profile is expected to resemble:
   "delegated_background": true,
   "provider": "xai",
   "model": "grok-4.6",
-  "reasoning": "xhigh",
+  "reasoning": "high",
   "mode": "bypassPermissions",
   "subagent_depth": 1,
   "workspace_strategy": "controller_owned_shared_workspace"
@@ -203,8 +203,13 @@ The final mode label must match the observed Grok wire value; the example is
 not permission to relabel an observed value. Requested and observed profiles
 remain separate.
 
-Every daemon uses a fresh `<state-dir>/grok-home` as `GROK_HOME`. The generated
-configuration must:
+Every daemon uses a fresh `<state-dir>/grok-home` as both `GROK_HOME` and the
+child process `HOME`. The generated configuration disables auto-update and all
+Cursor/Claude compatibility surfaces. Before the ACP process starts, `dd-grok`
+runs `grok inspect --json` in that same environment and fails closed if it sees
+a foreign config layer, skill/agent/hook source, plugin, MCP, permission source,
+remote compatibility setting or enabled external-compatibility cell. The
+generated configuration must:
 
 - disable auto-update;
 - disable Cursor and Claude hooks, skills, agents, rules, MCP and Sessions;
@@ -220,9 +225,9 @@ operator's protected credential file, or `XAI_API_KEY` may be inherited through
 the daemon's controlled environment. Tokens, API keys and auth JSON contents
 must never enter stdout, `daemon.json`, the journal or an eval artifact.
 
-The current machine is not authenticated. Live model tests therefore start
-only after the operator completes `grok login`, device auth or supplies an API
-key. Authentication failure is `auth_required`, not model-quality evidence.
+Authentication failure is `auth_required`, not model-quality evidence. The
+local `1.0.12` profile was live-conformed with copied private auth, model
+`grok-4.6` and reasoning `high`.
 
 ## `dd-grok` CLI contract
 
@@ -236,7 +241,7 @@ dd-grok daemon start --state-dir <dir> --cwd <workspace> \
   --journal <events.jsonl> --grok-bin <path> \
   --dd-flow-bin <path> --dd-flow-home <dir> \
   --project-root <root> --model grok-4.6 \
-  --reasoning-effort xhigh --permission-mode bypassPermissions --json
+  --reasoning high --mode bypassPermissions --json
 
 dd-grok daemon status --state-dir <dir> --json
 dd-grok daemon stop --state-dir <dir> [--cancel-tree] --json
@@ -246,7 +251,7 @@ dd-grok session prompt --state-dir <dir> --session-id <id> \
   --prompt-file <file> --json
 dd-grok session inspect --state-dir <dir> --session-id <id> --json
 dd-grok session fork --state-dir <dir> --session-id <id> \
-  --target-prompt-index <n> --new-cwd <attempt-root> --json
+  --target-json '{"newCwd":"<attempt-root>"}' --json
 dd-grok session cancel --state-dir <dir> --session-id <id> --json
 ```
 
@@ -262,6 +267,20 @@ separate settled barrier passes.
 Productive create, prompt and fork operations are serialized. Status, inspect
 and cancel remain available while a turn is running. A second productive
 request returns `operation_busy` rather than waiting invisibly.
+
+### Live conformance receipt
+
+The implemented profile passed a clean, disposable live run on 2026-08-28:
+
+- isolated daemon startup: one controlled hook, zero external skills, and one
+  managed config layer;
+- root create and observed-profile match for `grok-4.6/high`;
+- trusted `PreToolUse` bootstrap binding accepted by `dd-flow`;
+- native fork with copied history, then explicit `session/load` before a child
+  prompt;
+- root-inclusive `grok_session_usage_v1` ingestion without child double count;
+- active child turn cancelled with provider `stopReason=cancelled` and
+  `cancellationCategory=MidTurnAbort`.
 
 ## Daemon state and journal
 

@@ -16,12 +16,14 @@ test("Grok daemon copies explicit auth only into its private home", async () => 
   await writeFile(grok, `
     import readline from "node:readline";
     if (process.argv.includes("version")) { process.stdout.write(JSON.stringify({currentVersion:"1.0.12 fake"})); process.exit(0); }
+    if (process.argv.includes("inspect")) { process.stdout.write(JSON.stringify({ configSources:{layers:[{role:"user",path:process.env.GROK_HOME+"/config.toml"}]}, hooks:[{source:{type:"user",path:process.env.GROK_HOME+"/hooks"}}], skills:[], agents:[], plugins:[], mcpServers:[], permissions:{sources:[]}, externalCompat:{remoteSettingsLoaded:false,cells:["claude","cursor","codex"].map(vendor=>({vendor,surface:"hooks",enabled:false}))}, configWarnings:[] })); process.exit(0); }
     readline.createInterface({input:process.stdin}).on("line", (line) => { const message=JSON.parse(line); if(message.id!==undefined && message.method==="initialize") process.stdout.write(JSON.stringify({jsonrpc:"2.0",id:message.id,result:{protocolVersion:1}})+"\\n"); });
   `);
   const args = ["--state-dir", stateDir, "--cwd", root, "--journal", journal, "--grok-bin", grok, "--auth-path", auth, "--model", "grok-4.6", "--reasoning", "high", "--dd-flow-bin", flow, "--dd-flow-home", root, "--project-root", root];
   try {
-    const started = await run(["daemon", "start", ...args]); assert.equal(started.auth_status, "copied"); assert.equal((await stat(path.join(stateDir, "daemon.sock"))).mode & 0o777, 0o600);
+    const started = await run(["daemon", "start", ...args]); assert.equal(started.auth_status, "copied"); assert.equal(started.config_isolation.compatibility, "disabled"); assert.equal((await stat(path.join(stateDir, "daemon.sock"))).mode & 0o777, 0o600);
     assert.equal(await readFile(path.join(stateDir, "grok-home", "auth.json"), "utf8"), '{"test":"credential"}\n');
+    assert.match(await readFile(path.join(stateDir, "grok-home", "config.toml"), "utf8"), /\[compat\.claude\]/);
     const state = await readFile(path.join(stateDir, "daemon.json"), "utf8"); assert.ok(!state.includes("credential"));
     assert.equal((await run(["daemon", "stop", "--state-dir", stateDir])).clean, true);
   } finally { try { await run(["daemon", "stop", "--state-dir", stateDir, "--cancel-tree"]); } catch {} await rm(root, { recursive: true, force: true }); }
