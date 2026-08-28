@@ -38,13 +38,25 @@ Typical controlled launch:
 ```text
 dd-zcode doctor --zcode-acp-bin <bin> --json
 dd-zcode session create --cwd <project> --journal <journal.jsonl> \
-  --provider builtin:zai-coding-plan --model GLM-5.3 --reasoning high --mode yolo --json
-dd-zcode session prompt --session-id <native-id> --cwd <project> \
+  --provider builtin:zai-coding-plan --model GLM-5.3 --reasoning high --mode yolo \
+  --prompt-file <first-message.md> --json
+dd-zcode session prompt --session-id <native-id> --adapter-session-id <adapter-id> \
+  --cwd <project> \
   --journal <journal.jsonl> --permission allow --dd-flow-bin <dd-flow> \
   --dd-flow-home <runtime-home> --project-root <project> \
   --provider builtin:zai-coding-plan --model GLM-5.3 --reasoning high --mode yolo \
   --prompt-file <packet.md> --json
 ```
+
+The Controller retains both IDs from `session create`: the native ID is the
+eval identity, while the adapter ID is the durable control locator that keeps
+the session's trusted workspace across short-lived `dd-zcode` processes.
+The one-shot CLI supports foreground subagents. If a turn returns while a
+background child is still running, `dd-zcode` cancels that live tree and fails
+closed; managed background children require a future long-lived bridge daemon.
+ZCode fork restores its target checkpoint in the session's current filesystem;
+it does not allocate a worktree. Fork only inside a dedicated starter workspace,
+and expect the shared files to be rewound to the selected checkpoint.
 
 Focused-stage evals require an accepted canonical checkpoint and untouched
 starter for the same harness. E2E evals start clean and do not need a starter.

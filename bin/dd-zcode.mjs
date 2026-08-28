@@ -15,7 +15,7 @@ function parse(argv) {
 function common(options) {
   return {
     bin: options["zcode-acp-bin"], zcodePath: options["zcode-path"], journal: options.journal,
-    cwd: options.cwd, sessionId: options["session-id"], provider: options.provider,
+    cwd: options.cwd, sessionId: options["session-id"], adapterSessionId: options["adapter-session-id"], provider: options.provider,
     model: options.model, reasoning: options.reasoning, mode: options.mode,
     permission: options.permission ?? "deny", ddFlowBin: options["dd-flow-bin"],
     ddFlowHome: options["dd-flow-home"], projectRoot: options["project-root"],
@@ -27,7 +27,7 @@ try {
   const { positional, options } = parse(process.argv.slice(2)); const [family, command] = positional; let result;
   const answers = options["answers-file"] ? JSON.parse(await promptFromFile(options["answers-file"])) : undefined;
   if (family === "doctor") result = await doctor(common(options));
-  else if (family === "session" && command === "create") result = await createSession(common(options));
+  else if (family === "session" && command === "create") result = await createSession({ ...common(options), answers, prompt: options["prompt-file"] ? await promptFromFile(options["prompt-file"]) : options.prompt });
   else if (family === "session" && command === "prompt") result = await promptSession({ ...common(options), answers, prompt: options["prompt-file"] ? await promptFromFile(options["prompt-file"]) : options.prompt });
   else if (family === "session" && ["inspect", "status", "resume"].includes(command)) result = await inspectSession(common(options));
   else if (family === "session" && command === "cancel") result = await cancelSession(common(options));
