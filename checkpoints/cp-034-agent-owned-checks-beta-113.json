@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "cp-034-agent-owned-checks-beta-113",
+  "title": "cp-034 agent-owned checks and safe HITL beta.113",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.113",
+    "commit": "0365d4be4ff82ffdc1a28a269e7689b86b9bd656"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.113",
+    "dd_flow_cli": "0.8.0-beta.110",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.110",
+      "commit": "2b26240579c9f6128afebac9596627a4ac8be3d8"
+    }
+  },
+  "state": "ready_for_canonical_capture"
+}
