@@ -5,7 +5,7 @@
   "source": {
     "repository": "https://github.com/deksden-com/dd-tasks.git",
     "tag": "eval-mb-3.2.0-vnext-plan-review-beta.117",
-    "commit": "d5c9b6515e2894b537b243347c3e505699d7a09f"
+    "commit": "d5c9b65288a273db5ea10dcbf6fa16e25065f7d0"
   },
   "product_baseline": {
     "checkpoint_id": "cp-002",
@@ -18,7 +18,7 @@
     "engine": {
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
       "tag": "eval-engine-0.8.0-beta.116",
-      "commit": "d078a8973a018f4ea6a1a94ce2cd3a475b355c45"
+      "commit": "d078a895390def2452bef697ccad88f78ec8ee22"
     }
   },
   "state": "ready_for_canonical_capture",
