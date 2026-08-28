@@ -23,7 +23,7 @@ test("daemon preserves a live background tree across CLI processes and cancels i
   await writeFile(zcode, `if (process.argv.includes("--version")) process.stdout.write("0.16.5\\n");`);
   await writeFile(bridge, `
     import readline from "node:readline";
-    if (process.argv.includes("--version")) { process.stdout.write("0.13.0\\n"); process.exit(0); }
+    if (process.argv.includes("--version")) { process.stdout.write("0.13.1\\n"); process.exit(0); }
     if (process.argv.includes("--dd-harness-version")) { process.stdout.write("dd-zcode-harness@1\\n"); process.exit(0); }
     let running = false; let rootRunning = false; let pendingPrompt = null;
     let profile = { provider: "builtin:zai-coding-plan", model: "GLM-5.3", reasoning: "high", mode: "yolo" };

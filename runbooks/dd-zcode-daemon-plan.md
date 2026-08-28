@@ -193,7 +193,7 @@ CLI exit code ненулевой при `ok:false`; stdout содержит то
   "journal": "/absolute/events.jsonl",
   "started_at": "RFC3339",
   "shutdown_state": "running|clean|unclean",
-  "versions": {"zcode":"0.16.5","zcode_acp":"0.13.0"}
+  "versions": {"zcode":"0.16.5","zcode_acp":"0.13.1"}
 }
 ```
 

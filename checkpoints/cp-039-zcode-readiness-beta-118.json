@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "id": "cp-039-zcode-readiness-beta-118",
+  "title": "cp-039 ZCode canonical capture readiness beta.118",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.118",
+    "commit": "9a3b96c2b6ebb451b1a45678101b3d9ee047c997"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.118",
+    "dd_flow_cli": "0.8.0-beta.117",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.117",
+      "commit": "0d9b12f884af383cc5c6d3f8055d9ea5da008879"
+    }
+  },
+  "harnesses": {
+    "zcode-acp": {
+      "zcode": "0.16.5",
+      "zcode_acp": "0.13.1",
+      "tag": "eval-zcode-acp-0.13.1",
+      "commit": "bf21f38dcbb85b8f98cd7ab3062aa050d1b5777c",
+      "contract": "dd-zcode-harness@1"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "Trusted ZCode lifecycle identity preserves the native provider Session ID and the observed provider/model/reasoning/mode profile through stage and Work registration.",
+    "ZCode request usage includes exact input, cache-read, cache-write, output and reasoning counters derived from native per-request evidence.",
+    "Eval snapshot capture and restore preserve relative symlink targets and include them in integrity hashes."
+  ]
+}

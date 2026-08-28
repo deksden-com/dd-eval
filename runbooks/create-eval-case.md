@@ -5,7 +5,8 @@ the starter Sessions used by routine eval runs.
 
 ## Session layers
 
-Each focused stage has three Session layers:
+Each focused stage has three Session layers **for every harness used by the
+case**:
 
 ```text
 frozen canonical checkpoint Session
@@ -23,10 +24,11 @@ frozen canonical checkpoint Session
 Starter Sessions have no revisions. If one is accidentally advanced, replace
 it with a new untouched fork of the same canonical checkpoint Session.
 
-The starter is model-neutral conversational history. A routine attempt forks
+The starter is model-neutral only inside its harness. A routine attempt forks
 it, then explicitly selects the evaluated model and reasoning effort on the
-first new message. Therefore a stage has one starter, not one starter per
-model. The observed provider profile is checked before the result is scored.
+first new message. Therefore a stage has one starter per harness, not one
+starter per model. A ZCode attempt must never fork a Codex starter, or the
+reverse. The observed provider profile is checked before the result is scored.
 
 Project/RUN checkpoint archives remain immutable canonical inputs. They do not
 need a duplicate starter layer: `dd-eval prepare` always restores them into a
@@ -57,15 +59,24 @@ cases/<case-id>/assessment.json             accepted criteria and golden referen
   "sessions": {
     "specify": {
       "session_id": "<starter-session-id>",
-      "parent_session_id": "<frozen-checkpoint-session-id>"
+      "parent_session_id": "<frozen-checkpoint-session-id>",
+      "harness": "codex-desktop",
+      "by_harness": {
+        "zcode-acp": {
+          "session_id": "<zcode-starter-session-id>",
+          "parent_session_id": "<zcode-frozen-checkpoint-session-id>",
+          "harness": "zcode-acp"
+        }
+      }
     }
   }
 }
 ```
 
-Add one entry for every runnable stage. `revision` must equal the one shared by
-all canonical checkpoint records and every parent is that stage's frozen
-checkpoint Session. An attempt copies
+Add one top-level Codex entry for every runnable stage and one `by_harness`
+entry for each additional harness that the case will score. `revision` must
+equal the one shared by all canonical checkpoint records and every parent is
+that stage's frozen checkpoint Session for the same harness. An attempt copies
 the resolved starter ID into its own `sessions.json` together with the new
 evaluated child ID and their parent relationship.
 
@@ -104,19 +115,36 @@ checkpoint.
    specification-006 contour this means both `specify.json` and `specify.md`,
    while `code-work-batch.json` is retained as generated evidence rather than a
    second semantic answer.
-3. Build the single canonical Subject chain using
-   [the eval execution runbook](execute-eval.md).
-4. At every accepted stage entry, store the moving canonical Session ID and
-   untouched frozen checkpoint Session ID in
+3. Build and accept the Codex canonical Subject chain using
+   [the eval execution runbook](execute-eval.md). It establishes the shared
+   revision and the canonical RUN snapshots.
+4. For every additional harness, replay the same ordinary discussion and
+   stage chain on the same pinned project/engine pair. Capture each entry with
+   `--harness <harness>` and the **same revision**. Acceptance extends the
+   existing stage checkpoint with `subject_by_harness` and
+   `harness_evidence`; it does not create another semantic revision.
+5. At every accepted stage entry, store the moving canonical Session ID and
+   untouched frozen checkpoint Session ID for that harness in
    `checkpoints/<stage>.json`.
-5. Fork every frozen checkpoint Session once. Title each untouched child
-   `START <case-id> <STAGE>-entry` and send it no message.
-7. Register each child by calling:
+6. Fork every frozen checkpoint Session once inside its own harness. Title
+   each untouched child `START <case-id> <STAGE>-entry · <harness>` and send it
+   no message.
+7. Register each Codex child by calling:
 
    ```sh
    dd-eval starter set --case <case-id> --stage <stage> \
      --session-id <starter-session-id> \
      --parent-session-id <frozen-checkpoint-session-id>
+   ```
+
+   Register an additional harness with the same command plus its explicit
+   harness:
+
+   ```sh
+   dd-eval starter set --case <case-id> --stage <stage> \
+     --harness zcode-acp \
+     --session-id <zcode-starter-session-id> \
+     --parent-session-id <zcode-frozen-checkpoint-session-id>
    ```
 
    After every fully accepted new canonical revision, the first `starter set`
@@ -126,8 +154,8 @@ checkpoint.
 
    The command checks the declared parent against the accepted frozen
    checkpoint and updates `starter-sessions.json`.
-8. Verify every starter is reachable, idle and directly parented by its
-   protected source Session.
+8. Verify every starter is reachable, idle, has no live child and is directly
+   parented by its protected source Session in the same harness.
 9. Commit and push the input checkpoint, case definition and current starter
    registry.
 10. Run authoring/scored validation before the first attempt.
@@ -143,12 +171,14 @@ the input checkpoint's beta version, tag or SHA.
 Use this only when a starter was advanced, deleted or became unreachable:
 
 1. stop routine launches for the affected stage;
-2. read its canonical checkpoint record;
+2. read its canonical checkpoint record and select the subject for the
+   affected harness;
 3. verify the frozen checkpoint Session and archive still match the accepted
    checkpoint;
 4. fork that frozen Session and send the child no message;
 5. give it the normal `START <case-id> <STAGE>-entry` title;
-6. replace only that stage's `session_id` in `starter-sessions.json`;
+6. replace only that stage and harness through `dd-eval starter set`; do not
+   edit `starter-sessions.json` by hand;
 7. verify parentage and idleness, then commit and push the registry change;
 8. resume routine launches.
 

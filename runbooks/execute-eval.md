@@ -284,6 +284,15 @@ canonical Subject Session is preserved history. Create a disposable starter
 fork from it, then fork that starter for actual stage work; a failed or
 accidentally continued worker never changes the protected canonical session.
 
+The canonical revision names one semantic chain and one sequence of RUN
+states. Codex establishes that revision first. A second supported harness such
+as ZCode then replays the same chain and captures each entry with
+`--harness zcode-acp --revision <the-same-REV>`. Accepting it adds
+`subject_by_harness.zcode-acp` and harness evidence to the already accepted
+stage record. It must not overwrite the Codex subject or allocate a different
+revision. Focused attempts later fork only the starter selected for their own
+harness.
+
 ### 2. Capture `specify-entry`
 
 The Controller runs capture from any cwd using absolute project/runtime paths.
@@ -304,6 +313,10 @@ DD_FLOW_HOME="<canonical-home>" dd-eval checkpoint capture \
   --canonical-subject-session "<moving-session-id>" \
   --checkpoint-subject-session "<frozen-fork-session-id>"
 ```
+
+For ZCode use its native provider Session IDs and add `--harness zcode-acp`.
+The ZCode adapter Session ID remains control-plane evidence in the accepted
+baseline/journal; it is not substituted for the provider Session ID.
 
 Capture must report `target_stage=specify`, an unstarted RUN, no pending HITL,
 no active child Work and a clean runtime check. Write the compact review at the

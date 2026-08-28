@@ -20,8 +20,8 @@ observed profile. Provider IDs are interpreted only inside their harness.
 
 ## ZCode
 
-The supported baseline is ZCode `0.16.5` with `zcode-acp` `0.13.0` at pinned
-dd-harness commit `62bed720e1be4af07c2a41f21cd50cb4c4df5313`. For delegated evals, `dd-zcode` keeps the ACP
+The supported baseline is ZCode `0.16.5` with `zcode-acp` `0.13.1` at pinned
+dd-harness commit `bf21f38dcbb85b8f98cd7ab3062aa050d1b5777c`. For delegated evals, `dd-zcode` keeps the ACP
 server alive for the whole execution and synchronously forwards
 `session/update` tool calls to:
 
@@ -39,9 +39,14 @@ delay was about 1 ms; an absent or mismatched event is still rejected.
 
 Before and after every productive daemon operation, `dd-zcode` forwards the
 provider's cumulative token counters plus cumulative ACP tool-call counters.
-`dd-flow stat usage` computes the Work/RUN delta and labels the source
-`zcode_session_usage_v1`; tool totals, failures and `by_tool` are therefore
-comparable with Codex transcript-derived evidence.
+For ZCode `0.16.5`, the compact provider projection can omit cache detail, so
+`zcode-acp` also aggregates the native per-request token facts. The exact
+fields are `requestInputTokens`, `requestCacheCreationTokens`,
+`requestCacheReadTokens`, `requestOutputTokens`, `requestReasoningTokens`,
+`requestTotalTokens` and `requestCount`; `requestUsageStatus=measured` tells
+the ingester to prefer them. `dd-flow stat usage` computes the Work/RUN delta
+and labels the source `zcode_session_usage_v1`; tool totals, failures and
+`by_tool` are therefore comparable with Codex transcript-derived evidence.
 
 The one-shot form below remains useful for foreground diagnostics:
 
@@ -132,7 +137,11 @@ cleanup. `invalid_harness_crash` and `partial_cancellation` make the attempt
 `runbooks/beta-contour.md` and do not checkpoint or score it.
 
 Focused-stage evals require an accepted canonical checkpoint and untouched
-starter for the same harness. E2E evals start clean and do not need a starter.
+starter for the same harness. Build the Codex canonical revision first, then
+capture and accept the ZCode entry for every stage with the same revision; this
+extends `subject_by_harness.zcode-acp`. Fork each accepted ZCode checkpoint
+once and register it with `dd-eval starter set --harness zcode-acp`. E2E evals
+start clean and do not need a starter.
 Version or observed-profile drift is an infrastructure-invalid attempt, never a
 substitute profile.
 
