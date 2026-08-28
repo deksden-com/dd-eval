@@ -74,9 +74,10 @@ Environment:
 
 ## Automated verification after fixes
 
-- dd-eval: `15/15` tests passed with the real dd-tasks checkout selected.
-- dd-flow-cli: `189/189` tests passed; typecheck and production build passed.
-- pinned zcode-acp: `799/799` tests passed; typecheck and build passed.
+- dd-eval: `17/17` tests passed with the real dd-tasks checkout selected.
+- dd-flow-cli: `194/194` tests passed; typecheck, production build and lint
+  passed after merging the current `main`.
+- pinned zcode-acp: `799/799` tests passed; typecheck, build and lint passed.
 
 Raw local journals and daemon states are retained in
 `live-evidence/zcode-daemon-2026-08-28/`. They are intentionally not committed:
