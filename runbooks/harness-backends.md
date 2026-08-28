@@ -18,6 +18,44 @@ Session evidence always records `harness`, `runtime_family`,
 `provider_session_id`, optional `adapter_session_id`, parent identity and the
 observed profile. Provider IDs are interpreted only inside their harness.
 
+## Grok Build
+
+`dd-grok` controls Grok Build directly through its native ACP stdio endpoint;
+it does not use a leader process or a second proxy. The verified baseline is
+Grok Build `1.0.12`, ACP protocol `1`, `grok-4.6` and an explicit reasoning
+effort. `dd-grok doctor` rejects version or observed-profile drift.
+
+The execution-scoped daemon owns one direct `grok agent --no-leader` process,
+an isolated `GROK_HOME`, its global `PreToolUse` hook, append-only journal and
+a `0600` Unix socket. The hook resolves the Session through the daemon, then
+submits the event to `dd-flow grok event handle`. Grok hooks can allow or deny
+but cannot rewrite terminal input; `dd-flow` therefore claims one fresh event
+by its immutable lifecycle match key.
+
+```text
+dd-grok doctor --grok-bin <grok> --json
+dd-grok daemon start --state-dir <attempt>/grok --cwd <workspace> \
+  --journal <attempt>/grok/events.jsonl --grok-bin <grok> \
+  --model grok-4.6 --reasoning high --dd-flow-bin <dd-flow> \
+  --dd-flow-home <runtime-home> --project-root <project> --json
+dd-grok session create --state-dir <attempt>/grok --prompt-file <prime.md> --json
+dd-grok session prompt --state-dir <attempt>/grok --session-id <native-id> \
+  --prompt-file <packet.md> --json
+dd-grok session fork --state-dir <attempt>/grok --session-id <native-id> \
+  --target-json '{"newCwd":"/absolute/workspace"}' --json
+dd-grok session cancel --state-dir <attempt>/grok --session-id <native-id> --json
+dd-grok daemon stop --state-dir <attempt>/grok --cancel-tree --json
+```
+
+At daemon creation `dd-grok` copies the default `~/.grok/auth.json` (or an
+explicit absolute `--auth-path`) into the private execution `GROK_HOME` with
+mode `0600`; its contents never enter state or the journal. `XAI_API_KEY` is
+also inherited when supplied. Root usage uses `usage_scope=execution_tree_inclusive`, child usage
+uses `physical_session`; reports retain child facts for attribution without
+double counting the root total. `dd-eval` records `harness=grok-acp`,
+`runtime_family=grok` and native Grok IDs. Focused-stage checkpoint and starter
+evidence belongs under `subject_by_harness.grok-acp`.
+
 ## ZCode
 
 The supported baseline is ZCode `0.16.5` with `zcode-acp` `0.13.1` at pinned
