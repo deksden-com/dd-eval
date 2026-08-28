@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { assertProfile, createSession, forkSession, observedProfile, promptSession } from "../lib/dd-zcode.mjs";
+import { assertProfile, createSession, forkSession, observedProfile, promptSession, zcodeLifecycleEnvelope } from "../lib/dd-zcode.mjs";
 
 test("ZCode observed profiles fail closed on drift", () => {
   const observed = observedProfile({ settings: { model: { current: { providerId: "anthropic", modelId: "GLM-5.3" } }, thoughtLevel: { current: "high" }, mode: { current: "yolo" } } });
@@ -38,7 +38,12 @@ test("dd-zcode controls create, prompt and fork through ACP with an append-only 
         else if (method === "zcode/session/subagents") result = running ? { running: [{ agentId: "agent-bg" }], completed: [] } : { running: [], completed: [] };
         else if (method === "session/cancelBackgroundTask") { running = false; result = { cancelled: true }; }
         else if (method === "zcode/session/usage") result = { inputTokens: 12, outputTokens: 3 };
-        else if (method === "session/prompt") { if (params.prompt?.[0]?.text === "background") running = true; send({ jsonrpc: "2.0", method: "session/update", params: { sessionId: params.sessionId, update: { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "ok" } } } }); result = { stopReason: "end_turn" }; }
+        else if (method === "session/prompt") {
+          if (params.prompt?.[0]?.text === "background") running = true;
+          send({ jsonrpc: "2.0", method: "session/update", params: { sessionId: params.sessionId, update: { sessionUpdate: "tool_call", toolCallId: "call-1", title: "Bash: true", rawInput: { command: "true" }, _meta: { claudeCode: { toolName: "Bash" } } } } });
+          send({ jsonrpc: "2.0", method: "session/update", params: { sessionId: params.sessionId, update: { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "ok" } } } });
+          result = { stopReason: "end_turn" };
+        }
         else if (method === "session/fork") result = { forkedSessionId: "native-fork" };
         send({ jsonrpc: "2.0", id, result });
       });
@@ -46,10 +51,11 @@ test("dd-zcode controls create, prompt and fork through ACP with an append-only 
     const common = { bin: server, cwd: root, journal, prompt: "prime", provider: "anthropic", model: "GLM-5.3", reasoning: "high", mode: "yolo" };
     const created = await createSession(common);
     assert.equal(created.provider_session_id, "native-root");
+    assert.deepEqual(created.evidence.tool_calls, { total: 1, failures: 0, by_tool: { Bash: 1 } });
     const notifications = [];
     const prompted = await promptSession({ ...common, sessionId: "native-root", adapterSessionId: "adapter-1", prompt: "work", onNotification: (event) => notifications.push(event) });
     assert.equal(prompted.turn.stopReason, "end_turn");
-    assert.equal(notifications.length, 1);
+    assert.equal(notifications.length, 2);
     await assert.rejects(
       () => promptSession({ ...common, sessionId: "native-root", adapterSessionId: "adapter-1", prompt: "background" }),
       /background ZCode subagents cannot outlive/
@@ -60,7 +66,18 @@ test("dd-zcode controls create, prompt and fork through ACP with an append-only 
     assert.ok(lines.length > 10);
     assert.ok(lines.every((line) => Number.isInteger(line.order) && line.order > 0 && typeof line.kind === "string"));
     assert.ok(lines.some((line) => line.kind === "outbound" && line.payload?.method === "session/set_mode" && line.payload.params?.sessionId === "adapter-1"));
+  } catch (error) {
+    try { error.message += `\n${await readFile(journal, "utf8")}`; } catch { /* preserve the original failure */ }
+    throw error;
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("lifecycle envelopes carry the verified ZCode profile and daemon identity", () => {
+  assert.deepEqual(zcodeLifecycleEnvelope({ method: "session/update" }, { provider: "builtin:zai-coding-plan", model: "GLM-5.3", reasoning: "high", mode: "yolo", daemonId: "daemon-1" }, "native-root")._meta.ddZcode, {
+    rootProviderSessionId: "native-root",
+    observedProfile: { provider: "builtin:zai-coding-plan", model: "GLM-5.3", reasoning: "high", mode: "yolo" },
+    daemonId: "daemon-1"
+  });
 });

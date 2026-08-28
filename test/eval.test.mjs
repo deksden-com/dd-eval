@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { addSession, comparePrepare, efficiency, judgeResultInstructions, judgeResultPath, judgeResultTemplate, loadCase, prepare, scoreEvaluation, subjectContinuation, subjectTaskTitle, syncLifecycleStatus, validateInput } from "../lib/dd-eval.mjs";
+import { addSession, comparePrepare, efficiency, judgeResultInstructions, judgeResultPath, judgeResultTemplate, loadCase, prepare, profileMatches, scoreEvaluation, subjectContinuation, subjectTaskTitle, syncLifecycleStatus, validateInput } from "../lib/dd-eval.mjs";
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -119,6 +119,12 @@ test("sync recognizes the current paused RUN status as a user wait", () => {
   assert.equal(syncLifecycleStatus({ profileStatus: "matched", stageStatus: "paused", runStatus: "paused" }), "waiting_for_user");
   assert.equal(syncLifecycleStatus({ profileStatus: "matched", stageStatus: null, runStatus: "waiting_for_user" }), "waiting_for_user");
   assert.equal(syncLifecycleStatus({ profileStatus: "matched", stageStatus: "done", runStatus: "completed" }), "candidate_ready");
+});
+
+test("ZCode root and child profile evidence matches without a Codex transcript", () => {
+  const expected = { harness: "zcode-acp", provider: "builtin:zai-coding-plan", model: "GLM-5.3", reasoning: "high", mode: "yolo" };
+  assert.equal(profileMatches(expected, { provider: expected.provider, model: expected.model, reasoning: expected.reasoning, mode: expected.mode }, "zcode-acp"), true);
+  assert.equal(profileMatches(expected, { provider: expected.provider, model: expected.model, reasoning: "low", mode: expected.mode }, "zcode-acp"), false);
 });
 
 test("Grand Judge preparation anonymizes completed eval roots", async () => {

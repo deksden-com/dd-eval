@@ -11,7 +11,7 @@ Every backend must provide these operations with stable provider Session IDs:
 - explicit checkpoint/latest fork;
 - tree-aware cancellation;
 - observed provider/model/reasoning/mode receipt;
-- ordered tool/lifecycle events before the corresponding side effect;
+- ordered tool/lifecycle events with a bounded synchronization contract;
 - append-only JSONL evidence.
 
 Session evidence always records `harness`, `runtime_family`,
@@ -20,8 +20,8 @@ observed profile. Provider IDs are interpreted only inside their harness.
 
 ## ZCode
 
-The supported baseline is ZCode `0.16.5` with `zcode-acp` `0.13.0` plus the
-dd-harness inspection extensions. For delegated evals, `dd-zcode` keeps the ACP
+The supported baseline is ZCode `0.16.5` with `zcode-acp` `0.13.0` at pinned
+dd-harness commit `62bed720e1be4af07c2a41f21cd50cb4c4df5313`. For delegated evals, `dd-zcode` keeps the ACP
 server alive for the whole execution and synchronously forwards
 `session/update` tool calls to:
 
@@ -32,7 +32,16 @@ dd-flow zcode event handle --project-root <absolute-root> --json
 The adapter turns root and subagent Bash calls into the existing trusted
 lifecycle receipt. A child is identified by ZCode's native `childSessionId`;
 its dd-flow identity is `zcode-acp:<childSessionId>` and its immutable parent is
-the controlled root Session.
+the controlled root Session. ZCode publishes a nested-agent Bash notification
+concurrently with command startup, so `dd-flow` gives the matching immutable
+receipt up to 250 ms to reach SQLite before failing closed. The observed live
+delay was about 1 ms; an absent or mismatched event is still rejected.
+
+Before and after every productive daemon operation, `dd-zcode` forwards the
+provider's cumulative token counters plus cumulative ACP tool-call counters.
+`dd-flow stat usage` computes the Work/RUN delta and labels the source
+`zcode_session_usage_v1`; tool totals, failures and `by_tool` are therefore
+comparable with Codex transcript-derived evidence.
 
 The one-shot form below remains useful for foreground diagnostics:
 

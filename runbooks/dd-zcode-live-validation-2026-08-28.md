@@ -36,6 +36,15 @@ Environment:
     ZCode app-server process.
 11. Hard-killing a daemon whose tree was unproven caused the next start to fail
     with `invalid_harness_crash`; it did not claim recovery success.
+12. A real root GLM-5.3 Session executed a trusted `stage start` on its first
+    attempt; `stat run sessions ls` retained harness, native provider ID and the
+    verified provider/model/reasoning/mode profile.
+13. A real foreground subagent exposed a distinct native `childSessionId` and
+    immutable root parent. Its first lifecycle attempt revealed a 1 ms event
+    race; after the bounded claim-window fix, a fresh child succeeded on its
+    first attempt and the child identity was claimed by `dd-flow`.
+14. A fresh daemon turn produced a measured `zcode_session_usage_v1` delta of
+    7,162 tokens and one `Bash` tool call; `tool_calls.status` was `measured`.
 
 ## Defects found and fixed by the live run
 
@@ -55,6 +64,13 @@ Environment:
   successful validation used an explicit Write-generated checkpoint; the
   operator contract continues to require an accepted checkpoint and dedicated
   workspace.
+- Nested-agent tool notifications can reach the forwarder just after the Bash
+  process starts. `dd-flow` now polls for at most 250 ms only when the exact
+  matching event is absent, preserving single-use matching and fail-closed
+  behavior.
+- ZCode token snapshots did not carry comparable tool-call evidence. The daemon
+  now counts ACP tool calls and failures cumulatively and `dd-flow` derives the
+  same scoped deltas used by eval efficiency reports.
 
 ## Automated verification after fixes
 

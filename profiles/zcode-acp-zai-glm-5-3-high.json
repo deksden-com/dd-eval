@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "id": "zcode-acp-zai-glm-5-3-high",
+  "harness": "zcode-acp",
+  "runtime_family": "zcode",
+  "driver": "dd-zcode",
+  "control_lifetime": "execution_daemon",
+  "delegated_background": true,
+  "provider": "builtin:zai-coding-plan",
+  "model": "GLM-5.3",
+  "reasoning": "high",
+  "mode": "yolo",
+  "runtime": {
+    "zcode": "0.16.5",
+    "zcode_acp": "0.13.0",
+    "zcode_acp_commit": "62bed720e1be4af07c2a41f21cd50cb4c4df5313",
+    "dd_harness_contract": "dd-zcode-harness@1"
+  },
+  "notes": "Controlled delegated ZCode Subject profile. The case checkpoint selects the matched dd-flow engine/pack pair; the execution-scoped daemon verifies the provider profile and preserves child topology and cancellation evidence."
+}

@@ -528,6 +528,22 @@ release. Finish, sync and judge one such stage before launching the next profile
 
 ### Native fork
 
+Select the controller path from `prepare.requested_profile.driver`:
+
+- `codex-native`: use the Desktop task operations below;
+- `dd-zcode`: start one execution-scoped daemon with the returned project root
+  and `DD_FLOW_HOME`, then use `dd-zcode session create` for E2E or
+  `dd-zcode session fork` for a focused starter. Record the native provider ID,
+  adapter ID, daemon ID and the exact observed profile from the receipt before
+  the first productive prompt. Every later prompt uses that same explicit
+  provider/model/reasoning/mode. Inspect and settle the full child tree before
+  sync; stop the daemon only after sync/checkpoint or explicit invalidation.
+
+For ZCode, `--session-id` always means the native provider Session ID and
+`--adapter-session-id` is only its ACP control locator. Never substitute one for
+the other. The detailed command forms and crash classification are in
+`runbooks/harness-backends.md`.
+
 1. Fork the latest completed state of the starter Subject Session returned by
    `dd-eval prepare`.
 2. A fork preserves the selected starter's context, but Desktop applies the
@@ -762,7 +778,8 @@ DD_FLOW_HOME="<execution-runtime>" dd-flow stat run sessions ls \
   --run "<RUN-ID>" --project-root "<execution-project>" --json
 ```
 
-`stat usage` rereads the registered Codex JSONL sources, records the current
+`stat usage` rereads the registered Codex JSONL sources or the adapter-retained
+ZCode cumulative token and tool-call snapshots, records the current
 usage projection and changes an `idle` Work Session to `stopped` only when its
 latest provider lifecycle event is `task_complete`. It must return at least one
 Session row whenever the RUN has transcript-backed Sessions. Treat an empty
