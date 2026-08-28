@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
-import { readFile } from "node:fs/promises";
 import { cancelSession, createSession, doctor, forkSession, inspectSession, promptFromFile, promptSession } from "../lib/dd-grok.mjs";
 import { callDaemon, serveDaemon, startDaemon, stopDaemon } from "../lib/dd-grok-daemon.mjs";
 
 function parse(argv) { const positional = []; const options = {}; for (let index = 0; index < argv.length; index += 1) { const token = argv[index]; if (!token.startsWith("--")) { positional.push(token); continue; } const key = token.slice(2); if (["json", "cancel-tree"].includes(key)) { options[key] = true; continue; } const value = argv[++index]; if (value === undefined) throw new Error(`--${key} requires a value`); options[key] = value; } return { positional, options }; }
 function common(options) { return { bin: options["grok-bin"], journal: options.journal, stateDir: options["state-dir"], cwd: options.cwd, sessionId: options["session-id"], model: options.model, reasoning: options.reasoning, mode: options.mode ?? "bypassPermissions", authPath: options["auth-path"], authMethodId: options["auth-method-id"], ddFlowBin: options["dd-flow-bin"], ddFlowHome: options["dd-flow-home"], projectRoot: options["project-root"], timeoutMs: options.timeout ? Number(options.timeout) * 1000 : undefined }; }
+async function readStdin() { let value = ""; process.stdin.setEncoding("utf8"); for await (const chunk of process.stdin) value += chunk; return value; }
 async function hook(options) {
-  const stdin = await readFile(0, "utf8"); const payload = JSON.parse(stdin || "{}"); const identity = await callDaemon(options["state-dir"], "hook.resolve", { sessionId: payload.sessionId ?? payload.session_id });
+  const stdin = await readStdin(); const payload = JSON.parse(stdin || "{}"); const identity = await callDaemon(options["state-dir"], "hook.resolve", { sessionId: payload.sessionId ?? payload.session_id });
   const enriched = { ...payload, _meta: { ...(payload._meta ?? {}), ddGrok: identity } }; const args = ["grok", "event", "handle", "--project-root", options["project-root"], "--json"]; const command = options["dd-flow-bin"]; const target = /\.[cm]?js$/.test(command) ? { command: process.execPath, args: [command, ...args] } : { command, args };
   await new Promise((resolve, reject) => { const child = spawn(target.command, target.args, { env: { ...process.env, DD_FLOW_HOME: options["dd-flow-home"] }, stdio: ["pipe", "ignore", "pipe"] }); let stderr = ""; child.stderr.setEncoding("utf8").on("data", (chunk) => (stderr += chunk)); child.on("error", reject); child.on("close", (code) => code === 0 ? resolve() : reject(new Error(stderr || "dd-flow rejected Grok hook"))); child.stdin.end(`${JSON.stringify(enriched)}\n`); });
   return { decision: "allow" };
