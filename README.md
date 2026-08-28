@@ -26,7 +26,9 @@ stage-checkpoint execution model is refined by
 The next planning beta contract is defined by
 [lossless-obligation and executable-PLAN specification 006](specs/006-lossless-obligations-and-executable-plan.md),
 [execution-profile and CODE-completion specification 007](specs/007-execution-profile-and-code-completion.md), plus
-the [PLAN-draft and Controller-liveness specification 012](specs/012-plan-drafts-and-controller-liveness.md),
+the [PLAN-draft and Controller-liveness specification 012](specs/012-plan-drafts-and-controller-liveness.md).
+The [Grok Build harness specification 013](specs/013-grok-build-harness-integration.md)
+defines the next multi-harness integration. Operational procedures remain in
 the [case-creation runbook](runbooks/create-eval-case.md) and
 [eval execution runbook](runbooks/execute-eval.md). Non-Git attempts,
 canonical snapshots and retention follow the [storage runbook](runbooks/eval-storage.md).
