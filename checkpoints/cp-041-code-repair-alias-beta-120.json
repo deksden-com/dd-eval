@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "cp-041-code-repair-alias-beta-120",
+  "title": "cp-041 CODE repair alias preservation beta.120",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.120",
+    "commit": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.120",
+    "dd_flow_cli": "0.8.0-beta.119",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.119",
+      "commit": "30f822cf4bf4d1338dc063fb5e00ada0708b2d47"
+    }
+  },
+  "harnesses": {
+    "zcode-acp": {
+      "zcode": "0.16.5",
+      "zcode_acp": "0.13.1",
+      "tag": "eval-zcode-acp-0.13.1",
+      "commit": "bf21f38dcbb85b8f98cd7ab3062aa050d1b5777c",
+      "contract": "dd-zcode-harness@1"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "CODE repair Work packets retain the accepted @check alias while receipts retain the resolved command.",
+    "This pair replaces cp-040 after REV-062 exposed raw_code_check_forbidden during a repair Work."
+  ]
+}

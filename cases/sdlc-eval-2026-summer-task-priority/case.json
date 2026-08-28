@@ -3,7 +3,7 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "authoring",
-  "checkpoint": {"id": "cp-040-code-batch-baseline-beta-119"},
+  "checkpoint": {"id": "cp-041-code-repair-alias-beta-120"},
   "assessment": "assessment.json",
   "profiles": {
     "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-87"],
