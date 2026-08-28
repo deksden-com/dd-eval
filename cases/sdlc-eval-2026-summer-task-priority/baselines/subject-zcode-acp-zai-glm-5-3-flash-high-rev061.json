@@ -1,0 +1,36 @@
+{
+  "schema_id": "dd-eval/session-baseline@1",
+  "case_id": "sdlc-eval-2026-summer-task-priority",
+  "revision": "REV-061",
+  "role": "subject",
+  "profile": "zcode-acp-zai-glm-5-3-flash-high",
+  "harness": "zcode-acp",
+  "seed_mode": "native_session",
+  "status": "accepted",
+  "session_id": "sess_1ed2fce2-d2e8-481a-94f8-4614114b64db",
+  "adapter_session_id": "e3500ffe-0f33-4e0c-a830-4657aea09ef7",
+  "created_at": "2026-08-28T18:39:51+02:00",
+  "messages": [
+    {"role": "user", "path": "prompts/subject-prime.md"},
+    {"role": "user", "path": "prompts/subject-discussion.md"}
+  ],
+  "observed_profile": {
+    "provider": "builtin:zai-coding-plan",
+    "model": "GLM-5.3-Flash",
+    "reasoning": "high",
+    "mode": "yolo"
+  },
+  "prohibited_material": ["historical candidates", "stage expectations", "stage oracles before fork"],
+  "acceptance": {
+    "approved_by": "eval-controller",
+    "approved_at": "2026-08-28T18:45:00+02:00",
+    "evidence": {
+      "locator": "canonical/sdlc-eval-2026-summer-task-priority/ZCODE-BASELINE-061/events.jsonl",
+      "sha256": "0f1b3a83574ae476d09325227d6a72e6ae76065fec1fa01eb021603c089761a4",
+      "source_commit": "9a3b96c2b6ebb451b1a45678101b3d9ee047c997",
+      "workspace_clean": true,
+      "session_idle": true,
+      "child_sessions": 0
+    }
+  }
+}

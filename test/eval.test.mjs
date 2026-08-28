@@ -21,8 +21,8 @@ test("the active suite declares its next canonical checkpoint chain", async () =
   assert.equal(validated.checkpoint.id, checkpoint.id);
   assert.equal(validated.checkpoint.memory_bank.engine.commit, checkpoint.memory_bank.engine.commit);
   assert.equal(loaded.definition.status, "authoring");
-  assert.ok(loaded.definition.profiles.subject.includes("zcode-acp-zai-glm-5-3-high"));
-  assert.equal(loaded.definition.priming.subject_baselines["zcode-acp-zai-glm-5-3-high"], "baselines/subject-zcode-acp-zai-glm-5-3-high-rev032.json");
+  assert.ok(loaded.definition.profiles.subject.includes("zcode-acp-zai-glm-5-3-flash-high"));
+  assert.equal(loaded.definition.priming.subject_baselines["zcode-acp-zai-glm-5-3-flash-high"], "baselines/subject-zcode-acp-zai-glm-5-3-flash-high-rev061.json");
 });
 
 test("every registered starter belongs to the declared stage chain", async () => {
@@ -44,14 +44,14 @@ test("every registered starter belongs to the declared stage chain", async () =>
 
 test("the accepted ZCode baseline records native identity, exact profile and immutable evidence", async () => {
   const loaded = await loadCase(caseId);
-  const relative = loaded.definition.priming.subject_baselines["zcode-acp-zai-glm-5-3-high"];
+  const relative = loaded.definition.priming.subject_baselines["zcode-acp-zai-glm-5-3-flash-high"];
   const baseline = JSON.parse(await readFile(path.join(loaded.caseDir, relative), "utf8"));
   assert.equal(baseline.status, "accepted");
   assert.equal(baseline.harness, "zcode-acp");
   assert.match(baseline.session_id, /^sess_/);
   assert.ok(baseline.adapter_session_id);
   assert.deepEqual(baseline.observed_profile, {
-    provider: "builtin:zai-coding-plan", model: "GLM-5.3", reasoning: "high", mode: "yolo"
+    provider: "builtin:zai-coding-plan", model: "GLM-5.3-Flash", reasoning: "high", mode: "yolo"
   });
   assert.equal(baseline.acceptance.evidence.workspace_clean, true);
   assert.equal(baseline.acceptance.evidence.session_idle, true);
