@@ -4,6 +4,8 @@
   "harness": "zcode-acp",
   "runtime_family": "zcode",
   "driver": "dd-zcode",
+  "control_lifetime": "execution_daemon",
+  "delegated_background": true,
   "provider": "builtin:zai-coding-plan",
   "model": "GLM-5.3",
   "reasoning": "high",
@@ -15,5 +17,5 @@
       "engine_version": "0.8.0-beta.115"
     }
   },
-  "notes": "Initial controlled ZCode Subject profile. dd-zcode verifies the observed provider, model, thought level and mode before productive work."
+  "notes": "Controlled delegated ZCode Subject profile. An execution-scoped dd-zcode daemon preserves the app-server runtime for background topology and cancellation; exact provider, model, thought level and mode are verified before productive work."
 }

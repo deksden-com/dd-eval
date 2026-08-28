@@ -1,6 +1,6 @@
 # План реализации `dd-zcode daemon`
 
-Статус: planned, not implemented  
+Статус: implemented in `feat/zcode-harness`; automated and live validation retained
 Дата: 2026-08-28  
 Затрагиваемые проекты: `dd-eval` (`dd-zcode`), pinned fork `zcode-acp`,
 `dd-flow-cli`
@@ -147,6 +147,10 @@ background child. Scored/delegated ZCode profiles обязаны использ�
 ## 5. Локальный IPC protocol
 
 Unix socket: `<state-dir>/daemon.sock`. State directory `0700`, socket `0600`.
+Если абсолютный путь превышает практический лимит Unix-domain sockets на
+macOS, используется детерминированный `/tmp/dd-zcode-<state-dir-hash>.sock` с
+тем же mode `0600`; exact path записывается в `daemon.json` и проверяется перед
+удалением.
 Одна JSON-строка на request и одна terminal JSON-строка на response:
 
 ```json
@@ -158,6 +162,7 @@ Unix socket: `<state-dir>/daemon.sock`. State directory `0700`, socket `0600`.
 Минимальные коды:
 
 - `daemon_not_running`;
+- `daemon_state_terminal`;
 - `daemon_config_mismatch`;
 - `daemon_protocol_mismatch`;
 - `operation_busy`;
@@ -268,8 +273,9 @@ Daemon пишет `shutdown_state=running` до начала работы и `cl
 успешного shutdown. При старте поверх state с `running` и отсутствующим живым
 socket прошлый процесс считается unclean.
 
-- Если journal доказывает, что до crash tree был settled, новый daemon может
-  восстановить foreground/native Sessions и обязан заново проверить profile.
+- Clean stop терминален для state directory. Следующая execution получает новый
+  state-dir; повторный start старого даёт `daemon_state_terminal`. Это исключает
+  ложное восстановление persisted background topology как live runtime handle.
 - Если последний authoritative snapshot содержал running turn/child,
   permission или неполную topology, execution получает
   `invalid_harness_crash`. Автоматический scored resume запрещён.
@@ -314,6 +320,12 @@ workspace aliases. Изменения допускаются только есл
 - не менять root/child identity и idempotent harness binding.
 
 ## 12. Этапы реализации
+
+Результат реализации: D0–D5 выполнены в feature worktrees `dd-eval` и
+`dd-flow-cli`; pinned `zcode-acp` уже содержит необходимые inspection/control
+extensions и не потребовал дополнительных daemon primitives. D6 выполняется
+перед ручным merge: автоматические suites и реальные smoke receipts фиксируются
+в отчёте ниже. В beta/main изменения этим планом не мержатся.
 
 ### D0. Зафиксировать protocol и docs
 
@@ -373,7 +385,7 @@ Acceptance: live child с `sleep 60` виден после завершения 
 - Запись `daemon_id`, versions и execution scope в evidence.
 
 Acceptance: hard-kill daemon с running child никогда не приводит к success,
-settled или scoring после restart; clean idle restart повторно проверяет profile.
+settled или scoring после restart; clean stop требует новый execution state-dir.
 
 ### D6. Conformance и rollout
 
@@ -443,3 +455,6 @@ Acceptance: все project suites зелёные, live evidence сохранен
 
 После каждого шага feature-worktree остаётся самостоятельно тестируемым.
 Merge в beta выполняется только после D6 и ручного просмотра live journals.
+
+Фактический D6-прогон, найденные live-only дефекты и retained evidence описаны
+в `runbooks/dd-zcode-live-validation-2026-08-28.md`.

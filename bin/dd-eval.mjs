@@ -29,7 +29,7 @@ Usage:
   dd-eval checkpoint capture --case <case-id> --stage <stage> --project-root <path> --flow-run <RUN> --canonical-subject-session <id> --checkpoint-subject-session <id> [--harness codex-desktop|zcode-acp] [--revision REV-NNN] [--dd-flow-home <path>]
   dd-eval checkpoint accept --case <case-id> --stage <stage> --record <capture.json> --review <review.md>
   dd-eval prepare --case <case-id> (--focus <csv>|--segment <start..end>|--e2e) [--scenario <relative-case-path>] [--output <DD_EVAL_HOME-contained-path>] [--controller-profile <id>] [--subject-profile <id>] [--judge-profile <id>] [--source <dd-tasks>]
-  dd-eval session add --eval <prepared-dir> --execution <id> --role <controller|subject_base|subject|judge> --session-id <id> [--harness codex-desktop|zcode-acp] [--adapter-session-id <id>] [--parent-session-id <id>] [--agent-id <id>] [--observed-profile-json <json>]
+  dd-eval session add --eval <prepared-dir> --execution <id> --role <controller|subject_base|subject|judge> --session-id <id> [--harness codex-desktop|zcode-acp] [--adapter-session-id <id>] [--daemon-id <id>] [--parent-session-id <id>] [--agent-id <id>] [--observed-profile-json <json>]
   dd-eval sync --eval <prepared-dir> --execution <id> --project-root <path> [--flow-run <id>]
   dd-eval checkpoint --eval <prepared-dir> --execution <id>
   dd-eval checkpoint rematerialize --eval <prepared-dir> --execution <id>
@@ -82,7 +82,7 @@ try {
       ...(options.focus ? { stageList: options.focus } : {}), ...(options.segment ? { segment: options.segment } : {}), ...(options.scenario ? { scenario: options.scenario } : {}), e2e: options.e2e === true
     });
   } else if (family === "session" && command === "add") {
-    result = await addSession({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), role: required(options, "role"), sessionId: required(options, "session-id"), ...(options.harness ? { harness: options.harness } : {}), ...(options["adapter-session-id"] ? { adapterSessionId: options["adapter-session-id"] } : {}), ...(options["parent-session-id"] ? { parentSessionId: options["parent-session-id"] } : {}), ...(options["agent-id"] ? { agentId: options["agent-id"] } : {}), ...(options["observed-profile-json"] ? { observedProfile: JSON.parse(options["observed-profile-json"]) } : {}) });
+    result = await addSession({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), role: required(options, "role"), sessionId: required(options, "session-id"), ...(options.harness ? { harness: options.harness } : {}), ...(options["adapter-session-id"] ? { adapterSessionId: options["adapter-session-id"] } : {}), ...(options["daemon-id"] ? { daemonId: options["daemon-id"] } : {}), ...(options["parent-session-id"] ? { parentSessionId: options["parent-session-id"] } : {}), ...(options["agent-id"] ? { agentId: options["agent-id"] } : {}), ...(options["observed-profile-json"] ? { observedProfile: JSON.parse(options["observed-profile-json"]) } : {}) });
   } else if (family === "sync") {
     result = await sync({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), projectRoot: required(options, "project-root"), ...(options["flow-run"] ? { flowRunId: options["flow-run"] } : {}) });
   } else if (family === "checkpoint" && command === "capture") {
