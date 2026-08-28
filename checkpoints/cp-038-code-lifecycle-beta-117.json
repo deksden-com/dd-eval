@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "id": "cp-038-code-lifecycle-beta-117",
+  "title": "cp-038 recoverable CODE lifecycle beta.117",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.117",
+    "commit": "d5c9b65288a273db5ea10dcbf6fa16e25065f7d0"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.117",
+    "dd_flow_cli": "0.8.0-beta.116",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.116",
+      "commit": "d078a895390def2452bef697ccad88f78ec8ee22"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "CODE registers its stage lifecycle before workspace bootstrap; a failed readiness attempt is therefore observable, timed and retryable.",
+    "PLAN continues to materialize partially filled drafts and identify CLI-owned fields before the planner supplies semantic content."
+  ]
+}

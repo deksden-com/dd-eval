@@ -121,6 +121,14 @@ snapshot; do not inject a liveness prompt into the evaluated Subject, instruct
 it to stop or claim that an artifact is absent without checking its exact path.
 Absence of an active tool call by itself is never a reason to interrupt.
 
+A registered child Work with status `running` is live. Its silence, an elapsed
+nominal wait, or a missing new artifact does **not** make it unresponsive. The
+Controller must not ask the parent to interrupt it or call `stage block` with
+an `*_UNRESPONSIVE` code. It may treat the child as failed only after the
+provider/harness itself reports a terminal failure, cancellation or attention
+state. Until then, take another read-only snapshot and wait. This protects a
+late-but-valid completion from being raced by an obsolete blocker.
+
 | Observed state | Controller action |
 | --- | --- |
 | provider task is running | wait |
