@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/canonical-responses@1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "stage", "responses"],
+  "properties": {"schema_id": {"const": "dd-eval/canonical-responses@1"}, "stage": {"type": "string"}, "responses": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["id", "answer"], "properties": {"id": {"type": "string"}, "answer": {"type": "string"}, "intent": {"type": "string"}}}}}
+}

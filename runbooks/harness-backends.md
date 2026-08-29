@@ -8,15 +8,17 @@ Every backend must provide these operations with stable provider Session IDs:
 
 - doctor/version gate;
 - create, resume, prompt and inspect;
-- explicit checkpoint/latest fork;
 - tree-aware cancellation;
 - observed provider/model/reasoning/mode receipt;
 - ordered tool/lifecycle events with a bounded synchronization contract;
 - append-only JSONL evidence.
 
 Session evidence always records `harness`, `runtime_family`,
-`provider_session_id`, optional `adapter_session_id`, parent identity and the
-observed profile. Provider IDs are interpreted only inside their harness.
+`provider_session_id`, optional `adapter_session_id`, optional parent identity
+and the observed profile. Provider IDs are interpreted only inside their
+harness. Routine focused evals use a new empty Session for every harness;
+native fork capability is optional diagnostic functionality, never a required
+baseline or fallback.
 
 ## Antigravity CLI
 
@@ -47,12 +49,10 @@ handle`, and cumulative result counters to `dd-flow agy usage ingest`. The
 provider conversation ID is the physical Session identity. An unclean provider
 exit during a turn leaves `active_tree=true` and is an invalid harness crash.
 
-Headless stream input rejects `/fork`; the native interactive `/fork` cannot be
-made a reliable control-plane operation. Therefore `session fork` fails closed
-with `agy_headless_fork_unsupported`, canonical starters declare
-`seed_mode=deterministic_replay`, restore the frozen workspace/runtime snapshot,
-and create a fresh conversation. Interactive fork remains experimental and is
-not accepted as scored evidence.
+Headless stream input rejects `/fork`; the native interactive command cannot
+be a reliable control-plane operation. This is not a limitation for routine
+evals: the runner restores the portable fixture and creates a fresh
+conversation. Interactive fork remains an explicitly separate diagnostic.
 
 ## Grok Build
 
@@ -92,8 +92,8 @@ mode `0600`; its contents never enter state or the journal. `XAI_API_KEY` is
 also inherited when supplied. Root usage uses `usage_scope=execution_tree_inclusive`, child usage
 uses `physical_session`; reports retain child facts for attribution without
 double counting the root total. `dd-eval` records `harness=grok-acp`,
-`runtime_family=grok` and native Grok IDs. Focused-stage checkpoint and starter
-evidence belongs under `subject_by_harness.grok-acp`.
+`runtime_family=grok` and native Grok IDs. The runner stores this evidence in
+the execution journal and manifest, not in a shared Session starter registry.
 
 ## ZCode
 
@@ -227,32 +227,18 @@ cleanup. `invalid_harness_crash` and `partial_cancellation` make the attempt
 `invalid_infrastructure_flow`; apply the controller override described in
 `runbooks/beta-contour.md` and do not checkpoint or score it.
 
-Focused-stage evals require an accepted canonical checkpoint and untouched
-starter for the same harness. A cross-model comparison normally builds the
-Codex canonical revision first and adds ZCode evidence to the same revision.
-When the evaluated beta pair itself is being qualified through ZCode, ZCode may
-instead be the **primary canonical harness** for a new revision: capture and
-accept each ZCode entry before its stage starts, then point the case at that
-revision. Do not mix project/runtime snapshots from different beta pairs.
-ZCode cannot fork a read-only session:
-its native `session/fork` requires a real workspace checkpoint. Never write a
-dummy product file merely to satisfy that limitation. Register an idle ZCode
-starter with `dd-eval starter set --harness zcode-acp --seed-mode
-deterministic_replay`; `dd-eval prepare` then directs the Controller to create
-a fresh Session after restoring the checkpoint and to send the generated stage
-packet. This is a replay of the stage entry, not a claimed native child. Where
-ZCode has a real checkpoint, `native_fork` remains valid. E2E evals start
-clean and do not need a starter.
+Focused-stage evals require the same accepted portable entry pack for every
+harness. A cross-model comparison therefore needs no native Session lineage:
+the runner restores the project/RUN snapshot, creates a clean ZCode Session and
+sends the common launcher. Do not mix project/runtime snapshots from different
+flow/engine pairs. ZCode's native fork remains available for a separate
+session-continuity diagnostic, but never alters scored focused or E2E input.
 Version or observed-profile drift is an infrastructure-invalid attempt, never a
 substitute profile.
 
-After create/fork, the Controller registers the native identity and the exact
-`evidence.observed_profile` returned by `dd-zcode`:
+After creation, the runner records the native identity and exact
+`evidence.observed_profile` returned by `dd-zcode` in its append-only journal:
 
 ```text
-dd-eval session add --eval <attempt> --execution <id> --role subject \
-  --harness zcode-acp --session-id <native-id> \
-  --adapter-session-id <adapter-id> --daemon-id <daemon-id> \
-  --parent-session-id <native-starter-id> \
-  --observed-profile-json '<observed-profile-json>'
+dd-eval runner eval run --profile <profile.json>
 ```

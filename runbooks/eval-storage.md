@@ -15,31 +15,26 @@ Git checkout.
 export DD_EVAL_HOME="$HOME/.dd-eval"
 ```
 
-The CLI enforces that every `dd-eval prepare --output` path is below
-`$DD_EVAL_HOME/attempts/active`, and later commands accept only a prepared
-attempt below `attempts/active` or `attempts/archive`. Do not create eval project
-checkouts, `DD_FLOW_HOME` directories, or snapshots under `_Projects`.
+The runner creates every mutable execution below this root. Do not create eval
+project checkouts, `DD_FLOW_HOME` directories, or snapshots under `_Projects`.
 
 ```text
 $DD_EVAL_HOME/
-  sequence.json                                next local EVAL number only
   canonical/<case-id>/REV-<NNN>/
-    workspace/project/                         canonical stable checkout
-    workspace/workspace/                       canonical feature worktree when routed
-    workspace/runtime/                         dedicated canonical DD_FLOW_HOME
-    checkpoints/<stage>-entry/                 immutable project/RUN snapshots
-  attempts/active/<EVAL-id>/                  complete live attempt
-  attempts/archive/<EVAL-id>/                 explicitly retained complete attempt
+    build/                                     append-only reference-build truth
+    stages/<stage>/project/                    immutable project snapshot
+    stages/<stage>/runtime/                    immutable RUN/DD_FLOW_HOME snapshot
+  runs/<EVAL-id>/                              complete runner-owned eval
+    executions/<entry>/                        isolated project, runtime, harness state
+    events.jsonl                               append-only runner truth
   tmp/                                         disposable CLI staging only
 ```
 
-An attempt contains `manifest.json`, `state.json`, `sessions.json`, generated
-prompts, candidate and Judge evidence, its project checkout, and its dedicated
-`runtime/` (`DD_FLOW_HOME`). Canonical snapshots contain the stable project
-tree and dedicated runtime captured by `dd-flow`. From the PROTOCOLIZE route
-onward they also contain the separate feature workspace and named branch; on
-restore `dd-flow` recreates it beside the fresh stable checkout. It never
-silently points a routed RUN back at the stable checkout.
+An execution contains its manifest, generated launcher/context, candidate and
+Judge evidence, provider journal, project checkout and dedicated `DD_FLOW_HOME`.
+Canonical snapshots contain only portable project/RUN truth; provider Sessions,
+hook claims and usage are scrubbed. Routed workspaces are recreated inside the
+execution, never pointed at a canonical tree.
 
 ## Truth and sessions
 
@@ -47,27 +42,13 @@ Filesystem manifests are the source of truth. Do not add a registry SQLite
 database yet. A future `registry.sqlite` may be a rebuildable index only; it
 must never be required to discover, reproduce, retain, or delete an attempt.
 
-Canonical Session IDs remain in the Git checkpoint records. Current starter
-Session IDs remain in `cases/<case-id>/starter-sessions.json`; they are provider
-references, not non-Git archives. Routine Controllers resolve only the starter
-registry. Case creation and starter recovery are the only procedures that read
-canonical Session IDs.
+The runner journal records provider Session ID, Agent ID, role, optional parent
+identity, model/reasoning profile and observed usage. Provider Sessions are
+forensic evidence only; no routine launch depends on a stored Session ID.
 
-`sessions.json` records provider Session ID, Agent ID, role, parent Session,
-optional source turn evidence, model/reasoning profile and observed usage. It
-records the starter parent and evaluated child used by the attempt; canonical
-Session identities stay in checkpoint evidence. Provider JSONL is not copied by default. Preserve
-raw transcripts only through an explicit archive decision and record their
-external locator and checksum.
-
-Archiving a completed provider task is allowed after its Session ID and compact
-candidate/Judge evidence are saved. It is an organizational operation, not the
-eval archive and not a substitute for retaining filesystem evidence. Keep
-frozen canonical checkpoint Sessions and current starter Sessions reachable
-and preferably unarchived; routine eval operation depends on them. Never delete
-a provider task needed for transcript forensics. If an archived evaluated
-Session must be inspected again, unarchive it and use the Session ID recorded in
-the compact result.
+Archiving a completed provider task is allowed after its compact evidence is
+saved. It is organizational only and never a requirement to reproduce a
+portable entry.
 
 The compact, comparison-worthy result is committed under
 `cases/<case-id>/results/<EVAL-id>/`. It contains manifests, selected artifacts,
@@ -78,22 +59,19 @@ runtime SQLite database, engine cache, or raw transcript.
 
 1. `canonical/` is retained until its case revision is superseded. It is
    immutable after acceptance.
-2. `attempts/active/` contains only unfinished work and a run being inspected.
-3. On completion, retain only a compact result by default, then delete the
-   complete attempt. Move the complete directory to `attempts/archive/` only
-   when an operator explicitly needs forensic replay.
+2. `runs/` contains the runner's immutable completed attempt or its resumable
+   in-progress journal.
+3. On completion, retain only a compact result by default; retain the complete
+   execution only when forensic replay is needed.
 4. `tmp/` has no retention promise and is removed after each command.
 
 Canonical directories are read-only sources. If a Controller or worker is
 ever pointed at `canonical/` as its writable eval root, stop before launching
 the provider task and prepare a fresh attempt instead.
 
-Each new attempt receives a generated, monotonic
-`EVAL-<zero-padded-number>--<case>--<mode>` directory. `sequence.json` is a
-small counter updated under an exclusive filesystem lock; it is not a registry
-and contains no run metadata. The manifest—not the directory spelling—records
-model, engine, flow-pack, case revision and the clean `dd-eval` definition
-commit/tree that produced the attempt.
+Each new runner execution receives a generated `EVAL-<timestamp>-<nonce>`
+directory. The manifest—not directory spelling—records model, engine, flow
+pack, case revision and definition-tree identity.
 
 Canonical checkpoint records committed to Git use paths relative to
 `DD_EVAL_HOME`. Absolute source paths may appear only as historical evidence

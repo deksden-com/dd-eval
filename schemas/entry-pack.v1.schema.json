@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/entry-pack@1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "case_id", "revision", "stage_context", "entries"],
+  "properties": {
+    "schema_id": {"const": "dd-eval/entry-pack@1"},
+    "case_id": {"type": "string", "minLength": 1},
+    "revision": {"type": "string", "pattern": "^REV-[0-9]{3,}$"},
+    "stage_context": {"type": "string", "minLength": 1},
+    "entries": {"type": "object", "required": ["e2e", "specify", "protocolize", "plan", "plan-review", "code", "code-review"]}
+  }
+}

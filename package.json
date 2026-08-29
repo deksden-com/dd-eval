@@ -5,6 +5,7 @@
   "type": "module",
   "bin": {
     "dd-eval": "./bin/dd-eval.mjs",
+    "dd-codex": "./bin/dd-codex.mjs",
     "dd-zcode": "./bin/dd-zcode.mjs",
     "dd-grok": "./bin/dd-grok.mjs",
     "dd-opencode": "./bin/dd-opencode.mjs",

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/stage-context@1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "stages"],
+  "properties": {
+    "schema_id": {"const": "dd-eval/stage-context-blueprint@1"},
+    "stages": {"type": "object", "additionalProperties": {"$ref": "#/$defs/slice"}}
+  },
+  "$defs": {
+    "slice": {"type": "object", "additionalProperties": false, "required": ["objective", "sources"], "properties": {"objective": {"type": "string", "minLength": 1}, "sources": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["role", "root", "path", "reason"], "properties": {"role": {"type": "string", "minLength": 1}, "root": {"enum": ["project", "workspace", "run"]}, "path": {"type": "string", "minLength": 1}, "reason": {"type": "string", "minLength": 1}, "required": {"type": "boolean"}}}}, "accepted_decisions": {"type": "array"}, "dynamic_roles": {"type": "array"}}}
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/stage-entry@1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "stage", "snapshot", "context_slice_sha256", "semantic_package_sha256"],
+  "properties": {
+    "schema_id": {"const": "dd-eval/stage-entry@1"},
+    "stage": {"enum": ["specify", "protocolize", "plan", "plan-review", "code", "code-review"]},
+    "snapshot": {"type": "object", "additionalProperties": false, "required": ["project", "runtime", "run_id"], "properties": {"project": {"type": "object"}, "runtime": {"type": "object"}, "run_id": {"type": ["string", "null"]}}},
+    "context_slice_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "semantic_package_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

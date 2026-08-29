@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/hitl-match@1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "status"],
+  "properties": {"schema_id": {"const": "dd-eval/hitl-match@1"}, "status": {"enum": ["matched", "unmatched"]}, "response_id": {"type": ["string", "null"]}, "rationale": {"type": "string"}}
+}

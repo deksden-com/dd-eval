@@ -1,217 +1,81 @@
 # Create an eval case
 
-This runbook creates a versioned eval case, its canonical stage checkpoints and
-the starter Sessions used by routine eval runs.
+An eval case is a Git definition plus runner-owned immutable snapshots. It
+does not contain canonical provider Sessions, starter Sessions or provider
+forks. Every routine focused execution starts in an empty Session.
 
-## Session layers
+## Definition tree
 
-Each focused stage has three Session layers **for every harness used by the
-case**:
-
-```text
-frozen canonical checkpoint Session
-  -> untouched starter Session
-    -> disposable evaluated Session
-```
-
-- The canonical Session is recovery material. Routine Controllers neither
-  inspect it nor fork it.
-- The starter Session is an untouched buffer. Routine Controllers know and
-  fork only its ID.
-- The evaluated Session is a fresh child created for one attempt. All Subject
-  prompts and work go there.
-
-Starter Sessions have no revisions. If one is accidentally advanced, replace
-it with a new untouched fork of the same canonical checkpoint Session.
-
-ZCode is the one explicit exception to native fork. ZCode can fork only after
-a workspace-writing checkpoint; a normal, read-only discussion deliberately
-has none. Do not create a fake product change merely to manufacture one. For
-such a checkpoint, register an idle protected ZCode starter with
-`seed_mode: deterministic_replay`. A routine focused attempt restores the
-immutable RUN snapshot, starts a fresh ZCode Session and sends the generated
-stage packet. It records no invented native parent. The protected checkpoint
-and starter IDs remain evidence and recovery anchors; the restored workspace
-and generated stage packet are the replay source of truth.
-
-The starter is model-neutral only inside its harness. A routine attempt forks
-it, then explicitly selects the evaluated model and reasoning effort on the
-first new message. Therefore a stage has one starter per harness, not one
-starter per model. A ZCode attempt must never fork a Codex starter, or the
-reverse. The observed provider profile is checked before the result is scored.
-
-Project/RUN checkpoint archives remain immutable canonical inputs. They do not
-need a duplicate starter layer: `dd-eval prepare` always restores them into a
-new attempt directory.
-
-## Case files
-
-Commit the case files and its one shared input checkpoint:
+Create and commit only compact, reviewable inputs:
 
 ```text
-checkpoints/<input-id>.json                 SSOT for the project, flow-pack and engine pair
-cases/<case-id>/case.json                   points to that input checkpoint by id
-cases/<case-id>/checkpoints/<stage>.json    canonical and frozen checkpoint Session IDs
-cases/<case-id>/starter-sessions.json       current starter Session IDs
-cases/<case-id>/scenarios/                  versioned comparison plans
-cases/<case-id>/prompts/                    versioned ordinary Subject inputs
-cases/<case-id>/interactions/               declared HITL responses
-cases/<case-id>/assessment.json             accepted criteria and golden reference
+cases/<case-id>/
+  case.json
+  assessment.json
+  entry-pack-source/
+    stage-context.json
+    interactions/<stage>.json
+    context-oracles/<stage>.json
+  run-profiles/<profile>.json
+  stage-entries/REV-<NNN>/       # written after explicit acceptance
 ```
 
-`starter-sessions.json` is deliberately small and stage-keyed:
+`case.json` uses `dd-eval/case@6` and points to exactly one accepted
+`entry_pack`. It declares the selected flow contour and terminal stage.
+`entry-pack-source/` is mutable authoring input; accepted descriptors under
+`stage-entries/` are immutable. A run profile is the experiment: harness/model,
+reasoning, focused/E2E selection, Judge policy and concurrency.
 
-```json
-{
-  "schema_id": "dd-eval/starter-sessions@3",
-  "case_id": "<case-id>",
-  "revision": "REV-<NNN>",
-  "sessions": {
-    "specify": {
-      "session_id": "<starter-session-id>",
-      "parent_session_id": "<frozen-checkpoint-session-id>",
-      "harness": "codex-desktop",
-      "by_harness": {
-        "zcode-acp": {
-          "session_id": "<zcode-starter-session-id>",
-          "parent_session_id": "<zcode-frozen-checkpoint-session-id>",
-          "harness": "zcode-acp",
-          "seed_mode": "deterministic_replay"
-        }
-      }
-    }
-  }
-}
-```
+The stage-context blueprint maps *roles* to relative project, workspace or RUN
+paths. It must include the ordered raw user input for SPECIFY and only the
+project sources needed at a stage boundary. It never embeds an absolute host
+path, provider Session ID, golden answer, Judge rationale or hidden response.
 
-Add one top-level Codex entry for every runnable stage and one `by_harness`
-entry for each additional harness that the case will score. `revision` must
-equal the one shared by all canonical checkpoint records and every parent is
-that stage's frozen checkpoint Session for the same harness. An attempt copies
-the resolved starter ID into its own `sessions.json` together with the new
-evaluated child ID and their parent relationship.
+## Build a canonical entry pack
 
-ID ownership is fixed:
-
-| ID | File | Reader |
-| --- | --- | --- |
-| moving canonical-chain Session | `checkpoints/<stage>.json` | checkpoint maintenance |
-| frozen canonical checkpoint Session | `checkpoints/<stage>.json` | starter creation/recovery |
-| current starter Session | `starter-sessions.json` | `dd-eval prepare` and Controller |
-| evaluated Subject child and starter parent | attempt `sessions.json` | Controller, Judge and report renderer |
-| Judge parent/child | attempt `sessions.json` | Controller and report renderer |
-
-Do not add a revision field to a starter entry. Git history records ID
-replacement, while the Session content remains defined by its canonical
-checkpoint.
-
-## Creation procedure
-
-1. Create one immutable input checkpoint at
-   `checkpoints/<input-id>.json`. It is the sole source of truth for the
-   evaluated project source/tag/commit and its matched flow-pack and engine
-   version/tag/commit. Put only `checkpoint.id` in `case.json`; do not repeat
-   a pair SHA, version or tag in the case, a scenario, or a profile. Before
-   creating the canonical chain, verify that this pinned pair is also declared
-   by the archived project's `compatibility.json` and `manifest.json`, and that
-   the isolated runtime contains exactly that engine. This prevents a
-   plausible-looking archive and separately installed engine from failing at
-   the first normal `stage start`.
-2. Freeze the profiles, prompts, interactions and one accepted assessment.
-   The assessment defines outcome/flow criteria, golden decisions, valid
-   alternatives and known risks. Profiles describe
-   the Desktop harness, model and reasoning only; they do not select an engine.
-   Candidate files must include every semantic SSOT needed by the Judge and any
-   deterministic projection whose integrity is scored as flow evidence. For the
-   specification-006 contour this means both `specify.json` and `specify.md`,
-   while `code-work-batch.json` is retained as generated evidence rather than a
-   second semantic answer.
-3. Build and accept the Codex canonical Subject chain using
-   [the eval execution runbook](execute-eval.md). It establishes the shared
-   revision and the canonical RUN snapshots.
-4. For every additional harness, replay the same ordinary discussion and
-   stage chain on the same pinned project/engine pair. Capture each entry with
-   `--harness <harness>` and the **same revision**. Acceptance extends the
-   existing stage checkpoint with `subject_by_harness` and
-   `harness_evidence`; it does not create another semantic revision.
-5. At every accepted stage entry, store the moving canonical Session ID and
-   untouched frozen checkpoint Session ID for that harness in
-   `checkpoints/<stage>.json`.
-6. Fork every frozen checkpoint Session once inside its own harness. Title
-   each untouched child `START <case-id> <STAGE>-entry · <harness>` and send it
-   no message. For a read-only ZCode entry, create the protected idle Session
-   instead and use deterministic replay; native ZCode fork is not available
-   until a real workspace-writing checkpoint exists.
-7. Register each Codex child by calling:
+1. Commit the case inputs and select a reference-build profile.
+2. Set an absolute `DD_EVAL_HOME` and run:
 
    ```sh
-   dd-eval starter set --case <case-id> --stage <stage> \
-     --session-id <starter-session-id> \
-     --parent-session-id <frozen-checkpoint-session-id>
+   dd-eval runner canonical build --profile \
+     cases/<case-id>/run-profiles/<reference>.json
    ```
 
-   Register an additional harness with the same command plus its explicit
-   harness:
+   The runner allocates a pending revision and journals every reference action.
+   The reference chain is provenance only: its provider Session is never an
+   input to a routine eval.
+3. Before each reference stage starts, capture the project/RUN boundary and
+   construct that stage's portable descriptor. After the stage ends, review
+   the result explicitly; boundary acceptance captures the successor input but
+   does not itself send another provider prompt.
+4. Run mechanical validation for paths, hashes, flow state, workspace route,
+   absence of live Work/provider identity and dynamic-role containment.
+5. Run isolated context qualification for every focused entry and then E2E.
+   Use normal launchers, preserve tool/transcript evidence and correct only
+   demonstrated package gaps.
+6. Obtain clean semantic review plus explicit human acceptance. The final
+   acceptance writes `entry-pack.json`, updates `case.json.entry_pack`, and
+   leaves the definition ready for Git review/commit/push.
 
-   ```sh
-   dd-eval starter set --case <case-id> --stage <stage> \
-     --harness zcode-acp \
-     --session-id <zcode-starter-session-id> \
-     --parent-session-id <zcode-frozen-checkpoint-session-id> \
-     --seed-mode deterministic_replay
-   ```
+A changed task fact, predecessor result, source map, project/runtime snapshot,
+flow pack or engine identity requires a new revision and recapture of dependent
+entries. A changed scoring methodology alone does not.
 
-   After every fully accepted new canonical revision, the first `starter set`
-   call intentionally replaces the old revision's registry. It does so only
-   after it has verified that every stage checkpoint belongs to the same
-   accepted revision; do not edit `starter-sessions.json` by hand.
+## Required acceptance checks
 
-   The command checks the declared parent against the accepted frozen
-   checkpoint and updates `starter-sessions.json`.
-8. Verify every starter is reachable, idle, has no live child and is directly
-   parented by its protected source Session in the same harness.
-9. Commit and push the input checkpoint, case definition and current starter
-   registry.
-10. Run authoring/scored validation before the first attempt.
+Before marking `case.json.status` as `ready`, prove that each accepted entry:
 
-If the case will compare a fixed profile matrix, add one scenario under
-`scenarios/`. Keep generic lifecycle rules in `runbooks/execute-eval.md`; the
-scenario contains only the concrete profiles, selections, order and comparison
-policy. Resolve profile IDs from the current case; a scenario must never copy
-the input checkpoint's beta version, tag or SHA.
+- restores a contained project/runtime snapshot with matching hashes;
+- contains the right RUN state and no later-stage artifact;
+- resolves every dynamic role inside the restored attempt;
+- materializes the same semantic context hash in a clean temporary restore;
+- supplies all accepted decisions needed by the stage, without a private
+  reference conversation;
+- has a successful isolated qualification receipt and an explicit semantic
+  review;
+- is free of provider Sessions, hook claims, usage samples and other reference
+  observability state.
 
-## Starter recovery
-
-Use this only when a starter was advanced, deleted or became unreachable:
-
-1. stop routine launches for the affected stage;
-2. read its canonical checkpoint record and select the subject for the
-   affected harness;
-3. verify the frozen checkpoint Session and archive still match the accepted
-   checkpoint;
-4. fork that frozen Session and send the child no message;
-5. give it the normal `START <case-id> <STAGE>-entry` title;
-6. replace only that stage and harness through `dd-eval starter set`; do not
-   edit `starter-sessions.json` by hand;
-7. verify parentage and idleness, then commit and push the registry change;
-8. resume routine launches.
-
-Do not create a new canonical-chain revision merely because a starter was
-replaced. A canonical revision changes only when canonical conversation,
-project/RUN state, engine/flow identity or accepted stage content changes.
-
-## Routine launch boundary
-
-The Controller follows
-[the eval execution runbook](execute-eval.md). It obtains the
-starter ID from `dd-eval prepare`; `prepare` reads it from the committed
-`starter-sessions.json` and does not accept a manual override. The Controller
-forks that Session, records the new child
-with `parent_session_id=<starter-session-id>`, and sends the generated Subject
-continuation only to the child. For `seed_mode=deterministic_replay`, it creates
-a fresh ZCode Session instead, records it without a fictional parent and sends
-the same generated Subject continuation; the restored RUN snapshot makes this
-the exact stage entry.
-
-The Controller must not read canonical Session IDs from checkpoint records.
-Canonical access belongs only to case creation and starter recovery.
+For any new harness, reuse the same accepted portable package. Harness-native
+fork capability is neither required nor a fallback path; it can be evaluated
+separately as a session-continuity experiment.

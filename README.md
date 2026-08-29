@@ -35,7 +35,10 @@ defines the implemented Grok integration. The common
 [OpenCode harness specification 015](specs/015-opencode-harness-integration.md)
 define the next backend integration; the
 [2026-08-29 OpenCode research record](runbooks/dd-opencode-research-2026-08-29.md)
-captures the safe live transport and native export/import probes. Operational procedures remain in
+captures the safe live transport and native export/import probes. The proposed
+[deterministic runner and portable stage-entry specification 017](specs/017-deterministic-eval-runner-and-portable-stage-entry.md)
+replaces routine focused-stage Session forks with a harness-neutral Eval Entry
+Pack and a new empty Subject Session. Operational procedures remain in
 the [case-creation runbook](runbooks/create-eval-case.md) and
 [eval execution runbook](runbooks/execute-eval.md). Non-Git attempts,
 canonical snapshots and retention follow the [storage runbook](runbooks/eval-storage.md).
@@ -293,59 +296,28 @@ accepted commit.
 The command-line executable is named `dd-eval`. `dd-deval` is not an alias and
 must not appear in manifests, documentation, reports, or automation.
 
-The commands below implement the `case@5` contract from specifications 002 and 005.
-Portable stage fixtures are not executable input for a scored run.
+The active contract is `case@6` and [specification 017](specs/017-deterministic-eval-runner-and-portable-stage-entry.md).
+It uses one portable entry pack, a new empty Subject Session for every focused
+stage, and `dd-eval runner` as the only ordinary command surface.
 
-`sdlc-eval-2026-summer-task-priority` is the initial bounded planning case. It
-supports independent checks of `SPECIFY`, `PROTOCOLIZE`, `PLAN` and
-`PLAN-REVIEW`, plus a pre-CODE end-to-end contour ending at
-`plan_review_accepted`.
-
-The case's `checkpoint.id` points to one immutable repository-level input
-checkpoint. That file binds the exact product checkpoint, flow-pack and engine;
-the case, scenarios and profiles reference it instead of copying those values.
+`sdlc-eval-2026-summer-task-priority` declares the full
+`SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW → CODE → CODE-REVIEW` contour.
+Its entry pack contains the initial E2E boundary plus an independent accepted
+boundary for every focused stage. The package, rather than a provider Session
+or fork, is the comparable cross-harness input.
 
 ```sh
-dd-eval validate --case sdlc-eval-2026-summer-task-priority
-dd-eval prepare \
-  --case sdlc-eval-2026-summer-task-priority \
-  --focus specify,protocolize,plan,plan-review --e2e
+export DD_EVAL_HOME="$HOME/.dd-eval"
+dd-eval runner fixtures validate --case sdlc-eval-2026-summer-task-priority
+dd-eval runner eval run --profile \
+  cases/sdlc-eval-2026-summer-task-priority/run-profiles/<profile>.json
 ```
 
-To evaluate a contiguous handoff in one Subject continuation, prepare it
-separately:
-
-```sh
-dd-eval prepare \
-  --case sdlc-eval-2026-summer-task-priority \
-  --segment plan..plan-review
-```
-
-Each case has versioned default profiles. The current summer case runs the
-Subject as `gpt-5.6-luna` with `xhigh` reasoning and the independent Judge as
-`gpt-5.6-sol` with `high` reasoning. Pass any `--controller-profile`,
-`--subject-profile`, or `--judge-profile` flag only for an explicit per-run
-override; the manifest records both the effective profile and whether it came
-from the case default or command line.
-
-`prepare` resolves the selected canonical stage-entry checkpoint, restores an
-independent copy of its exact project and RUN, and returns the selected
-profile's current starter Subject Session plus ordinary continuation packet. A
-native fork preserves the profile's primed context; the harness explicitly sets
-the declared model and reasoning when it sends the first continuation, then
-verifies the provider turn before a candidate can be judged. Each Subject profile has its own primed
-baseline and protected starters. It never reconstructs a
-later stage from a portable semantic fixture. The Subject never receives
-evaluation wording, assessment criteria or golden decisions. Draft checkpoints and draft assessment
-fail closed.
-
-The Controller records every root/child session, syncs engine-owned runtime
-evidence and usage when available, checkpoints candidate artifacts, then gives
-a clean Judge session only the corresponding packet. Final reports are rendered
-from accepted Judge results.
-
-The older smoke-run material below is retained as historical evidence; it is
-not an active CLI contract.
+The runner restores isolated project/runtime state, materializes the active
+context slice, creates the Session, records the exact launcher and reconciles
+the final provider turn with `dd-flow`. A chat reply alone never completes a
+stage. Subject-visible input excludes assessment, golden answers and HITL
+selection rationale; a clean Judge receives immutable candidate evidence only.
 
 ## Materialized run repositories
 

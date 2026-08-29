@@ -1,0 +1,1 @@
+{"schema_id":"dd-eval/context-oracle@1","stage":"specify","required_roles":["initial_user_request","project_index","flow_index"],"forbidden":["future-stage artifacts"]}
