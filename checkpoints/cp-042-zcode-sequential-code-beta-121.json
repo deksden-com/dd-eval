@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "cp-042-zcode-sequential-code-beta-121",
+  "title": "cp-042 ZCode sequential CODE coordination beta.121",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.121",
+    "commit": "e541118fed3c05a7dbb2b6331ccadb37d026f47d"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.121",
+    "dd_flow_cli": "0.8.0-beta.120",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.120",
+      "commit": "311f3e30a6d4fb8b0103022c8de0117047eca30c"
+    }
+  },
+  "harnesses": {
+    "zcode-acp": {
+      "zcode": "0.16.5",
+      "zcode_acp": "0.13.1",
+      "tag": "eval-zcode-acp-0.13.1",
+      "commit": "bf21f38dcbb85b8f98cd7ab3062aa050d1b5777c",
+      "contract": "dd-zcode-harness@1"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "A sequential CODE graph is executed in the coordinator Session so an ACP child cancellation cannot strand a claimed Work.",
+    "This pair supersedes cp-041 for the ZCode canonical capture; product code remains at cp-002."
+  ]
+}

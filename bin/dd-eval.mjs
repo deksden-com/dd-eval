@@ -25,8 +25,8 @@ function usage() {
 
 Usage:
   dd-eval validate --case <case-id> [--require authoring|scored] [--source <dd-tasks>]
-  dd-eval starter set --case <case-id> --stage <stage> --session-id <id> --parent-session-id <protected-checkpoint-id> [--harness codex-desktop|zcode-acp|grok-acp]
-  dd-eval checkpoint capture --case <case-id> --stage <stage> --project-root <path> --flow-run <RUN> --canonical-subject-session <id> --checkpoint-subject-session <id> [--harness codex-desktop|zcode-acp|grok-acp] [--revision REV-NNN] [--dd-flow-home <path>]
+  dd-eval starter set --case <case-id> --stage <stage> --session-id <id> --parent-session-id <protected-checkpoint-id> [--harness codex-desktop|zcode-acp|grok-acp] [--seed-mode native_fork|deterministic_replay] [--session-archive <path>]
+  dd-eval checkpoint capture --case <case-id> --stage <stage> --project-root <path> --flow-run <RUN> --canonical-subject-session <id> --checkpoint-subject-session <id> [--harness codex-desktop|zcode-acp|grok-acp] [--session-archive <path>] [--revision REV-NNN] [--dd-flow-home <path>]
   dd-eval checkpoint accept --case <case-id> --stage <stage> --record <capture.json> --review <review.md>
   dd-eval prepare --case <case-id> (--focus <csv>|--segment <start..end>|--e2e) [--scenario <relative-case-path>] [--output <DD_EVAL_HOME-contained-path>] [--controller-profile <id>] [--subject-profile <id>] [--judge-profile <id>] [--source <dd-tasks>]
   dd-eval session add --eval <prepared-dir> --execution <id> --role <controller|subject_base|subject|judge> --session-id <id> [--harness codex-desktop|zcode-acp|grok-acp] [--adapter-session-id <id>] [--daemon-id <id>] [--parent-session-id <id>] [--agent-id <id>] [--observed-profile-json <json>]
@@ -74,7 +74,7 @@ try {
     result = await validateInput({ caseId: required(options, "case"), source: options.source || defaultSource(), requireMode: options.require || "authoring" });
     result = { case_id: result.definition.id, checkpoint_id: result.checkpoint.id, source_commit: result.checkpoint.source.commit, require: options.require || "authoring" };
   } else if (family === "starter" && command === "set") {
-    result = await setStarterSession({ caseId: required(options, "case"), stage: required(options, "stage"), sessionId: required(options, "session-id"), parentSessionId: required(options, "parent-session-id"), harness: options.harness });
+    result = await setStarterSession({ caseId: required(options, "case"), stage: required(options, "stage"), sessionId: required(options, "session-id"), parentSessionId: required(options, "parent-session-id"), harness: options.harness, ...(options["seed-mode"] ? { seedMode: options["seed-mode"] } : {}), ...(options["session-archive"] ? { sessionArchive: options["session-archive"] } : {}) });
   } else if (family === "prepare") {
     result = await prepare({
       caseId: required(options, "case"), source: options.source || defaultSource(), output: options.output,
@@ -86,7 +86,7 @@ try {
   } else if (family === "sync") {
     result = await sync({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), projectRoot: required(options, "project-root"), ...(options["flow-run"] ? { flowRunId: options["flow-run"] } : {}) });
   } else if (family === "checkpoint" && command === "capture") {
-    result = await captureCanonicalCheckpoint({ caseId: required(options, "case"), stage: required(options, "stage"), revision: options.revision, projectRoot: required(options, "project-root"), flowRunId: required(options, "flow-run"), runtimeHome: options["dd-flow-home"] || process.env.DD_FLOW_HOME || required(options, "dd-flow-home"), canonicalSubjectSessionId: required(options, "canonical-subject-session"), checkpointSubjectSessionId: required(options, "checkpoint-subject-session"), harness: options.harness, ...(options["agent-id"] ? { agentId: options["agent-id"] } : {}) });
+    result = await captureCanonicalCheckpoint({ caseId: required(options, "case"), stage: required(options, "stage"), revision: options.revision, projectRoot: required(options, "project-root"), flowRunId: required(options, "flow-run"), runtimeHome: options["dd-flow-home"] || process.env.DD_FLOW_HOME || required(options, "dd-flow-home"), canonicalSubjectSessionId: required(options, "canonical-subject-session"), checkpointSubjectSessionId: required(options, "checkpoint-subject-session"), harness: options.harness, ...(options["session-archive"] ? { sessionArchive: options["session-archive"] } : {}), ...(options["agent-id"] ? { agentId: options["agent-id"] } : {}) });
   } else if (family === "checkpoint" && command === "accept") {
     result = await acceptCanonicalCheckpoint({ caseId: required(options, "case"), stage: required(options, "stage"), recordFile: required(options, "record"), reviewFile: required(options, "review") });
   } else if (family === "checkpoint" && command === "rematerialize") {

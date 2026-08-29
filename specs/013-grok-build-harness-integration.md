@@ -1,7 +1,7 @@
 # Specification 013: Grok Build harness integration
 
-Status: implemented; live conformance passed
-Date: 2026-08-28  
+Status: harness implemented; archive-backed canonical-starter workflow and ACP lifecycle interception validated
+Date: 2026-08-29
 Owner: `dd-eval`  
 Affected repositories: `dd-eval`, `dd-flow-cli`  
 Initial harness profile: `grok-acp`  
@@ -75,8 +75,10 @@ Out of scope for the first version:
 - nested subagents beyond Grok's native depth-one limit;
 - accepting user plugins, user hooks, user MCP servers or foreign harness
   compatibility state as part of a scored profile;
-- reading or mutating Grok's internal Session files as a production control
-  plane;
+- reading or mutating arbitrary Grok internal state. The narrowly scoped,
+  version-pinned Session archive described below is the sole exception: it is
+  needed because Grok Build 1.0.12 persists Sessions locally rather than
+  resolving them by provider ID;
 - patching or forking `xai-org/grok-build` unless a conformance blocker is
   demonstrated against the pinned release;
 - exact dollar cost when the provider marks cost absent or partial.
@@ -111,6 +113,63 @@ for one execution.
 own execution identity, journal ordering, hook configuration and settled
 cleanup. `grok agent leader` is rejected for scored work because it is shared
 across executions and weakens version/configuration isolation.
+
+### Archive-backed canonical starters (observed 2026-08-29)
+
+Live conformance against Grok Build `1.0.12` established two provider facts:
+
+1. `session/load` with an otherwise clean `GROK_HOME` fails with `Path not
+   found`; the provider Session ID alone is not a portable restore handle.
+2. Native `_x.ai/session/fork` writes its child below the child's `newCwd`, but
+   does not make that child resident in the ACP process that performed the
+   fork. A child must therefore be reopened from its own local state before it
+   receives a first prompt.
+
+`dd-grok session archive` is the deliberately small portability boundary. It
+exports only the one Session directory and a non-secret manifest:
+
+```text
+<archive>/manifest.json  # schema, provider_session_id, source_cwd, Grok version
+<archive>/session/       # the provider's local files for exactly that Session
+```
+
+It never includes `auth.json`, `config.toml`, hooks, bundled skills, model
+cache, MCP configuration, or another Session. The archive and all copied files
+are private to the execution owner (`0700` directories, `0600` files), reject
+symbolic links, and are valid only for the pinned Grok Build version. A new
+`dd-grok daemon start --session-archive <archive>` creates a fresh managed
+`GROK_HOME`, copies normal auth independently, materializes the archive before
+ACP starts, and obtains its cwd from the manifest. A caller-supplied different
+cwd fails closed.
+
+Consequently the durable native-fork chain has one archive handoff per local
+fork generation:
+
+```text
+canonical Session
+  -> native fork -> frozen checkpoint Session -> frozen archive
+  -> native fork -> untouched starter Session -> starter archive
+  -> native fork -> evaluated child Session -> evaluated-child archive
+  -> new evaluation daemon -> first evaluated-child prompt
+```
+
+The frozen checkpoint and starter themselves receive no prompt. A controller
+forks from the starter only in a short archive-builder daemon, then starts the
+evaluation daemon from the evaluated-child archive; that daemon can load,
+prompt, inspect and cancel the child under the normal isolated configuration.
+The validated disposable chain completed the first evaluated-child turn with
+`end_turn`, zero tool calls, provider usage, and a clean daemon shutdown. This
+preserves native provider context without treating arbitrary user-level Grok
+state as configuration input. Checkpoint and starter registries record the
+archive locator and its tree checksum; `dd-eval prepare` carries the starter
+receipt as `subject_starter_archive` in its launch output.
+
+Grok Build's ACP server exposes terminal tools as `run_terminal_command` and
+does not reliably execute file-configured hooks in headless ACP mode. The
+daemon therefore observes ACP `tool_call` notifications directly before the
+permission decision, forwarding only commands containing `dd-flow` as trusted
+`grok event handle` evidence. File hooks remain available for interactive
+clients but are not the daemon trust boundary.
 
 ## Harness identity
 

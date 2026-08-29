@@ -70,6 +70,11 @@ server alive for the whole execution and synchronously forwards
 dd-flow zcode event handle --project-root <absolute-root> --json
 ```
 
+`--dd-flow-home` and `--project-root` are a pair. With that pair, the daemon
+uses `dd-flow` from the worker's `PATH` unless `--dd-flow-bin` pins an absolute
+executable; the latter is preferable when the eval requires a particular CLI
+build.
+
 The adapter turns root and subagent Bash calls into the existing trusted
 lifecycle receipt. A child is identified by ZCode's native `childSessionId`;
 its dd-flow identity is `zcode-acp:<childSessionId>` and its immutable parent is
@@ -146,11 +151,20 @@ dd-zcode session prompt --state-dir <attempt>/zcode \
 
 dd-zcode session inspect --state-dir <attempt>/zcode \
   --session-id <native-id> --adapter-session-id <adapter-id> --json
+dd-zcode session cancel-child --state-dir <attempt>/zcode \
+  --session-id <native-id> --adapter-session-id <adapter-id> \
+  --child-session-id <native-child-id> --json
 dd-zcode session cancel --state-dir <attempt>/zcode \
   --session-id <native-id> --adapter-session-id <adapter-id> --json
 
 dd-zcode daemon stop --state-dir <attempt>/zcode --cancel-tree --json
 ```
+
+Use `cancel-child` to recover one failed worker while its parent orchestrator
+must continue: it cancels only that child and keeps the parent's ACP listener
+and trusted lifecycle forwarding alive. `session cancel` and `daemon stop
+--cancel-tree` are terminal tree operations; they cancel the parent too and
+must not be used as a worker retry mechanism.
 
 `daemon stop` must prove an empty running tree. An unclean daemon death while a
 descendant was running makes the scored attempt `invalid_harness_crash`; a new
@@ -178,11 +192,21 @@ cleanup. `invalid_harness_crash` and `partial_cancellation` make the attempt
 `runbooks/beta-contour.md` and do not checkpoint or score it.
 
 Focused-stage evals require an accepted canonical checkpoint and untouched
-starter for the same harness. Build the Codex canonical revision first, then
-capture and accept the ZCode entry for every stage with the same revision; this
-extends `subject_by_harness.zcode-acp`. Fork each accepted ZCode checkpoint
-once and register it with `dd-eval starter set --harness zcode-acp`. E2E evals
-start clean and do not need a starter.
+starter for the same harness. A cross-model comparison normally builds the
+Codex canonical revision first and adds ZCode evidence to the same revision.
+When the evaluated beta pair itself is being qualified through ZCode, ZCode may
+instead be the **primary canonical harness** for a new revision: capture and
+accept each ZCode entry before its stage starts, then point the case at that
+revision. Do not mix project/runtime snapshots from different beta pairs.
+ZCode cannot fork a read-only session:
+its native `session/fork` requires a real workspace checkpoint. Never write a
+dummy product file merely to satisfy that limitation. Register an idle ZCode
+starter with `dd-eval starter set --harness zcode-acp --seed-mode
+deterministic_replay`; `dd-eval prepare` then directs the Controller to create
+a fresh Session after restoring the checkpoint and to send the generated stage
+packet. This is a replay of the stage entry, not a claimed native child. Where
+ZCode has a real checkpoint, `native_fork` remains valid. E2E evals start
+clean and do not need a starter.
 Version or observed-profile drift is an infrastructure-invalid attempt, never a
 substitute profile.
 

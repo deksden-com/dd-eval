@@ -19,8 +19,10 @@ test("daemon preserves a live background tree across CLI processes and cancels i
   const stateDir = path.join(root, "state");
   const bridge = path.join(root, "fake-acp.mjs");
   const zcode = path.join(root, "fake-zcode.mjs");
+  const flow = path.join(root, "fake-dd-flow.mjs");
   const journal = path.join(root, "evidence", "events.jsonl");
   await writeFile(zcode, `if (process.argv.includes("--version")) process.stdout.write("0.16.5\\n");`);
+  await writeFile(flow, `process.stdin.resume(); process.stdin.on("end", () => process.stdout.write('{"ok":true}\\n'));`);
   await writeFile(bridge, `
     import readline from "node:readline";
     if (process.argv.includes("--version")) { process.stdout.write("0.13.1\\n"); process.exit(0); }
@@ -54,11 +56,16 @@ test("daemon preserves a live background tree across CLI processes and cancels i
       send({ jsonrpc: "2.0", id, result });
     });
   `);
-  const daemonArgs = ["--state-dir", stateDir, "--cwd", root, "--journal", journal, "--zcode-acp-bin", bridge, "--zcode-path", zcode];
+  const daemonArgs = ["--state-dir", stateDir, "--cwd", root, "--journal", journal, "--zcode-acp-bin", bridge, "--zcode-path", zcode, "--dd-flow-bin", flow, "--dd-flow-home", root, "--project-root", root];
   const profileArgs = ["--provider", "builtin:zai-coding-plan", "--model", "GLM-5.3", "--reasoning", "high", "--mode", "yolo"];
   try {
+    const fallbackState = path.join(root, "fallback-state");
+    const fallback = await run(["daemon", "start", "--state-dir", fallbackState, "--cwd", root, "--journal", path.join(root, "fallback-events.jsonl"), "--zcode-acp-bin", bridge, "--zcode-path", zcode, "--dd-flow-home", root, "--project-root", root]);
+    assert.equal(fallback.config.ddFlowBin, "dd-flow");
+    await run(["daemon", "stop", "--state-dir", fallbackState]);
     const started = await run(["daemon", "start", ...daemonArgs]);
     assert.equal(started.shutdown_state, "running");
+    assert.equal(started.config.ddFlowBin, flow);
     assert.equal((await stat(path.join(stateDir, "daemon.sock"))).mode & 0o777, 0o600);
     const created = await run(["session", "create", "--state-dir", stateDir, ...profileArgs, "--prompt", "prime"]);
     assert.equal(created.provider_session_id, "native-root");
@@ -103,6 +110,7 @@ test("daemon preserves a live background tree across CLI processes and cancels i
       (error) => JSON.parse(error.stderr).code === "invalid_harness_crash"
     );
   } finally {
+    try { await run(["daemon", "stop", "--state-dir", path.join(root, "fallback-state"), "--cancel-tree"]); } catch {}
     try { await run(["daemon", "stop", "--state-dir", stateDir, "--cancel-tree"]); } catch {}
     try { await run(["daemon", "stop", "--state-dir", path.join(root, "crash-state"), "--cancel-tree"]); } catch {}
     await rm(root, { recursive: true, force: true });

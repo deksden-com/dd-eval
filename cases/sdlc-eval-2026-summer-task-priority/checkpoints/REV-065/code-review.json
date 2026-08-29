@@ -1,0 +1,1280 @@
+{
+  "schema_id": "dd-eval/canonical-stage-checkpoint@2",
+  "case_id": "sdlc-eval-2026-summer-task-priority",
+  "revision": "REV-065",
+  "stage": "code-review",
+  "harness": "codex-desktop",
+  "status": "accepted",
+  "runtime_snapshot": {
+    "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-065/checkpoints/code-review-entry/snapshot",
+    "sha256": "142f575b92dc7a61870105a2d22eff0791841a261db1ca080b341ec9342bb066"
+  },
+  "subject": {
+    "canonical_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+    "checkpoint_session_id": "01a04a77-a9ea-73e2-ba13-3aa4aaca9fe6",
+    "agent_id": null
+  },
+  "captured_at": "2026-08-28T22:23:01.427Z",
+  "engine_receipt": {
+    "ok": true,
+    "snapshot": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/checkpoints/code-review-entry/snapshot",
+    "schema_id": "dd-flow/eval-run-snapshot@3",
+    "run_id": "RUN-001-task-priority",
+    "project_id": "PRJ-001-project",
+    "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/project",
+    "dd_flow_home": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/runtime",
+    "stage_entry": "code-review",
+    "created_at": "2026-08-28T22:22:58.770Z",
+    "runtime_sha256": "216ab691cd61b90cf373355ccb9c2873041c4418934a5e5b68994187b931b787",
+    "project_sha256": "1222420bd530f34c29f6512dca4bca3640be251e9ff837f792fe861e18aeb51b",
+    "workspace": {
+      "kind": "git_worktree",
+      "source_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/runtime/projects/PRJ-001-project/checkouts/worktrees/RUN-RUN-001/project",
+      "branch": "feature/run-run-001-task-priority",
+      "base_ref": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+      "sha256": "183f397930f5809f75e770367a13f52a2dff48821c093c1361332a6722f2fd1a",
+      "bundle_sha256": "72e767636a6b70946cfc524cb714f82c3cf29d25c60fffaaf5e269b7c5cd8b3d"
+    },
+    "source_status": {
+      "ok": true,
+      "run": {
+        "id": "RUN-001-task-priority",
+        "short_id": "RUN-001",
+        "slug": "task-priority",
+        "project_id": "PRJ-001-project",
+        "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/project",
+        "workspace_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/runtime/projects/PRJ-001-project/checkouts/worktrees/RUN-RUN-001/project",
+        "flow_kind": "vnext_protocolize",
+        "subject": {
+          "type": "discussion",
+          "id": "SPECIFY"
+        },
+        "status": "running",
+        "verdict": "code_completed",
+        "next_action": "start_code_review",
+        "runtime_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority/run.json",
+        "run_dir": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
+        "run_index_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority/run.json",
+        "run_home_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
+        "layout_version": "home_run_v2",
+        "artifact_root_kind": "dd_flow_home",
+        "created_at": "2026-08-28T20:19:14.712Z",
+        "updated_at": "2026-08-28T22:22:18.398Z",
+        "completed_at": null
+      },
+      "index": {
+        "schema_id": "dd-flow/flow-run@3",
+        "run_id": "RUN-001-task-priority",
+        "short_id": "RUN-001",
+        "flow_kind": "vnext_protocolize",
+        "subject": {
+          "id": "SPECIFY",
+          "title": "SPECIFY"
+        },
+        "project": {
+          "id": "PRJ-001-project",
+          "title": "project"
+        },
+        "workspace": {
+          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/project",
+          "workspace_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/runtime/projects/PRJ-001-project/checkouts/worktrees/RUN-RUN-001/project",
+          "branch": "feature/run-run-001-task-priority",
+          "base": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+          "manager": "official-worktrunk"
+        },
+        "run_home": {
+          "storage": "dd_flow_home",
+          "path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
+          "relative_path": "runs/RUN-001-task-priority"
+        },
+        "execution": {
+          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/project",
+          "workspace_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/runtime/projects/PRJ-001-project/checkouts/worktrees/RUN-RUN-001/project",
+          "git": {
+            "branch": "feature/run-run-001-task-priority",
+            "head": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+            "status": "dirty"
+          }
+        },
+        "legacy": {
+          "project_tasks_run_dir": null
+        },
+        "stage_runs": [
+          {
+            "order": 1,
+            "stage": "specify",
+            "dir": "01-specify",
+            "status": "done",
+            "data_schema_id": "dd-flow/specify@1",
+            "updated_at": "2026-08-28T20:27:50.909Z",
+            "started_at": "2026-08-28T20:22:48.438Z",
+            "duration_ms": 302471,
+            "git": {
+              "branch": "main",
+              "head": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+              "status": "clean"
+            },
+            "attempt": "try-001",
+            "paused_ms": 53093,
+            "stage_report": "stage-report.html",
+            "data": "specify.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-28T20:27:50.909Z"
+          },
+          {
+            "order": 2,
+            "stage": "protocolize",
+            "dir": "02-protocolize",
+            "status": "done",
+            "data_schema_id": "dd-flow/vnext-protocolize-result@3",
+            "updated_at": "2026-08-28T20:30:09.507Z",
+            "started_at": "2026-08-28T20:29:12.730Z",
+            "duration_ms": 56777,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "protocolize-result.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-28T20:30:09.507Z"
+          },
+          {
+            "order": 3,
+            "stage": "plan",
+            "dir": "03-plan",
+            "status": "done",
+            "data_schema_id": "dd-flow/stage-report@1",
+            "updated_at": "2026-08-28T20:41:43.197Z",
+            "started_at": "2026-08-28T20:32:18.678Z",
+            "duration_ms": 564519,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "stage-report.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-28T20:41:43.197Z"
+          },
+          {
+            "order": 4,
+            "stage": "plan-review",
+            "dir": "04-plan-review",
+            "status": "done",
+            "data_schema_id": "dd-flow/stage-report@1",
+            "updated_at": "2026-08-28T21:02:09.605Z",
+            "started_at": "2026-08-28T20:42:46.783Z",
+            "duration_ms": 1162822,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "stage-report.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-28T21:02:09.605Z"
+          },
+          {
+            "order": 5,
+            "stage": "code",
+            "dir": "05-code",
+            "status": "done",
+            "data_schema_id": "dd-flow/stage-report@1",
+            "updated_at": "2026-08-28T22:22:18.325Z",
+            "started_at": "2026-08-28T21:04:13.866Z",
+            "duration_ms": 4684459,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "stage-report.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-28T22:22:18.325Z"
+          }
+        ],
+        "sessions": [
+          {
+            "session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": null,
+            "role": null,
+            "session_kind": "orchestrator",
+            "work_id": "WRK-001-root",
+            "current_stage": "code",
+            "status": "active",
+            "created_at": "2026-08-28T20:22:31.306Z",
+            "updated_at": "2026-08-28T21:04:14.283Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a1e-1331-7032-ba0b-ee31d2bf0a62",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg-02",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T20:44:50.742Z",
+            "updated_at": "2026-08-28T20:49:06.178Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a1e-140c-7923-b5a4-61f6fddbd1b8",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg-03",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T20:44:52.194Z",
+            "updated_at": "2026-08-28T20:50:25.038Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a1e-11c4-7350-866e-8dc4a6bdc55e",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg-01",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T20:44:52.410Z",
+            "updated_at": "2026-08-28T20:51:59.982Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a1e-15d8-75c3-ad6f-3e25f4f94718",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg-05",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T20:44:52.831Z",
+            "updated_at": "2026-08-28T20:50:00.115Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a1e-1877-7c53-be8c-97de60fbeb6e",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg-04",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T20:44:53.637Z",
+            "updated_at": "2026-08-28T20:49:57.437Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a1e-19c4-7342-9e71-e9375ddaf066",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg-06",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T20:44:53.690Z",
+            "updated_at": "2026-08-28T20:50:30.029Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a30-7fb2-7420-a796-ae804994ab53",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-005-prt-007-task-priority-p1",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T21:05:02.512Z",
+            "updated_at": "2026-08-28T21:15:35.182Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a3a-f686-70d3-a2cb-b47a4fa2f0f0",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-005-prt-007-task-priority-p2",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T21:16:29.755Z",
+            "updated_at": "2026-08-28T21:26:37.001Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a3a-f8de-7ac1-8ee0-72976f004ec9",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-005-prt-007-task-priority-p3",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T21:16:32.047Z",
+            "updated_at": "2026-08-28T21:25:25.999Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a45-2a28-7e43-8b95-607e5f2b4426",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-005-prt-007-task-priority-p4",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T21:27:38.658Z",
+            "updated_at": "2026-08-28T21:39:25.547Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a5a-a62a-76c0-9607-4f4e6664047f",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-006-code-review-repair",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T21:51:02.487Z",
+            "updated_at": "2026-08-28T22:06:54.180Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a6e-b250-7cf2-937f-c09e1abfbdce",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-007-code-review-repair",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T22:12:56.619Z",
+            "updated_at": "2026-08-28T22:19:44.940Z",
+            "stopped_at": null,
+            "coverage_units": []
+          }
+        ],
+        "status": "running",
+        "verdict": "code_completed",
+        "next_action": "start_code_review",
+        "created_at": "2026-08-28T20:19:14.712Z",
+        "updated_at": "2026-08-28T22:22:18.398Z",
+        "started_at": "2026-08-28T20:19:14.712Z",
+        "timing_status": "measured",
+        "runtime_revision": 68,
+        "snapshot_revision": 1,
+        "snapshot_checksum": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reconciliation_status": "reconciled",
+        "flow_flags": {
+          "contract": {
+            "id": "dd-flow-canonical-2026-08",
+            "version": 6,
+            "capabilities": [
+              "flow_run_snapshot.v1",
+              "session_coverage_units.v1",
+              "privacy_safe_observability.v1",
+              "canonical_protocol_plan.v1",
+              "stage_bootstrap_context_packet.v1"
+            ]
+          },
+          "flow_kind": "vnext_protocolize",
+          "preset": {
+            "requested": null,
+            "applied": "none",
+            "source_ref": "dd-flow-canonical-2026-08#flow_flags.none"
+          },
+          "snapshot_revision": 1,
+          "resolution_status": "valid",
+          "resolved_at": "2026-08-28T20:19:14.712Z",
+          "values": {},
+          "compatibility_projection": {
+            "task_profile_revision": null,
+            "legacy_flow_profile_read": false
+          },
+          "snapshot_checksum": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "floors_applied": []
+        },
+        "settings": {
+          "plan_review": {
+            "mode": "auto",
+            "source": "default",
+            "reason": "Project execution profile default.",
+            "updated_at": "2026-08-28T20:19:14.712Z"
+          },
+          "code_review": {
+            "mode": "auto",
+            "source": "default",
+            "reason": "Project execution profile default.",
+            "updated_at": "2026-08-28T20:19:14.712Z"
+          }
+        },
+        "execution_profile": {
+          "schema_id": "dd-flow/run-execution-profile@1",
+          "source_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/project/.memory-bank/dd-flow/project-execution.json",
+          "source_checksum": "002bb1413faf46581d0ab183fbbc855fa52a1132c0124e75ef0c199ec47f1c4b",
+          "settings": {
+            "stage_session_mode": "same_session",
+            "plan_review_mode": "auto",
+            "code_review_mode": "auto",
+            "stop_target": "code_review_completed",
+            "code_bootstrap": {
+              "command": "pnpm bootstrap",
+              "policy_ref": ".memory-bank/spec/operations/workspace-bootstrap-policy.md"
+            }
+          }
+        },
+        "artifacts": {
+          "stage_prompt": "stage-prompt.md",
+          "stage_report_json": "stage-report.json",
+          "stage_report_md": "stage-report.md",
+          "stage_report_html": "stage-report.html",
+          "summary": "summary.md"
+        },
+        "timeline_path": "timeline.jsonl",
+        "works": [
+          {
+            "work_id": "WRK-001-root",
+            "parent_work_id": null,
+            "status": "running",
+            "depends_on": [],
+            "launch_policy": "reuse_allowed",
+            "started_at": "2026-08-28T20:22:48.361Z",
+            "completed_at": null
+          },
+          {
+            "work_id": "WRK-002-plan",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "reuse_allowed",
+            "started_at": "2026-08-28T20:32:18.677Z",
+            "completed_at": "2026-08-28T20:41:43.158Z"
+          },
+          {
+            "work_id": "WRK-003-plan-review",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "reuse_allowed",
+            "started_at": "2026-08-28T20:42:46.777Z",
+            "completed_at": "2026-08-28T21:02:09.496Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg-01",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T20:44:52.410Z",
+            "completed_at": "2026-08-28T20:51:59.982Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg-02",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T20:44:50.742Z",
+            "completed_at": "2026-08-28T20:49:06.178Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg-03",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T20:44:52.194Z",
+            "completed_at": "2026-08-28T20:50:25.038Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg-04",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T20:44:53.637Z",
+            "completed_at": "2026-08-28T20:49:57.437Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg-05",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T20:44:52.831Z",
+            "completed_at": "2026-08-28T20:50:00.115Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg-06",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T20:44:53.690Z",
+            "completed_at": "2026-08-28T20:50:30.029Z"
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p1",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T21:05:02.512Z",
+            "completed_at": "2026-08-28T21:15:35.182Z"
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p2",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p1"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T21:16:29.755Z",
+            "completed_at": "2026-08-28T21:26:37.001Z"
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p3",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p1"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T21:16:32.047Z",
+            "completed_at": "2026-08-28T21:25:25.999Z"
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p4",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p2",
+              "WRK-005-prt-007-task-priority-p3"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T21:27:38.658Z",
+            "completed_at": "2026-08-28T21:39:25.547Z"
+          },
+          {
+            "work_id": "WRK-006-code-review-repair",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p1",
+              "WRK-005-prt-007-task-priority-p2",
+              "WRK-005-prt-007-task-priority-p3",
+              "WRK-005-prt-007-task-priority-p4"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T21:51:02.487Z",
+            "completed_at": "2026-08-28T22:06:54.180Z"
+          },
+          {
+            "work_id": "WRK-007-code-review-repair",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p1",
+              "WRK-005-prt-007-task-priority-p2",
+              "WRK-005-prt-007-task-priority-p3",
+              "WRK-005-prt-007-task-priority-p4",
+              "WRK-006-code-review-repair"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T22:12:56.619Z",
+            "completed_at": "2026-08-28T22:19:44.940Z"
+          }
+        ],
+        "root_work_id": "WRK-001-root",
+        "variables": {
+          "runtime.subagent.available_slots": 6
+        }
+      },
+      "runtime": {
+        "run_id": "RUN-001-task-priority",
+        "short_id": "RUN-001",
+        "flow_kind": "vnext_protocolize",
+        "subject": {
+          "id": "SPECIFY",
+          "title": "SPECIFY"
+        },
+        "project": {
+          "id": "PRJ-001-project",
+          "title": "project"
+        },
+        "workspace": {
+          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/project",
+          "workspace_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/runtime/projects/PRJ-001-project/checkouts/worktrees/RUN-RUN-001/project",
+          "branch": "feature/run-run-001-task-priority",
+          "base": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+          "manager": "official-worktrunk"
+        },
+        "run_home": {
+          "storage": "dd_flow_home",
+          "path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
+          "relative_path": "runs/RUN-001-task-priority"
+        },
+        "execution": {
+          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/project",
+          "workspace_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/runtime/projects/PRJ-001-project/checkouts/worktrees/RUN-RUN-001/project",
+          "git": {
+            "branch": "feature/run-run-001-task-priority",
+            "head": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+            "status": "dirty"
+          }
+        },
+        "legacy": {
+          "project_tasks_run_dir": null
+        },
+        "stage_runs": [
+          {
+            "order": 1,
+            "stage": "specify",
+            "dir": "01-specify",
+            "status": "done",
+            "data_schema_id": "dd-flow/specify@1",
+            "updated_at": "2026-08-28T20:27:50.909Z",
+            "started_at": "2026-08-28T20:22:48.438Z",
+            "duration_ms": 302471,
+            "git": {
+              "branch": "main",
+              "head": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+              "status": "clean"
+            },
+            "attempt": "try-001",
+            "paused_ms": 53093,
+            "stage_report": "stage-report.html",
+            "data": "specify.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-28T20:27:50.909Z"
+          },
+          {
+            "order": 2,
+            "stage": "protocolize",
+            "dir": "02-protocolize",
+            "status": "done",
+            "data_schema_id": "dd-flow/vnext-protocolize-result@3",
+            "updated_at": "2026-08-28T20:30:09.507Z",
+            "started_at": "2026-08-28T20:29:12.730Z",
+            "duration_ms": 56777,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "protocolize-result.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-28T20:30:09.507Z"
+          },
+          {
+            "order": 3,
+            "stage": "plan",
+            "dir": "03-plan",
+            "status": "done",
+            "data_schema_id": "dd-flow/stage-report@1",
+            "updated_at": "2026-08-28T20:41:43.197Z",
+            "started_at": "2026-08-28T20:32:18.678Z",
+            "duration_ms": 564519,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "stage-report.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-28T20:41:43.197Z"
+          },
+          {
+            "order": 4,
+            "stage": "plan-review",
+            "dir": "04-plan-review",
+            "status": "done",
+            "data_schema_id": "dd-flow/stage-report@1",
+            "updated_at": "2026-08-28T21:02:09.605Z",
+            "started_at": "2026-08-28T20:42:46.783Z",
+            "duration_ms": 1162822,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "stage-report.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-28T21:02:09.605Z"
+          },
+          {
+            "order": 5,
+            "stage": "code",
+            "dir": "05-code",
+            "status": "done",
+            "data_schema_id": "dd-flow/stage-report@1",
+            "updated_at": "2026-08-28T22:22:18.325Z",
+            "started_at": "2026-08-28T21:04:13.866Z",
+            "duration_ms": 4684459,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a41fda8b989040ed47fb9e78d248e8ca3dd3cf90",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "stage-report.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-28T22:22:18.325Z"
+          }
+        ],
+        "sessions": [
+          {
+            "session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": null,
+            "role": null,
+            "session_kind": "orchestrator",
+            "work_id": "WRK-001-root",
+            "current_stage": "code",
+            "status": "active",
+            "created_at": "2026-08-28T20:22:31.306Z",
+            "updated_at": "2026-08-28T21:04:14.283Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a1e-1331-7032-ba0b-ee31d2bf0a62",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg-02",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T20:44:50.742Z",
+            "updated_at": "2026-08-28T20:49:06.178Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a1e-140c-7923-b5a4-61f6fddbd1b8",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg-03",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T20:44:52.194Z",
+            "updated_at": "2026-08-28T20:50:25.038Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a1e-11c4-7350-866e-8dc4a6bdc55e",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg-01",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T20:44:52.410Z",
+            "updated_at": "2026-08-28T20:51:59.982Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a1e-15d8-75c3-ad6f-3e25f4f94718",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg-05",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T20:44:52.831Z",
+            "updated_at": "2026-08-28T20:50:00.115Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a1e-1877-7c53-be8c-97de60fbeb6e",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg-04",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T20:44:53.637Z",
+            "updated_at": "2026-08-28T20:49:57.437Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a1e-19c4-7342-9e71-e9375ddaf066",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg-06",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T20:44:53.690Z",
+            "updated_at": "2026-08-28T20:50:30.029Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a30-7fb2-7420-a796-ae804994ab53",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-005-prt-007-task-priority-p1",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T21:05:02.512Z",
+            "updated_at": "2026-08-28T21:15:35.182Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a3a-f686-70d3-a2cb-b47a4fa2f0f0",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-005-prt-007-task-priority-p2",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T21:16:29.755Z",
+            "updated_at": "2026-08-28T21:26:37.001Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a3a-f8de-7ac1-8ee0-72976f004ec9",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-005-prt-007-task-priority-p3",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T21:16:32.047Z",
+            "updated_at": "2026-08-28T21:25:25.999Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a45-2a28-7e43-8b95-607e5f2b4426",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-005-prt-007-task-priority-p4",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T21:27:38.658Z",
+            "updated_at": "2026-08-28T21:39:25.547Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a5a-a62a-76c0-9607-4f4e6664047f",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-006-code-review-repair",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T21:51:02.487Z",
+            "updated_at": "2026-08-28T22:06:54.180Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "01a04a6e-b250-7cf2-937f-c09e1abfbdce",
+            "harness": "codex-desktop",
+            "provider_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "parent_session_id": "01a04a06-e504-7ce1-8d32-11180a49ab5b",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-007-code-review-repair",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-28T22:12:56.619Z",
+            "updated_at": "2026-08-28T22:19:44.940Z",
+            "stopped_at": null,
+            "coverage_units": []
+          }
+        ],
+        "status": "running",
+        "verdict": "code_completed",
+        "next_action": "start_code_review",
+        "created_at": "2026-08-28T20:19:14.712Z",
+        "updated_at": "2026-08-28T22:22:18.398Z",
+        "started_at": "2026-08-28T20:19:14.712Z",
+        "timing_status": "measured",
+        "runtime_revision": 68,
+        "snapshot_revision": 1,
+        "snapshot_checksum": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reconciliation_status": "reconciled",
+        "flow_flags": {
+          "contract": {
+            "id": "dd-flow-canonical-2026-08",
+            "version": 6,
+            "capabilities": [
+              "flow_run_snapshot.v1",
+              "session_coverage_units.v1",
+              "privacy_safe_observability.v1",
+              "canonical_protocol_plan.v1",
+              "stage_bootstrap_context_packet.v1"
+            ]
+          },
+          "flow_kind": "vnext_protocolize",
+          "preset": {
+            "requested": null,
+            "applied": "none",
+            "source_ref": "dd-flow-canonical-2026-08#flow_flags.none"
+          },
+          "snapshot_revision": 1,
+          "resolution_status": "valid",
+          "resolved_at": "2026-08-28T20:19:14.712Z",
+          "values": {},
+          "compatibility_projection": {
+            "task_profile_revision": null,
+            "legacy_flow_profile_read": false
+          },
+          "snapshot_checksum": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "floors_applied": []
+        },
+        "settings": {
+          "plan_review": {
+            "mode": "auto",
+            "source": "default",
+            "reason": "Project execution profile default.",
+            "updated_at": "2026-08-28T20:19:14.712Z"
+          },
+          "code_review": {
+            "mode": "auto",
+            "source": "default",
+            "reason": "Project execution profile default.",
+            "updated_at": "2026-08-28T20:19:14.712Z"
+          }
+        },
+        "execution_profile": {
+          "schema_id": "dd-flow/run-execution-profile@1",
+          "source_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-065/workspace/project/.memory-bank/dd-flow/project-execution.json",
+          "source_checksum": "002bb1413faf46581d0ab183fbbc855fa52a1132c0124e75ef0c199ec47f1c4b",
+          "settings": {
+            "stage_session_mode": "same_session",
+            "plan_review_mode": "auto",
+            "code_review_mode": "auto",
+            "stop_target": "code_review_completed",
+            "code_bootstrap": {
+              "command": "pnpm bootstrap",
+              "policy_ref": ".memory-bank/spec/operations/workspace-bootstrap-policy.md"
+            }
+          }
+        },
+        "artifacts": {
+          "stage_prompt": "stage-prompt.md",
+          "stage_report_json": "stage-report.json",
+          "stage_report_md": "stage-report.md",
+          "stage_report_html": "stage-report.html",
+          "summary": "summary.md"
+        },
+        "timeline_path": "timeline.jsonl",
+        "works": [
+          {
+            "work_id": "WRK-001-root",
+            "parent_work_id": null,
+            "status": "running",
+            "depends_on": [],
+            "launch_policy": "reuse_allowed",
+            "started_at": "2026-08-28T20:22:48.361Z",
+            "completed_at": null
+          },
+          {
+            "work_id": "WRK-002-plan",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "reuse_allowed",
+            "started_at": "2026-08-28T20:32:18.677Z",
+            "completed_at": "2026-08-28T20:41:43.158Z"
+          },
+          {
+            "work_id": "WRK-003-plan-review",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "reuse_allowed",
+            "started_at": "2026-08-28T20:42:46.777Z",
+            "completed_at": "2026-08-28T21:02:09.496Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg-01",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T20:44:52.410Z",
+            "completed_at": "2026-08-28T20:51:59.982Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg-02",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T20:44:50.742Z",
+            "completed_at": "2026-08-28T20:49:06.178Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg-03",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T20:44:52.194Z",
+            "completed_at": "2026-08-28T20:50:25.038Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg-04",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T20:44:53.637Z",
+            "completed_at": "2026-08-28T20:49:57.437Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg-05",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T20:44:52.831Z",
+            "completed_at": "2026-08-28T20:50:00.115Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg-06",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T20:44:53.690Z",
+            "completed_at": "2026-08-28T20:50:30.029Z"
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p1",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T21:05:02.512Z",
+            "completed_at": "2026-08-28T21:15:35.182Z"
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p2",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p1"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T21:16:29.755Z",
+            "completed_at": "2026-08-28T21:26:37.001Z"
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p3",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p1"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T21:16:32.047Z",
+            "completed_at": "2026-08-28T21:25:25.999Z"
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p4",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p2",
+              "WRK-005-prt-007-task-priority-p3"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T21:27:38.658Z",
+            "completed_at": "2026-08-28T21:39:25.547Z"
+          },
+          {
+            "work_id": "WRK-006-code-review-repair",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p1",
+              "WRK-005-prt-007-task-priority-p2",
+              "WRK-005-prt-007-task-priority-p3",
+              "WRK-005-prt-007-task-priority-p4"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T21:51:02.487Z",
+            "completed_at": "2026-08-28T22:06:54.180Z"
+          },
+          {
+            "work_id": "WRK-007-code-review-repair",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p1",
+              "WRK-005-prt-007-task-priority-p2",
+              "WRK-005-prt-007-task-priority-p3",
+              "WRK-005-prt-007-task-priority-p4",
+              "WRK-006-code-review-repair"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-28T22:12:56.619Z",
+            "completed_at": "2026-08-28T22:19:44.940Z"
+          }
+        ],
+        "root_work_id": "WRK-001-root",
+        "variables": {
+          "runtime.subagent.available_slots": 6
+        },
+        "schema_id": "dd-flow/flow-run@3"
+      },
+      "flow_guidance": {
+        "current_stage": "code",
+        "lifecycle": {
+          "flow": "mb_sdlc_vnext_protocolize",
+          "stage": "code",
+          "substage": null,
+          "status": "running",
+          "terminal": false,
+          "source": "vnext_run"
+        },
+        "allowed_next_stages": [
+          "code-review"
+        ],
+        "recommended_next_action": "start_code_review",
+        "recommended_prompt": ".memory-bank/dd-flow/vnext/code-review.md",
+        "required_predecessor_evidence": [
+          "05-code/stage-report.json"
+        ],
+        "guards": [],
+        "blocked_if_missing": []
+      }
+    },
+    "progress": [
+      {
+        "phase": "start",
+        "message": "Starting run snapshot",
+        "at": "2026-08-28T22:23:01.409Z"
+      },
+      {
+        "phase": "done",
+        "message": "run snapshot finished",
+        "at": "2026-08-28T22:23:01.409Z"
+      }
+    ]
+  },
+  "accepted_at": "2026-08-28T22:23:21.881Z",
+  "acceptance_review": {
+    "path": "checkpoint-reviews/REV-065/code-review.md",
+    "sha256": "189ab93d84c9785664ff8cd927f73e51729ce6937f43b7662c60f4f784f80105",
+    "accepted_at": "2026-08-28T22:23:21.881Z"
+  },
+  "subject_by_harness": {
+    "grok-acp": {
+      "canonical_session_id": "01a04a7e-29b1-72f0-882e-612cea397945",
+      "checkpoint_session_id": "01a04ad6-65d1-78c2-b04d-f88d644797d2",
+      "agent_id": null,
+      "session_archive": {
+        "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-065/harnesses/grok-acp/specify/code-review-frozen-archive",
+        "sha256": "d477335c6acd9082652a6411ef88614a1d718112d659d3f6ce3c02761fce333d"
+      },
+      "accepted_at": "2026-08-29T00:06:24.510Z"
+    }
+  },
+  "harness_evidence": {
+    "grok-acp": {
+      "runtime_snapshot": {
+        "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-065/checkpoints/code-review-entry--grok-acp/snapshot",
+        "sha256": "57ff97b1f225155bd50a27b80279314eed6b0a92643712bb98bcc6b04c2264f8"
+      },
+      "captured_at": "2026-08-29T00:06:11.545Z",
+      "acceptance_review": {
+        "path": "checkpoint-reviews/REV-065/grok-code-review.md",
+        "sha256": "2f1437e7bef665498a070eed8ded7e961d5a71b1bdd4d508cc232749a1b2a076",
+        "accepted_at": "2026-08-29T00:06:24.510Z"
+      }
+    }
+  }
+}

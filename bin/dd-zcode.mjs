@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { cancelSession, createSession, doctor, forkSession, inspectSession, promptFromFile, promptSession } from "../lib/dd-zcode.mjs";
+import { cancelChild, cancelSession, createSession, doctor, forkSession, inspectSession, promptFromFile, promptSession } from "../lib/dd-zcode.mjs";
 import { callDaemon, serveDaemon, startDaemon, stopDaemon } from "../lib/dd-zcode-daemon.mjs";
 
 function parse(argv) {
@@ -18,6 +18,7 @@ function common(options) {
     bin: options["zcode-acp-bin"], zcodePath: options["zcode-path"], journal: options.journal,
     stateDir: options["state-dir"],
     cwd: options.cwd, sessionId: options["session-id"], adapterSessionId: options["adapter-session-id"], provider: options.provider,
+    childSessionId: options["child-session-id"],
     model: options.model, reasoning: options.reasoning, mode: options.mode,
     permission: options.permission ?? "deny", ddFlowBin: options["dd-flow-bin"],
     ddFlowHome: options["dd-flow-home"], projectRoot: options["project-root"],
@@ -41,9 +42,10 @@ try {
     else if (command === "prompt") result = await promptSession(params);
     else if (["inspect", "status", "resume"].includes(command)) result = await inspectSession(params);
     else if (command === "cancel") result = await cancelSession(params);
+    else if (command === "cancel-child") result = await cancelChild(params);
     else if (command === "fork") result = await forkSession(params);
     else throw new Error(`unknown session command: ${command}`);
-  } else throw new Error("usage: dd-zcode doctor | daemon start|status|stop | session create|prompt|inspect|status|resume|cancel|fork [options] --json");
+  } else throw new Error("usage: dd-zcode doctor | daemon start|status|stop | session create|prompt|inspect|status|resume|cancel|cancel-child|fork [options] --json");
   process.stdout.write(`${JSON.stringify({ ok: true, ...result })}\n`);
 } catch (error) {
   process.stderr.write(`${JSON.stringify({ ok: false, error: error.message, ...(error.code ? { code: error.code, retryable: error.retryable === true, details: error.details } : {}) })}\n`); process.exit(1);

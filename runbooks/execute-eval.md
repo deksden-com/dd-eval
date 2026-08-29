@@ -285,13 +285,17 @@ fork from it, then fork that starter for actual stage work; a failed or
 accidentally continued worker never changes the protected canonical session.
 
 The canonical revision names one semantic chain and one sequence of RUN
-states. Codex establishes that revision first. A second supported harness such
-as ZCode then replays the same chain and captures each entry with
-`--harness zcode-acp --revision <the-same-REV>`. Accepting it adds
-`subject_by_harness.zcode-acp` and harness evidence to the already accepted
-stage record. It must not overwrite the Codex subject or allocate a different
-revision. Focused attempts later fork only the starter selected for their own
-harness.
+states. For a cross-model comparison, Codex establishes that revision first;
+ZCode then replays the chain and captures each entry with
+`--harness zcode-acp --revision <the-same-REV>`, adding
+`subject_by_harness.zcode-acp` evidence to the accepted stage record.
+
+When the purpose is to qualify a new beta pair through ZCode itself, make
+ZCode the primary harness of a **new** revision instead: every accepted record
+then owns its ZCode Session and runtime snapshot directly. The rule is the
+same in both contours: do not overwrite an accepted entry and never combine
+snapshots from distinct beta pairs. Focused attempts later use the starter
+selected for their own harness.
 
 ### 2. Capture `specify-entry`
 

@@ -1,31 +1,137 @@
 {
   "schema_id": "dd-eval/starter-sessions@3",
   "case_id": "sdlc-eval-2026-summer-task-priority",
-  "revision": "REV-060",
+  "revision": "REV-065",
   "sessions": {
     "specify": {
-      "session_id": "01a04613-83e0-7ff2-b4d5-3936410569a4",
-      "parent_session_id": "01a045b8-76a0-7ec0-89e9-ab0bfc62cfef"
+      "session_id": "01a04ab2-48eb-7672-acdf-6cf281af26bf",
+      "parent_session_id": "01a04a08-a568-71c0-ae35-23c4144257a1",
+      "harness": "codex-desktop",
+      "by_harness": {
+        "zcode-acp": {
+          "session_id": "sess_24319031-03f1-42ee-afe1-75242512602d",
+          "parent_session_id": "sess_468bfade-943b-4467-9831-26fc97777ef3",
+          "harness": "zcode-acp",
+          "seed_mode": "deterministic_replay"
+        },
+        "grok-acp": {
+          "session_id": "01a04a7c-6fd5-73e3-96cb-034cd463c7ab",
+          "parent_session_id": "01a04a7b-faf1-7440-b8a1-248e1ad2591f",
+          "harness": "grok-acp",
+          "session_archive": {
+            "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-065/harnesses/grok-acp/specify/starter-archive",
+            "sha256": "cfe568f7f0e838f9c62eaf4566dcf610b079946712e3e0060cf94686ed149ec7"
+          }
+        }
+      }
     },
     "protocolize": {
-      "session_id": "01a04613-d679-76f3-82d3-f3955d69068a",
-      "parent_session_id": "01a045bd-6fdb-7680-bee6-1abcdd7ea58a"
+      "session_id": "01a04ab2-5acd-78d2-9cb6-1ad3cb0aa85e",
+      "parent_session_id": "01a04a0f-1dfd-7c51-bff2-f4193115e99f",
+      "harness": "codex-desktop",
+      "by_harness": {
+        "zcode-acp": {
+          "session_id": "sess_8a473f6b-9b41-4e8c-ba7a-d0a95a90eca4",
+          "parent_session_id": "sess_02758b72-175b-45e7-a688-60aa2a0619a3",
+          "harness": "zcode-acp",
+          "seed_mode": "deterministic_replay"
+        },
+        "grok-acp": {
+          "session_id": "01a04a92-8aaa-7f53-953b-3834f41ec181",
+          "parent_session_id": "01a04a92-8a62-7430-a39e-674717576b7d",
+          "harness": "grok-acp",
+          "session_archive": {
+            "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-065/harnesses/grok-acp/specify/protocolize-starter-archive",
+            "sha256": "979143e6f81810bf2c6aea42cc3cbce61407c68e83ed87fdfbc156b872c9df39"
+          }
+        }
+      }
     },
     "plan": {
-      "session_id": "01a04614-2d14-7c30-a4c1-53406f6ac6ec",
-      "parent_session_id": "01a045bf-e3fd-7db1-b02e-4237888869e4"
+      "session_id": "01a04ab2-67e6-76f0-baf0-91e74baef4bc",
+      "parent_session_id": "01a04a11-1675-7052-982a-1e53d8f61df4",
+      "harness": "codex-desktop",
+      "by_harness": {
+        "zcode-acp": {
+          "session_id": "sess_8b3426f0-dba7-4aa9-913b-5b1a5f68370c",
+          "parent_session_id": "sess_dcfdfcc8-8406-4517-9033-e400e248b2d5",
+          "harness": "zcode-acp",
+          "seed_mode": "deterministic_replay"
+        },
+        "grok-acp": {
+          "session_id": "01a04a97-3218-7231-a111-c8ea3170d370",
+          "parent_session_id": "01a04a97-31c1-75a2-9bb0-4e67b728e54b",
+          "harness": "grok-acp",
+          "session_archive": {
+            "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-065/harnesses/grok-acp/specify/plan-starter-archive",
+            "sha256": "a3f28b102b529c7ac3c25eea935dcbf6bb6922140b8ad8c82f586437851bf013"
+          }
+        }
+      }
     },
     "plan-review": {
-      "session_id": "01a04614-8b5a-7ff1-9f9a-519f4839274b",
-      "parent_session_id": "01a045ca-0861-75f1-adc8-608a1608686c"
+      "session_id": "01a04ab2-7f9c-7342-9233-9d32b559ae0e",
+      "parent_session_id": "01a04a1b-b99e-7380-862c-a9e647a0b9cc",
+      "harness": "codex-desktop",
+      "by_harness": {
+        "grok-acp": {
+          "session_id": "01a04a9e-7d04-7951-934a-a6ef1e18bf16",
+          "parent_session_id": "01a04a9e-7ca6-7b40-aaaf-75f06817496e",
+          "harness": "grok-acp",
+          "session_archive": {
+            "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-065/harnesses/grok-acp/specify/plan-review-starter-archive",
+            "sha256": "2662c9a3ebcce92c7f0088bafd95bfc8a18c7d588cb41efa510aa9071ffd5aee"
+          }
+        },
+        "zcode-acp": {
+          "session_id": "sess_27c2833b-c1d7-465b-ba8b-81c0a8f7650b",
+          "parent_session_id": "sess_ce493b7e-7bd2-41e3-b9d8-ecc4275c6449",
+          "harness": "zcode-acp",
+          "seed_mode": "deterministic_replay"
+        }
+      }
     },
     "code": {
-      "session_id": "01a04614-de4c-7120-90c0-906e6209f641",
-      "parent_session_id": "01a045d9-5921-7491-8600-ec6fb9d3922a"
+      "session_id": "01a04ab2-8ee4-79e1-85bc-666bbb824d6f",
+      "parent_session_id": "01a04a2e-4a8d-7500-ab9b-4881b200ec5e",
+      "harness": "codex-desktop",
+      "by_harness": {
+        "grok-acp": {
+          "session_id": "01a04aac-eb08-7013-b89f-31775158340c",
+          "parent_session_id": "01a04aac-eaa0-7a60-86ba-2ba59ef88a40",
+          "harness": "grok-acp",
+          "session_archive": {
+            "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-065/harnesses/grok-acp/specify/code-starter-archive",
+            "sha256": "6e5fc0f207ccaa1abd36a47ab3602c6636a0c24851309aa7b24450ab283bad12"
+          }
+        },
+        "zcode-acp": {
+          "session_id": "sess_16ea4bd1-526a-46aa-90b9-2a128ef6b4cc",
+          "parent_session_id": "sess_0bbf18b4-898d-40c8-9f08-fb967480bd6b",
+          "harness": "zcode-acp",
+          "seed_mode": "deterministic_replay"
+        }
+      }
     },
     "code-review": {
-      "session_id": "01a04615-4647-7333-b461-0d2233106677",
-      "parent_session_id": "01a045fc-2270-76b0-999f-54791719d73e"
+      "session_id": "01a04ab2-9c8d-74b3-b60d-556269fe9156",
+      "parent_session_id": "01a04a77-a9ea-73e2-ba13-3aa4aaca9fe6",
+      "harness": "codex-desktop",
+      "by_harness": {
+        "grok-acp": {
+          "session_id": "01a04ad6-663b-7183-806f-512be47b6844",
+          "parent_session_id": "01a04ad6-65d1-78c2-b04d-f88d644797d2",
+          "harness": "grok-acp",
+          "session_archive": {
+            "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-065/harnesses/grok-acp/specify/code-review-starter-archive",
+            "sha256": "b421a0d3e6fbaddf6494f24cf8ade3e30af6e1d1d7e54c19c23117767dd08d26"
+          }
+        }
+      }
     }
+  },
+  "harness_revisions": {
+    "zcode-acp": "REV-065",
+    "grok-acp": "REV-065"
   }
 }

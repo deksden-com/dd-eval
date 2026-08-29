@@ -31,6 +31,15 @@ test("dd-grok uses native ACP Sessions and x.ai extensions", async () => {
   `);
   const common = { bin: server, cwd: root, journal, model: "grok-4.6", reasoning: "high", mode: "bypassPermissions" };
   try {
+    const previousBin = process.env.DD_GROK_BIN;
+    process.env.DD_GROK_BIN = server;
+    try {
+      const defaulted = await createSession({ ...common, bin: undefined, prompt: "prime via default Grok binary" });
+      assert.equal(defaulted.provider_session_id, "native-root");
+    } finally {
+      if (previousBin === undefined) delete process.env.DD_GROK_BIN;
+      else process.env.DD_GROK_BIN = previousBin;
+    }
     const created = await createSession({ ...common, prompt: "prime" });
     assert.equal(created.provider_session_id, "native-root"); assert.deepEqual(created.evidence.tool_calls, { total: 1, failures: 0, by_tool: { Bash: 1 } });
     const prompted = await promptSession({ ...common, sessionId: "native-root", prompt: "work" }); assert.equal(prompted.turn.stopReason, "end_turn");

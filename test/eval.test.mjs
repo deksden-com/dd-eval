@@ -3,9 +3,9 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { addSession, checkpointForHarness, comparePrepare, efficiency, judgeResultInstructions, judgeResultPath, judgeResultTemplate, loadCase, prepare, profileMatches, scoreEvaluation, subjectContinuation, subjectTaskTitle, syncLifecycleStatus, validateInput } from "../lib/dd-eval.mjs";
+import { addSession, checkpointForHarness, comparePrepare, efficiency, judgeResultInstructions, judgeResultPath, judgeResultTemplate, loadCase, prepare, profileMatches, scoreEvaluation, subjectContinuation, subjectSeedMode, subjectTaskTitle, syncLifecycleStatus, validateInput } from "../lib/dd-eval.mjs";
 
-const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks.beta-vnext-plan-review");
+const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks");
 const caseId = "sdlc-eval-2026-summer-task-priority";
 
 test("the active suite declares its next canonical checkpoint chain", async () => {
@@ -34,7 +34,7 @@ test("every registered starter belongs to the declared stage chain", async () =>
     assert.match(session.session_id, /^[0-9a-f-]{36}$/);
     assert.match(session.parent_session_id, /^[0-9a-f-]{36}$/);
     for (const [harness, alternate] of Object.entries(session.by_harness ?? {})) {
-      assert.equal(harness, "zcode-acp");
+      assert.ok(["zcode-acp", "grok-acp"].includes(harness));
       assert.equal(alternate.harness, harness);
       assert.ok(alternate.session_id);
       assert.ok(alternate.parent_session_id);
@@ -147,9 +147,15 @@ test("sync recognizes the current paused RUN status as a user wait", () => {
 });
 
 test("ZCode root and child profile evidence matches without a Codex transcript", () => {
-  const expected = { harness: "zcode-acp", provider: "builtin:zai-coding-plan", model: "GLM-5.3", reasoning: "high", mode: "yolo" };
+  const expected = { harness: "zcode-acp", provider: "builtin:zai-coding-plan", model: "GLM-5.3-Flash", reasoning: "high", mode: "yolo" };
   assert.equal(profileMatches(expected, { provider: expected.provider, model: expected.model, reasoning: expected.reasoning, mode: expected.mode }, "zcode-acp"), true);
   assert.equal(profileMatches(expected, { provider: expected.provider, model: expected.model, reasoning: "low", mode: expected.mode }, "zcode-acp"), false);
+});
+
+test("a read-only ZCode starter replays the restored entry instead of claiming a native fork", () => {
+  assert.equal(subjectSeedMode({ harness: "zcode-acp", kind: "plan", starter: { seed_mode: "deterministic_replay" } }), "deterministic_replay");
+  assert.equal(subjectSeedMode({ harness: "zcode-acp", kind: "plan", starter: {} }), "shared_stage_starter");
+  assert.equal(subjectSeedMode({ harness: "zcode-acp", kind: "e2e" }), "clean_session");
 });
 
 test("a harness checkpoint keeps its own Session and runtime snapshot together", () => {
@@ -159,6 +165,18 @@ test("a harness checkpoint keeps its own Session and runtime snapshot together",
     runtime_snapshot: { locator: "canonical/codex" },
     subject_by_harness: { "zcode-acp": { checkpoint_session_id: "zcode-session" } },
     harness_evidence: { "zcode-acp": { runtime_snapshot: { locator: "canonical/zcode" } } }
+  };
+  const selected = checkpointForHarness(checkpoint, "zcode-acp");
+  assert.equal(selected.subject.checkpoint_session_id, "zcode-session");
+  assert.equal(selected.runtime_snapshot.locator, "canonical/zcode");
+});
+
+test("a primary ZCode canonical checkpoint is usable without a Codex extension", () => {
+  const checkpoint = {
+    harness: "zcode-acp",
+    stage: "specify",
+    subject: { checkpoint_session_id: "zcode-session" },
+    runtime_snapshot: { locator: "canonical/zcode" }
   };
   const selected = checkpointForHarness(checkpoint, "zcode-acp");
   assert.equal(selected.subject.checkpoint_session_id, "zcode-session");

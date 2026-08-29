@@ -24,6 +24,16 @@ frozen canonical checkpoint Session
 Starter Sessions have no revisions. If one is accidentally advanced, replace
 it with a new untouched fork of the same canonical checkpoint Session.
 
+ZCode is the one explicit exception to native fork. ZCode can fork only after
+a workspace-writing checkpoint; a normal, read-only discussion deliberately
+has none. Do not create a fake product change merely to manufacture one. For
+such a checkpoint, register an idle protected ZCode starter with
+`seed_mode: deterministic_replay`. A routine focused attempt restores the
+immutable RUN snapshot, starts a fresh ZCode Session and sends the generated
+stage packet. It records no invented native parent. The protected checkpoint
+and starter IDs remain evidence and recovery anchors; the restored workspace
+and generated stage packet are the replay source of truth.
+
 The starter is model-neutral only inside its harness. A routine attempt forks
 it, then explicitly selects the evaluated model and reasoning effort on the
 first new message. Therefore a stage has one starter per harness, not one
@@ -65,7 +75,8 @@ cases/<case-id>/assessment.json             accepted criteria and golden referen
         "zcode-acp": {
           "session_id": "<zcode-starter-session-id>",
           "parent_session_id": "<zcode-frozen-checkpoint-session-id>",
-          "harness": "zcode-acp"
+          "harness": "zcode-acp",
+          "seed_mode": "deterministic_replay"
         }
       }
     }
@@ -128,7 +139,9 @@ checkpoint.
    `checkpoints/<stage>.json`.
 6. Fork every frozen checkpoint Session once inside its own harness. Title
    each untouched child `START <case-id> <STAGE>-entry · <harness>` and send it
-   no message.
+   no message. For a read-only ZCode entry, create the protected idle Session
+   instead and use deterministic replay; native ZCode fork is not available
+   until a real workspace-writing checkpoint exists.
 7. Register each Codex child by calling:
 
    ```sh
@@ -144,7 +157,8 @@ checkpoint.
    dd-eval starter set --case <case-id> --stage <stage> \
      --harness zcode-acp \
      --session-id <zcode-starter-session-id> \
-     --parent-session-id <zcode-frozen-checkpoint-session-id>
+     --parent-session-id <zcode-frozen-checkpoint-session-id> \
+     --seed-mode deterministic_replay
    ```
 
    After every fully accepted new canonical revision, the first `starter set`
@@ -194,7 +208,10 @@ starter ID from `dd-eval prepare`; `prepare` reads it from the committed
 `starter-sessions.json` and does not accept a manual override. The Controller
 forks that Session, records the new child
 with `parent_session_id=<starter-session-id>`, and sends the generated Subject
-continuation only to the child.
+continuation only to the child. For `seed_mode=deterministic_replay`, it creates
+a fresh ZCode Session instead, records it without a fictional parent and sends
+the same generated Subject continuation; the restored RUN snapshot makes this
+the exact stage entry.
 
 The Controller must not read canonical Session IDs from checkpoint records.
 Canonical access belongs only to case creation and starter recovery.
