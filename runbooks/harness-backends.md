@@ -18,6 +18,42 @@ Session evidence always records `harness`, `runtime_family`,
 `provider_session_id`, optional `adapter_session_id`, parent identity and the
 observed profile. Provider IDs are interpreted only inside their harness.
 
+## Antigravity CLI
+
+`dd-agy` controls the official Antigravity CLI `1.1.22` headless streaming
+protocol. One execution-scoped daemon owns one long-lived conversation, a
+`0600` Unix socket, private journal, and private Gemini customization/runtime
+tree. It keeps the normal process `HOME` so macOS Keychain authentication
+continues to work, while `--gemini_dir` and `--app_data_dir=runtime` prevent
+user agents, skills, plugins, MCP and settings from entering the eval.
+
+```text
+dd-agy doctor --agy-bin <agy> --model gemini-3.1-pro-high --json
+dd-agy daemon start --state-dir <attempt>/agy --cwd <workspace> \
+  --project-root <project> --dd-flow-bin <dd-flow> \
+  --dd-flow-home <runtime-home> --agy-bin <agy> \
+  --provider google --model gemini-3.1-pro-high --reasoning high \
+  --mode accept-edits --json
+dd-agy session create --state-dir <attempt>/agy --prompt-file <prime.md> --json
+dd-agy session prompt --state-dir <attempt>/agy --session-id <conversation-id> \
+  --prompt-file <packet.md> --json
+dd-agy session inspect --state-dir <attempt>/agy --json
+dd-agy session cancel --state-dir <attempt>/agy --tree --json
+dd-agy daemon stop --state-dir <attempt>/agy --cancel-tree --json
+```
+
+The daemon forwards `PreToolUse` and `PostToolUse` hooks to `dd-flow agy event
+handle`, and cumulative result counters to `dd-flow agy usage ingest`. The
+provider conversation ID is the physical Session identity. An unclean provider
+exit during a turn leaves `active_tree=true` and is an invalid harness crash.
+
+Headless stream input rejects `/fork`; the native interactive `/fork` cannot be
+made a reliable control-plane operation. Therefore `session fork` fails closed
+with `agy_headless_fork_unsupported`, canonical starters declare
+`seed_mode=deterministic_replay`, restore the frozen workspace/runtime snapshot,
+and create a fresh conversation. Interactive fork remains experimental and is
+not accepted as scored evidence.
+
 ## Grok Build
 
 `dd-grok` controls Grok Build directly through its native ACP stdio endpoint;

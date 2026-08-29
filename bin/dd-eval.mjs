@@ -25,11 +25,11 @@ function usage() {
 
 Usage:
   dd-eval validate --case <case-id> [--require authoring|scored] [--source <dd-tasks>]
-  dd-eval starter set --case <case-id> --stage <stage> --session-id <id> --parent-session-id <protected-checkpoint-id> [--harness codex-desktop|zcode-acp|grok-acp|opencode-server] [--seed-mode native_fork|deterministic_replay|archive_native_fork] [--session-archive <path>]
-  dd-eval checkpoint capture --case <case-id> --stage <stage> --project-root <path> --flow-run <RUN> --canonical-subject-session <id> --checkpoint-subject-session <id> [--harness codex-desktop|zcode-acp|grok-acp|opencode-server] [--session-archive <path>] [--revision REV-NNN] [--dd-flow-home <path>]
+  dd-eval starter set --case <case-id> --stage <stage> --session-id <id> --parent-session-id <protected-checkpoint-id> [--harness codex-desktop|zcode-acp|grok-acp|opencode-server|antigravity-cli] [--seed-mode native_fork|deterministic_replay|archive_native_fork] [--session-archive <path>]
+  dd-eval checkpoint capture --case <case-id> --stage <stage> --project-root <path> --flow-run <RUN> --canonical-subject-session <id> --checkpoint-subject-session <id> [--harness codex-desktop|zcode-acp|grok-acp|opencode-server|antigravity-cli] [--session-archive <path>] [--revision REV-NNN] [--dd-flow-home <path>]
   dd-eval checkpoint accept --case <case-id> --stage <stage> --record <capture.json> --review <review.md>
   dd-eval prepare --case <case-id> (--focus <csv>|--segment <start..end>|--e2e) [--scenario <relative-case-path>] [--output <DD_EVAL_HOME-contained-path>] [--controller-profile <id>] [--subject-profile <id>] [--judge-profile <id>] [--source <dd-tasks>]
-  dd-eval session add --eval <prepared-dir> --execution <id> --role <controller|subject_base|subject|judge> --session-id <id> [--harness codex-desktop|zcode-acp|grok-acp|opencode-server] [--adapter-session-id <id>] [--daemon-id <id>] [--parent-session-id <id>] [--agent-id <id>] [--observed-profile-json <json>]
+  dd-eval session add --eval <prepared-dir> --execution <id> --role <controller|subject_base|subject|judge> --session-id <id> [--harness codex-desktop|zcode-acp|grok-acp|opencode-server|antigravity-cli] [--adapter-session-id <id>] [--daemon-id <id>] [--parent-session-id <id>] [--agent-id <id>] [--observed-profile-json <json>]
   dd-eval sync --eval <prepared-dir> --execution <id> --project-root <path> [--flow-run <id>]
   dd-eval checkpoint --eval <prepared-dir> --execution <id>
   dd-eval checkpoint rematerialize --eval <prepared-dir> --execution <id>

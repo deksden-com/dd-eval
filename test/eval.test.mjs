@@ -177,6 +177,15 @@ test("a read-only ZCode starter replays the restored entry instead of claiming a
   assert.equal(subjectSeedMode({ harness: "zcode-acp", kind: "e2e" }), "clean_session");
 });
 
+test("Antigravity starters use deterministic replay and exact profile evidence", () => {
+  assert.equal(subjectSeedMode({ harness: "antigravity-cli", kind: "focused", starter: { seed_mode: "deterministic_replay" } }), "deterministic_replay");
+  assert.equal(profileMatches(
+    { harness: "antigravity-cli", provider: "google", model: "gemini-3.1-pro-high", reasoning: "high", mode: "accept-edits" },
+    { provider: "google", model: "gemini-3.1-pro-high", reasoning: "high", mode: "accept-edits" },
+    "antigravity-cli"
+  ), true);
+});
+
 test("OpenCode profile and portable starter archive are first-class", () => {
   const expected = { harness: "opencode-server", provider: "opencode", model: "big-pickle", reasoning: "high", mode: "build" };
   assert.equal(profileMatches(expected, { provider: "opencode", model: "big-pickle", reasoning: "high", mode: "build" }, "opencode-server"), true);

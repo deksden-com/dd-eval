@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "id": "antigravity-cli-google-gemini-3-1-pro-high",
+  "harness": "antigravity-cli",
+  "runtime_family": "antigravity",
+  "driver": "dd-agy",
+  "control_lifetime": "execution_daemon",
+  "delegated_background": true,
+  "provider": "google",
+  "model": "gemini-3.1-pro-high",
+  "reasoning": "high",
+  "mode": "accept-edits",
+  "runtime": { "agy": "1.1.22", "dd_harness_contract": "dd-agy-harness@1" },
+  "notes": "Controlled Antigravity CLI profile using isolated config/runtime directories and deterministic replay starters."
+}

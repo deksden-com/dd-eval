@@ -1,5 +1,7 @@
 # dd-eval
 
+`dd-agy` controls an execution-scoped Antigravity CLI 1.1.22 streaming process. It isolates config with `--gemini_dir`/`--app_data_dir`, preserves system-keychain authentication, forwards hooks and cumulative usage to `dd-flow`, and uses deterministic replay because native fork is unavailable in headless mode. See `specs/016-antigravity-cli-harness-integration.md`.
+
 Evaluation workspace for AI coding agents working with the Memory Bank and
 `dd-flow` lifecycle.
 
