@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "id": "cp-044-zcode-stage-handoff-beta-123",
+  "title": "cp-044 ZCode stage handoff and CODE workers beta.123",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.123",
+    "commit": "83d34c13b4d4bed0c37f20c14458fb25d0361c61"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.123",
+    "dd_flow_cli": "0.8.0-beta.121",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.121",
+      "commit": "abbb05a68c019bc5ae46723fcc31de5e03121d04"
+    }
+  },
+  "harnesses": {
+    "zcode-acp": {
+      "zcode": "0.16.5",
+      "zcode_acp": "0.13.1",
+      "tag": "eval-zcode-acp-0.13.1",
+      "commit": "bf21f38dcbb85b8f98cd7ab3062aa050d1b5777c",
+      "contract": "dd-zcode-harness@1"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "ZCode uses the project-selected new_session handoff between stages.",
+    "Every CODE Work runs in a fresh child session; the root coordinator retains only graph and final-gate responsibilities.",
+    "This pair supersedes cp-043 for a new primary ZCode canonical chain; product code remains at cp-002."
+  ]
+}
