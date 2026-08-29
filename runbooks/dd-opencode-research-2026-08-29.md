@@ -121,7 +121,7 @@ Implemented on `feat/opencode-harness`:
 - `dd-eval` recognizes `opencode-server`, the `dd-opencode` driver and
   `archive_native_fork` starter evidence.
 
-Live conformance on OpenCode 1.18.23 passed health/API fingerprint, isolated
+Live conformance on OpenCode 1.18.25 passed health/API fingerprint, isolated
 auth, create, inspect, exact-profile prompt, zero-tool usage, native fork,
 archive, fresh-home restore, clean stop and native Task topology. The Task
 experiment observed a `build` root and an `explore` child with exact native
@@ -144,6 +144,29 @@ dd-opencode session prompt --state-dir "$STATE" --session-id "$SESSION" \
   --prompt-file prompt.md --json
 dd-opencode daemon stop --state-dir "$STATE" --json
 ```
+
+### Hy3 Free focused SPECIFY diagnostic
+
+The first real focused SPECIFY run used `opencode/hy3-free`, variant `high`,
+agent `build`, and restored the accepted REV-077 SPECIFY-entry snapshot into a
+disposable project/runtime. It completed one declared HITL round and finished
+with a schema-valid `dd-flow/specify@1` result and `stage-report@2`; the RUN's
+next action was `start_protocolize`, which was intentionally not executed.
+
+The run exposed and fixed three integration defects before acceptance:
+
+- macOS `/tmp` versus `/private/tmp` identity required realpath
+  canonicalization at daemon startup;
+- auto-discovery accepts `plugin/*.js` or `plugins/*.js`, not the generated
+  `.mjs` filename;
+- a plugin hosted by Bun/OpenCode must invoke JavaScript `dd-flow` through the
+  Node executable supplied by the daemon, not OpenCode's `process.execPath`.
+
+It also proved that external cumulative usage needs a zero snapshot at Session
+creation and the first settled snapshot after `stage finish` as its terminal
+boundary. The daemon now emits the baseline and the flow adapter selects that
+post-boundary snapshot without consuming later turns. OpenCode version and API
+fingerprint are fail-closed at the qualified 1.18.25 baseline.
 
 ## Remaining canonical qualification
 
