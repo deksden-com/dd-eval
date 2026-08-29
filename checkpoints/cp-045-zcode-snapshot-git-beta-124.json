@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "cp-045-zcode-snapshot-git-beta-124",
+  "title": "cp-045 ZCode portable Git checkpoint beta.124",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "tag": "eval-mb-3.2.0-vnext-plan-review-beta.124",
+    "commit": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "memory_bank": {
+    "version": "3.2.0-vnext-plan-review-beta.124",
+    "dd_flow_cli": "0.8.0-beta.122",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "tag": "eval-engine-0.8.0-beta.122",
+      "commit": "3ec22120b3f480a36fb43ba0688452dc8e7ea773"
+    }
+  },
+  "harnesses": {
+    "zcode-acp": {
+      "zcode": "0.16.5",
+      "zcode_acp": "0.13.1",
+      "tag": "eval-zcode-acp-0.13.1",
+      "commit": "bf21f38dcbb85b8f98cd7ab3062aa050d1b5777c",
+      "contract": "dd-zcode-harness@1"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "Eval snapshots carry a verified portable Git bundle so restored stages retain the configured branch and worktree policy.",
+    "This pair supersedes cp-044 for the primary ZCode canonical chain; product code remains at cp-002."
+  ]
+}

@@ -3,7 +3,7 @@
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "authoring",
-  "checkpoint": {"id": "cp-044-zcode-stage-handoff-beta-123"},
+  "checkpoint": {"id": "cp-045-zcode-snapshot-git-beta-124"},
   "assessment": "assessment.json",
   "profiles": {
     "controller": ["codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-87"],
@@ -33,12 +33,12 @@
   "judge_baseline": "baselines/judge-codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-87-rev031.json",
   "flow": {"handoff_mode": "new_session", "plan_review_mode": "auto", "code_review_mode": "auto", "capacity_policy": "probe_once_per_run"},
   "canonical_checkpoints": {
-    "specify": "checkpoints/REV-075/specify.json",
-    "protocolize": "checkpoints/REV-075/protocolize.json",
-    "plan": "checkpoints/REV-075/plan.json",
-    "plan-review": "checkpoints/REV-075/plan-review.json",
-    "code": "checkpoints/REV-075/code.json",
-    "code-review": "checkpoints/REV-075/code-review.json"
+    "specify": "checkpoints/REV-077/specify.json",
+    "protocolize": "checkpoints/REV-077/protocolize.json",
+    "plan": "checkpoints/REV-077/plan.json",
+    "plan-review": "checkpoints/REV-077/plan-review.json",
+    "code": "checkpoints/REV-077/code.json",
+    "code-review": "checkpoints/REV-077/code-review.json"
   },
   "stages": {
     "specify": {
