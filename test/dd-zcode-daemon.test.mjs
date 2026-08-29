@@ -27,7 +27,7 @@ test("daemon preserves a live background tree across CLI processes and cancels i
     import readline from "node:readline";
     if (process.argv.includes("--version")) { process.stdout.write("0.13.1\\n"); process.exit(0); }
     if (process.argv.includes("--dd-harness-version")) { process.stdout.write("dd-zcode-harness@1\\n"); process.exit(0); }
-    let running = false; let rootRunning = false; let pendingPrompt = null;
+    let running = false; let rootRunning = false; let pendingPrompt = null; let childResumed = false;
     let profile = { provider: "builtin:zai-coding-plan", model: "GLM-5.3", reasoning: "high", mode: "yolo" };
     const send = (value) => process.stdout.write(JSON.stringify(value) + "\\n");
     readline.createInterface({ input: process.stdin }).on("line", (line) => {
@@ -41,12 +41,12 @@ test("daemon preserves a live background tree across CLI processes and cancels i
       const { id, method, params = {} } = message; let result = {};
       if (method === "initialize") result = { protocolVersion: 1, ddFlowHome: process.env.DD_FLOW_HOME ?? null };
       else if (method === "session/new") result = { sessionId: "adapter-root" };
-      else if (method === "session/resume") result = {};
-      else if (method === "zcode/session/resolve") result = { adapterSessionId: params.sessionId, providerSessionId: params.sessionId === "native-fork" ? "native-fork" : "native-root" };
+      else if (method === "session/resume") { if (params.sessionId === "child-bg") childResumed = true; result = {}; }
+      else if (method === "zcode/session/resolve") result = { adapterSessionId: params.sessionId, providerSessionId: params.sessionId === "native-fork" ? "native-fork" : params.sessionId === "child-bg" ? "child-bg" : "native-root" };
       else if (method === "session/set_mode") profile.mode = params.modeId;
       else if (method === "session/setThoughtLevel") profile.reasoning = params.thoughtLevel;
       else if (method === "session/setModel") [profile.provider, profile.model] = params.modelId.split("\\\\");
-      else if (method === "zcode/session/read") result = { projection: { status: rootRunning ? "running" : "idle" }, settings: { model: { current: { providerId: profile.provider, modelId: profile.model } }, thoughtLevel: { current: profile.reasoning }, mode: { current: profile.mode } } };
+      else if (method === "zcode/session/read") result = { projection: { status: params.sessionId === "child-bg" ? (childResumed ? "idle" : "running") : rootRunning ? "running" : "idle" }, settings: { model: { current: { providerId: profile.provider, modelId: profile.model } }, thoughtLevel: { current: profile.reasoning }, mode: { current: profile.mode } } };
       else if (method === "zcode/session/subagents") result = running ? { running: [{ agentId: "agent-bg", childSessionId: "child-bg" }], ended: { total: 0, items: [] } } : { running: [], ended: { total: 1, items: [{ agentId: "agent-bg", status: "cancelled" }] } };
       else if (method === "zcode/session/usage") result = { inputTokens: 12, outputTokens: 3 };
       else if (method === "session/cancelBackgroundTask") { running = false; result = { cancelled: true, taskId: params.taskId }; }
@@ -74,6 +74,8 @@ test("daemon preserves a live background tree across CLI processes and cancels i
     assert.equal(prompted.evidence.subagents.running[0].agentId, "agent-bg");
     const inspected = await run(["session", "inspect", "--state-dir", stateDir, "--session-id", "native-root", "--adapter-session-id", "adapter-root"]);
     assert.equal(inspected.subagents.running.length, 1);
+    const inspectedChild = await run(["session", "inspect", "--state-dir", stateDir, "--session-id", "child-bg"]);
+    assert.equal(inspectedChild.read.projection.status, "running", "a tracked live child must be inspected without session/resume");
     await assert.rejects(
       () => run(["daemon", "stop", "--state-dir", stateDir]),
       (error) => JSON.parse(error.stderr).code === "tree_not_settled"
@@ -83,6 +85,10 @@ test("daemon preserves a live background tree across CLI processes and cancels i
     assert.equal(cancelled.after.running.length, 0);
     const longPrompt = run(["session", "prompt", "--state-dir", stateDir, "--session-id", "native-root", "--adapter-session-id", "adapter-root", ...profileArgs, "--prompt", "long"]);
     await new Promise((resolve) => setTimeout(resolve, 150));
+    await assert.rejects(
+      () => run(["session", "inspect", "--state-dir", stateDir, "--session-id", "unregistered-child"]),
+      (error) => JSON.parse(error.stderr).code === "child_inspection_unavailable"
+    );
     await assert.rejects(
       () => run(["session", "prompt", "--state-dir", stateDir, "--session-id", "native-root", "--adapter-session-id", "adapter-root", ...profileArgs, "--prompt", "prime"]),
       (error) => JSON.parse(error.stderr).code === "operation_busy"
