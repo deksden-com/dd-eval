@@ -3,12 +3,19 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { assertProfile, createSession, forkSession, promptSession } from "../lib/dd-grok.mjs";
+import { assertProfile, createSession, createSessionWithBridge, forkSession, promptSession } from "../lib/dd-grok.mjs";
 
 test("Grok Build profile drift fails closed", () => {
   const requested = { provider: "xai", model: "grok-4.6", reasoning: "high", mode: "bypassPermissions" };
   assert.equal(assertProfile(requested, requested).status, "matched");
   assert.throws(() => assertProfile(requested, { ...requested, reasoning: "low" }), /profile mismatch/);
+});
+
+test("Grok root registration happens before its first prompt", async () => {
+  const calls = []; const bridge = { request: async (method) => { calls.push(method); if (method === "session/new") return { sessionId: "native-root" }; if (method === "session/prompt") return { stopReason: "end_turn" }; if (method === "_x.ai/session/info") return {}; if (method === "_x.ai/subagent/list_running") return { subagents: [] }; if (method === "_x.ai/session/usage") return { unavailable: true }; }, flush: async () => {}, toolCursor: () => 0, toolSummary: () => ({ total: 0, failures: 0, by_tool: {} }) };
+  let registered = null;
+  await createSessionWithBridge(bridge, { cwd: "/tmp", journal: "/tmp/grok.jsonl", model: "grok-4.6", reasoning: "high", prompt: "start", onSessionCreated: async (session) => { registered = session; assert.deepEqual(calls, ["session/new"]); } }, { _meta: { modelState: { currentModelId: "grok-4.6", availableModels: [{ modelId: "grok-4.6", _meta: { reasoningEffort: "high" } }] } } });
+  assert.equal(registered.provider_session_id, "native-root");
 });
 
 test("dd-grok uses native ACP Sessions and x.ai extensions", async () => {

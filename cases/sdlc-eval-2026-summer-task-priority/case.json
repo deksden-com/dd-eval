@@ -2,7 +2,7 @@
   "schema_id": "dd-eval/case@5",
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
-  "status": "authoring",
+  "status": "ready",
   "checkpoint": {"id": "cp-045-zcode-snapshot-git-beta-124"},
   "assessment": "assessment.json",
   "profiles": {

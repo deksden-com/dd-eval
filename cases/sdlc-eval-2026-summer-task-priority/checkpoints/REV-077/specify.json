@@ -1,0 +1,45 @@
+{
+  "schema_id": "dd-eval/canonical-stage-checkpoint@2",
+  "case_id": "sdlc-eval-2026-summer-task-priority",
+  "revision": "REV-077",
+  "stage": "specify",
+  "harness": "zcode-acp",
+  "status": "accepted",
+  "runtime_snapshot": {
+    "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-077/checkpoints/specify-entry--zcode-acp/snapshot",
+    "sha256": "a7880d9322d6a8d71ea3306bd9fcfe33a95281367e8364521f82b8801bf93d4b"
+  },
+  "subject": {
+    "canonical_session_id": "sess_7dec9416-0697-406f-b0c7-a694402dfe05",
+    "checkpoint_session_id": "sess_7dec9416-0697-406f-b0c7-a694402dfe05",
+    "agent_id": null
+  },
+  "captured_at": "2026-08-29T10:21:40.871Z",
+  "engine_receipt": {
+    "ok": true,
+    "snapshot": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/checkpoints/specify-entry--zcode-acp/snapshot",
+    "schema_id": "dd-flow/eval-run-snapshot@5",
+    "run_id": "RUN-001-task-priority",
+    "project_id": "PRJ-001-project",
+    "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/project",
+    "dd_flow_home": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime",
+    "stage_entry": "specify",
+    "created_at": "2026-08-29T10:21:40.871Z",
+    "runtime_sha256": "01cf02c2b10c436a37515658c67a2719eac31ddc83493d8fc2062807ef2d7bc0",
+    "project_sha256": "0fb6aee069cf13d2aff91d75fe69cf05cb826da795294a4c32f0bd3fb29898b9",
+    "project_git": {
+      "branch": "main",
+      "head": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+      "bundle_sha256": "3b1f64d21a8bf6b0fb1deed727e17f846f57ac70ba81f31fc6d0e4d53564ca06"
+    },
+    "workspace": {
+      "kind": "project"
+    }
+  },
+  "accepted_at": "2026-08-29T14:30:00.000Z",
+  "acceptance_review": {
+    "path": "checkpoint-reviews/REV-077/zcode-specify.md",
+    "sha256": "5d3eb81b87b731bb60744e6f084511eafbf9a49629b8f7d5f34c512a15d59d52",
+    "accepted_at": "2026-08-29T14:30:00.000Z"
+  }
+}

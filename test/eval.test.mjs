@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { addSession, checkpointForHarness, comparePrepare, efficiency, judgeResultInstructions, judgeResultPath, judgeResultTemplate, loadCase, prepare, profileMatches, scoreEvaluation, subjectContinuation, subjectSeedMode, subjectTaskTitle, syncLifecycleStatus, validateInput } from "../lib/dd-eval.mjs";
+import { addSession, checkpointForHarness, comparePrepare, efficiency, judgeResultInstructions, judgeResultPath, judgeResultTemplate, loadCase, prepare, profileMatches, scoredUsageIssues, scoreEvaluation, subjectContinuation, subjectSeedMode, subjectTaskTitle, syncLifecycleStatus, validateInput, withWriteLock } from "../lib/dd-eval.mjs";
 
 const source = process.env.DD_TASKS_REPO || path.resolve(import.meta.dirname, "..", "..", "dd-tasks");
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -40,6 +40,19 @@ test("every registered starter belongs to the declared stage chain", async () =>
       assert.ok(alternate.parent_session_id);
     }
   }
+});
+
+test("starter registry writes serialize concurrent harness updates", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "dd-eval-lock-")); const registry = path.join(root, "starter-sessions.json");
+  try {
+    await writeFile(registry, "0");
+    await Promise.all(Array.from({ length: 8 }, () => withWriteLock(registry, async () => {
+      const current = Number(await readFile(registry, "utf8"));
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      await writeFile(registry, String(current + 1));
+    })));
+    assert.equal(await readFile(registry, "utf8"), "8");
+  } finally { await rm(root, { recursive: true, force: true }); }
 });
 
 test("the accepted ZCode baseline records native identity, exact profile and immutable evidence", async () => {
@@ -138,6 +151,12 @@ test("efficiency reports only the focused stage or selected segment", () => {
   assert.equal(efficiency(flow, "code").elapsed_ms, 600_000);
   assert.equal(efficiency(flow, "plan+plan-review").active_stage_ms, 300_000);
   assert.equal(efficiency(flow, "plan+plan-review").elapsed_ms, 300_000);
+});
+
+test("scoring requires final reconciled usage and measured tool calls", () => {
+  const ready = { usage: { status: "final", session_reconciliation: { unsettled: [] }, tool_calls: { status: "measured" } } };
+  assert.deepEqual(scoredUsageIssues(ready), []);
+  assert.deepEqual(scoredUsageIssues({ usage: { status: "provisional", session_reconciliation: { unsettled: ["child"] }, tool_calls: { status: "partial" } } }), ["usage status is provisional", "1 Session(s) are unsettled", "tool-call coverage is partial"]);
 });
 
 test("sync recognizes the current paused RUN status as a user wait", () => {

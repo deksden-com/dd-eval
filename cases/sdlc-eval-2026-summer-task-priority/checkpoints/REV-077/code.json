@@ -1,0 +1,973 @@
+{
+  "schema_id": "dd-eval/canonical-stage-checkpoint@2",
+  "case_id": "sdlc-eval-2026-summer-task-priority",
+  "revision": "REV-077",
+  "stage": "code",
+  "harness": "zcode-acp",
+  "status": "accepted",
+  "runtime_snapshot": {
+    "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-077/checkpoints/code-entry--zcode-acp/snapshot",
+    "sha256": "571df118ceaa339a30b1799b6e90e88064c71604cb200d6d5d463506469c5606"
+  },
+  "subject": {
+    "canonical_session_id": "sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+    "checkpoint_session_id": "sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+    "agent_id": null
+  },
+  "captured_at": "2026-08-29T11:34:03.776Z",
+  "engine_receipt": {
+    "ok": true,
+    "snapshot": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/checkpoints/code-entry--zcode-acp/snapshot",
+    "schema_id": "dd-flow/eval-run-snapshot@5",
+    "run_id": "RUN-001-task-priority",
+    "project_id": "PRJ-001-project",
+    "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/project",
+    "dd_flow_home": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime",
+    "stage_entry": "code",
+    "created_at": "2026-08-29T11:34:03.667Z",
+    "runtime_sha256": "f1737fcf6a9c2f05bc4c9adb32beaac6143ffea519f20148e68c66d626a62081",
+    "project_sha256": "cde3d560acfd6982b8de2bb7fbafffffd53a5c1aedfd061b5277e3648bd984df",
+    "project_git": {
+      "branch": "main",
+      "head": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+      "bundle_sha256": "36a3423b5d8afc21a5c764b1e3800a7126119586d258fac72be5c39cad91edfc"
+    },
+    "workspace": {
+      "kind": "git_worktree",
+      "source_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime/projects/PRJ-001-project/checkouts/worktrees/RUN-RUN-001/project",
+      "branch": "feature/run-run-001-task-priority",
+      "base_ref": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+      "sha256": "f44f015207bf069ccf843916215eee8da9e0636e131f17a8b007fd85acb48e56",
+      "bundle_sha256": "61095170b98aff43a6438ad7b3b0e83d952782a915b7fb90ad60d49611a61d5b"
+    },
+    "source_status": {
+      "ok": true,
+      "run": {
+        "id": "RUN-001-task-priority",
+        "short_id": "RUN-001",
+        "slug": "task-priority",
+        "project_id": "PRJ-001-project",
+        "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/project",
+        "workspace_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime/projects/PRJ-001-project/checkouts/worktrees/RUN-RUN-001/project",
+        "flow_kind": "vnext_protocolize",
+        "subject": {
+          "type": "discussion",
+          "id": "SPECIFY"
+        },
+        "status": "running",
+        "verdict": "plan_review_accepted",
+        "next_action": "start_code",
+        "runtime_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority/run.json",
+        "run_dir": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
+        "run_index_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority/run.json",
+        "run_home_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
+        "layout_version": "home_run_v2",
+        "artifact_root_kind": "dd_flow_home",
+        "created_at": "2026-08-29T10:21:26.997Z",
+        "updated_at": "2026-08-29T11:33:30.137Z",
+        "completed_at": null
+      },
+      "index": {
+        "schema_id": "dd-flow/flow-run@3",
+        "run_id": "RUN-001-task-priority",
+        "short_id": "RUN-001",
+        "flow_kind": "vnext_protocolize",
+        "subject": {
+          "id": "SPECIFY",
+          "title": "SPECIFY"
+        },
+        "project": {
+          "id": "PRJ-001-project",
+          "title": "project"
+        },
+        "workspace": {
+          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/project",
+          "workspace_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime/projects/PRJ-001-project/checkouts/worktrees/RUN-RUN-001/project",
+          "branch": "feature/run-run-001-task-priority",
+          "base": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+          "manager": "official-worktrunk"
+        },
+        "run_home": {
+          "storage": "dd_flow_home",
+          "path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
+          "relative_path": "runs/RUN-001-task-priority"
+        },
+        "execution": {
+          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/project",
+          "workspace_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime/projects/PRJ-001-project/checkouts/worktrees/RUN-RUN-001/project",
+          "git": {
+            "branch": "feature/run-run-001-task-priority",
+            "head": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+            "status": "dirty"
+          }
+        },
+        "legacy": {
+          "project_tasks_run_dir": null
+        },
+        "stage_runs": [
+          {
+            "order": 1,
+            "stage": "specify",
+            "dir": "01-specify",
+            "status": "done",
+            "data_schema_id": "dd-flow/specify@1",
+            "updated_at": "2026-08-29T10:34:52.735Z",
+            "started_at": "2026-08-29T10:27:45.031Z",
+            "duration_ms": 427704,
+            "git": {
+              "branch": "main",
+              "head": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+              "status": "clean"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "specify.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-29T10:34:52.735Z"
+          },
+          {
+            "order": 2,
+            "stage": "protocolize",
+            "dir": "02-protocolize",
+            "status": "done",
+            "data_schema_id": "dd-flow/vnext-protocolize-result@3",
+            "updated_at": "2026-08-29T10:46:46.471Z",
+            "started_at": "2026-08-29T10:44:24.486Z",
+            "duration_ms": 141985,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "protocolize-result.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-29T10:46:46.471Z"
+          },
+          {
+            "order": 3,
+            "stage": "plan",
+            "dir": "03-plan",
+            "status": "done",
+            "data_schema_id": "dd-flow/stage-report@1",
+            "updated_at": "2026-08-29T11:05:39.952Z",
+            "started_at": "2026-08-29T10:53:06.204Z",
+            "duration_ms": 753748,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "stage-report.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-29T11:05:39.952Z"
+          },
+          {
+            "order": 4,
+            "stage": "plan-review",
+            "dir": "04-plan-review",
+            "status": "done",
+            "data_schema_id": "dd-flow/stage-report@1",
+            "updated_at": "2026-08-29T11:33:30.073Z",
+            "started_at": "2026-08-29T11:08:29.106Z",
+            "duration_ms": 1500967,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "stage-report.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-29T11:33:30.073Z"
+          }
+        ],
+        "sessions": [
+          {
+            "session_id": "zcode-acp:sess_7dec9416-0697-406f-b0c7-a694402dfe05",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_7dec9416-0697-406f-b0c7-a694402dfe05",
+            "parent_session_id": null,
+            "role": null,
+            "session_kind": "orchestrator",
+            "work_id": "WRK-001-root",
+            "current_stage": "specify",
+            "status": "active",
+            "created_at": "2026-08-29T10:27:44.651Z",
+            "updated_at": "2026-08-29T10:27:45.029Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_93f3a440-67d7-44d0-8cdc-1faf579d3dc3",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_93f3a440-67d7-44d0-8cdc-1faf579d3dc3",
+            "parent_session_id": "zcode-acp:sess_7dec9416-0697-406f-b0c7-a694402dfe05",
+            "role": null,
+            "session_kind": "orchestrator",
+            "work_id": "WRK-001-root",
+            "current_stage": "protocolize",
+            "status": "active",
+            "created_at": "2026-08-29T10:44:18.902Z",
+            "updated_at": "2026-08-29T10:44:24.598Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_24504ff0-55b8-43e5-bee6-b233b012b4b6",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_24504ff0-55b8-43e5-bee6-b233b012b4b6",
+            "parent_session_id": "zcode-acp:sess_93f3a440-67d7-44d0-8cdc-1faf579d3dc3",
+            "role": null,
+            "session_kind": "orchestrator",
+            "work_id": "WRK-002-plan",
+            "current_stage": "plan",
+            "status": "active",
+            "created_at": "2026-08-29T10:49:09.777Z",
+            "updated_at": "2026-08-29T10:53:06.275Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+            "parent_session_id": "zcode-acp:sess_93f3a440-67d7-44d0-8cdc-1faf579d3dc3",
+            "role": null,
+            "session_kind": "orchestrator",
+            "work_id": "WRK-003-plan-review",
+            "current_stage": "plan-review",
+            "status": "active",
+            "created_at": "2026-08-29T11:08:25.613Z",
+            "updated_at": "2026-08-29T11:08:29.102Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_subagent_agent_51a319b3-fca9-44ff-8a91-5fb1e0b38360",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_subagent_agent_51a319b3-fca9-44ff-8a91-5fb1e0b38360",
+            "parent_session_id": "zcode-acp:sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg1",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-29T11:09:50.430Z",
+            "updated_at": "2026-08-29T11:18:20.548Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_subagent_agent_c6d052ae-96a3-4fd2-bff1-7d7746527785",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_subagent_agent_c6d052ae-96a3-4fd2-bff1-7d7746527785",
+            "parent_session_id": "zcode-acp:sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg4",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-29T11:09:50.776Z",
+            "updated_at": "2026-08-29T11:18:47.898Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_subagent_agent_e3ad0a63-aea3-4712-8d8e-16196b5994dc",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_subagent_agent_e3ad0a63-aea3-4712-8d8e-16196b5994dc",
+            "parent_session_id": "zcode-acp:sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg3",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-29T11:09:52.100Z",
+            "updated_at": "2026-08-29T11:21:36.609Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_subagent_agent_bceb3572-e41d-49f0-9da9-a756132427dc",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_subagent_agent_bceb3572-e41d-49f0-9da9-a756132427dc",
+            "parent_session_id": "zcode-acp:sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg2",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-29T11:09:57.261Z",
+            "updated_at": "2026-08-29T11:17:38.171Z",
+            "stopped_at": null,
+            "coverage_units": []
+          }
+        ],
+        "status": "running",
+        "verdict": "plan_review_accepted",
+        "next_action": "start_code",
+        "created_at": "2026-08-29T10:21:26.997Z",
+        "updated_at": "2026-08-29T11:33:30.137Z",
+        "started_at": "2026-08-29T10:21:26.997Z",
+        "timing_status": "measured",
+        "runtime_revision": 40,
+        "snapshot_revision": 1,
+        "snapshot_checksum": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reconciliation_status": "reconciled",
+        "flow_flags": {
+          "contract": {
+            "id": "dd-flow-canonical-2026-08",
+            "version": 6,
+            "capabilities": [
+              "flow_run_snapshot.v1",
+              "session_coverage_units.v1",
+              "privacy_safe_observability.v1",
+              "canonical_protocol_plan.v1",
+              "stage_bootstrap_context_packet.v1"
+            ]
+          },
+          "flow_kind": "vnext_protocolize",
+          "preset": {
+            "requested": null,
+            "applied": "none",
+            "source_ref": "dd-flow-canonical-2026-08#flow_flags.none"
+          },
+          "snapshot_revision": 1,
+          "resolution_status": "valid",
+          "resolved_at": "2026-08-29T10:21:26.997Z",
+          "values": {},
+          "compatibility_projection": {
+            "task_profile_revision": null,
+            "legacy_flow_profile_read": false
+          },
+          "snapshot_checksum": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "floors_applied": []
+        },
+        "settings": {
+          "plan_review": {
+            "mode": "auto",
+            "source": "default",
+            "reason": "Project execution profile default.",
+            "updated_at": "2026-08-29T10:21:26.997Z"
+          },
+          "code_review": {
+            "mode": "auto",
+            "source": "default",
+            "reason": "Project execution profile default.",
+            "updated_at": "2026-08-29T10:21:26.997Z"
+          }
+        },
+        "execution_profile": {
+          "schema_id": "dd-flow/run-execution-profile@1",
+          "source_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/project/.memory-bank/dd-flow/project-execution.json",
+          "source_checksum": "ab5048810d06bef6d8e96979531ccd0a62b98475e34da3018fa43702796ca62c",
+          "settings": {
+            "stage_session_mode": "new_session",
+            "plan_review_mode": "auto",
+            "code_review_mode": "auto",
+            "stop_target": "code_review_completed",
+            "code_bootstrap": {
+              "command": "pnpm bootstrap",
+              "policy_ref": ".memory-bank/spec/operations/workspace-bootstrap-policy.md"
+            }
+          }
+        },
+        "artifacts": {
+          "stage_prompt": "stage-prompt.md",
+          "stage_report_json": "stage-report.json",
+          "stage_report_md": "stage-report.md",
+          "stage_report_html": "stage-report.html",
+          "summary": "summary.md"
+        },
+        "timeline_path": "timeline.jsonl",
+        "works": [
+          {
+            "work_id": "WRK-001-root",
+            "parent_work_id": null,
+            "status": "running",
+            "depends_on": [],
+            "launch_policy": "reuse_allowed",
+            "started_at": "2026-08-29T10:27:44.959Z",
+            "completed_at": null
+          },
+          {
+            "work_id": "WRK-002-plan",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "reuse_allowed",
+            "started_at": "2026-08-29T10:53:06.203Z",
+            "completed_at": "2026-08-29T11:05:39.760Z"
+          },
+          {
+            "work_id": "WRK-003-plan-review",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "reuse_allowed",
+            "started_at": "2026-08-29T11:08:29.086Z",
+            "completed_at": "2026-08-29T11:33:30.024Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg1",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-29T11:09:50.430Z",
+            "completed_at": "2026-08-29T11:18:20.548Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg2",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-29T11:09:57.261Z",
+            "completed_at": "2026-08-29T11:17:38.171Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg3",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-29T11:09:52.100Z",
+            "completed_at": "2026-08-29T11:21:36.609Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg4",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-29T11:09:50.776Z",
+            "completed_at": "2026-08-29T11:18:47.898Z"
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p1",
+            "parent_work_id": "WRK-001-root",
+            "status": "created",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": null,
+            "completed_at": null
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p2",
+            "parent_work_id": "WRK-001-root",
+            "status": "created",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p1"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": null,
+            "completed_at": null
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p3",
+            "parent_work_id": "WRK-001-root",
+            "status": "created",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p2"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": null,
+            "completed_at": null
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p4",
+            "parent_work_id": "WRK-001-root",
+            "status": "created",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p2",
+              "WRK-005-prt-007-task-priority-p3"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": null,
+            "completed_at": null
+          }
+        ],
+        "root_work_id": "WRK-001-root",
+        "variables": {
+          "runtime.subagent.available_slots": 15
+        }
+      },
+      "runtime": {
+        "run_id": "RUN-001-task-priority",
+        "short_id": "RUN-001",
+        "flow_kind": "vnext_protocolize",
+        "subject": {
+          "id": "SPECIFY",
+          "title": "SPECIFY"
+        },
+        "project": {
+          "id": "PRJ-001-project",
+          "title": "project"
+        },
+        "workspace": {
+          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/project",
+          "workspace_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime/projects/PRJ-001-project/checkouts/worktrees/RUN-RUN-001/project",
+          "branch": "feature/run-run-001-task-priority",
+          "base": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+          "manager": "official-worktrunk"
+        },
+        "run_home": {
+          "storage": "dd_flow_home",
+          "path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime/projects/PRJ-001-project/runs/RUN-001-task-priority",
+          "relative_path": "runs/RUN-001-task-priority"
+        },
+        "execution": {
+          "project_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/project",
+          "workspace_root": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/runtime/projects/PRJ-001-project/checkouts/worktrees/RUN-RUN-001/project",
+          "git": {
+            "branch": "feature/run-run-001-task-priority",
+            "head": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+            "status": "dirty"
+          }
+        },
+        "legacy": {
+          "project_tasks_run_dir": null
+        },
+        "stage_runs": [
+          {
+            "order": 1,
+            "stage": "specify",
+            "dir": "01-specify",
+            "status": "done",
+            "data_schema_id": "dd-flow/specify@1",
+            "updated_at": "2026-08-29T10:34:52.735Z",
+            "started_at": "2026-08-29T10:27:45.031Z",
+            "duration_ms": 427704,
+            "git": {
+              "branch": "main",
+              "head": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+              "status": "clean"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "specify.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-29T10:34:52.735Z"
+          },
+          {
+            "order": 2,
+            "stage": "protocolize",
+            "dir": "02-protocolize",
+            "status": "done",
+            "data_schema_id": "dd-flow/vnext-protocolize-result@3",
+            "updated_at": "2026-08-29T10:46:46.471Z",
+            "started_at": "2026-08-29T10:44:24.486Z",
+            "duration_ms": 141985,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "protocolize-result.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-29T10:46:46.471Z"
+          },
+          {
+            "order": 3,
+            "stage": "plan",
+            "dir": "03-plan",
+            "status": "done",
+            "data_schema_id": "dd-flow/stage-report@1",
+            "updated_at": "2026-08-29T11:05:39.952Z",
+            "started_at": "2026-08-29T10:53:06.204Z",
+            "duration_ms": 753748,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "stage-report.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-29T11:05:39.952Z"
+          },
+          {
+            "order": 4,
+            "stage": "plan-review",
+            "dir": "04-plan-review",
+            "status": "done",
+            "data_schema_id": "dd-flow/stage-report@1",
+            "updated_at": "2026-08-29T11:33:30.073Z",
+            "started_at": "2026-08-29T11:08:29.106Z",
+            "duration_ms": 1500967,
+            "git": {
+              "branch": "feature/run-run-001-task-priority",
+              "head": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c",
+              "status": "dirty"
+            },
+            "attempt": "try-001",
+            "stage_report": "stage-report.html",
+            "data": "stage-report.json",
+            "report": "stage-report.md",
+            "completed_at": "2026-08-29T11:33:30.073Z"
+          }
+        ],
+        "sessions": [
+          {
+            "session_id": "zcode-acp:sess_7dec9416-0697-406f-b0c7-a694402dfe05",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_7dec9416-0697-406f-b0c7-a694402dfe05",
+            "parent_session_id": null,
+            "role": null,
+            "session_kind": "orchestrator",
+            "work_id": "WRK-001-root",
+            "current_stage": "specify",
+            "status": "active",
+            "created_at": "2026-08-29T10:27:44.651Z",
+            "updated_at": "2026-08-29T10:27:45.029Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_93f3a440-67d7-44d0-8cdc-1faf579d3dc3",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_93f3a440-67d7-44d0-8cdc-1faf579d3dc3",
+            "parent_session_id": "zcode-acp:sess_7dec9416-0697-406f-b0c7-a694402dfe05",
+            "role": null,
+            "session_kind": "orchestrator",
+            "work_id": "WRK-001-root",
+            "current_stage": "protocolize",
+            "status": "active",
+            "created_at": "2026-08-29T10:44:18.902Z",
+            "updated_at": "2026-08-29T10:44:24.598Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_24504ff0-55b8-43e5-bee6-b233b012b4b6",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_24504ff0-55b8-43e5-bee6-b233b012b4b6",
+            "parent_session_id": "zcode-acp:sess_93f3a440-67d7-44d0-8cdc-1faf579d3dc3",
+            "role": null,
+            "session_kind": "orchestrator",
+            "work_id": "WRK-002-plan",
+            "current_stage": "plan",
+            "status": "active",
+            "created_at": "2026-08-29T10:49:09.777Z",
+            "updated_at": "2026-08-29T10:53:06.275Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+            "parent_session_id": "zcode-acp:sess_93f3a440-67d7-44d0-8cdc-1faf579d3dc3",
+            "role": null,
+            "session_kind": "orchestrator",
+            "work_id": "WRK-003-plan-review",
+            "current_stage": "plan-review",
+            "status": "active",
+            "created_at": "2026-08-29T11:08:25.613Z",
+            "updated_at": "2026-08-29T11:08:29.102Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_subagent_agent_51a319b3-fca9-44ff-8a91-5fb1e0b38360",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_subagent_agent_51a319b3-fca9-44ff-8a91-5fb1e0b38360",
+            "parent_session_id": "zcode-acp:sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg1",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-29T11:09:50.430Z",
+            "updated_at": "2026-08-29T11:18:20.548Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_subagent_agent_c6d052ae-96a3-4fd2-bff1-7d7746527785",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_subagent_agent_c6d052ae-96a3-4fd2-bff1-7d7746527785",
+            "parent_session_id": "zcode-acp:sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg4",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-29T11:09:50.776Z",
+            "updated_at": "2026-08-29T11:18:47.898Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_subagent_agent_e3ad0a63-aea3-4712-8d8e-16196b5994dc",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_subagent_agent_e3ad0a63-aea3-4712-8d8e-16196b5994dc",
+            "parent_session_id": "zcode-acp:sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg3",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-29T11:09:52.100Z",
+            "updated_at": "2026-08-29T11:21:36.609Z",
+            "stopped_at": null,
+            "coverage_units": []
+          },
+          {
+            "session_id": "zcode-acp:sess_subagent_agent_bceb3572-e41d-49f0-9da9-a756132427dc",
+            "harness": "zcode-acp",
+            "provider_session_id": "sess_subagent_agent_bceb3572-e41d-49f0-9da9-a756132427dc",
+            "parent_session_id": "zcode-acp:sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
+            "role": null,
+            "session_kind": null,
+            "work_id": "WRK-004-prt-007-task-priority-rg2",
+            "current_stage": "work",
+            "status": "idle",
+            "created_at": "2026-08-29T11:09:57.261Z",
+            "updated_at": "2026-08-29T11:17:38.171Z",
+            "stopped_at": null,
+            "coverage_units": []
+          }
+        ],
+        "status": "running",
+        "verdict": "plan_review_accepted",
+        "next_action": "start_code",
+        "created_at": "2026-08-29T10:21:26.997Z",
+        "updated_at": "2026-08-29T11:33:30.137Z",
+        "started_at": "2026-08-29T10:21:26.997Z",
+        "timing_status": "measured",
+        "runtime_revision": 40,
+        "snapshot_revision": 1,
+        "snapshot_checksum": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reconciliation_status": "reconciled",
+        "flow_flags": {
+          "contract": {
+            "id": "dd-flow-canonical-2026-08",
+            "version": 6,
+            "capabilities": [
+              "flow_run_snapshot.v1",
+              "session_coverage_units.v1",
+              "privacy_safe_observability.v1",
+              "canonical_protocol_plan.v1",
+              "stage_bootstrap_context_packet.v1"
+            ]
+          },
+          "flow_kind": "vnext_protocolize",
+          "preset": {
+            "requested": null,
+            "applied": "none",
+            "source_ref": "dd-flow-canonical-2026-08#flow_flags.none"
+          },
+          "snapshot_revision": 1,
+          "resolution_status": "valid",
+          "resolved_at": "2026-08-29T10:21:26.997Z",
+          "values": {},
+          "compatibility_projection": {
+            "task_profile_revision": null,
+            "legacy_flow_profile_read": false
+          },
+          "snapshot_checksum": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "floors_applied": []
+        },
+        "settings": {
+          "plan_review": {
+            "mode": "auto",
+            "source": "default",
+            "reason": "Project execution profile default.",
+            "updated_at": "2026-08-29T10:21:26.997Z"
+          },
+          "code_review": {
+            "mode": "auto",
+            "source": "default",
+            "reason": "Project execution profile default.",
+            "updated_at": "2026-08-29T10:21:26.997Z"
+          }
+        },
+        "execution_profile": {
+          "schema_id": "dd-flow/run-execution-profile@1",
+          "source_path": "/Users/deksden/.dd-eval/canonical/sdlc-eval-2026-summer-task-priority/REV-077/harnesses/zcode-acp/canonical/workspace/project/.memory-bank/dd-flow/project-execution.json",
+          "source_checksum": "ab5048810d06bef6d8e96979531ccd0a62b98475e34da3018fa43702796ca62c",
+          "settings": {
+            "stage_session_mode": "new_session",
+            "plan_review_mode": "auto",
+            "code_review_mode": "auto",
+            "stop_target": "code_review_completed",
+            "code_bootstrap": {
+              "command": "pnpm bootstrap",
+              "policy_ref": ".memory-bank/spec/operations/workspace-bootstrap-policy.md"
+            }
+          }
+        },
+        "artifacts": {
+          "stage_prompt": "stage-prompt.md",
+          "stage_report_json": "stage-report.json",
+          "stage_report_md": "stage-report.md",
+          "stage_report_html": "stage-report.html",
+          "summary": "summary.md"
+        },
+        "timeline_path": "timeline.jsonl",
+        "works": [
+          {
+            "work_id": "WRK-001-root",
+            "parent_work_id": null,
+            "status": "running",
+            "depends_on": [],
+            "launch_policy": "reuse_allowed",
+            "started_at": "2026-08-29T10:27:44.959Z",
+            "completed_at": null
+          },
+          {
+            "work_id": "WRK-002-plan",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "reuse_allowed",
+            "started_at": "2026-08-29T10:53:06.203Z",
+            "completed_at": "2026-08-29T11:05:39.760Z"
+          },
+          {
+            "work_id": "WRK-003-plan-review",
+            "parent_work_id": "WRK-001-root",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "reuse_allowed",
+            "started_at": "2026-08-29T11:08:29.086Z",
+            "completed_at": "2026-08-29T11:33:30.024Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg1",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-29T11:09:50.430Z",
+            "completed_at": "2026-08-29T11:18:20.548Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg2",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-29T11:09:57.261Z",
+            "completed_at": "2026-08-29T11:17:38.171Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg3",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-29T11:09:52.100Z",
+            "completed_at": "2026-08-29T11:21:36.609Z"
+          },
+          {
+            "work_id": "WRK-004-prt-007-task-priority-rg4",
+            "parent_work_id": "WRK-003-plan-review",
+            "status": "completed",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": "2026-08-29T11:09:50.776Z",
+            "completed_at": "2026-08-29T11:18:47.898Z"
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p1",
+            "parent_work_id": "WRK-001-root",
+            "status": "created",
+            "depends_on": [],
+            "launch_policy": "fresh_agent_required",
+            "started_at": null,
+            "completed_at": null
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p2",
+            "parent_work_id": "WRK-001-root",
+            "status": "created",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p1"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": null,
+            "completed_at": null
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p3",
+            "parent_work_id": "WRK-001-root",
+            "status": "created",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p2"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": null,
+            "completed_at": null
+          },
+          {
+            "work_id": "WRK-005-prt-007-task-priority-p4",
+            "parent_work_id": "WRK-001-root",
+            "status": "created",
+            "depends_on": [
+              "WRK-005-prt-007-task-priority-p2",
+              "WRK-005-prt-007-task-priority-p3"
+            ],
+            "launch_policy": "fresh_agent_required",
+            "started_at": null,
+            "completed_at": null
+          }
+        ],
+        "root_work_id": "WRK-001-root",
+        "variables": {
+          "runtime.subagent.available_slots": 15
+        },
+        "schema_id": "dd-flow/flow-run@3"
+      },
+      "flow_guidance": {
+        "current_stage": "plan-review",
+        "lifecycle": {
+          "flow": "mb_sdlc_vnext_protocolize",
+          "stage": "plan-review",
+          "substage": null,
+          "status": "running",
+          "terminal": false,
+          "source": "vnext_run"
+        },
+        "allowed_next_stages": [
+          "code"
+        ],
+        "recommended_next_action": "start_code",
+        "recommended_prompt": ".memory-bank/dd-flow/vnext/code.md",
+        "required_predecessor_evidence": [
+          "04-plan-review/stage-report.json"
+        ],
+        "guards": [],
+        "blocked_if_missing": []
+      }
+    },
+    "progress": [
+      {
+        "phase": "start",
+        "message": "Starting run snapshot",
+        "at": "2026-08-29T11:34:03.770Z"
+      },
+      {
+        "phase": "done",
+        "message": "run snapshot finished",
+        "at": "2026-08-29T11:34:03.770Z"
+      }
+    ]
+  },
+  "accepted_at": "2026-08-29T11:34:20.301Z",
+  "acceptance_review": {
+    "path": "checkpoint-reviews/REV-077/zcode-code.md",
+    "sha256": "c0fb6f6036e8b7a4df712f5d62e4089c63bbbec6d3b50c17239b834f3d9a60c7",
+    "accepted_at": "2026-08-29T11:34:20.301Z"
+  }
+}

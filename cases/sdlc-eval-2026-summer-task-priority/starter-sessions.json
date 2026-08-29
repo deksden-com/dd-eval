@@ -9,8 +9,8 @@
       "harness": "codex-desktop",
       "by_harness": {
         "zcode-acp": {
-          "session_id": "sess_24319031-03f1-42ee-afe1-75242512602d",
-          "parent_session_id": "sess_468bfade-943b-4467-9831-26fc97777ef3",
+          "session_id": "sess_5ec45f40-5b45-47c0-923e-75c709d903f0",
+          "parent_session_id": "sess_7dec9416-0697-406f-b0c7-a694402dfe05",
           "harness": "zcode-acp",
           "seed_mode": "deterministic_replay"
         },
@@ -31,8 +31,8 @@
       "harness": "codex-desktop",
       "by_harness": {
         "zcode-acp": {
-          "session_id": "sess_8a473f6b-9b41-4e8c-ba7a-d0a95a90eca4",
-          "parent_session_id": "sess_02758b72-175b-45e7-a688-60aa2a0619a3",
+          "session_id": "sess_5706a896-5e5c-478e-aece-a7f78e952b0c",
+          "parent_session_id": "sess_7dec9416-0697-406f-b0c7-a694402dfe05",
           "harness": "zcode-acp",
           "seed_mode": "deterministic_replay"
         },
@@ -53,8 +53,8 @@
       "harness": "codex-desktop",
       "by_harness": {
         "zcode-acp": {
-          "session_id": "sess_8b3426f0-dba7-4aa9-913b-5b1a5f68370c",
-          "parent_session_id": "sess_dcfdfcc8-8406-4517-9033-e400e248b2d5",
+          "session_id": "sess_0ee7c2a8-6dc8-4e23-a46d-424cc1853e32",
+          "parent_session_id": "sess_93f3a440-67d7-44d0-8cdc-1faf579d3dc3",
           "harness": "zcode-acp",
           "seed_mode": "deterministic_replay"
         },
@@ -84,8 +84,8 @@
           }
         },
         "zcode-acp": {
-          "session_id": "sess_27c2833b-c1d7-465b-ba8b-81c0a8f7650b",
-          "parent_session_id": "sess_ce493b7e-7bd2-41e3-b9d8-ecc4275c6449",
+          "session_id": "sess_b0816a32-e285-4a1a-ae39-35c19ea795e6",
+          "parent_session_id": "sess_24504ff0-55b8-43e5-bee6-b233b012b4b6",
           "harness": "zcode-acp",
           "seed_mode": "deterministic_replay"
         }
@@ -106,8 +106,8 @@
           }
         },
         "zcode-acp": {
-          "session_id": "sess_16ea4bd1-526a-46aa-90b9-2a128ef6b4cc",
-          "parent_session_id": "sess_0bbf18b4-898d-40c8-9f08-fb967480bd6b",
+          "session_id": "sess_05722dc3-fb0e-4edb-aa13-6ee306ab461c",
+          "parent_session_id": "sess_c956b6b0-1fe9-491f-84bd-4bd7b48846c4",
           "harness": "zcode-acp",
           "seed_mode": "deterministic_replay"
         }
@@ -126,12 +126,18 @@
             "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-065/harnesses/grok-acp/specify/code-review-starter-archive",
             "sha256": "b421a0d3e6fbaddf6494f24cf8ade3e30af6e1d1d7e54c19c23117767dd08d26"
           }
+        },
+        "zcode-acp": {
+          "session_id": "sess_cd548ea3-347c-434b-ad71-9602de7d963b",
+          "parent_session_id": "sess_a14a42a6-edd1-4c4b-81ef-c77f6c285ddc",
+          "harness": "zcode-acp",
+          "seed_mode": "deterministic_replay"
         }
       }
     }
   },
   "harness_revisions": {
-    "zcode-acp": "REV-065",
+    "zcode-acp": "REV-077",
     "grok-acp": "REV-065"
   }
 }
