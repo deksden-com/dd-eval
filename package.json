@@ -6,7 +6,8 @@
   "bin": {
     "dd-eval": "./bin/dd-eval.mjs",
     "dd-zcode": "./bin/dd-zcode.mjs",
-    "dd-grok": "./bin/dd-grok.mjs"
+    "dd-grok": "./bin/dd-grok.mjs",
+    "dd-opencode": "./bin/dd-opencode.mjs"
   },
   "scripts": {
     "test": "node --test",

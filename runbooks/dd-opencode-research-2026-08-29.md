@@ -103,19 +103,56 @@ content and is suitable only for diagnostics, never a starter.
    use the synchronous plugin hook for pre-effect lifecycle trust.
 8. Prove root-versus-child usage scope in delegated conformance before scoring.
 
-## Remaining live conformance
+## Implementation and live conformance result
 
-These tests require an authenticated model call and are deliberately deferred
-to implementation:
+Implemented on `feat/opencode-harness`:
 
-- exact provider/model/variant/agent receipt after the first assistant turn;
-- foreground Task child ID/parent/status and root/child usage scope;
-- targeted child cancellation while the root stays controllable;
+- `dd-opencode` owns one authenticated loopback server behind a private Unix
+  socket and never returns the server password from status;
+- each execution gets private XDG data/config/cache roots, a copied `auth.json`
+  and exactly one generated checksummed lifecycle plugin;
+- create, inspect, prompt, native fork, recursive cancel, doctor, clean stop,
+  export and fresh-home import are exposed as structured CLI operations;
+- requested provider/model/variant/agent are compared with the Session facts
+  after the first model turn and drift fails closed;
+- message token/cost fields and stable tool parts are projected to the generic
+  `dd-flow opencode usage ingest` path for the root and every native child;
+- daemon operations are written to a private append-only JSONL journal;
+- `dd-eval` recognizes `opencode-server`, the `dd-opencode` driver and
+  `archive_native_fork` starter evidence.
+
+Live conformance on OpenCode 1.18.23 passed health/API fingerprint, isolated
+auth, create, inspect, exact-profile prompt, zero-tool usage, native fork,
+archive, fresh-home restore, clean stop and native Task topology. The Task
+experiment observed a `build` root and an `explore` child with exact native
+`parentID`, independent root/child token totals and a stable root `task` tool
+part. The recursive cancel operation left the tree idle. The controlled plugin
+loaded without runtime or syntax errors; its before/after event transformation
+and single-use command rewrite are covered by the `dd-flow-cli` regression
+suite.
+
+Example diagnostic lifecycle:
+
+```sh
+dd-opencode daemon start --state-dir "$STATE" --cwd "$WORKSPACE" \
+  --provider opencode --model big-pickle --variant default --agent build \
+  --project-root "$PROJECT" --dd-flow-bin "$DD_FLOW_BIN" \
+  --dd-flow-home "$DD_FLOW_HOME" --json
+dd-opencode doctor --state-dir "$STATE" --json
+dd-opencode session create --state-dir "$STATE" --json
+dd-opencode session prompt --state-dir "$STATE" --session-id "$SESSION" \
+  --prompt-file prompt.md --json
+dd-opencode daemon stop --state-dir "$STATE" --json
+```
+
+## Remaining canonical qualification
+
+These are case-qualification tasks rather than missing harness operations:
+
 - pending permission and question endpoint/request shapes;
 - trusted first-turn `dd-flow` lifecycle command through the controlled plugin;
 - SSE disconnect during a productive turn and finite reconciliation;
 - server death with an active tree and fail-closed recovery;
-- tool-name/part accounting in normal and code-mode paths;
 - fresh-home imported starter through focused SPECIFY and then full E2E.
 
 No scored profile or canonical OpenCode chain is ready until these assertions

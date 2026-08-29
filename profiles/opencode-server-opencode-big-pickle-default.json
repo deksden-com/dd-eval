@@ -1,0 +1,9 @@
+{
+  "schema_id": "dd-eval/profile@1",
+  "id": "opencode-server-opencode-big-pickle-default",
+  "harness": "opencode-server",
+  "provider": "opencode",
+  "model": "big-pickle",
+  "reasoning": "default",
+  "mode": "build"
+}

@@ -20,7 +20,7 @@ test("the active suite declares its next canonical checkpoint chain", async () =
   const validated = await validateInput({ caseId, source, requireMode: "authoring" });
   assert.equal(validated.checkpoint.id, checkpoint.id);
   assert.equal(validated.checkpoint.memory_bank.engine.commit, checkpoint.memory_bank.engine.commit);
-  assert.equal(loaded.definition.status, "authoring");
+  assert.equal(loaded.definition.status, "ready");
   assert.ok(loaded.definition.profiles.subject.includes("zcode-acp-zai-glm-5-3-flash-high"));
   assert.equal(loaded.definition.priming.subject_baselines["zcode-acp-zai-glm-5-3-flash-high"], "baselines/subject-zcode-acp-zai-glm-5-3-flash-high-rev061.json");
 });
@@ -175,6 +175,12 @@ test("a read-only ZCode starter replays the restored entry instead of claiming a
   assert.equal(subjectSeedMode({ harness: "zcode-acp", kind: "plan", starter: { seed_mode: "deterministic_replay" } }), "deterministic_replay");
   assert.equal(subjectSeedMode({ harness: "zcode-acp", kind: "plan", starter: {} }), "shared_stage_starter");
   assert.equal(subjectSeedMode({ harness: "zcode-acp", kind: "e2e" }), "clean_session");
+});
+
+test("OpenCode profile and portable starter archive are first-class", () => {
+  const expected = { harness: "opencode-server", provider: "opencode", model: "big-pickle", reasoning: "high", mode: "build" };
+  assert.equal(profileMatches(expected, { provider: "opencode", model: "big-pickle", reasoning: "high", mode: "build" }, "opencode-server"), true);
+  assert.equal(subjectSeedMode({ harness: "opencode-server", kind: "plan", starter: { seed_mode: "archive_native_fork" } }), "archive_native_fork");
 });
 
 test("a harness checkpoint keeps its own Session and runtime snapshot together", () => {
