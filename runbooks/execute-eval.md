@@ -208,7 +208,9 @@ dd-eval validate --case sdlc-eval-2026-summer-task-priority \
 
 - `authoring` must pass before creating a canonical Subject Session or
   checkpoint archive.
-- `scored` must pass before `prepare`, Subject launch or Judge launch.
+- `scored` must pass before Subject or Judge launch. `dd-eval prepare` performs
+  the same scored gate for the **selected Subject harness**; it does not require
+  unrelated declared harnesses to have a canonical chain.
 
 The command returns all blockers at once. Never work around a failed gate by
 editing a checkpoint, profile, Session ID, engine binding or SQLite file.

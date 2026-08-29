@@ -23,6 +23,7 @@ function common(options) {
     permission: options.permission ?? "deny", ddFlowBin: options["dd-flow-bin"],
     ddFlowHome: options["dd-flow-home"], projectRoot: options["project-root"],
     timeoutMs: options.timeout ? Number(options.timeout) * 1000 : undefined,
+    livenessTimeoutMs: options["liveness-timeout"] ? Number(options["liveness-timeout"]) * 1000 : undefined,
   };
 }
 

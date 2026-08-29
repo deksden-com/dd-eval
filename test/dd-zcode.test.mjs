@@ -39,6 +39,7 @@ test("dd-zcode controls create, prompt and fork through ACP with an append-only 
         else if (method === "session/cancelBackgroundTask") { running = false; result = { cancelled: true }; }
         else if (method === "zcode/session/usage") result = { inputTokens: 12, outputTokens: 3 };
         else if (method === "session/prompt") {
+          if (params.prompt?.[0]?.text === "silent") return;
           if (params.prompt?.[0]?.text === "background") running = true;
           send({ jsonrpc: "2.0", method: "session/update", params: { sessionId: params.sessionId, update: { sessionUpdate: "tool_call", toolCallId: "call-" + ++toolCall, title: "Bash: true", rawInput: { command: "true" }, _meta: { claudeCode: { toolName: "Bash" } } } } });
           send({ jsonrpc: "2.0", method: "session/update", params: { sessionId: params.sessionId, update: { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "ok" } } } });
@@ -61,6 +62,10 @@ test("dd-zcode controls create, prompt and fork through ACP with an append-only 
     await assert.rejects(
       () => promptSession({ ...common, sessionId: "native-root", adapterSessionId: "adapter-1", prompt: "background" }),
       /background ZCode subagents cannot outlive/
+    );
+    await assert.rejects(
+      () => promptSession({ ...common, sessionId: "native-root", adapterSessionId: "adapter-1", prompt: "silent", livenessTimeoutMs: 20 }),
+      (error) => error.code === "subject_liveness_timeout"
     );
     const forked = await forkSession({ ...common, sessionId: "native-root", adapterSessionId: "adapter-1", target: { kind: "latestCheckpoint" } });
     assert.equal(forked.provider_session_id, "native-fork");
