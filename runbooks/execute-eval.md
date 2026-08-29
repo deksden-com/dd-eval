@@ -121,6 +121,14 @@ snapshot; do not inject a liveness prompt into the evaluated Subject, instruct
 it to stop or claim that an artifact is absent without checking its exact path.
 Absence of an active tool call by itself is never a reason to interrupt.
 
+For ZCode, inspect only the daemon-owned **root Subject** while its prompt is
+live. Never run `dd-zcode session inspect` against a child Session merely to
+check liveness: an unregistered child may require `session/resume`, which is a
+mutating operation. Use the root topology, its Agent tool state and the
+child's normal Work artifacts instead. The adapter returns
+`child_inspection_unavailable` rather than resuming an unknown live child;
+record that condition as infrastructure evidence, not as worker failure.
+
 A registered child Work with status `running` is live. Its silence, an elapsed
 nominal wait, or a missing new artifact does **not** make it unresponsive. The
 Controller must not ask the parent to interrupt it or call `stage block` with
