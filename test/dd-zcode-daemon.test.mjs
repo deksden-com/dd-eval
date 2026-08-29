@@ -39,7 +39,7 @@ test("daemon preserves a live background tree across CLI processes and cancels i
         return;
       }
       const { id, method, params = {} } = message; let result = {};
-      if (method === "initialize") result = { protocolVersion: 1 };
+      if (method === "initialize") result = { protocolVersion: 1, ddFlowHome: process.env.DD_FLOW_HOME ?? null };
       else if (method === "session/new") result = { sessionId: "adapter-root" };
       else if (method === "session/resume") result = {};
       else if (method === "zcode/session/resolve") result = { adapterSessionId: params.sessionId, providerSessionId: params.sessionId === "native-fork" ? "native-fork" : "native-root" };
@@ -69,6 +69,7 @@ test("daemon preserves a live background tree across CLI processes and cancels i
     assert.equal((await stat(path.join(stateDir, "daemon.sock"))).mode & 0o777, 0o600);
     const created = await run(["session", "create", "--state-dir", stateDir, ...profileArgs, "--prompt", "prime"]);
     assert.equal(created.provider_session_id, "native-root");
+    assert.equal(created.initialized.ddFlowHome, root);
     const prompted = await run(["session", "prompt", "--state-dir", stateDir, "--session-id", "native-root", "--adapter-session-id", "adapter-root", ...profileArgs, "--prompt", "background"]);
     assert.equal(prompted.evidence.subagents.running[0].agentId, "agent-bg");
     const inspected = await run(["session", "inspect", "--state-dir", stateDir, "--session-id", "native-root", "--adapter-session-id", "adapter-root"]);

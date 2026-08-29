@@ -22,6 +22,7 @@ function common(options) {
     model: options.model, reasoning: options.reasoning, mode: options.mode,
     permission: options.permission ?? "deny", ddFlowBin: options["dd-flow-bin"],
     ddFlowHome: options["dd-flow-home"], projectRoot: options["project-root"],
+    env: options["dd-flow-home"] ? { DD_FLOW_HOME: options["dd-flow-home"] } : undefined,
     timeoutMs: options.timeout ? Number(options.timeout) * 1000 : undefined,
     livenessTimeoutMs: options["liveness-timeout"] ? Number(options["liveness-timeout"]) * 1000 : undefined,
   };
