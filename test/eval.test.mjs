@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, evalRun, fixturesValidate, loadCaseV6, loadRunProfile, stageSessionMode } from "../lib/runner.mjs";
+import { canonicalBuild, entryLauncher, evalRun, fixturesValidate, loadCaseV6, loadRunProfile, stageSessionMode } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -40,6 +40,12 @@ test("successor Session mode reads the persisted execution profile from run stat
   assert.equal(stageSessionMode({ status: { index: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } }), "new_session");
   assert.equal(stageSessionMode({ status: { run: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } }), "new_session");
   assert.equal(stageSessionMode({ status: { index: {} } }), "same_session");
+});
+
+test("stage launcher makes registered HITL pause the only way to ask a material question", () => {
+  const launcher = entryLauncher({ stage: "specify", entry: { snapshot: { run_id: null } }, projectRoot: "/project", runtimeRoot: "/runtime", contextFile: "/context.json", contextSha256: "a".repeat(64), profile: {} });
+  assert.match(launcher, /run the exact `stage pause` lifecycle command/);
+  assert.match(launcher, /Otherwise finish this Stage/);
 });
 
 test("authoring case refuses a scored run before any provider Session is created", async () => {
