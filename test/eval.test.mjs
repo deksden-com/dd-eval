@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -66,6 +66,22 @@ test("canonical build rejects a feature checkout before it captures a bootstrap 
     await writeFile(path.join(policyDir, "project-workspace.json"), JSON.stringify({ schema_id: "dd-flow/project-workspace@1", workspace: { integration_branch: "main" } }));
     await assert.rejects(canonicalBuild({ profileFile: buildProfile, projectRoot: project }), /clean main integration checkout/);
   } finally { await rm(project, { recursive: true, force: true }); }
+});
+
+test("failed canonical bootstrap leaves no partial revision", async () => {
+  const project = await mkdtemp(path.join(tmpdir(), "dd-eval-source-")); const home = await mkdtemp(path.join(tmpdir(), "dd-eval-home-")); const prior = process.env.DD_EVAL_HOME;
+  try {
+    await run("git", ["init", "--initial-branch=main", project]);
+    await run("git", ["-C", project, "-c", "user.email=eval@example.invalid", "-c", "user.name=Eval", "commit", "--allow-empty", "-m", "initial"]);
+    const policyDir = path.join(project, ".memory-bank", "dd-flow"); await mkdir(policyDir, { recursive: true });
+    await writeFile(path.join(policyDir, "project-workspace.json"), JSON.stringify({ schema_id: "dd-flow/project-workspace@1", workspace: { integration_branch: "main" } }));
+    process.env.DD_EVAL_HOME = home;
+    await assert.rejects(canonicalBuild({ profileFile: buildProfile, projectRoot: project }));
+    await assert.rejects(stat(path.join(home, "canonical", caseId, "REV-001")));
+  } finally {
+    if (prior === undefined) delete process.env.DD_EVAL_HOME; else process.env.DD_EVAL_HOME = prior;
+    await rm(project, { recursive: true, force: true }); await rm(home, { recursive: true, force: true });
+  }
 });
 
 test("run profiles reject undeclared control fields rather than silently changing an experiment", async () => {
