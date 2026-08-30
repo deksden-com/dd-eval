@@ -32,6 +32,30 @@ The runner allocates a fresh directory under
 `$DD_EVAL_HOME/runs/<eval-id>/`. Each execution gets its own restored project,
 `DD_FLOW_HOME`, managed harness state and append-only `events.jsonl`.
 
+## Operational model
+
+The same short sequence applies to every harness. Keeping these roles separate
+is what makes a focused stage comparable to an E2E contour instead of a replay
+of an earlier provider conversation.
+
+| Step | Owner | Durable result |
+| --- | --- | --- |
+| Resolve a committed case and profile | Runner | resolved identities of the case, package, flow, engine and harness |
+| Restore the requested boundary | Runner | fresh project and runtime roots inside this execution only |
+| Materialize the stage slice | Runner + `dd-flow` | read-only context; `stage start` resolves live paths and lifecycle commands |
+| Perform the stage | Subject | its own artifacts and a `dd-flow` lifecycle receipt |
+| Handle an allowed question | Runner + clean Interaction Judge | exact question, match decision and one authorized answer in the same Stage/Session |
+| Capture or advance | Runner | candidate boundary, append-only journal and, for E2E, the next provider turn |
+| Assess | clean Judge | verdict over immutable evidence; it never edits the evaluated RUN |
+
+`dd-flow` is the sole authority for RUN, Stage and Work state. The runner is
+the sole authority for restoring attempts, creating provider Sessions,
+dispatching turns and recording the journal. The Subject makes product and
+flow decisions; it does not manufacture snapshots, statistics or Judge
+evidence. A Judge assesses captured facts and cannot repair the Subject's
+output. The human operator only accepts a canonical reference boundary or
+changes the versioned case definition.
+
 For a focused stage it restores exactly that entry boundary, materializes the
 read-only stage context, opens an empty Subject Session and sends one launcher.
 For E2E it restores only the initial entry and follows the Subject's own
@@ -43,6 +67,14 @@ start` command first. Do not prepend `cd`, `cat`, `git`, a help command, a pipe
 or another shell command: the harness hook must see this lifecycle call as its
 own Bash action. `stage start` is the source of the actual context, paths,
 completion command and Work contract.
+
+For each E2E stage the operational sequence is: runner sends one launcher →
+Subject invokes standalone `stage start` first → Subject performs only that
+Stage → `dd-flow` returns a terminal receipt or a registered pause → runner
+records the boundary → runner, not the Subject, sends the successor in a later
+turn. A focused execution stops at the same boundary. This difference is
+intentional: a focused result may use its accepted predecessor snapshot, while
+an E2E successor consumes the Subject's own preceding result.
 
 Each launcher permits exactly its named Stage. Once that Stage is finished, the
 Subject stops; it must not follow a successor command shown by a normal
@@ -89,6 +121,13 @@ without touching another cell:
 ```sh
 dd-eval runner cancel --eval "$DD_EVAL_HOME/runs/<eval-id>" --execution <id>
 ```
+
+If a controller stops between a provider terminal message and lifecycle
+reconciliation, resume never sends that provider turn again. At an allowed
+HITL point it may ask the independent Interaction Judge to validate the exact
+saved question and then persist those exact bytes as the Stage pause; otherwise
+the attempt remains failed/incomplete with its evidence. It never searches for
+question-like text heuristically and never invents an answer.
 
 ## Result interpretation
 

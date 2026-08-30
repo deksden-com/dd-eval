@@ -4,6 +4,12 @@ This runbook defines the shortest controlled loop for changing the project
 `dd-flow` pack and `dd-flow-cli`, exercising them in `dd-tasks`, and promoting
 only proven changes to the Memory Bank canon.
 
+> Historical migration detail below is not an execution procedure. For routine
+> canonical-package creation and scored runs use
+> [create-eval-case.md](create-eval-case.md) and
+> [execute-eval.md](execute-eval.md) with `dd-eval runner`; do not mix retired
+> checkpoint/session commands into a current eval.
+
 ## Active eval-controller boundary
 
 Use the canonical checkpoint lifecycle in

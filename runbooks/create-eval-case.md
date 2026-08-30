@@ -31,6 +31,33 @@ paths. It must include the ordered raw user input for SPECIFY and only the
 project sources needed at a stage boundary. It never embeds an absolute host
 path, provider Session ID, golden answer, Judge rationale or hidden response.
 
+## Walk through the case before building it
+
+Mentally execute one ordinary Subject turn for every declared stage. This
+practical check catches a missing context role before a model is asked to
+compensate by searching the repository.
+
+1. Start with the ordered raw user input. `specify` must understand the request
+   without a prior provider conversation.
+2. At each later boundary, list the predecessor artifacts genuinely consumed,
+   the project documentation/indexes needed to interpret them and the dynamic
+   paths that only `dd-flow stage start` can resolve in a restored RUN. Put the
+   first two in `stage-context.json`; leave live paths to the lifecycle result.
+3. State whether the Stage may ask a material user question. If so, add
+   canonical *answers* to `interactions/<stage>.json`; do not encode brittle
+   question wording. A clean Interaction Judge decides whether an actual
+   question is covered.
+4. Write the hidden context oracle separately. It can say which facts a good
+   Subject should use, but it is never Subject-visible context or a replacement
+   for the Stage's own reasoning.
+5. For every focused stage, verify that an empty Session plus that boundary can
+   begin the Stage. For E2E, verify the opposite: restore only the initial
+   boundary and make every later input come from the execution's own RUN.
+
+If this reveals a missing product decision, add it to user input or the right
+predecessor artifact. Do not hard-code a downstream answer into a package and
+do not add a provider Session as a shortcut.
+
 ## Build a canonical entry pack
 
 1. Commit the case inputs, select a reference-build profile, and select the
@@ -70,6 +97,21 @@ path, provider Session ID, golden answer, Judge rationale or hidden response.
 A changed task fact, predecessor result, source map, project/runtime snapshot,
 flow pack or engine identity requires a new revision and recapture of dependent
 entries. A changed scoring methodology alone does not.
+
+### Diagnose a failed reference or qualification run
+
+- A missing or stale role, path or policy is an **entry-package defect**:
+  amend source, create a new revision and recapture affected boundaries.
+- A failed lifecycle call, restore, hash check or harness protocol is
+  **infrastructure**: repair runner/adapter/engine first; never accept a
+  partial reference result.
+- A weak decision, needless search or unjustified question is **evaluation
+  evidence**. Preserve it for the Judge and improve the package only when the
+  evidence shows that the package omitted something it was responsible for
+  supplying.
+
+This distinction keeps packages general: they provide necessary context, not
+answers tuned to one model's particular mistakes.
 
 ## Required acceptance checks
 
