@@ -57,6 +57,12 @@ test("successor Session mode reads the persisted execution profile from run stat
   assert.equal(stageSessionMode({ status: { index: {} } }), "same_session");
 });
 
+test("new-session handoff is a flow invariant rather than an eval-profile option", () => {
+  const lifecycle = { status: { index: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } };
+  assert.equal(stageSessionMode(lifecycle), "new_session");
+  assert.notEqual(stageSessionMode(lifecycle), "same_session");
+});
+
 test("stage launcher makes registered HITL pause the only way to ask a material question", () => {
   const launcher = entryLauncher({ stage: "specify", entry: { snapshot: { run_id: null } }, projectRoot: "/project", runtimeRoot: "/runtime", contextFile: "/context.json", contextSha256: "a".repeat(64), profile: {} });
   assert.match(launcher, /run the exact `stage pause` lifecycle command/);
