@@ -47,8 +47,11 @@ provider Session, an operator-created RUN, or a manually copied artifact.
    no hidden RUN and no provider Session before the first reference turn.
 3. `canonical resume` restores that boundary (or observes the already restored
    reference runtime). For the bootstrap boundary it registers the restored
-   project in its new, isolated `DD_FLOW_HOME` before harness preparation;
-   this is deterministic runtime setup, not a flow start. It then
+   project in its new, isolated `DD_FLOW_HOME` before harness preparation. It
+   first installs the exact already-resolved project-compatible engine snapshot
+   into that private runtime and verifies the same selection there; it never
+   substitutes a newer engine or fetches one from the network. This is
+   deterministic runtime setup, not a flow start. It then
    opens/continues the one reference Session and sends exactly one launcher.
    The Subject begins with standalone `stage start`, completes only the named
    stage, and stops. The runner—not the Subject and not a normal `finish`
