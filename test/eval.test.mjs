@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, evalRun, fixturesValidate, loadCaseV6, loadRunProfile } from "../lib/runner.mjs";
+import { canonicalBuild, evalRun, fixturesValidate, loadCaseV6, loadRunProfile, stageSessionMode } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -34,6 +34,12 @@ test("run profiles are explicit experiments rather than harness defaults", async
   assert.deepEqual(reference.value.selection.focused_stages, []);
   assert.equal(qualification.value.selection.focused_stages.length, 6);
   assert.equal(reference.value.subject.profile_id, qualification.value.subject.profile_id);
+});
+
+test("successor Session mode reads the persisted execution profile from run status", () => {
+  assert.equal(stageSessionMode({ status: { index: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } }), "new_session");
+  assert.equal(stageSessionMode({ status: { run: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } }), "new_session");
+  assert.equal(stageSessionMode({ status: { index: {} } }), "same_session");
 });
 
 test("authoring case refuses a scored run before any provider Session is created", async () => {
