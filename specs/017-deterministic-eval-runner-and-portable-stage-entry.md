@@ -251,8 +251,11 @@ The default canonical chain continues in the same Subject Session. When the
 restored RUN declares `execution.settings.stage_session_mode: "new_session"`,
 the runner creates one fresh provider Session at each accepted successor
 boundary, records it against that Stage, and sends that Stage's first launcher
-there. This is a flow configuration decision, not an instruction for the
-Subject to infer or a reason to replay its predecessor.
+there. The same rule applies to the reference chain, qualification E2E and a
+scored E2E. It is read from the restored flow state at the boundary: it is not
+an eval-profile switch, an instruction for the Subject to infer, or a reason
+to replay its predecessor. Focused stages always use one new empty Session,
+regardless of this setting.
 
 ## Canonical fixture model
 
@@ -720,8 +723,9 @@ At every entry the runner:
 
 The reference Subject completes one stage per provider turn and stops after
 the successful `stage finish`. The runner captures the boundary before sending
-the returned successor command in the next turn of the same Session. HITL
-resume is the only ordinary reason to add a turn before the stage boundary.
+the returned successor command in the next coordinator Session selected by the
+restored flow setting. HITL resume is the only ordinary reason to add a turn
+before the stage boundary.
 This capture barrier prevents a fast Subject from starting the successor while
 its fixture is still being recorded.
 
@@ -1184,7 +1188,9 @@ For each execution the runner:
 4. verifies project, runtime and semantic package hashes;
 5. materializes the read-only path-bearing active-stage slice and exact
    launcher;
-6. creates one empty Subject Session through the selected driver;
+6. creates one empty Subject Session through the selected driver for the first
+   boundary; after a completed E2E boundary it continues or creates its next
+   coordinator Session only as the restored flow setting requires;
 7. records the Session before its first productive prompt;
 8. sends the immutable generated launcher packet;
 9. waits for provider terminal or interaction state;
@@ -1684,6 +1690,14 @@ attempt*, not a path to be read from the eval-definition checkout.
    recorded results and makes the only semantic decision left at that stage:
    classify findings, apply any permitted correction, and finish or block the
    Stage.  The runner does not synthesize this decision.
+
+A child Work has no direct user-interaction channel. Its `work start` packet
+must tell it to return its declared result or an evidenced failure to its
+coordinator when a material fact is missing; it must not issue `stage pause`
+or ask the user on its own. The coordinator may then resolve the matter from
+available artifacts or register the Stage's declared HITL pause. This keeps one
+user-facing pause owned by one Stage and avoids an untracked nested Judge
+conversation.
 6. CODE can finish only when `dd-flow` reports the graph terminal and the
    stage's required verification gate has passed.  The runner treats a
    provider-terminal coordinator turn without that receipt as
@@ -1724,7 +1738,10 @@ invented by `dd-eval`.  Each ready Work record already contains the exact
 4. launch graph-ready Work records up to the recorded capacity; repeat only
    as newly ready records appear;
 5. wait for all launched Work Sessions to become terminal, reconcile their
-   `work finish` receipts, then continue the coordinator exactly once.
+   `work finish` receipts and record terminal provider usage/timing samples,
+   then continue the coordinator exactly once. A Work receipt can make its
+   result usable, but is not permission to treat a still-live provider turn as
+   settled for usage accounting.
 
 The probe is a RUN fact, not a Work: it starts one concurrent batch of fifteen
 disposable leaf Sessions, each receives `wait 60 seconds, then return exactly
@@ -1735,6 +1752,11 @@ serializes probes.  The first fan-out stage records it; later fan-out stages
 reuse it.  If PLAN-REVIEW is off, CODE becomes the first fan-out stage and
 performs the same operation.  The runner records raw driver evidence and the
 observed number; it does not turn probe Sessions into RUN Sessions or Works.
+If the observed capacity is zero, the dispatcher reports the explicit
+`no_subagent_capacity` infrastructure result and the Stage remains unfinished;
+the runner neither invents a local fallback nor repeats the probe. If capacity
+is positive but lower than the ready Work count, it launches only that many
+ready Works and obtains the next ready wave after their receipts settle.
 
 #### D. Registered HITL and a runner restart
 
@@ -1788,9 +1810,10 @@ these decisions.
 5. After each successful stage boundary the Subject stops. The operator accepts
    the reference result as a suitable predecessor; `canonical boundary accept`
    atomically captures the next entry and returns `canonical resume`. Only that
-   separate resume creates a new turn in the same reference Session and sends
-   the exact successor command. It continues until every declared entry exists;
-   no provider Session becomes an input.
+   separate resume creates the successor turn in the coordinator Session
+   selected by the restored flow setting and sends the exact successor command.
+   It continues until every declared entry exists; no provider Session becomes
+   an input.
 6. Mechanical gates mark the descriptors `candidate`. `canonical qualify`
    restores six isolated copies and runs the Codex Terra-high profile one stage
    at a time, then runs clean E2E.

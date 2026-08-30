@@ -365,9 +365,9 @@ produce its stated boundary before the next row can start.
 | 1 | Validate `entry-pack-source/` | all six stage slices, task input, response set and oracles are valid | provider Session starts to compensate for an invalid source |
 | 2 | Start `canonical build` | pending revision and initial E2E/SPECIFY entry exist; no RUN exists yet | a provider Session ID becomes fixture input |
 | 3 | Run reference SPECIFY | bootstrap `stage start` creates the RUN; successful finish stops the turn | PROTOCOLIZE starts before the SPECIFY boundary is captured |
-| 4 | Accept and continue the reference chain | `canonical boundary accept` captures the next entry without prompting; `canonical resume` then starts its successor in the same reference Session | a later canonical artifact is copied into an earlier entry, or approval silently starts a turn |
+| 4 | Accept and continue the reference chain | `canonical boundary accept` captures the next entry without prompting; `canonical resume` then starts its successor in the coordinator Session selected by the restored flow setting | a later canonical artifact is copied into an earlier entry, or approval silently starts a turn |
 | 5 | Qualify focused entries | six independent empty Terra-high Sessions each complete exactly one stage | qualification output replaces reference artifacts or affects scores |
-| 6 | Qualify E2E | one empty Terra-high Session chain uses only its own downstream outputs | a focused canonical predecessor enters live E2E |
+| 6 | Qualify E2E | one empty Terra-high entry Session uses only its own downstream outputs; successor Session changes follow the restored flow setting | a focused canonical predecessor enters live E2E |
 | 7 | Review and accept | all non-stale receipts exist; `entry-pack.json` and `case.json.entry_pack` are promoted atomically | a partially accepted pack becomes runnable |
 | 8 | Commit the definition tree | case is `runnable`, Git definition tree is clean, snapshot roots validate | an uncommitted authoring change enters a scored run |
 | 9 | Run a focused eval | selected snapshot restores, empty Subject starts, dynamic roles bind to accepted predecessors | provider history, starter Session or hidden warm-up is used |
@@ -377,3 +377,28 @@ Expected HITL is the only mid-stage pause. A provider turn that ends without a
 registered pause or successful stage finish is preserved as an incomplete
 Subject result; the Controller does not guess that the model is waiting for an
 answer.
+
+## Boundary and worker rules confirmed by walkthrough
+
+The following decisions remove choices that must not be left to a Controller,
+the Subject or an individual worker during the Task Priority run.
+
+- At every successor boundary the runner reads
+  `execution.settings.stage_session_mode` from the live/restored RUN. The
+  default continues the current coordinator Session; `new_session` creates one
+  fresh coordinator Session for the successor. The same rule applies to the
+  reference chain, qualification E2E and a scored E2E. A focused stage always
+  begins in a fresh empty Session.
+- A fan-out Work is not allowed to pause the Stage or ask the user directly.
+  When it lacks a material fact, it returns its declared result or an evidenced
+  failure. The coordinator then either resolves it from its stage context or
+  issues the single declared Stage HITL pause. This preserves one accountable
+  question and one resume path.
+- The first fan-out stage performs the sole 15-session capacity probe. A zero
+  result is an explicit `no_subagent_capacity` infrastructure outcome, not a
+  cue to retry probes or run unknown Work locally. A positive result schedules
+  only graph-ready Works, in waves bounded by that value.
+- `work finish` makes the Work result available to the coordinator. The runner
+  additionally waits for that worker's provider turn to be terminal before it
+  finalizes that worker's token and wall-time samples. This avoids attributing
+  post-receipt tool activity to the wrong stage.
