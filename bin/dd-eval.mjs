@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalRun, fixturesValidate, runnerCancel, runnerResume, runnerStatus } from "../lib/runner.mjs";
+import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualificationRecover, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalRun, fixturesValidate, runnerCancel, runnerResume, runnerStatus } from "../lib/runner.mjs";
 import { gcApply, gcPlan, storageList, storageStatus } from "../lib/storage.mjs";
 
 function usage() {
@@ -13,6 +13,7 @@ Usage:
   dd-eval runner canonical engine capture --build <path>
   dd-eval runner canonical boundary accept --build <path> --stage <stage> --review <file>
   dd-eval runner canonical qualify --build <path> --profile <run-profile.json>
+  dd-eval runner canonical qualification recover --build <path> --receipt <qualification-receipt.json>
   dd-eval runner canonical accept --build <path> --entry <e2e|stage> --review <file>
   dd-eval runner eval run --profile <run-profile.json>
   dd-eval runner eval judge --eval <path> [--profile <judge-profile-id>]
@@ -56,6 +57,10 @@ try {
     result = await canonicalBoundaryAccept({ buildRoot: required(options, "build"), stage: required(options, "stage"), reviewFile: required(options, "review") });
   }
   else if (family === "runner" && command === "canonical" && action === "qualify") result = await canonicalQualify({ buildRoot: required(options, "build"), profileFile: required(options, "profile") });
+  else if (family === "runner" && command === "canonical" && action === "qualification") {
+    if (positional[3] !== "recover") throw new Error(`unknown command: ${positional.join(" ")}`);
+    result = await canonicalQualificationRecover({ buildRoot: required(options, "build"), receiptFile: required(options, "receipt") });
+  }
   else if (family === "runner" && command === "canonical" && action === "accept") result = await canonicalAccept({ buildRoot: required(options, "build"), entry: required(options, "entry"), reviewFile: required(options, "review") });
   else if (family === "runner" && command === "eval" && action === "run") result = await evalRun({ profileFile: required(options, "profile") });
   else if (family === "runner" && command === "eval" && action === "judge") result = await evalJudge({ evalRoot: required(options, "eval"), ...(options.profile ? { profileId: options.profile } : {}) });

@@ -122,9 +122,21 @@ answers into the E2E input.
    an ambient same-version engine. Then run mechanical validation for paths,
    hashes, flow state, workspace route,
    absence of live Work/provider identity and dynamic-role containment.
-5. Run isolated context qualification for every focused entry and then E2E.
-   Use normal launchers, preserve tool/transcript evidence and correct only
-   demonstrated package gaps.
+5. Qualify every focused entry and E2E as **independent cells**. A successful
+   focused cell is retained when its exact revision, input checkpoint, flow,
+   engine snapshot and run profile still match; it is not repeated merely
+   because a later E2E handoff defect was fixed. Conversely, E2E is its own
+   required cell and proves the complete contour. `canonical qualify` runs only
+   missing or stale cells and writes one immutable receipt per cell under
+   `qualification/cells/`. Use normal launchers, preserve tool/transcript
+   evidence and correct only demonstrated package gaps. For a pre-cell receipt,
+   use the explicit one-time recovery command rather than silently treating
+   history as current:
+
+   ```sh
+   dd-eval runner canonical qualification recover --build <build> \
+     --receipt <old-qualification-receipt.json>
+   ```
 6. Obtain clean semantic review plus explicit human acceptance. The final
    acceptance writes `entry-pack.json`, updates `case.json.entry_pack`, and
    leaves the definition runnable pending Git review/commit/push.
@@ -163,8 +175,9 @@ Before marking `case.json.status` as `runnable`, prove that each accepted entry:
 - materializes the same semantic context hash in a clean temporary restore;
 - supplies all accepted decisions needed by the stage, without a private
   reference conversation;
-- has a successful isolated qualification receipt and an explicit semantic
-  review;
+- has a successful, non-stale isolated qualification cell receipt and an
+  explicit semantic review; and
+- belongs to a pack whose separate E2E qualification cell is successful.
 - is free of provider Sessions, hook claims, usage samples and other reference
   observability state.
 

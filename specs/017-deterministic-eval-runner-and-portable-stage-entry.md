@@ -68,8 +68,12 @@ provider Session, an operator-created RUN, or a manually copied artifact.
 4. After one successful stage finish the command stops. A human accepts the
    boundary; `canonical boundary accept` verifies it and captures exactly the
    next-stage RUN snapshot. Only then may a new `canonical resume` turn begin.
-5. After the terminal boundary, `canonical qualify` runs each focused stage
-   from its own fresh restore plus one clean E2E traversal. These executions
+5. After the terminal boundary, `canonical qualify` maintains one independent
+   immutable qualification cell for each focused stage and one for the clean
+   E2E traversal. It reruns only missing or stale cells: a fixed E2E handoff
+   does not invalidate an already successful focused-stage cell. All cells
+   must still share the exact revision, checkpoint, flow, engine snapshot and
+   Subject run profile before the pack can be accepted. These executions
    diagnose package quality; they do not overwrite reference artifacts.
 6. Human entry reviews accept the qualification evidence. `canonical accept`
    freezes one entry pack and changes the case to `runnable`; the author
@@ -876,11 +880,14 @@ profile. This keeps package qualification internally consistent while the
 separate semantic reviewer remains free to use the case's current clean Judge
 profile.
 
-Qualification outputs are stored below the pending canonical build under
-`qualification/<stage>/`; they include Session identity, requested/observed
-profile, transcript/tool journal locators, context diagnostics, Judge verdict
-and human acceptance. Subject output from a qualification run never replaces a
-reference-chain artifact and never becomes a golden answer.
+Qualification outputs are stored below the pending canonical build. Every
+successful cell has a content-checked receipt under
+`qualification/cells/<execution-id>/`; attempt-specific evidence remains under
+`qualification/QUAL-…/`. A summary receipt references only valid cells. They
+include Session identity, requested/observed profile, transcript/tool journal
+locators, context diagnostics, Judge verdict and human acceptance. Subject
+output from a qualification run never replaces a reference-chain artifact and
+never becomes a golden answer.
 
 The qualification verdict is `qualified`, `package_gap` or
 `invalid_infrastructure`. `qualified` means no unresolved context-package
@@ -1060,6 +1067,7 @@ dd-eval runner canonical status --build <path>
 dd-eval runner canonical engine capture --build <path>
 dd-eval runner canonical boundary accept --build <path> --stage <stage> --review <file>
 dd-eval runner canonical qualify --build <path> --profile <run-profile.json>
+dd-eval runner canonical qualification recover --build <path> --receipt <old-qualification-receipt.json>
 dd-eval runner canonical accept --build <path> --entry <e2e|stage-name> --review <file>
 dd-eval runner canonical resume --build <path>
 dd-eval runner fixtures validate --case <case-id> [--revision <REV>]
