@@ -1,0 +1,23 @@
+{
+  "schema_id": "dd-eval/stage-entry@1",
+  "case_id": "sdlc-eval-2026-summer-task-priority",
+  "revision": "REV-117",
+  "checkpoint_id": "STG-CODE-REVIEW-ENTRY-REV-117",
+  "stage": "code-review",
+  "snapshot": {
+    "kind": "run",
+    "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-117/stages/code-review/snapshot",
+    "manifest_sha256": "2efa072cab42a1ba720d4b595e0f7a7f27f45d8a42dd3c550164ba396fdedb01",
+    "run_id": "RUN-001-eval-subject"
+  },
+  "semantic_package_sha256": "9914135764bf0b5fe4802c42c4103de23778cf99fa0d244e9e173df7692a6646",
+  "context_slice_sha256": "9914135764bf0b5fe4802c42c4103de23778cf99fa0d244e9e173df7692a6646",
+  "engine": {
+    "schema_id": "dd-eval/engine-snapshot@1",
+    "locator": "canonical/sdlc-eval-2026-summer-task-priority/REV-117/engine",
+    "package_name": "@deksden-com/dd-flow-cli",
+    "package_version": "0.8.0-beta.138",
+    "engine_version": "0.8.0-beta.138",
+    "integrity_checksum": "18bbe133683471e524f5a389ad99f89d76d835b07a23ae81850d6d2bb0ea5127"
+  }
+}

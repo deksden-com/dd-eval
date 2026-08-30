@@ -13,10 +13,11 @@ const buildProfile = path.join(root, "cases", caseId, "run-profiles", "build-ent
 const qualificationProfile = path.join(root, "cases", caseId, "run-profiles", "qualify-entry-pack-terra-high.json");
 const run = promisify(execFile);
 
-test("active case uses one portable entry-pack contract and no Session starter state", async () => {
+test("active case exposes its accepted portable entry pack without Session starter state", async () => {
   const loaded = await loadCaseV6(caseId);
   assert.equal(loaded.value.schema_id, "dd-eval/case@6");
-  assert.equal(loaded.value.status, "authoring");
+  assert.equal(loaded.value.status, "runnable");
+  assert.match(loaded.value.entry_pack, /^stage-entries\/REV-117\/entry-pack\.json$/);
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
@@ -26,9 +27,11 @@ test("active case uses one portable entry-pack contract and no Session starter s
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review"]);
 });
 
-test("authoring case cannot validate or score an absent stale entry pack", async () => {
-  await assert.rejects(fixturesValidate({ caseId }), /requires --revision/);
-  await assert.rejects(fixturesValidate({ caseId, revision: "REV-001" }), /Invalid JSON/);
+test("accepted case validates only its declared entry pack", async () => {
+  const result = await fixturesValidate({ caseId });
+  assert.equal(result.case_id, caseId);
+  assert.equal(result.revision, "REV-117");
+  await assert.rejects(fixturesValidate({ caseId, revision: "REV-001" }), /not found|Invalid JSON/);
 });
 
 test("run profiles are explicit experiments rather than harness defaults", async () => {
@@ -109,10 +112,10 @@ test("settled fan-out fingerprint changes when a repair Work changes the graph",
   assert.equal(before, fanoutSettledFingerprint({ stage: "code-review", status: { orchestration: { parent_work_id: "WRK-001", works: { created: 0, running: 0, completed: 5, failed: 0, cancelled: 0, ready: [] } } } }));
 });
 
-test("authoring case refuses a scored run before any provider Session is created", async () => {
+test("scored run refuses an uncommitted eval definition before creating a provider Session", async () => {
   const home = await mkdtemp(path.join(tmpdir(), "dd-eval-runner-")); const prior = process.env.DD_EVAL_HOME; process.env.DD_EVAL_HOME = home;
   try {
-    await assert.rejects(evalRun({ profileFile: qualificationProfile }), /case is not runnable/);
+    await assert.rejects(evalRun({ profileFile: qualificationProfile }), /clean committed dd-eval definition tree/);
   } finally {
     if (prior === undefined) delete process.env.DD_EVAL_HOME; else process.env.DD_EVAL_HOME = prior;
     await rm(home, { recursive: true, force: true });

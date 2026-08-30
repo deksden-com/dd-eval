@@ -1,0 +1,244 @@
+{
+  "schema_id": "dd-eval/stage-context-blueprint@1",
+  "stages": {
+    "specify": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "specify",
+      "objective": "Уточнить требуемое поведение приоритета задач, сформировать требования и проверяемые критерии приёмки.",
+      "task_input": [
+        {
+          "role": "initial_user_request",
+          "path": ".dd-eval/task-priority.md",
+          "source": "task-priority.md",
+          "sha256": "af92baafdebc3ef4663e1049216a338f20b0948ae8310be7a9bf4f47d7fd694e"
+        }
+      ],
+      "sources": [
+        {
+          "role": "project_index",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Входной индекс действующего Memory Bank."
+        },
+        {
+          "role": "flow_index",
+          "root": "project",
+          "path": ".memory-bank/dd-flow/index.md",
+          "required": true,
+          "reason": "Действующие правила SDLC-флоу."
+        },
+        {
+          "role": "project_readme",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Краткая ориентация по проекту."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": []
+    },
+    "protocolize": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "protocolize",
+      "objective": "Разложить согласованные требования на вертикальные протоколы и подготовить маршрут рабочего дерева.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "accepted_specify",
+          "root": "run",
+          "path": "01-specify/specify.json",
+          "required": true,
+          "reason": "Принятые требования и критерии приёмки."
+        },
+        {
+          "role": "epic_index",
+          "root": "project",
+          "path": ".memory-bank/epics/index.md",
+          "required": true,
+          "reason": "Связь работы с продуктовой ценностью."
+        },
+        {
+          "role": "scenario_index",
+          "root": "project",
+          "path": ".memory-bank/scenarios/index.md",
+          "required": true,
+          "reason": "Каталог сценариев приёмки."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "workspace_policy",
+          "reason": "Политика создания ветки и рабочего дерева определяется флоу."
+        }
+      ]
+    },
+    "plan": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "plan",
+      "objective": "Подготовить исполнимый план, проверки и граф работ для принятых протоколов.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "accepted_protocolize",
+          "root": "run",
+          "path": "02-protocolize/protocolize-result.json",
+          "required": true,
+          "reason": "Принятый набор протоколов."
+        },
+        {
+          "role": "protocol_index",
+          "root": "workspace",
+          "path": ".memory-bank/protocol",
+          "required": true,
+          "reason": "Документы текущих протоколов."
+        },
+        {
+          "role": "engineering_index",
+          "root": "workspace",
+          "path": ".memory-bank/spec/engineering/index.md",
+          "required": true,
+          "reason": "Инженерные стандарты и проверочные алиасы."
+        },
+        {
+          "role": "scenario_index",
+          "root": "workspace",
+          "path": ".memory-bank/scenarios/index.md",
+          "required": true,
+          "reason": "Сценарии приёмки."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "capacity",
+          "reason": "Доступная ёмкость агентов фиксируется в переменных RUN."
+        }
+      ]
+    },
+    "plan-review": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "plan-review",
+      "objective": "Независимо проверить полноту, реализуемость и существенные риски принятого плана.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "accepted_plans",
+          "root": "workspace",
+          "path": ".memory-bank/protocol",
+          "required": true,
+          "reason": "Планы реализации протоколов."
+        },
+        {
+          "role": "work_graph",
+          "root": "run",
+          "path": "03-plan/code-work-batch.json",
+          "required": true,
+          "reason": "Детерминированно выведенный граф CODE Work."
+        },
+        {
+          "role": "plan_aspects",
+          "root": "run",
+          "path": "03-plan",
+          "required": true,
+          "reason": "Карта применимости аспектов планирования."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "review_policy",
+          "reason": "Режим review хранится в конфигурации RUN."
+        }
+      ]
+    },
+    "code": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "code",
+      "objective": "Исполнить принятый граф работ и собрать доказательства обязательной верификации.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "accepted_plans",
+          "root": "workspace",
+          "path": ".memory-bank/protocol",
+          "required": true,
+          "reason": "Источник обязанностей CODE Work."
+        },
+        {
+          "role": "work_graph",
+          "root": "run",
+          "path": "03-plan/code-work-batch.json",
+          "required": true,
+          "reason": "Граф готовых к исполнению работ."
+        },
+        {
+          "role": "plan_review",
+          "root": "run",
+          "path": "04-plan-review",
+          "required": true,
+          "reason": "Принятое решение review и его ограничения."
+        },
+        {
+          "role": "engineering_index",
+          "root": "workspace",
+          "path": ".memory-bank/spec/engineering/index.md",
+          "required": true,
+          "reason": "Стандарты кодирования и проверки."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "work_context",
+          "reason": "Каждый worker получает свой контекст через work start."
+        }
+      ]
+    },
+    "code-review": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "code-review",
+      "objective": "Найти и устранить только существенные дефекты реализованной работы перед завершением флоу.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "accepted_plans",
+          "root": "workspace",
+          "path": ".memory-bank/protocol",
+          "required": true,
+          "reason": "Требования и критерии, против которых проверяется код."
+        },
+        {
+          "role": "code_verification",
+          "root": "run",
+          "path": "05-code/code-verification.json",
+          "required": true,
+          "reason": "Обязательные проверки CODE."
+        },
+        {
+          "role": "code_evidence",
+          "root": "run",
+          "path": "05-code/checks",
+          "required": true,
+          "reason": "Полный ограниченный набор доказательств проверок."
+        },
+        {
+          "role": "scenarios",
+          "root": "workspace",
+          "path": ".memory-bank/scenarios",
+          "required": true,
+          "reason": "Сценарии приёмки функции."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "changed_diff",
+          "reason": "Дифф определяется по текущему живому рабочему дереву."
+        }
+      ]
+    }
+  }
+}

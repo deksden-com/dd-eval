@@ -1,0 +1,52 @@
+{
+  "schema_id": "dd-eval/entry-pack@1",
+  "case_id": "sdlc-eval-2026-summer-task-priority",
+  "revision": "REV-117",
+  "title": "SDLC Entry Pack",
+  "input_checkpoint": {
+    "id": "cp-046-task-priority-base-beta-138",
+    "sha256": "f5397fc7b517766b68bfbff991e72afe2b35eaa33a1fa0c90b03893323fb3a3e"
+  },
+  "flow": {
+    "contour": [
+      "specify",
+      "protocolize",
+      "plan",
+      "plan-review",
+      "code",
+      "code-review"
+    ],
+    "terminal_stage": "code-review",
+    "flow_commit": "b93021e1ffb0b47145e33b2535ed51c31a2ab438",
+    "flow_manifest_sha256": "43f032f381a4a5a8b84594c0b203a8eee397340edb80f911e263c9b50aa98537"
+  },
+  "authoring": {
+    "profile_id": "build-entry-pack-reference-terra-high",
+    "build_trace_sha256": "ee1950a7f4c511d9586e3d0c0e6551efe07981432b5542313fb262b07328c3ef"
+  },
+  "stage_context": "stage-context.json",
+  "entries": {
+    "e2e": "e2e.json",
+    "specify": "specify.json",
+    "protocolize": "protocolize.json",
+    "plan": "plan.json",
+    "plan-review": "plan-review.json",
+    "code": "code.json",
+    "code-review": "code-review.json"
+  },
+  "hashes": {
+    "stage_context_sha256": "52391233e853582bb820f284e243f5974fd0b0455fb449b9b7ec343a3c69060c",
+    "e2e_sha256": "0d068e91511739603729a8e0964a3c35cbfc999032283f63aef02cc938d3e50a",
+    "focused_entries": {
+      "specify": "0d068e91511739603729a8e0964a3c35cbfc999032283f63aef02cc938d3e50a",
+      "protocolize": "2871ae7bdb3c45f75fcfc77a717a4a593555102d99c295c78e0c5d32bfc0d237",
+      "plan": "07b143f677c2941e8547adb261d473153b51557b0e35c73376ec4059fcd6101a",
+      "plan-review": "514be548eaebfd5486258310467d84449fd3862a9e040afa2ac8e3bcf12c308d",
+      "code": "e8b40cfc5f3301f319a8afdb59c17a4b9c543e6d9d240a9ce76d55be2818cbc3",
+      "code-review": "a7596d8abfed69106fb3ce3355f3fd4d5e8aeee804ee576b5e1e2cddb7845733"
+    }
+  },
+  "status": "accepted",
+  "acceptance_sha256": "9cb93685cede9746d142742bfd64b3bf783c840e7703d1d56dda05c7a2f84a3e",
+  "accepted_at": "2026-08-30T22:41:14.185Z"
+}
