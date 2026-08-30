@@ -1745,6 +1745,8 @@ observed number; it does not turn probe Sessions into RUN Sessions or Works.
    allowed response set to a clean Interaction Judge, and stores either the
    selected response identity or an unmatched failure.  It never creates a
    question catalogue by parsing ordinary prose.
+   This applies equally to a `required` and an `optional` declared question;
+   `required` additionally means that its absence is a failed expectation.
 3. On a successful match, the runner sends the exact `stage resume` command
    and response bytes to the **same** Session.  It does not resend `stage
    start`, reconstruct a prompt or make a new RUN.
