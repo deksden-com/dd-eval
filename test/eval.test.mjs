@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, stageSessionMode } from "../lib/runner.mjs";
+import { canonicalBuild, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, stageSessionMode } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -78,6 +78,13 @@ test("fan-out recovery is reserved for a still-running Work", () => {
   assert.equal(shouldRecover("running"), true);
   assert.equal(shouldRecover("failed"), false);
   assert.equal(shouldRecover("completed"), false);
+});
+
+test("fan-out distinguishes an explicit Work failure from a missing lifecycle finish", () => {
+  assert.equal(fanoutWorkerTerminalState("completed"), "accepted");
+  assert.equal(fanoutWorkerTerminalState("failed"), "settled_failure");
+  assert.equal(fanoutWorkerTerminalState("cancelled"), "settled_failure");
+  assert.equal(fanoutWorkerTerminalState("running"), "incomplete");
 });
 
 test("settled fan-out fingerprint changes when a repair Work changes the graph", () => {
