@@ -76,6 +76,17 @@ turn. A focused execution stops at the same boundary. This difference is
 intentional: a focused result may use its accepted predecessor snapshot, while
 an E2E successor consumes the Subject's own preceding result.
 
+Some stages materialize a graph of fresh worker Work records.  This is still
+one normal Stage: the coordinator starts it and asks `dd-flow` to dispatch its
+declared graph; the runner then performs the mechanical worker launches from
+the engine-returned descriptors, waits for their `work finish` receipts and
+returns the coordinator to the normal stage-finish path.  The runner does not
+choose review aspects, change the graph, author results or retry workers.  If
+the graph first requires capacity, it performs one concurrent 15-agent probe,
+waits at most three minutes, records only the number of successful original
+launches, and reuses that RUN fact for later fan-out.  A quiet worker is not a
+failure and must not be stopped merely because no new message has appeared.
+
 Each launcher permits exactly its named Stage. Once that Stage is finished, the
 Subject stops; it must not follow a successor command shown by a normal
 `dd-flow` receipt. The runner checkpoints the boundary and sends the successor

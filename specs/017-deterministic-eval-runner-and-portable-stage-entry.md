@@ -1660,20 +1660,81 @@ attempt*, not a path to be read from the eval-definition checkout.
    creates the next Subject turn.  The next launcher is built from the live
    RUN and the next stage slice; its predecessor inputs therefore are the
    Subject's own outputs.
-3. In CODE, `dd-flow` (not the runner) owns the Work graph.  The Subject may
-   launch child workers, wait for graph-ready Work and run their declared
-   checks.  The runner observes their Sessions, Work states, usage and tool
-   evidence through reconciliation; it neither schedules a child nor guesses
-   that a quiet child is stuck.
-4. CODE can finish only when `dd-flow` reports the graph terminal and the
+3. A fan-out stage such as PLAN-REVIEW, CODE or CODE-REVIEW still has one
+   semantic coordinator Subject.  `dd-flow` owns the Work graph, readiness,
+   result contracts and all completion gates.  The eval runner owns only the
+   mechanical provider operations needed to enact a graph that `dd-flow` has
+   already materialized: an optional one-shot capacity probe, creation of a
+   fresh worker Session, the exact `work start` packet, waiting for the worker
+   to settle, and a later coordinator continuation.  It never groups aspects,
+   chooses checks, changes dependencies, writes a worker result or decides a
+   review finding.
+4. The coordinator first invokes the normal `stage start`, receives the
+   normal stage prompt, invokes the exact returned dispatch command and then
+   stops its turn at the declared `awaiting_children` lifecycle point.  The
+   runner reads only the returned Work descriptors.  It launches only Work
+   records whose `ready` flag is true, honours hard `depends_on` edges, and
+   sends every worker its own normal `work start` command as the first
+   technical action.  When a wave settles, it asks `dd-flow` for the next
+   ready Work records.  A quiet worker is waited for, never guessed to be
+   stuck or replaced.
+5. When the graph is terminal, the runner sends the original coordinator one
+   normal continuation containing the artifact locations and exact finish
+   command returned by `dd-flow`.  The coordinator evaluates the already
+   recorded results and makes the only semantic decision left at that stage:
+   classify findings, apply any permitted correction, and finish or block the
+   Stage.  The runner does not synthesize this decision.
+6. CODE can finish only when `dd-flow` reports the graph terminal and the
    stage's required verification gate has passed.  The runner treats a
    provider-terminal coordinator turn without that receipt as
    `incomplete_subject_turn`, not as a successful CODE result.
 
-This keeps the runner small: it coordinates one evaluated Subject execution,
-while the product flow remains responsible for concurrent Work and its gates.
+This keeps the runner small while still making a fan-out eval executable:
+`dd-flow` remains responsible for the product flow, while the runner is a
+deterministic adapter for already-declared provider Sessions and prompts.
 
-#### C. Registered HITL and a runner restart
+#### C. Capacity and worker dispatch are stage capabilities, not stage-name rules
+
+The runner must not contain `if (stage === "plan-review")` or `if (stage ===
+"code")` branches.  A fan-out-capable `dd-flow` stage instead returns one
+small orchestration descriptor after its normal dispatch operation:
+
+```json
+{
+  "orchestration": {
+    "kind": "work_fanout",
+    "state": "awaiting_children",
+    "capacity": {"run_key": "runtime.subagent.available_slots", "probe_if_missing": true},
+    "ready_work_command": "... dd-flow work ls --ready ... --json",
+    "completion_command": "... dd-flow stage status ... --json"
+  }
+}
+```
+
+The descriptor contains commands produced by the current engine, not commands
+invented by `dd-eval`.  Each ready Work record already contains the exact
+`work start` command and launch policy.  Therefore the common runner loop is:
+
+1. call the stage's declared dispatch command;
+2. if the descriptor says capacity is missing, perform the one permitted
+   probe and record its observed result with `dd-flow`, then retry *that same*
+   dispatch command once;
+3. launch graph-ready Work records up to the recorded capacity; repeat only
+   as newly ready records appear;
+4. wait for all launched Work Sessions to become terminal, reconcile their
+   `work finish` receipts, then continue the coordinator exactly once.
+
+The probe is a RUN fact, not a Work: it starts one concurrent batch of fifteen
+disposable leaf Sessions, each receives `wait 60 seconds, then return exactly
+AGENT-NN`, waits at most 180 seconds for the original batch, terminates only
+unfinished probes, removes all probe Sessions, and records the number of
+initial launches that actually returned.  It never retries, replaces or
+serializes probes.  The first fan-out stage records it; later fan-out stages
+reuse it.  If PLAN-REVIEW is off, CODE becomes the first fan-out stage and
+performs the same operation.  The runner records raw driver evidence and the
+observed number; it does not turn probe Sessions into RUN Sessions or Works.
+
+#### D. Registered HITL and a runner restart
 
 1. The Subject invokes the returned pause command.  `dd-flow` records the
    pause, exact Stage/Work identity and allowed interaction point; the Stage
@@ -1851,12 +1912,18 @@ rationale rather than rewriting history.
 9. Extend final reports with package, HITL, trace, concurrency, context-miss and
    complete Session/usage/tool evidence.
 10. Remove active canonical Session, starter registry and provider-fork
-    requirements in one cutover; do not retain a fallback executor.
+   requirements in one cutover; do not retain a fallback executor.
 11. Add `dd-codex` or consume its completed JSON driver contract.
-12. Migrate `sdlc-eval-2026-summer-task-priority` to Task Priority SDLC Entry
+12. Add one generic fan-out executor.  It consumes only a `dd-flow`
+    orchestration descriptor and ready-Work records, runs the bounded
+    one-shot capacity probe when that descriptor requires it, launches fresh
+    workers, reconciles each Work, and returns control to the existing
+    coordinator.  It has no PLAN-REVIEW/CODE-specific scheduler branch and
+    never manufactures a Work result.
+13. Migrate `sdlc-eval-2026-summer-task-priority` to Task Priority SDLC Entry
     Pack, including six focused entries, the E2E entry, context oracles and
     semantic HITL responses.
-13. Add its Codex `gpt-5.6-terra` high qualification profile and require its six
+14. Add its Codex `gpt-5.6-terra` high qualification profile and require its six
     focused receipts plus clean E2E receipt before pack acceptance.
 
 Keep `lib/dd-eval.mjs` as the small public facade. Move only the new cohesive
@@ -1885,7 +1952,13 @@ dependency-injection framework, plugin loader or class hierarchy.
    flow flags, normalized SQLite/domain state, engine binding and target-stage
    state, then regenerates projections.
 8. Expose stable reconciliation/progress receipts required by runner events.
-9. Keep provider lifecycle/usage ingestion in existing harness adapters; do not
+9. For every stage that fans out Work, expose one engine-generated
+   `work_fanout` descriptor after dispatch: `awaiting_children`, capacity
+   requirement, graph-ready listing command and completion/status command.
+   The descriptor is the only runner-facing worker orchestration contract.
+   The stage keeps ownership of aspect grouping, Work creation, dependency
+   validation, check declarations and terminal acceptance.
+10. Keep provider lifecycle/usage ingestion in existing harness adapters; do not
    move physical Session control into `dd-flow`.
 
 ### Harness drivers
@@ -1911,7 +1984,8 @@ dependency-injection framework, plugin loader or class hierarchy.
    chain progression, mechanical review and explicit semantic acceptance.
 5. **Build the runner.** Add manifest resolution, the reducer, serialized event
    writer, operation deduplication, bounded concurrency, status/resume/cancel
-   and deterministic reporting.
+   and deterministic reporting.  Add the one descriptor-driven Work fan-out
+   loop here, before treating a six-stage canonical chain as runnable.
 6. **Add semantic HITL.** Implement the clean interaction-Judge packet, strict
    response-ID validation and exact-byte delivery to the same stage.
 7. **Cut over one case.** Rebuild one complete fixture revision, run a focused
@@ -1973,6 +2047,14 @@ remain readable through Git history and need no runtime support.
 - restart the runner during materialization, provider wait, checkpoint and
   judgment without duplicate productive operations;
 - run independent harness executions concurrently within configured limits;
+- run a descriptor-driven fan-out stage with a fake driver: exactly one
+  fifteen-session probe, no replacement probes, capacity reuse by the next
+  fan-out stage, graph-ready-only worker starts, dependency-unlocked second
+  wave, coordinator continuation after all Work receipts, and no runner-authored
+  semantic result;
+- restart during a child worker wait and prove that reconciliation waits for
+  the original worker rather than launching a replacement or repeating its
+  `work start`;
 - complete deferred judgment against an immutable candidate;
 - reconcile full Session tree, token classes, tool calls and wall time.
 
