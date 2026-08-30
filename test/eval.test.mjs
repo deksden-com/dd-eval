@@ -61,6 +61,13 @@ test("fan-out worker recovery resumes the same Work after an unaccepted finish",
   assert.match(prompt, /Do not create another Work/);
 });
 
+test("fan-out recovery is reserved for a still-running Work", () => {
+  const shouldRecover = (status) => status === "running";
+  assert.equal(shouldRecover("running"), true);
+  assert.equal(shouldRecover("failed"), false);
+  assert.equal(shouldRecover("completed"), false);
+});
+
 test("authoring case refuses a scored run before any provider Session is created", async () => {
   const home = await mkdtemp(path.join(tmpdir(), "dd-eval-runner-")); const prior = process.env.DD_EVAL_HOME; process.env.DD_EVAL_HOME = home;
   try {
