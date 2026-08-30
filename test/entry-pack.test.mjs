@@ -23,10 +23,12 @@ test("stage context has path-independent semantic identity and path-bearing mate
   assert.notEqual(materialized.sha256, materialized.semantic_package_sha256);
 });
 
-test("entry validation distinguishes bootstrap from a restored stage", () => {
-  const base = { schema_id: "dd-eval/stage-entry@1", case_id: "case", revision: "REV-001", checkpoint_id: "STG-001", stage: "specify", snapshot: { kind: "bootstrap", locator: "canonical/case/bootstrap", manifest_sha256: "a".repeat(64), run_id: null }, semantic_package_sha256: "b".repeat(64), context_slice_sha256: "c".repeat(64) };
+test("entry validation distinguishes bootstrap from a restored stage and pins an engine snapshot", () => {
+  const engine = { schema_id: "dd-eval/engine-snapshot@1", locator: "canonical/case/engine", package_name: "@scope/flow", package_version: "1.0.0", engine_version: "1.0.0", integrity_checksum: "d".repeat(64) };
+  const base = { schema_id: "dd-eval/stage-entry@1", case_id: "case", revision: "REV-001", checkpoint_id: "STG-001", stage: "specify", snapshot: { kind: "bootstrap", locator: "canonical/case/bootstrap", manifest_sha256: "a".repeat(64), run_id: null }, engine, semantic_package_sha256: "b".repeat(64), context_slice_sha256: "c".repeat(64) };
   assert.equal(validateEntry(base).stage, "specify");
   assert.throws(() => validateEntry({ ...base, stage: "plan" }), /requires a RUN snapshot/);
+  assert.throws(() => validateEntry(({ ...base, engine: undefined })), /engine must be an object/);
 });
 
 test("event journal deduplicates productive operations across resume", async () => {

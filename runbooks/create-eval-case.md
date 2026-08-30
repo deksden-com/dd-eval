@@ -115,7 +115,12 @@ answers into the E2E input.
    generated launcher limits the Subject to that one Stage: its normal finish
    receipt can mention a successor, but only the runner may dispatch it in the
    next provider turn.
-4. Run mechanical validation for paths, hashes, flow state, workspace route,
+4. Verify that each entry has the captured `dd-eval/engine-snapshot@1`
+   descriptor: package name, version and content checksum must be the same as
+   the reference RUN binding. For a completed older build, run `canonical
+   engine capture` once before qualification; do not let qualification resolve
+   an ambient same-version engine. Then run mechanical validation for paths,
+   hashes, flow state, workspace route,
    absence of live Work/provider identity and dynamic-role containment.
 5. Run isolated context qualification for every focused entry and then E2E.
    Use normal launchers, preserve tool/transcript evidence and correct only

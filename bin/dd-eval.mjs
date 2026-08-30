@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalRun, fixturesValidate, runnerCancel, runnerResume, runnerStatus } from "../lib/runner.mjs";
+import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalRun, fixturesValidate, runnerCancel, runnerResume, runnerStatus } from "../lib/runner.mjs";
 import { gcApply, gcPlan, storageList, storageStatus } from "../lib/storage.mjs";
 
 function usage() {
@@ -10,6 +10,7 @@ Usage:
   dd-eval runner canonical build --profile <run-profile.json> --project-root <checkpoint-checkout> --flow-root <flow-pack-checkout>
   dd-eval runner canonical status --build <path>
   dd-eval runner canonical resume --build <path>
+  dd-eval runner canonical engine capture --build <path>
   dd-eval runner canonical boundary accept --build <path> --stage <stage> --review <file>
   dd-eval runner canonical qualify --build <path> --profile <run-profile.json>
   dd-eval runner canonical accept --build <path> --entry <e2e|stage> --review <file>
@@ -46,6 +47,10 @@ try {
   else if (family === "runner" && command === "canonical" && action === "build") result = await canonicalBuild({ profileFile: required(options, "profile"), projectRoot: required(options, "project-root"), flowRoot: required(options, "flow-root") });
   else if (family === "runner" && command === "canonical" && action === "status") result = await canonicalStatus({ buildRoot: required(options, "build") });
   else if (family === "runner" && command === "canonical" && action === "resume") result = await canonicalResume({ buildRoot: required(options, "build") });
+  else if (family === "runner" && command === "canonical" && action === "engine") {
+    if (positional[3] !== "capture") throw new Error(`unknown command: ${positional.join(" ")}`);
+    result = await canonicalEngineCapture({ buildRoot: required(options, "build") });
+  }
   else if (family === "runner" && command === "canonical" && action === "boundary") {
     if (action !== "boundary" || positional[3] !== "accept") throw new Error(`unknown command: ${positional.join(" ")}`);
     result = await canonicalBoundaryAccept({ buildRoot: required(options, "build"), stage: required(options, "stage"), reviewFile: required(options, "review") });

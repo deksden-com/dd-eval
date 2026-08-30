@@ -54,8 +54,9 @@ provider Session, an operator-created RUN, or a manually copied artifact.
 3. `canonical resume` restores that boundary (or observes the already restored
    reference runtime). For the bootstrap boundary it registers the restored
    project in its new, isolated `DD_FLOW_HOME` before harness preparation. It
-   first installs the exact already-resolved project-compatible engine snapshot
-   into that private runtime and verifies the same selection there; it never
+   first materializes the build's captured content-addressed engine snapshot
+   into that private runtime and verifies the same package, version and content
+   checksum there; it never resolves a merely same-version global engine,
    substitutes a newer engine or fetches one from the network. This is
    deterministic runtime setup, not a flow start. It then
    opens/continues the one reference Session and sends exactly one launcher.
@@ -1056,6 +1057,7 @@ All high-level automation lives under one namespace:
 ```text
 dd-eval runner canonical build --profile <run-profile.json> --project-root <clean-checkpoint-product> --flow-root <clean-flow-pack>
 dd-eval runner canonical status --build <path>
+dd-eval runner canonical engine capture --build <path>
 dd-eval runner canonical boundary accept --build <path> --stage <stage> --review <file>
 dd-eval runner canonical qualify --build <path> --profile <run-profile.json>
 dd-eval runner canonical accept --build <path> --entry <e2e|stage-name> --review <file>
@@ -1072,6 +1074,15 @@ Existing low-level commands remain implementation and diagnostic primitives:
 `prepare`, `sync`, `checkpoint`, `continuation`, `judge prepare`, `judge
 accept` and `finalize`. The ordinary runbook does not ask an operator to compose
 them.
+
+Every stage entry carries one `dd-eval/engine-snapshot@1` descriptor. A
+canonical build copies the selected engine package once into its immutable
+artifact area before the first reference turn; each isolated restore copies
+that exact artifact and rewrites only its local `engine.json` paths. The
+content checksum therefore remains stable even when two installations use the
+same package version. `canonical engine capture` is the explicit one-time
+migration for a completed pre-descriptor build; qualification never falls back
+to the ambient engine.
 
 There is no routine `starters build` command because routine focused evals do
 not use provider starter Sessions.
