@@ -1691,10 +1691,10 @@ attempt*, not a path to be read from the eval-definition checkout.
    classify findings, apply any permitted correction, and finish or block the
    Stage.  The runner does not synthesize this decision.
 
-A child Work has no direct user-interaction channel. Its `work start` packet
-must tell it to return its declared result or an evidenced failure to its
-coordinator when a material fact is missing; it must not issue `stage pause`
-or ask the user on its own. The coordinator may then resolve the matter from
+A child Work has no direct user-interaction channel. The runner's fan-out
+worker prompt must tell it to return its declared result or an evidenced
+failure to its coordinator when a material fact is missing; it must not issue
+`stage pause` or ask the user on its own. The coordinator may then resolve the matter from
 available artifacts or register the Stage's declared HITL pause. This keeps one
 user-facing pause owned by one Stage and avoids an untracked nested Judge
 conversation.
