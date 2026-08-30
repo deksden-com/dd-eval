@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, entryLauncher, evalRun, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, stageSessionMode } from "../lib/runner.mjs";
+import { canonicalBuild, entryLauncher, evalRun, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, stageSessionMode } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -34,6 +34,12 @@ test("run profiles are explicit experiments rather than harness defaults", async
   assert.deepEqual(reference.value.selection.focused_stages, []);
   assert.equal(qualification.value.selection.focused_stages.length, 6);
   assert.equal(reference.value.subject.profile_id, qualification.value.subject.profile_id);
+});
+
+test("qualification cannot pass while any execution failed", () => {
+  assert.equal(qualificationSucceeded({ state: "completed", executions: [{ state: "candidate_ready" }] }), true);
+  assert.equal(qualificationSucceeded({ state: "completed_with_failures", executions: [{ state: "failed" }] }), false);
+  assert.equal(qualificationSucceeded({ state: "completed", executions: [{ state: "failed" }] }), false);
 });
 
 test("successor Session mode reads the persisted execution profile from run status", () => {
