@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -61,6 +61,12 @@ test("new-session handoff is a flow invariant rather than an eval-profile option
   const lifecycle = { status: { index: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } };
   assert.equal(stageSessionMode(lifecycle), "new_session");
   assert.notEqual(stageSessionMode(lifecycle), "same_session");
+});
+
+test("E2E handoff keeps the current Subject Session replaceable", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /let sessionId = created\.provider_session_id/);
+  assert.match(source, /sessionId = successorSessionId/);
 });
 
 test("stage launcher makes registered HITL pause the only way to ask a material question", () => {
