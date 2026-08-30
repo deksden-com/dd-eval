@@ -141,8 +141,7 @@ The one-shot form below remains useful for foreground diagnostics:
 ```text
 dd-zcode doctor --zcode-acp-bin <bin> --json
 dd-zcode session create --cwd <project> --journal <journal.jsonl> \
-  --provider builtin:zai-coding-plan --model GLM-5.3 --reasoning high --mode yolo \
-  --prompt-file <first-message.md> --json
+  --provider builtin:zai-coding-plan --model GLM-5.3 --reasoning high --mode yolo --json
 dd-zcode session prompt --session-id <native-id> --adapter-session-id <adapter-id> \
   --cwd <project> \
   --journal <journal.jsonl> --permission allow --dd-flow-bin <dd-flow> \
@@ -185,7 +184,7 @@ dd-zcode daemon start --state-dir <attempt>/zcode --cwd <workspace> \
 
 dd-zcode session create --state-dir <attempt>/zcode \
   --provider builtin:zai-coding-plan --model GLM-5.3 \
-  --reasoning high --mode yolo --prompt-file <first-message.md> --json
+  --reasoning high --mode yolo --json
 
 dd-zcode session prompt --state-dir <attempt>/zcode \
   --session-id <native-id> --adapter-session-id <adapter-id> \

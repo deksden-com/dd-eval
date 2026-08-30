@@ -49,10 +49,10 @@ test("dd-zcode controls create, prompt and fork through ACP with an append-only 
         send({ jsonrpc: "2.0", id, result });
       });
     `);
-    const common = { bin: server, cwd: root, journal, prompt: "prime", provider: "anthropic", model: "GLM-5.3", reasoning: "high", mode: "yolo" };
+    const common = { bin: server, cwd: root, journal, provider: "anthropic", model: "GLM-5.3", reasoning: "high", mode: "yolo" };
     const created = await createSession(common);
     assert.equal(created.provider_session_id, "native-root");
-    assert.deepEqual(created.evidence.tool_calls, { total: 1, failures: 0, by_tool: { Bash: 1 } });
+    assert.deepEqual(created.evidence.tool_calls, { total: 0, failures: 0, by_tool: {} });
     assert.equal(created.evidence.read.messages, undefined);
     const notifications = [];
     const prompted = await promptSession({ ...common, sessionId: "native-root", adapterSessionId: "adapter-1", prompt: "work", onNotification: (event) => notifications.push(event) });

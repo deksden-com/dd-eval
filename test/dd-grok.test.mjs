@@ -14,8 +14,9 @@ test("Grok Build profile drift fails closed", () => {
 test("Grok root registration happens before its first prompt", async () => {
   const calls = []; const bridge = { request: async (method) => { calls.push(method); if (method === "session/new") return { sessionId: "native-root" }; if (method === "session/prompt") return { stopReason: "end_turn" }; if (method === "_x.ai/session/info") return {}; if (method === "_x.ai/subagent/list_running") return { subagents: [] }; if (method === "_x.ai/session/usage") return { unavailable: true }; }, flush: async () => {}, toolCursor: () => 0, toolSummary: () => ({ total: 0, failures: 0, by_tool: {} }) };
   let registered = null;
-  await createSessionWithBridge(bridge, { cwd: "/tmp", journal: "/tmp/grok.jsonl", model: "grok-4.6", reasoning: "high", prompt: "start", onSessionCreated: async (session) => { registered = session; assert.deepEqual(calls, ["session/new"]); } }, { _meta: { modelState: { currentModelId: "grok-4.6", availableModels: [{ modelId: "grok-4.6", _meta: { reasoningEffort: "high" } }] } } });
+  await createSessionWithBridge(bridge, { cwd: "/tmp", journal: "/tmp/grok.jsonl", model: "grok-4.6", reasoning: "high", onSessionCreated: async (session) => { registered = session; assert.deepEqual(calls, ["session/new"]); } }, { _meta: { modelState: { currentModelId: "grok-4.6", availableModels: [{ modelId: "grok-4.6", _meta: { reasoningEffort: "high" } }] } } });
   assert.equal(registered.provider_session_id, "native-root");
+  assert.ok(!calls.includes("session/prompt"));
 });
 
 test("dd-grok uses native ACP Sessions and x.ai extensions", async () => {
@@ -41,14 +42,14 @@ test("dd-grok uses native ACP Sessions and x.ai extensions", async () => {
     const previousBin = process.env.DD_GROK_BIN;
     process.env.DD_GROK_BIN = server;
     try {
-      const defaulted = await createSession({ ...common, bin: undefined, prompt: "prime via default Grok binary" });
+      const defaulted = await createSession({ ...common, bin: undefined });
       assert.equal(defaulted.provider_session_id, "native-root");
     } finally {
       if (previousBin === undefined) delete process.env.DD_GROK_BIN;
       else process.env.DD_GROK_BIN = previousBin;
     }
-    const created = await createSession({ ...common, prompt: "prime" });
-    assert.equal(created.provider_session_id, "native-root"); assert.deepEqual(created.evidence.tool_calls, { total: 1, failures: 0, by_tool: { Bash: 1 } });
+    const created = await createSession(common);
+    assert.equal(created.provider_session_id, "native-root"); assert.deepEqual(created.evidence.tool_calls, { total: 0, failures: 0, by_tool: {} });
     const prompted = await promptSession({ ...common, sessionId: "native-root", prompt: "work" }); assert.equal(prompted.turn.stopReason, "end_turn");
     const forked = await forkSession({ ...common, sessionId: "native-root", target: { newCwd: root } }); assert.equal(forked.provider_session_id, "native-fork");
     const lines = (await readFile(journal, "utf8")).trim().split("\n").map(JSON.parse); assert.ok(lines.some((line) => line.kind === "outbound" && line.payload.method === "_x.ai/session/fork")); assert.ok(lines.some((line) => line.kind === "outbound" && line.payload.method === "_x.ai/session/usage"));
