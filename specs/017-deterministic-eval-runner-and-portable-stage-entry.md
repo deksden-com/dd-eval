@@ -82,7 +82,10 @@ provider Session, an operator-created RUN, or a manually copied artifact.
    provider and the RUN: a completed Stage is finalized, a registered pause is
    judged and resumed, and a live turn is waited for. An idle Session without a
    reconcilable lifecycle fails as evidence; it is never treated as permission
-   to repeat the launcher.
+   to repeat the launcher. The one exception is the first entry into a
+   successor Stage after its predecessor boundary was accepted: that Stage has
+   no lifecycle record yet, so the runner records and sends its new launcher
+   exactly once.
 
    Harness daemon start is an idempotent infrastructure operation. A transient
    readiness race gets one short retry; it never creates another Subject turn.
@@ -243,6 +246,13 @@ The Subject sees only the launcher packet, rendered stage context and exact
 canonical HITL response delivered after a successful match. It never sees the
 assessment, golden context oracle, response-selection rationale or final-Judge
 packet.
+
+The default canonical chain continues in the same Subject Session. When the
+restored RUN declares `execution.settings.stage_session_mode: "new_session"`,
+the runner creates one fresh provider Session at each accepted successor
+boundary, records it against that Stage, and sends that Stage's first launcher
+there. This is a flow configuration decision, not an instruction for the
+Subject to infer or a reason to replay its predecessor.
 
 ## Canonical fixture model
 
