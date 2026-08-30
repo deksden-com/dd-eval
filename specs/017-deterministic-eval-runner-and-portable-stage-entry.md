@@ -76,6 +76,13 @@ provider Session, an operator-created RUN, or a manually copied artifact.
    restart it reconciles the harness and `dd-flow` before deciding whether a
    pending operation needs waiting, finalization or no action; it never sends
    a launcher or lifecycle command twice.
+
+   In particular, a provider turn is recorded as dispatched before it is sent.
+   If the controller disappears during that turn, resume first observes the
+   provider and the RUN: a completed Stage is finalized, a registered pause is
+   judged and resumed, and a live turn is waited for. An idle Session without a
+   reconcilable lifecycle fails as evidence; it is never treated as permission
+   to repeat the launcher.
 9. A completed candidate is frozen before optional final judgment. The Judge
    receives only the candidate, assessment and permitted evaluator evidence;
    results and the deterministic report remain attached to that immutable
