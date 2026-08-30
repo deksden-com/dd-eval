@@ -44,6 +44,10 @@ or another shell command: the harness hook must see this lifecycle call as its
 own Bash action. `stage start` is the source of the actual context, paths,
 completion command and Work contract.
 
+For Codex Desktop, the runner creates an isolated `CODEX_HOME` through
+`dd-flow` and trusts only its generated lifecycle hook for that eval Session.
+It does not reuse an interactive hook-trust decision or load user plugin hooks.
+
 Monitor without modifying the evaluated Session:
 
 ```sh

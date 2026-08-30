@@ -201,6 +201,12 @@ opencode-server   -> dd-opencode
 antigravity-cli   -> dd-agy
 ```
 
+For a `codex-desktop` eval attempt, `dd-codex` creates the Subject Session
+with Codex's per-thread managed-hook trust override and plugins disabled. The
+isolated `CODEX_HOME` is created by `dd-flow` and contains only the generated
+`dd-flow` lifecycle hook; this removes an interactive trust prompt without
+granting a user or plugin hook access to an unattended evaluation.
+
 The Subject sees only the launcher packet, rendered stage context and exact
 canonical HITL response delivered after a successful match. It never sees the
 assessment, golden context oracle, response-selection rationale or final-Judge
