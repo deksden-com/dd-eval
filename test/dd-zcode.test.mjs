@@ -53,7 +53,7 @@ test("dd-zcode controls create, prompt and fork through ACP with an append-only 
     const created = await createSession(common);
     assert.equal(created.provider_session_id, "native-root");
     assert.deepEqual(created.evidence.tool_calls, { total: 0, failures: 0, by_tool: {} });
-    assert.equal(created.evidence.read.messages, undefined);
+    assert.equal(created.evidence.read.projection, null);
     const notifications = [];
     const prompted = await promptSession({ ...common, sessionId: "native-root", adapterSessionId: "adapter-1", prompt: "work", onNotification: (event) => notifications.push(event) });
     assert.equal(prompted.turn.stopReason, "end_turn");
