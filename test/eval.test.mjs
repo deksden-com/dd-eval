@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, entryLauncher, evalRun, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, stageSessionMode } from "../lib/runner.mjs";
+import { canonicalBuild, entryLauncher, evalRun, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, stageSessionMode } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -40,6 +40,12 @@ test("qualification cannot pass while any execution failed", () => {
   assert.equal(qualificationSucceeded({ state: "completed", executions: [{ state: "candidate_ready" }] }), true);
   assert.equal(qualificationSucceeded({ state: "completed_with_failures", executions: [{ state: "failed" }] }), false);
   assert.equal(qualificationSucceeded({ state: "completed", executions: [{ state: "failed" }] }), false);
+});
+
+test("focused result checkpoints preserve a legal successor entry", () => {
+  assert.deepEqual(resultCheckpointMode("plan-review"), { purpose: "stage_entry", stage_entry: "code" });
+  assert.deepEqual(resultCheckpointMode("code"), { purpose: "stage_entry", stage_entry: "code-review" });
+  assert.deepEqual(resultCheckpointMode("code-review"), { purpose: "candidate", stage_entry: null });
 });
 
 test("successor Session mode reads the persisted execution profile from run status", () => {
