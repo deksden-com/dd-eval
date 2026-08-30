@@ -41,9 +41,13 @@ provider Session, an operator-created RUN, or a manually copied artifact.
    `entry-pack-source/` declares task input, per-stage context roles, allowed
    HITL responses and assessment material. `entry_pack` is `null`: it cannot
    be scored yet.
-2. `canonical build --profile … --project-root …` first verifies the project's
-   declared clean integration checkout, then captures only the initial
-   bootstrap project boundary and records a durable build journal. It creates
+2. `canonical build --profile … --project-root … --flow-root …` first requires
+   a clean, committed dd-eval definition tree, then records its commit and
+   tree hash. It verifies the product checkout against the case's declared
+   input checkpoint and the flow checkout against its declared flow-pack
+   commit. It clones the product baseline into the build, overlays only that
+   immutable flow pack there, then captures the initial bootstrap project
+   boundary and records a durable build journal. It creates
    no hidden RUN and no provider Session before the first reference turn.
 3. `canonical resume` restores that boundary (or observes the already restored
    reference runtime). For the bootstrap boundary it registers the restored
@@ -1048,7 +1052,7 @@ plan; no parallel `execution-plan.json` is introduced.
 All high-level automation lives under one namespace:
 
 ```text
-dd-eval runner canonical build --profile <run-profile.json> --project-root <clean-reference-project>
+dd-eval runner canonical build --profile <run-profile.json> --project-root <clean-checkpoint-product> --flow-root <clean-flow-pack>
 dd-eval runner canonical status --build <path>
 dd-eval runner canonical boundary accept --build <path> --stage <stage> --review <file>
 dd-eval runner canonical qualify --build <path> --profile <run-profile.json>
@@ -1798,9 +1802,12 @@ these decisions.
    ordered task input map, stage-context source map, canonical responses and
    context-oracle drafts, along with the assessment and two profiles: reference
    build and context qualification.
-2. `canonical build` allocates the next revision below `DD_EVAL_HOME`, freezes
-   the project/engine/flow identities, writes its manifest/journal and creates a
-   clean reference workspace.
+2. `canonical build` allocates the next revision below `DD_EVAL_HOME`, verifies
+   the product and flow commits named by the case's input checkpoint, clones
+   the product baseline and overlays only the declared flow pack, then freezes
+   those identities in its manifest/journal and creates a clean reference
+   workspace. It never treats a current product checkout as interchangeable
+   with a historical task baseline.
 3. It captures the E2E/SPECIFY entry before flow start, launches the declared
    reference Subject and sends a launcher whose standalone bootstrap
    `stage start` creates the RUN and installs the SPECIFY slice.

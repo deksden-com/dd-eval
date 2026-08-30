@@ -20,6 +20,9 @@ test("active case uses one portable entry-pack contract and no Session starter s
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-046-task-priority-base-beta-138");
+  assert.equal(loaded.inputCheckpoint.value.source.commit, "a924495a5fef8a53b3ba6dc0f9408023ae7e569c");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "b93021e1ffb0b47145e33b2535ed51c31a2ab438");
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review"]);
 });
 
@@ -122,7 +125,20 @@ test("canonical build rejects a feature checkout before it captures a bootstrap 
     await run("git", ["-C", project, "checkout", "-b", "feature/eval"]);
     const policyDir = path.join(project, ".memory-bank", "dd-flow"); await mkdir(policyDir, { recursive: true });
     await writeFile(path.join(policyDir, "project-workspace.json"), JSON.stringify({ schema_id: "dd-flow/project-workspace@1", workspace: { integration_branch: "main" } }));
-    await assert.rejects(canonicalBuild({ profileFile: buildProfile, projectRoot: project }), /clean main integration checkout/);
+    await assert.rejects(canonicalBuild({ profileFile: buildProfile, projectRoot: project }), /detached at checkpoint or on main/);
+  } finally { await rm(project, { recursive: true, force: true }); }
+});
+
+test("canonical build rejects a clean checkout whose product commit differs from the input checkpoint", async () => {
+  const project = await mkdtemp(path.join(tmpdir(), "dd-eval-source-"));
+  try {
+    await run("git", ["init", "--initial-branch=main", project]);
+    await run("git", ["-C", project, "-c", "user.email=eval@example.invalid", "-c", "user.name=Eval", "commit", "--allow-empty", "-m", "initial"]);
+    const policyDir = path.join(project, ".memory-bank", "dd-flow"); await mkdir(policyDir, { recursive: true });
+    await writeFile(path.join(policyDir, "project-workspace.json"), JSON.stringify({ schema_id: "dd-flow/project-workspace@1", workspace: { integration_branch: "main" } }));
+    await run("git", ["-C", project, "add", "."]);
+    await run("git", ["-C", project, "-c", "user.email=eval@example.invalid", "-c", "user.name=Eval", "commit", "-m", "workspace policy"]);
+    await assert.rejects(canonicalBuild({ profileFile: buildProfile, projectRoot: project, flowRoot: project }), /does not match input checkpoint/);
   } finally { await rm(project, { recursive: true, force: true }); }
 });
 

@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "id": "cp-046-task-priority-base-beta-138",
+  "title": "Task Priority product baseline with beta.138 flow pack",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "b93021e1ffb0b47145e33b2535ed51c31a2ab438",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "3.2.0-vnext-plan-review-beta.131",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "59cedcc2152ee193d2bbb5ec9ff6c57b5a6a4010",
+      "version": "0.8.0-beta.138"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "The product tree remains at the pre-priority baseline so that the case cannot evaluate an already implemented request.",
+    "The runner overlays only the declared beta.138 flow pack into its isolated clone; it does not alter the source checkout."
+  ]
+}

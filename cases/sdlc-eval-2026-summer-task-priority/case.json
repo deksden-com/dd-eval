@@ -7,6 +7,10 @@
   "input": [
     {"role": "initial_user_request", "source": "entry-pack-source/task-priority.md", "sha256": "af92baafdebc3ef4663e1049216a338f20b0948ae8310be7a9bf4f47d7fd694e"}
   ],
+  "input_checkpoint": {
+    "id": "cp-046-task-priority-base-beta-138",
+    "sha256": "f5397fc7b517766b68bfbff991e72afe2b35eaa33a1fa0c90b03893323fb3a3e"
+  },
   "entry_pack": null,
   "profiles": {
     "subject": [

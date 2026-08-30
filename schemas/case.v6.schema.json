@@ -3,7 +3,7 @@
   "$id": "dd-eval/case@6",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_id", "suite_id", "id", "status", "assessment", "input", "entry_pack", "profiles", "flow"],
+  "required": ["schema_id", "suite_id", "id", "status", "assessment", "input", "input_checkpoint", "entry_pack", "profiles", "flow"],
   "properties": {
     "schema_id": {"const": "dd-eval/case@6"},
     "suite_id": {"type": "string", "minLength": 1},
@@ -11,6 +11,7 @@
     "status": {"enum": ["authoring", "runnable"]},
     "assessment": {"type": "string", "minLength": 1},
     "input": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/input"}},
+    "input_checkpoint": {"$ref": "#/$defs/input_checkpoint"},
     "entry_pack": {"type": ["string", "null"]},
     "profiles": {"type": "object"},
     "flow": {"type": "object"}
@@ -22,6 +23,14 @@
       "properties": {
         "role": {"type": "string", "minLength": 1},
         "source": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "input_checkpoint": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "sha256"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^cp-[a-z0-9][a-z0-9-]*$"},
         "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
       }
     }

@@ -81,16 +81,20 @@ answers into the E2E input.
 
 ## Build a canonical entry pack
 
-1. Commit the case inputs, select a reference-build profile, and select the
-   project's clean integration checkout named by
-   `.memory-bank/dd-flow/project-workspace.json` (not a beta or feature
-   worktree). `canonical build` verifies this before it creates a revision.
+1. Commit the case inputs, including its hash-pinned input checkpoint. The
+   runner refuses to start a canonical build from a dirty `dd-eval` definition
+   tree and records its commit and tree hash in the build state. Prepare
+   two clean checkouts: the product checkout at the checkpoint's `source.commit`
+   (detached is valid) and the flow checkout at `flow_pack.commit`. The runner
+   clones the former and overlays only `.memory-bank/dd-flow` from the latter;
+   it never tests a later product state merely because that state is on `main`.
 2. Set an absolute `DD_EVAL_HOME` and run:
 
    ```sh
    dd-eval runner canonical build --profile \
      cases/<case-id>/run-profiles/<reference>.json \
-     --project-root /absolute/path/to/clean/reference-project
+     --project-root /absolute/path/to/clean/checkpoint-product \
+     --flow-root /absolute/path/to/clean/flow-pack
    ```
 
    The runner allocates a pending revision and journals every reference action.
