@@ -45,9 +45,11 @@ provider Session, an operator-created RUN, or a manually copied artifact.
    a clean, committed dd-eval definition tree, then records its commit and
    tree hash. It verifies the product checkout against the case's declared
    input checkpoint and the flow checkout against its declared flow-pack
-   commit. It clones the product baseline into the build, overlays only that
-   immutable flow pack there, then captures the initial bootstrap project
-   boundary and records a durable build journal. It creates
+   commit. It clones the product baseline into the build and makes one local,
+   clean `main` materialization commit that overlays only that immutable flow
+   pack; the build records both parent product and materialized workspace
+   identities. Normal flow Git policy then applies unchanged. It captures the
+   initial bootstrap project boundary and records a durable build journal. It creates
    no hidden RUN and no provider Session before the first reference turn.
 3. `canonical resume` restores that boundary (or observes the already restored
    reference runtime). For the bootstrap boundary it registers the restored

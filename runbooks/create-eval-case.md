@@ -86,8 +86,11 @@ answers into the E2E input.
    tree and records its commit and tree hash in the build state. Prepare
    two clean checkouts: the product checkout at the checkpoint's `source.commit`
    (detached is valid) and the flow checkout at `flow_pack.commit`. The runner
-   clones the former and overlays only `.memory-bank/dd-flow` from the latter;
-   it never tests a later product state merely because that state is on `main`.
+   clones the former, creates a local clean `main` materialization commit that
+   overlays only `.memory-bank/dd-flow` from the latter, and records both the
+   product commit and that materialized commit. This lets normal Git policy run
+   unchanged while ensuring it never tests a later product state merely because
+   that state is on `main`.
 2. Set an absolute `DD_EVAL_HOME` and run:
 
    ```sh
