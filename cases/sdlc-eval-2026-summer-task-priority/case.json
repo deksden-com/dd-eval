@@ -10,12 +10,12 @@
   "entry_pack": null,
   "profiles": {
     "subject": [
-      "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-125",
-      "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-125",
-      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-125",
+      "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-126",
+      "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-126",
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-126",
       "zcode-acp-zai-glm-5-3-flash-high"
     ],
-    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-125"]
+    "judge": ["codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-126"]
   },
   "flow": {"contour": ["specify", "protocolize", "plan", "plan-review", "code", "code-review"], "terminal_stage": "code-review"}
 }
