@@ -41,7 +41,8 @@ provider Session, an operator-created RUN, or a manually copied artifact.
    `entry-pack-source/` declares task input, per-stage context roles, allowed
    HITL responses and assessment material. `entry_pack` is `null`: it cannot
    be scored yet.
-2. `canonical build --profile … --project-root …` captures only the initial
+2. `canonical build --profile … --project-root …` first verifies the project's
+   declared clean integration checkout, then captures only the initial
    bootstrap project boundary and records a durable build journal. It creates
    no hidden RUN and no provider Session before the first reference turn.
 3. `canonical resume` restores that boundary (or observes the already restored
@@ -49,7 +50,9 @@ provider Session, an operator-created RUN, or a manually copied artifact.
    project in its new, isolated `DD_FLOW_HOME` before harness preparation;
    this is deterministic runtime setup, not a flow start. It then
    opens/continues the one reference Session and sends exactly one launcher.
-   The Subject begins with standalone `stage start`.
+   The Subject begins with standalone `stage start`, completes only the named
+   stage, and stops. The runner—not the Subject and not a normal `finish`
+   receipt—owns every successor transition.
    If it pauses at an allowed interaction point, the same semantic interaction
    matching and `stage resume` path used by a scored run is used here too.
 4. After one successful stage finish the command stops. A human accepts the
@@ -156,7 +159,10 @@ dual execution path.
   all declared stages. The flow pack supplies universal method and dynamic
   predecessor roles; `stage start` binds the blueprint to the current RUN.
 - **Launcher packet** — small per-attempt message containing restored absolute
-  paths, the exact standalone `stage start` command and the stop boundary.
+  paths, the exact standalone `stage start` command, the one permitted Stage
+  and the stop boundary. A normal flow receipt may advertise a successor for
+  interactive use; an eval Subject must ignore it until the runner sends a new
+  launcher in a later turn.
 - **Rendered stage context** — authoritative Subject-visible result returned by
   `stage start` from the semantic package, flow pack and restored runtime.
 - **Eval-control fixture** — Judge/runner-only material: HITL response set,

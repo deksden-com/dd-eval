@@ -33,7 +33,10 @@ path, provider Session ID, golden answer, Judge rationale or hidden response.
 
 ## Build a canonical entry pack
 
-1. Commit the case inputs and select a reference-build profile.
+1. Commit the case inputs, select a reference-build profile, and select the
+   project's clean integration checkout named by
+   `.memory-bank/dd-flow/project-workspace.json` (not a beta or feature
+   worktree). `canonical build` verifies this before it creates a revision.
 2. Set an absolute `DD_EVAL_HOME` and run:
 
    ```sh
@@ -51,7 +54,10 @@ path, provider Session ID, golden answer, Judge rationale or hidden response.
    create a RUN. Before each reference stage starts, capture the project/RUN
    boundary and construct that stage's portable descriptor. After the stage
    ends, review the result explicitly; boundary acceptance captures the
-   successor input but does not itself send another provider prompt.
+   successor input but does not itself send another provider prompt. The
+   generated launcher limits the Subject to that one Stage: its normal finish
+   receipt can mention a successor, but only the runner may dispatch it in the
+   next provider turn.
 4. Run mechanical validation for paths, hashes, flow state, workspace route,
    absence of live Work/provider identity and dynamic-role containment.
 5. Run isolated context qualification for every focused entry and then E2E.

@@ -44,6 +44,11 @@ or another shell command: the harness hook must see this lifecycle call as its
 own Bash action. `stage start` is the source of the actual context, paths,
 completion command and Work contract.
 
+Each launcher permits exactly its named Stage. Once that Stage is finished, the
+Subject stops; it must not follow a successor command shown by a normal
+`dd-flow` receipt. The runner checkpoints the boundary and sends the successor
+only in a later provider turn.
+
 For Codex Desktop, the runner creates an isolated `CODEX_HOME` through
 `dd-flow` and trusts only its generated lifecycle hook for that eval Session.
 It does not reuse an interactive hook-trust decision or load user plugin hooks.

@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
 import test from "node:test";
 import { canonicalBuild, evalRun, fixturesValidate, loadCaseV6, loadRunProfile } from "../lib/runner.mjs";
 
@@ -9,6 +11,7 @@ const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
 const buildProfile = path.join(root, "cases", caseId, "run-profiles", "build-entry-pack-reference-terra-high.json");
 const qualificationProfile = path.join(root, "cases", caseId, "run-profiles", "qualify-entry-pack-terra-high.json");
+const run = promisify(execFile);
 
 test("active case uses one portable entry-pack contract and no Session starter state", async () => {
   const loaded = await loadCaseV6(caseId);
@@ -51,6 +54,18 @@ test("canonical build requires an explicit source project before it can capture 
     if (prior === undefined) delete process.env.DD_EVAL_HOME; else process.env.DD_EVAL_HOME = prior;
     await rm(home, { recursive: true, force: true });
   }
+});
+
+test("canonical build rejects a feature checkout before it captures a bootstrap snapshot", async () => {
+  const project = await mkdtemp(path.join(tmpdir(), "dd-eval-source-"));
+  try {
+    await run("git", ["init", "--initial-branch=main", project]);
+    await run("git", ["-C", project, "-c", "user.email=eval@example.invalid", "-c", "user.name=Eval", "commit", "--allow-empty", "-m", "initial"]);
+    await run("git", ["-C", project, "checkout", "-b", "feature/eval"]);
+    const policyDir = path.join(project, ".memory-bank", "dd-flow"); await mkdir(policyDir, { recursive: true });
+    await writeFile(path.join(policyDir, "project-workspace.json"), JSON.stringify({ schema_id: "dd-flow/project-workspace@1", workspace: { integration_branch: "main" } }));
+    await assert.rejects(canonicalBuild({ profileFile: buildProfile, projectRoot: project }), /clean main integration checkout/);
+  } finally { await rm(project, { recursive: true, force: true }); }
 });
 
 test("run profiles reject undeclared control fields rather than silently changing an experiment", async () => {
