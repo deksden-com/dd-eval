@@ -58,6 +58,27 @@ If this reveals a missing product decision, add it to user input or the right
 predecessor artifact. Do not hard-code a downstream answer into a package and
 do not add a provider Session as a shortcut.
 
+### Boundary simulation checklist
+
+For each entry, simulate the exact next Subject turn before accepting the
+package. The answer to every item must come from the entry itself, its rendered
+`stage start` response, or normal project files named by the package—not from
+the reference conversation or an operator's memory.
+
+| Question | Correct owner | What to do if it is missing |
+| --- | --- | --- |
+| What task and already accepted decisions apply? | raw input or predecessor artifact | add the smallest relevant source role |
+| Where may this Stage read and write? | rendered lifecycle context | correct the dynamic role/flow contract, never hard-code an old absolute path |
+| Which product/project rules make the decision meaningful? | semantic context package | add the governing index or document, not a prose duplicate |
+| Which output, checks, Work graph and stop state are required? | rendered lifecycle context | fix the stage contract or its context mapping |
+| May it ask the user, and what happens then? | subject-visible policy plus hidden canonical answers | declare the interaction point; do not supply anticipated question wording |
+| Can a fresh empty Session complete this Stage? | complete package plus launcher | repair the package; do not use a reference Session/fork as a shortcut |
+
+Then simulate the E2E path separately: it restores only the initial entry;
+each successor receives artifacts produced by this Subject, not the later
+focused fixture. This catches accidental leakage of canonical downstream
+answers into the E2E input.
+
 ## Build a canonical entry pack
 
 1. Commit the case inputs, select a reference-build profile, and select the
@@ -109,6 +130,11 @@ entries. A changed scoring methodology alone does not.
   evidence**. Preserve it for the Judge and improve the package only when the
   evidence shows that the package omitted something it was responsible for
   supplying.
+- A provider turn that becomes terminal while its Stage is still running is an
+  **incomplete subject turn**. Preserve the trace and abandon that canonical
+  revision; do not hand-write a continuation, repair partially written output
+  or accept any later boundary from it. Start a clean revision after the
+  infrastructure cause is understood.
 
 This distinction keeps packages general: they provide necessary context, not
 answers tuned to one model's particular mistakes.

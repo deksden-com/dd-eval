@@ -35,7 +35,7 @@ defines the implemented Grok integration. The common
 [OpenCode harness specification 015](specs/015-opencode-harness-integration.md)
 define the next backend integration; the
 [2026-08-29 OpenCode research record](runbooks/dd-opencode-research-2026-08-29.md)
-captures the safe live transport and native export/import probes. The proposed
+captures the safe live transport and native export/import probes. The active
 [deterministic runner and portable stage-entry specification 017](specs/017-deterministic-eval-runner-and-portable-stage-entry.md)
 replaces routine focused-stage Session forks with a harness-neutral Eval Entry
 Pack and a new empty Subject Session. Operational procedures remain in
@@ -50,14 +50,14 @@ The downstream implementation contour is being defined in
 An evaluation run starts from an immutable `dd-tasks` checkpoint and measures a
 specific harness/model profile, not a model in isolation.
 
-The active planning suite follows the actual vNext order:
+The active suite follows the vNext order:
 
 1. **Planning:** `SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW`. The initial
    request is deliberately incomplete. Score relevant gaps, questions, the
    portable handoff, executable plan, and any material review findings.
-2. **Implementation:** is a separate future suite. It will receive an accepted
-   `ready_for_code` package and score flow conformance, implementation quality,
-   and deterministic acceptance scenarios.
+2. **Implementation:** `CODE → CODE-REVIEW`. CODE executes the accepted Work
+   graph and deterministic verification gates; CODE-REVIEW independently
+   assesses material implementation defects and their repair closure.
 
 Reviews must distinguish three things:
 
@@ -74,12 +74,9 @@ Hidden checks may hide how a requirement is tested, but must not introduce a
 requirement absent from the task, clarification packet, project Memory Bank, or
 existing code contract.
 
-Initial profiles:
-
-- canonical: Codex CLI, `gpt-5.6-sol`, reasoning `high`;
-- planning comparison: Grok Build, `grok-4.5`;
-- implementation comparisons: the two profiles above plus OpenCode,
-  `deepseek-v4-flash`, thinking mode.
+Model, reasoning and harness profiles are declared by the committed run
+profile; the resolved manifest records the requested and observed values for
+each execution. There is no repository-wide default profile.
 
 Every result records the harness and version, model, reasoning mode, tool and
 network permissions, flow revision, source checkpoint, prompts, duration, token

@@ -135,6 +135,14 @@ without touching another cell:
 dd-eval runner cancel --eval "$DD_EVAL_HOME/runs/<eval-id>" --execution <id>
 ```
 
+If the provider itself ends a Subject turn while the expected Stage remains
+`running`, the candidate is `incomplete_subject_turn`. The runner preserves
+the journal and does not send a hand-written continuation or attempt to repair
+partially written artifacts. For a reference build, abandon that revision and
+create a fresh one; for a scored execution, retain the failed candidate for
+analysis. This is different from a controller restart: only the latter may be
+reconciled without a new Subject turn.
+
 If a controller stops between a provider terminal message and lifecycle
 reconciliation, resume never sends that provider turn again. At an allowed
 HITL point it may ask the independent Interaction Judge to validate the exact
