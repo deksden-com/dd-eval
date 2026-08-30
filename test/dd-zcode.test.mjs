@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { assertProfile, cancelChildWithBridge, createSession, forkSession, observedProfile, promptSession, zcodeLifecycleEnvelope } from "../lib/dd-zcode.mjs";
+import { assertProfile, cancelChildWithBridge, createSession, forkSession, latestAssistantText, observedProfile, promptProbeBatchWithBridge, promptSession, zcodeLifecycleEnvelope } from "../lib/dd-zcode.mjs";
 
 test("ZCode observed profiles fail closed on drift", () => {
   const observed = observedProfile({ settings: { model: { current: { providerId: "anthropic", modelId: "GLM-5.3" } }, thoughtLevel: { current: "high" }, mode: { current: "yolo" } } });
@@ -13,6 +13,42 @@ test("ZCode observed profiles fail closed on drift", () => {
     observed
   });
   assert.throws(() => assertProfile({ provider: "anthropic", model: "GLM-5.3", reasoning: "low", mode: "yolo" }, observed), /profile mismatch/);
+});
+
+test("ZCode probe output uses the final visible assistant message", () => {
+  assert.equal(latestAssistantText({ messages: [
+    { info: { role: "user" }, parts: [{ type: "text", text: "probe" }] },
+    { info: { role: "assistant" }, parts: [{ type: "reasoning", text: "wait" }, { type: "text", text: "AGENT-07" }] },
+  ] }), "AGENT-07");
+  assert.equal(latestAssistantText({ messages: [] }), null);
+});
+
+test("ZCode probe batch starts all prepared Sessions before reading a result", async () => {
+  const started = [];
+  let release;
+  const bothStarted = new Promise((resolve) => { release = resolve; });
+  const bridge = {
+    async request(method, params) {
+      if (method === "session/prompt") {
+        started.push(params.sessionId);
+        if (started.length === 2) release();
+        await bothStarted;
+        return { stopReason: "end_turn" };
+      }
+      if (method === "zcode/session/read") return { messages: [{ info: { role: "assistant" }, parts: [{ type: "text", text: params.sessionId === "adapter-1" ? "AGENT-01" : "AGENT-02" }] }] };
+      throw new Error(`unexpected method ${method}`);
+    },
+    async flush() {},
+  };
+  const receipt = await promptProbeBatchWithBridge(bridge, {
+    journal: "/tmp/zcode-probe-batch.jsonl",
+    probes: [
+      { provider_session_id: "provider-1", adapter_session_id: "adapter-1", prompt: "first" },
+      { provider_session_id: "provider-2", adapter_session_id: "adapter-2", prompt: "second" },
+    ],
+  });
+  assert.deepEqual(started, ["adapter-1", "adapter-2"]);
+  assert.deepEqual(receipt.results.map((item) => item.assistant_text), ["AGENT-01", "AGENT-02"]);
 });
 
 test("dd-zcode controls create, prompt and fork through ACP with an append-only journal", async () => {
