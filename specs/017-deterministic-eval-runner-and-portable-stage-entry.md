@@ -86,6 +86,11 @@ provider Session, an operator-created RUN, or a manually copied artifact.
 
    Harness daemon start is an idempotent infrastructure operation. A transient
    readiness race gets one short retry; it never creates another Subject turn.
+   If the Controller was interrupted after dispatch and its private prompt
+   daemon remains marked busy, recovery first inspects the provider Session.
+   Only an already-idle Session permits retiring and recreating that orphaned
+   daemon; recovery then continues the registered lifecycle. An active
+   provider Session is never stopped or re-prompted.
 9. A completed candidate is frozen before optional final judgment. The Judge
    receives only the candidate, assessment and permitted evaluator evidence;
    results and the deterministic report remain attached to that immutable
