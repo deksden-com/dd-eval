@@ -90,7 +90,9 @@ answers into the E2E input.
    overlays only `.memory-bank/dd-flow` from the latter, and records both the
    product commit and that materialized commit. This lets normal Git policy run
    unchanged while ensuring it never tests a later product state merely because
-   that state is on `main`.
+   that state is on `main`. Runner-local task input is placed under
+   `.dd-eval/` and excluded through the restored checkout's local Git exclude;
+   it is context, never a product edit.
 2. Set an absolute `DD_EVAL_HOME` and run:
 
    ```sh
