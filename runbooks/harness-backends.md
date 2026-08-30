@@ -4,6 +4,12 @@
 as part of the evaluated flow. The Controller remains a Codex task; the Subject
 may use another harness when its profile declares one.
 
+For every routine focused, segment and E2E evaluation, the active contract is
+[specification 017](../specs/017-deterministic-eval-runner-and-portable-stage-entry.md):
+the runner restores a portable stage entry and creates an empty Subject
+Session. Native forks and historical starter archives below are diagnostics
+only; they must not be selected as an ordinary eval input or fallback.
+
 Every backend must provide these operations with stable provider Session IDs:
 
 - doctor/version gate;
