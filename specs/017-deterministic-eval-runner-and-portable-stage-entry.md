@@ -83,6 +83,9 @@ provider Session, an operator-created RUN, or a manually copied artifact.
    judged and resumed, and a live turn is waited for. An idle Session without a
    reconcilable lifecycle fails as evidence; it is never treated as permission
    to repeat the launcher.
+
+   Harness daemon start is an idempotent infrastructure operation. A transient
+   readiness race gets one short retry; it never creates another Subject turn.
 9. A completed candidate is frozen before optional final judgment. The Judge
    receives only the candidate, assessment and permitted evaluator evidence;
    results and the deterministic report remain attached to that immutable
