@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, stageSessionMode } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, stageSessionMode } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -98,6 +98,14 @@ test("fan-out workers cannot create nested HITL and zero capacity is infrastruct
   const prompt = fanoutWorkerPrompt({ workId: "WRK-001", startCommand: "dd-flow work start WRK-001 --json" });
   assert.match(prompt, /cannot ask the user or pause the parent Stage/);
   assert.equal(isInfrastructureFailure("no_subagent_capacity"), true);
+});
+
+test("capacity probe has an exact, disposable agent contract", () => {
+  const prompt = capacityProbePrompt(7, 60);
+  assert.match(prompt, /AGENT-07/);
+  assert.match(prompt, /Do not call tools, read files, create children, or explain/);
+  assert.match(prompt, /Wait exactly 60 seconds/);
+  assert.match(prompt, /return exactly AGENT-07/);
 });
 
 test("fan-out worker recovery resumes the same Work after an unaccepted finish", () => {

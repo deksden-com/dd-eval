@@ -1768,12 +1768,15 @@ invented by `dd-eval`.  Each ready Work record already contains the exact
    result usable, but is not permission to treat a still-live provider turn as
    settled for usage accounting.
 
-The probe is a RUN fact, not a Work: it starts one concurrent batch of fifteen
-disposable leaf Sessions, each receives `wait 60 seconds, then return exactly
-AGENT-NN`, waits at most 180 seconds for the original batch, terminates only
-unfinished probes, removes all probe Sessions, and records the number of
-initial launches that actually returned.  It never retries, replaces or
-serializes probes.  The first fan-out stage records it; later fan-out stages
+The probe is a RUN fact, not a Work: it first provisions fifteen disposable
+leaf Sessions without prompting them. Provisioning is setup, not an agent
+launch; it is intentionally serialized so an ACP/daemon cold-start stampede
+cannot be mistaken for model capacity. It then starts one concurrent batch of
+all provisioned Sessions: each receives `wait 60 seconds, then return exactly
+AGENT-NN`, waits at most 180 seconds for that original prompt batch, terminates
+only unfinished probes, removes all probe Sessions, and records the number of
+initial launches that actually returned. It never retries, replaces or
+serializes the agent launches. The first fan-out stage records it; later fan-out stages
 reuse it.  If PLAN-REVIEW is off, CODE becomes the first fan-out stage and
 performs the same operation.  The runner records raw driver evidence and the
 observed number; it does not turn probe Sessions into RUN Sessions or Works.
