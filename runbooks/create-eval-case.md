@@ -45,10 +45,13 @@ path, provider Session ID, golden answer, Judge rationale or hidden response.
    The runner allocates a pending revision and journals every reference action.
    The reference chain is provenance only: its provider Session is never an
    input to a routine eval.
-3. Before each reference stage starts, capture the project/RUN boundary and
-   construct that stage's portable descriptor. After the stage ends, review
-   the result explicitly; boundary acceptance captures the successor input but
-   does not itself send another provider prompt.
+3. Before the first reference Session, the runner restores the bootstrap
+   project and registers that restored root in its otherwise empty dedicated
+   `DD_FLOW_HOME`; this enables deterministic harness/hook setup but does not
+   create a RUN. Before each reference stage starts, capture the project/RUN
+   boundary and construct that stage's portable descriptor. After the stage
+   ends, review the result explicitly; boundary acceptance captures the
+   successor input but does not itself send another provider prompt.
 4. Run mechanical validation for paths, hashes, flow state, workspace route,
    absence of live Work/provider identity and dynamic-role containment.
 5. Run isolated context qualification for every focused entry and then E2E.

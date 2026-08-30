@@ -45,8 +45,11 @@ provider Session, an operator-created RUN, or a manually copied artifact.
    bootstrap project boundary and records a durable build journal. It creates
    no hidden RUN and no provider Session before the first reference turn.
 3. `canonical resume` restores that boundary (or observes the already restored
-   reference runtime), opens/continues the one reference Session, and sends
-   exactly one launcher. The Subject begins with standalone `stage start`.
+   reference runtime). For the bootstrap boundary it registers the restored
+   project in its new, isolated `DD_FLOW_HOME` before harness preparation;
+   this is deterministic runtime setup, not a flow start. It then
+   opens/continues the one reference Session and sends exactly one launcher.
+   The Subject begins with standalone `stage start`.
    If it pauses at an allowed interaction point, the same semantic interaction
    matching and `stage resume` path used by a scored run is used here too.
 4. After one successful stage finish the command stops. A human accepts the
@@ -1127,7 +1130,9 @@ For each execution the runner:
 2. performs harness doctor/profile/version preflight and creates the isolated
    harness home (including the trusted `dd-flow` hook configuration) before a
    provider Session exists;
-3. restores the accepted fixture into a new attempt directory;
+3. restores the accepted fixture into a new attempt directory; for a bootstrap
+   fixture, registers the restored project in that empty runtime before any
+   harness or hook setup;
 4. verifies project, runtime and semantic package hashes;
 5. materializes the read-only path-bearing active-stage slice and exact
    launcher;
