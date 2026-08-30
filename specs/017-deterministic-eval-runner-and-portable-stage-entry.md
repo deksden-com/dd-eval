@@ -1715,13 +1715,15 @@ The descriptor contains commands produced by the current engine, not commands
 invented by `dd-eval`.  Each ready Work record already contains the exact
 `work start` command and launch policy.  Therefore the common runner loop is:
 
-1. call the stage's declared dispatch command;
-2. if the descriptor says capacity is missing, perform the one permitted
+1. if an agent-owned stage has not yet materialized any Work, return the same
+   coordinator once to materialize its graph; an empty graph is not success;
+2. call the stage's declared dispatch command when it has one;
+3. if the descriptor says capacity is missing, perform the one permitted
    probe and record its observed result with `dd-flow`, then retry *that same*
    dispatch command once;
-3. launch graph-ready Work records up to the recorded capacity; repeat only
+4. launch graph-ready Work records up to the recorded capacity; repeat only
    as newly ready records appear;
-4. wait for all launched Work Sessions to become terminal, reconcile their
+5. wait for all launched Work Sessions to become terminal, reconcile their
    `work finish` receipts, then continue the coordinator exactly once.
 
 The probe is a RUN fact, not a Work: it starts one concurrent batch of fifteen
@@ -1915,7 +1917,8 @@ rationale rather than rewriting history.
    requirements in one cutover; do not retain a fallback executor.
 11. Add `dd-codex` or consume its completed JSON driver contract.
 12. Add one generic fan-out executor.  It consumes only a `dd-flow`
-    orchestration descriptor and ready-Work records, runs the bounded
+    orchestration descriptor and ready-Work records, returns a coordinator
+    only when an agent-owned graph still needs materialization, runs the bounded
     one-shot capacity probe when that descriptor requires it, launches fresh
     workers, reconciles each Work, and returns control to the existing
     coordinator.  It has no PLAN-REVIEW/CODE-specific scheduler branch and
@@ -2048,7 +2051,8 @@ remain readable through Git history and need no runtime support.
   judgment without duplicate productive operations;
 - run independent harness executions concurrently within configured limits;
 - run a descriptor-driven fan-out stage with a fake driver: exactly one
-  fifteen-session probe, no replacement probes, capacity reuse by the next
+  fifteen-session probe, no replacement probes, coordinator graph materialization
+  before the first probe where dispatch is agent-owned, capacity reuse by the next
   fan-out stage, graph-ready-only worker starts, dependency-unlocked second
   wave, coordinator continuation after all Work receipts, and no runner-authored
   semantic result;
