@@ -49,10 +49,13 @@ test("driver invocations preserve every declared harness profile field", () => {
   assert.deepEqual(driverProfileArgs(profile, ["session", "create", "--provider", "override"]), ["session", "create", "--provider", "override", "--model", "GLM-5.3", "--reasoning", "high", "--mode", "yolo"]);
 });
 
-test("execution daemon receives its explicit flow runtime contract", () => {
-  const args = driverRuntimeArgs(["daemon", "start", "--state-dir", "/tmp/daemon"], { cwd: "/tmp/project", env: { DD_FLOW_HOME: "/tmp/flow" } });
-  assert.deepEqual(args, ["daemon", "start", "--state-dir", "/tmp/daemon", "--dd-flow-bin", process.env.DD_FLOW_BIN ?? "dd-flow", "--dd-flow-home", "/tmp/flow", "--project-root", "/tmp/project"]);
-  assert.deepEqual(driverRuntimeArgs(["daemon", "stop"], { cwd: "/tmp/project", env: { DD_FLOW_HOME: "/tmp/flow" } }), ["daemon", "stop"]);
+test("execution daemon receives its explicit flow runtime contract", async () => {
+  const prior = process.env.DD_FLOW_BIN; process.env.DD_FLOW_BIN = "/bin/echo";
+  try {
+    const args = await driverRuntimeArgs(["daemon", "start", "--state-dir", "/tmp/daemon"], { cwd: "/tmp/project", env: { DD_FLOW_HOME: "/tmp/flow" } });
+    assert.deepEqual(args, ["daemon", "start", "--state-dir", "/tmp/daemon", "--dd-flow-bin", "/bin/echo", "--dd-flow-home", "/tmp/flow", "--project-root", "/tmp/project"]);
+    assert.deepEqual(await driverRuntimeArgs(["daemon", "stop"], { cwd: "/tmp/project", env: { DD_FLOW_HOME: "/tmp/flow" } }), ["daemon", "stop"]);
+  } finally { if (prior === undefined) delete process.env.DD_FLOW_BIN; else process.env.DD_FLOW_BIN = prior; }
 });
 
 test("qualification cannot pass while any execution failed", () => {
