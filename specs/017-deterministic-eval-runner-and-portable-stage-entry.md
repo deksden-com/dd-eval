@@ -220,15 +220,19 @@ opencode-server   -> dd-opencode
 antigravity-cli   -> dd-agy
 ```
 
-Every clean Codex Subject or Judge receives a distinct pre-created private
-`CODEX_HOME`. Only a Subject home receives the generated `dd-flow` lifecycle
-hook; Judges do not issue flow commands and therefore need no hook.
+Every clean Codex Subject or Judge receives a distinct managed `CODEX_HOME`
+through `dd-flow codex home init`. This is deliberately the same preparation
+path: it supplies the locally protected authentication reference required by
+Codex without copying credentials into eval storage. A Judge never issues a
+flow lifecycle command; any generated hook state is inert and ignored. Only a
+Subject's hook binding is an execution invariant and is checked by `stage
+start`.
 
 For a `codex-desktop` eval attempt, `dd-codex` creates the Subject Session
 with Codex's per-thread managed-hook trust override and plugins disabled. The
-isolated `CODEX_HOME` is created by `dd-flow` and contains only the generated
-`dd-flow` lifecycle hook; this removes an interactive trust prompt without
-granting a user or plugin hook access to an unattended evaluation.
+isolated `CODEX_HOME` is created by `dd-flow`; plugins are disabled for the
+unattended turn. This removes an interactive trust prompt without granting a
+user or plugin hook access to the evaluation.
 
 The Subject sees only the launcher packet, rendered stage context and exact
 canonical HITL response delivered after a successful match. It never sees the
