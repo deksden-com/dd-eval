@@ -40,6 +40,14 @@ test("event journal deduplicates productive operations across resume", async () 
   assert.equal(reduceEvents(await readEvents(file)).state, "completed");
 });
 
+test("normalized journal keeps an execution identity available for recovery", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-execution-id-")); const file = path.join(root, "events.jsonl");
+  await appendEvent(file, { source: "dd-eval://test", runId: "EVAL-001", executionId: "focus", traceId: "trace", type: "dev.dd.eval.subject.session_created", data: { session_id: "session-1" } });
+  const [event] = await readEvents(file);
+  assert.equal(event.executionid, "focus");
+  assert.equal(event.data.session_id, "session-1");
+});
+
 test("harness permits bound concurrent provider turns without blocking another harness", async () => {
   const permits = createHarnessPermits({ value: { concurrency: { global: 4, per_harness: { codex: 1, zcode: 1 } } } });
   let codexActive = 0; let codexPeak = 0; let zcodeStarted = false;
