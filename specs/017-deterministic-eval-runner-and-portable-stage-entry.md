@@ -220,6 +220,10 @@ opencode-server   -> dd-opencode
 antigravity-cli   -> dd-agy
 ```
 
+Every clean Codex Subject or Judge receives a distinct pre-created private
+`CODEX_HOME`. Only a Subject home receives the generated `dd-flow` lifecycle
+hook; Judges do not issue flow commands and therefore need no hook.
+
 For a `codex-desktop` eval attempt, `dd-codex` creates the Subject Session
 with Codex's per-thread managed-hook trust override and plugins disabled. The
 isolated `CODEX_HOME` is created by `dd-flow` and contains only the generated
