@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, entryLauncher, evalRun, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, stageSessionMode } from "../lib/runner.mjs";
+import { canonicalBuild, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, stageSessionMode } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -78,6 +78,13 @@ test("fan-out recovery is reserved for a still-running Work", () => {
   assert.equal(shouldRecover("running"), true);
   assert.equal(shouldRecover("failed"), false);
   assert.equal(shouldRecover("completed"), false);
+});
+
+test("settled fan-out fingerprint changes when a repair Work changes the graph", () => {
+  const before = fanoutSettledFingerprint({ stage: "code-review", status: { orchestration: { parent_work_id: "WRK-001", works: { created: 0, running: 0, completed: 5, failed: 0, cancelled: 0, ready: [] } } } });
+  const after = fanoutSettledFingerprint({ stage: "code-review", status: { orchestration: { parent_work_id: "WRK-001", works: { created: 0, running: 0, completed: 6, failed: 0, cancelled: 0, ready: [] } } } });
+  assert.notEqual(before, after);
+  assert.equal(before, fanoutSettledFingerprint({ stage: "code-review", status: { orchestration: { parent_work_id: "WRK-001", works: { created: 0, running: 0, completed: 5, failed: 0, cancelled: 0, ready: [] } } } }));
 });
 
 test("authoring case refuses a scored run before any provider Session is created", async () => {
