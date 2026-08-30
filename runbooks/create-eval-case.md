@@ -38,7 +38,8 @@ path, provider Session ID, golden answer, Judge rationale or hidden response.
 
    ```sh
    dd-eval runner canonical build --profile \
-     cases/<case-id>/run-profiles/<reference>.json
+     cases/<case-id>/run-profiles/<reference>.json \
+     --project-root /absolute/path/to/clean/reference-project
    ```
 
    The runner allocates a pending revision and journals every reference action.
@@ -55,7 +56,7 @@ path, provider Session ID, golden answer, Judge rationale or hidden response.
    demonstrated package gaps.
 6. Obtain clean semantic review plus explicit human acceptance. The final
    acceptance writes `entry-pack.json`, updates `case.json.entry_pack`, and
-   leaves the definition ready for Git review/commit/push.
+   leaves the definition runnable pending Git review/commit/push.
 
 A changed task fact, predecessor result, source map, project/runtime snapshot,
 flow pack or engine identity requires a new revision and recapture of dependent
@@ -63,7 +64,7 @@ entries. A changed scoring methodology alone does not.
 
 ## Required acceptance checks
 
-Before marking `case.json.status` as `ready`, prove that each accepted entry:
+Before marking `case.json.status` as `runnable`, prove that each accepted entry:
 
 - restores a contained project/runtime snapshot with matching hashes;
 - contains the right RUN state and no later-stage artifact;

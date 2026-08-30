@@ -15,7 +15,7 @@ Outcome is the only primary quality verdict. Flow is a separate discipline
 vector; efficiency is factual comparison data and never compensates for a
 weaker result.
 
-The active case is `dd-eval/case@5`. It has one accepted
+The active case is `dd-eval/case@6`. It has one accepted
 `assessment.json`, replacing per-stage rubric, expectation and oracle files.
 The assessment records each scope's weighted outcome/flow criteria, required
 outcomes, accepted alternatives and known risks. It is a semantic baseline, not
@@ -59,7 +59,7 @@ never modifies the immutable report or candidate evidence.
 
 ## Acceptance
 
-1. The active case validates as `case@5` with one assessment file.
+1. The active case validates as `case@6` with one assessment file.
 2. A Judge result must contain complete 0–4 outcome and flow vectors.
 3. `finalize` produces distinct outcome, flow and efficiency fields.
 4. `judge prepare --rejudge` adds an immutable second result for one candidate.

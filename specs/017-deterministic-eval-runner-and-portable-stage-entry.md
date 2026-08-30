@@ -31,6 +31,53 @@ The runner makes orchestration deterministic. It does not make model output or
 semantic judgment deterministic. Subject and Judge variability is measured
 evidence, not an implementation defect.
 
+### Operational walk-through
+
+The intended everyday path is intentionally short. This walkthrough is also
+the design check for command transitions; no step relies on a remembered
+provider Session, an operator-created RUN, or a manually copied artifact.
+
+1. An author commits a case in `authoring` state. Its mutable
+   `entry-pack-source/` declares task input, per-stage context roles, allowed
+   HITL responses and assessment material. `entry_pack` is `null`: it cannot
+   be scored yet.
+2. `canonical build --profile … --project-root …` captures only the initial
+   bootstrap project boundary and records a durable build journal. It creates
+   no hidden RUN and no provider Session before the first reference turn.
+3. `canonical resume` restores that boundary (or observes the already restored
+   reference runtime), opens/continues the one reference Session, and sends
+   exactly one launcher. The Subject begins with standalone `stage start`.
+   If it pauses at an allowed interaction point, the same semantic interaction
+   matching and `stage resume` path used by a scored run is used here too.
+4. After one successful stage finish the command stops. A human accepts the
+   boundary; `canonical boundary accept` verifies it and captures exactly the
+   next-stage RUN snapshot. Only then may a new `canonical resume` turn begin.
+5. After the terminal boundary, `canonical qualify` runs each focused stage
+   from its own fresh restore plus one clean E2E traversal. These executions
+   diagnose package quality; they do not overwrite reference artifacts.
+6. Human entry reviews accept the qualification evidence. `canonical accept`
+   freezes one entry pack and changes the case to `runnable`; the author
+   reviews, commits and pushes that definition change.
+7. `eval run --profile …` now creates isolated execution directories. A
+   focused cell uses a fresh empty Subject Session and exactly one entry
+   boundary. A segment or E2E cell restores only its first boundary and
+   advances through the Subject's own RUN. Resource limits control how many
+   independent cells are launched concurrently.
+8. The runner persists a journal before and after every side effect. On a
+   restart it reconciles the harness and `dd-flow` before deciding whether a
+   pending operation needs waiting, finalization or no action; it never sends
+   a launcher or lifecycle command twice.
+9. A completed candidate is frozen before optional final judgment. The Judge
+   receives only the candidate, assessment and permitted evaluator evidence;
+   results and the deterministic report remain attached to that immutable
+   candidate.
+
+The mandatory implementation assertions are therefore: bootstrap restoration
+creates its target directory itself; reference and scored HITL use the same
+matcher; a reference-build profile selects no scored cells; a run profile's
+declared concurrency is enforced, not merely documented; and every advertised
+resume/cancel command has a real reducer-backed implementation.
+
 ## Design decision
 
 ### Clean Session is the focused-eval baseline
@@ -251,6 +298,29 @@ $DD_EVAL_HOME/canonical/<case-id>/REV-<NNN>/
 The Git stage-entry record stores relative canonical locators, sizes and hashes.
 It never stores mutable host paths as restore truth.
 
+### Snapshot boundary operation
+
+The runner does not copy a loose `project/` directory and a loose runtime
+directory as if that were a restore protocol.  A downstream entry is captured
+and restored through the same `dd-flow` snapshot contract used by the flow:
+
+```text
+dd-flow run snapshot create  <RUN> --stage-entry <next-stage> ...
+dd-flow run snapshot restore --snapshot <captured-root> ...
+```
+
+The captured root contains its `snapshot.json`, project and runtime manifests,
+workspace route and the scrub receipt.  The stage-entry descriptor references
+that one root and its manifest hash.  The runner verifies the manifest before
+restore, delegates rebasing and observability scrubbing to `dd-flow`, then
+checks the restored RUN against the descriptor.  It must not implement a
+second, partial copy-and-rebase algorithm.
+
+The initial E2E/SPECIFY entry is the sole exception because no RUN yet exists.
+It is an explicitly labelled bootstrap snapshot with a project manifest and an
+empty, freshly initialized runtime.  It cannot be used for a later focused
+stage, and a later-stage snapshot cannot be used as an E2E bootstrap.
+
 Canonical snapshots are content-addressed and deduplicated. Storage collection
 must treat the active `case.json.entry_pack`, every retained eval manifest and
 every unfinished canonical build as roots. An object reachable from any root
@@ -347,10 +417,10 @@ The implementation adds strict `dd-eval/stage-entry@1`. Its semantic shape is:
     "flow_pack": {"id": "...", "sha256": "..."}
   },
   "snapshot": {
-    "project": {"locator": "...", "sha256": "..."},
-    "runtime": {"locator": "...", "sha256": "..."},
-    "run_id": "RUN-...",
-    "target_stage": "plan"
+    "kind": "run",
+    "locator": "canonical/<case-id>/REV-078/stages/plan/snapshot",
+    "manifest_sha256": "...",
+    "run_id": "RUN-..."
   },
   "context": {
     "objective": "Prepare an executable implementation plan.",
@@ -383,6 +453,13 @@ right representation for a bounded evidence set whose members are created by a
 preceding stage; the package need not predict and repeat every filename. The
 entry still states its role, root, required flag and reason, and snapshot
 integrity covers its contents.
+
+`snapshot` is deliberately one root, rather than separate project and runtime
+locators. For `kind: "run"` it is the exact `dd-flow run snapshot create`
+output and its `snapshot.json`; for `kind: "bootstrap"` it is the explicit
+SPECIFY bootstrap output and its `bootstrap.json`, with `run_id: null`. This
+keeps copying, rebasing and observability scrubbing in `dd-flow`, not in a
+second runner implementation.
 
 ### Context sources
 
@@ -466,6 +543,13 @@ may try a different command, but it cannot turn a different context file into a
 valid eval input: a different materialized-file hash, semantic-slice hash or
 rendered-context hash invalidates that execution as a flow-protocol failure.
 `dd-flow` therefore needs no eval-specific signing key or hidden runner state.
+
+After the selected terminal stage is done, the runner captures one distinct
+`dd-flow run snapshot create <RUN> --candidate` checkpoint. It is immutable
+evidence for the run and Final Judge, not an entry fixture: it has no successor
+stage and `dd-flow` rejects restoring it as one. The run-level candidate index
+contains only execution IDs, checkpoint locators and manifest hashes. Its own
+canonical hash is the Final Judge input identity.
 
 For bootstrap and every restored focused/segment execution, `stage start`
 validates the expected hash and installs the current slice into that Stage
@@ -909,7 +993,7 @@ plan; no parallel `execution-plan.json` is introduced.
 All high-level automation lives under one namespace:
 
 ```text
-dd-eval runner canonical build --profile <run-profile.json>
+dd-eval runner canonical build --profile <run-profile.json> --project-root <clean-reference-project>
 dd-eval runner canonical status --build <path>
 dd-eval runner canonical boundary accept --build <path> --stage <stage> --review <file>
 dd-eval runner canonical qualify --build <path> --profile <run-profile.json>
@@ -1040,7 +1124,9 @@ source of legal Stage transitions. The runner follows only returned
 For each execution the runner:
 
 1. resolves and validates the run profile;
-2. performs harness doctor/profile/version preflight;
+2. performs harness doctor/profile/version preflight and creates the isolated
+   harness home (including the trusted `dd-flow` hook configuration) before a
+   provider Session exists;
 3. restores the accepted fixture into a new attempt directory;
 4. verifies project, runtime and semantic package hashes;
 5. materializes the read-only path-bearing active-stage slice and exact
@@ -1056,6 +1142,11 @@ For each execution the runner:
 13. captures the terminal candidate;
 14. optionally runs a fresh final Judge;
 15. finalizes usage and deterministic reports.
+
+Each operation produces a compact progress event before and after it runs.  A
+long snapshot restore, provider wait or usage collection therefore reports
+observable progress without inventing a timeout from silence.  Progress is not
+evidence of success: only a terminal receipt changes lifecycle state.
 
 Provider silence, reasoning time or absence of a current tool call is not a
 failure. The runner waits for provider status, explicit interaction, explicit
@@ -1085,12 +1176,35 @@ and allowed pause.
 The runner never edits Subject output, injects coaching, replaces an upstream
 candidate or retries a semantic stage merely to improve its score.
 
+### Boundary completion and continuation
+
+After each provider terminal turn, the runner always performs one read-only
+reconciliation before choosing the next action.  It records the provider
+terminal receipt, `dd-flow run status`, the expected Stage status and the
+context-hash receipt as one boundary observation.  The only legal outcomes
+are:
+
+| Observation | Runner action |
+| --- | --- |
+| expected Stage is `done` with matching context receipt | capture the boundary; stop a focused run, or create the next E2E turn |
+| expected Stage is registered `paused` at an allowed point | run the Interaction Judge; resume the same Stage and same provider Session only after a match |
+| provider turn is still live | wait and emit progress only |
+| anything else | preserve evidence and mark the execution invalid or failed; do not guess a continuation |
+
+For an E2E continuation, capture finishes **before** the next Subject prompt.
+The runner then materializes exactly the successor slice and sends the
+successor launcher in a new turn of the configured continuing Session.  It
+does not expect the previous Subject turn to start a successor after a
+successful `stage finish`; this keeps the capture barrier real.
+
 ## HITL contract
 
 ### Do not enumerate expected question text
 
 Question wording is semantic model output. Deterministic code must not compare
-strings, keywords or embeddings to a catalog of expected questions.
+strings, keywords or embeddings to a catalog of expected questions. Canonical
+answers stay inline in their small JSON fixture: this makes the exact delivered
+bytes, response identifier and interaction-Judge packet one immutable record.
 
 The hidden case fixture stores canonical responses, not question templates:
 
@@ -1105,8 +1219,7 @@ The hidden case fixture stores canonical responses, not question templates:
       "id": "RESP-001",
       "topic": "archived_projects",
       "applicability": "Decision about applying task priority to archived projects.",
-      "answer_file": "responses/RESP-001.md",
-      "sha256": "..."
+      "answer": "The exact canonical answer bytes delivered to the Subject."
     }
   ]
 }
@@ -1182,8 +1295,9 @@ The runner uses a bounded asynchronous pool with:
 
 - one global semaphore held by each root eval execution;
 - one per-harness semaphore acquired only for an active provider turn;
-- every Subject, Interaction Judge and Final Judge turn using the semaphore of
-  the harness it actually invokes;
+- every provider `session create` and `session prompt` for a Subject,
+  Interaction Judge or Final Judge using the semaphore of the harness it
+  actually invokes;
 - no operation holding permits for two harnesses at once;
 - no hardcoded PLAN/REVIEW stage names in the scheduler.
 
@@ -1206,7 +1320,7 @@ project, runtime and provider resources are isolated.
 Each eval run is materialized below one runner-owned directory:
 
 ```text
-$DD_EVAL_HOME/attempts/active/<eval-id>/
+$DD_EVAL_HOME/runs/<eval-id>/
   manifest.json
   state.json
   events.jsonl

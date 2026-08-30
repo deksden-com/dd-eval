@@ -4,7 +4,10 @@
   "id": "sdlc-eval-2026-summer-task-priority",
   "status": "authoring",
   "assessment": "assessment.json",
-  "entry_pack": "stage-entries/REV-001/entry-pack.json",
+  "input": [
+    {"role": "initial_user_request", "source": "entry-pack-source/task-priority.md", "sha256": "af92baafdebc3ef4663e1049216a338f20b0948ae8310be7a9bf4f47d7fd694e"}
+  ],
+  "entry_pack": null,
   "profiles": {
     "subject": [
       "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-87",

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/case@6",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "suite_id", "id", "status", "assessment", "input", "entry_pack", "profiles", "flow"],
+  "properties": {
+    "schema_id": {"const": "dd-eval/case@6"},
+    "suite_id": {"type": "string", "minLength": 1},
+    "id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["authoring", "runnable"]},
+    "assessment": {"type": "string", "minLength": 1},
+    "input": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/input"}},
+    "entry_pack": {"type": ["string", "null"]},
+    "profiles": {"type": "object"},
+    "flow": {"type": "object"}
+  },
+  "$defs": {
+    "input": {
+      "type": "object", "additionalProperties": false,
+      "required": ["role", "source", "sha256"],
+      "properties": {
+        "role": {"type": "string", "minLength": 1},
+        "source": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "authoring"}}}, "then": {"properties": {"entry_pack": {"const": null}}}},
+    {"if": {"properties": {"status": {"const": "runnable"}}}, "then": {"properties": {"entry_pack": {"type": "string", "minLength": 1}}}}
+  ]
+}

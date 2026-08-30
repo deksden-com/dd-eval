@@ -1,9 +1,0 @@
-{
-  "schema_id": "dd-eval/entry-pack@1",
-  "case_id": "sdlc-eval-2026-summer-task-priority",
-  "revision": "REV-001",
-  "title": "Task Priority SDLC Entry Pack",
-  "status": "candidate",
-  "stage_context": "stage-context.json",
-  "entries": {"e2e": "e2e.json", "specify": "specify.json", "protocolize": "protocolize.json", "plan": "plan.json", "plan-review": "plan-review.json", "code": "code.json", "code-review": "code-review.json"}
-}

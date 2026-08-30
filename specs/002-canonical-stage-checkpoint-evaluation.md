@@ -8,6 +8,11 @@ supersedes: 'portable stage-fixture execution from specification 001'
 
 # 002 — Canonical stage-checkpoint evaluation
 
+> Historical rationale only. Routine execution is superseded by
+> [specification 017](017-deterministic-eval-runner-and-portable-stage-entry.md):
+> it uses portable snapshots and a new empty Subject Session, not a starter
+> Session or native fork.
+
 ## Goal
 
 Evaluate an SDLC stage in the same project, RUN and conversation context in

@@ -6,9 +6,19 @@
   "required": ["schema_id", "stages"],
   "properties": {
     "schema_id": {"const": "dd-eval/stage-context-blueprint@1"},
-    "stages": {"type": "object", "additionalProperties": {"$ref": "#/$defs/slice"}}
+    "stages": {
+      "type": "object", "additionalProperties": false,
+      "required": ["specify", "protocolize", "plan", "plan-review", "code", "code-review"],
+      "properties": {
+        "specify": {"$ref": "#/$defs/slice"}, "protocolize": {"$ref": "#/$defs/slice"},
+        "plan": {"$ref": "#/$defs/slice"}, "plan-review": {"$ref": "#/$defs/slice"},
+        "code": {"$ref": "#/$defs/slice"}, "code-review": {"$ref": "#/$defs/slice"}
+      }
+    }
   },
   "$defs": {
-    "slice": {"type": "object", "additionalProperties": false, "required": ["objective", "sources"], "properties": {"objective": {"type": "string", "minLength": 1}, "sources": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["role", "root", "path", "reason"], "properties": {"role": {"type": "string", "minLength": 1}, "root": {"enum": ["project", "workspace", "run"]}, "path": {"type": "string", "minLength": 1}, "reason": {"type": "string", "minLength": 1}, "required": {"type": "boolean"}}}}, "accepted_decisions": {"type": "array"}, "dynamic_roles": {"type": "array"}}}
+    "input": {"type": "object", "additionalProperties": false, "required": ["role", "path", "source", "sha256"], "properties": {"role": {"type": "string", "minLength": 1}, "path": {"type": "string", "minLength": 1}, "source": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}},
+    "source": {"type": "object", "additionalProperties": false, "required": ["role", "root", "path", "reason"], "properties": {"role": {"type": "string", "minLength": 1}, "root": {"enum": ["project", "workspace", "run"]}, "path": {"type": "string", "minLength": 1}, "reason": {"type": "string", "minLength": 1}, "required": {"type": "boolean"}}},
+    "slice": {"type": "object", "additionalProperties": false, "required": ["schema_id", "stage", "objective", "task_input", "sources", "accepted_decisions", "dynamic_roles"], "properties": {"schema_id": {"const": "dd-eval/stage-context@1"}, "stage": {"enum": ["specify", "protocolize", "plan", "plan-review", "code", "code-review"]}, "objective": {"type": "string", "minLength": 1}, "task_input": {"type": "array", "items": {"$ref": "#/$defs/input"}}, "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}, "accepted_decisions": {"type": "array"}, "dynamic_roles": {"type": "array"}}}
   }
 }

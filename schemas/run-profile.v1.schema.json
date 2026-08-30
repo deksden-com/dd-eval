@@ -3,13 +3,14 @@
   "$id": "dd-eval/run-profile@1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_id", "id", "case_id", "subject", "modes", "judge", "concurrency", "failure_policy"],
+  "required": ["schema_id", "id", "case_id", "subject", "selection", "judge", "concurrency", "failure_policy"],
   "properties": {
     "schema_id": {"const": "dd-eval/run-profile@1"},
     "id": {"type": "string", "minLength": 1}, "case_id": {"type": "string", "minLength": 1},
     "subject": {"type": "object", "additionalProperties": false, "required": ["profile_id"], "properties": {"profile_id": {"type": "string", "minLength": 1}}},
-    "modes": {"type": "object", "additionalProperties": false, "required": ["focused", "e2e"], "properties": {"focused": {"type": "array", "items": {"type": "string"}}, "segments": {"type": "array"}, "e2e": {"type": "boolean"}}},
+    "selection": {"type": "object", "additionalProperties": false, "required": ["focused_stages", "segment", "e2e", "repetitions"], "properties": {"focused_stages": {"type": "array", "items": {"type": "string"}}, "segment": {"type": ["object", "null"]}, "e2e": {"type": "boolean"}, "repetitions": {"type": "integer", "minimum": 1}}},
     "judge": {"type": "object", "additionalProperties": false, "required": ["enabled"], "properties": {"enabled": {"type": "boolean"}, "profile_id": {"type": "string"}}},
+    "interaction_judge": {"type": "object", "additionalProperties": false, "required": ["profile_id"], "properties": {"profile_id": {"type": "string", "minLength": 1}}},
     "concurrency": {"type": "object", "additionalProperties": false, "required": ["global"], "properties": {"global": {"type": "integer", "minimum": 1}, "per_harness": {"type": "object"}}},
     "failure_policy": {"type": "object"}
   }

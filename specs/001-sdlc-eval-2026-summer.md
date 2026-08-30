@@ -7,6 +7,8 @@ suite_id: 'sdlc-eval-2026-summer'
 
 # 001 — SDLC Eval 2026 Summer
 
+> Routine execution and its former starter-session topology are superseded by
+> [specification 017](017-deterministic-eval-runner-and-portable-stage-entry.md).
 > The scoring, reference/governance and report-rendering sections below are
 > superseded by [specification 005](005-outcome-assessment-and-sites-publication.md).
 > Checkpoint topology and execution intent remain active.

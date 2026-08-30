@@ -8,6 +8,10 @@ extends: 'specifications 001 and 002'
 
 # 003 — Canonical eval launch readiness
 
+> Historical readiness plan only. The active case and runner contract are
+> [specification 017](017-deterministic-eval-runner-and-portable-stage-entry.md),
+> which replaces the `case@3` and starter-session assumptions below.
+
 ## Goal
 
 Make the existing `case@3` checkpoint design executable without adding another

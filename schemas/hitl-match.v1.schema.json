@@ -3,6 +3,12 @@
   "$id": "dd-eval/hitl-match@1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_id", "status"],
-  "properties": {"schema_id": {"const": "dd-eval/hitl-match@1"}, "status": {"enum": ["matched", "unmatched"]}, "response_id": {"type": ["string", "null"]}, "rationale": {"type": "string"}}
+  "required": ["schema_id", "status", "response_ids", "uncovered_questions", "rationale"],
+  "properties": {
+    "schema_id": {"const": "dd-eval/hitl-match@1"},
+    "status": {"enum": ["matched", "unmatched"]},
+    "response_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "uncovered_questions": {"type": "array", "items": {"type": "string"}},
+    "rationale": {"type": "string"}
+  }
 }

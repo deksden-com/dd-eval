@@ -3,11 +3,14 @@
   "$id": "dd-eval/stage-entry@1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_id", "stage", "snapshot", "context_slice_sha256", "semantic_package_sha256"],
+  "required": ["schema_id", "case_id", "revision", "checkpoint_id", "stage", "snapshot", "context_slice_sha256", "semantic_package_sha256"],
   "properties": {
     "schema_id": {"const": "dd-eval/stage-entry@1"},
+    "case_id": {"type": "string", "minLength": 1},
+    "revision": {"type": "string", "pattern": "^REV-[0-9]{3,}$"},
+    "checkpoint_id": {"type": "string", "minLength": 1},
     "stage": {"enum": ["specify", "protocolize", "plan", "plan-review", "code", "code-review"]},
-    "snapshot": {"type": "object", "additionalProperties": false, "required": ["project", "runtime", "run_id"], "properties": {"project": {"type": "object"}, "runtime": {"type": "object"}, "run_id": {"type": ["string", "null"]}}},
+    "snapshot": {"type": "object", "additionalProperties": false, "required": ["kind", "locator", "manifest_sha256", "run_id"], "properties": {"kind": {"enum": ["bootstrap", "run"]}, "locator": {"type": "string", "minLength": 1}, "manifest_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "run_id": {"type": ["string", "null"]}}},
     "context_slice_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "semantic_package_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
   }

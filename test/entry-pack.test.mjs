@@ -5,10 +5,11 @@ import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateStageBlueprint } from "../lib/entry-pack.mjs";
+import { createHarnessPermits } from "../lib/runner.mjs";
 
 const slice = {
   schema_id: "dd-eval/stage-context@1", stage: "specify", objective: "Specify the request.",
-  task_input: [{ role: "task", path: "input.md", sha256: "a" }], sources: [{ role: "index", root: "project", path: "README.md", required: true, reason: "Orientation." }], accepted_decisions: [], dynamic_roles: []
+  task_input: [{ role: "task", path: "input.md", source: "task.md", sha256: "a".repeat(64) }], sources: [{ role: "index", root: "project", path: "README.md", required: true, reason: "Orientation." }], accepted_decisions: [], dynamic_roles: []
 };
 
 test("stage context has path-independent semantic identity and path-bearing materialization", async () => {
@@ -23,9 +24,9 @@ test("stage context has path-independent semantic identity and path-bearing mate
 });
 
 test("entry validation distinguishes bootstrap from a restored stage", () => {
-  const base = { schema_id: "dd-eval/stage-entry@1", case_id: "case", revision: "REV-001", checkpoint_id: "STG-001", stage: "specify", snapshot: { run_id: null }, semantic_package_sha256: "semantic", context_slice_sha256: "slice" };
+  const base = { schema_id: "dd-eval/stage-entry@1", case_id: "case", revision: "REV-001", checkpoint_id: "STG-001", stage: "specify", snapshot: { kind: "bootstrap", locator: "canonical/case/bootstrap", manifest_sha256: "a".repeat(64), run_id: null }, semantic_package_sha256: "b".repeat(64), context_slice_sha256: "c".repeat(64) };
   assert.equal(validateEntry(base).stage, "specify");
-  assert.throws(() => validateEntry({ ...base, stage: "plan", snapshot: { run_id: null } }), /requires a RUN/);
+  assert.throws(() => validateEntry({ ...base, stage: "plan" }), /requires a RUN snapshot/);
 });
 
 test("event journal deduplicates productive operations across resume", async () => {
@@ -37,4 +38,15 @@ test("event journal deduplicates productive operations across resume", async () 
   assert.equal(canonicalJson({ b: 1, a: 2 }), '{"a":2,"b":1}\n'); assert.equal(hashJson({ a: 2, b: 1 }), hashJson({ b: 1, a: 2 }));
   await appendEvent(file, { source: "dd-eval://test", runId: "EVAL-001", executionId: "focus", traceId: "trace", type: "dev.dd.eval.state", data: { state: "completed" } });
   assert.equal(reduceEvents(await readEvents(file)).state, "completed");
+});
+
+test("harness permits bound concurrent provider turns without blocking another harness", async () => {
+  const permits = createHarnessPermits({ value: { concurrency: { global: 4, per_harness: { codex: 1, zcode: 1 } } } });
+  let codexActive = 0; let codexPeak = 0; let zcodeStarted = false;
+  const codex = { harness: "codex" }; const zcode = { harness: "zcode" };
+  const first = permits.use(codex, async () => { codexActive += 1; codexPeak = Math.max(codexPeak, codexActive); await new Promise((resolve) => setTimeout(resolve, 15)); codexActive -= 1; });
+  const second = permits.use(codex, async () => { codexActive += 1; codexPeak = Math.max(codexPeak, codexActive); codexActive -= 1; });
+  const other = permits.use(zcode, async () => { zcodeStarted = true; });
+  await Promise.all([first, second, other]);
+  assert.equal(codexPeak, 1); assert.equal(zcodeStarted, true);
 });

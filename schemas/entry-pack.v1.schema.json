@@ -3,12 +3,15 @@
   "$id": "dd-eval/entry-pack@1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_id", "case_id", "revision", "stage_context", "entries"],
+  "required": ["schema_id", "case_id", "revision", "title", "input_checkpoint", "flow", "authoring", "stage_context", "entries", "hashes", "status", "acceptance_sha256"],
   "properties": {
-    "schema_id": {"const": "dd-eval/entry-pack@1"},
-    "case_id": {"type": "string", "minLength": 1},
-    "revision": {"type": "string", "pattern": "^REV-[0-9]{3,}$"},
+    "schema_id": {"const": "dd-eval/entry-pack@1"}, "case_id": {"type": "string", "minLength": 1},
+    "revision": {"type": "string", "pattern": "^REV-[0-9]{3,}$"}, "title": {"type": "string", "minLength": 1},
+    "input_checkpoint": {"type": "object"}, "flow": {"type": "object"}, "authoring": {"type": "object"},
     "stage_context": {"type": "string", "minLength": 1},
-    "entries": {"type": "object", "required": ["e2e", "specify", "protocolize", "plan", "plan-review", "code", "code-review"]}
-  }
+    "entries": {"type": "object", "additionalProperties": false, "required": ["e2e", "specify", "protocolize", "plan", "plan-review", "code", "code-review"], "properties": {"e2e": {"type": "string", "minLength": 1}, "specify": {"type": "string", "minLength": 1}, "protocolize": {"type": "string", "minLength": 1}, "plan": {"type": "string", "minLength": 1}, "plan-review": {"type": "string", "minLength": 1}, "code": {"type": "string", "minLength": 1}, "code-review": {"type": "string", "minLength": 1}}},
+    "hashes": {"type": "object"}, "status": {"enum": ["candidate", "accepted"]}, "accepted_at": {"type": "string"},
+    "acceptance_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "allOf": [{"if": {"properties": {"status": {"const": "accepted"}}}, "then": {"required": ["accepted_at"]}}]
 }

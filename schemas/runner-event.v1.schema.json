@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/runner-event@1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["specversion", "id", "source", "type", "time", "datacontenttype", "runid", "traceid", "data"],
+  "properties": {
+    "specversion": {"const": "1.0"}, "id": {"type": "string", "minLength": 1},
+    "source": {"type": "string", "minLength": 1}, "type": {"type": "string", "minLength": 1},
+    "time": {"type": "string", "format": "date-time"}, "datacontenttype": {"const": "application/json"},
+    "runid": {"type": "string", "minLength": 1}, "executionid": {"type": "string"}, "traceid": {"type": "string", "minLength": 1},
+    "spanid": {"type": "string", "minLength": 1}, "parentspanid": {"type": "string", "minLength": 1},
+    "data": {"type": "object", "required": ["sequence"], "properties": {"sequence": {"type": "integer", "minimum": 1}}}
+  }
+}

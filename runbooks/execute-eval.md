@@ -19,7 +19,7 @@ under an absolute `DD_EVAL_HOME`.
 
    This verifies the declared entry descriptors and context blueprint. It is
    not permission to score an `authoring` case; a scored run additionally
-   requires `case.json.status = "ready"` and an accepted entry pack.
+   requires `case.json.status = "runnable"` and an accepted entry pack.
 
 ## Run
 
@@ -64,16 +64,30 @@ clean Interaction Judge to select an existing canonical response, and resumes
 the same Stage and Session only after a match. An unplanned question or
 unmatched response fails that execution with its evidence intact.
 
-On a host/controller restart, use the runner resume command once it is
-available for the selected build. Resume first reduces `events.jsonl` and
-observes both harness and `dd-flow`; it must never repeat a launcher, model
-turn, stage finish, resume, or checkpoint simply because stdout was lost.
+On a host/controller restart, use:
+
+```sh
+dd-eval runner resume --eval "$DD_EVAL_HOME/runs/<eval-id>"
+```
+
+Resume first reduces `events.jsonl` and observes both harness and `dd-flow`.
+It may finalize a completed stage, deliver one already-authorized HITL answer,
+or send the next E2E-stage launcher after its predecessor boundary is present;
+it never repeats a launcher, model turn, stage finish, resume, or checkpoint
+whose operation receipt is already terminal. To stop an isolated execution
+without touching another cell:
+
+```sh
+dd-eval runner cancel --eval "$DD_EVAL_HOME/runs/<eval-id>" --execution <id>
+```
 
 ## Result interpretation
 
 The immutable execution directory contains the resolved manifest, launcher,
-harness journal, `dd-flow` receipts, candidate checkpoint and optional Judge
-output. Context observations (extra reads, searches and help calls) are input
+harness journal, `dd-flow` receipts, a terminal candidate checkpoint and
+optional Judge output. A candidate checkpoint is evidence only; it is never a
+substitute for a stage-entry fixture and cannot be restored to continue work.
+Context observations (extra reads, searches and help calls) are input
 for later analysis, not automatic defects. A context miss must show that the
 package omitted a fact/path/command it was responsible for providing.
 

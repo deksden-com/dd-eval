@@ -97,5 +97,6 @@ explicit selection. Do not build a scheduler, daemon, or SQLite registry for
 this milestone.
 
 Only home resolution, layout creation, eval ID allocation and path containment
-are launch blockers. The `storage` and `gc` commands may be implemented after
-the first accepted canonical run.
+are launch blockers. `gc apply` accepts only a plan made for the same
+`DD_EVAL_HOME`, deletes only listed terminal directories below `runs/`, and
+never touches canonical revisions.
