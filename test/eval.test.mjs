@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, entryLauncher, evalRun, fanoutWorkerPrompt, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, stageSessionMode } from "../lib/runner.mjs";
+import { canonicalBuild, entryLauncher, evalRun, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, stageSessionMode } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -52,6 +52,13 @@ test("fan-out workers cannot create nested HITL and zero capacity is infrastruct
   const prompt = fanoutWorkerPrompt({ workId: "WRK-001", startCommand: "dd-flow work start WRK-001 --json" });
   assert.match(prompt, /cannot ask the user or pause the parent Stage/);
   assert.equal(isInfrastructureFailure("no_subagent_capacity"), true);
+});
+
+test("fan-out worker recovery resumes the same Work after an unaccepted finish", () => {
+  const prompt = fanoutWorkerRecoveryPrompt({ workId: "WRK-001" });
+  assert.match(prompt, /still running/);
+  assert.match(prompt, /failed check receipt/);
+  assert.match(prompt, /Do not create another Work/);
 });
 
 test("authoring case refuses a scored run before any provider Session is created", async () => {
