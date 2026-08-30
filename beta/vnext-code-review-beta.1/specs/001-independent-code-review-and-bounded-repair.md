@@ -382,9 +382,9 @@ The CLI composes a repair packet from:
 3. accepted requirements, plan items and invariants;
 4. current changed paths and final review snapshot;
 5. a concise orchestrator repair objective;
-6. the union of relevant write scopes and checks.
+6. the union of relevant planned coordination areas and checks.
 
-Several findings with one root cause and compatible write scope should share
+Several findings with one root cause and compatible planned coordination area should share
 one repair Work. Independent non-overlapping repairs may run concurrently.
 Every repair Work keeps exact finding links in its CLI-owned payload.
 

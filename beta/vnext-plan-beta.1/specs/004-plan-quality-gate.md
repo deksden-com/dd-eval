@@ -112,7 +112,8 @@ quality.
 
 ### 5. Plan-item executability
 
-- Does every item state approach, ordered steps, required reads, write boundary,
+- Does every item state approach, ordered steps, required reads, the hard
+  workspace boundary, soft planned coordination areas,
   invariants, controls, pitfalls, stop conditions and completion?
 - Are hard dependencies limited to consumed predecessor outputs?
 - Do items form minimal useful implementation increments rather than arbitrary
@@ -125,7 +126,8 @@ quality.
 - Does it include every applicable feature, scenario, spec, ADR, project
   standard and local configuration needed for this task, but not a broad
   untargeted Memory Bank traversal?
-- Are exact accepted R/AC statements, invariants, non-goals, write scope,
+- Are exact accepted R/AC statements, invariants, non-goals, planned
+  coordination areas,
   predecessor results, checks, evidence and proof limits preserved in the
   generated CODE packet?
 - Can a clean worker distinguish accepted intent from implementation advice and

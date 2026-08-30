@@ -18,7 +18,7 @@ The agent owns only semantic evidence and the compact CODE conclusion.
 
 CODE-REVIEW classification is immutable after the first Finish. If accepted
 fixes exist, the CLI creates one repair Work from the union of original CODE
-write scopes and returns its exact start command plus the same Finish command.
+planned coordination areas and returns its exact start command plus the same Finish command.
 The second Finish accepts only the same decision, completed repair and passing
 full aggregate CODE gate. It does not launch another reviewer wave.
 

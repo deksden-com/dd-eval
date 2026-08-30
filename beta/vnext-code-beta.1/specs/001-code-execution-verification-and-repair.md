@@ -80,7 +80,7 @@ Every plan item must make the following self-contained:
 - concrete existing owner source, representative tests and local configuration;
 - applicable feature, scenario, spec, ADR and operational references;
 - applicable project coding/documentation standards;
-- exact write scope and bounded discovery boundary;
+- mandatory starting reads, discovery hints and optional planned coordination areas;
 - predecessor outputs that the Work consumes;
 - focused checks, expected evidence and proof limits;
 - stop conditions and unresolved current blockers.
@@ -92,8 +92,10 @@ The quality test is:
 > missing requirements.
 
 PLAN-REVIEW evaluates this property for every item. The CLI validates only the
-mechanical subset: referenced paths, accepted obligation IDs, graph order,
-write conflicts, required fields and input availability.
+mechanical subset: referenced paths, accepted obligation IDs, dependency order,
+required fields and input availability. It uses planned coordination areas to
+avoid simultaneous likely collisions; it never treats a file prediction as a
+write permission boundary.
 
 ## 3. Worker micro-priming
 
@@ -156,7 +158,7 @@ A CODE payload contains:
   "document_updates": [],
   "required_read": ["project-relative/path"],
   "discovery_boundary": ["project-relative/path or a narrow search rule"],
-  "write_scope": ["project-relative/path"],
+  "planned_write_areas": ["project-relative/component/"],
   "checks": ["pnpm ..."],
   "expected_evidence": ["..."],
   "proof_limits": ["..."],
@@ -175,7 +177,7 @@ The target PLAN item keeps the existing semantic split with one correction:
 
 - `semantic_spine` owns outcome, responsibility, invariants and non-goals;
 - `execution_context` owns `required_read`, `discovery_boundary`,
-  `write_scope` and `stop_conditions`;
+  `planned_write_areas` and `stop_conditions`;
 - `verification` owns `checks`, `expected_evidence` and `proof_limits`.
 
 This removes the current duplication between `execution_context.checks` and
@@ -190,15 +192,35 @@ the planner does not author check IDs or `required` booleans.
 1. Work/RUN identity and immutable workspace root;
 2. bounded project orientation;
 3. goal, task, requirements, invariants and non-goals;
-4. exact required reads and write scope;
+4. required starting reads, the hard workspace boundary and soft coordination
+   hints;
 5. completed dependency results;
 6. declared checks, evidence and proof limits;
 7. stop conditions;
 8. exact finish/fail commands.
 
 The worker does not search global CLI help, another RUN, planning transcripts
-or eval materials. Missing essential context is reported as a specific Work
-blocker; it is not silently recovered with an unbounded project scan.
+or eval materials. `required_read` is a required starting set, not a read
+allowlist: a worker may inspect additional project-local files when needed.
+Missing essential context is reported as a specific Work blocker; it is not
+silently recovered with an unbounded project scan.
+
+### Hard and soft boundaries
+
+The rendered worker prompt must state this distinction verbatim in substance:
+
+- **Hard boundary:** read and write only inside the frozen RUN workspace; do
+  not touch another RUN, the project control checkout, or Git/worktree control
+  data. Accepted requirements, non-goals and stop conditions remain binding.
+- **Soft coordination hints:** `planned_write_areas` are optional files or
+  directories expected to overlap with other workers. They help the
+  coordinator serialize likely collisions. They neither grant nor deny a
+  write. A worker may create or modify any necessary project-local file within
+  the hard boundary and reports all actual changed paths.
+
+An actual path outside a planned area is recorded as `coordination.drift`; it
+does not fail the Work. A semantic contradiction or external blocker may fail
+the Work; a missed file prediction may not.
 
 ## 6. Graph scheduling
 
@@ -210,9 +232,11 @@ launches at most:
 min(ready Work count, available slots)
 ```
 
-Works with hard dependencies remain blocked. Works that can write overlapping
-paths must be ordered. Path conflict validation covers equality and ancestor /
-descendant containment, not only identical strings.
+Works with hard dependencies remain blocked. Overlapping planned coordination
+areas are not a semantic dependency and do not invalidate PLAN: while one such
+Work is running, the registry serializes another likely-conflicting Work. The
+comparison covers equality and ancestor/descendant containment, not only
+identical strings.
 
 After every Work settlement, CLI returns or makes queryable:
 
@@ -343,13 +367,12 @@ The repair packet is composed deterministically from:
 2. their accepted results and check receipts;
 3. the aggregate failure receipt, command, logs and affected paths;
 4. the orchestrator's concise semantic repair objective;
-5. narrowed write scope, exact checks and stop conditions.
+5. inherited coordination hints, exact checks and stop conditions.
 
 The repair Work depends on every selected origin Work. Its default read context
 is the complete original packet set plus the new receipt and result facts. Its
-default write scope is the union of the selected origin scopes; any expansion
-must be explicit with repeated `--write-scope` arguments and described in the
-repair objective. Its focused checks include the
+planned coordination areas are the union of origin hints plus exact receipt
+paths. They do not restrict repair edits. Its focused checks include the
 failing aggregate command and the affected original checks. The complete
 project gate is still rerun only at CODE finish.
 
@@ -369,7 +392,6 @@ dd-flow work repair add \
   --run <RUN> \
   --from-check <CHECK-RECEIPT> \
   --origin-work <WORK> [--origin-work <WORK>...] \
-  [--write-scope <PATH>...] \
   --task-stdin
 ```
 
@@ -481,8 +503,9 @@ Primary CLI surfaces: `src/schemas/vnext-protocol-plan.schema.json`,
    repair paths.
 3. Bind the projection to plan revision/checksum and prove identical input
    produces byte-identical output.
-4. Reject unresolved reads, invalid requirement references, stale source
-   revisions and overlapping unordered write scopes in one validation pass.
+4. Reject unresolved required reads, invalid requirement references and stale
+   source revisions in one validation pass; preserve overlapping planned
+   coordination areas so the runtime can serialize only active collisions.
 
 Primary CLI surfaces: `src/schemas/code-work-batch.schema.json` and the
 projection functions in `src/services/vnext-plan.ts`.

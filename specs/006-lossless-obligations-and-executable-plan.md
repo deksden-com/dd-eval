@@ -377,13 +377,15 @@ Each PLAN item provides everything needed to derive one CODE Work:
 - non-empty `requirement_refs` owned by that PRT;
 - semantic spine and preserved invariants;
 - project-relative or `run://` `required_read` paths;
-- exact project-relative `write_scope` file paths;
+- optional project-relative `planned_write_areas` files or component
+  directories, used only to coordinate likely concurrent overlap;
 - focused checks, stop conditions and expected evidence.
 
 `required_read` contains paths, not prose such as “owning service”. Project
 paths are relative, RUN paths use `run://<RUN-ID>/...`, and semantic plans never
-store host-absolute paths. A new output may appear in `write_scope` before it
-exists; a root read may not.
+store host-absolute paths. A new output may appear in `planned_write_areas` before it
+exists; a root read may not. These areas are soft coordination hints, never a
+worker write allowlist.
 
 Every obligation assigned to the PRT is referenced by at least one plan item.
 Every assigned `AC-*` also has one acceptance entry linking the criterion to

@@ -124,7 +124,7 @@ Use these meanings whenever the active assessment contains the named id.
 | PLAN outcome | `decision-quality` | Chooses the simplest adequate architecture and records only material decisions, risks and document changes. |
 | PLAN outcome | `executable-work-graph` | Every owned obligation maps to concrete ordered plan items with resolvable inputs, bounded outputs and no unsafe concurrency. |
 | PLAN outcome | `verification` | Gives falsifiable positive, negative, migration and cleanup evidence proportionate to the accepted behavior. |
-| PLAN outcome | `worker-context` | Gives each fresh code worker sufficient and bounded source, standard, requirement, write-scope and verification context; does not outsource grounding to the worker. |
+| PLAN outcome | `worker-context` | Gives each fresh code worker sufficient source, standard, requirement, hard workspace boundary, soft planned coordination areas and verification context; it does not outsource grounding to the worker. |
 | PLAN flow | `routing` | Uses local work or grouped subagents proportionately; breadth alone does not force deep routing. |
 | PLAN flow | `projection-integrity` | PLAN remains the semantic SSOT and the generated CODE graph matches its revision, dependencies and paths. |
 | PLAN flow | `evidence` | Plan, aspect map, generated graph and stage report make coverage and readiness inspectable. |

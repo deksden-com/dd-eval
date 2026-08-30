@@ -152,7 +152,7 @@ After all member plans complete, one root integration Work checks:
 - shared-contract consistency;
 - gaps, duplicate scope and orphan plan items;
 - actual consumed-output dependencies;
-- conflicting write scopes and required serialization;
+- conflicting planned coordination areas and required serialization;
 - scenario/fixture/evidence coverage;
 - Git/workspace/delivery compatibility;
 - feasibility of the proposed CODE Work projection.

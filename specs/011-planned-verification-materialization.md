@@ -7,7 +7,7 @@ and executable without turning the CLI into a test-selection heuristic.
 
 ## Contract under evaluation
 
-`protocol-plan@5` owns one `checks[]` catalogue. Requirements and acceptance
+`protocol-plan@6` owns one `checks[]` catalogue. Requirements and acceptance
 criteria reach checks through `check_refs`. A check is either available now or
 is a future named `@check/...` alias with an exact definition and provider
 PLAN item. A consumer of that future alias is ordered after its provider.

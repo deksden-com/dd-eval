@@ -108,8 +108,9 @@ invariants, extension points, risks, remaining unknowns and a stop reason. It
 does not own the final design decision.
 
 Every executable plan item uses the accepted grounding to name exact
-`required_read`, `discovery_boundary`, `write_scope` and checks. Vague discovery
-such as “inspect the project” is not a CODE handoff.
+`required_read`, discovery hints, optional `planned_write_areas` and checks.
+`planned_write_areas` are soft coordination hints, not a write allowlist.
+Vague discovery such as “inspect the project” is not a CODE handoff.
 
 ### Fresh CODE worker context
 
@@ -122,7 +123,8 @@ implementer. For every item it selects the smallest sufficient set of:
 - current tests and fixtures that demonstrate the local pattern;
 - applicable feature, scenario, spec, ADR and operations documents;
 - exact accepted requirements, acceptance criteria, invariants and non-goals;
-- write scope, consumed predecessor outputs, checks, evidence, proof limits and
+- planned coordination areas, consumed predecessor outputs, checks, evidence,
+  proof limits and
   stop conditions.
 
 The handoff is good when a fresh Session can implement the item without the
@@ -132,9 +134,17 @@ contract is not the default CODE context. A fresh worker receives the compact
 project/engineering orientation plus the exact task-applicable sources chosen
 by PLAN.
 
+`planned_write_areas` may be empty, name files, or name stable component
+directories. They are used only to avoid likely overlap between concurrently
+running Works. A later CODE worker may change any necessary project-local path
+inside its frozen RUN workspace, reports the actual paths, and does not fail
+merely because PLAN did not predict one. Requirements, non-goals, stop
+conditions and the RUN workspace remain the hard boundaries.
+
 PLAN-REVIEW judges this context semantically for every item. The CLI validates
-only file existence, containment, obligation references, dependency order and
-write conflicts. A case-specific eval may keep hidden golden worker contexts
+only file existence, containment, obligation references and dependency order.
+It serializes currently overlapping planned coordination areas rather than
+rejecting their PLAN. A case-specific eval may keep hidden golden worker contexts
 for comparing whether PLAN selected the important sources and proof without
 forcing one exact decomposition.
 
@@ -225,7 +235,8 @@ Each plan preserves:
 - material architecture, data, API, UI, security and operations decisions;
 - a minimal implementation item graph with true consumed-output dependencies;
 - self-contained item summary and details;
-- semantic spine, exact execution context and write boundary;
+- semantic spine, exact execution context, hard workspace boundary and soft
+  planned coordination areas;
 - invariants, controls, likely pitfalls, stop conditions and completion;
 - verification, scenario, fixture, evidence and proof-limit contracts;
 - Git, workspace, delivery and later-gate handoffs;
@@ -233,7 +244,7 @@ Each plan preserves:
 - complete references for CODE prompt rendering.
 
 The generated CODE packet preserves the complete semantic spine, resolved
-requirement/acceptance statements, required reads, write scope, document
+requirement/acceptance statements, required reads, planned coordination areas, document
 updates, verification evidence and proof limits. A compact `task` paragraph is
 not allowed to replace or erase these accepted fields at registration.
 
@@ -506,8 +517,9 @@ semantic_spine, execution_context, verification
 `summary` is the compact intent; `details` is the ordered implementation
 approach. `semantic_spine` preserves
 user outcome, component responsibility, invariants, non-goals and acceptance
-contribution. `execution_context` contains exact required reads, bounded
-discovery, write scope, checks and stop conditions. `verification` contains
+contribution. `execution_context` contains exact required reads, discovery
+hints, optional planned coordination areas, checks and stop conditions.
+`verification` contains
 the checks, expected evidence and proof limits contributed by the item. There
 is no item runtime status, assigned Session or Work ID.
 
