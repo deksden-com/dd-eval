@@ -18,8 +18,8 @@
     "memory_bank_version": "4.0.0-main-0382f15",
     "engine": {
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
-      "commit": "cef9b99504879782dfb51aad13535b6b4b4dcc35",
-      "version": "0.8.0-main-cef9b99"
+      "commit": "86e4eba97ce224ff5db761770cf3cea613230266",
+      "version": "0.8.0-main-86e4eba"
     }
   },
   "state": "ready_for_canonical_capture",
