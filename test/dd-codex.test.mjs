@@ -4,7 +4,7 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { mkdtemp } from "node:fs/promises";
-import { createSessionWithBridge, promptSessionWithBridge } from "../lib/dd-codex.mjs";
+import { createSessionWithBridge, inspectSessionWithBridge, promptSessionWithBridge } from "../lib/dd-codex.mjs";
 import { callDaemon } from "../lib/dd-codex-daemon.mjs";
 
 test("Codex eval Sessions trust only the generated hook environment", async () => {
@@ -40,9 +40,17 @@ test("Codex adapter resumes an unloaded Session before a new Turn", async () => 
   };
   await promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply", model: "gpt-5.6-terra" });
   assert.deepEqual(calls.slice(0, 2), [
-    { method: "thread/read", params: { threadId: "thread-001" } },
+    { method: "thread/read", params: { threadId: "thread-001", includeTurns: false } },
     { method: "thread/resume", params: { threadId: "thread-001", cwd: "/tmp", model: "gpt-5.6-terra", approvalPolicy: "never", sandbox: "danger-full-access", config: { bypass_hook_trust: true, "features.plugins": false } } }
   ]);
+});
+
+test("Codex adapter observes a live Session without hydrating its full history", async () => {
+  const calls = [];
+  const bridge = { request: async (method, params) => { calls.push({ method, params }); return { thread: { id: "thread-001", status: { type: "active" } } }; } };
+  const result = await inspectSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001" });
+  assert.equal(result.status.type, "active");
+  assert.deepEqual(calls, [{ method: "thread/read", params: { threadId: "thread-001", includeTurns: false } }]);
 });
 
 test("Codex adapter fails closed when a persisted Turn was interrupted", async () => {
