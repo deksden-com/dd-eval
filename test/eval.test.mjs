@@ -39,6 +39,7 @@ test("run profiles are explicit experiments rather than harness defaults", async
   assert.equal(reference.value.selection.e2e, false);
   assert.deepEqual(reference.value.selection.focused_stages, []);
   assert.equal(qualification.value.selection.focused_stages.length, 6);
+  assert.equal(qualification.value.selection.e2e, false);
   assert.equal(reference.value.subject.profile_id, qualification.value.subject.profile_id);
 });
 

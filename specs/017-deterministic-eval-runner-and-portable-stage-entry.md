@@ -69,12 +69,15 @@ provider Session, an operator-created RUN, or a manually copied artifact.
    boundary; `canonical boundary accept` verifies it and captures exactly the
    next-stage RUN snapshot. Only then may a new `canonical resume` turn begin.
 5. After the terminal boundary, `canonical qualify` maintains one independent
-   immutable qualification cell for each focused stage and one for the clean
-   E2E traversal. It reruns only missing or stale cells: a fixed E2E handoff
-   does not invalidate an already successful focused-stage cell. All cells
-   must still share the exact revision, checkpoint, flow, engine snapshot and
-   Subject run profile before the pack can be accepted. These executions
-   diagnose package quality; they do not overwrite reference artifacts.
+   immutable qualification cell for each focused stage. The six cells, rather
+   than one combined traversal, are the acceptance evidence for the portable
+   entries. A clean E2E traversal is a separate optional integration
+   experiment: it is selected explicitly in an ordinary run profile and never
+   blocks entry-pack acceptance. A fixed E2E handoff therefore cannot
+   invalidate an already successful focused-stage cell. All focused cells must
+   share the exact revision, checkpoint, flow, engine snapshot and Subject run
+   profile before the pack can be accepted. These executions diagnose package
+   quality; they do not overwrite reference artifacts.
 6. Human entry reviews accept the qualification evidence. `canonical accept`
    freezes one entry pack and changes the case to `runnable`; the author
    reviews, commits and pushes that definition change.
@@ -871,14 +874,15 @@ checks:
 
 A package correction updates the candidate blueprint/entry and reruns the
 affected stage. If a shared source role changed, every stage that consumes that
-role is rerun. The clean E2E qualification is rerun after the focused set is
-clean. A single redundant Terra read does not justify changing the package
-without evidence that the source was required and insufficiently named.
+role is rerun. A clean E2E integration experiment may be scheduled after the
+focused set is clean, but it is not an acceptance dependency. A single
+redundant Terra read does not justify changing the package without evidence
+that the source was required and insufficiently named.
 
-The subsequent clean E2E qualification uses the same Codex Terra-high Subject
-profile. This keeps package qualification internally consistent while the
-separate semantic reviewer remains free to use the case's current clean Judge
-profile.
+When it is scheduled, the clean E2E experiment uses the same Codex Terra-high
+Subject profile. This keeps its integration comparison internally consistent
+while the separate semantic reviewer remains free to use the case's current
+clean Judge profile.
 
 Qualification outputs are stored below the pending canonical build. Every
 successful cell has a content-checked receipt under
@@ -964,10 +968,11 @@ merely to create a second descriptor.
    and mark the entry `candidate`.
 7. Run the six clean Codex/Terra-high focused qualification executions, inspect
    context diagnostics, correct candidate mappings and rerun affected stages.
-8. Run one clean E2E qualification to prove that dynamic context binding uses
-   the Subject's own outputs, the initial fixture contains no
-   canonical downstream artifact and that the Subject's own outputs cross all
-   stage boundaries.
+8. Optionally run one clean E2E integration experiment to prove that dynamic
+   context binding uses the Subject's own outputs, the initial fixture contains
+   no canonical downstream artifact and that the Subject's own outputs cross
+   all stage boundaries. This evidence is not required to accept the focused
+   entries.
 9. Run final semantic review and explicitly accept every entry.
 10. Write and accept `entry-pack.json` only after all seven descriptors are
     accepted and the dependency chain is consistent.
@@ -1124,8 +1129,10 @@ write `entry-pack.json`. There is no separate manual finalize command.
 `canonical qualify` is the only execution path allowed to launch a Subject from
 a candidate entry. It uses normal runner/driver machinery but writes diagnostic
 evidence under the canonical build and never a scored eval result. `canonical
-accept` rejects an entry without the required successful qualification receipt
-and explicit semantic review.
+accept` rejects a focused entry without its required successful focused
+qualification receipt and explicit semantic review. The initial E2E descriptor
+requires the same pack-level focused qualification and its explicit semantic
+review, but not a separate E2E traversal.
 
 Canonical construction has its own append-only build journal and projection
 under the pending canonical revision. `canonical build` is resumable: after a
@@ -1852,11 +1859,13 @@ these decisions.
    an input.
 6. Mechanical gates mark the descriptors `candidate`. `canonical qualify`
    restores six isolated copies and runs the Codex Terra-high profile one stage
-   at a time, then runs clean E2E.
+   at a time. A clean E2E integration experiment is separately selected when
+   the evaluation plan calls for it.
 7. Package gaps update only affected stage slices/entries. The runner marks
    dependent qualification receipts stale and reruns them; diagnostic Subject
    output never updates the reference chain.
-8. A clean semantic review plus explicit human review accepts each entry.
+8. A clean semantic review plus explicit human review accepts each entry. The
+   E2E descriptor is reviewed as an entry, not gated by an E2E execution.
 9. Final `canonical accept` writes `entry-pack.json`, updates the sole
    `case.json.entry_pack` pointer and reports `promoted_pending_commit`.
 10. The operator reviews, commits and pushes the dd-eval definition tree. A
@@ -1988,7 +1997,8 @@ rationale rather than rewriting history.
     Pack, including six focused entries, the E2E entry, context oracles and
     semantic HITL responses.
 14. Add its Codex `gpt-5.6-terra` high qualification profile and require its six
-    focused receipts plus clean E2E receipt before pack acceptance.
+    focused receipts before pack acceptance. Keep clean E2E as a separately
+    selectable integration profile.
 
 Keep `lib/dd-eval.mjs` as the small public facade. Move only the new cohesive
 implementation units into `lib/entry-pack.mjs`, `lib/runner.mjs` and
@@ -2139,9 +2149,10 @@ For every stage:
 - build the complete accepted Task Priority SDLC Entry Pack;
 - run clean focused qualification tests for SPECIFY, PROTOCOLIZE, PLAN, PLAN-REVIEW,
   CODE and CODE-REVIEW with Codex Terra high and inspect their context
-  diagnostics;
+  diagnostics; this is the required stage-qualification set;
 - execute focused stages on at least one forkless and one fork-capable harness;
-- execute one uninterrupted E2E contour;
+- execute one uninterrupted E2E contour when that integration experiment is
+  explicitly included in the evaluation plan;
 - run optional final judgment;
 - produce deterministic JSON/Markdown protocol and verify it can be rebuilt
   from the manifest, artifacts and event trace.

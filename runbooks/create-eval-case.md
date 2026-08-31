@@ -122,16 +122,17 @@ answers into the E2E input.
    an ambient same-version engine. Then run mechanical validation for paths,
    hashes, flow state, workspace route,
    absence of live Work/provider identity and dynamic-role containment.
-5. Qualify every focused entry and E2E as **independent cells**. A successful
-   focused cell is retained when its exact revision, input checkpoint, flow,
-   engine snapshot and run profile still match; it is not repeated merely
-   because a later E2E handoff defect was fixed. Conversely, E2E is its own
-   required cell and proves the complete contour. `canonical qualify` runs only
-   missing or stale cells and writes one immutable receipt per cell under
-   `qualification/cells/`. Use normal launchers, preserve tool/transcript
-   evidence and correct only demonstrated package gaps. For a pre-cell receipt,
-   use the explicit one-time recovery command rather than silently treating
-   history as current:
+5. Qualify every focused entry as an **independent cell**. A successful focused
+   cell is retained when its exact revision, input checkpoint, flow, engine
+   snapshot and run profile still match; it is not repeated merely because a
+   later E2E handoff defect was fixed. `canonical qualify` runs only missing or
+   stale focused cells and writes one immutable receipt per cell under
+   `qualification/cells/`. A clean E2E traversal is a separate, explicitly
+   selected integration experiment; it is valuable evidence when planned, but
+   is not a pack-acceptance dependency. Use normal launchers, preserve
+   tool/transcript evidence and correct only demonstrated package gaps. For a
+   pre-cell receipt, use the explicit one-time recovery command rather than
+   silently treating history as current:
 
    ```sh
    dd-eval runner canonical qualification recover --build <build> \
@@ -175,9 +176,10 @@ Before marking `case.json.status` as `runnable`, prove that each accepted entry:
 - materializes the same semantic context hash in a clean temporary restore;
 - supplies all accepted decisions needed by the stage, without a private
   reference conversation;
-- has a successful, non-stale isolated qualification cell receipt and an
-  explicit semantic review; and
-- belongs to a pack whose separate E2E qualification cell is successful.
+- has a successful, non-stale isolated focused qualification cell receipt and
+  an explicit semantic review; and
+- has an explicitly reviewed initial E2E descriptor. A separate E2E run is
+  required only when the chosen evaluation profile requests it.
 - is free of provider Sessions, hook claims, usage samples and other reference
   observability state.
 

@@ -32,6 +32,19 @@ The runner allocates a fresh directory under
 `$DD_EVAL_HOME/runs/<eval-id>/`. Each execution gets its own restored project,
 `DD_FLOW_HOME`, managed harness state and append-only `events.jsonl`.
 
+## What counts as a successful qualification
+
+The required qualification set is one successful **focused** execution for
+each declared stage. They are independent cells: a successful `PLAN` cell is
+not invalidated because a later `CODE-REVIEW` or E2E experiment fails. This is
+the evidence used to accept a portable entry pack.
+
+An E2E execution is a separate integration experiment. Run it only when the
+selected profile explicitly sets `selection.e2e: true` (for example, when a
+release plan calls for an end-to-end comparison). Its result is retained and
+judged on its own merits; it is not a hidden prerequisite for accepting the
+focused-stage set.
+
 ## Operational model
 
 The same short sequence applies to every harness. Keeping these roles separate

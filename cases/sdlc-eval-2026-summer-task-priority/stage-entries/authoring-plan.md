@@ -315,13 +315,15 @@ For every Session inspect declared/undeclared reads, path searches, CLI help,
 commands before `stage start`, unexpected HITL and rediscovery of accepted
 facts. Classify behaviour rather than treating every extra read as a package
 failure. Correct and rerun only affected entries; rerun every consumer when a
-shared source role changes. Then run one clean E2E qualification to verify live
-dynamic binding and stage-slice isolation across the entire contour.
+shared source role changes. A clean E2E run may subsequently verify live
+dynamic binding and stage-slice isolation across the contour, but it is a
+separate integration experiment rather than a prerequisite for accepting the
+six focused entries.
 
-The E2E qualification also uses Codex `gpt-5.6-terra` high. The reference-chain
-profile uses clean Codex `gpt-5.6-sol` high to maximize the quality of fixed
-predecessor inputs; both requested and observed profiles are recorded rather
-than compiled into runner code.
+When scheduled, the E2E run also uses Codex `gpt-5.6-terra` high. The
+reference-chain profile uses clean Codex `gpt-5.6-sol` high to maximize the
+quality of fixed predecessor inputs; both requested and observed profiles are
+recorded rather than compiled into runner code.
 
 Qualification output is diagnostic evidence. It is not a model score, a
 canonical predecessor or a golden answer.
@@ -351,9 +353,12 @@ Requires the new contracts/runner:
 - render `stage start` context through the production renderer;
 - perform leak/path/integrity validation;
 - accept entries and write `entry-pack.json`;
-- run focused Terra-high qualification diagnostics and clean E2E.
+- run focused Terra-high qualification diagnostics; schedule clean E2E only as
+  a separate integration experiment.
 
-The pack is ready only after both groups are complete.
+The pack is ready after every focused qualification cell is complete and every
+entry has an explicit semantic review. A planned E2E experiment is recorded
+separately and never delays that acceptance.
 
 ## Pre-implementation walkthrough
 
@@ -367,11 +372,10 @@ produce its stated boundary before the next row can start.
 | 3 | Run reference SPECIFY | bootstrap `stage start` creates the RUN; successful finish stops the turn | PROTOCOLIZE starts before the SPECIFY boundary is captured |
 | 4 | Accept and continue the reference chain | `canonical boundary accept` captures the next entry without prompting; `canonical resume` then starts its successor in the coordinator Session selected by the restored flow setting | a later canonical artifact is copied into an earlier entry, or approval silently starts a turn |
 | 5 | Qualify focused entries | six independent empty Terra-high Sessions each complete exactly one stage | qualification output replaces reference artifacts or affects scores |
-| 6 | Qualify E2E | one empty Terra-high entry Session uses only its own downstream outputs; successor Session changes follow the restored flow setting | a focused canonical predecessor enters live E2E |
-| 7 | Review and accept | all non-stale receipts exist; `entry-pack.json` and `case.json.entry_pack` are promoted atomically | a partially accepted pack becomes runnable |
-| 8 | Commit the definition tree | case is `runnable`, Git definition tree is clean, snapshot roots validate | an uncommitted authoring change enters a scored run |
-| 9 | Run a focused eval | selected snapshot restores, empty Subject starts, dynamic roles bind to accepted predecessors | provider history, starter Session or hidden warm-up is used |
-| 10 | Run E2E | initial bootstrap starts a fresh RUN and every boundary is checkpointed before continuation | runner substitutes a canonical downstream result |
+| 6 | Review and accept | all non-stale focused receipts exist; `entry-pack.json` and `case.json.entry_pack` are promoted atomically | a partially accepted pack becomes runnable |
+| 7 | Commit the definition tree | case is `runnable`, Git definition tree is clean, snapshot roots validate | an uncommitted authoring change enters a scored run |
+| 8 | Run a focused eval | selected snapshot restores, empty Subject starts, dynamic roles bind to accepted predecessors | provider history, starter Session or hidden warm-up is used |
+| 9 | Run E2E when planned | initial bootstrap starts a fresh RUN and every boundary is checkpointed before continuation | runner substitutes a canonical downstream result |
 
 Expected HITL is the only mid-stage pause. A provider turn that ends without a
 registered pause or successful stage finish is preserved as an incomplete
