@@ -32,6 +32,11 @@ The runner allocates a fresh directory under
 `$DD_EVAL_HOME/runs/<eval-id>/`. Each execution gets its own restored project,
 `DD_FLOW_HOME`, managed harness state and append-only `events.jsonl`.
 
+For `merge_mode=server`, the runner does not send MERGE to the coordinator
+Session. It invokes one isolated `dd-flow merge serve --once`, records the
+server-launched Session and waits for request/Work/Stage/RUN convergence. Do
+not run a second merge server or hand-write a MERGE prompt in that execution.
+
 ## What counts as a successful qualification
 
 The required qualification set is one successful **focused** execution for
@@ -147,6 +152,17 @@ without touching another cell:
 ```sh
 dd-eval runner cancel --eval "$DD_EVAL_HOME/runs/<eval-id>" --execution <id>
 ```
+
+The journal is an operation registry, not an instruction log. A completed
+operation is reused with its recorded result; a conflicting duplicate is a
+failed execution with preserved evidence. Status and storage commands continue
+to list unrelated runs even if one historical journal is conflicting.
+
+`dd-eval storage status` is intentionally metadata-only: canonical snapshots
+may contain complete dependency trees, so recursively measuring them would make
+an ordinary status lookup appear hung. Garbage-collection planning performs the
+explicit, potentially expensive measurement only when it needs reclaimable
+bytes.
 
 If the provider itself ends a Subject turn while the expected Stage remains
 `running`, the candidate is `incomplete_subject_turn`. The runner preserves

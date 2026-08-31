@@ -8,6 +8,8 @@ Supersedes: the routine focused-eval canonical Session, frozen Session, starter
 Session and provider-fork procedures in specifications 002–003 and
 `runbooks/execute-eval.md`
 Extends: specification 014 harness backend contract
+Refined by: specification 018 runner operation integrity and server MERGE
+execution
 
 ## Purpose
 

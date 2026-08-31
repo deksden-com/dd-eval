@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateStageBlueprint } from "../lib/entry-pack.mjs";
-import { createHarnessPermits } from "../lib/runner.mjs";
+import { createHarnessPermits, runServerMerge, stageExecutor } from "../lib/runner.mjs";
 
 const slice = {
   schema_id: "dd-eval/stage-context@1", stage: "specify", objective: "Specify the request.",
@@ -38,8 +38,36 @@ test("event journal deduplicates productive operations across resume", async () 
   assert.equal(calls, 1); assert.equal(reused.reused, true);
   assert.equal(reduceEvents(await readEvents(file)).operations["op-1"].terminal, "completed");
   assert.equal(canonicalJson({ b: 1, a: 2 }), '{"a":2,"b":1}\n'); assert.equal(hashJson({ a: 2, b: 1 }), hashJson({ b: 1, a: 2 }));
-  await appendEvent(file, { source: "dd-eval://test", runId: "EVAL-001", executionId: "focus", traceId: "trace", type: "dev.dd.eval.state", data: { state: "completed" } });
+  await appendEvent(file, { source: "dd-eval://test", runId: "EVAL-001", executionId: "focus", traceId: "trace", type: "dev.dd.eval.completed", data: { state: "completed" } });
   assert.equal(reduceEvents(await readEvents(file)).state, "completed");
+});
+
+test("operation registry returns the original result and folds an exact terminal duplicate", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-events-")); const file = path.join(root, "events.jsonl");
+  const first = await recordOperation({ eventsFile: file, source: "dd-eval://test", runId: "EVAL-001", executionId: "focus", traceId: "trace", operationId: "op-1", operation: "driver.prompt", action: async () => ({ answer: 42 }) });
+  const duplicate = (await readEvents(file)).at(-1);
+  await writeFile(file, `${(await readFile(file, "utf8")).trim()}\n${JSON.stringify({ ...duplicate, id: "EVT-duplicate", data: { ...duplicate.data, sequence: duplicate.data.sequence + 1 } })}\n`);
+  const reduced = reduceEvents(await readEvents(file));
+  assert.equal(reduced.operations["op-1"].result.answer, 42);
+  const reused = await recordOperation({ eventsFile: file, source: "dd-eval://test", runId: "EVAL-001", executionId: "focus", traceId: "trace", operationId: "op-1", operation: "driver.prompt", action: async () => ({ answer: 43 }) });
+  assert.deepEqual(first.result, reused.result);
+});
+
+test("operation registry rejects a conflicting terminal result", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-events-")); const file = path.join(root, "events.jsonl");
+  await recordOperation({ eventsFile: file, source: "dd-eval://test", runId: "EVAL-001", executionId: "focus", traceId: "trace", operationId: "op-1", operation: "driver.prompt", action: async () => ({ answer: 42 }) });
+  const duplicate = (await readEvents(file)).at(-1);
+  await writeFile(file, `${(await readFile(file, "utf8")).trim()}\n${JSON.stringify({ ...duplicate, id: "EVT-conflict", data: { ...duplicate.data, sequence: duplicate.data.sequence + 1, result: { answer: 43 } } })}\n`);
+  await assert.rejects(readEvents(file).then(reduceEvents), /conflicting terminal events/);
+});
+
+test("concurrent callers do not repeat an in-flight operation", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-events-")); const file = path.join(root, "events.jsonl"); let calls = 0;
+  const input = { eventsFile: file, source: "dd-eval://test", runId: "EVAL-001", executionId: "focus", traceId: "trace", operationId: "op-concurrent", operation: "driver.prompt" };
+  const action = async () => { calls += 1; await new Promise((resolve) => setTimeout(resolve, 20)); return { call: calls }; };
+  const first = recordOperation({ ...input, action }); await new Promise((resolve) => setTimeout(resolve, 5));
+  await assert.rejects(recordOperation({ ...input, action }), /already in progress/);
+  await first; assert.equal(calls, 1);
 });
 
 test("normalized journal keeps an execution identity available for recovery", async () => {
@@ -59,4 +87,29 @@ test("harness permits bound concurrent provider turns without blocking another h
   const other = permits.use(zcode, async () => { zcodeStarted = true; });
   await Promise.all([first, second, other]);
   assert.equal(codexPeak, 1); assert.equal(zcodeStarted, true);
+});
+
+test("server merge is selected only by the persisted run execution mode", () => {
+  const server = { status: { index: { execution_profile: { settings: { merge_mode: "server" } } } } };
+  assert.equal(stageExecutor("merge", server), "merge_server");
+  assert.equal(stageExecutor("code-review", server), "subject");
+  assert.equal(stageExecutor("merge", { status: { index: {} } }), "subject");
+});
+
+test("runner delegates a server-routed merge to the deterministic merge server", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-merge-server-")); const project = path.join(root, "project"); const runtime = path.join(root, "runtime"); const bin = path.join(root, "fake-dd-flow.mjs");
+  await writeFile(bin, `#!/usr/bin/env node
+import fs from 'node:fs';
+const args = process.argv.slice(2).filter((arg) => arg !== '--json');
+const state = process.env.DD_FLOW_HOME + '/server-state';
+if (args[0] === 'run' && args[1] === 'status') { const done = fs.existsSync(state); process.stdout.write(JSON.stringify({ index: { execution_profile: { settings: { merge_mode: 'server' } }, stage_runs: [{ stage: 'merge', status: done ? 'done' : 'running' }] } })); }
+else if (args[0] === 'merge' && args[1] === 'serve') { fs.writeFileSync(state, 'done'); process.stderr.write(JSON.stringify({ phase: 'dispatch', message: 'started' }) + '\\n'); process.stdout.write(JSON.stringify({ ok: true, handled: 1 })); }
+else { process.exitCode = 2; }
+`);
+  await chmod(bin, 0o755); await mkdir(project); await mkdir(runtime);
+  const prior = process.env.DD_FLOW_BIN; process.env.DD_FLOW_BIN = bin;
+  try {
+    const progress = []; const result = await runServerMerge({ profile: { id: "codex-test", harness: "codex-desktop", model: "test", reasoning: "high" }, projectRoot: project, runtimeRoot: runtime, runId: "RUN-001", onProgress: (item) => progress.push(item) });
+    assert.equal(result.receipt.handled, 1); assert.equal(result.lifecycle.stage_status, "done"); assert.equal(progress[0].phase, "dispatch");
+  } finally { if (prior === undefined) delete process.env.DD_FLOW_BIN; else process.env.DD_FLOW_BIN = prior; }
 });

@@ -42,6 +42,8 @@ Pack and a new empty Subject Session. Operational procedures remain in
 the [case-creation runbook](runbooks/create-eval-case.md) and
 [eval execution runbook](runbooks/execute-eval.md). Non-Git attempts,
 canonical snapshots and retention follow the [storage runbook](runbooks/eval-storage.md).
+Specification 018 defines the operation registry and server-owned MERGE
+executor; its remaining reducer consolidation is an explicitly staged follow-up.
 The downstream implementation contour is being defined in
 [vNext CODE beta 1](beta/vnext-code-beta.1/index.md).
 

@@ -27,10 +27,8 @@ test("active case exposes its accepted portable entry pack without Session start
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
 
-test("accepted case validates only its declared entry pack", async () => {
-  const result = await fixturesValidate({ caseId });
-  assert.equal(result.case_id, caseId);
-  assert.equal(result.revision, "REV-117");
+test("fixture validation fails closed when an active pack predates the case contour", async () => {
+  await assert.rejects(fixturesValidate({ caseId }), (error) => error?.code === "entry_pack_flow_mismatch");
   await assert.rejects(fixturesValidate({ caseId, revision: "REV-001" }), /not found|Invalid JSON/);
 });
 
