@@ -63,6 +63,17 @@ An accepted entry pack must exactly match `case.json.flow.contour` and
 `e2e`.  A historical package is never rewritten.  A new flow revision needs a
 new canonical package and qualification evidence.
 
+### Captured engine is also the executed engine
+
+After restoring an execution runtime, the runner materializes a private
+`$DD_FLOW_HOME/bin/dd-flow` shim that invokes the entry package's captured
+engine entrypoint.  Every lifecycle command, harness daemon and merge-server
+process receives that shim through both `PATH` and its explicit adapter
+argument.  `DD_FLOW_HOME` by itself is not enough: a host-global `dd-flow`
+binary may otherwise execute a different local build.  Bootstrap is the only
+short-lived exception, because it creates the isolated runtime before the
+captured engine is installed there.
+
 ## Module boundaries
 
 The present change splits the two responsibilities that were actually

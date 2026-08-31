@@ -106,8 +106,9 @@ if (args[0] === 'run' && args[1] === 'status') { const done = fs.existsSync(stat
 else if (args[0] === 'merge' && args[1] === 'serve') { fs.writeFileSync(state, 'done'); process.stderr.write(JSON.stringify({ phase: 'dispatch', message: 'started' }) + '\\n'); process.stdout.write(JSON.stringify({ ok: true, handled: 1 })); }
 else { process.exitCode = 2; }
 `);
-  await chmod(bin, 0o755); await mkdir(project); await mkdir(runtime);
-  const prior = process.env.DD_FLOW_BIN; process.env.DD_FLOW_BIN = bin;
+  await chmod(bin, 0o755); await mkdir(project); await mkdir(path.join(runtime, "bin"), { recursive: true });
+  const shim = path.join(runtime, "bin", "dd-flow"); await writeFile(shim, `#!/bin/sh\nexec ${JSON.stringify(bin)} "$@"\n`); await chmod(shim, 0o755);
+  const prior = process.env.DD_FLOW_BIN; process.env.DD_FLOW_BIN = "/bin/false";
   try {
     const progress = []; const result = await runServerMerge({ profile: { id: "codex-test", harness: "codex-desktop", model: "test", reasoning: "high" }, projectRoot: project, runtimeRoot: runtime, runId: "RUN-001", onProgress: (item) => progress.push(item) });
     assert.equal(result.receipt.handled, 1); assert.equal(result.lifecycle.stage_status, "done"); assert.equal(progress[0].phase, "dispatch");

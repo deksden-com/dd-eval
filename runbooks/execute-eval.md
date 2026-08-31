@@ -32,6 +32,13 @@ The runner allocates a fresh directory under
 `$DD_EVAL_HOME/runs/<eval-id>/`. Each execution gets its own restored project,
 `DD_FLOW_HOME`, managed harness state and append-only `events.jsonl`.
 
+The runner also creates `$DD_FLOW_HOME/bin/dd-flow`: a tiny private launcher
+for the exact engine snapshot named by the accepted entry pack.  It is placed
+first in the Subject, worker and merge-server `PATH`, and is passed explicitly
+to the managed harness daemon.  Do not replace it with a globally installed
+`dd-flow`; the global executable is used only to bootstrap or restore an
+isolated runtime before that snapshot launcher exists.
+
 For `merge_mode=server`, the runner does not send MERGE to the coordinator
 Session. It invokes one isolated `dd-flow merge serve --once`, records the
 server-launched Session and waits for request/Work/Stage/RUN convergence. Do
