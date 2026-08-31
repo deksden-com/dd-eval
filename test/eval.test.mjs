@@ -204,6 +204,12 @@ test("canonical build rejects a clean checkout whose product commit differs from
   } finally { await rm(project, { recursive: true, force: true }); }
 });
 
+test("canonical input does not require an empty overlay commit", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /const overlayChanged = Boolean/);
+  assert.match(source, /if \(overlayChanged\) await commandText\("git"/);
+});
+
 test("failed canonical bootstrap leaves no partial revision", async () => {
   const project = await mkdtemp(path.join(tmpdir(), "dd-eval-source-")); const home = await mkdtemp(path.join(tmpdir(), "dd-eval-home-")); const prior = process.env.DD_EVAL_HOME;
   try {
