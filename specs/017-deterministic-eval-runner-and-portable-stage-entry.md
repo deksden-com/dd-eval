@@ -1769,6 +1769,9 @@ invented by `dd-eval`.  Each ready Work record already contains the exact
    settled for usage accounting. A native ACP adapter ingests its own
    provider-ID usage snapshot; the runner must not apply the Codex-transcript
    `session usage sync` command to that adapter's differently named Session.
+   If one Work in a launched wave fails, the runner still waits for every
+   already-launched sibling to settle; it never cancels healthy siblings merely
+   because their parent will ultimately report a failed wave.
 
 The probe is a RUN fact, not a Work: it first provisions fifteen disposable
 leaf Sessions without prompting them. Provisioning is setup, not an agent
