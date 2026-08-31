@@ -1766,7 +1766,9 @@ invented by `dd-eval`.  Each ready Work record already contains the exact
    `work finish` receipts and record terminal provider usage/timing samples,
    then continue the coordinator exactly once. A Work receipt can make its
    result usable, but is not permission to treat a still-live provider turn as
-   settled for usage accounting.
+   settled for usage accounting. A native ACP adapter ingests its own
+   provider-ID usage snapshot; the runner must not apply the Codex-transcript
+   `session usage sync` command to that adapter's differently named Session.
 
 The probe is a RUN fact, not a Work: it first provisions fifteen disposable
 leaf Sessions without prompting them. Provisioning is setup, not an agent

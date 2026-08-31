@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, stageSessionMode } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, stageSessionMode, workerUsageSource } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -106,6 +106,11 @@ test("capacity probe has an exact, disposable agent contract", () => {
   assert.match(prompt, /Do not call tools, read files, create children, or explain/);
   assert.match(prompt, /Wait exactly 60 seconds/);
   assert.match(prompt, /return exactly AGENT-07/);
+});
+
+test("ACP worker usage relies on the adapter's native usage ingestion", () => {
+  assert.equal(workerUsageSource({ harness: "zcode-acp" }), "adapter_ingested");
+  assert.equal(workerUsageSource({ harness: "codex-desktop" }), "session_sync");
 });
 
 test("fan-out worker recovery resumes the same Work after an unaccepted finish", () => {
