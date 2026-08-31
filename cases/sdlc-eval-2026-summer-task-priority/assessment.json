@@ -310,6 +310,32 @@
         ]
       }
     },
+    "merge": {
+      "note": "Judge safe serialized integration and proof on the integrated tree. Do not reward manual Git improvisation or extra cleanup.",
+      "outcome": [
+        {"id": "integration-correctness", "weight": 0.4, "essential": true},
+        {"id": "integrated-verification", "weight": 0.35, "essential": true},
+        {"id": "delivery-and-cleanup", "weight": 0.25, "essential": true}
+      ],
+      "flow": [
+        {"id": "queue-and-lock", "weight": 0.3, "essential": true},
+        {"id": "deterministic-apply", "weight": 0.25, "essential": true},
+        {"id": "merge-gate", "weight": 0.3, "essential": true},
+        {"id": "observability", "weight": 0.15, "essential": false}
+      ],
+      "golden": {
+        "required_outcomes": [
+          {"id": "GOLD-MERGE-001", "statement": "Integrate exactly the frozen accepted source through the configured serialized merge route without bypassing the queue or lock."},
+          {"id": "GOLD-MERGE-002", "statement": "Run the declared merge gate on the integrated tree, confirm the configured delivery target and retain or remove the source only according to policy."}
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {"id": "RISK-MERGE-001", "severity": "material", "statement": "A green source branch is not proof that the integrated target tree passes the merge gate."},
+          {"id": "RISK-MERGE-002", "severity": "material", "statement": "Do not repeat a mutating merge command because a long-running operation is quiet; wait for progress or a terminal result."}
+        ]
+      }
+    },
     "e2e": {
       "note": "Judge the complete chain for preservation, correction and code readiness. Stage quality and flow reliability remain separate vectors.",
       "outcome": [
@@ -327,7 +353,7 @@
       "golden": {
         "required_outcomes": [
           {"id": "GOLD-E2E-001", "statement": "Preserve four-value/default, stable-order and narrow archived-project priority-only decisions through all stages without scope drift."},
-          {"id": "GOLD-E2E-002", "statement": "Complete CODE from the accepted work graph, satisfy the accepted R/AC, pass focused and aggregate verification, and stop before MERGE."}
+          {"id": "GOLD-E2E-002", "statement": "Complete CODE from the accepted work graph, close material CODE-REVIEW findings, integrate the frozen result through MERGE and prove the configured target tree."}
         ],
         "accepted_strong_decisions": [],
         "accepted_alternatives": [],

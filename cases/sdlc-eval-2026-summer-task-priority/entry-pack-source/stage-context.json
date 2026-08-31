@@ -59,6 +59,18 @@
         {"role": "code_evidence", "root": "run", "path": "05-code/checks", "required": true, "reason": "Полный ограниченный набор доказательств проверок."},
         {"role": "scenarios", "root": "workspace", "path": ".memory-bank/scenarios", "required": true, "reason": "Сценарии приёмки функции."}
       ], "accepted_decisions": [], "dynamic_roles": [{"role": "changed_diff", "reason": "Дифф определяется по текущему живому рабочему дереву."}]
+    },
+    "merge": {
+      "schema_id": "dd-eval/stage-context@1", "stage": "merge",
+      "objective": "Интегрировать принятый результат CODE/CODE-REVIEW в настроенную целевую ветку и доказать корректность интегрированного дерева.", "task_input": [],
+      "sources": [
+        {"role": "accepted_plans", "root": "workspace", "path": ".memory-bank/protocol", "required": true, "reason": "Принятые протоколы и ограничения интегрируемой работы."},
+        {"role": "code_verification", "root": "run", "path": "05-code/code-verification.json", "required": true, "reason": "Квитанция обязательной верификации реализованной работы."},
+        {"role": "code_review", "root": "run", "path": "06-code-review", "required": true, "reason": "Принятое решение независимого ревью и закрытие существенных находок."}
+      ], "accepted_decisions": [], "dynamic_roles": [
+        {"role": "merge_request", "reason": "CLI сообщает идентификатор запроса, source commit, target baseline и текущую позицию в очереди."},
+        {"role": "merge_policy", "reason": "CLI сообщает режим исполнения, delivery strategy, cleanup policy и обязательный merge gate."}
+      ]
     }
   }
 }

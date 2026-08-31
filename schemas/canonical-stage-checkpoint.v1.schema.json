@@ -5,7 +5,7 @@
   "required": ["schema_id", "stage", "status"],
   "properties": {
     "schema_id": {"const": "dd-eval/canonical-stage-checkpoint@2"},
-    "stage": {"enum": ["specify", "protocolize", "plan", "plan-review", "code", "code-review"]},
+    "stage": {"enum": ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]},
     "status": {"enum": ["pending_capture", "accepted"]},
     "runtime_snapshot": {"type": ["object", "null"], "properties": {"locator": {"type": "string"}, "sha256": {"type": "string"}}},
     "subject": {

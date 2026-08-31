@@ -12,8 +12,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-046-task-priority-base-beta-138",
-    "sha256": "f5397fc7b517766b68bfbff991e72afe2b35eaa33a1fa0c90b03893323fb3a3e"
+    "id": "cp-047-task-priority-merge-main",
+    "sha256": "750de5928ced4b8456211f6f30eefa81f964db25f3b977ff8da3758a6b8bfd3b"
   },
   "entry_pack": "stage-entries/REV-117/entry-pack.json",
   "profiles": {
@@ -35,8 +35,9 @@
       "plan",
       "plan-review",
       "code",
-      "code-review"
+      "code-review",
+      "merge"
     ],
-    "terminal_stage": "code-review"
+    "terminal_stage": "merge"
   }
 }

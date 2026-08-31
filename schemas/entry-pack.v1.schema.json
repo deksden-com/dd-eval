@@ -9,7 +9,7 @@
     "revision": {"type": "string", "pattern": "^REV-[0-9]{3,}$"}, "title": {"type": "string", "minLength": 1},
     "input_checkpoint": {"type": "object"}, "flow": {"type": "object"}, "authoring": {"type": "object"},
     "stage_context": {"type": "string", "minLength": 1},
-    "entries": {"type": "object", "additionalProperties": false, "required": ["e2e", "specify", "protocolize", "plan", "plan-review", "code", "code-review"], "properties": {"e2e": {"type": "string", "minLength": 1}, "specify": {"type": "string", "minLength": 1}, "protocolize": {"type": "string", "minLength": 1}, "plan": {"type": "string", "minLength": 1}, "plan-review": {"type": "string", "minLength": 1}, "code": {"type": "string", "minLength": 1}, "code-review": {"type": "string", "minLength": 1}}},
+    "entries": {"type": "object", "additionalProperties": false, "required": ["e2e"], "properties": {"e2e": {"type": "string", "minLength": 1}, "specify": {"type": "string", "minLength": 1}, "protocolize": {"type": "string", "minLength": 1}, "plan": {"type": "string", "minLength": 1}, "plan-review": {"type": "string", "minLength": 1}, "code": {"type": "string", "minLength": 1}, "code-review": {"type": "string", "minLength": 1}, "merge": {"type": "string", "minLength": 1}}},
     "hashes": {"type": "object"}, "status": {"enum": ["candidate", "accepted"]}, "accepted_at": {"type": "string"},
     "acceptance_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
   },

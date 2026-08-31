@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "id": "cp-047-task-priority-merge-main",
+  "title": "Task Priority product baseline with the main flow pack including MERGE",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "a0103525501d382a1a7729f9f070acbc778fc7b1"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "a0103525501d382a1a7729f9f070acbc778fc7b1",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.0-main-0382f15",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "cef9b99504879782dfb51aad13535b6b4b4dcc35",
+      "version": "0.8.0-main-cef9b99"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "The product tree remains at the pre-priority baseline; only the accepted main flow pack is overlaid.",
+    "The checkpoint is intended to capture a fresh code-review entry and the first MERGE entry under one immutable engine/flow pair."
+  ]
+}

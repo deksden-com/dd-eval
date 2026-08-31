@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-5-6-sol-high-dd-flow-main-cef9b99",
+  "harness": "codex-desktop",
+  "model": "gpt-5.6-sol",
+  "reasoning": "high",
+  "notes": "Interaction or final Judge profile for the main flow/engine pair pinned by cp-047."
+}

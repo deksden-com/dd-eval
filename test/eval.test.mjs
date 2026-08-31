@@ -21,10 +21,10 @@ test("active case exposes its accepted portable entry pack without Session start
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-046-task-priority-base-beta-138");
-  assert.equal(loaded.inputCheckpoint.value.source.commit, "a924495a5fef8a53b3ba6dc0f9408023ae7e569c");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "b93021e1ffb0b47145e33b2535ed51c31a2ab438");
-  assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review"]);
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-047-task-priority-merge-main");
+  assert.equal(loaded.inputCheckpoint.value.source.commit, "a0103525501d382a1a7729f9f070acbc778fc7b1");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "a0103525501d382a1a7729f9f070acbc778fc7b1");
+  assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
 
 test("accepted case validates only its declared entry pack", async () => {
@@ -38,7 +38,7 @@ test("run profiles are explicit experiments rather than harness defaults", async
   const reference = await loadRunProfile(buildProfile); const qualification = await loadRunProfile(qualificationProfile);
   assert.equal(reference.value.selection.e2e, false);
   assert.deepEqual(reference.value.selection.focused_stages, []);
-  assert.equal(qualification.value.selection.focused_stages.length, 6);
+  assert.equal(qualification.value.selection.focused_stages.length, 7);
   assert.equal(qualification.value.selection.e2e, false);
   assert.equal(reference.value.subject.profile_id, qualification.value.subject.profile_id);
 });
@@ -76,7 +76,8 @@ test("qualification cannot pass while any execution failed", () => {
 test("focused result checkpoints preserve a legal successor entry", () => {
   assert.deepEqual(resultCheckpointMode("plan-review"), { purpose: "stage_entry", stage_entry: "code" });
   assert.deepEqual(resultCheckpointMode("code"), { purpose: "stage_entry", stage_entry: "code-review" });
-  assert.deepEqual(resultCheckpointMode("code-review"), { purpose: "candidate", stage_entry: null });
+  assert.deepEqual(resultCheckpointMode("code-review"), { purpose: "stage_entry", stage_entry: "merge" });
+  assert.deepEqual(resultCheckpointMode("merge"), { purpose: "candidate", stage_entry: null });
 });
 
 test("resume reuses an in-flight immutable snapshot instead of treating it as a conflict", async () => {
