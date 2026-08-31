@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, stageSessionMode, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, stageSessionMode, workerUsageSource } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -157,12 +157,14 @@ test("settled fan-out fingerprint changes when a repair Work changes the graph",
 });
 
 test("scored run refuses an uncommitted eval definition before creating a provider Session", async () => {
-  const home = await mkdtemp(path.join(tmpdir(), "dd-eval-runner-")); const prior = process.env.DD_EVAL_HOME; process.env.DD_EVAL_HOME = home;
+  const repository = await mkdtemp(path.join(tmpdir(), "dd-eval-definition-"));
   try {
-    await assert.rejects(evalRun({ profileFile: qualificationProfile }), /clean committed dd-eval definition tree/);
+    await run("git", ["init", "--initial-branch=main", repository]);
+    await run("git", ["-C", repository, "-c", "user.email=eval@example.invalid", "-c", "user.name=Eval", "commit", "--allow-empty", "-m", "initial"]);
+    await writeFile(path.join(repository, "dirty"), "dirty\n");
+    await assert.rejects(committedDefinitionIdentity(repository), /clean committed dd-eval definition tree/);
   } finally {
-    if (prior === undefined) delete process.env.DD_EVAL_HOME; else process.env.DD_EVAL_HOME = prior;
-    await rm(home, { recursive: true, force: true });
+    await rm(repository, { recursive: true, force: true });
   }
 });
 
