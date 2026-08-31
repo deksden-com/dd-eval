@@ -43,6 +43,14 @@ test("run profiles are explicit experiments rather than harness defaults", async
   assert.equal(reference.value.subject.profile_id, qualification.value.subject.profile_id);
 });
 
+test("ZCode diagnostics expose one focused profile for every flow stage", async () => {
+  for (const stage of ["specify", "protocolize", "plan", "plan-review", "code", "code-review"]) {
+    const profile = await loadRunProfile(path.join(root, "cases", caseId, "run-profiles", `diagnose-${stage}-zcode-glm-5-3-high.json`));
+    assert.deepEqual(profile.value.selection, { focused_stages: [stage], segment: null, e2e: false, repetitions: 1 });
+    assert.equal(profile.value.subject.profile_id, "zcode-acp-zai-glm-5-3-high");
+  }
+});
+
 test("driver invocations preserve every declared harness profile field", () => {
   const profile = { harness: "zcode-acp", provider: "builtin:zai-coding-plan", model: "GLM-5.3", reasoning: "high", mode: "yolo" };
   assert.deepEqual(driverProfileArgs(profile, ["session", "create", "--cwd", "/tmp"]), ["session", "create", "--cwd", "/tmp", "--provider", "builtin:zai-coding-plan", "--model", "GLM-5.3", "--reasoning", "high", "--mode", "yolo"]);
