@@ -1,8 +1,8 @@
 {
   "schema_id": "dd-eval/run-profile@1",
-  "id": "build-entry-pack-reference-terra-high",
+  "id": "build-entry-pack-reference-sol-high",
   "case_id": "sdlc-eval-2026-summer-task-priority",
-  "subject": {"profile_id": "codex-desktop-gpt-5-6-terra-high-dd-flow-main-cef9b99"},
+  "subject": {"profile_id": "codex-desktop-gpt-5-6-sol-high-dd-flow-main-cef9b99"},
   "selection": {"focused_stages": [], "segment": null, "e2e": false, "repetitions": 1},
   "judge": {"enabled": false},
   "interaction_judge": {"profile_id": "codex-desktop-gpt-5-6-sol-high-dd-flow-main-cef9b99"},
