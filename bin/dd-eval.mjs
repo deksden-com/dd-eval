@@ -14,7 +14,7 @@ Usage:
   dd-eval runner canonical boundary accept --build <path> --stage <stage> --review <file>
   dd-eval runner canonical qualify --build <path> --profile <run-profile.json>
   dd-eval runner canonical qualification recover --build <path> --receipt <qualification-receipt.json>
-  dd-eval runner canonical accept --build <path> --entry <e2e|stage> --review <file>
+  dd-eval runner canonical accept --build <path> --entry <stage> --review <file>
   dd-eval runner eval run --profile <run-profile.json>
   dd-eval runner eval judge --eval <path> [--profile <judge-profile-id>]
   dd-eval runner status --eval <path>

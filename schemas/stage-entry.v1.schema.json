@@ -11,6 +11,7 @@
     "checkpoint_id": {"type": "string", "minLength": 1},
     "stage": {"enum": ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]},
     "snapshot": {"type": "object", "additionalProperties": false, "required": ["kind", "locator", "manifest_sha256", "run_id"], "properties": {"kind": {"enum": ["bootstrap", "run"]}, "locator": {"type": "string", "minLength": 1}, "manifest_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "run_id": {"type": ["string", "null"]}}},
+    "engine": {"type": "object", "description": "Deprecated authoring provenance accepted only for historical entries."},
     "context_slice_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "semantic_package_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
   }

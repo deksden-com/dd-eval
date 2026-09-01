@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, stageSessionMode, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, workerUsageSource } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -27,9 +27,15 @@ test("authoring case pins its next canonical pair without Session starter state"
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
 
-test("an authoring case cannot be scored until a new accepted pack is promoted", async () => {
+test("an authoring case has no focused fixtures until an accepted pack is promoted", async () => {
   await assert.rejects(fixturesValidate({ caseId }), /authoring case requires --revision/);
   await assert.rejects(fixturesValidate({ caseId, revision: "REV-001" }), /not found|Invalid JSON/);
+});
+
+test("E2E starts from case input while focused and segment runs require an entry pack", () => {
+  assert.equal(selectionNeedsEntryPack([{ mode: "e2e" }]), false);
+  assert.equal(selectionNeedsEntryPack([{ mode: "e2e" }, { mode: "focused" }]), true);
+  assert.equal(selectionNeedsEntryPack([{ mode: "segment" }]), true);
 });
 
 test("run profiles are explicit experiments rather than harness defaults", async () => {

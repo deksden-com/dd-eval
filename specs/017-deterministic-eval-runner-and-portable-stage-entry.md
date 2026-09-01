@@ -41,8 +41,9 @@ provider Session, an operator-created RUN, or a manually copied artifact.
 
 1. An author commits a case in `authoring` state. Its mutable
    `entry-pack-source/` declares task input, per-stage context roles, allowed
-   HITL responses and assessment material. `entry_pack` is `null`: it cannot
-   be scored yet.
+   HITL responses and assessment material. `entry_pack` is `null`: focused and
+   segment runs cannot be scored yet, while E2E may start from the committed
+   case input checkpoint.
 2. `canonical build --profile … --project-root … --flow-root …` first requires
    a clean, committed dd-eval definition tree, then records its commit and
    tree hash. It verifies the product checkout against the case's declared
@@ -187,8 +188,9 @@ dual execution path.
 - **Stage-entry fixture** — accepted, immutable, harness-neutral input for one
   stage: project snapshot, RUN/runtime snapshot, semantic context descriptor and
   Subject interaction-policy reference.
-- **Eval Entry Pack** — one accepted case revision containing the E2E entry and
-  every focused-stage entry declared runnable for that case. Its identity is
+- **Eval Entry Pack** — one accepted case revision containing every
+  focused-stage entry declared runnable for that case. E2E starts directly from
+  the case input checkpoint. Its identity is
   `<case-id>@<revision>`; no separate registry or opaque ID is introduced.
 - **Semantic context package** — path-independent description of everything a
   Subject is entitled to know at stage entry.
@@ -340,7 +342,6 @@ cases/<case-id>/
   entry-pack-source/interactions/<stage>.json
   stage-entries/REV-<NNN>/entry-pack.json
   stage-entries/REV-<NNN>/stage-context.json
-  stage-entries/REV-<NNN>/e2e.json
   stage-entries/REV-<NNN>/<stage>.json
   context-oracles/REV-<NNN>/<stage>.json
   interactions/REV-<NNN>/<stage>.json
@@ -412,8 +413,7 @@ Strict `dd-eval/entry-pack@1` is the atomic index of one case revision:
   "flow": {
     "kind": "vnext_protocolize",
     "entry_stage": "specify",
-    "terminal_stage": "code-review",
-    "engine_sha256": "...",
+    "terminal_stage": "merge",
     "flow_pack_sha256": "..."
   },
   "authoring": {
@@ -421,11 +421,10 @@ Strict `dd-eval/entry-pack@1` is the atomic index of one case revision:
     "profile_id": "...",
     "build_trace_sha256": "..."
   },
-  "stage_context": {"path": "stage-context.json", "sha256": "..."},
-  "e2e": {"path": "e2e.json", "sha256": "..."},
-  "focused_entries": {
-    "specify": {"path": "specify.json", "sha256": "..."},
-    "protocolize": {"path": "protocolize.json", "sha256": "..."}
+  "stage_context": "stage-context.json",
+  "entries": {
+    "specify": "specify.json",
+    "protocolize": "protocolize.json"
   },
   "status": "accepted",
   "accepted_at": "...",
@@ -458,11 +457,12 @@ and flow trigger without inventing a Controller summary. Explicitly accepted
 pre-flow decisions may be indexed separately, with evidence back to the source
 message.
 
-A new case starts as `status: authoring` with `entry_pack: null`; only
-`canonical build` may consume that form. Final pack acceptance atomically sets
-`status: runnable` and the relative `entry_pack` pointer. `eval run` accepts only
-`runnable`. This is one case schema with a conditional invariant, not a second
-draft format.
+A new case starts as `status: authoring` with `entry_pack: null`. `canonical
+build` produces focused-stage fixtures; E2E may execute directly from the
+committed input checkpoint. Final pack acceptance atomically sets `status:
+runnable` and the relative `entry_pack` pointer, enabling focused and segment
+runs. This is one case schema with a conditional invariant, not a second draft
+format.
 
 The final `canonical accept` operation writes the accepted manifest and updates
 `case.json.entry_pack` to its relative path under one build lock. The build
@@ -483,7 +483,6 @@ The implementation adds strict `dd-eval/stage-entry@1`. Its semantic shape is:
   "checkpoint_id": "STG-PLAN-ENTRY-001",
   "source": {
     "input_checkpoint_id": "cp-...",
-    "engine": {"id": "...", "sha256": "..."},
     "flow_pack": {"id": "...", "sha256": "..."}
   },
   "snapshot": {
@@ -1006,16 +1005,21 @@ the author supplies only:
 
 `canonical build` queries the selected flow pack for legal stages and advances
 only the declared reference contour. A case may expose one focused stage, a
-subset, or a complete contour. A missing stage entry prevents only selections
-that require it; an accepted E2E entry can still run when no focused entries are
-declared. One run profile evaluates one case; a later multi-case suite command
-is unnecessary until a real use case requires it.
+subset, or a complete contour. A missing stage entry prevents only focused or
+segment selections that require it; E2E starts directly from the case input
+checkpoint and does not require an accepted entry pack. One run profile
+evaluates one case; a later multi-case suite command is unnecessary until a
+real use case requires it.
 
 ### Revision and invalidation rules
 
-- A change to Subject-visible task facts, project/runtime snapshot, accepted
-  predecessor output, source mapping, flow pack or engine creates a new entry
-  pack revision and recaptures every affected downstream entry.
+- A stage-entry package is invalidated only when its saved Subject-visible
+  context changed or is proved incomplete, corrupt or incompatible. Recreate
+  the first affected entry and its downstream dependants; retain earlier ones.
+- A harness, adapter, runner, CLI or engine change does not invalidate an entry
+  by itself. Investigate whether the changed behavior altered the saved
+  project/RUN snapshot or stage context. If not, reuse the entry. The execution
+  resolves and records its own engine separately from authoring provenance.
 - A change only to assessment or final-Judge methodology does not recapture the
   entry pack. Its new hash is recorded by the run profile and resolved manifest.
 - A change to a canonical HITL answer changes the interaction-control revision
@@ -1081,7 +1085,7 @@ dd-eval runner canonical engine capture --build <path>
 dd-eval runner canonical boundary accept --build <path> --stage <stage> --review <file>
 dd-eval runner canonical qualify --build <path> --profile <run-profile.json>
 dd-eval runner canonical qualification recover --build <path> --receipt <old-qualification-receipt.json>
-dd-eval runner canonical accept --build <path> --entry <e2e|stage-name> --review <file>
+dd-eval runner canonical accept --build <path> --entry <stage-name> --review <file>
 dd-eval runner canonical resume --build <path>
 dd-eval runner fixtures validate --case <case-id> [--revision <REV>]
 dd-eval runner eval run --profile <run-profile.json>
@@ -1138,9 +1142,8 @@ write `entry-pack.json`. There is no separate manual finalize command.
 a candidate entry. It uses normal runner/driver machinery but writes diagnostic
 evidence under the canonical build and never a scored eval result. `canonical
 accept` rejects a focused entry without its required successful focused
-qualification receipt and explicit semantic review. The initial E2E descriptor
-requires the same pack-level focused qualification and its explicit semantic
-review, but not a separate E2E traversal.
+qualification receipt and explicit semantic review. E2E has no canonical
+descriptor or entry review; it starts from the case input checkpoint.
 
 Canonical construction has its own append-only build journal and projection
 under the pending canonical revision. `canonical build` is resumable: after a
@@ -1882,8 +1885,8 @@ these decisions.
 7. Package gaps update only affected stage slices/entries. The runner marks
    dependent qualification receipts stale and reruns them; diagnostic Subject
    output never updates the reference chain.
-8. A clean semantic review plus explicit human review accepts each entry. The
-   E2E descriptor is reviewed as an entry, not gated by an E2E execution.
+8. A clean semantic review plus explicit human review accepts each focused
+   stage entry. E2E has no canonical entry to review.
 9. Final `canonical accept` writes `entry-pack.json`, updates the sole
    `case.json.entry_pack` pointer and reports `promoted_pending_commit`.
 10. The operator reviews, commits and pushes the dd-eval definition tree. A
@@ -2012,9 +2015,9 @@ rationale rather than rewriting history.
     coordinator.  It has no PLAN-REVIEW/CODE-specific scheduler branch and
     never manufactures a Work result.
 13. Migrate `sdlc-eval-2026-summer-task-priority` to Task Priority SDLC Entry
-    Pack, including six focused entries, the E2E entry, context oracles and
+    Pack, including every focused entry, context oracles and
     semantic HITL responses.
-14. Add its Codex `gpt-5.6-terra` high qualification profile and require its six
+14. Add its Codex `gpt-5.6-terra` high qualification profile and require all
     focused receipts before pack acceptance. Keep clean E2E as a separately
     selectable integration profile.
 
@@ -2199,11 +2202,11 @@ The specification is implemented when:
     lifecycle procedure;
 12. no active compatibility or fallback path depends on the former starter
     registry;
-13. Task Priority SDLC Entry Pack contains one accepted E2E entry and all six
-    accepted focused-stage entries;
+13. Task Priority SDLC Entry Pack contains every declared focused-stage entry;
+    E2E starts directly from the case input checkpoint;
 14. another case with a different contour can build and run without changing
     runner code;
-15. all six Task Priority focused entries have Codex Terra-high qualification
+15. all Task Priority focused entries have Codex Terra-high qualification
     receipts and reviewed context diagnostics;
 16. E2E stage starts bind only the current blueprint slice to live Subject
     outputs and cannot read canonical downstream artifacts or future slices.

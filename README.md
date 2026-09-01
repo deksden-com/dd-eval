@@ -296,14 +296,16 @@ The command-line executable is named `dd-eval`. `dd-deval` is not an alias and
 must not appear in manifests, documentation, reports, or automation.
 
 The active contract is `case@6` and [specification 017](specs/017-deterministic-eval-runner-and-portable-stage-entry.md).
-It uses one portable entry pack, a new empty Subject Session for every focused
-stage, and `dd-eval runner` as the only ordinary command surface.
+Focused and segment runs restore one portable stage-entry pack; E2E starts
+directly from the case input checkpoint. Every run creates a new empty Subject
+Session and uses `dd-eval runner` as the only ordinary command surface.
 
 `sdlc-eval-2026-summer-task-priority` declares the full
-`SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW → CODE → CODE-REVIEW` contour.
-Its entry pack contains the initial E2E boundary plus an independent accepted
-boundary for every focused stage. The package, rather than a provider Session
-or fork, is the comparable cross-harness input.
+`SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW → CODE → CODE-REVIEW → MERGE`
+contour. Its entry pack contains one independent accepted start package for
+every focused stage. The package, rather than a provider Session or fork, is
+the comparable cross-harness input. Harness, adapter, runner and CLI changes do
+not invalidate it unless they changed or corrupted the saved start context.
 
 ```sh
 export DD_EVAL_HOME="$HOME/.dd-eval"
