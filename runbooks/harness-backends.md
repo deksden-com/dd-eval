@@ -26,6 +26,19 @@ harness. Routine focused evals use a new empty Session for every harness;
 native fork capability is optional diagnostic functionality, never a required
 baseline or fallback.
 
+## Codex Desktop
+
+`dd-codex` owns an isolated app-server daemon for one eval execution.  Its
+append-only JSONL journal keeps provider item notifications as the transcript;
+routine `thread/read` polls are compact status receipts so the same full
+history is not copied on every poll.  `session cancel` accepts a Session ID:
+when no Turn ID is supplied it reads the active provider turn once and
+interrupts that turn.  If a compact poll reports an idle Session without turn
+details, the adapter performs one full read to reconcile the terminal turn.
+
+The runner therefore waits for the provider terminal event or a registered
+`dd-flow` lifecycle receipt; silence alone is never a cancellation condition.
+
 ## Antigravity CLI
 
 `dd-agy` controls the official Antigravity CLI `1.1.22` headless streaming
