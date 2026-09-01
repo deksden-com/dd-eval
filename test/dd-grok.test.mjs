@@ -29,7 +29,7 @@ test("dd-grok uses native ACP Sessions and x.ai extensions", async () => {
       if(method==="initialize") result={protocolVersion:1,_meta:{modelState:{currentModelId:"grok-4.6",availableModels:[{modelId:"grok-4.6",_meta:{reasoningEffort:"high"}}]}}};
       else if(method==="session/new") result={sessionId:"native-root"};
       else if(method==="session/load") result={};
-      else if(method==="session/prompt") { send({jsonrpc:"2.0",method:"session/update",params:{sessionId:params.sessionId,update:{sessionUpdate:"tool_call",toolCallId:"tool-1",title:"Bash: true",rawInput:{command:"true"},_meta:{claudeCode:{toolName:"Bash"}}}}}); result={stopReason:"end_turn"}; }
+      else if(method==="session/prompt") { send({jsonrpc:"2.0",method:"session/update",params:{sessionId:params.sessionId,update:{sessionUpdate:"agent_message_chunk",content:{type:"text",text:"AGENT-01"}}}}); send({jsonrpc:"2.0",method:"session/update",params:{sessionId:params.sessionId,update:{sessionUpdate:"tool_call",toolCallId:"tool-1",title:"Bash: true",rawInput:{command:"true"},_meta:{claudeCode:{toolName:"Bash"}}}}}); result={stopReason:"end_turn"}; }
       else if(method==="_x.ai/session/info") result={result:{sessionId:params.sessionId,data:{model:"grok-4.6"}}};
       else if(method==="_x.ai/session/usage") result={result:{sessionId:params.sessionId,totalTokens:15,inputTokens:12,outputTokens:3}};
       else if(method==="_x.ai/subagent/list_running") result={result:{subagents:[]}};
@@ -50,7 +50,7 @@ test("dd-grok uses native ACP Sessions and x.ai extensions", async () => {
     }
     const created = await createSession(common);
     assert.equal(created.provider_session_id, "native-root"); assert.deepEqual(created.evidence.tool_calls, { total: 0, failures: 0, by_tool: {} });
-    const prompted = await promptSession({ ...common, sessionId: "native-root", prompt: "work" }); assert.equal(prompted.turn.stopReason, "end_turn");
+    const prompted = await promptSession({ ...common, sessionId: "native-root", prompt: "work" }); assert.equal(prompted.turn.stopReason, "end_turn"); assert.equal(prompted.assistant_text, "AGENT-01");
     const forked = await forkSession({ ...common, sessionId: "native-root", target: { newCwd: root } }); assert.equal(forked.provider_session_id, "native-fork");
     const lines = (await readFile(journal, "utf8")).trim().split("\n").map(JSON.parse); assert.ok(lines.some((line) => line.kind === "outbound" && line.payload.method === "_x.ai/session/fork")); assert.ok(lines.some((line) => line.kind === "outbound" && line.payload.method === "_x.ai/session/usage"));
   } finally { await rm(root, { recursive: true, force: true }); }
