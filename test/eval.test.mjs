@@ -108,6 +108,8 @@ test("normal, resumed, judged, and cancelled runs share one terminal projection"
   assert.equal((source.match(/finalizeRunProjection\(\{/g) ?? []).length >= 4, true);
   assert.match(source, /await writeJsonAtomic\(path\.join\(root, "state\.json"\), projection\)/);
   assert.match(source, /existing candidate does not match completed executions/);
+  assert.match(source, /state !== "awaiting_provider"/);
+  assert.match(source, /event\.type === "dev\.dd\.eval\.execution\.cancelled"/);
 });
 
 test("a local engine override refreshes a same-version runtime snapshot", async () => {
