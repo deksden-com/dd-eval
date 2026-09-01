@@ -82,6 +82,17 @@ test("Codex adapter hydrates one terminal Turn after an idle compact read", asyn
   ]);
 });
 
+test("Codex adapter accepts a final message when app-server omits a terminal Turn", async () => {
+  const turnId = "turn-001";
+  const bridge = {
+    turns: new Map(),
+    finalMessages: new Map([["thread-001", { item: { type: "agentMessage", text: "done" }, completedAt: Date.now() - 1_000 }]]),
+    request: async (method) => method === "turn/start" ? { turn: { id: turnId } } : { thread: { id: "thread-001", status: { type: "active" }, turns: [] } }
+  };
+  const result = await promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" });
+  assert.equal(result.turn.turn.synthetic, true);
+});
+
 test("Codex adapter interrupts one explicitly identified Turn", async () => {
   const calls = [];
   const bridge = { request: async (method, params) => { calls.push({ method, params }); return {}; } };
