@@ -65,6 +65,14 @@ test("Codex adapter fails closed when a persisted Turn was interrupted", async (
   await assert.rejects(() => promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" }), { code: "turn_interrupted" });
 });
 
+test("Codex adapter interrupts one explicitly identified Turn", async () => {
+  const calls = [];
+  const bridge = { request: async (method, params) => { calls.push({ method, params }); return {}; } };
+  const { cancelSessionWithBridge } = await import("../lib/dd-codex.mjs");
+  await cancelSessionWithBridge(bridge, { sessionId: "thread-001", turnId: "turn-001" });
+  assert.deepEqual(calls, [{ method: "turn/interrupt", params: { threadId: "thread-001", turnId: "turn-001" } }]);
+});
+
 test("daemon client fails promptly when a stopped daemon closes an active request", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "dd-codex-test-"));
   const socket = path.join(directory, "daemon.sock");
