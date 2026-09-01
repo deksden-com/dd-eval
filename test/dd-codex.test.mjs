@@ -65,6 +65,23 @@ test("Codex adapter fails closed when a persisted Turn was interrupted", async (
   await assert.rejects(() => promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" }), { code: "turn_interrupted" });
 });
 
+test("Codex adapter hydrates one terminal Turn after an idle compact read", async () => {
+  const turnId = "turn-001"; const calls = [];
+  const bridge = {
+    turns: new Map(),
+    request: async (method, params) => {
+      calls.push({ method, params });
+      if (method === "turn/start") return { turn: { id: turnId } };
+      if (method !== "thread/read") return {};
+      return params.includeTurns ? { thread: { status: { type: "idle" }, turns: [{ id: turnId, status: "completed" }] } } : { thread: { status: { type: "idle" } } };
+    }
+  };
+  await promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" });
+  assert.deepEqual(calls.slice(0, 4).map(({ method, params }) => [method, params.includeTurns]), [
+    ["thread/read", false], ["turn/start", undefined], ["thread/read", false], ["thread/read", true]
+  ]);
+});
+
 test("Codex adapter interrupts one explicitly identified Turn", async () => {
   const calls = [];
   const bridge = { request: async (method, params) => { calls.push({ method, params }); return {}; } };
