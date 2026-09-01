@@ -110,7 +110,7 @@ test("accepted boundary clears the terminal turn marker before a successor launc
 
 test("stage launcher makes registered HITL pause the only way to ask a material question", () => {
   const launcher = entryLauncher({ stage: "specify", entry: { snapshot: { run_id: null } }, projectRoot: "/project", runtimeRoot: "/runtime", contextFile: "/context.json", contextSha256: "a".repeat(64), profile: {} });
-  assert.match(launcher, /"\/runtime\/bin\/dd-flow" stage start/);
+  assert.match(launcher, /DD_FLOW_BIN="\/runtime\/bin\/dd-flow" "\/runtime\/bin\/dd-flow" stage start/);
   assert.match(launcher, /run the exact `stage pause` lifecycle command/);
   assert.match(launcher, /Otherwise finish this Stage/);
 });
