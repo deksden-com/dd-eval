@@ -13,16 +13,17 @@ const buildProfile = path.join(root, "cases", caseId, "run-profiles", "build-ent
 const qualificationProfile = path.join(root, "cases", caseId, "run-profiles", "qualify-entry-pack-terra-high.json");
 const run = promisify(execFile);
 
-test("case pins its input checkpoint without Session starter state", async () => {
+test("case pins its input checkpoint and exact engine without Session starter state", async () => {
   const loaded = await loadCase(caseId);
   assert.equal(loaded.value.schema_id, "dd-eval/case@7");
   assert.equal(loaded.value.entry_pack, null);
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-055-task-priority-clean-baseline-flow-0-9-0-beta-1");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-056-task-priority-clean-baseline-flow-0-8-0");
   assert.equal(loaded.inputCheckpoint.value.source.commit, "a924495a5fef8a53b3ba6dc0f9408023ae7e569c");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "3a9079052dc6a888d436d88e4d1277cbf34f81a6");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.8.0");
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
 

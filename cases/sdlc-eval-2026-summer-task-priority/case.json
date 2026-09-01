@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-055-task-priority-clean-baseline-flow-0-9-0-beta-1",
-    "sha256": "92cf84b4e7dcc81760fab4b64e6191fee0bea419afabcd0813cdd922a00f7e17"
+    "id": "cp-056-task-priority-clean-baseline-flow-0-8-0",
+    "sha256": "0c10e5257c140b3d3104f2cf3db8b8b154dde0608da532b75d8ea4e055ad2f77"
   },
   "entry_pack": null,
   "profiles": {

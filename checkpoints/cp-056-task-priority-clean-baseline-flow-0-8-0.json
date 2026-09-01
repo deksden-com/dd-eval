@@ -1,0 +1,32 @@
+{
+  "schema_version": 2,
+  "id": "cp-056-task-priority-clean-baseline-flow-0-8-0",
+  "title": "Task Priority clean product baseline with stable flow 4.0.0 / dd-flow 0.8.0",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "3a9079052dc6a888d436d88e4d1277cbf34f81a6",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.0",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "f0a5e35190c960c16caa0913837d4426b3c35db7",
+      "version": "0.8.0"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "The source commit predates Task Priority, so the evaluated request is not already implemented.",
+    "The runner overlays the pinned flow pack without copying product code from the flow-pack commit.",
+    "Flow 4.0.0 declares dd-flow 0.8.0 as its stable compatible engine. The runner verifies this exact version before a subject Session is created.",
+    "dd-flow 0.9.0-beta.1 remains a separate beta experiment until a canon release explicitly declares its compatibility."
+  ]
+}
