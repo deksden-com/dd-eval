@@ -142,8 +142,9 @@ test("ACP worker usage relies on the adapter's native usage ingestion", () => {
 test("fan-out worker recovery resumes the same Work after an unaccepted finish", () => {
   const prompt = fanoutWorkerRecoveryPrompt({ workId: "WRK-001" });
   assert.match(prompt, /still running/);
-  assert.match(prompt, /failed check receipt/);
+  assert.match(prompt, /failed-check receipt/);
   assert.match(prompt, /Do not create another Work/);
+  assert.match(prompt, /Do not send a prose completion message/);
 });
 
 test("a terminal coordinator Turn with a running Stage receives a finish-only recovery", async () => {

@@ -71,6 +71,11 @@ test("Codex adapter keeps waiting for alternate active Turn spellings", async ()
   assert.match(source, /\["completed", "failed", "interrupted", "cancelled"\]/);
 });
 
+test("Codex adapter does not mistake an idle Thread with a stale active Turn for a terminal one", async () => {
+  const source = await (await import("node:fs/promises")).readFile(new URL("../lib/dd-codex.mjs", import.meta.url), "utf8");
+  assert.match(source, /hydrated\?\.turn && isTerminalTurnStatus\(hydrated\.turn\.status\)/);
+});
+
 test("Codex adapter hydrates one terminal Turn after an idle compact read", async () => {
   const turnId = "turn-001"; const calls = [];
   const bridge = {
