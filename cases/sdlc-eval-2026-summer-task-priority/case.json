@@ -12,8 +12,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-051-task-priority-engine-pinned-contract",
-    "sha256": "294ad7810cd74498b97593923b802e667e4ddfeea29352d3628f0958a9dc0a21"
+    "id": "cp-052-task-priority-inline-merge-engine",
+    "sha256": "659f33aba2d51c58c7754d79600f66d66d5156ac7f90de6646c29ce8c1c323b6"
   },
   "entry_pack": null,
   "profiles": {
@@ -21,6 +21,7 @@
       "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-126",
       "codex-desktop-gpt-5-6-terra-high-dd-flow-0-8-0-beta-138",
       "codex-desktop-gpt-5-6-sol-high-dd-flow-0-8-0-beta-138",
+      "grok-acp-xai-grok-4-6-high",
       "zcode-acp-zai-glm-5-3-high",
       "zcode-acp-zai-glm-5-3-flash-high"
     ],
