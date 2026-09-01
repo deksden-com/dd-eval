@@ -76,6 +76,12 @@ test("Codex adapter does not mistake an idle Thread with a stale active Turn for
   assert.match(source, /hydrated\?\.turn && isTerminalTurnStatus\(hydrated\.turn\.status\)/);
 });
 
+test("Codex adapter falls back to the final message when hydrated Turn is still active", async () => {
+  const source = await (await import("node:fs/promises")).readFile(new URL("../lib/dd-codex.mjs", import.meta.url), "utf8");
+  const occurrences = source.match(/hydrated\?\.turn && isTerminalTurnStatus\(hydrated\.turn\.status\)/g) ?? [];
+  assert.equal(occurrences.length, 2);
+});
+
 test("Codex adapter hydrates one terminal Turn after an idle compact read", async () => {
   const turnId = "turn-001"; const calls = [];
   const bridge = {
