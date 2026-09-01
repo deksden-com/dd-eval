@@ -73,6 +73,17 @@ test("Codex adapter interrupts one explicitly identified Turn", async () => {
   assert.deepEqual(calls, [{ method: "turn/interrupt", params: { threadId: "thread-001", turnId: "turn-001" } }]);
 });
 
+test("Codex adapter finds and interrupts the active Turn when only a Session is supplied", async () => {
+  const calls = [];
+  const bridge = { request: async (method, params) => { calls.push({ method, params }); return method === "thread/read" ? { thread: { turns: [{ id: "turn-done", status: "completed" }, { id: "turn-live", status: "inProgress" }] } } : {}; } };
+  const { cancelSessionWithBridge } = await import("../lib/dd-codex.mjs");
+  await cancelSessionWithBridge(bridge, { sessionId: "thread-001" });
+  assert.deepEqual(calls, [
+    { method: "thread/read", params: { threadId: "thread-001", includeTurns: true } },
+    { method: "turn/interrupt", params: { threadId: "thread-001", turnId: "turn-live" } }
+  ]);
+});
+
 test("daemon client fails promptly when a stopped daemon closes an active request", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "dd-codex-test-"));
   const socket = path.join(directory, "daemon.sock");
