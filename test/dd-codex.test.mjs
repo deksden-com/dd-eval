@@ -17,6 +17,22 @@ test("Codex eval Sessions trust only the generated hook environment", async () =
   } }]);
 });
 
+test("Codex Session creation does not misreport the default reasoning before its first Turn", async () => {
+  const bridge = { request: async () => ({ thread: { id: "thread-001", model: "gpt-5.6-luna", reasoningEffort: "high" } }) };
+  const created = await createSessionWithBridge(bridge, { cwd: "/tmp", model: "gpt-5.6-luna", reasoning: "xhigh" });
+  assert.deepEqual(created.observed_profile, { model: "gpt-5.6-luna" });
+});
+
+test("Codex Turn reports the applied reasoning rather than the requested value", async () => {
+  const turnId = "turn-001";
+  const bridge = {
+    turns: new Map([[turnId, { status: "completed", value: { turn: { status: "completed" } } }]]),
+    request: async (method) => method === "turn/start" ? { turn: { id: turnId } } : { thread: { id: "thread-001", model: "gpt-5.6-luna", reasoningEffort: "xhigh", status: { type: "idle" } } }
+  };
+  const result = await promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply", model: "gpt-5.6-luna", reasoning: "xhigh" });
+  assert.deepEqual(result.observed_profile, { model: "gpt-5.6-luna", reasoning: "xhigh" });
+});
+
 test("Codex adapter reads the terminal agent message when thread history is summarized", async () => {
   const turnId = "turn-001";
   const bridge = {

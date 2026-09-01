@@ -59,7 +59,7 @@ test("ZCode diagnostics expose one focused profile for every flow stage", async 
 test("driver invocations preserve every declared harness profile field", () => {
   const profile = { harness: "zcode-acp", provider: "builtin:zai-coding-plan", model: "GLM-5.3", reasoning: "high", mode: "yolo" };
   assert.deepEqual(driverProfileArgs(profile, ["session", "create", "--cwd", "/tmp"]), ["session", "create", "--cwd", "/tmp", "--provider", "builtin:zai-coding-plan", "--model", "GLM-5.3", "--reasoning", "high", "--mode", "yolo"]);
-  assert.deepEqual(driverProfileArgs(profile, ["daemon", "start"]), ["daemon", "start"]);
+  assert.deepEqual(driverProfileArgs(profile, ["daemon", "start"]), ["daemon", "start", "--provider", "builtin:zai-coding-plan", "--model", "GLM-5.3", "--reasoning", "high", "--mode", "yolo"]);
   assert.deepEqual(driverProfileArgs(profile, ["session", "create", "--provider", "override"]), ["session", "create", "--provider", "override", "--model", "GLM-5.3", "--reasoning", "high", "--mode", "yolo"]);
 });
 
