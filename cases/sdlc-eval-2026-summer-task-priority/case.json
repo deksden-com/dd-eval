@@ -2,7 +2,7 @@
   "schema_id": "dd-eval/case@6",
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
-  "status": "runnable",
+  "status": "authoring",
   "assessment": "assessment.json",
   "input": [
     {
@@ -12,10 +12,10 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-049-task-priority-code-review-causal-checks",
-    "sha256": "b05640608d7c8cfbcfdc497487a5fb460db14ae2fc39357df12c1e19a5e515e3"
+    "id": "cp-050-task-priority-private-engine-pinning",
+    "sha256": "2ad63982993892bbaf199beede5d5ca0421e1597d52b51713410ba7dcb570ddc"
   },
-  "entry_pack": "stage-entries/REV-117/entry-pack.json",
+  "entry_pack": null,
   "profiles": {
     "subject": [
       "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-8-0-beta-126",

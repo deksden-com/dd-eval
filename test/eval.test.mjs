@@ -13,22 +13,22 @@ const buildProfile = path.join(root, "cases", caseId, "run-profiles", "build-ent
 const qualificationProfile = path.join(root, "cases", caseId, "run-profiles", "qualify-entry-pack-terra-high.json");
 const run = promisify(execFile);
 
-test("active case exposes its accepted portable entry pack without Session starter state", async () => {
+test("authoring case pins its next canonical pair without Session starter state", async () => {
   const loaded = await loadCaseV6(caseId);
   assert.equal(loaded.value.schema_id, "dd-eval/case@6");
-  assert.equal(loaded.value.status, "runnable");
-  assert.match(loaded.value.entry_pack, /^stage-entries\/REV-117\/entry-pack\.json$/);
+  assert.equal(loaded.value.status, "authoring");
+  assert.equal(loaded.value.entry_pack, null);
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-049-task-priority-code-review-causal-checks");
-  assert.equal(loaded.inputCheckpoint.value.source.commit, "3e24306df6b02ff3843e96d196beb3f2f8f60c2e");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "3e24306df6b02ff3843e96d196beb3f2f8f60c2e");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-050-task-priority-private-engine-pinning");
+  assert.equal(loaded.inputCheckpoint.value.source.commit, "e19e4f0a4c6c3e16b5e0809070aecd744c997764");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "e19e4f0a4c6c3e16b5e0809070aecd744c997764");
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
 
-test("fixture validation fails closed when an active pack predates the case contour", async () => {
-  await assert.rejects(fixturesValidate({ caseId }), (error) => error?.code === "entry_pack_flow_mismatch");
+test("an authoring case cannot be scored until a new accepted pack is promoted", async () => {
+  await assert.rejects(fixturesValidate({ caseId }), /authoring case requires --revision/);
   await assert.rejects(fixturesValidate({ caseId, revision: "REV-001" }), /not found|Invalid JSON/);
 });
 
@@ -38,8 +38,8 @@ test("run profiles are explicit experiments rather than harness defaults", async
   assert.deepEqual(reference.value.selection.focused_stages, []);
   assert.equal(qualification.value.selection.focused_stages.length, 7);
   assert.equal(qualification.value.selection.e2e, false);
-  assert.equal(reference.value.subject.profile_id, "codex-desktop-gpt-5-6-sol-high-dd-flow-main-86e4eba");
-  assert.equal(qualification.value.subject.profile_id, "codex-desktop-gpt-5-6-terra-high-dd-flow-main-86e4eba");
+  assert.equal(reference.value.subject.profile_id, "codex-desktop-gpt-5-6-sol-high-dd-flow-main-7121f91");
+  assert.equal(qualification.value.subject.profile_id, "codex-desktop-gpt-5-6-terra-high-dd-flow-main-7121f91");
 });
 
 test("ZCode diagnostics expose one focused profile for every flow stage", async () => {

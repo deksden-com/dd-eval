@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "id": "cp-050-task-priority-private-engine-pinning",
+  "title": "Task Priority baseline with pinned private eval engine",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "e19e4f0a4c6c3e16b5e0809070aecd744c997764"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "e19e4f0a4c6c3e16b5e0809070aecd744c997764",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.0",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "7121f91a156881b9d1bdb1e91add785d94040d26",
+      "version": "0.8.0"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "The product tree remains at the pre-priority baseline; the current accepted main flow pack is overlaid.",
+    "Every lifecycle command returned by the eval runner names the isolated engine through DD_FLOW_BIN, preventing an ambient global CLI from changing a frozen code-check profile."
+  ]
+}
