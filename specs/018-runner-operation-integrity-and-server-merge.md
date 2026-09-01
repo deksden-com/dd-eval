@@ -67,12 +67,32 @@ new canonical package and qualification evidence.
 
 After restoring an execution runtime, the runner materializes a private
 `$DD_FLOW_HOME/bin/dd-flow` shim that invokes the entry package's captured
-engine entrypoint.  Every lifecycle command, harness daemon and merge-server
-process receives that shim through both `PATH` and its explicit adapter
-argument.  `DD_FLOW_HOME` by itself is not enough: a host-global `dd-flow`
-binary may otherwise execute a different local build.  Bootstrap is the only
-short-lived exception, because it creates the isolated runtime before the
-captured engine is installed there.
+engine entrypoint. The shim exports its own absolute path as `DD_FLOW_BIN`.
+The first lifecycle command explicitly sets both `DD_FLOW_HOME` and
+`DD_FLOW_BIN` and invokes that absolute shim; every harness daemon and
+merge-server process receives the same absolute shim through its explicit
+adapter argument. `PATH` remains a convenience only. `DD_FLOW_HOME` by itself
+is not enough: a host-global `dd-flow` binary may otherwise execute a different
+local build. Bootstrap is the only short-lived exception, because it creates
+the isolated runtime before the captured engine is installed there.
+
+### Engine-pinning implementation plan
+
+1. The runner installs the private shim and emits the exact standalone
+   `DD_FLOW_HOME=… DD_FLOW_BIN=… <absolute-shim> stage start …` launcher.
+2. Stage and Work prompts treat the returned engine/check-profile contract as
+   authoritative; an agent neither searches for an ambient CLI nor rewrites a
+   profile to fit one.
+3. Before accepting a CODE Work, `dd-flow work finish` rereads and validates
+   the current project `code-check-profile.json`. An unsupported schema or
+   invalid mandatory gate rejects the finish and leaves the Work running.
+4. A changed engine or flow contract creates a new immutable input checkpoint
+   and canonical revision; historical entry packs and their evidence remain
+   untouched.
+
+Steps 1–3 are implemented by the matched `dd-eval`, `dd-flow-cli` and flow
+pack pair. Step 4 is the required operational follow-up whenever this contract
+changes; it is not an automatic promotion of a human review boundary.
 
 ## Module boundaries
 

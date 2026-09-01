@@ -19,8 +19,17 @@ CODE Work returns changed paths plus semantic evidence grouped by acceptance
 criterion. The CLI executes due checks. Every receipt contains the declaration
 id, workspace fingerprint, stdout/stderr, exact required-artifact inventory and
 hashes. Work receipts live under that Work attempt; stage gates live below the
-stage. The project profile separates the command allowlist from
-`aggregate_commands`.
+stage. The project profile separates reusable aliases and protected command
+rules from `mandatory_by_gate`: the named aliases required at each aggregate
+gate.
+
+`code-check-profile.json` is frozen PLAN input. CODE may materialize only a
+declared future alias with its exact definition; it must not downgrade the
+profile schema, rename fields, remove mandatory gates or rewrite existing
+aliases. `work finish` rereads and validates the current profile before
+accepting a CODE result. A malformed or unsupported profile is an
+engine/flow-pair blocker, not permission to edit the project contract until it
+fits an ambient CLI.
 
 CODE semantic verification is compact: verdict, summary, unresolved items and
 deviations. Stage reports deterministically project check and acceptance status;

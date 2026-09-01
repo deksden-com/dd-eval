@@ -591,15 +591,21 @@ For the initial E2E/SPECIFY entry, no RUN exists yet. The one `stage start`
 operation creates it and starts SPECIFY:
 
 ```text
-DD_FLOW_HOME=<absolute-runtime> dd-flow stage start --bootstrap --stage specify --subject <safe-subject> --project-root <absolute-project> --context-file <absolute-restored-stage-context.json> --context-sha256 <expected-sha256> --require-session-binding --json
+DD_FLOW_HOME=<absolute-runtime> DD_FLOW_BIN=<absolute-runtime>/bin/dd-flow <absolute-runtime>/bin/dd-flow stage start --bootstrap --stage specify --subject <safe-subject> --project-root <absolute-project> --context-file <absolute-restored-stage-context.json> --context-sha256 <expected-sha256> --require-session-binding --json
 ```
 
 For a focused downstream stage or segment entry, the accepted snapshot already
 contains the predecessor RUN:
 
 ```text
-DD_FLOW_HOME=<absolute-runtime> dd-flow stage start <RUN> --stage <stage> --project-root <absolute-project> --context-file <absolute-restored-stage-context.json> --context-sha256 <expected-sha256> --require-session-binding --json
+DD_FLOW_HOME=<absolute-runtime> DD_FLOW_BIN=<absolute-runtime>/bin/dd-flow <absolute-runtime>/bin/dd-flow stage start <RUN> --stage <stage> --project-root <absolute-project> --context-file <absolute-restored-stage-context.json> --context-sha256 <expected-sha256> --require-session-binding --json
 ```
+
+`<absolute-runtime>/bin/dd-flow` is the runner-created private shim, not a
+bare command resolved from the host `PATH`. It re-exports its own absolute path
+as `DD_FLOW_BIN` before invoking the captured engine entrypoint. Thus a fresh
+provider shell and every command it subsequently receives retain the accepted
+engine identity even when they do not inherit the runner process environment.
 
 `--context-sha256` is the SHA-256 of the exact materialized slice file bytes,
 including restored absolute roots. The `stage start` receipt records that hash,
