@@ -142,6 +142,7 @@ test("capacity probe has an exact, disposable agent contract", () => {
 
 test("ACP worker usage relies on the adapter's native usage ingestion", () => {
   assert.equal(workerUsageSource({ harness: "zcode-acp" }), "adapter_ingested");
+  assert.equal(workerUsageSource({ harness: "grok-acp" }), "adapter_ingested");
   assert.equal(workerUsageSource({ harness: "codex-desktop" }), "session_sync");
 });
 
