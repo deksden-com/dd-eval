@@ -12,8 +12,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-047-task-priority-merge-main",
-    "sha256": "6e6b5392bc731f4dbba2f7f1004d3b323a601dbe8e993b7a722b31d6cda98f1d"
+    "id": "cp-048-task-priority-code-review-check-handoff",
+    "sha256": "01e846960fe77778b6379a8d6b8df8aeede81bb3c73f03abc93326e45ff0256b"
   },
   "entry_pack": "stage-entries/REV-117/entry-pack.json",
   "profiles": {

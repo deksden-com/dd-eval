@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "id": "cp-048-task-priority-code-review-check-handoff",
+  "title": "Task Priority baseline with accepted-check handoff repair",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "403d8dfc9fccbc590aaf3b903fd97f45c3800f51"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "403d8dfc9fccbc590aaf3b903fd97f45c3800f51",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.0",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "605303c69f30d905069a05c9cd4633fbe92ca78c",
+      "version": "0.8.0-main-605303c"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "The product tree remains at the pre-priority baseline; only the accepted main flow pack is overlaid.",
+    "This pair preserves acceptance-level CODE and readiness checks in each owning CODE Work and requires check-backed CODE-REVIEW repairs to retain their causal proof."
+  ]
+}
