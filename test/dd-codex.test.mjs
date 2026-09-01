@@ -82,6 +82,11 @@ test("Codex adapter falls back to the final message when hydrated Turn is still 
   assert.equal(occurrences.length, 2);
 });
 
+test("Codex adapter clears a prior final-message fallback before a new Turn", async () => {
+  const source = await (await import("node:fs/promises")).readFile(new URL("../lib/dd-codex.mjs", import.meta.url), "utf8");
+  assert.match(source, /await ensureThreadLoaded\(bridge, sessionId, options, cwd\);\n\s*\/\/ A final-message fallback[\s\S]*?bridge\.finalMessages\?\.delete\(sessionId\);\n\s*const started/);
+});
+
 test("Codex adapter hydrates one terminal Turn after an idle compact read", async () => {
   const turnId = "turn-001"; const calls = [];
   const bridge = {
@@ -103,8 +108,14 @@ test("Codex adapter accepts a final message when app-server omits a terminal Tur
   const turnId = "turn-001";
   const bridge = {
     turns: new Map(),
-    finalMessages: new Map([["thread-001", { item: { type: "agentMessage", text: "done" }, completedAt: Date.now() - 1_000 }]]),
-    request: async (method) => method === "turn/start" ? { turn: { id: turnId } } : { thread: { id: "thread-001", status: { type: "active" }, turns: [] } }
+    finalMessages: new Map(),
+    request: async (method) => {
+      if (method === "turn/start") {
+        bridge.finalMessages.set("thread-001", { item: { type: "agentMessage", text: "done" }, completedAt: Date.now() - 1_000 });
+        return { turn: { id: turnId } };
+      }
+      return { thread: { id: "thread-001", status: { type: "active" }, turns: [] } };
+    }
   };
   const result = await promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" });
   assert.equal(result.turn.turn.synthetic, true);
