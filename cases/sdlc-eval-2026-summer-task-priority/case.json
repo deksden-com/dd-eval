@@ -12,8 +12,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-048-task-priority-code-review-check-handoff",
-    "sha256": "01e846960fe77778b6379a8d6b8df8aeede81bb3c73f03abc93326e45ff0256b"
+    "id": "cp-049-task-priority-code-review-causal-checks",
+    "sha256": "b05640608d7c8cfbcfdc497487a5fb460db14ae2fc39357df12c1e19a5e515e3"
   },
   "entry_pack": "stage-entries/REV-117/entry-pack.json",
   "profiles": {

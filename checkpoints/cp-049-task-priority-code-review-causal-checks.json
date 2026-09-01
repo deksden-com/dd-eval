@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "id": "cp-049-task-priority-code-review-causal-checks",
+  "title": "Task Priority baseline with causal CODE-REVIEW repair checks",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "3e24306df6b02ff3843e96d196beb3f2f8f60c2e"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "3e24306df6b02ff3843e96d196beb3f2f8f60c2e",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.0",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "d5e2bd65d2f11608e6005d864076f60cdd1c58a5",
+      "version": "0.8.0-main-d5e2bd6"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "The product tree remains at the pre-priority baseline; only the accepted main flow pack is overlaid.",
+    "Every accepted CODE-REVIEW fix now selects its causal accepted CHK-* reference in the coordinator decision. The CLI validates it before creating and sealing the repair Work."
+  ]
+}

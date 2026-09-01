@@ -21,9 +21,9 @@ test("active case exposes its accepted portable entry pack without Session start
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-048-task-priority-code-review-check-handoff");
-  assert.equal(loaded.inputCheckpoint.value.source.commit, "403d8dfc9fccbc590aaf3b903fd97f45c3800f51");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "403d8dfc9fccbc590aaf3b903fd97f45c3800f51");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-049-task-priority-code-review-causal-checks");
+  assert.equal(loaded.inputCheckpoint.value.source.commit, "3e24306df6b02ff3843e96d196beb3f2f8f60c2e");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "3e24306df6b02ff3843e96d196beb3f2f8f60c2e");
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
 
