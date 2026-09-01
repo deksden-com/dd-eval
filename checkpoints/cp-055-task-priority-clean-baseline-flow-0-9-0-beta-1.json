@@ -1,0 +1,32 @@
+{
+  "schema_version": 2,
+  "id": "cp-055-task-priority-clean-baseline-flow-0-9-0-beta-1",
+  "title": "Task Priority clean product baseline with flow 0.9.0-beta.1",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "3a9079052dc6a888d436d88e4d1277cbf34f81a6",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.0",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "5e493443b9f97ad3c83e0edccc29dfbee584b92e",
+      "version": "0.9.0-beta.1"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "The source commit predates Task Priority, so the evaluated request is not already implemented.",
+    "The runner overlays the pinned flow pack without copying product code from the flow-pack commit.",
+    "The coordinator continues in one Session by default; independent reviewer and implementation Work still use fresh child Sessions where required.",
+    "Until the npm beta publish is available, launches use the pinned local source entrypoint at this exact engine commit; it is recorded in each run manifest."
+  ]
+}

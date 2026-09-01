@@ -29,6 +29,23 @@ dd-eval runner eval run --profile \
   cases/<case-id>/run-profiles/<profile>.json
 ```
 
+### Pinned local engine before a beta publish
+
+When a committed engine release is temporarily unavailable from npm, use its
+absolute, already-built source entrypoint for the entire runner invocation:
+
+```sh
+DD_FLOW_BIN=/absolute/path/to/dd-flow-cli/dist/cli.js \
+DD_EVAL_HOME=/absolute/path/to/eval-data \
+dd-eval runner eval run --profile /absolute/path/to/profile.json
+```
+
+This is one explicit development override. Its commit and package version must
+match the case input checkpoint, and the runner records the resolved engine in
+the run manifest. Do not mix a local override with another checkpoint or
+silently fall back to the host-global executable. Once npm publication is
+available, remove `DD_FLOW_BIN` and use the published engine.
+
 The runner allocates a fresh directory under
 `$DD_EVAL_HOME/runs/<eval-id>/`. Each execution gets its own restored project,
 `DD_FLOW_HOME`, managed harness state and append-only `events.jsonl`.

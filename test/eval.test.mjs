@@ -20,9 +20,9 @@ test("case pins its input checkpoint without Session starter state", async () =>
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-054-task-priority-clean-baseline-beta-0");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-055-task-priority-clean-baseline-flow-0-9-0-beta-1");
   assert.equal(loaded.inputCheckpoint.value.source.commit, "a924495a5fef8a53b3ba6dc0f9408023ae7e569c");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "2a71ceaa36693c0136217e081d399edd031f6445");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "3a9079052dc6a888d436d88e4d1277cbf34f81a6");
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
 
@@ -94,6 +94,20 @@ test("recovery resumes the latest successor Subject Session", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /dev\.dd\.eval\.subject\.successor_session_created/);
   assert.match(source, /sessions\.at\(-1\).*session_id/s);
+});
+
+test("recovery reuses a live execution daemon before making a disposable bridge", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /const primaryState = path\.join\(attempt, "drivers", "daemon"\)/);
+  assert.match(source, /\["daemon", "status", \.\.\.primaryArgs/);
+  assert.match(source, /return await action\(\{ daemonArgs: primaryArgs, env \}\)/);
+});
+
+test("normal, resumed, judged, and cancelled runs share one terminal projection", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.equal((source.match(/finalizeRunProjection\(\{/g) ?? []).length >= 4, true);
+  assert.match(source, /await writeJsonAtomic\(path\.join\(root, "state\.json"\), projection\)/);
+  assert.match(source, /existing candidate does not match completed executions/);
 });
 
 test("a local engine override refreshes a same-version runtime snapshot", async () => {
