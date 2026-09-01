@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "id": "cp-053-task-priority-inline-merge-pinned-worker-lifecycle",
+  "title": "Task Priority baseline with inline MERGE and pinned worker lifecycle commands",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "d6c07e1ce00852759965454fc124a2e7468d4d04"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "d6c07e1ce00852759965454fc124a2e7468d4d04",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.0",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "5f0ec0ba62a06ee429fe6b90100c6298cac51607",
+      "version": "0.8.0"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "The product tree remains at the pre-priority baseline; the current project-local flow pack is overlaid.",
+    "The E2E contour includes inline MERGE (merge_mode=same_session); isolated worker lifecycle commands resolve the runtime shim in DD_FLOW_HOME/bin/dd-flow even when DD_FLOW_BIN is not inherited."
+  ]
+}

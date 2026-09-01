@@ -12,8 +12,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-052-task-priority-inline-merge-engine",
-    "sha256": "659f33aba2d51c58c7754d79600f66d66d5156ac7f90de6646c29ce8c1c323b6"
+    "id": "cp-053-task-priority-inline-merge-pinned-worker-lifecycle",
+    "sha256": "95f69c2851cd6ad587a682d1b0167ed237259bb46dfcb7c4370468a3ab386d94"
   },
   "entry_pack": null,
   "profiles": {
