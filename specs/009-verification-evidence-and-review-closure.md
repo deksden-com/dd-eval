@@ -27,10 +27,15 @@ deviations. Stage reports deterministically project check and acceptance status;
 agents do not duplicate this bookkeeping.
 
 CODE-REVIEW uses a compact immutable decision: summary plus one disposition and
-reason per finding. The first Finish validates and freezes it, creates one
-bounded repair Work for all accepted fixes, and returns the exact next commands.
-After repair, the same Finish verifies the unchanged decision, reruns the full
-aggregate CODE gate and closes the stage. Independent review is not repeated.
+reason per finding. Every `fix` also names the one or more accepted `CHK-*`
+checks causally relevant to that repair; the reviewer evidence itself need not
+guess this linkage. The first Finish validates the whole decision, validates
+each selected check against accepted CODE evidence, creates one bounded repair
+Work for all accepted fixes, and only then freezes the decision. A failed
+repair-materialization attempt therefore leaves the decision corrigible.
+After repair, the same Finish verifies the unchanged decision and its retained
+causal checks, reruns the full aggregate CODE gate and closes the stage.
+Independent review is not repeated.
 
 ## Invariants
 
@@ -38,6 +43,9 @@ aggregate CODE gate and closes the stage. Independent review is not repeated.
 - no handwritten receipt or report evidence;
 - no check is reported as passed without a successful receipt for the current
   workspace fingerprint and all declared exact artifacts;
+- a repair Work reruns only the coordinator-selected causal `CHK-*` checks;
+- an unknown, empty or non-causal repair check reference rejects the decision
+  before it is frozen;
 - no terminal RUN event precedes the terminal stage event;
 - changed-path discovery includes untracked files;
 - schema replacement has no legacy fallback in the beta contour.
