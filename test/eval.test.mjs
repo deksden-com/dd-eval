@@ -21,9 +21,9 @@ test("authoring case pins its next canonical pair without Session starter state"
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-050-task-priority-private-engine-pinning");
-  assert.equal(loaded.inputCheckpoint.value.source.commit, "e19e4f0a4c6c3e16b5e0809070aecd744c997764");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "e19e4f0a4c6c3e16b5e0809070aecd744c997764");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-051-task-priority-engine-pinned-contract");
+  assert.equal(loaded.inputCheckpoint.value.source.commit, "d6c07e1ce00852759965454fc124a2e7468d4d04");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "d6c07e1ce00852759965454fc124a2e7468d4d04");
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
 

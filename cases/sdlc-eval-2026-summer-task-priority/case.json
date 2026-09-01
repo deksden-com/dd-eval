@@ -12,8 +12,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-050-task-priority-private-engine-pinning",
-    "sha256": "2ad63982993892bbaf199beede5d5ca0421e1597d52b51713410ba7dcb570ddc"
+    "id": "cp-051-task-priority-engine-pinned-contract",
+    "sha256": "294ad7810cd74498b97593923b802e667e4ddfeea29352d3628f0958a9dc0a21"
   },
   "entry_pack": null,
   "profiles": {
