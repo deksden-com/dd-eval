@@ -146,6 +146,11 @@ test("fan-out worker recovery resumes the same Work after an unaccepted finish",
   assert.match(prompt, /Do not create another Work/);
 });
 
+test("a terminal coordinator Turn with a running Stage receives a finish-only recovery", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /turnPrompt = fanout\?\.continuation \?\? interruptedStageContinuation\(stage\)/);
+});
+
 test("fan-out recovery is reserved for a still-running Work", () => {
   const shouldRecover = (status) => status === "running";
   assert.equal(shouldRecover("running"), true);
