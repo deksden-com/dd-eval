@@ -10,6 +10,6 @@
   "model": "grok-4.6",
   "reasoning": "high",
   "mode": "bypassPermissions",
-  "runtime": { "grok": "1.0.12", "acp": 1, "dd_harness_contract": "dd-grok-harness@1" },
+  "runtime": { "grok": "1.0.16", "acp": 1, "dd_harness_contract": "dd-grok-harness@1" },
   "notes": "Controlled Grok Build ACP profile. dd-grok owns an execution-scoped direct ACP daemon and records hook, topology, cancellation, and usage evidence."
 }

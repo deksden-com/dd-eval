@@ -77,7 +77,7 @@ conversation. Interactive fork remains an explicitly separate diagnostic.
 
 `dd-grok` controls Grok Build directly through its native ACP stdio endpoint;
 it does not use a leader process or a second proxy. The verified baseline is
-Grok Build `1.0.12`, ACP protocol `1`, `grok-4.6` and an explicit reasoning
+Grok Build `1.0.16`, ACP protocol `1`, `grok-4.6` and an explicit reasoning
 effort. `dd-grok doctor` rejects version or observed-profile drift.
 
 The execution-scoped daemon owns one direct `grok agent --no-leader` process,

@@ -15,7 +15,7 @@ test("Grok daemon copies explicit auth only into its private home", async () => 
   await writeFile(flow, "#!/usr/bin/env node\n");
   await writeFile(grok, `
     import readline from "node:readline";
-    if (process.argv.includes("version")) { process.stdout.write(JSON.stringify({currentVersion:"1.0.12 fake"})); process.exit(0); }
+    if (process.argv.includes("version")) { process.stdout.write(JSON.stringify({currentVersion:"1.0.16 fake"})); process.exit(0); }
     if (process.argv.includes("inspect")) { process.stdout.write(JSON.stringify({ configSources:{layers:[{role:"user",path:process.env.GROK_HOME+"/config.toml"}]}, hooks:[{source:{type:"user",path:process.env.GROK_HOME+"/hooks"}}], skills:[], agents:[], plugins:[], mcpServers:[], permissions:{sources:[]}, externalCompat:{remoteSettingsLoaded:false,cells:["claude","cursor","codex"].map(vendor=>({vendor,surface:"hooks",enabled:false}))}, configWarnings:[] })); process.exit(0); }
     readline.createInterface({input:process.stdin}).on("line", (line) => { const message=JSON.parse(line); if(message.id!==undefined && message.method==="initialize") process.stdout.write(JSON.stringify({jsonrpc:"2.0",id:message.id,result:{protocolVersion:1}})+"\\n"); });
   `);
@@ -34,7 +34,7 @@ test("Grok daemon keeps background subagents active until cancel", async () => {
   await writeFile(auth, "{}\n"); await writeFile(flow, "#!/usr/bin/env node\nprocess.stdin.resume();\n");
   await writeFile(grok, `
     import readline from "node:readline";
-    if (process.argv.includes("version")) { process.stdout.write(JSON.stringify({currentVersion:"1.0.12 fake"})); process.exit(0); }
+    if (process.argv.includes("version")) { process.stdout.write(JSON.stringify({currentVersion:"1.0.16 fake"})); process.exit(0); }
     if (process.argv.includes("inspect")) { process.stdout.write(JSON.stringify({ configSources:{layers:[{role:"user",path:process.env.GROK_HOME+"/config.toml"}]}, hooks:[], skills:[], agents:[], plugins:[], mcpServers:[], permissions:{sources:[]}, externalCompat:{remoteSettingsLoaded:false,cells:[]}, configWarnings:[] })); process.exit(0); }
     let running = false; const send = (value) => process.stdout.write(JSON.stringify(value) + "\\n");
     readline.createInterface({input:process.stdin}).on("line", (line) => { const message=JSON.parse(line); if(message.id===undefined) return; const {id,method,params={}}=message; let result={};
