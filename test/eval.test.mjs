@@ -85,6 +85,11 @@ test("resume reuses an in-flight immutable snapshot instead of treating it as a 
   assert.match(source, /await waitForFile\(manifestFile\)/);
 });
 
+test("a local engine override refreshes a same-version runtime snapshot", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /commandJson\(bin, \["engine", "install", "--force"\]/);
+});
+
 test("successor Session mode reads the persisted execution profile from run status", () => {
   assert.equal(stageSessionMode({ status: { index: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } }), "new_session");
   assert.equal(stageSessionMode({ status: { run: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } }), "new_session");
