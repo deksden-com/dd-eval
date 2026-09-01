@@ -35,7 +35,9 @@ The runner allocates a fresh directory under
 The runner also creates `$DD_FLOW_HOME/bin/dd-flow`: a tiny private launcher
 for the exact engine snapshot named by the accepted entry pack.  It is placed
 first in the Subject, worker and merge-server `PATH`, and is passed explicitly
-to the managed harness daemon.  Do not replace it with a globally installed
+to the managed harness daemon. Every lifecycle command returned to a fresh
+worker must also name this absolute launcher; `PATH` is only a convenience,
+not an identity guarantee. Do not replace it with a globally installed
 `dd-flow`; the global executable is used only to bootstrap or restore an
 isolated runtime before that snapshot launcher exists.
 

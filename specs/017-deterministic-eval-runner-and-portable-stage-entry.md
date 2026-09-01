@@ -1449,7 +1449,7 @@ dd-codex session create ... --json
 dd-codex session prompt ... --json
 dd-codex session inspect ... --json
 dd-codex session wait ... --json
-dd-codex session cancel ... --json
+dd-codex session cancel --session-id <id> --turn-id <id> ... --json
 dd-codex session archive ... --json
 ```
 
@@ -1457,6 +1457,11 @@ It uses the supported Codex app-server/SDK protocol, records requested and
 observed model/reasoning/cwd, provider thread and turn IDs, ordered events,
 usage and tool calls. It must support several independent active Sessions under
 the runner's semaphore and must not infer Desktop identity from a title.
+
+Targeted Codex cancellation is `session_id + turn_id`, not merely a Session:
+the adapter rejects an ambiguous request and forwards both IDs to the provider.
+This prevents a late control command from interrupting a newer Turn in a
+retained Session.
 
 Provider-specific control remains in each driver. Do not add a plugin
 marketplace or inheritance hierarchy; use a small static driver map and shared
@@ -1761,7 +1766,12 @@ small orchestration descriptor after its normal dispatch operation:
 
 The descriptor contains commands produced by the current engine, not commands
 invented by `dd-eval`.  Each ready Work record already contains the exact
-`work start` command and launch policy.  Therefore the common runner loop is:
+`work start` command and launch policy. When an attempt uses an isolated
+runtime, every generated lifecycle command — including a fan-out `work start`
+and the worker's later `work finish` — names that runtime's absolute
+`bin/dd-flow` executable. `DD_FLOW_HOME` alone is not enough: a fresh
+Desktop/ACP tool process need not inherit the adapter's `PATH`, so bare
+`dd-flow` could select a host-global engine. Therefore the common runner loop is:
 
 1. if an agent-owned stage has not yet materialized any Work, return the same
    coordinator once to materialize its graph; an empty graph is not success;
