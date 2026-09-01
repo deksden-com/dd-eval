@@ -239,9 +239,16 @@ mutation takes effect. Minimum event identity:
 }
 ```
 
-The adapter forwards only events relevant to lifecycle parsing. `dd-flow`
-remains responsible for recognizing an exact standalone command, binding the
-physical Session to RUN/Work and rejecting mismatched or replayed claims.
+The adapter applies only a cheap candidate gate (for example, a literal
+`dd-flow` occurrence) and forwards the original command bytes. It must not
+decide lifecycle semantics with a harness-specific regular expression.
+`dd-flow` owns the single authoritative shell parser for every harness: it
+recognizes the executable command word (including a quoted absolute path),
+distinguishes arguments and heredoc bodies from commands, accepts an exact
+standalone lifecycle invocation and rejects a genuinely compound lifecycle
+call. False candidates are recorded as non-participating observations and do
+not create trusted claims. `dd-flow` then binds the physical Session to
+RUN/Work and rejects mismatched or replayed claims.
 After-events may enrich outcome evidence but cannot retroactively authorize a
 mutation that lacked a before-event.
 

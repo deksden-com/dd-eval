@@ -96,6 +96,19 @@ test("a local engine override refreshes a same-version runtime snapshot", async 
   assert.match(source, /commandJson\(bin, \["engine", "install", "--force"\]/);
 });
 
+test("harness transports leave lifecycle semantics to dd-flow", async () => {
+  const [zcode, grok, opencode] = await Promise.all([
+    readFile(path.join(root, "lib", "dd-zcode.mjs"), "utf8"),
+    readFile(path.join(root, "lib", "dd-grok-daemon.mjs"), "utf8"),
+    readFile(path.join(root, "lib", "dd-opencode-daemon.mjs"), "utf8")
+  ]);
+  for (const source of [zcode, grok, opencode]) {
+    assert.match(source, /includes\("dd-flow"\)/);
+    assert.doesNotMatch(source, /session\\s\+register\|stage\\s/);
+  }
+  assert.match(opencode, /if\(result\?\.observed\) participating\.add/);
+});
+
 test("successor Session mode reads the persisted execution profile from run status", () => {
   assert.equal(stageSessionMode({ status: { index: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } }), "new_session");
   assert.equal(stageSessionMode({ status: { run: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } }), "new_session");

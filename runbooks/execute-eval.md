@@ -96,6 +96,13 @@ or another shell command: the harness hook must see this lifecycle call as its
 own Bash action. `stage start` is the source of the actual context, paths,
 completion command and Work contract.
 
+Lifecycle recognition is centralized in `dd-flow`, not duplicated in provider
+adapters. A quoted absolute `dd-flow` executable emitted by the launcher is a
+valid command word. Text such as `dd-flow stage start` inside `grep` patterns,
+JSON, comments or heredoc bodies is data and must not be trusted or blocked.
+If a real lifecycle invocation is joined to another command with `;`, `&&` or
+a pipe, `dd-flow` rejects it and returns the standalone retry.
+
 For each E2E stage the operational sequence is: runner sends one launcher →
 Subject invokes standalone `stage start` first → Subject performs only that
 Stage → `dd-flow` returns a terminal receipt or a registered pause → runner
