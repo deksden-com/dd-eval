@@ -105,6 +105,7 @@ test("E2E handoff keeps the current Subject Session replaceable", async () => {
 
 test("stage launcher makes registered HITL pause the only way to ask a material question", () => {
   const launcher = entryLauncher({ stage: "specify", entry: { snapshot: { run_id: null } }, projectRoot: "/project", runtimeRoot: "/runtime", contextFile: "/context.json", contextSha256: "a".repeat(64), profile: {} });
+  assert.match(launcher, /"\/runtime\/bin\/dd-flow" stage start/);
   assert.match(launcher, /run the exact `stage pause` lifecycle command/);
   assert.match(launcher, /Otherwise finish this Stage/);
 });
