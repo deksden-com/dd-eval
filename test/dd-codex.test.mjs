@@ -65,6 +65,12 @@ test("Codex adapter fails closed when a persisted Turn was interrupted", async (
   await assert.rejects(() => promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" }), { code: "turn_interrupted" });
 });
 
+test("Codex adapter keeps waiting for alternate active Turn spellings", async () => {
+  const source = await (await import("node:fs/promises")).readFile(new URL("../lib/dd-codex.mjs", import.meta.url), "utf8");
+  assert.match(source, /isTerminalTurnStatus\(stored\.turn\.status\)/);
+  assert.match(source, /\["completed", "failed", "interrupted", "cancelled"\]/);
+});
+
 test("Codex adapter hydrates one terminal Turn after an idle compact read", async () => {
   const turnId = "turn-001"; const calls = [];
   const bridge = {
