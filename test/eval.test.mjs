@@ -103,6 +103,11 @@ test("E2E handoff keeps the current Subject Session replaceable", async () => {
   assert.match(source, /sessionId = successorSessionId/);
 });
 
+test("accepted boundary clears the terminal turn marker before a successor launch", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /state\.reference = \{ \.\.\.state\.reference, active_turn: null, pending_pause_id: null \}/);
+});
+
 test("stage launcher makes registered HITL pause the only way to ask a material question", () => {
   const launcher = entryLauncher({ stage: "specify", entry: { snapshot: { run_id: null } }, projectRoot: "/project", runtimeRoot: "/runtime", contextFile: "/context.json", contextSha256: "a".repeat(64), profile: {} });
   assert.match(launcher, /"\/runtime\/bin\/dd-flow" stage start/);
