@@ -91,6 +91,12 @@ test("resume reuses an in-flight immutable snapshot instead of treating it as a 
   assert.match(source, /await waitForFile\(manifestFile\)/);
 });
 
+test("recovery resumes the latest successor Subject Session", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /dev\.dd\.eval\.subject\.successor_session_created/);
+  assert.match(source, /sessions\.at\(-1\).*session_id/s);
+});
+
 test("a local engine override refreshes a same-version runtime snapshot", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /commandJson\(bin, \["engine", "install", "--force"\]/);
