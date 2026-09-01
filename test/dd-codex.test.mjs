@@ -104,7 +104,7 @@ test("Codex adapter hydrates one terminal Turn after an idle compact read", asyn
   ]);
 });
 
-test("Codex adapter accepts a final message when app-server omits a terminal Turn", async () => {
+test("Codex adapter accepts a final message only after app-server reports an idle Thread", async () => {
   const turnId = "turn-001";
   const bridge = {
     turns: new Map(),
@@ -114,11 +114,16 @@ test("Codex adapter accepts a final message when app-server omits a terminal Tur
         bridge.finalMessages.set("thread-001", { item: { type: "agentMessage", text: "done" }, completedAt: Date.now() - 1_000 });
         return { turn: { id: turnId } };
       }
-      return { thread: { id: "thread-001", status: { type: "active" }, turns: [] } };
+      return { thread: { id: "thread-001", status: { type: "idle" }, turns: [] } };
     }
   };
   const result = await promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" });
   assert.equal(result.turn.turn.synthetic, true);
+});
+
+test("Codex adapter does not treat an intermediate agent message as terminal", async () => {
+  const source = await (await import("node:fs/promises")).readFile(new URL("../lib/dd-codex.mjs", import.meta.url), "utf8");
+  assert.match(source, /final && stored\?\.threadStatus === "idle"/);
 });
 
 test("Codex adapter interrupts one explicitly identified Turn", async () => {
