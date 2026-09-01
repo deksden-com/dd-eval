@@ -20,8 +20,10 @@ cases/<case-id>/
   stage-entries/REV-<NNN>/       # written after explicit acceptance
 ```
 
-`case.json` uses `dd-eval/case@6` and points to exactly one accepted
-`entry_pack`. It declares the selected flow contour and terminal stage.
+`case.json` uses `dd-eval/case@7`. Its nullable `entry_pack` is the only
+pointer to an accepted stage-entry package: `null` means that focused and
+segment runs are not ready yet, while a path means that the referenced package
+must validate as accepted. It declares the selected flow contour and terminal stage.
 `entry-pack-source/` is mutable authoring input; accepted descriptors under
 `stage-entries/` are immutable. A run profile is the experiment: harness/model,
 reasoning, focused/E2E selection, Judge policy and concurrency.
@@ -168,7 +170,7 @@ answers tuned to one model's particular mistakes.
 
 ## Required acceptance checks
 
-Before marking `case.json.status` as `runnable`, prove that each accepted entry:
+Before writing the accepted `case.json.entry_pack` pointer, prove that each entry:
 
 - restores a contained project/runtime snapshot with matching hashes;
 - contains the right RUN state and no later-stage artifact;

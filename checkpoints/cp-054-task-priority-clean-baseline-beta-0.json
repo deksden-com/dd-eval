@@ -1,0 +1,31 @@
+{
+  "schema_version": 2,
+  "id": "cp-054-task-priority-clean-baseline-beta-0",
+  "title": "Task Priority clean product baseline with the current same-session flow pack",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "a924495a5fef8a53b3ba6dc0f9408023ae7e569c"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "2a71ceaa36693c0136217e081d399edd031f6445",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.0",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "ade3ebb2888bf804bec3879bbf7ed4600ff651fc",
+      "version": "0.9.0-beta.0"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "The source commit predates Task Priority, so the evaluated request is not already implemented.",
+    "The runner overlays the current flow pack without copying product code from the flow-pack commit.",
+    "The coordinator continues in one Session by default; independent reviewer and implementation Work still use fresh child Sessions where required."
+  ]
+}

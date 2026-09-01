@@ -295,7 +295,7 @@ accepted commit.
 The command-line executable is named `dd-eval`. `dd-deval` is not an alias and
 must not appear in manifests, documentation, reports, or automation.
 
-The active contract is `case@6` and [specification 017](specs/017-deterministic-eval-runner-and-portable-stage-entry.md).
+The active contract is `case@7` and [specification 017](specs/017-deterministic-eval-runner-and-portable-stage-entry.md).
 Focused and segment runs restore one portable stage-entry pack; E2E starts
 directly from the case input checkpoint. Every run creates a new empty Subject
 Session and uses `dd-eval runner` as the only ordinary command surface.

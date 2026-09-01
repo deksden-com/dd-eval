@@ -39,7 +39,7 @@ The intended everyday path is intentionally short. This walkthrough is also
 the design check for command transitions; no step relies on a remembered
 provider Session, an operator-created RUN, or a manually copied artifact.
 
-1. An author commits a case in `authoring` state. Its mutable
+1. An author commits a case definition. Its mutable
    `entry-pack-source/` declares task input, per-stage context roles, allowed
    HITL responses and assessment material. `entry_pack` is `null`: focused and
    segment runs cannot be scored yet, while E2E may start from the committed
@@ -457,12 +457,12 @@ and flow trigger without inventing a Controller summary. Explicitly accepted
 pre-flow decisions may be indexed separately, with evidence back to the source
 message.
 
-A new case starts as `status: authoring` with `entry_pack: null`. `canonical
-build` produces focused-stage fixtures; E2E may execute directly from the
-committed input checkpoint. Final pack acceptance atomically sets `status:
-runnable` and the relative `entry_pack` pointer, enabling focused and segment
-runs. This is one case schema with a conditional invariant, not a second draft
-format.
+A new case starts with `entry_pack: null`. `canonical build` produces
+focused-stage fixtures; E2E may execute directly from the committed input
+checkpoint. Final pack acceptance atomically sets the relative `entry_pack`
+pointer, enabling focused and segment runs. Readiness is therefore derived
+from the artifact that makes the run possible; it is not a separate lifecycle
+classification on the case.
 
 The final `canonical accept` operation writes the accepted manifest and updates
 `case.json.entry_pack` to its relative path under one build lock. The build
@@ -2099,7 +2099,7 @@ remain readable through Git history and need no runtime support.
 ### Unit
 
 - strict schema acceptance/rejection;
-- authoring/runnable case invariants and interrupted promotion recovery;
+- nullable/accepted entry-pack invariants and interrupted promotion recovery;
 - entry-pack completeness, sole-pointer resolution and immutable acceptance;
 - rejection of acceptance without required qualification receipts;
 - path containment and deterministic semantic hashing;

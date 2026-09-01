@@ -1,8 +1,7 @@
 {
-  "schema_id": "dd-eval/case@6",
+  "schema_id": "dd-eval/case@7",
   "suite_id": "sdlc-eval-2026-summer",
   "id": "sdlc-eval-2026-summer-task-priority",
-  "status": "authoring",
   "assessment": "assessment.json",
   "input": [
     {
@@ -12,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-053-task-priority-inline-merge-pinned-worker-lifecycle",
-    "sha256": "95f69c2851cd6ad587a682d1b0167ed237259bb46dfcb7c4370468a3ab386d94"
+    "id": "cp-054-task-priority-clean-baseline-beta-0",
+    "sha256": "136720677aaee9a384c69dbd765f8851f050e45ead59b66ddf5d3db94316d14d"
   },
   "entry_pack": null,
   "profiles": {

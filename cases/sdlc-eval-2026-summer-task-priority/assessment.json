@@ -164,7 +164,7 @@
             "essential_semantics": [
               "exact No priority, Low, Medium and High labels",
               "untouched edit preserves priority",
-              "archived values remain readable and controls are read-only",
+              "archived-project tasks remain readable and only their priority control stays editable; unrelated controls remain read-only",
               "existing loading, empty, error, focus and ordering behavior remains",
               "desktop and narrow viewport remain usable"
             ],
@@ -266,7 +266,7 @@
         "required_outcomes": [
           {"id": "GOLD-CODE-001", "statement": "Implement the exact four priority values, no_priority create/backfill default and database constraint without adding task archiving, priority sorting or unrelated architecture."},
           {"id": "GOLD-CODE-002", "statement": "Preserve ordinary ordering and enforce the archived-project exception as a priority-only mutation, including rejection of mixed writes without partial mutation."},
-          {"id": "GOLD-CODE-003", "statement": "Expose readable and editable priority through the existing typed API and accessible task UI, while archived tasks remain readable and read-only."},
+          {"id": "GOLD-CODE-003", "statement": "Expose readable and editable priority through the existing typed API and accessible task UI; for tasks in archived projects, keep only priority editable while unrelated fields remain read-only."},
           {"id": "GOLD-CODE-004", "statement": "Prove migration, negative validation, authorization, UI and acceptance behavior with focused receipts followed by the project aggregate check profile."}
         ],
         "accepted_strong_decisions": [],

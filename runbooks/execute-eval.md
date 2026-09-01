@@ -17,9 +17,10 @@ under an absolute `DD_EVAL_HOME`.
    dd-eval runner fixtures validate --case <case-id>
    ```
 
-   This verifies the declared entry descriptors and context blueprint. It is
-   not permission to score an `authoring` case; a scored run additionally
-   requires `case.json.status = "runnable"` and an accepted entry pack.
+   This verifies the declared entry descriptors and context blueprint. Focused
+   and segment runs require a non-null `case.json.entry_pack` whose referenced
+   package is accepted. E2E starts from the committed input checkpoint and does
+   not require an entry pack.
 
 ## Run
 

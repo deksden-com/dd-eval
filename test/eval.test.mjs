@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCaseV6, loadRunProfile, qualificationSucceeded, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, qualificationSucceeded, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, workerUsageSource } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -13,22 +13,21 @@ const buildProfile = path.join(root, "cases", caseId, "run-profiles", "build-ent
 const qualificationProfile = path.join(root, "cases", caseId, "run-profiles", "qualify-entry-pack-terra-high.json");
 const run = promisify(execFile);
 
-test("authoring case pins its next canonical pair without Session starter state", async () => {
-  const loaded = await loadCaseV6(caseId);
-  assert.equal(loaded.value.schema_id, "dd-eval/case@6");
-  assert.equal(loaded.value.status, "authoring");
+test("case pins its input checkpoint without Session starter state", async () => {
+  const loaded = await loadCase(caseId);
+  assert.equal(loaded.value.schema_id, "dd-eval/case@7");
   assert.equal(loaded.value.entry_pack, null);
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-053-task-priority-inline-merge-pinned-worker-lifecycle");
-  assert.equal(loaded.inputCheckpoint.value.source.commit, "d6c07e1ce00852759965454fc124a2e7468d4d04");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "d6c07e1ce00852759965454fc124a2e7468d4d04");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-054-task-priority-clean-baseline-beta-0");
+  assert.equal(loaded.inputCheckpoint.value.source.commit, "a924495a5fef8a53b3ba6dc0f9408023ae7e569c");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "2a71ceaa36693c0136217e081d399edd031f6445");
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
 
-test("an authoring case has no focused fixtures until an accepted pack is promoted", async () => {
-  await assert.rejects(fixturesValidate({ caseId }), /authoring case requires --revision/);
+test("a case without an accepted entry pack cannot start focused fixtures", async () => {
+  await assert.rejects(fixturesValidate({ caseId }), /requires --revision/);
   await assert.rejects(fixturesValidate({ caseId, revision: "REV-001" }), /not found|Invalid JSON/);
 });
 
