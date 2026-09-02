@@ -231,11 +231,13 @@ test("fan-out recovery cancels only an interrupted Turn and keeps its Work", asy
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /dev\.dd\.eval\.fanout\.worker\.turn_recovery/);
   assert.match(source, /\["session", "cancel", \.\.\.daemon\.daemonArgs/);
+  assert.match(source, /Cancellation is\n\s*\/\/ only best-effort transport cleanup/);
   assert.match(source, /Do not call work start or create another Work/);
   assert.doesNotMatch(source, /"reasoning", profile\.reasoning, "--timeout", "120", "--prompt"/);
   assert.match(source, /dev\.dd\.eval\.fanout\.worker\.resumed/);
   assert.match(source, /restart: Boolean\(resumeSessionId\)/);
   assert.match(source, /dev\.dd\.eval\.reference\.fanout_recovery_authorized/);
+  assert.match(source, /session\\\.prompt timed out\|turn_not_active/);
 });
 
 test("a terminal coordinator Turn with a running Stage receives a finish-only recovery", async () => {
