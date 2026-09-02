@@ -51,6 +51,32 @@ test("ZCode probe batch starts all prepared Sessions before reading a result", a
   assert.deepEqual(receipt.results.map((item) => item.assistant_text), ["AGENT-01", "AGENT-02"]);
 });
 
+test("ZCode probe batch reserves time to read results after a Turn deadline", async () => {
+  const timeouts = [];
+  const bridge = {
+    async request(method, params, timeout) {
+      if (method === "session/prompt") {
+        timeouts.push(timeout);
+        return { stopReason: "end_turn" };
+      }
+      if (method === "zcode/session/read") {
+        timeouts.push(timeout);
+        return { messages: [{ info: { role: "assistant" }, parts: [{ type: "text", text: "AGENT-01" }] }] };
+      }
+      throw new Error(`unexpected method ${method}`);
+    },
+    async flush() {},
+  };
+  const receipt = await promptProbeBatchWithBridge(bridge, {
+    journal: "/tmp/zcode-probe-deadline.jsonl",
+    timeoutMs: 180_000,
+    probes: [{ provider_session_id: "provider-1", adapter_session_id: "adapter-1", prompt: "probe" }],
+  });
+  assert.equal(receipt.results[0].assistant_text, "AGENT-01");
+  assert.equal(timeouts[0], 165_000);
+  assert.equal(timeouts[1], 15_000);
+});
+
 test("dd-zcode controls create, prompt and fork through ACP with an append-only journal", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-zcode-test-"));
   try {
