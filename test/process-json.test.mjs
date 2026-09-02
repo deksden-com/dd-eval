@@ -12,3 +12,9 @@ test("commandJson preserves a structured CLI failure code", async () => {
   await chmod(executable, 0o755);
   await assert.rejects(commandJson(executable, [], { cwd: root }), (error) => error.code === "stage_pause_required" && error.message === "pause first");
 });
+
+test("commandJson accepts a JavaScript CLI entrypoint without executable mode", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-process-json-")); const executable = path.join(root, "cli.mjs");
+  await writeFile(executable, "process.stdout.write(JSON.stringify({ ok: true }) + '\\n');\n");
+  assert.deepEqual(await commandJson(executable, [], { cwd: root }), { ok: true });
+});
