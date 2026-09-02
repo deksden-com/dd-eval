@@ -169,7 +169,12 @@ Only a registered `dd-flow` pause at an interaction point declared by the
 case may receive a response. The runner preserves the actual question, asks a
 clean Interaction Judge to select an existing canonical response, and resumes
 the same Stage and Session only after a match. An unplanned question or
-unmatched response fails that execution with its evidence intact.
+unmatched response terminates that execution with its evidence intact. A
+`fixture_gap` or ambiguous match marks the run invalid as evaluation
+infrastructure and is not a Subject-quality failure; an unnecessary or
+out-of-scope question remains a Subject failure. Repair the committed fixture
+and start a new eval rather than changing the definition underneath an existing
+run.
 
 On a host/controller restart, use:
 

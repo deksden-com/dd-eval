@@ -1352,6 +1352,11 @@ When the Subject pauses at an allowed HITL point, the runner:
 6. sends the selected canonical response bytes to the same Subject stage;
 7. records question, judgment, selected IDs and exact delivered bytes.
 
+The resolved run manifest pins the canonical JSON hash of every interaction
+fixture reachable by that execution. Resume verifies the same hash before
+asking an Interaction Judge or delivering an answer; a changed fixture is an
+infrastructure-invalid run, never an implicit repair of an existing attempt.
+
 ```json
 {
   "schema_id": "dd-eval/hitl-match@1",
@@ -1368,10 +1373,22 @@ For several selected responses, the runner combines their exact bytes in the
 Judge-returned order with one versioned deterministic delimiter. The
 interaction Judge never authors, paraphrases or strengthens an answer.
 
+Before matching, the Judge separates a bundled prompt into atomic material
+decisions. Explanations, offered options and recommendations are not treated as
+additional questions. Wording, order and grouping do not affect a match, but a
+descriptor cannot supply content absent from the exact canonical answer.
+
 If any question is uncovered, the result is `unmatched`. The Judge also
 classifies the likely cause as `fixture_gap`, `unnecessary_question`,
-`out_of_scope` or `ambiguous`. Every non-matched verdict fails the execution;
-the classification supports later fixture or flow repair.
+`out_of_scope` or `ambiguous`. Every non-matched verdict terminates the
+execution because no authorized answer exists. `fixture_gap` and `ambiguous`
+make the run invalid as evaluation infrastructure and cannot count against the
+Subject; `unnecessary_question` and `out_of_scope` are Subject failures.
+
+Each attempt stores an `interaction-judge/result.json` receipt binding the
+fixture hash, packet hash, Judge profile/Session and strict verdict. Successful
+exchange evidence also binds the exact delivered bytes, their hash and the
+versioned response delimiter. The final Judge receives these receipts.
 
 HITL at a forbidden stage/point fails immediately as `unexpected_hitl` without
 calling the interaction Judge. A required HITL point that is never reached
@@ -1380,6 +1397,12 @@ fails stage acceptance as `required_hitl_missing`.
 The final Judge receives the captured HITL exchange and interaction-Judge
 receipt and independently evaluates whether the Subject's question was
 justified. The interaction Judge and final Judge never reuse a Session.
+
+`stop_execution_on_unexpected_hitl` and
+`stop_execution_on_unmatched_hitl` remain fail-closed compatibility fields in
+`run-profile@1` and must be `true`; `false` is rejected at preflight because the
+runner has no authorized continuation. A future operator-repair workflow needs
+an explicit paused state rather than overloading either boolean.
 
 ## Parallel execution
 

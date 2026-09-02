@@ -3,12 +3,18 @@
   "$id": "dd-eval/hitl-match@1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_id", "status", "response_ids", "uncovered_questions", "rationale"],
+  "required": ["schema_id", "status", "classification", "response_ids", "covered_questions", "uncovered_questions", "rationale"],
   "properties": {
     "schema_id": {"const": "dd-eval/hitl-match@1"},
     "status": {"enum": ["matched", "unmatched"]},
-    "response_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "classification": {"enum": ["covered_by_canonical_response", "fixture_gap", "unnecessary_question", "out_of_scope", "ambiguous"]},
+    "response_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "covered_questions": {"type": "array", "items": {"type": "string"}},
     "uncovered_questions": {"type": "array", "items": {"type": "string"}},
-    "rationale": {"type": "string"}
-  }
+    "rationale": {"type": "string", "minLength": 1}
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "matched"}}}, "then": {"properties": {"classification": {"const": "covered_by_canonical_response"}, "response_ids": {"minItems": 1}, "covered_questions": {"minItems": 1}, "uncovered_questions": {"maxItems": 0}}}},
+    {"if": {"properties": {"status": {"const": "unmatched"}}}, "then": {"properties": {"classification": {"enum": ["fixture_gap", "unnecessary_question", "out_of_scope", "ambiguous"]}, "response_ids": {"maxItems": 0}, "uncovered_questions": {"minItems": 1}}}}
+  ]
 }

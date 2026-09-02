@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, qualificationSucceeded, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, validateHitlMatch, workerUsageSource } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -165,6 +165,37 @@ test("fan-out workers cannot create nested HITL and zero capacity is infrastruct
   const prompt = fanoutWorkerPrompt({ workId: "WRK-001", startCommand: "dd-flow work start WRK-001 --json" });
   assert.match(prompt, /cannot ask the user or pause the parent Stage/);
   assert.equal(isInfrastructureFailure("no_subagent_capacity"), true);
+});
+
+test("HITL verdicts are strict, fail closed, and preserve exact response bytes", () => {
+  const fixture = { sha256: "a".repeat(64), responses: [{ id: "one", answer: "first" }, { id: "two", answer: "second" }] };
+  const verdict = validateHitlMatch({ schema_id: "dd-eval/hitl-match@1", status: "matched", classification: "covered_by_canonical_response", response_ids: ["two", "one"], covered_questions: ["Q1", "Q2"], uncovered_questions: [], rationale: "covered" }, fixture);
+  const exchange = resolveHitlJudgment({ fixture, judgment: { profile: "judge", session_id: "session", receipt_file: "/receipt", verdict }, question: "Q1 and Q2", stage: "specify" });
+  assert.equal(exchange.answer, "second\n\nfirst");
+  assert.equal(exchange.delimiter, "dd-eval/hitl-response-delimiter@1");
+  assert.throws(() => validateHitlMatch({ ...verdict, response_ids: ["one", "one"] }, fixture), /malformed arrays/);
+  assert.throws(() => validateHitlMatch({ ...verdict, uncovered_questions: ["Q3"] }, fixture), /inconsistent verdict/);
+  assert.throws(() => validateHitlMatch({ ...verdict, rationale: "" }, fixture), /invalid contract/);
+  const gap = validateHitlMatch({ schema_id: "dd-eval/hitl-match@1", status: "unmatched", classification: "fixture_gap", response_ids: [], covered_questions: ["Q1"], uncovered_questions: ["Q2"], rationale: "missing" }, fixture);
+  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict: gap }, question: "Q1 and Q2", stage: "specify" }), (error) => error.code === "interaction_fixture_gap" && error.hitl.verdict === gap);
+  assert.equal(isInfrastructureFailure("interaction_fixture_gap"), true);
+});
+
+test("HITL recovery enforces the same round, receipt, and evidence contract", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /rounds >= fixture\.max_rounds/);
+  assert.match(source, /type: "dev\.dd\.eval\.hitl\.matched"[\s\S]*recovered: true/);
+  assert.match(source, /hitl: await hitlEvidenceFor\(events, execution\.id\)/);
+});
+
+test("run profiles cannot request an unauthorized continuation after unmatched HITL", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "dd-eval-profile-"));
+  try {
+    const value = JSON.parse(await readFile(path.join(root, "cases", caseId, "run-profiles", "e2e-inline-merge-luna-xhigh.json"), "utf8"));
+    value.failure_policy.stop_execution_on_unmatched_hitl = false;
+    const file = path.join(directory, "profile.json"); await writeFile(file, JSON.stringify(value));
+    await assert.rejects(loadRunProfile(file), /no authorized continuation/);
+  } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
 test("capacity probe has an exact, disposable agent contract", () => {
