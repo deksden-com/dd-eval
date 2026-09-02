@@ -184,6 +184,7 @@ test("fan-out workers cannot create nested HITL and zero capacity is infrastruct
   const prompt = fanoutWorkerPrompt({ workId: "WRK-001", startCommand: "dd-flow work start WRK-001 --json" });
   assert.match(prompt, /cannot ask the user or pause the parent Stage/);
   assert.equal(isInfrastructureFailure("no_subagent_capacity"), true);
+  assert.equal(isInfrastructureFailure("capacity_probe_observation_lost"), true);
 });
 
 test("HITL verdicts are strict, fail closed, and preserve exact response bytes", () => {
