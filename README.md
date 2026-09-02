@@ -44,6 +44,11 @@ the [case-creation runbook](runbooks/create-eval-case.md) and
 canonical snapshots and retention follow the [storage runbook](runbooks/eval-storage.md).
 Specification 018 defines the operation registry and server-owned MERGE
 executor; its remaining reducer consolidation is an explicitly staged follow-up.
+The [durable execution and E2E repair plan 019](specs/019-durable-execution-and-e2e-repair-plan.md)
+consolidates the September 2 failures and their agreed fixes: early result
+validation, recoverable lifecycle, native session identity, process ownership,
+durable checks, activity-aware waiting and complete evidence. It is a pending
+implementation plan, not a claim that the new runtime contract has shipped.
 The downstream implementation contour is being defined in
 [vNext CODE beta 1](beta/vnext-code-beta.1/index.md).
 

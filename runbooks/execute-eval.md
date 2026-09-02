@@ -5,6 +5,13 @@ from an empty provider Session and a portable stage-entry fixture; it does not
 fork, warm up, or read a canonical provider Session.  All mutable files belong
 under an absolute `DD_EVAL_HOME`.
 
+Pending reliability work is tracked in
+[repair plan 019](../specs/019-durable-execution-and-e2e-repair-plan.md).
+It is not implemented by this documentation change. Before the next three-model
+E2E set, complete its migration, fault tests and matched-pair preflight; then
+update the concrete commands here from the tested CLI. Do not work around the
+known blockers by editing runtime SQLite, accepted results or MERGE freeze files.
+
 ## Before launch
 
 1. Work from a clean committed `dd-eval` definition tree.

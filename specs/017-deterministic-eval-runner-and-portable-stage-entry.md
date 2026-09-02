@@ -1,5 +1,11 @@
 # Specification 017: Deterministic eval runner and portable stage entry
 
+Pending reliability amendment: [repair plan 019](019-durable-execution-and-e2e-repair-plan.md)
+specifies unified live/recovery handling, durable checks, process ownership,
+activity-aware observation and evidence for incomplete executions. It preserves
+the entry-pack/E2E distinction defined here and does not require a canonical
+rebuild for every engine change. The amendment is planned, not yet qualified.
+
 Status: proposed implementation contract
 Date: 2026-08-29
 Owner: `dd-eval`

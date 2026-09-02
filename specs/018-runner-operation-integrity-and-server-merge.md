@@ -6,6 +6,13 @@ Owner: `dd-eval`
 Affected repositories: `dd-eval`, `dd-flow-cli`, `dd-memorybank`
 Extends: specifications 017 and Memory Bank SPC-012
 
+Pending amendment: [repair plan 019](019-durable-execution-and-e2e-repair-plan.md)
+supersedes this document's absolute-deadline-only policy and release-in-client-
+`finally` resource lifetime as target behavior. It also makes the shared
+live/recovery decision path an implementation requirement after the observed
+E2E failures. Until that package ships, descriptions below remain a record of
+the earlier contract, not evidence that those defects are already fixed.
+
 ## Purpose
 
 Make a runner execution safe to resume and make `MERGE` with

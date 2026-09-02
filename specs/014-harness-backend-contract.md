@@ -5,6 +5,12 @@ Date: 2026-08-29
 Owner: `dd-eval`
 Affected repositories: `dd-eval`, `dd-flow-cli`
 
+Pending contract revision: [repair plan 019](019-durable-execution-and-e2e-repair-plan.md)
+defines the public `harness_id` + native `session_id` pair, observation versus
+execution semantics, process ownership and confirmed shutdown. Its migration
+must update all active callers together. Existing wire examples below describe
+the pre-migration contract; do not implement another prefixed Session identity.
+
 ## Purpose
 
 Define the smallest common contract that lets a Codex Controller evaluate a
