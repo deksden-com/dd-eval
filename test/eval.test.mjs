@@ -232,6 +232,7 @@ test("fan-out recovery cancels only an interrupted Turn and keeps its Work", asy
   assert.match(source, /dev\.dd\.eval\.fanout\.worker\.turn_recovery/);
   assert.match(source, /\["session", "cancel", \.\.\.daemon\.daemonArgs/);
   assert.match(source, /Do not call work start or create another Work/);
+  assert.doesNotMatch(source, /"reasoning", profile\.reasoning, "--timeout", "120", "--prompt"/);
 });
 
 test("a terminal coordinator Turn with a running Stage receives a finish-only recovery", async () => {
