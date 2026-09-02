@@ -188,6 +188,13 @@ test("HITL recovery enforces the same round, receipt, and evidence contract", as
   assert.match(source, /hitl: await hitlEvidenceFor\(events, execution\.id\)/);
 });
 
+test("canonical recovery can replay an already accepted semantic HITL answer without spending another round", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /repeatedAcceptedAnswer/);
+  assert.match(source, /hitl\.replayed/);
+  assert.match(source, /hitlRounds >= fixture\.max_rounds && !samePendingPause && !repeatedAcceptedAnswer/);
+});
+
 test("run profiles cannot request an unauthorized continuation after unmatched HITL", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "dd-eval-profile-"));
   try {
