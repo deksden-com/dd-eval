@@ -1,0 +1,50 @@
+# Три параллельных E2E — 2026-09-02
+
+## Результат
+
+Запущены Luna xhigh, Grok 4.6 high и ZCode GLM-5.3-Flash max с целевой цепочкой SPECIFY → PROTOCOLIZE → PLAN → PLAN-REVIEW → CODE → CODE-REVIEW → MERGE, inline merge и Final Judge Sol high. Все три попытки остановились на блокерах. Ни одна не дошла до MERGE; Final Judge не запускался, поскольку раннер не сформировал законченного кандидата. Это не три успешных полных E2E.
+
+| Модель | EVAL | Subject session | Последняя стадия | Время попытки, мин |
+|---|---|---|---|---:|
+| Luna xhigh | EVAL-20260902152825-0d08996a | 01a062bc-7c27-7d93-a7cf-0c0f2bb52d8f | PLAN-REVIEW blocked | 42.15 |
+| Grok 4.6 high | EVAL-20260902145037-5a89cacf | 01a06299-e199-7e02-9cd6-8ef4b2a16d94 | CODE-REVIEW timeout | 139.55 |
+| GLM-5.3-Flash max | EVAL-20260902145351-241b51e8 | sess_0b51ff0a-3bef-4d89-85f6-efcc768f8c53 | CODE recovery blocker | 131.62 |
+
+Данные находятся в `$DD_EVAL_HOME/runs/<EVAL>/`: `manifest.json`, `events.jsonl`, `executions/e2e/drivers/`, рабочий проект и DD_FLOW_HOME. В этой машине DD_EVAL_HOME — `/Users/deksden/.dd-eval`.
+
+## Время стадий
+
+Время от `execution.context_prepared` до `stage.boundary_captured`; для незаконченной стадии — до `execution.failed`. Оно включает агентную работу, HITL, fan-out и ожидания внутри стадии, но не начальную подготовку EVAL. Звёздочка означает незавершённую стадию.
+
+| Стадия | Luna | Grok | GLM |
+|---|---:|---:|---:|
+| SPECIFY | 5.29 | 6.56 | 8.57 |
+| PROTOCOLIZE | 1.84 | 2.04 | 1.91 |
+| PLAN | 9.61 | 8.12 | 15.71 |
+| PLAN-REVIEW | 25.31* | 14.47 | 30.32 |
+| CODE | — | 70.43 | 74.96* |
+| CODE-REVIEW | — | 37.82* | — |
+| MERGE | — | — | — |
+
+## Блокеры и наблюдения
+
+1. **Luna / PLAN-REVIEW — результат reviewer Work принят раньше проверки переносимости evidence.** Координатор применил исправления к плану (revision 2) и классифицировал 22 находки. `stage finish` отверг evidence из RG-003/RG-004: malformed line-range lists и абсолютный путь. Координатор изменил файловые результаты, но авторитетные результаты завершённых Work уже хранились в реестре. Повторная финализация прочитала прежние записи; публичной repair-команды в ответе не было. Итог — `blocked`. Требуется проверять evidence на границе `work finish` и определить штатное исправление ошибочного результата, не заставляя редактировать проекции/реестр вручную. Отдельно проверить, валидируются ли исторические ссылки ревью на исходную ревизию, а не на уже исправленный план.
+2. **GLM / CODE — recovery не нашёл durable prompt.** После долгого WRK-012-prt-007-task-priority-p4 раннер завершился `fanout_worker_prompt_missing`. Worker session: `sess_fce3d74f-ac98-4941-9bd3-56e5fcf57110`. Нужно проверить единый путь сохранения/чтения prompt и жизненный цикл recovery; отсутствие prompt должно обнаруживаться до запуска worker, а не после длительного хода. Предшествующую причину recovery следует извлечь из worker journal; код ошибки не доказывает провал работы модели.
+3. **Grok / CODE-REVIEW — `session.prompt timed out`.** Пять reviewer Work завершились; координатор продолжал CODE-REVIEW до предела ожидания. Это явный timeout раннера, а не доказанное зависание модели. До него CODE успешно закрылся, включая отдельный WRK-012-code-gate-repair (~24 минуты). Нужен разбор последнего хода: прогресс, повторные команды и согласованность таймаутов adapter/daemon/runner.
+4. **Уборка ZCode после раннего сбоя — `Internal error`.** `daemon stop --cancel-tree` для трёх ранних неудачных стартов не выполнился. Их daemon-процессы остановлены адресно; данные попыток сохранены. Нужно исправить остановку ещё не выполнившей первый Turn сессии и уборку дочернего provider-процесса.
+
+Контроллер не объявлял работающие сессии зависшими: проверял свежие provider-журналы и ждал terminal failure. После завершения Grok и последнего GLM worker их daemon endpoints уже отсутствовали.
+
+## Исправлено во время запуска
+
+- `dd-eval` `2adb9b7`, `be7a590`, `af666bf`: актуальный Grok Build 1.0.17; ZCode provider/adapter identity и первый Turn без преждевременного запроса subagent tree.
+- `dd-eval` `cd61f40`, `ee6948e`: Codex `turn/start` может кратковременно показывать persisted `interrupted` до live `turn/started`. Общая проверка terminal status теперь применяется ко всем путям чтения; live running/active не подменяется устаревшим persisted failure. 21/21 targeted Codex tests passed. Последующая Luna прошла эти переходы штатно.
+- `dd-eval` `3017a0f`: cp-058 использует чистый source commit `86db34668add2cd2f9a7c59adfced5e7ae57c3b8`, опубликованный тегом `eval-task-priority-flow-0.9.0-beta.2-v2` в dd-tasks. Изменён только code-check-profile@4 → @6, продукт Task Priority не добавлен. Это устранило PLAN-preflight blocker.
+
+Ранние Luna attempts: `EVAL-20260902144755-b8a7ba99`, `EVAL-20260902145738-8c5ec2cc`, `EVAL-20260902150653-0a0fa90c` (ошибочное распознавание interrupted); `EVAL-20260902151620-8aa6a5f5` (устаревший check profile).
+
+## Ограничение сопоставимости
+
+Grok и GLM стартовали на cp-057 и сами мигрировали check profile в feature worktree; итоговая Luna — на исправленном cp-058. Поэтому это полезные системные прогоны, но не строго одинаковые стартовые условия для сравнения моделей. После исправления блокеров новый сопоставимый набор должен целиком использовать cp-058 (или его следующую явно зафиксированную редакцию). Канонические цепочки для этого E2E не перестраивались.
+
+Токены и итоговые оценки не приведены: финальный кандидат и штатная Final Judge-оценка отсутствуют. Нельзя подменять это нулевым usage или успешной оценкой.
