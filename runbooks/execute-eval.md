@@ -63,6 +63,28 @@ The runner allocates a fresh directory under
 `$DD_EVAL_HOME/runs/<eval-id>/`. Each execution gets its own restored project,
 `DD_FLOW_HOME`, managed harness state and append-only `events.jsonl`.
 
+## Parallel canonical preparation and E2E
+
+Canonical preparation and ordinary E2E evaluations are independent contours.
+A canonical build owns only its directory below
+`$DD_EVAL_HOME/canonical/<case>/<revision>/`; an E2E owns a fresh directory
+below `$DD_EVAL_HOME/runs/<eval-id>/` and begins from the committed input
+checkpoint. An E2E never reads, resumes, forks, or waits for a canonical
+provider Session.
+
+They may therefore run at the same time. This is useful when a reference chain
+is still being captured while a release comparison is already ready to run.
+Keep the following boundaries intact:
+
+- use a separate, fresh E2E directory for every invocation;
+- keep `DD_FLOW_RESOURCE_HOME` common and absolute so ports and managed
+  processes are coordinated across all concurrent runs;
+- do not modify or dirty the `dd-eval` definition worktree used by a live
+  canonical build; prepare documentation or unrelated source changes in a
+  separate worktree and merge them after the build has reached its boundary;
+- treat a missing accepted focused entry pack as irrelevant to an E2E. It
+  affects focused-stage qualification only; E2E uses the input checkpoint.
+
 The runner also creates `$DD_FLOW_HOME/bin/dd-flow`: a tiny private launcher
 for the exact engine snapshot named by the accepted entry pack. It exports its
 own absolute path as `DD_FLOW_BIN`, is placed first in the Subject, worker and
