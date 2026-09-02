@@ -301,7 +301,8 @@
           {"id": "GOLD-CODE-REVIEW-002", "statement": "Keep mandatory CODE verification distinct from independent review and reject taste-only or scope-expanding findings."}
         ],
         "accepted_strong_decisions": [
-          {"id": "STRONG-CODE-REVIEW-001", "statement": "A strong review groups compatible aspects into capacity-aware waves, gives every reviewer a fresh read-only session, and makes one evidence-backed disposition for each material finding."}
+          {"id": "STRONG-CODE-REVIEW-001", "statement": "A strong review groups compatible aspects into capacity-aware waves, gives every reviewer a fresh read-only session, and makes one evidence-backed disposition for each material finding."},
+          {"id": "STRONG-CODE-REVIEW-002", "statement": "When authorization or write eligibility depends on mutable state, a strong review challenges the gap between checking that state and committing the write. A strong repair makes the decision and mutation atomic and proves the relevant state-transition race with a deterministic concurrency test.", "source": "EVAL-20260901213617-896d0933 (Grok 4.6 high): isolated finding and repair independently verified; the surrounding run contained a separate flow-recovery contamination."}
         ],
         "accepted_alternatives": [],
         "known_risks": [
