@@ -5,7 +5,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
+import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -85,6 +86,14 @@ test("qualification cannot pass while any execution failed", () => {
   assert.equal(qualificationSucceeded({ state: "completed", executions: [{ state: "candidate_ready" }] }), true);
   assert.equal(qualificationSucceeded({ state: "completed_with_failures", executions: [{ state: "failed" }] }), false);
   assert.equal(qualificationSucceeded({ state: "completed", executions: [{ state: "failed" }] }), false);
+});
+
+test("terminal reconciliation supersedes only the runner's failed launch receipt", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "dd-eval-reconcile-")); const eventsFile = path.join(directory, "events.jsonl"); const manifest = { run_id: "EVAL-001", executions: [{ id: "e2e", stage: "specify" }] };
+  await appendEvent(eventsFile, { source: "dd-eval://test", runId: manifest.run_id, executionId: "e2e", traceId: manifest.run_id, type: "dev.dd.eval.operation.failed", data: { operation_id: "EVAL-001:e2e:launch", operation: "execution.e2e.launch", status: "failed", error: { code: "runner_failure" } } });
+  const recovered = { execution: "e2e", state: "candidate_ready", candidate: { manifest_sha256: "a".repeat(64) } };
+  await appendEvent(eventsFile, { source: "dd-eval://test", runId: manifest.run_id, executionId: "e2e", traceId: manifest.run_id, type: "dev.dd.eval.operation.completed", data: { operation_id: "EVAL-001:e2e:launch:reconcile", operation: "execution.e2e.reconcile", status: "completed", result: recovered } });
+  assert.deepEqual(storedExecutionResults(await readEvents(eventsFile), manifest), [recovered]);
 });
 
 test("focused result checkpoints preserve a legal successor entry", () => {

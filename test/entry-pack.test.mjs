@@ -3,7 +3,7 @@ import { chmod, mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { appendEvent, canonicalJson, hashJson, readEvents, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
+import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateStageBlueprint, writeEntryPack } from "../lib/entry-pack.mjs";
 import { createHarnessPermits, runServerMerge, stageExecutor } from "../lib/runner.mjs";
 
@@ -102,6 +102,14 @@ test("normalized journal keeps an execution identity available for recovery", as
   const [event] = await readEvents(file);
   assert.equal(event.executionid, "focus");
   assert.equal(event.data.session_id, "session-1");
+});
+
+test("adapter journals are parsed separately from strict runner CloudEvents", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-driver-journal-")); const file = path.join(root, "subject.events.jsonl");
+  await writeFile(file, '{"order":1,"kind":"outbound","payload":{"command":"dd-flow stage start"}}\n');
+  const [record] = await readJsonLines(file, "driver journal");
+  assert.equal(record.kind, "outbound");
+  await assert.rejects(readEvents(file), /invalid runner event/);
 });
 
 test("harness permits bound concurrent provider turns without blocking another harness", async () => {
