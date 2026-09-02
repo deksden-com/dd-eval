@@ -111,6 +111,23 @@ test("Codex adapter reads the persisted turn page when the live Thread stays act
   await assert.rejects(() => promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" }), { code: "turn_interrupted" });
 });
 
+test("Codex adapter ignores the transient interrupted snapshot immediately after turn/start", async () => {
+  const turnId = "turn-001"; let persistedReads = 0;
+  const bridge = {
+    turns: new Map(),
+    request: async (method) => {
+      if (method === "turn/start") {
+        setTimeout(() => bridge.turns.set(turnId, { status: "completed", value: { turn: { id: turnId, status: "completed" } } }), 10);
+        return { turn: { id: turnId } };
+      }
+      if (method === "thread/turns/list" && persistedReads++ === 0) return { data: [{ id: turnId, status: "interrupted" }] };
+      return { thread: { id: "thread-001", status: { type: "active" } } };
+    }
+  };
+  const result = await promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" });
+  assert.equal(result.status, "completed");
+});
+
 test("Codex adapter keeps waiting for alternate active Turn spellings", async () => {
   const source = await (await import("node:fs/promises")).readFile(new URL("../lib/dd-codex.mjs", import.meta.url), "utf8");
   assert.match(source, /isTerminalTurnStatus\(stored\.turn\.status\)/);
