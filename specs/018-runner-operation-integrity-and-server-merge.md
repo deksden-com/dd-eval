@@ -32,6 +32,36 @@ live and recovery decisions without changing behavior.
 The runner state comes only from declared execution lifecycle events, never
 from an incidental `data.state` in an adapter or Work event.
 
+The same rule applies while authoring canonical entries. A canonical build is
+bound to the committed `dd-eval` commit and tree recorded at creation; resume,
+boundary acceptance, qualification and promotion fail with
+`runner_definition_drift` after the definition changes. A registered HITL
+pause consumes at most one semantic response round. Its pause id, response
+ids, exact answer file and checksum are persisted before dispatch. If transport
+fails before `dd-flow stage resume` is accepted, recovery may resend the same
+saved bytes to the same pause; it must not ask the Interaction Judge again or
+consume another round. Repeating an unchanged stage continuation after a
+successful provider Turn without a lifecycle change is a
+`reference_nonprogress_cycle`, not another model Turn. Every
+terminal canonical failure records a structured code, stage, message and time.
+
+Harness adapters expose stable error codes. Runner recovery is selected from
+those codes rather than wording in stderr. Provider silence is not a terminal
+state and therefore has no default idle timeout; the explicit operation
+deadline remains the only time bound.
+
+The daemon health probe and the productive action are separate operations. A
+failed health probe may select a disposable recovery bridge. An error returned
+by the productive action is propagated with its stable adapter code and never
+causes that action to be repeated on a second daemon. A journaled failed or
+cancelled operation is terminal; continuation uses explicit reconciliation
+instead of replaying the same operation id.
+
+Every execution receives an isolated `DD_FLOW_HOME`, while host resources are
+coordinated through one shared `DD_FLOW_RESOURCE_HOME`. Named check ports are
+leased there with exclusive lock files and released in `finally`, so parallel
+evals cannot select the same port merely because their runtime homes differ.
+
 ### One execution reducer — staged follow-up
 
 The present change makes the productive operation registry common. The next
@@ -133,6 +163,18 @@ pack/case contour mismatch, server routing, server dispatch/requeue and
 idempotent MERGE finish. A live focused MERGE test runs only in an isolated
 checkout and `DD_EVAL_HOME`; it additionally proves integration state, checks,
 lane release and complete request/Work/Stage/RUN closure.
+
+The same integrity rule applies to accounting and judgment:
+
+- logical Work/Session ancestry is stored separately from native provider-tree
+  containment; inclusive usage suppresses only a real native child, never an
+  isolated worker root;
+- every external harness contributes its adapter-ingested usage rather than
+  being sent through the Codex transcript synchronizer;
+- Final Judge output covers exactly one declared assessment scope, includes
+  every rubric criterion exactly once and attaches evidence to every applicable
+  score. Empty or partial score vectors are invalid infrastructure output, not
+  a low-quality evaluation.
 
 ## Non-goals
 

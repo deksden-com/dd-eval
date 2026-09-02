@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, validateHitlMatch, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -36,6 +36,15 @@ test("E2E starts from case input while focused and segment runs require an entry
   assert.equal(selectionNeedsEntryPack([{ mode: "e2e" }]), false);
   assert.equal(selectionNeedsEntryPack([{ mode: "e2e" }, { mode: "focused" }]), true);
   assert.equal(selectionNeedsEntryPack([{ mode: "segment" }]), true);
+});
+
+test("Final Judge must cover the selected rubric exactly with evidenced applicable scores", () => {
+  const assessment = { scopes: { plan: { outcome: [{ id: "quality" }], flow: [{ id: "integrity" }] } } };
+  const valid = { schema_id: "dd-eval/judge-result@2", scope: "plan", run_validity: "valid", outcome: [{ id: "quality", score: 4, not_applicable: false, rationale: "complete", evidence: ["plan.json"] }], flow: [{ id: "integrity", score: null, not_applicable: true, rationale: "not exercised", evidence: [] }], findings: [], golden: { covered: [], missed: [], alternatives: [], novel: [] }, conclusion: "ready" };
+  assert.deepEqual(validateJudgeResult(valid, assessment), valid);
+  assert.throws(() => validateJudgeResult({ ...valid, outcome: [] }, assessment), /exact outcome rubric/);
+  assert.throws(() => validateJudgeResult({ ...valid, outcome: [{ ...valid.outcome[0], evidence: [] }] }, assessment), /incomplete applicable criterion/);
+  assert.throws(() => validateJudgeResult({ ...valid, scope: "unknown" }, assessment), /unknown assessment scope/);
 });
 
 test("run profiles are explicit experiments rather than harness defaults", async () => {
@@ -101,7 +110,8 @@ test("recovery reuses a live execution daemon before making a disposable bridge"
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /const primaryState = path\.join\(attempt, "drivers", "daemon"\)/);
   assert.match(source, /\["daemon", "status", \.\.\.primaryArgs/);
-  assert.match(source, /return await action\(\{ daemonArgs: primaryArgs, env \}\)/);
+  assert.match(source, /try \{ return await action\(\{ daemonArgs, env \}\); \}/);
+  assert.match(source, /if \(recoveryBridge\)/);
 });
 
 test("normal, resumed, judged, and cancelled runs share one terminal projection", async () => {
@@ -188,11 +198,19 @@ test("HITL recovery enforces the same round, receipt, and evidence contract", as
   assert.match(source, /hitl: await hitlEvidenceFor\(events, execution\.id\)/);
 });
 
-test("canonical recovery can replay an already accepted semantic HITL answer without spending another round", async () => {
+test("canonical recovery reuses accepted HITL bytes without spending another round", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /repeatedAcceptedAnswer/);
-  assert.match(source, /hitl\.replayed/);
-  assert.match(source, /hitlRounds >= fixture\.max_rounds && !samePendingPause && !repeatedAcceptedAnswer/);
+  assert.match(source, /answered_pauses/);
+  assert.match(source, /hitl\.resume_retried/);
+  assert.match(source, /hitl_resume_not_applied/);
+  assert.match(source, /answer_file: answerFile/);
+});
+
+test("canonical mutations are bound to their committed eval definition", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /runner_definition_drift/);
+  assert.match(source, /state\.definition\?\.commit !== current\.commit/);
+  assert.match(source, /await assertCanonicalDefinition\(state\)/);
 });
 
 test("run profiles cannot request an unauthorized continuation after unmatched HITL", async () => {
@@ -237,7 +255,8 @@ test("fan-out recovery cancels only an interrupted Turn and keeps its Work", asy
   assert.match(source, /dev\.dd\.eval\.fanout\.worker\.resumed/);
   assert.match(source, /restart: Boolean\(resumeSessionId\)/);
   assert.match(source, /dev\.dd\.eval\.reference\.fanout_recovery_authorized/);
-  assert.match(source, /turn_\(\?:not_active\|interrupted\)/);
+  assert.match(source, /recoverableDriverCodes/);
+  assert.match(source, /isRecoverableDriverError\(error\)/);
 });
 
 test("a terminal coordinator Turn with a running Stage receives a finish-only recovery", async () => {

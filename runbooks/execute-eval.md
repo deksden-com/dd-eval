@@ -107,6 +107,12 @@ evidence. A Judge assesses captured facts and cannot repair the Subject's
 output. The human operator only accepts a canonical reference boundary or
 changes the versioned case definition.
 
+The Final Judge must return the exact outcome and flow criterion sets declared
+for its chosen assessment scope. Every applicable criterion needs a score,
+rationale and evidence; an unknown scope, duplicate/missing criterion or empty
+applicable evidence fails the evaluation machinery instead of producing a
+partial score.
+
 The Subject may inspect the isolated runtime but may mutate flow state only
 through the emitted public `dd-flow` commands. Before candidate capture the
 runner writes `runtime-integrity.json` from the harness journal. A direct
@@ -191,6 +197,21 @@ infrastructure and is not a Subject-quality failure; an unnecessary or
 out-of-scope question remains a Subject failure. Repair the committed fixture
 and start a new eval rather than changing the definition underneath an existing
 run.
+
+For canonical entry authoring, do not resume an old build after changing or
+dirtying the `dd-eval` definition. Commit the corrected definition and start a
+new canonical build. The runner checks the recorded definition commit/tree at
+every mutating canonical transition. An accepted answer is bound to one pause
+and one semantic round. Transport recovery may resend only the already saved
+answer file with the same checksum; it must not invoke the Interaction Judge
+again or author new bytes. `hitl_resume_not_applied` means a successful Subject
+Turn left the same pause unchanged and is a flow defect, not permission to ask
+or answer again.
+
+Keep `DD_FLOW_RESOURCE_HOME` common to every parallel execution. The runner
+defaults it to `$DD_EVAL_HOME/resources`; override it only with another absolute
+host-local resource directory shared by all concurrent runs. Do not place it
+inside an execution-specific `DD_FLOW_HOME`.
 
 On a host/controller restart, use:
 

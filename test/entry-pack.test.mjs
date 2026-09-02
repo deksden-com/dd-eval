@@ -69,6 +69,14 @@ test("operation registry rejects a conflicting terminal result", async () => {
   await assert.rejects(readEvents(file).then(reduceEvents), /conflicting terminal events/);
 });
 
+test("operation registry never replays a terminal failed action", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-events-")); const file = path.join(root, "events.jsonl"); let calls = 0;
+  const input = { eventsFile: file, source: "dd-eval://test", runId: "EVAL-001", executionId: "focus", traceId: "trace", operationId: "op-failed", operation: "driver.prompt" };
+  await assert.rejects(recordOperation({ ...input, action: async () => { calls += 1; throw new Error("failed once"); } }), /failed once/);
+  await assert.rejects(recordOperation({ ...input, action: async () => { calls += 1; return { impossible: true }; } }), /already failed/);
+  assert.equal(calls, 1);
+});
+
 test("concurrent callers do not repeat an in-flight operation", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-events-")); const file = path.join(root, "events.jsonl"); let calls = 0;
   const input = { eventsFile: file, source: "dd-eval://test", runId: "EVAL-001", executionId: "focus", traceId: "trace", operationId: "op-concurrent", operation: "driver.prompt" };
