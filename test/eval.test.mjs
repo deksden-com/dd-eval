@@ -247,6 +247,14 @@ test("canonical recovery does not trust a stale active Desktop record", async ()
   assert.match(source, /providerTurnIsLive\(provider, state\.reference\.active_turn\)/);
 });
 
+test("canonical recovery clears its private daemon slot before resuming an interrupted Turn", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const helper = source.match(/async function restartIdleReferenceDaemon[\s\S]*?\n}\nfunction providerTurnIsActive/);
+  assert.ok(helper);
+  assert.match(helper[0], /\["daemon", "stop", \.\.\.daemon\.daemonArgs\]/);
+  assert.doesNotMatch(helper[0], /provider\.thread\?\.status/);
+});
+
 test("fan-out recovery is reserved for a still-running Work", () => {
   const shouldRecover = (status) => status === "running";
   assert.equal(shouldRecover("running"), true);
