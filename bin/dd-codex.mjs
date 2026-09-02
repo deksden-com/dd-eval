@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { cancelSession, createSession, doctor, inspectSession, promptFromFile, promptSession } from "../lib/dd-codex.mjs";
+import { cancelSession, createSession, doctor, inspectSession, promptFromFile, promptSession, startSession } from "../lib/dd-codex.mjs";
 import { callDaemon, serveDaemon, startDaemon, stopDaemon } from "../lib/dd-codex-daemon.mjs";
 
 function parse(argv) { const positional = []; const options = {}; for (let i = 0; i < argv.length; i += 1) { const token = argv[i]; if (!token.startsWith("--")) { positional.push(token); continue; } const key = token.slice(2); if (key === "json") { options[key] = true; continue; } const value = argv[++i]; if (value === undefined) throw new Error(`--${key} requires a value`); options[key] = value; } return { positional, options }; }
@@ -13,8 +13,9 @@ try {
   else if (family === "daemon" && command === "stop") result = await stopDaemon(shared);
   else if (family === "session" && command === "create") result = shared.stateDir ? await callDaemon(shared.stateDir, "session.create", shared) : await createSession(shared);
   else if (family === "session" && command === "prompt") result = shared.stateDir ? await callDaemon(shared.stateDir, "session.prompt", { ...shared, prompt: options["prompt-file"] ? await promptFromFile(options["prompt-file"]) : options.prompt }, shared.timeoutMs ?? 1_800_000) : await promptSession({ ...shared, prompt: options["prompt-file"] ? await promptFromFile(options["prompt-file"]) : options.prompt });
+  else if (family === "session" && command === "start") result = shared.stateDir ? await callDaemon(shared.stateDir, "session.start", { ...shared, prompt: options["prompt-file"] ? await promptFromFile(options["prompt-file"]) : options.prompt }, shared.timeoutMs ?? 30_000) : await startSession({ ...shared, prompt: options["prompt-file"] ? await promptFromFile(options["prompt-file"]) : options.prompt });
   else if (family === "session" && ["inspect", "status", "resume"].includes(command)) result = shared.stateDir ? await callDaemon(shared.stateDir, "session.inspect", shared) : await inspectSession(shared);
   else if (family === "session" && command === "cancel") result = shared.stateDir ? await callDaemon(shared.stateDir, "session.cancel", shared) : await cancelSession(shared);
-  else throw new Error("usage: dd-codex doctor | daemon start|status|stop | session create|prompt|inspect|status|resume|cancel [--json]");
+  else throw new Error("usage: dd-codex doctor | daemon start|status|stop | session create|start|prompt|inspect|status|resume|cancel [--json]");
   process.stdout.write(`${JSON.stringify({ ok: true, ...result })}\n`);
 } catch (error) { process.stderr.write(`${JSON.stringify({ ok: false, error: error.message, ...(error.code ? { code: error.code } : {}) })}\n`); process.exit(1); }

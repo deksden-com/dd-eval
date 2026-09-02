@@ -9,7 +9,7 @@ Usage:
   dd-eval runner fixtures validate --case <case-id> [--revision REV-NNN]
   dd-eval runner canonical build --profile <run-profile.json> --project-root <checkpoint-checkout> --flow-root <flow-pack-checkout>
   dd-eval runner canonical status --build <path>
-  dd-eval runner canonical resume --build <path>
+  dd-eval runner canonical resume --build <path> [--detach true]
   dd-eval runner canonical engine capture --build <path>
   dd-eval runner canonical boundary accept --build <path> --stage <stage> --review <file>
   dd-eval runner canonical qualify --build <path> --profile <run-profile.json>
@@ -47,7 +47,7 @@ try {
   if (family === "runner" && command === "fixtures" && action === "validate") result = await fixturesValidate({ caseId: required(options, "case"), ...(options.revision ? { revision: options.revision } : {}) });
   else if (family === "runner" && command === "canonical" && action === "build") result = await canonicalBuild({ profileFile: required(options, "profile"), projectRoot: required(options, "project-root"), flowRoot: required(options, "flow-root") });
   else if (family === "runner" && command === "canonical" && action === "status") result = await canonicalStatus({ buildRoot: required(options, "build") });
-  else if (family === "runner" && command === "canonical" && action === "resume") result = await canonicalResume({ buildRoot: required(options, "build") });
+  else if (family === "runner" && command === "canonical" && action === "resume") result = await canonicalResume({ buildRoot: required(options, "build"), detachTurns: options.detach === "true" });
   else if (family === "runner" && command === "canonical" && action === "engine") {
     if (positional[3] !== "capture") throw new Error(`unknown command: ${positional.join(" ")}`);
     result = await canonicalEngineCapture({ buildRoot: required(options, "build") });
