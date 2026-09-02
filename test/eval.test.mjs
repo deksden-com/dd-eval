@@ -20,10 +20,10 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-058-task-priority-clean-baseline-flow-0-9-0-beta-2");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-059-task-priority-flow-4-0-0-engine-0-9-0-beta-4");
   assert.equal(loaded.inputCheckpoint.value.source.commit, "86db34668add2cd2f9a7c59adfced5e7ae57c3b8");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "48f1104bf849cdf38f38fe004a7d92736f5e1d4e");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.2");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "f7e952726281f941b61d696fe48d76a0107b0d21");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.4");
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
 
@@ -53,8 +53,8 @@ test("run profiles are explicit experiments rather than harness defaults", async
   assert.deepEqual(reference.value.selection.focused_stages, []);
   assert.equal(qualification.value.selection.focused_stages.length, 7);
   assert.equal(qualification.value.selection.e2e, false);
-  assert.equal(reference.value.subject.profile_id, "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-2");
-  assert.equal(qualification.value.subject.profile_id, "codex-desktop-gpt-5-6-terra-high-dd-flow-0-9-0-beta-2");
+  assert.equal(reference.value.subject.profile_id, "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-4");
+  assert.equal(qualification.value.subject.profile_id, "codex-desktop-gpt-5-6-terra-high-dd-flow-0-9-0-beta-4");
 });
 
 test("ZCode diagnostics expose one focused profile for every flow stage", async () => {

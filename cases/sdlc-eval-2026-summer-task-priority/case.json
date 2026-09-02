@@ -11,22 +11,22 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-058-task-priority-clean-baseline-flow-0-9-0-beta-2",
-    "sha256": "bb67db6413014a8085c506a791550614e0942c76c8b0fdcb3902375dcf4fd379"
+    "id": "cp-059-task-priority-flow-4-0-0-engine-0-9-0-beta-4",
+    "sha256": "b8dd6350b47a44b969b8043810dfdaff7bfc97ebd307b4bc54f3b4d0af57acf1"
   },
   "entry_pack": null,
   "profiles": {
     "subject": [
-      "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-9-0-beta-2",
-      "codex-desktop-gpt-5-6-terra-high-dd-flow-0-9-0-beta-2",
-      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-2",
+      "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-9-0-beta-4",
+      "codex-desktop-gpt-5-6-terra-high-dd-flow-0-9-0-beta-4",
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-4",
       "grok-acp-xai-grok-4-6-high",
       "zcode-acp-zai-glm-5-3-high",
       "zcode-acp-zai-glm-5-3-flash-high",
       "zcode-acp-zai-glm-5-3-flash-max"
     ],
     "judge": [
-      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-2"
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-4"
     ]
   },
   "flow": {

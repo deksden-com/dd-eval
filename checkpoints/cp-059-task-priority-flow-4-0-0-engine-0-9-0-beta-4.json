@@ -1,0 +1,31 @@
+{
+  "schema_version": 2,
+  "id": "cp-059-task-priority-flow-4-0-0-engine-0-9-0-beta-4",
+  "title": "Task Priority clean product baseline with canonical flow 4.0.0 and dd-flow 0.9.0-beta.4",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "86db34668add2cd2f9a7c59adfced5e7ae57c3b8"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "f7e952726281f941b61d696fe48d76a0107b0d21",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.0",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "f63bea5b144a2b74fdfdb8951589f9f43a7cb678",
+      "version": "0.9.0-beta.4"
+    }
+  },
+  "state": "ready_for_canonical_capture",
+  "notes": [
+    "The source commit predates Task Priority, so the evaluated request is not already implemented.",
+    "The project flow pack is the manifest-governed canonical 4.0.0 synchronization at dd-tasks f7e9527.",
+    "The runner overlays the pinned flow pack without copying product code from the flow-pack commit."
+  ]
+}

@@ -2,7 +2,7 @@
   "schema_id": "dd-eval/run-profile@1",
   "id": "qualify-entry-pack-terra-high-beta-2",
   "case_id": "sdlc-eval-2026-summer-task-priority",
-  "subject": {"profile_id": "codex-desktop-gpt-5-6-terra-high-dd-flow-0-9-0-beta-2"},
+  "subject": {"profile_id": "codex-desktop-gpt-5-6-terra-high-dd-flow-0-9-0-beta-4"},
   "selection": {"focused_stages": ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"], "segment": null, "e2e": false, "repetitions": 1},
   "judge": {"enabled": false},
   "interaction_judge": {"profile_id": "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-2"},
