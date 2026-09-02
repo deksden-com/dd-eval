@@ -45,7 +45,7 @@ test("run profiles are explicit experiments rather than harness defaults", async
   assert.equal(qualification.value.selection.focused_stages.length, 7);
   assert.equal(qualification.value.selection.e2e, false);
   assert.equal(reference.value.subject.profile_id, "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-2");
-  assert.equal(qualification.value.subject.profile_id, "codex-desktop-gpt-5-6-terra-high-dd-flow-main-7121f91");
+  assert.equal(qualification.value.subject.profile_id, "codex-desktop-gpt-5-6-terra-high-dd-flow-0-9-0-beta-2");
 });
 
 test("ZCode diagnostics expose one focused profile for every flow stage", async () => {
