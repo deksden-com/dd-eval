@@ -237,7 +237,7 @@ test("fan-out recovery cancels only an interrupted Turn and keeps its Work", asy
   assert.match(source, /dev\.dd\.eval\.fanout\.worker\.resumed/);
   assert.match(source, /restart: Boolean\(resumeSessionId\)/);
   assert.match(source, /dev\.dd\.eval\.reference\.fanout_recovery_authorized/);
-  assert.match(source, /session\\\.prompt timed out\|turn_not_active/);
+  assert.match(source, /turn_\(\?:not_active\|interrupted\)/);
 });
 
 test("a terminal coordinator Turn with a running Stage receives a finish-only recovery", async () => {
