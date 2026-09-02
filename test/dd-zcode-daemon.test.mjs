@@ -70,7 +70,7 @@ test("daemon preserves a live background tree across CLI processes and cancels i
     const created = await run(["session", "create", "--state-dir", stateDir, ...profileArgs, "--prompt", "prime"]);
     assert.equal(created.provider_session_id, "native-root");
     assert.equal(created.initialized.ddFlowHome, root);
-    const prompted = await run(["session", "prompt", "--state-dir", stateDir, "--session-id", "native-root", "--adapter-session-id", "adapter-root", ...profileArgs, "--prompt", "background"]);
+    const prompted = await run(["session", "prompt", "--state-dir", stateDir, "--session-id", "native-root", ...profileArgs, "--prompt", "background"]);
     assert.equal(prompted.evidence.subagents.running[0].agentId, "agent-bg");
     const inspected = await run(["session", "inspect", "--state-dir", stateDir, "--session-id", "native-root", "--adapter-session-id", "adapter-root"]);
     assert.equal(inspected.subagents.running.length, 1);
