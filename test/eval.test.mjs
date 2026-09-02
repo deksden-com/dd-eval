@@ -22,7 +22,7 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("priming" in loaded.value, false);
   assert.equal(loaded.inputCheckpoint.value.id, "cp-057-task-priority-clean-baseline-flow-0-9-0-beta-2");
   assert.equal(loaded.inputCheckpoint.value.source.commit, "a924495a5fef8a53b3ba6dc0f9408023ae7e569c");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "c2c1c85662f104fb3c2cc4ba98c4aa1803782ea0");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "48f1104bf849cdf38f38fe004a7d92736f5e1d4e");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.2");
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });

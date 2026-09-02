@@ -13,7 +13,7 @@
   },
   "flow_pack": {
     "repository": "https://github.com/deksden-com/dd-tasks.git",
-    "commit": "c2c1c85662f104fb3c2cc4ba98c4aa1803782ea0",
+    "commit": "48f1104bf849cdf38f38fe004a7d92736f5e1d4e",
     "path": ".memory-bank/dd-flow",
     "memory_bank_version": "4.0.0",
     "engine": {
@@ -26,6 +26,6 @@
   "notes": [
     "The source commit predates Task Priority, so the evaluated request is not already implemented.",
     "The runner overlays the pinned flow pack without copying product code from the flow-pack commit.",
-    "This checkpoint qualifies the atomic MERGE handoff and per-check browser-port isolation in the current beta engine."
+    "This checkpoint qualifies the atomic MERGE handoff, per-check browser-port isolation, and the matching beta-2 engine compatibility contract."
   ]
 }
