@@ -10,6 +10,11 @@ under an absolute `DD_EVAL_HOME`.
 1. Work from a clean committed `dd-eval` definition tree.
 2. Select a committed `run-profile.json`. It names one case, Subject profile,
    selected focused stages/E2E, Judge policy and resource limits.
+   A profile names the harness/model/reasoning experiment; it is not a copy of
+   an engine version. The exact engine package, version and checksum are
+   pinned by the input checkpoint and recorded in each run manifest. Update a
+   harness profile only when its provider settings change; rebuild the input
+   checkpoint when a changed engine contract needs new qualification.
 3. Validate the accepted package:
 
    ```sh
@@ -101,6 +106,17 @@ flow decisions; it does not manufacture snapshots, statistics or Judge
 evidence. A Judge assesses captured facts and cannot repair the Subject's
 output. The human operator only accepts a canonical reference boundary or
 changes the versioned case definition.
+
+The Subject may inspect the isolated runtime but may mutate flow state only
+through the emitted public `dd-flow` commands. Before candidate capture the
+runner writes `runtime-integrity.json` from the harness journal. A direct
+runtime deletion or private-engine invocation invalidates that execution; it
+is retained for diagnosis but receives no quality score or Judge verdict.
+
+Usage accounting preserves the provider's native scope. Grok's root counter is
+an inclusive execution-tree snapshot; ZCode reports individual physical
+sessions. The resulting statistics expose scope and included records rather
+than pretending those two measurements are the same.
 
 For a focused stage it restores exactly that entry boundary, materializes the
 read-only stage context, opens an empty Subject Session and sends one launcher.
