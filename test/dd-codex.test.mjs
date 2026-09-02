@@ -98,6 +98,19 @@ test("Codex adapter reloads an unloaded Thread to surface an interrupted Turn", 
   await assert.rejects(() => promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" }), { code: "turn_interrupted" });
 });
 
+test("Codex adapter reads the persisted turn page when the live Thread stays active", async () => {
+  const turnId = "turn-001";
+  const bridge = {
+    turns: new Map(),
+    request: async (method) => {
+      if (method === "turn/start") return { turn: { id: turnId } };
+      if (method === "thread/turns/list") return { data: [{ id: turnId, status: "interrupted" }] };
+      return { thread: { id: "thread-001", status: { type: "active" } } };
+    }
+  };
+  await assert.rejects(() => promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" }), { code: "turn_interrupted" });
+});
+
 test("Codex adapter keeps waiting for alternate active Turn spellings", async () => {
   const source = await (await import("node:fs/promises")).readFile(new URL("../lib/dd-codex.mjs", import.meta.url), "utf8");
   assert.match(source, /isTerminalTurnStatus\(stored\.turn\.status\)/);
@@ -132,8 +145,8 @@ test("Codex adapter hydrates one terminal Turn after an idle compact read", asyn
     }
   };
   await promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" });
-  assert.deepEqual(calls.slice(0, 4).map(({ method, params }) => [method, params.includeTurns]), [
-    ["thread/read", false], ["turn/start", undefined], ["thread/read", false], ["thread/read", true]
+  assert.deepEqual(calls.slice(0, 5).map(({ method, params }) => [method, params.includeTurns]), [
+    ["thread/read", false], ["turn/start", undefined], ["thread/read", false], ["thread/turns/list", undefined], ["thread/read", true]
   ]);
 });
 
