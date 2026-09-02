@@ -273,6 +273,12 @@ test("fan-out recovery cancels only an interrupted Turn and keeps its Work", asy
   assert.equal(isRecoverableDriverError({ code: "turn_timeout" }), false);
 });
 
+test("observer loss remains recoverable instead of producing a failed execution", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /state: "awaiting_provider", code: error\.code/);
+  assert.match(source, /dev\.dd\.eval\.execution\.awaiting_provider/);
+});
+
 test("a terminal coordinator Turn with a running Stage receives a finish-only recovery", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /turnPrompt = fanout\?\.continuation \?\? interruptedStageContinuation\(stage\)/);
