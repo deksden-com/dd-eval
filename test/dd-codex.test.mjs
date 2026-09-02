@@ -128,20 +128,38 @@ test("Codex adapter ignores the transient interrupted snapshot immediately after
   assert.equal(result.status, "completed");
 });
 
+test("Codex adapter prefers a live running Turn over a stale persisted interruption", async () => {
+  const turnId = "turn-001";
+  const bridge = {
+    turns: new Map(),
+    request: async (method) => {
+      if (method === "turn/start") {
+        bridge.turns.set(turnId, { status: "running", value: { turn: { id: turnId, status: "inProgress" } } });
+        setTimeout(() => bridge.turns.set(turnId, { status: "completed", value: { turn: { id: turnId, status: "completed" } } }), 1_200);
+        return { turn: { id: turnId } };
+      }
+      if (method === "thread/turns/list") return { data: [{ id: turnId, status: "interrupted" }] };
+      return { thread: { id: "thread-001", status: { type: "active" } } };
+    }
+  };
+  const result = await promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" });
+  assert.equal(result.status, "completed");
+});
+
 test("Codex adapter keeps waiting for alternate active Turn spellings", async () => {
   const source = await (await import("node:fs/promises")).readFile(new URL("../lib/dd-codex.mjs", import.meta.url), "utf8");
-  assert.match(source, /isTerminalTurnStatus\(stored\.turn\.status\)/);
+  assert.match(source, /isAuthoritativeTerminal\(bridge, turnId, stored\.turn\.status/);
   assert.match(source, /\["completed", "failed", "interrupted", "cancelled"\]/);
 });
 
 test("Codex adapter does not mistake an idle Thread with a stale active Turn for a terminal one", async () => {
   const source = await (await import("node:fs/promises")).readFile(new URL("../lib/dd-codex.mjs", import.meta.url), "utf8");
-  assert.match(source, /hydrated\?\.turn && isTerminalTurnStatus\(hydrated\.turn\.status\)/);
+  assert.match(source, /hydrated\?\.turn && isAuthoritativeTerminal\(bridge, turnId, hydrated\.turn\.status/);
 });
 
 test("Codex adapter falls back to the final message when hydrated Turn is still active", async () => {
   const source = await (await import("node:fs/promises")).readFile(new URL("../lib/dd-codex.mjs", import.meta.url), "utf8");
-  const occurrences = source.match(/hydrated\?\.turn && isTerminalTurnStatus\(hydrated\.turn\.status\)/g) ?? [];
+  const occurrences = source.match(/hydrated\?\.turn && isAuthoritativeTerminal\(bridge, turnId, hydrated\.turn\.status/g) ?? [];
   assert.ok(occurrences.length >= 2);
 });
 
