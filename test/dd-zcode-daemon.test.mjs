@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { access, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
+import { access, chmod, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -9,8 +9,8 @@ import test from "node:test";
 const exec = promisify(execFile);
 const cli = path.resolve("bin/dd-zcode.mjs");
 
-async function run(args) {
-  const { stdout } = await exec(process.execPath, [cli, ...args, "--json"], { timeout: 15_000 });
+async function run(args, env = {}) {
+  const { stdout } = await exec(process.execPath, [cli, ...args, "--json"], { timeout: 15_000, env: { ...process.env, ...env } });
   return JSON.parse(stdout);
 }
 
@@ -22,7 +22,15 @@ test("daemon preserves a live background tree across CLI processes and cancels i
   const flow = path.join(root, "fake-dd-flow.mjs");
   const journal = path.join(root, "evidence", "events.jsonl");
   await writeFile(zcode, `if (process.argv.includes("--version")) process.stdout.write("0.16.5\\n");`);
-  await writeFile(flow, `process.stdin.resume(); process.stdin.on("end", () => process.stdout.write('{"ok":true}\\n'));`);
+  const registryLog = path.join(root, "resource-registry.log");
+  await writeFile(flow, `#!/usr/bin/env node
+    import { appendFileSync } from "node:fs";
+    appendFileSync(${JSON.stringify(registryLog)}, process.argv.slice(2).join(" ") + "\\n");
+    const action = process.argv[4];
+    if (action === "register") process.stdout.write('{"ok":true,"process":{"id":"PROC-test","lease_token":"lease-test"}}\\n');
+    else process.stdout.write('{"ok":true}\\n');
+  `);
+  await chmod(flow, 0o755);
   await writeFile(bridge, `
     import readline from "node:readline";
     if (process.argv.includes("--version")) { process.stdout.write("0.13.1\\n"); process.exit(0); }
@@ -63,9 +71,11 @@ test("daemon preserves a live background tree across CLI processes and cancels i
     const fallback = await run(["daemon", "start", "--state-dir", fallbackState, "--cwd", root, "--journal", path.join(root, "fallback-events.jsonl"), "--zcode-acp-bin", bridge, "--zcode-path", zcode, "--dd-flow-home", root, "--project-root", root]);
     assert.equal(fallback.config.ddFlowBin, "dd-flow");
     await run(["daemon", "stop", "--state-dir", fallbackState]);
-    const started = await run(["daemon", "start", ...daemonArgs]);
+    const resourceEnv = { DD_FLOW_RESOURCE_HOME: path.join(root, "resources") };
+    const started = await run(["daemon", "start", ...daemonArgs], resourceEnv);
     assert.equal(started.shutdown_state, "running");
     assert.equal(started.config.ddFlowBin, flow);
+    assert.deepEqual((await readFile(path.join(stateDir, "daemon.json"), "utf8")).includes('"resource_process"'), true);
     assert.equal((await stat(path.join(stateDir, "daemon.sock"))).mode & 0o777, 0o600);
     const created = await run(["session", "create", "--state-dir", stateDir, ...profileArgs, "--prompt", "prime"]);
     assert.equal(created.provider_session_id, "native-root");
@@ -116,6 +126,9 @@ test("daemon preserves a live background tree across CLI processes and cancels i
       () => run(["daemon", "start", ...crashArgs]),
       (error) => JSON.parse(error.stderr).code === "invalid_harness_crash"
     );
+    const registryCalls = await readFile(registryLog, "utf8");
+    assert.match(registryCalls, /runtime process register/);
+    assert.match(registryCalls, /runtime process confirm/);
   } finally {
     try { await run(["daemon", "stop", "--state-dir", path.join(root, "fallback-state"), "--cancel-tree"]); } catch {}
     try { await run(["daemon", "stop", "--state-dir", stateDir, "--cancel-tree"]); } catch {}
