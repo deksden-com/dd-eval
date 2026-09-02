@@ -23,7 +23,7 @@ test("dd-grok uses native ACP Sessions and x.ai extensions", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-grok-test-")); const server = path.join(root, "fake-grok.mjs"); const journal = path.join(root, "evidence", "journal.jsonl");
   await writeFile(server, `
     import readline from "node:readline";
-    if (process.argv.includes("version")) { process.stdout.write(JSON.stringify({currentVersion:"1.0.16 fake"})); process.exit(0); }
+    if (process.argv.includes("version")) { process.stdout.write(JSON.stringify({currentVersion:"1.0.17 fake"})); process.exit(0); }
     const send = (value) => process.stdout.write(JSON.stringify(value) + "\\n");
     readline.createInterface({input:process.stdin}).on("line", (line) => { const message=JSON.parse(line); if(message.id===undefined)return; const {id,method,params={}}=message; let result={};
       if(method==="initialize") result={protocolVersion:1,_meta:{modelState:{currentModelId:"grok-4.6",availableModels:[{modelId:"grok-4.6",_meta:{reasoningEffort:"high"}}]}}};
