@@ -249,8 +249,7 @@ test("worker recovery resolves the registered Session namespace exactly", async 
   const { workerPromptPath } = await import("../lib/runner.mjs");
   for (const harness of ["codex-desktop", "grok-acp", "zcode-acp", "opencode-server", "antigravity-cli"]) {
     const sessionId = "session-1";
-    const registeredId = harness === "codex-desktop" ? sessionId : `${harness}:${sessionId}`;
-    const work = { sessions: [{ session_id: "other:session-1", prompt_path: "/wrong.md" }, { session_id: registeredId, prompt_path: "/work/prompt.md" }] };
+    const work = { sessions: [{ harness_id: "other", native_session_id: sessionId, prompt_path: "/wrong.md" }, { harness_id: harness, native_session_id: sessionId, prompt_path: "/work/prompt.md" }] };
     assert.equal(workerPromptPath(work, { harness }, sessionId), "/work/prompt.md");
     assert.equal(workerPromptPath(work, { harness }, "session-2"), undefined);
   }
