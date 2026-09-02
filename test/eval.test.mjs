@@ -227,6 +227,13 @@ test("fan-out worker recovery resumes the same Work after an unaccepted finish",
   assert.match(prompt, /Do not send a prose completion message/);
 });
 
+test("fan-out recovery cancels only an interrupted Turn and keeps its Work", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /dev\.dd\.eval\.fanout\.worker\.turn_recovery/);
+  assert.match(source, /\["session", "cancel", \.\.\.daemon\.daemonArgs/);
+  assert.match(source, /Do not call work start or create another Work/);
+});
+
 test("a terminal coordinator Turn with a running Stage receives a finish-only recovery", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /turnPrompt = fanout\?\.continuation \?\? interruptedStageContinuation\(stage\)/);
