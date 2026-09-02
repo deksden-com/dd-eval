@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -267,6 +267,10 @@ test("fan-out recovery cancels only an interrupted Turn and keeps its Work", asy
   assert.match(source, /dev\.dd\.eval\.reference\.fanout_recovery_authorized/);
   assert.match(source, /recoverableDriverCodes/);
   assert.match(source, /isRecoverableDriverError\(error\)/);
+  assert.equal(isRecoverableDriverError({ code: "turn_interrupted" }), true);
+  assert.equal(isRecoverableDriverError({ code: "rpc_timeout" }), false);
+  assert.equal(isRecoverableDriverError({ code: "daemon_timeout" }), false);
+  assert.equal(isRecoverableDriverError({ code: "turn_timeout" }), false);
 });
 
 test("a terminal coordinator Turn with a running Stage receives a finish-only recovery", async () => {
