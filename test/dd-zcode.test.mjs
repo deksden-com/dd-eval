@@ -70,6 +70,30 @@ test("ZCode retains provider rate-limit detail instead of flattening it to an AC
   }
 });
 
+test("ACP bridge waits for a provider it had to terminate", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "dd-acp-close-"));
+  const server = path.join(root, "slow-exit.mjs"), stopped = path.join(root, "stopped");
+  await writeFile(server, `
+    import { writeFile } from "node:fs/promises";
+    import readline from "node:readline";
+    process.on("SIGTERM", () => setTimeout(() => writeFile(${JSON.stringify(stopped)}, "stopped").then(() => process.exit(0)), 50));
+    setInterval(() => {}, 1000);
+    readline.createInterface({ input: process.stdin }).on("line", (line) => {
+      const request = JSON.parse(line);
+      if (request.method === "initialize") process.stdout.write(JSON.stringify({ jsonrpc: "2.0", id: request.id, result: { protocolVersion: 1 } }) + "\\n");
+    });
+  `);
+  const bridge = new AcpBridge({ bin: server, cwd: root });
+  try {
+    await bridge.start();
+    await bridge.close();
+    assert.equal(await readFile(stopped, "utf8"), "stopped");
+  } finally {
+    await bridge.close().catch(() => {});
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("ACP bridge preserves a Grok provider quota error announced before its generic terminal response", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-acp-quota-"));
   const server = path.join(root, "fake-acp.mjs");

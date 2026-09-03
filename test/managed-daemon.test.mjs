@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { confirmDaemonProcess, finishDaemonProcess, registerDaemonProcess, stopProcessGroup } from "../lib/managed-daemon.mjs";
+import { confirmDaemonProcess, confirmDaemonStopped, finishDaemonProcess, registerDaemonProcess, stopProcessGroup } from "../lib/managed-daemon.mjs";
 
 test("managed daemon lifecycle registers, confirms, terminates its group, and finalizes", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-managed-daemon-"));
@@ -29,6 +30,20 @@ else process.stdout.write('{"ok":true}\\n');
     assert.match(calls, /runtime process finish .*--state failed/);
   } finally {
     await stopProcessGroup(child, 20).catch(() => {});
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("daemon stop resolves only after its socket is gone", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-managed-daemon-stop-"));
+  const socket = path.join(root, "daemon.sock");
+  const server = net.createServer();
+  await new Promise((resolve, reject) => { server.once("error", reject); server.listen(socket, resolve); });
+  setTimeout(() => server.close(), 25);
+  try {
+    assert.deepEqual(await confirmDaemonStopped(async () => ({ stopped: true }), socket, 1_000), { stopped: true });
+  } finally {
+    server.close();
     await rm(root, { recursive: true, force: true });
   }
 });
