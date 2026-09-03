@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, capacityProbeSucceeded, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, runtimeIntegrityViolation, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, capacityProbeResult, capacityProbeSucceeded, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, runtimeIntegrityViolation, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -270,6 +270,11 @@ test("capacity probe accepts its declared terminal marker but not a near match",
   assert.equal(capacityProbeSucceeded("I will wait.\nAGENT-01\n", "AGENT-01"), true);
   assert.equal(capacityProbeSucceeded("AGENT-010", "AGENT-01"), false);
   assert.equal(capacityProbeSucceeded("AGENT-01\nextra", "AGENT-01"), false);
+});
+
+test("capacity probe rejects an eager marker and accepts a held marker", () => {
+  assert.deepEqual(capacityProbeResult({ text: "AGENT-01", expected: "AGENT-01", completedAt: 10, holdUntil: 11 }), { completed: false, reason: "probe_returned_before_hold" });
+  assert.deepEqual(capacityProbeResult({ text: "AGENT-01", expected: "AGENT-01", completedAt: 11, holdUntil: 11 }), { completed: true });
 });
 
 test("ACP worker usage relies on the adapter's native usage ingestion", () => {

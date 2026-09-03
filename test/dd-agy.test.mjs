@@ -3,8 +3,14 @@ import assert from "node:assert/strict";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { doctor } from "../lib/dd-agy.mjs";
+import { doctor, usageSnapshot } from "../lib/dd-agy.mjs";
 import { callDaemon, startDaemon, stopDaemon } from "../lib/dd-agy-daemon.mjs";
+
+test("AGY usage preserves missing counters as unknown", () => {
+  assert.equal(usageSnapshot({ usage: { input_tokens: null, total_tokens: undefined } }).input_tokens, null);
+  assert.equal(usageSnapshot({ usage: { input_tokens: null, total_tokens: undefined } }).total_tokens, null);
+  assert.equal(usageSnapshot({ usage: { input_tokens: 0 } }).input_tokens, 0);
+});
 
 test("dd-agy owns one streaming conversation and rejects headless fork semantics", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-test-"));
