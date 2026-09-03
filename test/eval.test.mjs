@@ -199,6 +199,12 @@ test("a terminal fan-out failure cancels already-launched siblings before report
   assert.match(source, /code: error\?\.code \?\? "fanout_worker_failed"/);
 });
 
+test("fan-out worker failure preserves the created Session in its receipt", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /let sessionId = resumeSessionId;\n  try \{/);
+  assert.match(source, /fanout\.worker\.failed[\s\S]{0,350}session_id: sessionId/);
+});
+
 test("worker failure remains primary when daemon cleanup also fails", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /let subjectFailure = null/);
