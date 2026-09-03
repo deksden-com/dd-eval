@@ -192,6 +192,7 @@ test("a terminal fan-out failure cancels already-launched siblings before report
   assert.match(source, /cancelled_after_peer_failure/);
   assert.match(source, /await Promise\.all\(\[\.\.\.control\.cancellers\.entries\(\)\]/);
   assert.match(source, /settleFanoutWave/);
+  assert.match(source, /code: error\?\.code \?\? "fanout_worker_failed"/);
 });
 
 test("worker failure remains primary when daemon cleanup also fails", async () => {

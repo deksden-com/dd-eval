@@ -16,6 +16,12 @@ test("a productive ZCode Turn relies on sliding liveness rather than a second wa
   assert.match(source, /Number\.isFinite\(timeoutMs\) && timeoutMs > 0/);
 });
 
+test("ZCode retains provider rate-limit detail instead of flattening it to an ACP internal error", async () => {
+  const source = await readFile(path.resolve(import.meta.dirname, "..", "lib", "dd-zcode.mjs"), "utf8");
+  assert.match(source, /provider_rate_limited/);
+  assert.match(source, /provider_details/);
+});
+
 test("ZCode daemon client permits a liveness-owned prompt without a wall-clock timer", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-zcode-daemon-client-"));
   const socket = path.join(root, "daemon.sock");
