@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, runtimeIntegrityViolation, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, capacityProbeSucceeded, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, runtimeIntegrityViolation, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -258,6 +258,12 @@ test("capacity probe has an exact, disposable agent contract", () => {
   assert.match(prompt, /Do not call tools, read files, create children, or explain/);
   assert.match(prompt, /Wait exactly 60 seconds/);
   assert.match(prompt, /return exactly AGENT-07/);
+});
+
+test("capacity probe accepts its declared terminal marker but not a near match", () => {
+  assert.equal(capacityProbeSucceeded("I will wait.\nAGENT-01\n", "AGENT-01"), true);
+  assert.equal(capacityProbeSucceeded("AGENT-010", "AGENT-01"), false);
+  assert.equal(capacityProbeSucceeded("AGENT-01\nextra", "AGENT-01"), false);
 });
 
 test("ACP worker usage relies on the adapter's native usage ingestion", () => {
