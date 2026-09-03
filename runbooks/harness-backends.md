@@ -19,6 +19,14 @@ Every backend must provide these operations with stable provider Session IDs:
 - ordered tool/lifecycle events with a bounded synchronization contract;
 - append-only JSONL evidence.
 
+Every execution-scoped daemon is also a durable managed process: `daemon start`
+registers it before spawning, records its PID and process group after spawning,
+and heartbeats its lease while it is live. A normal stop finalizes that record.
+Any failed readiness check terminates the whole group and finalizes it as failed;
+the same rule applies to a detached provider child such as AGY. The shared
+`DD_FLOW_RESOURCE_HOME` is therefore part of daemon configuration, not ambient
+state that may change during a resumed execution.
+
 Session evidence always records `harness`, `runtime_family`,
 `provider_session_id`, optional `adapter_session_id`, optional parent identity
 and the observed profile. Provider IDs are interpreted only inside their
