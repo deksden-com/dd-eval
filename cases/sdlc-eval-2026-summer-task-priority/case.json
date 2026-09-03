@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-059-task-priority-flow-4-0-1-engine-0-9-0-beta-4",
-    "sha256": "1daef5a4bbd58d7afca3af76cbf2050c9c94fdf366962753f4da9df66ec4b6e2"
+    "id": "cp-060-task-priority-flow-4-0-1-engine-0-9-0-beta-6",
+    "sha256": "fc377fb78cb5afb1f00ef01aa9fe11b01b7dbb3bc19f45993d2e14fad510c2f4"
   },
   "entry_pack": null,
   "profiles": {
@@ -20,13 +20,15 @@
       "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-9-0-beta-4",
       "codex-desktop-gpt-5-6-terra-high-dd-flow-0-9-0-beta-4",
       "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-4",
+      "antigravity-cli-google-gemini-3-1-pro-high",
       "grok-acp-xai-grok-4-6-high",
       "zcode-acp-zai-glm-5-3-high",
       "zcode-acp-zai-glm-5-3-flash-high",
       "zcode-acp-zai-glm-5-3-flash-max"
     ],
     "judge": [
-      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-4"
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-4",
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-6"
     ]
   },
   "flow": {
