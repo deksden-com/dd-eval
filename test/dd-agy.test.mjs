@@ -14,7 +14,7 @@ test("AGY usage preserves missing counters as unknown", () => {
 
 test("dd-agy owns one streaming conversation and rejects headless fork semantics", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-test-"));
-  const fake = path.join(root, "fake-agy.mjs"), flow = path.join(root, "fake-flow.mjs"), state = path.join(root, "state"), project = path.join(root, "project"), flowHome = path.join(root, "flow-home");
+  const fake = path.join(root, "fake-agy.mjs"), flow = path.join(root, "fake-flow.mjs"), state = path.join(root, `state-${"x".repeat(180)}`), project = path.join(root, "project"), flowHome = path.join(root, "flow-home");
   await mkdir(project); await mkdir(flowHome);
   await writeFile(fake, `#!/usr/bin/env node
 const args=process.argv.slice(2); if(args.includes('--version')){console.log('1.1.25');process.exit(0)} if(args.includes('models')){console.log('gemini-3.1-pro-high available');process.exit(0)}
@@ -28,6 +28,8 @@ process.stdin.resume(); process.stdin.on('end',()=>process.exit(0));
     assert.equal((await doctor({ bin: fake })).compatible, true);
     const status = await startDaemon({ stateDir: state, cwd: project, bin: fake, projectRoot: project, ddFlowBin: flow, ddFlowHome: flowHome, entryPath: path.resolve("bin/dd-agy.mjs") });
     assert.equal(status.provider_ready, true);
+    assert.match(status.config.temporary, /^\/tmp\/dd-agy-tmp-/);
+    assert.ok(Buffer.byteLength(status.config.temporary) < 104);
     const created = await callDaemon(state, "session.create", {});
     assert.equal(created.provider_session_id, "agy-root"); assert.equal(created.result, null);
     const first = await callDaemon(state, "session.prompt", { sessionId: "agy-root", prompt: "specify" });
