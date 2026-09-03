@@ -21,11 +21,14 @@ Every backend must provide these operations with stable provider Session IDs:
 
 Every execution-scoped daemon is also a durable managed process: `daemon start`
 registers it before spawning, records its PID and process group after spawning,
-and heartbeats its lease while it is live. A normal stop is successful only
-after its Unix socket has disappeared and the provider bridge has exited; it
-then finalizes that record. Any failed readiness check terminates the whole
-group and finalizes it as failed; the same rule applies to a detached provider
-child such as AGY. The shared
+and heartbeats its lease while it is live. A separately registered provider
+child receives the same heartbeat. Provider bridges run in their own process
+group, so ordinary shutdown and recovery stop the whole bridge tree rather
+than merely its direct PID. A normal stop is successful only after its Unix
+socket has disappeared and the provider bridge has exited; it then finalizes
+that record. Any failed readiness check terminates the whole group and
+finalizes it as failed; the same rule applies to a detached provider child such
+as AGY. The shared
 `DD_FLOW_RESOURCE_HOME` is therefore part of daemon configuration, not ambient
 state that may change during a resumed execution.
 

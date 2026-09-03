@@ -34,6 +34,22 @@ else process.stdout.write('{"ok":true}\\n');
   }
 });
 
+test("managed daemon cleanup terminates a detached child tree", async () => {
+  const child = spawn(process.execPath, ["-e", `
+    const { spawn } = require('node:child_process');
+    spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore' });
+    setInterval(() => {}, 1000);
+  `], { detached: true, stdio: "ignore" });
+  child.unref();
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    await stopProcessGroup(child, 50);
+    assert.throws(() => process.kill(-child.pid, 0), { code: "ESRCH" });
+  } finally {
+    await stopProcessGroup(child, 20).catch(() => {});
+  }
+});
+
 test("daemon stop resolves only after its socket is gone", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-managed-daemon-stop-"));
   const socket = path.join(root, "daemon.sock");

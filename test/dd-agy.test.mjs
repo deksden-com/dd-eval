@@ -47,7 +47,7 @@ else process.stdout.write('{"ok":true}\\n');
     await stopDaemon({ stateDir: state });
     const terminal = JSON.parse(await readFile(path.join(state, "daemon.json"), "utf8")); assert.equal(terminal.shutdown_state, "clean");
     const calls = await readFile(registry, "utf8");
-    assert.match(calls, /agy-daemon/); assert.match(calls, /agy-provider/); assert.match(calls, /runtime process finish/);
+    assert.match(calls, /agy-daemon/); assert.match(calls, /agy-provider/); assert.match(calls, /runtime process heartbeat --id PROC-agy-provider/); assert.match(calls, /runtime process finish/);
   } finally { if (previousResourceHome === undefined) delete process.env.DD_FLOW_RESOURCE_HOME; else process.env.DD_FLOW_RESOURCE_HOME = previousResourceHome; try { await stopDaemon({ stateDir: state, cancelTree: true, timeoutMs: 1000 }); } catch {} await rm(root, { recursive: true, force: true }); }
 });
 
