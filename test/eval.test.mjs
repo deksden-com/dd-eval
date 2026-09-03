@@ -185,6 +185,8 @@ test("fan-out workers cannot create nested HITL and zero capacity is infrastruct
   assert.match(prompt, /cannot ask the user or pause the parent Stage/);
   assert.equal(isInfrastructureFailure("no_subagent_capacity"), true);
   assert.equal(isInfrastructureFailure("capacity_probe_observation_lost"), true);
+  assert.equal(isInfrastructureFailure("provider_rate_limited"), true);
+  assert.equal(isInfrastructureFailure("provider_quota_exhausted"), true);
 });
 
 test("a terminal fan-out failure cancels already-launched siblings before reporting the wave failure", async () => {
