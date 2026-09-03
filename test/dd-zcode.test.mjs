@@ -38,6 +38,29 @@ test("ZCode retains provider rate-limit detail instead of flattening it to an AC
   }
 });
 
+test("ACP bridge preserves a provider quota error announced before its generic terminal response", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "dd-acp-quota-"));
+  const server = path.join(root, "fake-acp.mjs");
+  await writeFile(server, `
+    import readline from "node:readline";
+    const send = (value) => process.stdout.write(JSON.stringify(value) + "\\n");
+    readline.createInterface({ input: process.stdin }).on("line", (line) => {
+      const request = JSON.parse(line);
+      if (request.method === "initialize") return send({ jsonrpc: "2.0", id: request.id, result: { protocolVersion: 1 } });
+      send({ jsonrpc: "2.0", method: "_x.ai/session/update", params: { sessionId: request.params.sessionId, update: { sessionUpdate: "retry_state", type: "failed", message: "API error (status 402 Payment Required): usage balance exhausted" } } });
+      send({ jsonrpc: "2.0", id: request.id, error: { code: -32603, message: "Internal error" } });
+    });
+  `);
+  const bridge = new AcpBridge({ bin: server, cwd: root });
+  try {
+    await bridge.start();
+    await assert.rejects(() => bridge.request("session/prompt", { sessionId: "session-1" }, 1_000), (error) => error.code === "provider_quota_exhausted" && /usage balance exhausted/.test(error.details?.provider_update?.message));
+  } finally {
+    await bridge.close();
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("ZCode daemon client permits a liveness-owned prompt without a wall-clock timer", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-zcode-daemon-client-"));
   const socket = path.join(root, "daemon.sock");
