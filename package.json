@@ -13,8 +13,7 @@
   },
   "scripts": {
     "test": "node --test",
-    "validate": "node --test",
-    "fixtures:validate": "node ./bin/dd-eval.mjs runner fixtures validate --case sdlc-eval-2026-summer-task-priority"
+    "validate": "node --test"
   },
   "engines": {
     "node": ">=22.0.0"
