@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-060-task-priority-flow-4-0-1-engine-0-9-0-beta-6",
-    "sha256": "fc377fb78cb5afb1f00ef01aa9fe11b01b7dbb3bc19f45993d2e14fad510c2f4"
+    "id": "cp-061-task-priority-flow-4-0-1-engine-0-9-0-beta-7",
+    "sha256": "dd5d3ccbe71c89bccd22248b1d28853ab9f8e1d051012c7c7cabe7b084e75f07"
   },
   "entry_pack": null,
   "profiles": {
@@ -28,7 +28,8 @@
     ],
     "judge": [
       "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-4",
-      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-6"
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-6",
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-7"
     ]
   },
   "flow": {

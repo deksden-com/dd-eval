@@ -1,0 +1,31 @@
+{
+  "schema_version": 2,
+  "id": "cp-061-task-priority-flow-4-0-1-engine-0-9-0-beta-7",
+  "title": "Task Priority clean product baseline with flow 4.0.1 and dd-flow 0.9.0-beta.7",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "86db34668add2cd2f9a7c59adfced5e7ae57c3b8"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "c01b8ce397cd07aeaf055efe4ca58ab940f4d519",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "a4d857a7e4c5d9b5e9379a951073c499c21982ad",
+      "version": "0.9.0-beta.7"
+    }
+  },
+  "state": "ready_for_e2e",
+  "notes": [
+    "The source commit predates Task Priority, so the evaluated request is not already implemented.",
+    "The flow-pack commit carries the semantic CODE repair contract while remaining a project-flow-only overlay.",
+    "The engine commit is the released beta.7 durable lifecycle implementation."
+  ]
+}
