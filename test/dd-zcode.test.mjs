@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { assertProfile, cancelChildWithBridge, createSession, forkSession, latestAssistantText, observedProfile, promptProbeBatchWithBridge, promptSession, zcodeLifecycleEnvelope } from "../lib/dd-zcode.mjs";
+import { AcpBridge, assertProfile, cancelChildWithBridge, createSession, forkSession, latestAssistantText, observedProfile, promptProbeBatchWithBridge, promptSession, zcodeLifecycleEnvelope } from "../lib/dd-zcode.mjs";
 import { DEFAULT_LIVENESS_TIMEOUT_MS, callDaemon } from "../lib/dd-zcode-daemon.mjs";
 
 test("ZCode defaults to a ten-minute sliding liveness window", () => {
@@ -17,9 +17,25 @@ test("a productive ZCode Turn relies on sliding liveness rather than a second wa
 });
 
 test("ZCode retains provider rate-limit detail instead of flattening it to an ACP internal error", async () => {
-  const source = await readFile(path.resolve(import.meta.dirname, "..", "lib", "dd-zcode.mjs"), "utf8");
-  assert.match(source, /provider_rate_limited/);
-  assert.match(source, /provider_details/);
+  const root = await mkdtemp(path.join(tmpdir(), "dd-zcode-rate-limit-"));
+  const server = path.join(root, "fake-acp.mjs");
+  await writeFile(server, `
+    import readline from "node:readline";
+    const send = (value) => process.stdout.write(JSON.stringify(value) + "\\n");
+    readline.createInterface({ input: process.stdin }).on("line", (line) => {
+      const request = JSON.parse(line);
+      if (request.method === "initialize") send({ jsonrpc: "2.0", id: request.id, result: { protocolVersion: 1 } });
+      else send({ jsonrpc: "2.0", id: request.id, error: { code: -32603, message: "Internal error", data: { details: "1302 [Rate limit reached for requests]" } } });
+    });
+  `);
+  const bridge = new AcpBridge({ bin: server, cwd: root });
+  try {
+    await bridge.start();
+    await assert.rejects(() => bridge.request("session/prompt", {}, 1_000), (error) => error.code === "provider_rate_limited" && error.details?.acp_code === -32603 && /1302/.test(error.details?.provider_details));
+  } finally {
+    await bridge.close();
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("ZCode daemon client permits a liveness-owned prompt without a wall-clock timer", async () => {
