@@ -4,7 +4,11 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { assertProfile, cancelChildWithBridge, createSession, forkSession, latestAssistantText, observedProfile, promptProbeBatchWithBridge, promptSession, zcodeLifecycleEnvelope } from "../lib/dd-zcode.mjs";
-import { callDaemon } from "../lib/dd-zcode-daemon.mjs";
+import { DEFAULT_LIVENESS_TIMEOUT_MS, callDaemon } from "../lib/dd-zcode-daemon.mjs";
+
+test("ZCode defaults to a ten-minute sliding liveness window", () => {
+  assert.equal(DEFAULT_LIVENESS_TIMEOUT_MS, 600_000);
+});
 
 test("ZCode daemon client permits a liveness-owned prompt without a wall-clock timer", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-zcode-daemon-client-"));
