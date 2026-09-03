@@ -10,6 +10,12 @@ test("ZCode defaults to a ten-minute sliding liveness window", () => {
   assert.equal(DEFAULT_LIVENESS_TIMEOUT_MS, 600_000);
 });
 
+test("a productive ZCode Turn relies on sliding liveness rather than a second wall-clock limit", async () => {
+  const source = await readFile(path.resolve(import.meta.dirname, "..", "lib", "dd-zcode.mjs"), "utf8");
+  assert.match(source, /options\.timeoutMs \?\? \(options\.livenessTimeoutMs \? null : 1_800_000\)/);
+  assert.match(source, /Number\.isFinite\(timeoutMs\) && timeoutMs > 0/);
+});
+
 test("ZCode daemon client permits a liveness-owned prompt without a wall-clock timer", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-zcode-daemon-client-"));
   const socket = path.join(root, "daemon.sock");

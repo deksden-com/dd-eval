@@ -187,6 +187,13 @@ test("fan-out workers cannot create nested HITL and zero capacity is infrastruct
   assert.equal(isInfrastructureFailure("capacity_probe_observation_lost"), true);
 });
 
+test("a terminal fan-out failure cancels already-launched siblings before reporting the wave failure", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /cancelled_after_peer_failure/);
+  assert.match(source, /await Promise\.all\(\[\.\.\.control\.cancellers\.entries\(\)\]/);
+  assert.match(source, /settleFanoutWave/);
+});
+
 test("HITL verdicts are strict, fail closed, and preserve exact response bytes", () => {
   const fixture = { sha256: "a".repeat(64), responses: [{ id: "one", answer: "first" }, { id: "two", answer: "second" }] };
   const verdict = validateHitlMatch({ schema_id: "dd-eval/hitl-match@1", status: "matched", classification: "covered_by_canonical_response", response_ids: ["two", "one"], covered_questions: ["Q1", "Q2"], uncovered_questions: [], rationale: "covered" }, fixture);
