@@ -215,6 +215,11 @@ provider error/cancellation or a configured hard deadline. A terminal chat
 message is not a completed Stage: completion requires a matching `dd-flow`
 lifecycle receipt for the expected Stage.
 
+An explicit terminal provider error in one fan-out worker ends that wave. The
+runner records the provider code and details, cancels already-launched sibling
+workers, and preserves every journal; it does not retry, replace or manually
+complete the failed Work. Do not cancel healthy workers merely for silence.
+
 ## HITL and failure handling
 
 Only a registered `dd-flow` pause at an interaction point declared by the
