@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, capacityProbeResult, capacityProbeSucceeded, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, runtimeIntegrityViolation, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, capacityProbeResult, capacityProbeSucceeded, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -74,6 +74,8 @@ test("driver invocations preserve every declared harness profile field", () => {
 });
 
 test("execution daemon receives its explicit flow runtime contract", async () => {
+  await mkdir("/tmp/flow", { recursive: true });
+  await writeFile("/tmp/flow/harnesses.json", JSON.stringify({ schema_id: "dd-flow/harness-config@1", harnesses: {} }));
   const prior = process.env.DD_FLOW_BIN; process.env.DD_FLOW_BIN = "/bin/false";
   try {
     const args = await driverRuntimeArgs(["daemon", "start", "--state-dir", "/tmp/daemon"], { cwd: "/tmp/project", env: { DD_FLOW_HOME: "/tmp/flow", DD_FLOW_BIN: "/bin/echo" } });
@@ -83,12 +85,14 @@ test("execution daemon receives its explicit flow runtime contract", async () =>
 });
 
 test("ZCode daemon receives a resolved ACP executable", async () => {
+  await mkdir("/tmp/flow-zcode", { recursive: true });
+  await writeFile("/tmp/flow-zcode/harnesses.json", JSON.stringify({ schema_id: "dd-flow/harness-config@1", harnesses: { "zcode-acp": { adapter_command: "/bin/echo", runtime_command: "/bin/echo" } } }));
   const args = await driverRuntimeArgs(["daemon", "start", "--state-dir", "/tmp/daemon"], {
     cwd: "/tmp/project",
-    env: { DD_ZCODE_ACP_BIN: "/bin/echo" },
+    env: { DD_FLOW_HOME: "/tmp/flow-zcode", DD_FLOW_BIN: "/bin/echo" },
     profile: { harness: "zcode-acp" },
   });
-  assert.deepEqual(args, ["daemon", "start", "--state-dir", "/tmp/daemon", "--zcode-acp-bin", "/bin/echo"]);
+  assert.deepEqual(args, ["daemon", "start", "--state-dir", "/tmp/daemon", "--dd-flow-bin", "/bin/echo", "--dd-flow-home", "/tmp/flow-zcode", "--project-root", "/tmp/project", "--zcode-acp-bin", "/bin/echo"]);
 });
 
 test("qualification cannot pass while any execution failed", () => {
@@ -374,15 +378,6 @@ test("settled fan-out fingerprint changes when a repair Work changes the graph",
   const after = fanoutSettledFingerprint({ stage: "code-review", status: { orchestration: { parent_work_id: "WRK-001", works: { created: 0, running: 0, completed: 6, failed: 0, cancelled: 0, ready: [] } } } });
   assert.notEqual(before, after);
   assert.equal(before, fanoutSettledFingerprint({ stage: "code-review", status: { orchestration: { parent_work_id: "WRK-001", works: { created: 0, running: 0, completed: 5, failed: 0, cancelled: 0, ready: [] } } } }));
-});
-
-test("runtime integrity protects private engine mutation without rejecting workspace reads", () => {
-  const root = "/tmp/eval/dd-flow-home";
-  assert.equal(runtimeIntegrityViolation(`WT=${root}/projects/PRJ/checkouts/worktrees/RUN/project; sed -n '1,20p' \"$WT/.memory-bank/index.md\"`, root), false);
-  assert.equal(runtimeIntegrityViolation(`node ${root}/engines/pkg/dist/private.mjs`, root), true);
-  assert.equal(runtimeIntegrityViolation(`node ${root}/bin/private.mjs`, root), true);
-  assert.equal(runtimeIntegrityViolation(`rm -rf ${root}/engines/pkg`, root), true);
-  assert.equal(runtimeIntegrityViolation(`${root}/bin/dd-flow stage start RUN --json`, root), false);
 });
 
 test("scored run refuses an uncommitted eval definition before creating a provider Session", async () => {

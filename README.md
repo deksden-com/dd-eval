@@ -50,6 +50,9 @@ validation, recoverable lifecycle, native session identity, process ownership,
 durable checks, activity-aware waiting and complete evidence. It is being
 implemented incrementally; only the plan's acceptance tests can qualify the
 new runtime contract for a comparison E2E.
+The follow-up [semantic boundary, runtime roots, harness home and MERGE gate plan 020](specs/020-semantic-boundary-runtime-roots-harness-home-and-merge-gate.md)
+removes the obsolete runtime-command audit and defines the next implementation
+package without adding another runtime layer.
 The downstream implementation contour is being defined in
 [vNext CODE beta 1](beta/vnext-code-beta.1/index.md).
 

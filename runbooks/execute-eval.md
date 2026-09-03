@@ -64,6 +64,15 @@ The runner allocates a fresh directory under
 `$DD_EVAL_HOME/runs/<eval-id>/`. Each execution gets its own restored project,
 `DD_FLOW_HOME`, managed harness state and append-only `events.jsonl`.
 
+Before restoring the engine, the runner copies only the portable harness
+configuration from `${DD_FLOW_CONFIG_HOME:-${DD_FLOW_HOME:-~/.dd-flow}}`:
+`harnesses.json` and optional `agent-profiles/`. `harnesses.json` names the
+absolute adapter and native executable for every harness. It contains no
+credentials. The isolated home never inherits `db.sqlite`, RUNs, locks, ports,
+engines, logs or daemons from the source home. A missing or invalid harness
+configuration is a setup blocker; do not work around it with PATH discovery or
+ad-hoc adapter environment variables.
+
 ## Parallel canonical preparation and E2E
 
 Canonical preparation and ordinary E2E evaluations are independent contours.
@@ -162,11 +171,11 @@ rationale and evidence; an unknown scope, duplicate/missing criterion or empty
 applicable evidence fails the evaluation machinery instead of producing a
 partial score.
 
-The Subject may inspect the isolated runtime but may mutate flow state only
-through the emitted public `dd-flow` commands. Before candidate capture the
-runner writes `runtime-integrity.json` from the harness journal. A direct
-runtime deletion or private-engine invocation invalidates that execution; it
-is retained for diagnosis but receives no quality score or Judge verdict.
+The Subject may inspect the isolated runtime. The runner verifies the selected
+engine snapshot before a Subject Session starts, records the harness journal,
+and captures the resulting RUN boundary. It does not infer the legitimacy or
+semantic meaning of shell commands from journal text: that is neither a
+reliable safety boundary nor an evaluation criterion.
 
 Usage accounting preserves the provider's native scope. Grok's root counter is
 an inclusive execution-tree snapshot; ZCode reports individual physical
