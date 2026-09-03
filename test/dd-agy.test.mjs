@@ -13,7 +13,7 @@ test("dd-agy owns one streaming conversation and rejects headless fork semantics
   await writeFile(fake, `#!/usr/bin/env node
 const args=process.argv.slice(2); if(args.includes('--version')){console.log('1.1.25');process.exit(0)} if(args.includes('models')){console.log('gemini-3.1-pro-high available');process.exit(0)}
 console.log(JSON.stringify({event:'init',conversation_id:'agy-root',init:{model:'gemini-3.1-pro-high',cwd:process.cwd(),permission_mode:'always-proceed'}}));
-process.stdin.setEncoding('utf8'); let buffer=''; process.stdin.on('data',chunk=>{buffer+=chunk;let i;while((i=buffer.indexOf('\\n'))>=0){const line=buffer.slice(0,i);buffer=buffer.slice(i+1);if(!line)continue;const message=JSON.parse(line);const text=message.message?.content??'';console.log(JSON.stringify({event:'step_update',step_update:{step_type:'tool',state:'DONE',tool_name:'run_command',tool_info:{}}}));console.log(JSON.stringify({event:'result',result:{conversation_id:'agy-root',status:'SUCCESS',text,usage:{input_tokens:3,output_tokens:2,total_tokens:5}}}))}});
+process.stdin.setEncoding('utf8'); let buffer=''; process.stdin.on('data',chunk=>{buffer+=chunk;let i;while((i=buffer.indexOf('\\n'))>=0){const line=buffer.slice(0,i);buffer=buffer.slice(i+1);if(!line)continue;const message=JSON.parse(line);const text=message.message?.content??'';console.log(JSON.stringify({event:'step_update',step_update:{step_type:'tool',state:'DONE',tool_name:'run_command',tool_info:{}}}));console.log(JSON.stringify({event:'result',result:{conversation_id:'agy-root',status:'SUCCESS',response:text,usage:{input_tokens:3,output_tokens:2,total_tokens:5}}}))}});
 `, { mode: 0o755 });
   await writeFile(flow, `#!/usr/bin/env node
 process.stdin.resume(); process.stdin.on('end',()=>process.exit(0));
@@ -25,9 +25,9 @@ process.stdin.resume(); process.stdin.on('end',()=>process.exit(0));
     const created = await callDaemon(state, "session.create", {});
     assert.equal(created.provider_session_id, "agy-root"); assert.equal(created.result, null);
     const first = await callDaemon(state, "session.prompt", { sessionId: "agy-root", prompt: "specify" });
-    assert.equal(first.result.status, "SUCCESS"); assert.equal(first.usage.total_tokens, 5);
+    assert.equal(first.result.status, "SUCCESS"); assert.equal(first.assistant_text, "specify"); assert.equal(first.usage.total_tokens, 5);
     const next = await callDaemon(state, "session.prompt", { sessionId: "agy-root", prompt: "answer" });
-    assert.equal(next.result.text, "answer");
+    assert.equal(next.result.response, "answer");
     const config = JSON.parse(await readFile(path.join(state, "gemini", "config", "hooks.json"), "utf8"));
     assert.ok(config["dd-flow"].PreToolUse);
     await stopDaemon({ stateDir: state });
