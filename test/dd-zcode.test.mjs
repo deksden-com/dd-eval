@@ -4,6 +4,27 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { assertProfile, cancelChildWithBridge, createSession, forkSession, latestAssistantText, observedProfile, promptProbeBatchWithBridge, promptSession, zcodeLifecycleEnvelope } from "../lib/dd-zcode.mjs";
+import { callDaemon } from "../lib/dd-zcode-daemon.mjs";
+
+test("ZCode daemon client permits a liveness-owned prompt without a wall-clock timer", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "dd-zcode-daemon-client-"));
+  const socket = path.join(root, "daemon.sock");
+  const net = await import("node:net");
+  const server = net.createServer((client) => {
+    client.once("data", (line) => {
+      const request = JSON.parse(String(line));
+      setTimeout(() => client.end(`${JSON.stringify({ schema_id: "dd-zcode/daemon-response@1", id: request.id, ok: true, result: { completed: true } })}\n`), 25);
+    });
+  });
+  await new Promise((resolve, reject) => server.listen(socket, resolve).once("error", reject));
+  try {
+    const result = await callDaemon(root, "session.prompt", {}, null);
+    assert.deepEqual(result, { completed: true });
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+    await rm(root, { recursive: true, force: true });
+  }
+});
 
 test("ZCode observed profiles fail closed on drift", () => {
   const observed = observedProfile({ settings: { model: { current: { providerId: "anthropic", modelId: "GLM-5.3" } }, thoughtLevel: { current: "high" }, mode: { current: "yolo" } } });

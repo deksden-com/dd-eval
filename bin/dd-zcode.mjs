@@ -40,7 +40,14 @@ try {
   else if (family === "daemon" && command === "stop") result = await stopDaemon({ stateDir: shared.stateDir, cancelTree: options["cancel-tree"], timeoutMs: shared.timeoutMs });
   else if (family === "session") {
     const params = { ...shared, answers, ...(command === "create" || command === "prompt" ? { prompt: options["prompt-file"] ? await promptFromFile(options["prompt-file"]) : options.prompt } : {}), ...(command === "probe-batch" ? { probes: JSON.parse(await promptFromFile(options["probes-file"])) } : {}), ...(command === "fork" ? { target: JSON.parse(options["target-json"] ?? "null") } : {}) };
-    if (shared.stateDir) result = await callDaemon(shared.stateDir, `session.${["status", "resume"].includes(command) ? "inspect" : command}`, params, shared.timeoutMs ?? 1_800_000);
+    // promptSessionWithBridge owns the meaningful deadline: it fails when its
+    // ACP Session has been idle for the configured liveness window.  A fixed
+    // RPC deadline would wrongly terminate a long but active Turn.
+    const operation = `session.${["status", "resume"].includes(command) ? "inspect" : command}`;
+    const rpcTimeout = command === "prompt" && shared.timeoutMs === undefined
+      ? null
+      : (shared.timeoutMs ?? 1_800_000);
+    if (shared.stateDir) result = await callDaemon(shared.stateDir, operation, params, rpcTimeout);
     else if (command === "create") result = await createSession(params);
     else if (command === "prompt") result = await promptSession(params);
     else if (["inspect", "status", "resume"].includes(command)) result = await inspectSession(params);
