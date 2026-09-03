@@ -82,6 +82,15 @@ test("execution daemon receives its explicit flow runtime contract", async () =>
   } finally { if (prior === undefined) delete process.env.DD_FLOW_BIN; else process.env.DD_FLOW_BIN = prior; }
 });
 
+test("ZCode daemon receives a resolved ACP executable", async () => {
+  const args = await driverRuntimeArgs(["daemon", "start", "--state-dir", "/tmp/daemon"], {
+    cwd: "/tmp/project",
+    env: { DD_ZCODE_ACP_BIN: "/bin/echo" },
+    profile: { harness: "zcode-acp" },
+  });
+  assert.deepEqual(args, ["daemon", "start", "--state-dir", "/tmp/daemon", "--zcode-acp-bin", "/bin/echo"]);
+});
+
 test("qualification cannot pass while any execution failed", () => {
   assert.equal(qualificationSucceeded({ state: "completed", executions: [{ state: "candidate_ready" }] }), true);
   assert.equal(qualificationSucceeded({ state: "completed_with_failures", executions: [{ state: "failed" }] }), false);
