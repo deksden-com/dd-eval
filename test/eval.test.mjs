@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, capacityProbeResult, capacityProbeSucceeded, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, capacityProbeResult, capacityProbeSucceeded, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -167,6 +167,12 @@ test("successor Session mode reads the persisted execution profile from run stat
   assert.equal(stageSessionMode({ status: { index: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } }), "new_session");
   assert.equal(stageSessionMode({ status: { run: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } }), "new_session");
   assert.equal(stageSessionMode({ status: { index: {} } }), "same_session");
+});
+
+test("successor context uses the registered v2 RUN artifact root", () => {
+  const roots = restoredRoots({ status: { run: { workspace_root: "/workspace", run_root: "/flow/projects/PRJ-001/runs/RUN-001" } } }, "/project", "/flow");
+  assert.deepEqual(roots, { project: "/project", workspace: "/workspace", run: "/flow/projects/PRJ-001/runs/RUN-001", runtime: "/flow" });
+  assert.throws(() => restoredRoots({ status: { run: { workspace_root: "/workspace", run_home_path: "/legacy" } } }, "/project", "/flow"), /registered workspace roots/);
 });
 
 test("new-session handoff is a flow invariant rather than an eval-profile option", () => {
