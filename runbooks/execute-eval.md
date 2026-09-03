@@ -6,8 +6,9 @@ fork, warm up, or read a canonical provider Session.  All mutable files belong
 under an absolute `DD_EVAL_HOME`.
 
 Reliability work is tracked in [repair plan 019](../specs/019-durable-execution-and-e2e-repair-plan.md).
-It is delivered in tested increments, but a three-model E2E remains unqualified
-until the plan's migration, fault tests and matched-pair preflight are complete.
+It is delivered in tested increments, but the current AGY E2E remains
+unqualified until the plan's migration, fault tests and AGY adapter preflight
+are complete. Luna, Grok and ZCode are not part of this launch set.
 Do not work around a recovery error by editing runtime SQLite, accepted results
 or MERGE freeze files. In particular, an RPC/daemon/Turn timeout means that the
 client did not observe an outcome; reconcile the existing operation before any
@@ -112,6 +113,24 @@ selected profile explicitly sets `selection.e2e: true` (for example, when a
 release plan calls for an end-to-end comparison). Its result is retained and
 judged on its own merits; it is not a hidden prerequisite for accepting the
 focused-stage set.
+
+## Current live qualification: AGY only
+
+For repair plan 019, run exactly one full E2E through the `antigravity-cli`
+harness after deterministic suites and the AGY adapter smoke pass. The smoke
+uses the same isolated roots as an ordinary execution and proves: profile
+observation, session creation, hook forwarding, one terminal result, usage
+ingest and daemon/process-tree cleanup. A smoke failure is a harness blocker:
+record its evidence and do not start the E2E.
+
+Create an ordinary committed run profile whose Subject is
+`antigravity-cli-google-gemini-3-1-pro-high`, `selection.e2e` is `true`, and
+whose Judge/interaction-Judge are explicit. Do not copy literal model settings
+into the runner command: the profile and resulting manifest are the source of
+truth. Continue stages in the same Subject session unless that profile
+explicitly selects another supported mode. Luna, Grok and ZCode profiles are
+retained as historical/comparison material, but are deliberately not launched
+by this qualification procedure.
 
 ## Operational model
 

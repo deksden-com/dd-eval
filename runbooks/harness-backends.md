@@ -41,7 +41,7 @@ The runner therefore waits for the provider terminal event or a registered
 
 ## Antigravity CLI
 
-`dd-agy` controls the official Antigravity CLI `1.1.22` headless streaming
+`dd-agy` controls the qualified Antigravity CLI `1.1.25` headless streaming
 protocol. One execution-scoped daemon owns one long-lived conversation, a
 `0600` Unix socket, private journal, and private Gemini customization/runtime
 tree. It keeps the normal process `HOME` so macOS Keychain authentication

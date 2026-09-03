@@ -10,6 +10,6 @@
   "model": "gemini-3.1-pro-high",
   "reasoning": "high",
   "mode": "accept-edits",
-  "runtime": { "agy": "1.1.22", "dd_harness_contract": "dd-agy-harness@1" },
+  "runtime": { "agy": "1.1.25", "dd_harness_contract": "dd-agy-harness@1" },
   "notes": "Controlled Antigravity CLI profile using isolated config/runtime directories and deterministic replay starters."
 }

@@ -4,10 +4,42 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { AcpBridge, assertProfile, cancelChildWithBridge, createSession, forkSession, latestAssistantText, observedProfile, promptProbeBatchWithBridge, promptSession, zcodeLifecycleEnvelope } from "../lib/dd-zcode.mjs";
-import { DEFAULT_LIVENESS_TIMEOUT_MS, callDaemon } from "../lib/dd-zcode-daemon.mjs";
+import { DEFAULT_LIVENESS_TIMEOUT_MS, callDaemon, stopDaemon } from "../lib/dd-zcode-daemon.mjs";
 
 test("ZCode defaults to a ten-minute sliding liveness window", () => {
   assert.equal(DEFAULT_LIVENESS_TIMEOUT_MS, 600_000);
+});
+
+test("ACP preserves provider detail carried in error.data.message", async () => {
+  const bridge = new AcpBridge({});
+  bridge.send = () => {};
+  const response = bridge.request("session/prompt", { sessionId: "native-test" }, 1000);
+  const assertion = assert.rejects(response, (error) => error.code === "provider_quota_exhausted" && error.details.provider_details === "402 Payment Required");
+  bridge.receive(JSON.stringify({ id: 1, error: { code: -32603, message: "Internal error", data: { message: "402 Payment Required" } } }));
+  await assertion;
+  await bridge.flush();
+});
+
+test("daemon stop waits for socket closure after the acknowledgement", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "dd-zcode-stop-ack-"));
+  const net = await import("node:net");
+  let stopped = false;
+  let closing;
+  const server = net.createServer((client) => client.once("data", (line) => {
+    const request = JSON.parse(String(line));
+    assert.equal(request.operation, "daemon.stop");
+    client.end(`${JSON.stringify({ schema_id: "dd-zcode/daemon-response@1", id: request.id, ok: true, result: { stopped: true } })}\n`);
+    closing = new Promise((resolve) => setTimeout(() => server.close(() => { stopped = true; resolve(); }), 40));
+  }));
+  await new Promise((resolve, reject) => server.listen(path.join(root, "daemon.sock"), resolve).once("error", reject));
+  try {
+    assert.deepEqual(await stopDaemon({ stateDir: root, timeoutMs: 1000 }), { stopped: true });
+    assert.equal(stopped, true);
+  } finally {
+    if (closing) await closing;
+    else if (server.listening) await new Promise((resolve) => server.close(resolve));
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("a productive ZCode Turn relies on sliding liveness rather than a second wall-clock limit", async () => {
@@ -38,7 +70,7 @@ test("ZCode retains provider rate-limit detail instead of flattening it to an AC
   }
 });
 
-test("ACP bridge preserves a provider quota error announced before its generic terminal response", async () => {
+test("ACP bridge preserves a Grok provider quota error announced before its generic terminal response", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-acp-quota-"));
   const server = path.join(root, "fake-acp.mjs");
   await writeFile(server, `
@@ -47,7 +79,7 @@ test("ACP bridge preserves a provider quota error announced before its generic t
     readline.createInterface({ input: process.stdin }).on("line", (line) => {
       const request = JSON.parse(line);
       if (request.method === "initialize") return send({ jsonrpc: "2.0", id: request.id, result: { protocolVersion: 1 } });
-      send({ jsonrpc: "2.0", method: "_x.ai/session/update", params: { sessionId: request.params.sessionId, update: { sessionUpdate: "retry_state", type: "failed", message: "API error (status 402 Payment Required): usage balance exhausted" } } });
+      send({ jsonrpc: "2.0", method: "_x.ai/session_notification", params: { sessionId: request.params.sessionId, update: { sessionUpdate: "retry_state", type: "failed", message: "API error (status 402 Payment Required): usage balance exhausted" } } });
       send({ jsonrpc: "2.0", id: request.id, error: { code: -32603, message: "Internal error" } });
     });
   `);
