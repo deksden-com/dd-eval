@@ -47,7 +47,7 @@ console.log(JSON.stringify({event:'result',result:{conversation_id:'',status:'ER
   try {
     await assert.rejects(
       startDaemon({ stateDir: state, cwd: project, bin: fake, projectRoot: project, ddFlowBin: flow, ddFlowHome: flowHome, entryPath: path.resolve("bin/dd-agy.mjs") }),
-      error => error.code === "agy_init_missing"
+      error => error.code === "agy_provider_rejected" && error.message === "provider rejected this account"
     );
     const terminal = JSON.parse(await readFile(path.join(state, "daemon.json"), "utf8"));
     assert.equal(terminal.shutdown_state, "failed");
