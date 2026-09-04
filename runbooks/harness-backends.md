@@ -62,7 +62,9 @@ interrupts that turn.  If a compact poll reports an idle Session without turn
 details, the adapter performs one full read to reconcile the terminal turn.
 
 The runner therefore waits for the provider terminal event or a registered
-`dd-flow` lifecycle receipt; silence alone is never a cancellation condition.
+`dd-flow` lifecycle receipt. For AGY, a ten-minute sliding window is renewed
+only by native provider events or child hooks, not runner polling; expiry is a
+recorded `subject_liveness_timeout` and closes the managed tree.
 
 ## Antigravity CLI
 

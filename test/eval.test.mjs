@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -48,6 +48,14 @@ test("a contour that may fan out is refused before a Subject session without mea
   const execution = { stage: "specify", terminal_stage: "merge" };
   assert.throws(() => assertProfileCapacity({ id: "harness", harness: "zcode-acp", subagent_capacity: null }, [execution]), error => error.code === "subagent_capacity_unqualified");
   assert.doesNotThrow(() => assertProfileCapacity({ id: "harness", harness: "zcode-acp", subagent_capacity: 2 }, [execution]));
+});
+
+test("AGY prompt liveness is bounded by native activity, not runner heartbeat", () => {
+  const prompt = ["session", "prompt", "--session-id", "S-1"];
+  assert.deepEqual(boundedPromptArgs({ harness: "antigravity-cli" }, prompt), [...prompt, "--timeout", "600"]);
+  assert.deepEqual(boundedPromptArgs({ harness: "zcode-acp" }, prompt), prompt);
+  assert.deepEqual(boundedPromptArgs({ harness: "antigravity-cli" }, [...prompt, "--timeout", "42"]), [...prompt, "--timeout", "42"]);
+  assert.equal(isInfrastructureFailure("subject_liveness_timeout"), true);
 });
 
 test("a case without an accepted entry pack cannot start focused fixtures", async () => {

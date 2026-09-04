@@ -773,3 +773,13 @@ executor. Полный набор crash-window проверок, канон/ре
 один квалификационный E2E через AGY остаются обязательными до объявления этого
 пакета готовым. Сравнительные прогоны через Luna, Grok и ZCode планируются
 отдельным последующим пакетом.
+
+## 18. AGY native-child liveness — 2026-09-04
+
+AGY может оставить prompt-RPC открытым, пока прямой child уже перестал выдавать
+native события. Поэтому у `session prompt` есть единое десятиминутное скользящее
+окно: оно продлевается только по provider event или hook дочернего агента,
+никогда по heartbeat самого runner. Истечение окна — не recoverable observer
+loss: runner сохраняет `last_activity_at` как `subject_liveness_timeout` и
+закрывает AGY tree через `--cancel-tree`. Это не допускает бесконечного
+`awaiting_provider`, но и не объявляет работающий child зависшим.

@@ -10,9 +10,13 @@ It is delivered in tested increments, but the current AGY E2E remains
 unqualified until the plan's migration, fault tests and AGY adapter preflight
 are complete. Luna, Grok and ZCode are not part of this launch set.
 Do not work around a recovery error by editing runtime SQLite, accepted results
-or MERGE freeze files. In particular, an RPC/daemon/Turn timeout means that the
-client did not observe an outcome; reconcile the existing operation before any
-new prompt, cancellation or retry.
+or MERGE freeze files. In particular, an RPC/daemon/Turn timeout normally
+means that the client did not observe an outcome; reconcile the existing
+operation before any new prompt, cancellation or retry. The exception is a
+recorded `subject_liveness_timeout`: AGY observed no native provider or
+child-hook activity for ten minutes. The runner closes that tree and preserves
+the final activity timestamp as blocker evidence; its own progress heartbeat
+never extends this window.
 
 ## Before launch
 
