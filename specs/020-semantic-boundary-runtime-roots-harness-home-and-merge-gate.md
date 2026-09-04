@@ -446,10 +446,12 @@ queued
 5. выполнить project bootstrap на интегрированном, но ещё не опубликованном
    дереве;
 6. запустить весь effective integration gate с progress JSONL;
-7. при любой ошибке сохранить все receipts, оставить target branch на прежнем
-   HEAD и вернуть `action_required`;
-8. после repair повторить полный gate на новом content fingerprint, не
-   повторяя merge apply;
+7. при любой ошибке сохранить все receipts, отменить незакоммиченный merge и
+   оставить target branch на прежнем HEAD;
+8. failed integration gate не ремонтируется в integration workspace. CLI
+   создаёт source-repair Work с failed receipt и исходным CODE context; repair
+   выполняется в feature workspace, проходит CODE verification и независимый
+   CODE-REVIEW, после чего создаётся новый source freeze и новый MRG;
 9. после успешного gate получить staged tree через `git write-tree` и сохранить
    `accepted_tree`;
 10. создать merge commit;
@@ -473,8 +475,18 @@ integration repository/worktree не вводить, пока реальные �
 - crash до commit восстанавливается по Git merge state, apply receipt и
   checkpoint;
 - crash после commit сверяет commit/tree и DB intent, не создаёт второй commit;
-- при failed gate интеграционная branch ref остаётся на baseline;
-- repair выполняется в том же MERGE Work; отдельный repair Work не нужен.
+- при failed gate integration branch ref и working tree возвращаются к
+  baseline; в target не остаётся незакоммиченный product repair;
+- исправление product defect всегда выполняется отдельным source-repair Work
+  в feature workspace. Его затем независимо проверяет CODE-REVIEW;
+- MERGE Work может изменять integration workspace только через `merge apply`
+  и при разрешении фактических Git-конфликтов. Он не является владельцем
+  продуктового кода, тестов или документации;
+- после source repair исходный MRG получает terminal status `superseded` с
+  ссылкой на failed receipts; replacement MRG содержит ссылку на исходный
+  запрос. Новый source freeze — новый
+  immutable delivery candidate; receipts старого MRG остаются evidence
+  неудачной integration epoch, но не переиспользуются как passed evidence.
 
 ### 6.6 Стартовый пакет и отчёт
 
@@ -486,8 +498,10 @@ integration repository/worktree не вводить, пока реальные �
 - полный список реально запускаемых integration checks с CHK refs;
 - exact apply/finish/pause/resume commands;
 - правило: не создавать commit вручную и не повторять apply;
-- при failed check — путь receipt/log, тот же Work и требование полного
-  повторного gate после исправления.
+- при failed check — путь receipt/log, явное указание, что integration tree
+  уже возвращён к baseline, и exact command/packet для source-repair цикла;
+- запрет на продуктовые правки в integration workspace; разрешение касается
+  только файлов, реально находящихся в Git conflict.
 
 MERGE report раздельно хранит:
 
@@ -512,7 +526,8 @@ MERGE report раздельно хранит:
 3. browser/DB check из final CODE gate не исчезает из MERGE;
 4. `external` evidence не исполняется shell-командой;
 5. failed check оставляет target HEAD прежним;
-6. repair меняет дерево, полный gate запускается новой epoch;
+6. failed MERGE gate возвращает target к baseline, создаёт source-repair Work,
+   а replacement MRG после CODE/CODE-REVIEW запускает полный gate новой epoch;
 7. merge commit появляется только после passed gate;
 8. commit tree равен проверенному staged tree;
 9. conflict resolution проверяется полным gate;

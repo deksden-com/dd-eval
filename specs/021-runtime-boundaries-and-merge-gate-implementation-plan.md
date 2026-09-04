@@ -82,12 +82,63 @@
 4. Перевести checkpoint machine на: `queued → baseline_locked → apply_recorded → conflicts_resolved → bootstrap_ready → checks_running → checks_passed → integration_committed → delivered → finalized`.
 5. `apply` делает `git merge --no-ff --no-commit`. При конфликте сохраняются тот же Work/session/lane; агент исправляет только фактический конфликт и не повторяет apply.
 6. На интегрированном, но ещё не committed дереве выполнить bootstrap и весь frozen gate. Durable attempt регистрируется до запуска, progress пишется в JSONL, receipt хранит все покрытые CHK refs.
-7. При неуспехе хранить receipts, вернуть `action_required`, не двигать target HEAD. Repair выполняется в том же MERGE Work; изменение дерева открывает новую check epoch и требует полный gate.
+7. При неуспехе хранить receipts, отменить незакоммиченный merge и не двигать target HEAD. Продуктовый repair не допускается в MERGE Work: CLI создаёт source-repair Work в feature workspace, проводит его через CODE verification и независимый CODE-REVIEW, помечает исходный MRG `superseded` и только затем создаёт replacement MRG с новым frozen source и новой check epoch.
 8. После success получить `accepted_tree = git write-tree`, создать commit и сверить `integration_commit^{tree} === accepted_tree`. Изменение tree hook-ом требует новой epoch.
 9. Повтор `finish` на `checks_running` сначала читает durable attempts и продолжает наблюдение; recovery после crash сверяет Git state/checkpoint и не повторяет apply/commit.
 10. Inline и server route вызывают один merge service. Server меняет только получение агентной работы из очереди, но не gate/state/receipts.
 
-**Тесты:** final CODE checks не теряются; dedupe сохраняет CHK refs; browser/DB не исчезают; `external` не выполняется; failed gate не двигает HEAD; repair создаёт новую epoch; commit только после gate; tree equality; conflict; crash recovery; inline/server equivalence; progress долгой проверки.
+### 6.1 Source-repair transition
+
+Это не retry `finish` и не скрытая правка target. Нужен один явный CLI
+переход, например `dd-flow merge repair <MRG-ID>`, который выполняет только
+детерминированную механику:
+
+1. проверяет, что MRG находится в `action_required` именно из-за immutable
+   failed integration receipt, а его target HEAD всё ещё равен baseline;
+2. делает `git merge --abort` и проверяет clean target tree; конфликтный или
+   неоткатываемый target переводится в `recovery_required`, а не
+   «исправляется» агентом;
+3. создаёт один source-repair CODE Work в feature workspace, прикладывая
+   failed receipt, exact affected checks и исходные CODE Work как causal
+   context;
+4. помечает исходный MRG `superseded`, сохраняет связь `replacement_of` в
+   replacement request и не допускает его повторного dispatch;
+5. открывает новую попытку CODE, затем новую попытку CODE-REVIEW. Нельзя
+   переиспользовать terminal report или прежние reviewer Work как review
+   нового repair; старые attempt artifacts остаются immutable evidence;
+6. после нового CODE-REVIEW создаёт replacement MRG. Только он может попасть
+   в inline/server queue.
+
+Для этого снять unique-index «один MRG на RUN» и заменить его на invariant
+«не более одного non-terminal MRG на RUN». Запросы связываются
+`replacement_of_merge_request_id`; `superseded` является terminal status и
+не блокирует project FIFO. Это легче и честнее, чем переписывать source freeze
+или мутировать старый MRG.
+
+### 6.2 Повторные stage attempts
+
+`CODE` и `CODE-REVIEW` должны уметь иметь несколько attempt в одном RUN,
+только через явный source-repair transition. При новом attempt CLI:
+
+- архивирует terminal stage receipt/report в `<stage>/try-NNN/`; следующая
+  попытка materialизуется в корне той же stage directory с новым номером
+  attempt;
+- создаёт fresh prompt/context и связывает coordinator с новой попыткой;
+- фильтрует Work по `stage_attempt`, чтобы прежние reviewer results не стали
+  ложным покрытием повторного review;
+- запрещает неявный `stage start` terminal stage: обычная команда по-прежнему
+  fail-closed, а переход доступен исключительно из `merge repair`.
+
+### 6.3 Контракт MERGE Work
+
+`renderWorkerPrompt` не применяет общий project-source write boundary к
+`kind: merge`. Merge-specific prompt говорит, что agent не делает Git mutation
+вручную: `merge apply` — единственный normal mutation. При конфликте разрешены
+только unmerged paths. Любая другая product change в target отклоняется при
+`stage finish` сравнением с apply baseline/allowed conflict paths и не может
+быть выдана за conflict resolution.
+
+**Тесты:** final CODE checks не теряются; dedupe сохраняет CHK refs; browser/DB не исчезают; `external` не выполняется; failed gate не двигает HEAD и оставляет чистый target; source repair не может писать в integration workspace; replacement MRG создаётся только после CODE verification и CODE-REVIEW; commit только после gate; tree equality; conflict; crash recovery; inline/server equivalence; progress долгой проверки.
 
 ## 7. Фаза F — документация, выпуск и квалификация
 
