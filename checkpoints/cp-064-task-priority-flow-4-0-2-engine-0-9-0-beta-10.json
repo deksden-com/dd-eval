@@ -1,0 +1,31 @@
+{
+  "schema_version": 2,
+  "id": "cp-064-task-priority-flow-4-0-2-engine-0-9-0-beta-10",
+  "title": "Task Priority clean product baseline with Memory Bank 4.0.2 and dd-flow 0.9.0-beta.10",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "86db34668add2cd2f9a7c59adfced5e7ae57c3b8"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "fccdb9fe7359f2ba321eebace328fd18557dcd25",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "460b71fed9e52e0be2cb95d3a565d9ec015d6da7",
+      "version": "0.9.0-beta.10"
+    }
+  },
+  "state": "ready_for_e2e",
+  "notes": [
+    "The source commit predates Task Priority, so the evaluated request is not already implemented.",
+    "The flow pack is overlaid from the released Memory Bank 4.0.2 canonical repository; this keeps the product baseline independent from the evaluated flow contract.",
+    "The runtime is the published dd-flow 0.9.0-beta.10 engine pinned by commit and version."
+  ]
+}
