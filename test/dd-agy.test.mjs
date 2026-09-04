@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
+import net from "node:net";
 import path from "node:path";
 import { doctor, usageSnapshot } from "../lib/dd-agy.mjs";
 import { callDaemon, startDaemon, stopDaemon } from "../lib/dd-agy-daemon.mjs";
@@ -10,6 +11,26 @@ test("AGY usage preserves missing counters as unknown", () => {
   assert.equal(usageSnapshot({ usage: { input_tokens: null, total_tokens: undefined } }).input_tokens, null);
   assert.equal(usageSnapshot({ usage: { input_tokens: null, total_tokens: undefined } }).total_tokens, null);
   assert.equal(usageSnapshot({ usage: { input_tokens: 0 } }).input_tokens, 0);
+});
+
+test("AGY prompt timeout reports the final native activity instead of runner progress", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-liveness-"));
+  const state = path.join(root, "state"); const socket = path.join(state, "daemon.sock");
+  await mkdir(state);
+  const server = net.createServer((connection) => {
+    connection.setEncoding("utf8"); connection.once("data", (line) => {
+      const request = JSON.parse(line);
+      if (request.operation !== "daemon.status") return;
+      connection.end(`${JSON.stringify({ ok: true, result: { active_tree: true, last_activity_at: "2000-01-01T00:00:00.000Z" } })}\n`);
+    });
+  });
+  try {
+    await new Promise((resolve, reject) => { server.once("error", reject); server.listen(socket, resolve); });
+    await assert.rejects(callDaemon(state, "session.prompt", {}, 25), (error) => error.code === "daemon_timeout" && error.details.last_activity_at === "2000-01-01T00:00:00.000Z");
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("dd-agy owns one streaming conversation and rejects headless fork semantics", async () => {
