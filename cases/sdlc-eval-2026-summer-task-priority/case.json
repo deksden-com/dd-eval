@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-062-task-priority-flow-4-0-1-engine-0-9-0-beta-7-merge-gate",
-    "sha256": "63b220165dedd2345cbc53ff2641e6ee1ae97f2ed309664a0cd57727a83fdbc5"
+    "id": "cp-063-task-priority-flow-4-0-1-engine-0-9-0-beta-8-write-boundaries",
+    "sha256": "53dfdff8e3c62658bf7b9195d610b68879b125ab58ad0700b1f0a193f768d097"
   },
   "entry_pack": null,
   "profiles": {

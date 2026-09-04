@@ -1,0 +1,31 @@
+{
+  "schema_version": 2,
+  "id": "cp-063-task-priority-flow-4-0-1-engine-0-9-0-beta-8-write-boundaries",
+  "title": "Task Priority clean product baseline with current write-boundary prompts and dd-flow 0.9.0-beta.8",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "86db34668add2cd2f9a7c59adfced5e7ae57c3b8"
+  },
+  "product_baseline": {
+    "checkpoint_id": "cp-002",
+    "commit": "15021169f90245c6d9254488b8a3ba0621b5bc07",
+    "product_code_changed": false
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "99509d3456bc40ec08fdfc1bb466f441c85f8886",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "98af28f2e50816d1042ee2a75d2f8133b655ffcb",
+      "version": "0.9.0-beta.8"
+    }
+  },
+  "state": "ready_for_e2e",
+  "notes": [
+    "The source commit predates Task Priority, so the evaluated request is not already implemented.",
+    "The flow-pack commit carries the atomic write-boundary instruction and the registered RUN-root contract.",
+    "The source engine revision preserves current acceptance receipts after repair and is supplied through the explicit local development override until npm publication succeeds."
+  ]
+}
