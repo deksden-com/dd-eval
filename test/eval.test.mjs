@@ -175,6 +175,15 @@ test("successor context uses the registered v2 RUN artifact root", () => {
   assert.throws(() => restoredRoots({ status: { run: { workspace_root: "/workspace", run_home_path: "/legacy" } } }, "/project", "/flow"), /registered workspace roots/);
 });
 
+test("canonical reference recovery also requires the registered v2 RUN artifact root", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const start = source.indexOf("async function referenceRoots");
+  const end = source.indexOf("async function startReferenceDaemon", start);
+  const implementation = source.slice(start, end);
+  assert.match(implementation, /run\?\.run_root/);
+  assert.doesNotMatch(implementation, /run_home_path/);
+});
+
 test("new-session handoff is a flow invariant rather than an eval-profile option", () => {
   const lifecycle = { status: { index: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } };
   assert.equal(stageSessionMode(lifecycle), "new_session");
