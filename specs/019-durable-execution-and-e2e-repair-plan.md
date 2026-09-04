@@ -9,6 +9,15 @@
 Репозитории: `dd-flow-cli`, `dd-eval`, `dd-memorybank`, `dd-tasks`; `zcode-acp`
 и другие упряжки — только при необходимости исправить их собственный контракт.
 
+### Cancellation amendment
+
+Cancellation is not terminal at signal dispatch. The runner records
+`cancel_requested`, asks the live adapter to stop the root Session and all
+native descendants, and records terminal `execution.cancelled` only when the
+adapter receipt has `settled: true`. A bounded non-settled result remains
+`cancelling` and is reconciled without a new Subject prompt. Daemon cleanup is
+permitted only after that settlement.
+
 Документ — единый источник плана исправлений по историческим трём E2E 2026-09-02 и
 последующему обсуждению. Дополняет спецификации 008–012, 014, 017, 018.
 В части будущего поведения заменяет противоречащие ему правила про абсолютный

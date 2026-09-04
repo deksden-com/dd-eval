@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -21,11 +21,33 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-064-task-priority-flow-4-0-2-engine-0-9-0-beta-10");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-065-task-priority-project-flow-pack-4-0-2-engine-0-9-0-beta-10");
   assert.equal(loaded.inputCheckpoint.value.source.commit, "86db34668add2cd2f9a7c59adfced5e7ae57c3b8");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "fccdb9fe7359f2ba321eebace328fd18557dcd25");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "b81443102917ade598cc518a605eb626d9214017");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.10");
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
+});
+
+test("project flow-pack preflight rejects a bare canonical flow before a Session can start", async () => {
+  const temporary = await mkdtemp(path.join(tmpdir(), "dd-eval-flow-pack-"));
+  const checkpoint = { value: { id: "cp-test", flow_pack: { path: ".memory-bank/dd-flow", memory_bank_version: "4.0.2" } } };
+  try {
+    await mkdir(path.join(temporary, ".memory-bank", "dd-flow"), { recursive: true });
+    await writeFile(path.join(temporary, ".memory-bank", "dd-flow", "manifest.json"), JSON.stringify({ schema_id: "dd-flow/project-flow-pack-manifest@2", pack_version: "4.0.2", canon_version_at_source_commit: "4.0.2", included_files: [] }));
+    await assert.rejects(assertProjectFlowPack(temporary, checkpoint), error => error.code === "input_checkpoint_flow_pack_invalid" && error.details.missing.some((item) => item.startsWith("project-execution.json")));
+  } finally { await rm(temporary, { recursive: true, force: true }); }
+});
+
+test("runtime compatibility is owned by the selected harness profile", () => {
+  const profile = { id: "example", runtime: { tool: "1.2.3", dd_harness_contract: "example@1" } };
+  assert.doesNotThrow(() => assertObservedRuntime({ observed_runtime: profile.runtime }, profile, "doctor"));
+  assert.throws(() => assertObservedRuntime({ observed_runtime: { tool: "1.2.4", dd_harness_contract: "example@1" } }, profile, "doctor"), error => error.code === "harness_runtime_mismatch" && /compatibility qualify/.test(error.details.next_command));
+});
+
+test("a contour that may fan out is refused before a Subject session without measured capacity", () => {
+  const execution = { stage: "specify", terminal_stage: "merge" };
+  assert.throws(() => assertProfileCapacity({ id: "harness", harness: "zcode-acp", subagent_capacity: null }, [execution]), error => error.code === "subagent_capacity_unqualified");
+  assert.doesNotThrow(() => assertProfileCapacity({ id: "harness", harness: "zcode-acp", subagent_capacity: 2 }, [execution]));
 });
 
 test("a case without an accepted entry pack cannot start focused fixtures", async () => {

@@ -19,6 +19,13 @@ Every backend must provide these operations with stable provider Session IDs:
 - ordered tool/lifecycle events with a bounded synchronization contract;
 - append-only JSONL evidence.
 
+Runtime versions are not adapter baselines. Each harness profile declares its
+expected `runtime`; `doctor` reports `observed_runtime` with the same keys.
+The runner compares them before daemon/session creation. A changed runtime is
+accepted only through `dd-eval harness compatibility qualify --profile …`,
+which performs one isolated smoke and records the result; it then clears the
+profile's capacity measurement because provider updates can change fan-out.
+
 Every execution-scoped daemon is also a durable managed process: `daemon start`
 registers it before spawning, records its PID and process group after spawning,
 and heartbeats its lease while it is live. A separately registered provider
@@ -59,8 +66,8 @@ The runner therefore waits for the provider terminal event or a registered
 
 ## Antigravity CLI
 
-`dd-agy` controls the qualified Antigravity CLI `1.1.25` headless streaming
-protocol. One execution-scoped daemon owns one long-lived conversation, a
+`dd-agy` controls the Antigravity CLI version qualified by the selected profile
+through its headless streaming protocol. One execution-scoped daemon owns one long-lived conversation, a
 `0600` Unix socket, private journal, and private Gemini customization/runtime
 tree. It keeps the normal process `HOME` so macOS Keychain authentication
 continues to work, while `--gemini_dir` and `--app_data_dir=runtime` prevent

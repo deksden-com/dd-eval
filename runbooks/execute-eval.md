@@ -35,6 +35,27 @@ new prompt, cancellation or retry.
    and segment runs require a non-null `case.json.entry_pack` whose referenced
    package is accepted. E2E starts from the committed input checkpoint and does
    not require an entry pack.
+4. Qualify the selected harness profile before a provider update is used in a
+   scored run:
+
+   ```sh
+   dd-eval harness compatibility qualify --profile <profile-id> \
+     --project-root <project-root>
+   ```
+
+   The profile is the source of truth for expected runtime versions. The command
+   observes the installed runtime, runs one isolated native smoke only when it
+   changed, writes a receipt, updates that one profile and clears its measured
+   child capacity. Review, commit and push the profile change before the eval.
+   A routine run fails closed on mismatch; never edit an adapter baseline or
+   accept an update merely because its version looks compatible.
+5. If the selected flow can create native children and the profile has no
+   qualified capacity, measure it after compatibility qualification:
+
+   ```sh
+   dd-eval harness capacity check --profile <profile-id> --max 15 \
+     --project-root <project-root>
+   ```
 
 ## Run
 
@@ -72,6 +93,22 @@ credentials. The isolated home never inherits `db.sqlite`, RUNs, locks, ports,
 engines, logs or daemons from the source home. A missing or invalid harness
 configuration is a setup blocker; do not work around it with PATH discovery or
 ad-hoc adapter environment variables.
+
+Before opening a Subject session, the runner validates the materialized input
+as a **project** flow pack: its manifest, every declared file and both
+project-owned execution/workspace contracts must be present and match the
+checkpoint Memory Bank version. A bare canonical `dd-flow/` source is never a
+valid E2E overlay. This is a file-contract check only; policy and semantic
+correctness remain agent/`dd-flow` responsibilities.
+
+## Cancellation
+
+`dd-eval runner cancel --eval <path>` is two-phase. It first records
+`cancel_requested`; the adapter then reports whether the root Session and all
+native children actually settled. Only a receipt with `settled: true` writes
+terminal `execution.cancelled` and finalizes the eval. Otherwise the eval is
+`cancelling`: use `runner reconcile` to observe it again. Do not restart the
+Subject, send a recovery prompt or delete its daemon while it is cancelling.
 
 ## Parallel canonical preparation and E2E
 
@@ -123,23 +160,15 @@ release plan calls for an end-to-end comparison). Its result is retained and
 judged on its own merits; it is not a hidden prerequisite for accepting the
 focused-stage set.
 
-## Current live qualification: AGY only
+## Live qualification
 
-For repair plan 019, run exactly one full E2E through the `antigravity-cli`
-harness after deterministic suites and the AGY adapter smoke pass. The smoke
-uses the same isolated roots as an ordinary execution and proves: profile
-observation, session creation, hook forwarding, one terminal result, usage
-ingest and daemon/process-tree cleanup. A smoke failure is a harness blocker:
-record its evidence and do not start the E2E.
-
-Create an ordinary committed run profile whose Subject is
-`antigravity-cli-google-gemini-3-1-pro-high`, `selection.e2e` is `true`, and
-whose Judge/interaction-Judge are explicit. Do not copy literal model settings
-into the runner command: the profile and resulting manifest are the source of
-truth. Continue stages in the same Subject session unless that profile
-explicitly selects another supported mode. Luna, Grok and ZCode profiles are
-retained as historical/comparison material, but are deliberately not launched
-by this qualification procedure.
+Every selected harness follows the same sequence: compatibility qualification,
+native-capacity probe when its contour can fan out, deterministic suites, a
+committed definition, then the E2E run. A smoke failure is a harness blocker:
+retain its receipt and do not start that profile's E2E. The run profile—not a
+literal command-line model/version—remains the source of truth for Subject,
+Judge and interaction Judge. Continue stages in the same Subject session unless
+the persisted project execution policy selects a supported handoff.
 
 ## Operational model
 

@@ -39,6 +39,20 @@ The runner makes orchestration deterministic. It does not make model output or
 semantic judgment deterministic. Subject and Judge variability is measured
 evidence, not an implementation defect.
 
+### Input and harness preflight
+
+An E2E input checkpoint must materialize a curated **project** flow pack, not
+a bare canonical directory. Before any Subject Session is created, the runner
+checks the project pack manifest, its declared files, project execution and
+workspace contracts, and the declared Memory Bank version. It never attempts
+to infer this missing input from a model response.
+
+Harness runtime identity belongs to the selected harness profile. `doctor`
+returns `observed_runtime`; normal runs compare it exactly and fail closed
+before daemon/session creation. `harness compatibility qualify` is the single
+explicit path for a changed runtime: observe, run one isolated native smoke,
+record evidence, update that profile and reset its capacity measurement.
+
 ### Operational walk-through
 
 The intended everyday path is intentionally short. This walkthrough is also
