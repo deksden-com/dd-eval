@@ -33,6 +33,19 @@ test("AGY prompt timeout reports the final native activity instead of runner pro
   }
 });
 
+test("AGY daemon enforces liveness for a silent live provider", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-live-liveness-"));
+  const fake = path.join(root, "fake-agy.mjs"), state = path.join(root, "state"), project = path.join(root, "project"), flowHome = path.join(root, "flow-home");
+  await mkdir(project); await mkdir(flowHome);
+  await writeFile(fake, `#!/usr/bin/env node
+const a=process.argv.slice(2);if(a.includes('--version')){console.log('1');process.exit()}if(a.includes('models')){console.log('gemini-3.1-pro-high');process.exit()}console.log(JSON.stringify({event:'init',conversation_id:'s',init:{model:'gemini-3.1-pro-high',permission_mode:'always-proceed'}}));process.stdin.resume();
+`, { mode: 0o755 });
+  try {
+    await startDaemon({ stateDir: state, cwd: project, bin: fake, projectRoot: project, ddFlowBin: fake, ddFlowHome: flowHome, entryPath: path.resolve("bin/dd-agy.mjs") });
+    await assert.rejects(callDaemon(state, "session.prompt", { sessionId: "s", prompt: "wait" }, 50), error => error.code === "daemon_timeout");
+  } finally { try { await stopDaemon({ stateDir: state, cancelTree: true, timeoutMs: 1000 }); } catch {} await rm(root, { recursive: true, force: true }); }
+});
+
 test("dd-agy owns one streaming conversation and rejects headless fork semantics", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-test-"));
   const fake = path.join(root, "fake-agy.mjs"), flow = path.join(root, "fake-flow.mjs"), registry = path.join(root, "registry.log"), state = path.join(root, `state-${"x".repeat(180)}`), project = path.join(root, "project"), flowHome = path.join(root, "flow-home");
