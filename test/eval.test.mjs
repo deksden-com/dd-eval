@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, capacityProbeResult, capacityProbeSucceeded, committedDefinitionIdentity, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, capacityProbeResult, capacityProbeSucceeded, committedDefinitionIdentity, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -93,6 +93,14 @@ test("ZCode daemon receives a resolved ACP executable", async () => {
     profile: { harness: "zcode-acp" },
   });
   assert.deepEqual(args, ["daemon", "start", "--state-dir", "/tmp/daemon", "--dd-flow-bin", "/bin/echo", "--dd-flow-home", "/tmp/flow-zcode", "--project-root", "/tmp/project", "--zcode-acp-bin", "/bin/echo"]);
+});
+
+test("isolated runner launches the configured harness adapter", async () => {
+  const home = await mkdtemp(path.join(tmpdir(), "dd-eval-harness-"));
+  try {
+    await writeFile(path.join(home, "harnesses.json"), JSON.stringify({ schema_id: "dd-flow/harness-config@1", harnesses: { "zcode-acp": { adapter_command: "/bin/echo", runtime_command: "/bin/echo" } } }));
+    assert.deepEqual(await driverAdapterInvocation({ harness: "zcode-acp" }, { cwd: "/tmp/project", env: { DD_FLOW_HOME: home } }), { executable: "/bin/echo", prefix: [] });
+  } finally { await rm(home, { recursive: true, force: true }); }
 });
 
 test("qualification cannot pass while any execution failed", () => {
