@@ -79,6 +79,6 @@ try {
   else throw new Error(`unknown command: ${positional.join(" ")}`);
   process.stdout.write(`${JSON.stringify({ ok: true, ...result })}\n`);
 } catch (error) {
-  process.stderr.write(`${JSON.stringify({ ok: false, error: error.message, code: error.code ?? "operation_failed" })}\n`);
+  process.stderr.write(`${JSON.stringify({ ok: false, error: error.message, code: error.code ?? "operation_failed", ...(error.retryable === true ? { retryable: true } : {}), ...(error.details !== undefined ? { details: error.details } : {}) })}\n`);
   process.exit(1);
 }
