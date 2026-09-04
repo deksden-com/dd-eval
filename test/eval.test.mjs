@@ -79,9 +79,12 @@ test("Final Judge must cover the selected rubric exactly with evidenced applicab
 });
 
 test("Final Judge receives a bounded evidence scope", () => {
-  const prompt = finalJudgePrompt({ assessmentFile: "/eval/judge/assessment.json", candidateFile: "/eval/judge/candidate.json", evidenceFile: "/eval/judge/evidence.json" });
+  const prompt = finalJudgePrompt({ assessmentFile: "/eval/judge/assessment.json", candidateFile: "/eval/judge/candidate.json", evidenceFile: "/eval/judge/evidence.json", scope: "e2e", assessment: { scopes: { e2e: { outcome: [{ id: "quality" }], flow: [{ id: "integrity" }] } } } });
   assert.match(prompt, /Use only those packets and artifact paths explicitly referenced by them/);
   assert.match(prompt, /Do not search or read another eval, RUN, project, workspace, or host path/);
+  assert.match(prompt, /"scope":"e2e"/);
+  assert.match(prompt, /"id":"quality"/);
+  assert.match(prompt, /"id":"integrity"/);
 });
 
 test("run profiles are explicit experiments rather than harness defaults", async () => {
