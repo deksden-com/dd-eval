@@ -299,6 +299,10 @@ test("HITL verdicts are strict, fail closed, and preserve exact response bytes",
   assert.throws(() => validateHitlMatch({ ...verdict, rationale: "" }, fixture), /invalid contract/);
   const gap = validateHitlMatch({ schema_id: "dd-eval/hitl-match@1", status: "unmatched", classification: "fixture_gap", response_ids: [], covered_questions: ["Q1"], uncovered_questions: ["Q2"], rationale: "missing" }, fixture);
   assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict: gap }, question: "Q1 and Q2", stage: "specify" }), (error) => error.code === "interaction_fixture_gap" && error.hitl.verdict === gap);
+  const partialGap = validateHitlMatch({ schema_id: "dd-eval/hitl-match@1", status: "unmatched", classification: "fixture_gap", response_ids: ["one"], covered_questions: ["Q1"], uncovered_questions: ["Q2"], rationale: "first answer covers only Q1" }, fixture);
+  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict: partialGap }, question: "Q1 and Q2", stage: "specify" }), (error) => error.code === "interaction_fixture_gap" && error.hitl.verdict === partialGap);
+  assert.throws(() => validateHitlMatch({ ...partialGap, covered_questions: ["Q1", "Q1"] }, fixture), /malformed arrays/);
+  assert.throws(() => validateHitlMatch({ ...partialGap, uncovered_questions: ["Q1"] }, fixture), /malformed arrays/);
   assert.equal(isInfrastructureFailure("interaction_fixture_gap"), true);
 });
 
