@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, capacityProbeResult, capacityProbeSucceeded, committedDefinitionIdentity, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -224,27 +224,28 @@ test("stage launcher makes registered HITL pause the only way to ask a material 
   assert.match(launcher, /Otherwise finish this Stage/);
 });
 
-test("fan-out workers cannot create nested HITL and zero capacity is infrastructure", () => {
+test("native child packets cannot create nested HITL and unqualified capacity is infrastructure", () => {
   const prompt = fanoutWorkerPrompt({ workId: "WRK-001", startCommand: "dd-flow work start WRK-001 --json" });
   assert.match(prompt, /cannot ask the user or pause the parent Stage/);
-  assert.equal(isInfrastructureFailure("no_subagent_capacity"), true);
-  assert.equal(isInfrastructureFailure("capacity_probe_observation_lost"), true);
+  const packet = nativeChildFanoutPrompt({ stage: "code", capacity: 2, works: [{ work_id: "WRK-001", start_command: "dd-flow work start WRK-001 --json" }] });
+  assert.match(packet, /direct child of this current Session/);
+  assert.match(packet, /not a reason to cancel its siblings/);
+  assert.equal(isInfrastructureFailure("subagent_capacity_unqualified"), true);
   assert.equal(isInfrastructureFailure("provider_rate_limited"), true);
   assert.equal(isInfrastructureFailure("provider_quota_exhausted"), true);
 });
 
-test("a terminal fan-out failure cancels already-launched siblings before reporting the wave failure", async () => {
+test("productive fan-out uses the coordinator's native children and leaves siblings settled", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /cancelled_after_peer_failure/);
-  assert.match(source, /await Promise\.all\(\[\.\.\.control\.cancellers\.entries\(\)\]/);
-  assert.match(source, /settleFanoutWave/);
-  assert.match(source, /code: error\?\.code \?\? "fanout_worker_failed"/);
+  assert.match(source, /nativeChildFanoutPrompt/);
+  assert.match(source, /native_children_required/);
+  assert.match(source, /not a reason to cancel its siblings/);
 });
 
-test("fan-out worker failure preserves the created Session in its receipt", async () => {
+test("productive fan-out no longer creates an isolated worker root", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /let sessionId = resumeSessionId;\n  try \{/);
-  assert.match(source, /fanout\.worker\.failed[\s\S]{0,350}session_id: sessionId/);
+  assert.doesNotMatch(source, /async function runFanoutWorker/);
+  assert.doesNotMatch(source, /startIsolatedWorkerDaemon/);
 });
 
 test("worker failure remains primary when daemon cleanup also fails", async () => {
@@ -300,65 +301,59 @@ test("run profiles cannot request an unauthorized continuation after unmatched H
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
-test("capacity probe has an exact, disposable agent contract", () => {
-  const prompt = capacityProbePrompt(7, 60);
-  assert.match(prompt, /AGENT-07/);
-  assert.match(prompt, /Do not call tools, read files, create children, or explain/);
-  assert.match(prompt, /Wait exactly 60 seconds/);
-  assert.match(prompt, /return exactly AGENT-07/);
+test("capacity qualification counts only authoritative direct native children", () => {
+  const prompt = nativeCapacityPrompt(7);
+  assert.match(prompt, /at most 7 direct leaf children/);
+  assert.match(prompt, /Do not retry, replace, or add children/);
+  const children = directNativeChildren({ descendants: [
+    { provider_session_id: "child-completed", parent_provider_session_id: "root", status: "completed" },
+    { provider_session_id: "child-failed", parent_provider_session_id: "root", status: "failed" },
+    { provider_session_id: "grandchild", parent_provider_session_id: "child-completed", status: "completed" }
+  ] }, "root");
+  assert.deepEqual(children.map((child) => child.session_id), ["child-completed", "child-failed"]);
+  assert.equal(children[1].status, "failed");
+  assert.deepEqual(
+    directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-ended", status: "success" }] } } } }, "root"),
+    [{ session_id: "zcode-ended", parent_session_id: "root", status: "completed", source: "zcode/session/subagents" }]
+  );
 });
 
-test("capacity probe accepts its declared terminal marker but not a near match", () => {
-  assert.equal(capacityProbeSucceeded("I will wait.\nAGENT-01\n", "AGENT-01"), true);
-  assert.equal(capacityProbeSucceeded("AGENT-010", "AGENT-01"), false);
-  assert.equal(capacityProbeSucceeded("AGENT-01\nextra", "AGENT-01"), false);
-});
-
-test("capacity probe rejects an eager marker and accepts a held marker", () => {
-  assert.deepEqual(capacityProbeResult({ text: "AGENT-01", expected: "AGENT-01", completedAt: 10, holdUntil: 11 }), { completed: false, reason: "probe_returned_before_hold" });
-  assert.deepEqual(capacityProbeResult({ text: "AGENT-01", expected: "AGENT-01", completedAt: 11, holdUntil: 11 }), { completed: true });
-});
-
-test("ACP worker usage relies on the adapter's native usage ingestion", () => {
-  assert.equal(workerUsageSource({ harness: "zcode-acp" }), "adapter_ingested");
-  assert.equal(workerUsageSource({ harness: "grok-acp" }), "adapter_ingested");
-  assert.equal(workerUsageSource({ harness: "codex-desktop" }), "session_sync");
-});
-
-test("fan-out worker recovery resumes the same Work after an unaccepted finish", () => {
-  const prompt = fanoutWorkerRecoveryPrompt({ workId: "WRK-001" });
-  assert.match(prompt, /still running/);
-  assert.match(prompt, /failed-check receipt/);
-  assert.match(prompt, /Do not create another Work/);
-  assert.match(prompt, /Do not send a prose completion message/);
-});
-
-test("worker recovery resolves the registered Session namespace exactly", async () => {
-  const { workerPromptPath } = await import("../lib/runner.mjs");
-  for (const harness of ["codex-desktop", "grok-acp", "zcode-acp", "opencode-server", "antigravity-cli"]) {
-    const sessionId = "session-1";
-    const work = { sessions: [{ harness_id: "other", native_session_id: sessionId, prompt_path: "/wrong.md" }, { harness_id: harness, native_session_id: sessionId, prompt_path: "/work/prompt.md" }] };
-    assert.equal(workerPromptPath(work, { harness }, sessionId), "/work/prompt.md");
-    assert.equal(workerPromptPath(work, { harness }, "session-2"), undefined);
-  }
-});
-
-test("fan-out recovery cancels only an interrupted Turn and keeps its Work", async () => {
+test("capacity qualification stays outside the flow runtime", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /dev\.dd\.eval\.fanout\.worker\.turn_recovery/);
-  assert.match(source, /\["session", "cancel", \.\.\.daemon\.daemonArgs/);
-  assert.match(source, /Cancellation is\n\s*\/\/ only best-effort transport cleanup/);
-  assert.match(source, /Do not call work start or create another Work/);
-  assert.doesNotMatch(source, /"reasoning", profile\.reasoning, "--timeout", "120", "--prompt"/);
-  assert.match(source, /dev\.dd\.eval\.fanout\.worker\.resumed/);
-  assert.match(source, /restart: Boolean\(resumeSessionId\)/);
+  const helper = source.match(/export async function harnessCapacityCheck[\s\S]*?\n}\n\n\/\*\* Ask the current coordinator/);
+  assert.ok(helper);
+  assert.doesNotMatch(helper[0], /DD_FLOW_HOME/);
+  assert.doesNotMatch(helper[0], /provisionCapacityRuntime/);
+});
+
+test("capacity Codex home links authentication without sharing Sessions", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const helper = source.match(/async function provisionCapacityCodexHome[\s\S]*?\n}/);
+  assert.ok(helper);
+  assert.match(helper[0], /symlink\(sourceAuth/);
+  assert.doesNotMatch(helper[0], /sessions/);
+});
+
+test("capacity reads Codex native child metadata rather than model text", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const helper = source.match(/async function capacityCodexChildren[\s\S]*?\n}/);
+  assert.ok(helper);
+  assert.match(helper[0], /parent_thread_id === rootSessionId/);
+  assert.match(helper[0], /SubAgentActivity/);
+  assert.doesNotMatch(helper[0], /assistant_text/);
+});
+
+test("native packet contains the exact Work start command", () => {
+  const packet = nativeChildFanoutPrompt({ stage: "plan-review", capacity: 1, works: [{ work_id: "WRK-001", start_command: "dd-flow work start WRK-001 --json" }] });
+  assert.match(packet, /dd-flow work start WRK-001 --json/);
+  assert.match(packet, /one direct native child agent/);
+});
+
+test("native-child recovery waits instead of restarting a Work Session", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /nativeChildWaitPrompt/);
+  assert.match(source, /awaiting_native_children/);
   assert.match(source, /dev\.dd\.eval\.reference\.fanout_recovery_authorized/);
-  assert.match(source, /recoverableDriverCodes/);
-  assert.match(source, /isRecoverableDriverError\(error\)/);
-  assert.equal(isRecoverableDriverError({ code: "turn_interrupted" }), true);
-  assert.equal(isRecoverableDriverError({ code: "rpc_timeout" }), false);
-  assert.equal(isRecoverableDriverError({ code: "daemon_timeout" }), false);
-  assert.equal(isRecoverableDriverError({ code: "turn_timeout" }), false);
 });
 
 test("observer loss remains recoverable instead of producing a failed execution", async () => {
@@ -369,7 +364,7 @@ test("observer loss remains recoverable instead of producing a failed execution"
 
 test("a terminal coordinator Turn with a running Stage receives a finish-only recovery", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /turnPrompt = fanout\?\.continuation \?\? interruptedStageContinuation\(stage\)/);
+  assert.match(source, /fanout\?\.state === "awaiting_native_children" \? nativeChildWaitPrompt\(\{ stage \}\) : fanout\?\.continuation \?\? interruptedStageContinuation\(stage\)/);
   assert.match(source, /a rejected finish does not itself create a repair Work/);
 });
 
@@ -386,20 +381,6 @@ test("canonical recovery clears its private daemon slot before resuming an inter
   assert.ok(helper);
   assert.match(helper[0], /\["daemon", "stop", \.\.\.daemon\.daemonArgs\]/);
   assert.doesNotMatch(helper[0], /provider\.thread\?\.status/);
-});
-
-test("fan-out recovery is reserved for a still-running Work", () => {
-  const shouldRecover = (status) => status === "running";
-  assert.equal(shouldRecover("running"), true);
-  assert.equal(shouldRecover("failed"), false);
-  assert.equal(shouldRecover("completed"), false);
-});
-
-test("fan-out distinguishes an explicit Work failure from a missing lifecycle finish", () => {
-  assert.equal(fanoutWorkerTerminalState("completed"), "accepted");
-  assert.equal(fanoutWorkerTerminalState("failed"), "settled_failure");
-  assert.equal(fanoutWorkerTerminalState("cancelled"), "settled_failure");
-  assert.equal(fanoutWorkerTerminalState("running"), "incomplete");
 });
 
 test("settled fan-out fingerprint changes when a repair Work changes the graph", () => {

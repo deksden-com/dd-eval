@@ -16,5 +16,6 @@
     "zcode_acp_commit": "bf21f38dcbb85b8f98cd7ab3062aa050d1b5777c",
     "dd_harness_contract": "dd-zcode-harness@1"
   },
-  "notes": "Controlled ZCode Flash subject at the requested maximum reasoning level."
+  "notes": "Controlled ZCode Flash subject at the requested maximum reasoning level.",
+  "subagent_capacity": 15
 }

@@ -188,6 +188,22 @@ identity evidence. If the provider exposes only a root-inclusive aggregate,
 physical children are still recorded when observable, but usage aggregation
 must avoid double counting.
 
+### Native productive delegation
+
+Capacity qualification and productive Work must exercise the same native
+depth-one child mechanism of the selected harness profile. The Controller must
+not qualify native children and then execute PLAN-REVIEW, CODE or CODE-REVIEW
+Works as unrelated provider roots.
+
+The Stage coordinator invokes each child through its harness-native subagent
+tool. The child first executes the exact `dd-flow work start` returned for its
+ready Work; the lifecycle hook binds the observed native child and physical
+parent identities. `dd-flow` owns Work semantics and capacity-limited packing,
+but knows no provider tool names. The adapter owns topology, settlement,
+cancellation and usage scope. The complete cross-harness migration and
+acceptance matrix is defined by
+[specification 022](022-native-subagent-capacity-and-productive-fanout.md).
+
 ### Cancel
 
 The common surface distinguishes:

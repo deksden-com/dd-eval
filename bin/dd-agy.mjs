@@ -4,7 +4,7 @@ import { spawn } from "node:child_process";
 import { doctor } from "../lib/dd-agy.mjs";
 import { callDaemon, serveDaemon, startDaemon, stopDaemon } from "../lib/dd-agy-daemon.mjs";
 
-function parse(argv) { const positional = [], options = {}; for (let i = 0; i < argv.length; i += 1) { const token = argv[i]; if (!token.startsWith("--")) { positional.push(token); continue; } const key = token.slice(2); if (["json","cancel-tree","tree"].includes(key)) options[key] = true; else { if (argv[i + 1] === undefined) throw new Error(`--${key} requires a value`); options[key] = argv[++i]; } } return { positional, options }; }
+function parse(argv) { const positional = [], options = {}; for (let i = 0; i < argv.length; i += 1) { const token = argv[i]; if (!token.startsWith("--")) { positional.push(token); continue; } const key = token.slice(2); if (["json","cancel-tree","tree","no-flow"].includes(key)) options[key] = true; else { if (argv[i + 1] === undefined) throw new Error(`--${key} requires a value`); options[key] = argv[++i]; } } return { positional, options }; }
 const prompt = async options => options["prompt-file"] ? await readFile(options["prompt-file"], "utf8") : options.prompt;
 async function stdin() { let value = ""; process.stdin.setEncoding("utf8"); for await (const chunk of process.stdin) value += chunk; return value; }
 async function hook(options) {
@@ -20,7 +20,7 @@ async function hook(options) {
 }
 
 try {
-  const { positional, options } = parse(process.argv.slice(2)), [family, command] = positional; const common = { stateDir: options["state-dir"], cwd: options.cwd, bin: options["agy-bin"], provider: options.provider, model: options.model, reasoning: options.reasoning, mode: options.mode, projectRoot: options["project-root"], ddFlowBin: options["dd-flow-bin"], ddFlowHome: options["dd-flow-home"], timeoutMs: options.timeout ? Number(options.timeout) * 1000 : undefined }; let result;
+  const { positional, options } = parse(process.argv.slice(2)), [family, command] = positional; const common = { stateDir: options["state-dir"], cwd: options.cwd, bin: options["agy-bin"], provider: options.provider, model: options.model, reasoning: options.reasoning, mode: options.mode, projectRoot: options["project-root"], ddFlowBin: options["dd-flow-bin"], ddFlowHome: options["dd-flow-home"], noFlow: options["no-flow"] === true, timeoutMs: options.timeout ? Number(options.timeout) * 1000 : undefined }; let result;
   if (family === "doctor") result = await doctor(common);
   else if (family === "daemon" && command === "start") result = await startDaemon({ ...common, entryPath: process.argv[1] });
   else if (family === "daemon" && command === "serve") { await serveDaemon(common.stateDir); process.exit(0); }

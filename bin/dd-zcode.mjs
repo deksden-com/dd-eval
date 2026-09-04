@@ -7,7 +7,7 @@ function parse(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (!token.startsWith("--")) { positional.push(token); continue; }
-    const key = token.slice(2); if (["json", "cancel-tree", "probe-mode"].includes(key)) { options[key] = true; continue; }
+    const key = token.slice(2); if (["json", "cancel-tree"].includes(key)) { options[key] = true; continue; }
     const value = argv[++index]; if (value === undefined) throw new Error(`--${key} requires a value`); options[key] = value;
   }
   return { positional, options };
@@ -23,7 +23,6 @@ function common(options) {
     permission: options.permission ?? "deny", ddFlowBin: options["dd-flow-bin"],
     ddFlowHome: options["dd-flow-home"], projectRoot: options["project-root"],
     env: options["dd-flow-home"] ? { DD_FLOW_HOME: options["dd-flow-home"] } : undefined,
-    probeMode: options["probe-mode"] === true,
     timeoutMs: options.timeout ? Number(options.timeout) * 1000 : undefined,
     livenessTimeoutMs: options["liveness-timeout"] ? Number(options["liveness-timeout"]) * 1000 : undefined,
   };
@@ -39,7 +38,7 @@ try {
   else if (family === "daemon" && command === "status") result = await callDaemon(shared.stateDir, "daemon.status");
   else if (family === "daemon" && command === "stop") result = await stopDaemon({ stateDir: shared.stateDir, cancelTree: options["cancel-tree"], timeoutMs: shared.timeoutMs });
   else if (family === "session") {
-    const params = { ...shared, answers, ...(command === "create" || command === "prompt" ? { prompt: options["prompt-file"] ? await promptFromFile(options["prompt-file"]) : options.prompt } : {}), ...(command === "probe-batch" ? { probes: JSON.parse(await promptFromFile(options["probes-file"])) } : {}), ...(command === "fork" ? { target: JSON.parse(options["target-json"] ?? "null") } : {}) };
+    const params = { ...shared, answers, ...(command === "create" || command === "prompt" ? { prompt: options["prompt-file"] ? await promptFromFile(options["prompt-file"]) : options.prompt } : {}), ...(command === "fork" ? { target: JSON.parse(options["target-json"] ?? "null") } : {}) };
     // promptSessionWithBridge owns the meaningful deadline: it fails when its
     // ACP Session has been idle for the configured liveness window.  A fixed
     // RPC deadline would wrongly terminate a long but active Turn.

@@ -53,6 +53,10 @@ new runtime contract for a comparison E2E.
 The follow-up [semantic boundary, runtime roots, harness home and MERGE gate plan 020](specs/020-semantic-boundary-runtime-roots-harness-home-and-merge-gate.md)
 removes the obsolete runtime-command audit and defines the next implementation
 package without adding another runtime layer.
+The [native subagent capacity and productive fan-out specification 022](specs/022-native-subagent-capacity-and-productive-fanout.md)
+requires capacity qualification and PLAN-REVIEW/CODE/CODE-REVIEW Work to use
+the same harness-native depth-one child mechanism across Codex Desktop, ZCode,
+Grok, OpenCode and Antigravity.
 The downstream implementation contour is being defined in
 [vNext CODE beta 1](beta/vnext-code-beta.1/index.md).
 
