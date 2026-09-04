@@ -145,3 +145,93 @@
 или special-case для одного eval. Если причина остаётся агентной
 (предметное решение, полнота анализа, качество плана), она переносится в
 prompt/Judge criteria, а не кодируется эвристикой CLI.
+
+## 11. Дополнение по E2E `EVAL-20260904061203-2654c7ec`
+
+Ниже — отдельный, минимальный пакет после валидного ZCode E2E. Он не
+превращает CLI в анализатор исходного кода: предметная проверка остаётся
+обязанностью CODE/CODE-REVIEW/Judge, а CLI исправляет только собственную
+детерминированную проекцию доказательств.
+
+### 11.1. Инварианты мутаций — prompt и review, не эвристика CLI
+
+**Наблюдение.** В проверенном кандидате priority-only `UPDATE` опирался на
+отдельный `project()`/membership read и не сохранял membership/lifecycle
+предикат в самом decision boundary. Это не единичная ошибка конкретного
+endpoint: тот же класс возникает у любой write-операции, которой нужна
+авторизация или состояние родителя.
+
+**Исправление.**
+
+1. В `dd-memorybank` добавить в общие инструкции CODE и CODE-REVIEW правило:
+   если write разрешён только при access/lifecycle инварианте, этот инвариант
+   доказывается в том же SQL statement либо в явной транзакции с нужной
+   блокировкой. Предварительное чтение допускается только для диагностики
+   ошибки и никогда не является доказательством права на последующую запись.
+2. Распространить правило на все mutating paths, а не только task update:
+   create/update/delete child entity, rename/archive parent и role-gated
+   mutation. Агент обязан проверить, что accepted PLAN не обещает более
+   сильную атомарность, чем реально реализовано.
+3. Уточнить шаблон reviewer Work в `dd-flow-cli`: при аспектах authorization,
+   lifecycle, persistence или concurrency reviewer прослеживает predicate от
+   входа до statement/transaction и сообщает material finding при check-then-
+   write разрыве. Это instruction для смысловой проверки, не grep/AST rule.
+4. Обобщить соответствующее golden/Judge criterion: проверяется целостность
+   access/lifecycle decision boundary, а не частный случай archive priority.
+5. Добавить минимальные regression fixtures: одна priority-only/archive гонка
+   и один sibling write с membership/parent-state precheck. Они проверяют
+   ожидаемую reviewer/Judge находку, а не заставляют engine читать код.
+
+### 11.2. Evidence epoch — единая детерминированная проекция
+
+**Наблюдение.** Raw Work result правдиво сохраняет receipt упавшей проверки,
+которую repair исправлял. Но `verification.acceptance.evidence_refs` в
+производном stage report показывал этот исторический receipt как доказательство
+принятия вместе с финальным успешным receipt.
+
+**Первопричина.** `verificationProjection` переносит evidence Work без
+разделения между историей ремонта и evidence текущей acceptance epoch.
+
+**Исправление.**
+
+1. В `dd-flow-cli` добавить один маленький normalizer в
+   `verificationProjection`: raw refs остаются в Work result/repair history,
+   а acceptance projection заменяет ссылку на receipt прошлой epoch на
+   current final receipt того же declared check. Непроверочные refs не менять.
+2. Для прозрачности сохранить `reported_evidence_refs` только там, где нужна
+   аудитная история; поле `evidence_refs` в accepted stage report означает
+   исключительно действующее доказательство. Не переписывать immutable Work
+   result и не скрывать failed receipt из `checks/`.
+3. Добавить регрессии для browser repair и sibling check с несколькими
+   epochs: report ссылается на latest passed receipt, raw repair result — на
+   исходный failed receipt.
+4. Проверить все consumers `verification.acceptance` и stage renderers, чтобы
+   ни один не считал историческую ссылку текущим acceptance evidence.
+
+### 11.3. Копия UI — один исходник текста и проверка исключения
+
+**Наблюдение.** Узкое разрешённое исключение (priority editable в archived
+project) противоречило тексту «read-only».
+
+**Исправление.** В продуктовой реализации формировать lifecycle notice из
+того же явного state, который управляет disabled controls; тестировать
+архивный режим с разрешённым control и текстом исключения. Проверить все
+пользовательские lifecycle labels, а не только одну строку.
+
+### 11.4. Judge scope
+
+Final Judge должен опираться на три переданных immutable packet-а. Golden
+examples внутри assessment допустимы как данные packet-а; host-wide поиск
+старых eval/RUN запрещён prompt-ом и подлежит отдельной регрессии в driver
+journal. Это защищает воспроизводимость оценки без введения sandbox.
+
+### 11.5. Порядок исполнения и приёмка
+
+1. Обновить Memory Bank prompts/criteria и `dd-flow-cli` evidence projection.
+2. Проверить класс mutating path в disposable `dd-tasks` fixture и обновить
+fixture/expected Judge evidence, не записывая продуктовую реализацию из eval
+в main обходом обычного flow.
+3. Прогнать unit/contract tests для изменённых компонентов, затем выпустить
+согласованную pair `dd-memorybank` + `dd-flow-cli` по их runbooks.
+4. Обновить `dd-eval` pinned profile/checkpoint identity и подготовить чистый
+ZCode E2E; запускать без ручных правок RUN, receipt, SQLite или candidate.

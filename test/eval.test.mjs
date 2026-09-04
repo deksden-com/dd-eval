@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { canonicalBuild, capacityProbePrompt, capacityProbeResult, capacityProbeSucceeded, committedDefinitionIdentity, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
+import { canonicalBuild, capacityProbePrompt, capacityProbeResult, capacityProbeSucceeded, committedDefinitionIdentity, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, fanoutWorkerRecoveryPrompt, fanoutWorkerTerminalState, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, isRecoverableDriverError, loadCase, loadRunProfile, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult, workerUsageSource } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -46,6 +46,12 @@ test("Final Judge must cover the selected rubric exactly with evidenced applicab
   assert.throws(() => validateJudgeResult({ ...valid, outcome: [] }, assessment), /exact outcome rubric/);
   assert.throws(() => validateJudgeResult({ ...valid, outcome: [{ ...valid.outcome[0], evidence: [] }] }, assessment), /incomplete applicable criterion/);
   assert.throws(() => validateJudgeResult({ ...valid, scope: "unknown" }, assessment), /unknown assessment scope/);
+});
+
+test("Final Judge receives a bounded evidence scope", () => {
+  const prompt = finalJudgePrompt({ assessmentFile: "/eval/judge/assessment.json", candidateFile: "/eval/judge/candidate.json", evidenceFile: "/eval/judge/evidence.json" });
+  assert.match(prompt, /Use only those packets and artifact paths explicitly referenced by them/);
+  assert.match(prompt, /Do not search or read another eval, RUN, project, workspace, or host path/);
 });
 
 test("run profiles are explicit experiments rather than harness defaults", async () => {
