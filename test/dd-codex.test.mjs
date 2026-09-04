@@ -4,7 +4,7 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { mkdtemp } from "node:fs/promises";
-import { createSessionWithBridge, inspectSessionWithBridge, promptSessionWithBridge } from "../lib/dd-codex.mjs";
+import { createSessionWithBridge, inspectSessionWithBridge, parseCodexCliVersion, promptSessionWithBridge } from "../lib/dd-codex.mjs";
 import { callDaemon } from "../lib/dd-codex-daemon.mjs";
 
 test("Codex eval Sessions trust only the generated hook environment", async () => {
@@ -15,6 +15,11 @@ test("Codex eval Sessions trust only the generated hook environment", async () =
     cwd: "/tmp", model: "gpt-5.6-terra", approvalPolicy: "never", sandbox: "danger-full-access", ephemeral: false,
     config: { bypass_hook_trust: true, "features.plugins": false }
   } }]);
+});
+
+test("Codex doctor records the native CLI version in a stable runtime receipt", () => {
+  assert.equal(parseCodexCliVersion("codex-cli 0.153.2\n"), "0.153.2");
+  assert.throws(() => parseCodexCliVersion("Codex 0.153.2"), { code: "codex_version_unavailable" });
 });
 
 test("Codex Session creation does not misreport the default reasoning before its first Turn", async () => {
