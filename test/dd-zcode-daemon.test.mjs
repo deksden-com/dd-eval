@@ -94,6 +94,7 @@ test("daemon preserves a live background tree across CLI processes and cancels i
     assert.equal(cancelled.cancellations[0].cancelled, true);
     assert.equal(cancelled.after.running.length, 0);
     const longPrompt = run(["session", "prompt", "--state-dir", stateDir, "--session-id", "native-root", "--adapter-session-id", "adapter-root", ...profileArgs, "--prompt", "long"]);
+    void longPrompt.catch(() => {});
     await new Promise((resolve) => setTimeout(resolve, 150));
     await assert.rejects(
       () => run(["session", "inspect", "--state-dir", stateDir, "--session-id", "unregistered-child"]),
@@ -105,7 +106,7 @@ test("daemon preserves a live background tree across CLI processes and cancels i
     );
     const rootCancelled = await run(["session", "cancel", "--state-dir", stateDir, "--session-id", "native-root", "--adapter-session-id", "adapter-root"]);
     assert.equal(rootCancelled.after.running.length, 0);
-    assert.equal((await longPrompt).turn.stopReason, "cancelled");
+    await assert.rejects(longPrompt, (error) => JSON.parse(error.stderr).code === "zcode_turn_cancelled");
     const stopped = await run(["daemon", "stop", "--state-dir", stateDir]);
     assert.equal(stopped.clean, true);
     await new Promise((resolve) => setTimeout(resolve, 100));

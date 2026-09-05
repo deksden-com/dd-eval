@@ -203,7 +203,7 @@ test("dd-zcode controls create, prompt and fork through ACP with an append-only 
           if (params.prompt?.[0]?.text === "background") running = true;
           send({ jsonrpc: "2.0", method: "session/update", params: { sessionId: params.sessionId, update: { sessionUpdate: "tool_call", toolCallId: "call-" + ++toolCall, title: "Bash: true", rawInput: { command: "true" }, _meta: { claudeCode: { toolName: "Bash" } } } } });
           send({ jsonrpc: "2.0", method: "session/update", params: { sessionId: params.sessionId, update: { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "ok" } } } });
-          result = { stopReason: "end_turn" };
+          result = { stopReason: params.prompt?.[0]?.text === "incomplete" ? "max_turn_requests" : "end_turn" };
         }
         else if (method === "session/fork") result = { forkedSessionId: "native-fork" };
         send({ jsonrpc: "2.0", id, result });
@@ -219,6 +219,10 @@ test("dd-zcode controls create, prompt and fork through ACP with an append-only 
     assert.equal(prompted.turn.stopReason, "end_turn");
     assert.equal(notifications.length, 2);
     assert.deepEqual(prompted.evidence.tool_calls, { total: 1, failures: 0, by_tool: { Bash: 1 } });
+    await assert.rejects(
+      () => promptSession({ ...common, sessionId: "native-root", adapterSessionId: "adapter-1", prompt: "incomplete" }),
+      (error) => error.code === "zcode_turn_not_completed"
+    );
     await assert.rejects(
       () => promptSession({ ...common, sessionId: "native-root", adapterSessionId: "adapter-1", prompt: "background" }),
       /background ZCode subagents cannot outlive/

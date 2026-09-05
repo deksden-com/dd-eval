@@ -192,6 +192,14 @@ test("normal, resumed, judged, and cancelled runs share one terminal projection"
   assert.match(source, /event\.type === "dev\.dd\.eval\.execution\.cancelled"/);
 });
 
+test("a terminal incomplete execution keeps an immutable evidence candidate for Judge", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /schema_id: "dd-eval\/run-candidate@2"/);
+  assert.match(source, /outcome: results\.every\(\(result\) => result\.state === "candidate_ready"\) \? "complete" : "incomplete"/);
+  assert.match(source, /If candidate\.outcome is incomplete, assess only evidence-backed work that actually ran/);
+  assert.match(source, /if \(!finalized\.candidate\) return \{ root, status: "awaiting_provider"/);
+});
+
 test("a local engine override refreshes a same-version runtime snapshot", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /commandJson\(bin, \["engine", "install", "--force"\]/);
@@ -251,7 +259,7 @@ test("accepted boundary clears the terminal turn marker before a successor launc
 test("stage launcher makes registered HITL pause the only way to ask a material question", () => {
   const launcher = entryLauncher({ stage: "specify", entry: { snapshot: { run_id: null } }, projectRoot: "/project", runtimeRoot: "/runtime", contextFile: "/context.json", contextSha256: "a".repeat(64), profile: {} });
   assert.match(launcher, /DD_FLOW_BIN="\/runtime\/bin\/dd-flow" "\/runtime\/bin\/dd-flow" stage start/);
-  assert.match(launcher, /--response-file "\/stage-start-response\.json"/);
+  assert.match(launcher, /--response-file "\/context\.json\.stage-start-response\.json"/);
   assert.match(launcher, /do not rerun `stage start` if the tool display truncates its output/);
   assert.match(launcher, /run the exact `stage pause` lifecycle command/);
   assert.match(launcher, /Otherwise finish this Stage/);
@@ -260,9 +268,10 @@ test("stage launcher makes registered HITL pause the only way to ask a material 
 test("native child packets cannot create nested HITL and unqualified capacity is infrastructure", () => {
   const prompt = fanoutWorkerPrompt({ workId: "WRK-001", startCommand: "dd-flow work start WRK-001 --json" });
   assert.match(prompt, /cannot ask the user or pause the parent Stage/);
-  const packet = nativeChildFanoutPrompt({ stage: "code", capacity: 2, works: [{ work_id: "WRK-001", start_command: "dd-flow work start WRK-001 --json" }] });
+  const packet = nativeChildFanoutPrompt({ stage: "code", capacity: 2, works: [{ work_id: "WRK-001", start_command: "dd-flow work start WRK-001 --json", launch_policy: "fresh_agent_required" }] });
   assert.match(packet, /direct child of this current Session/);
   assert.match(packet, /not a reason to cancel its siblings/);
+  assert.match(packet, /empty, non-inherited context/);
   assert.equal(isInfrastructureFailure("subagent_capacity_unqualified"), true);
   assert.equal(isInfrastructureFailure("provider_rate_limited"), true);
   assert.equal(isInfrastructureFailure("provider_quota_exhausted"), true);

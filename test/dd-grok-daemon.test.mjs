@@ -42,7 +42,7 @@ test("Grok daemon keeps background subagents active until cancel", async () => {
       else if(method==="session/new") result={sessionId:"root"};
       else if(method==="session/load") result={};
       else if(method==="session/prompt") { running=params.prompt?.[0]?.text==="background"; result={stopReason:"end_turn"}; }
-      else if(method==="_x.ai/session/info") result={result:{sessionId:params.sessionId,data:{cwd:${JSON.stringify(root)}}}};
+      else if(method==="_x.ai/session/info") result={result:{sessionId:params.sessionId,data:{cwd:${JSON.stringify(root)},status:running?"running":"idle"}}};
       else if(method==="_x.ai/session/usage") result={result:{unavailable:true}};
       else if(method==="_x.ai/subagent/list_running") result={result:{subagents:running?[{sessionId:"child-bg"}]:[]}};
       else if(method==="_x.ai/subagent/cancel") { running=false; result={result:{cancelled:true}}; }

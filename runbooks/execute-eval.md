@@ -301,10 +301,11 @@ provider error/cancellation or a configured hard deadline. A terminal chat
 message is not a completed Stage: completion requires a matching `dd-flow`
 lifecycle receipt for the expected Stage.
 
-An explicit terminal provider error in one fan-out worker ends that wave. The
-runner records the provider code and details, cancels already-launched sibling
-workers, and preserves every journal; it does not retry, replace or manually
-complete the failed Work. Do not cancel healthy workers merely for silence.
+An explicit terminal provider error records that Work's provider code and
+evidence without completing it by inference. Independent already-launched
+siblings may settle; the coordinator then explicitly retries, repairs, or
+blocks the failed Work. The runner never cancels healthy siblings merely for
+silence and never fabricates `work finish` for a failed child.
 
 ## HITL and failure handling
 
@@ -366,8 +367,9 @@ If the provider itself ends a Subject turn while the expected Stage remains
 `running`, the candidate is `incomplete_subject_turn`. The runner preserves
 the journal and does not send a hand-written continuation or attempt to repair
 partially written artifacts. For a reference build, abandon that revision and
-create a fresh one; for a scored execution, retain the failed candidate for
-analysis. This is different from a controller restart: only the latter may be
+create a fresh one; for a scored execution, retain the incomplete evidence
+bundle and let the Final Judge assess only reached work (unreached criteria are
+not applicable). This is different from a controller restart: only the latter may be
 reconciled without a new Subject turn.
 
 If a controller stops between a provider terminal message and lifecycle

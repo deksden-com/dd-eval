@@ -42,7 +42,8 @@ state that may change during a resumed execution.
 Public session identity is `{ harness_id, session_id }`, where session_id is
 the native provider ID. Adapter-internal protocol receipts can retain their
 provider_session_id field; it is not a second public identity. Parent identity
-uses the same pair. Routine focused evals use a new empty Session for every harness;
+uses the same pair. Every targeted prompt, inspection and cancellation validates
+this pair against the observed native session before acting. Routine focused evals use a new empty Session for every harness;
 native fork capability is optional diagnostic functionality, never a required
 baseline or fallback.
 

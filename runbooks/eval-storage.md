@@ -43,7 +43,9 @@ database yet. A future `registry.sqlite` may be a rebuildable index only; it
 must never be required to discover, reproduce, retain, or delete an attempt.
 
 The runner journal records provider Session ID, Agent ID, role, optional parent
-identity, model/reasoning profile and observed usage. Provider Sessions are
+identity, model/reasoning profile and observed usage. Attempt-qualified paths
+in durable records are rewritten only for known path fields when an attempt is
+archived; raw receipts remain immutable. Provider Sessions are
 forensic evidence only; no routine launch depends on a stored Session ID.
 
 Archiving a completed provider task is allowed after its compact evidence is
