@@ -62,6 +62,9 @@ zcode-acp `43f654b` / 0.13.1. Все рабочие деревья были чи
   FIFO-тест прошёл отдельным повтором; ownership/wait-next исправлен: его
   30-секундная тестовая аренда истекала во время подготовки второго протокола.
   С арендой 300 секунд тест прошёл; эксплуатационный TTL не менялся.
+  Итог первоначального полного запуска: 270 passed / 2 failed, 18 файлов,
+  2663.99 с. Оба отказа проверены отдельными повторными запусками; новый
+  целиком зелёный полный запуск после всех изменений пока не заявляется.
 - Memory Bank lint: dd-memorybank и dd-tasks — 0 ошибок, 0 предупреждений.
 - ZCode: qualification на native 0.16.5 / bridge 0.13.1, commit 43f654b,
   завершена успешно; capacity — 15 started / 15 completed / 0 failed,
@@ -123,3 +126,18 @@ Judge Sol high; same_session; inline MERGE; до merge_completed.
    ссылается на beta.15; его нельзя запускать как проверку новых исправлений.
 6. Полный E2E — отдельный запуск после подготовки. Не маркировать этот аудит
    или capacity probes как результаты E2E.
+
+## Зафиксированное состояние на остановке верификации
+
+- dd-flow-cli: `0dd4da3`, изменения и Changeset отправлены в main; npm-релиз
+  намеренно не выпускался до закрытия оставшихся пунктов.
+- dd-memorybank: `ced59c1`, отправлен в main.
+- dd-tasks: `91b317a`, отправлен в main; только синхронизация flow pack.
+- dd-eval: `0bbeaaf`, исправления и аудит отправлены в main.
+- `runner eval preflight` действительно выполнен и отклонён с
+  `input_checkpoint_engine_mismatch`: установленный beta.16 против beta.15
+  в case checkpoint. Ни Subject, ни Judge Session не создавались.
+- Receipt: `$DD_EVAL_HOME/conformance/e2e-preflight/1788649942295-a7001de6/e2e-inline-merge-luna-xhigh/receipt.json`.
+- Выполнены strict-canon build, typecheck, lint; текущие 30 прицельных CLI
+  тестов и 164 dd-eval теста прошли. Нельзя называть это полной приёмкой 024
+  или полностью подготовленным E2E: приёмочные пробелы перечислены выше.
