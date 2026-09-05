@@ -20,6 +20,22 @@ test("ACP preserves provider detail carried in error.data.message", async () => 
   await bridge.flush();
 });
 
+test("ZCode records a long observation gap as unknown rather than extending a running tree", async () => {
+  const bridge = new AcpBridge({});
+  bridge.send = () => {};
+  const originalNow = Date.now;
+  let clock = 0;
+  Date.now = () => clock;
+  const turn = bridge.request("session/prompt", { sessionId: "native-root" }, null, {
+    idleSessionId: "native-root",
+    idleTimeoutMs: 20,
+  });
+  try {
+    clock = 61_000;
+    await assert.rejects(turn, (error) => error.code === "operation_observation_lost" && error.details.observation_gap_ms === 61_000);
+  } finally { Date.now = originalNow; }
+});
+
 test("daemon stop waits for socket closure after the acknowledgement", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "dd-zcode-stop-ack-"));
   const net = await import("node:net");

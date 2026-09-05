@@ -5,18 +5,21 @@ from an empty provider Session and a portable stage-entry fixture; it does not
 fork, warm up, or read a canonical provider Session.  All mutable files belong
 under an absolute `DD_EVAL_HOME`.
 
-Reliability work is tracked in [repair plan 019](../specs/019-durable-execution-and-e2e-repair-plan.md).
-It is delivered in tested increments, but the current AGY E2E remains
-unqualified until the plan's migration, fault tests and AGY adapter preflight
-are complete. Luna, Grok and ZCode are not part of this launch set.
+Reliability work is tracked in [repair plan 019](../specs/019-durable-execution-and-e2e-repair-plan.md)
+and [plan 023](../specs/023-suspend-aware-execution-and-repair-contracts.md).
+The shipped runtime rule is deliberately narrow: an observed host/event-loop
+gap is an **unknown provider outcome**, never proof of model inactivity;
+`running` alone is not progress. Preserve the late provider result and the
+original error, then reconcile that same operation. A confirmed
+`subject_liveness_timeout` is different: the runner requests a verified
+tree-wide cancellation and records the cleanup result.
 Do not work around a recovery error by editing runtime SQLite, accepted results
 or MERGE freeze files. In particular, an RPC/daemon/Turn timeout normally
 means that the client did not observe an outcome; reconcile the existing
-operation before any new prompt, cancellation or retry. The exception is a
-recorded `subject_liveness_timeout`: AGY observed no native provider or
-child-hook activity for ten minutes. The runner closes that tree and preserves
-the final activity timestamp as blocker evidence; its own progress heartbeat
-never extends this window.
+operation before any new prompt, cancellation or retry. Only a native adapter
+may emit `subject_liveness_timeout`, after its own activity evidence has been
+absent for its configured window. Runner heartbeats and a `running` status
+never extend that window.
 
 ## Before launch
 
