@@ -16,6 +16,12 @@ report.
 The site is an editorial projection. `dd-eval` does not generate site source,
 charts or a separate visual-data format.
 
+Timing must retain wall duration, observation gaps and independently confirmed
+OS sleep intervals as separate facts. `observation_gap` does not prove sleep.
+If confirmed sleep data is unavailable, show “нет данных”, not zero. Never
+label wall duration minus gaps as model execution time. Keep this caveat next
+to timing charts and in the detailed report; token usage is a separate measure.
+
 ## Required page order
 
 1. title, scope and version identity;

@@ -5,7 +5,20 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { confirmDaemonProcess, confirmDaemonStopped, finishDaemonProcess, registerDaemonProcess, stopProcessGroup } from "../lib/managed-daemon.mjs";
+import { assertDaemonOwnership, heartbeatDaemonProcess, confirmDaemonProcess, confirmDaemonStopped, finishDaemonProcess, registerDaemonProcess, stopProcessGroup } from "../lib/managed-daemon.mjs";
+
+test("a false heartbeat blocks productive dispatch even if its caller suppresses the error", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-lease-test-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const flow = path.join(root, "flow.mjs");
+  await writeFile(flow, `#!/usr/bin/env node\nprocess.stdout.write(JSON.stringify({ok: process.argv[4] === "finish"}));\n`, { mode: 0o755 });
+  const config = { cwd: root, ddFlowBin: flow, ddFlowHome: root, resourceHome: root };
+  const record = { id: "PROC-false-heartbeat", lease_token: "old" };
+  await assert.rejects(heartbeatDaemonProcess(config, record), { code: "process_lease_lost" });
+  assert.throws(assertDaemonOwnership, { code: "process_lease_lost" });
+  await finishDaemonProcess(config, record);
+  assert.doesNotThrow(assertDaemonOwnership);
+});
 
 test("managed daemon lifecycle registers, confirms, terminates its group, and finalizes", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-managed-daemon-"));
@@ -62,4 +75,11 @@ test("daemon stop resolves only after its socket is gone", async () => {
     server.close();
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("owned cleanup escalates when its live provider ignores SIGTERM", async () => {
+  const child = spawn(process.execPath, ["-e", 'process.on("SIGTERM", () => {}); process.stdout.write("ready"); setInterval(() => {}, 1000)'], { detached: true, stdio: ["ignore", "pipe", "ignore"] });
+  await new Promise(resolve => child.stdout.once("data", resolve));
+  await stopProcessGroup(child, 50);
+  assert.throws(() => process.kill(-child.pid, 0), { code: "ESRCH" });
 });

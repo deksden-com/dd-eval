@@ -112,7 +112,7 @@ else process.stdout.write('{"ok":true}\\n');
     await assert.rejects(callDaemon(state, "daemon.status", {}, 250), error => error.code === "daemon_not_running");
     const calls = await readFile(registry, "utf8");
     assert.match(calls, /agy-provider/);
-    assert.match(calls, /runtime process finish --id PROC-agy-provider .*--reason daemon_start_failed/);
+    assert.match(calls, /runtime process stop --id PROC-agy-provider .*--lease-token lease-agy-provider/);
   } finally {
     if (previousResourceHome === undefined) delete process.env.DD_FLOW_RESOURCE_HOME; else process.env.DD_FLOW_RESOURCE_HOME = previousResourceHome;
     await rm(root, { recursive: true, force: true });

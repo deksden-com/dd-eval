@@ -1,0 +1,19 @@
+{
+  "id": "cp-068-task-priority-project-flow-pack-4-0-4-engine-0-9-0-beta-15",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "44939e95060a65e80571acdcbf42609b80621e63"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "88542811c1b5fd9744e0391ce032f8b2a80428dc",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.4",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "e11a611fe87370d6203792e5c6a54d7205235a26",
+      "version": "0.9.0-beta.15"
+    }
+  },
+  "state": "ready_for_e2e"
+}

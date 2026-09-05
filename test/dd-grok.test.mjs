@@ -6,6 +6,18 @@ import test from "node:test";
 import { assertProfile, createSession, createSessionWithBridge, forkSession, promptSession } from "../lib/dd-grok.mjs";
 import { Runtime } from "../lib/dd-grok-daemon.mjs";
 
+test("Grok retains a completed native child after list_running becomes empty", () => {
+  const runtime = new Runtime({}, { sessions: [] }, {}, {});
+  const send = update => runtime.observeSubagentEvent({ params: { sessionId: "root", update } });
+  send({ sessionUpdate: "agent_message_chunk", rawOutput: { type: "Text", text: "subagent_id: invented" } });
+  send({ sessionUpdate: "tool_call", toolCallId: "spawn", title: "spawn_subagent" });
+  send({ sessionUpdate: "tool_call_update", toolCallId: "spawn", status: "completed", rawOutput: { type: "Text", text: "Subagent started in background.\nsubagent_id: native-child\ntype: general-purpose" } });
+  send({ sessionUpdate: "tool_call", toolCallId: "wait", title: "get_command_or_subagent_output" });
+  send({ sessionUpdate: "tool_call_update", toolCallId: "wait", status: "completed", rawOutput: { type: "TaskOutput", Result: { task_id: "native-child", status: "completed" } } });
+  runtime.track({ provider_session_id: "root", evidence: { subagents: { subagents: [] } } });
+  assert.deepEqual(runtime.topology("root"), [{ provider_session_id: "native-child", parent_provider_session_id: "root", status: "completed", source: "x.ai/tool/TaskOutput" }]);
+});
+
 test("Grok daemon inspection never loads another Session into an active bridge", async () => {
   const calls = [];
   const bridge = { request: async method => { calls.push(method); if (method.includes("list_running")) return { subagents: [] }; return {}; }, flush: async () => {}, toolSummary: () => ({ total: 0 }) };

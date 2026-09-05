@@ -9,6 +9,8 @@ import { recordOperation, completeOperation, readEvents, reduceEvents } from "..
 import { commandJson } from "../lib/process-json.mjs";
 import { waitForSettlement } from "../lib/session-settlement.mjs";
 import { durableDaemonDispatch, inspectDaemonOperation } from "../lib/daemon-operations.mjs";
+import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
+import { operationContext } from "../lib/operation-context.mjs";
 
 async function temporary(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-recovery-"));
@@ -49,6 +51,57 @@ test("disconnecting the observer does not discard a daemon's late result", async
   await assert.rejects(durableDaemonDispatch(root, request, () => assert.fail("second request")), { code: "operation_observation_lost" });
   finish({ text: "late" }); await pending;
   assert.deepEqual((await inspectDaemonOperation(root, request.id)).result, { text: "late" });
+});
+
+test("concurrent duplicate requests never read partial JSON or dispatch twice", async t => {
+  const root = await temporary(t); let calls = 0;
+  const request = { id: "race", operation: "session.prompt", params: { sessionId: "native" } };
+  const results = await Promise.allSettled(Array.from({ length: 30 }, () => durableDaemonDispatch(root, request, async () => { calls++; return { text: "done" }; })));
+  assert.equal(calls, 1);
+  for (const result of results) if (result.status === "rejected") assert.equal(result.reason.code, "operation_observation_lost");
+  assert.equal((await inspectDaemonOperation(root, "race")).session_id, "native");
+});
+
+test("recovery consumes a late reply and unblocks the next request without replay", async t => {
+  const root = await temporary(t), request = { id: "late", operation: "session.prompt", params: {} };
+  await mkdir(path.join(root, "client-operations"));
+  await writeFile(path.join(root, "client-operations", "late.json"), JSON.stringify({ operation_id: "late", state: "requested" }));
+  let finish, entered;
+  const started = new Promise(resolve => { entered = resolve; });
+  const pending = durableDaemonDispatch(root, request, () => { entered(); return new Promise(resolve => { finish = resolve; }); });
+  await started;
+  await assert.rejects(reconcileDriverReplies(root), { code: "operation_observation_lost" });
+  const recovered = recoverDriverReply(root, "late", { timeoutMs: 1000, pollMs: 5 });
+  finish({ text: "late" }); await pending;
+  assert.deepEqual(await recovered, { text: "late" });
+  await reconcileDriverReplies(root);
+  await reconcileDriverReplies(root);
+});
+
+test("unknown dispatch remains blocked after a runner crash", async t => {
+  const root = await temporary(t);
+  await mkdir(path.join(root, "client-operations"));
+  await writeFile(path.join(root, "client-operations", "unknown.json"), JSON.stringify({ operation_id: "unknown" }));
+  await assert.rejects(reconcileDriverReplies(root), { code: "operation_observation_lost" });
+  await assert.rejects(recoverDriverReply(root, "unknown", { timeoutMs: 5, pollMs: 1 }), { code: "operation_observation_lost" });
+});
+
+test("a live original daemon cannot be replaced merely because its socket failed", async t => {
+  const root = await temporary(t);
+  await writeFile(path.join(root, "daemon.json"), JSON.stringify({ pid: process.pid }));
+  await assert.rejects(assertDaemonReplaceable(root), { code: "operation_observation_lost" });
+  await writeFile(path.join(root, "daemon.json"), JSON.stringify({ pid: 2147483647 }));
+  await assertDaemonReplaceable(root);
+});
+
+test("parallel runner operations preserve their own parent ids", async t => {
+  const eventsFile = path.join(await temporary(t), "events.jsonl");
+  await Promise.all(["a", "b"].map(operationId => recordOperation({ eventsFile, source: "test", runId: "run", executionId: operationId, operationId, operation: "test", action: async () => {
+    await new Promise(resolve => setTimeout(resolve, 10));
+    assert.equal(operationContext.getStore().operationId, operationId);
+    return operationId;
+  } })));
+  assert.equal(operationContext.getStore(), undefined);
 });
 
 test("host-aged locks never evict a live owner, and action errors are not acquisition errors", async t => {

@@ -39,10 +39,10 @@ as AGY. The shared
 `DD_FLOW_RESOURCE_HOME` is therefore part of daemon configuration, not ambient
 state that may change during a resumed execution.
 
-Session evidence always records `harness`, `runtime_family`,
-`provider_session_id`, optional `adapter_session_id`, optional parent identity
-and the observed profile. Provider IDs are interpreted only inside their
-harness. Routine focused evals use a new empty Session for every harness;
+Public session identity is `{ harness_id, session_id }`, where session_id is
+the native provider ID. Adapter-internal protocol receipts can retain their
+provider_session_id field; it is not a second public identity. Parent identity
+uses the same pair. Routine focused evals use a new empty Session for every harness;
 native fork capability is optional diagnostic functionality, never a required
 baseline or fallback.
 
@@ -58,12 +58,20 @@ parameter hash, then `result.json` before replying over the socket. Identical
 ids never send a second prompt; conflicting parameters fail explicitly.
 `daemon operation --state-dir <absolute-dir> --operation-id <id> --json` reads
 the existing receipt. An observation gap is not a terminal provider failure.
-The runtime pair for owner-PID registration requires CLI beta.14 or newer;
+The runtime pair for owner-PID registration and owned process stop requires CLI beta.15 or newer;
 do not mix the new adapters with an older captured engine.
 
-The complete recovery plan is not yet accepted; see the
-[verification audit](../specs/023-verification-audit-2026-09-05.md) before claiming
-that source changes or local fake-provider tests establish live readiness.
+Client requests carry their parent runner operation id in the client ledger.
+Late daemon replies are imported before another productive request. A missing
+terminal reply remains a blocker, including after a controller restart.
+Lease heartbeats run periodically, not only on state changes. A rejected lease
+blocks new productive calls; control inspection and cleanup remain available.
+
+See the [verification audit](../specs/023-verification-audit-2026-09-05.md) for
+the exact source checks and live smoke receipts. A capacity receipt proves
+native child creation, not stage quality; `status: unknown` must not be counted
+as a successful child completion. Completed Grok children are retained from
+native tool results, because list_running deliberately excludes them.
 
 ## Codex Desktop
 
