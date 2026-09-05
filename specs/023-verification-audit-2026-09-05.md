@@ -95,3 +95,21 @@
 Итог: закрыт дополнительный пакет конкретных регрессий; весь план 023 пока
 остаётся частично исполненным. Релиз исправлений не является заявлением
 полной готовности нового E2E.
+
+## Подтверждение выпуска
+
+- CLI `0.9.0-beta.14`: `29b30887789f9ee686d5903a4ddcea40a24dc8ce`.
+  npm `beta`, peeled Git tag `v0.9.0-beta.14` и `package/dist/build-info.json`
+  из опубликованного tarball совпали.
+- В том же npm-архиве записан канон `4.0.4`, коммит
+  `c8cae271f844fd3b3c7492f164e13a60eaba4839` — значения не null.
+- Глобальный router обновлён, новая engine snapshot установлена штатным
+  `engine install --force`. `engine resolve` для dd-tasks выбирает beta.14,
+  Memory Bank 4.0.4, без diagnostics.
+- dd-tasks flow pack/toolchain: `8854281`.
+- Опубликованный CLI прошёл отдельный smoke `runtime process register` с
+  `--owner-pid` и `runtime process finish` в новом временном DD_FLOW_HOME;
+  владелец сохранён, запись штатно закрыта. Это не тест живой модели.
+- Затронутые CLI-наборы повторены: 31/31 и 26/26; release-guard 1/1.
+  Полный основной CLI-набор — 269/269, dd-eval — 141/141.
+- Все четыре `main` отправлены в origin; тег CLI опубликован. E2E не запускался.
