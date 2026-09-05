@@ -36,6 +36,7 @@ try {
   else if (family === "daemon" && command === "start") result = await startDaemon({ ...shared, entryPath: process.argv[1] });
   else if (family === "daemon" && command === "serve") { await serveDaemon(shared.stateDir); process.exit(0); }
   else if (family === "daemon" && command === "status") result = await callDaemon(shared.stateDir, "daemon.status");
+  else if (family === "daemon" && command === "operation") result = await callDaemon(shared.stateDir, "operation.inspect", { operationId: options["operation-id"] });
   else if (family === "daemon" && command === "stop") result = await stopDaemon({ stateDir: shared.stateDir, cancelTree: options["cancel-tree"], timeoutMs: shared.timeoutMs });
   else if (family === "session") {
     const params = { ...shared, answers, ...(command === "create" || command === "prompt" ? { prompt: options["prompt-file"] ? await promptFromFile(options["prompt-file"]) : options.prompt } : {}), ...(command === "fork" ? { target: JSON.parse(options["target-json"] ?? "null") } : {}) };

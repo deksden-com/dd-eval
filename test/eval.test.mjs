@@ -395,7 +395,8 @@ test("native-child recovery waits instead of restarting a Work Session", async (
 
 test("observer loss remains recoverable instead of producing a failed execution", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /state: "awaiting_provider", code: error\.code/);
+  assert.match(source, /if \(isObservationLoss\(error\)\)/);
+  assert.match(source, /state: "awaiting_provider", \.\.\.errorRecord\(error\)/);
   assert.match(source, /dev\.dd\.eval\.execution\.awaiting_provider/);
 });
 

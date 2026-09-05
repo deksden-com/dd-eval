@@ -4,6 +4,18 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { assertProfile, createSession, createSessionWithBridge, forkSession, promptSession } from "../lib/dd-grok.mjs";
+import { Runtime } from "../lib/dd-grok-daemon.mjs";
+
+test("Grok daemon inspection never loads another Session into an active bridge", async () => {
+  const calls = [];
+  const bridge = { request: async method => { calls.push(method); if (method.includes("list_running")) return { subagents: [] }; return {}; }, flush: async () => {}, toolSummary: () => ({ total: 0 }) };
+  const runtime = new Runtime({}, { config: { cwd: "/tmp", journal: "/tmp/test-journal", model: "grok-4.6", reasoning: "high" }, sessions: [{ provider_session_id: "root" }] }, bridge, {});
+  runtime.active = "session.prompt"; runtime.loadedSessionId = "active-other-root";
+  runtime.persist = async () => {};
+  await runtime.dispatch("session.inspect", { sessionId: "root" });
+  assert.ok(!calls.includes("session/load"));
+  assert.equal(runtime.loadedSessionId, "active-other-root");
+});
 
 test("Grok Build profile drift fails closed", () => {
   const requested = { provider: "xai", model: "grok-4.6", reasoning: "high", mode: "bypassPermissions" };

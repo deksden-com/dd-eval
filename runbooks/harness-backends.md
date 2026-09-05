@@ -51,6 +51,20 @@ Public lifecycle receipts use the same native identity everywhere:
 that form. SQLite storage keys are implementation details and must never be
 returned to a harness or an agent.
 
+## Durable daemon requests
+
+Productive daemon calls record `requested.json` with an operation id and a
+parameter hash, then `result.json` before replying over the socket. Identical
+ids never send a second prompt; conflicting parameters fail explicitly.
+`daemon operation --state-dir <absolute-dir> --operation-id <id> --json` reads
+the existing receipt. An observation gap is not a terminal provider failure.
+The runtime pair for owner-PID registration requires CLI beta.14 or newer;
+do not mix the new adapters with an older captured engine.
+
+The complete recovery plan is not yet accepted; see the
+[verification audit](../specs/023-verification-audit-2026-09-05.md) before claiming
+that source changes or local fake-provider tests establish live readiness.
+
 ## Codex Desktop
 
 `dd-codex` owns an isolated app-server daemon for one eval execution.  Its

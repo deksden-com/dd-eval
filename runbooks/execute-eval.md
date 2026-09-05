@@ -23,6 +23,19 @@ never extend that window.
 
 ## Before launch
 
+После обновления runtime сверяйте не только версии, но и фактическую готовность
+пакета исправлений. Для плана 023 см. [аудит](../specs/023-verification-audit-2026-09-05.md):
+публикация beta.14 сама по себе не закрывает оставшиеся acceptance gates.
+
+При потере ответа сохраняйте `details.operation_id`. Для адаптера с daemon
+получить существующую операцию можно командой
+`dd-<harness> daemon operation --state-dir <absolute-state-dir> --operation-id <id> --json`.
+Запросы Controller также записаны в `<state-dir>/client-operations/`, ответы —
+в `<state-dir>/operations/`. Команда только читает результат: она не является
+разрешением повторить prompt или вручную менять RUN. Пока автоматическая ветка
+recovery не умеет принять этот receipt, фиксируйте блокер и сохраняйте исходный
+запрос, а не перезапускайте Work.
+
 1. Work from a clean committed `dd-eval` definition tree.
 2. Select a committed `run-profile.json`. It names one case, Subject profile,
    selected focused stages/E2E, Judge policy and resource limits.

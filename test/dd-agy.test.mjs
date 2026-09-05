@@ -26,7 +26,7 @@ test("AGY prompt timeout reports the final native activity instead of runner pro
   });
   try {
     await new Promise((resolve, reject) => { server.once("error", reject); server.listen(socket, resolve); });
-    await assert.rejects(callDaemon(state, "session.prompt", {}, 25), (error) => error.code === "daemon_timeout" && error.details.last_activity_at === "2000-01-01T00:00:00.000Z");
+    await assert.rejects(callDaemon(state, "session.prompt", {}, 25), (error) => error.code === "subject_liveness_timeout" && error.details.last_activity_at === "2000-01-01T00:00:00.000Z");
   } finally {
     await new Promise((resolve) => server.close(resolve));
     await rm(root, { recursive: true, force: true });
@@ -42,7 +42,7 @@ const a=process.argv.slice(2);if(a.includes('--version')){console.log('1');proce
 `, { mode: 0o755 });
   try {
     await startDaemon({ stateDir: state, cwd: project, bin: fake, projectRoot: project, ddFlowBin: fake, ddFlowHome: flowHome, entryPath: path.resolve("bin/dd-agy.mjs") });
-    await assert.rejects(callDaemon(state, "session.prompt", { sessionId: "s", prompt: "wait" }, 50), error => error.code === "daemon_timeout");
+    await assert.rejects(callDaemon(state, "session.prompt", { sessionId: "s", prompt: "wait" }, 50), error => error.code === "subject_liveness_timeout");
   } finally { try { await stopDaemon({ stateDir: state, cancelTree: true, timeoutMs: 1000 }); } catch {} await rm(root, { recursive: true, force: true }); }
 });
 

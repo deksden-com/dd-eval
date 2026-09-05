@@ -20,7 +20,7 @@ test("ACP preserves provider detail carried in error.data.message", async () => 
   await bridge.flush();
 });
 
-test("ZCode records a long observation gap as unknown rather than extending a running tree", async () => {
+test("ZCode retains the original native request across sleep and accepts its late result", async () => {
   const bridge = new AcpBridge({});
   bridge.send = () => {};
   const originalNow = Date.now;
@@ -32,7 +32,11 @@ test("ZCode records a long observation gap as unknown rather than extending a ru
   });
   try {
     clock = 61_000;
-    await assert.rejects(turn, (error) => error.code === "operation_observation_lost" && error.details.observation_gap_ms === 61_000);
+    await new Promise(resolve => setTimeout(resolve, 15));
+    assert.equal(bridge.pending.size, 1);
+    assert.equal(bridge.sessionActivity.get("native-root"), 0);
+    bridge.receive(JSON.stringify({ id: 1, result: { stopReason: "end_turn" } }));
+    assert.deepEqual(await turn, { stopReason: "end_turn" });
   } finally { Date.now = originalNow; }
 });
 

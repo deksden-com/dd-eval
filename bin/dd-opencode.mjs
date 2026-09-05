@@ -9,6 +9,7 @@ try {
   if (family === "daemon" && command === "start") result = await startDaemon({ ...common, entryPath: process.argv[1] });
   else if (family === "daemon" && command === "serve") { await serveDaemon(common.stateDir); process.exit(0); }
   else if (family === "daemon" && command === "status") result = await callDaemon(common.stateDir, "daemon.status");
+  else if (family === "daemon" && command === "operation") result = await callDaemon(common.stateDir, "operation.inspect", { operationId: options["operation-id"] });
   else if (family === "doctor") result = await callDaemon(common.stateDir, "daemon.doctor");
   else if (family === "daemon" && command === "stop") result = await stopDaemon({ stateDir: common.stateDir, cancelTree: options["cancel-tree"], timeoutMs: common.timeoutMs });
   else if (family === "session") { const operation = ["status","resume"].includes(command) ? "inspect" : command; const params = { sessionId: options["session-id"], title: options.title, messageId: options["message-id"], archiveFile: options["archive-file"], ...(command === "prompt" ? { prompt: await prompt(options) } : {}) }; result = await callDaemon(common.stateDir, `session.${operation}`, params, common.timeoutMs ?? 1_800_000); }

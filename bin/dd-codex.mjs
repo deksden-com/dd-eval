@@ -10,6 +10,7 @@ try {
   else if (family === "daemon" && command === "start") result = await startDaemon({ ...shared, entryPath: process.argv[1] });
   else if (family === "daemon" && command === "serve") { await serveDaemon(shared.stateDir); process.exit(0); }
   else if (family === "daemon" && command === "status") result = await callDaemon(shared.stateDir, "daemon.status");
+  else if (family === "daemon" && command === "operation") result = await callDaemon(shared.stateDir, "operation.inspect", { operationId: options["operation-id"] });
   else if (family === "daemon" && command === "stop") result = await stopDaemon({ ...shared, cancelTree: options["cancel-tree"] });
   else if (family === "session" && command === "create") result = shared.stateDir ? await callDaemon(shared.stateDir, "session.create", shared) : await createSession(shared);
   else if (family === "session" && command === "prompt") result = shared.stateDir ? await callDaemon(shared.stateDir, "session.prompt", { ...shared, prompt: options["prompt-file"] ? await promptFromFile(options["prompt-file"]) : options.prompt }, shared.timeoutMs ?? 1_800_000) : await promptSession({ ...shared, prompt: options["prompt-file"] ? await promptFromFile(options["prompt-file"]) : options.prompt });

@@ -7,6 +7,8 @@ E2E. Выпущенный минимум: безопасная классифи�
 `code-work-result@3`. Остальные пункты ниже остаются планом до их отдельных
 проверок и выпуска.
 Основание: EVAL-20260904235911-14aebacf, ZCode / GLM-5.3-Flash.
+Подробная повторная сверка реализации и незакрытый остаток:
+[аудит 2026-09-05](023-verification-audit-2026-09-05.md).
 Продолжает [019](019-durable-execution-and-e2e-repair-plan.md),
 [021](021-runtime-boundaries-and-merge-gate-implementation-plan.md) и
 [022](022-native-subagent-capacity-and-productive-fanout.md).
