@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualificationRecover, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalRun, fixturesValidate, harnessCapacityCheck, harnessCompatibilityQualify, runnerCancel, runnerReconcile, runnerResume, runnerStatus } from "../lib/runner.mjs";
+import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualificationRecover, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalPreflight, evalRun, fixturesValidate, harnessCapacityCheck, harnessCompatibilityQualify, runnerCancel, runnerReconcile, runnerResume, runnerStatus } from "../lib/runner.mjs";
 import { gcApply, gcPlan, storageList, storageStatus } from "../lib/storage.mjs";
 
 function usage() {
@@ -7,6 +7,7 @@ function usage() {
 
 Usage:
   dd-eval runner fixtures validate --case <case-id> [--revision REV-NNN]
+  dd-eval runner eval preflight --profile <run-profile.json>
   dd-eval harness capacity check --profile <profile-id> --max <n> [--project-root <path>] [--write-profile true|false]
   dd-eval runner canonical build --profile <run-profile.json> --project-root <checkpoint-checkout> --flow-root <flow-pack-checkout>
   dd-eval runner canonical status --build <path>
@@ -47,6 +48,7 @@ try {
   if (!family || family === "help" || family === "--help") { process.stdout.write(usage()); process.exit(0); }
   let result;
   if (family === "runner" && command === "fixtures" && action === "validate") result = await fixturesValidate({ caseId: required(options, "case"), ...(options.revision ? { revision: options.revision } : {}) });
+  else if (family === "runner" && command === "eval" && action === "preflight") result = await evalPreflight({ profileFile: required(options, "profile") });
   else if (family === "harness" && command === "capacity" && action === "check") result = await harnessCapacityCheck({ profileId: required(options, "profile"), maximum: required(options, "max"), ...(options["project-root"] ? { projectRoot: options["project-root"] } : {}), ...(options["write-profile"] ? { writeProfile: options["write-profile"] === "true" } : {}) });
   else if (family === "harness" && command === "compatibility" && action === "qualify") result = await harnessCompatibilityQualify({ profileId: required(options, "profile"), ...(options["project-root"] ? { projectRoot: options["project-root"] } : {}) });
   else if (family === "runner" && command === "canonical" && action === "build") result = await canonicalBuild({ profileFile: required(options, "profile"), projectRoot: required(options, "project-root"), flowRoot: required(options, "flow-root") });

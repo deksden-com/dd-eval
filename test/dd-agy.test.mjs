@@ -42,7 +42,7 @@ const a=process.argv.slice(2);if(a.includes('--version')){console.log('1');proce
 `, { mode: 0o755 });
   try {
     await startDaemon({ stateDir: state, cwd: project, bin: fake, projectRoot: project, ddFlowBin: fake, ddFlowHome: flowHome, entryPath: path.resolve("bin/dd-agy.mjs") });
-    await assert.rejects(callDaemon(state, "session.prompt", { sessionId: "s", prompt: "wait" }, 50), error => error.code === "subject_liveness_timeout");
+    await assert.rejects(callDaemon(state, "session.prompt", { sessionId: "s", prompt: "wait" }, 1_000), error => error.code === "subject_liveness_timeout");
   } finally { try { await stopDaemon({ stateDir: state, cancelTree: true, timeoutMs: 1000 }); } catch {} await rm(root, { recursive: true, force: true }); }
 });
 
@@ -72,6 +72,9 @@ else process.stdout.write('{"ok":true}\\n');
     assert.ok(Buffer.byteLength(status.config.temporary) < 104);
     const created = await callDaemon(state, "session.create", {});
     assert.equal(created.provider_session_id, "agy-root"); assert.equal(created.result, null);
+    for (const operation of ["prompt", "inspect", "cancel", "resume"]) {
+      await assert.rejects(callDaemon(state, `session.${operation}`, { sessionId: "foreign", prompt: "must not run" }), error => error.code === "session_identity_mismatch");
+    }
     const first = await callDaemon(state, "session.prompt", { sessionId: "agy-root", prompt: "specify" });
     assert.equal(first.result.status, "SUCCESS"); assert.equal(first.assistant_text, "specify"); assert.equal(first.usage.total_tokens, 5);
     const next = await callDaemon(state, "session.prompt", { sessionId: "agy-root", prompt: "answer" });

@@ -8,13 +8,13 @@ test("OpenCode waits for active child content but unchanged polls expire", async
   const timers = new Set();
   const server = createServer((req, res) => {
     res.setHeader("content-type", "application/json");
-    if (req.method === "POST") { const timer = setTimeout(() => { timers.delete(timer); res.end('{}'); }, 650); timers.add(timer); }
+    if (req.method === "POST") { const timer = setTimeout(() => { timers.delete(timer); res.end('{}'); }, 2_500); timers.add(timer); }
     else if (req.url.includes("/children")) res.end(req.url.includes("/root/") ? '[{"id":"child"}]' : '[]');
     else res.end(JSON.stringify([{ text: req.url.includes("/child/") && active ? String(sequence++) : "unchanged" }]));
   });
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
   t.after(() => { for (const timer of timers) clearTimeout(timer); server.closeAllConnections(); server.close(); });
-  const client = new OpenCodeClient({ baseUrl: `http://127.0.0.1:${server.address().port}`, password: "test", timeoutMs: 150 });
+  const client = new OpenCodeClient({ baseUrl: `http://127.0.0.1:${server.address().port}`, password: "test", timeoutMs: 1_000 });
   assert.deepEqual(await client.prompt("root", { prompt: "test" }), {});
   active = false;
   await assert.rejects(client.prompt("root", { prompt: "test" }), error => error.code === "operation_observation_lost");

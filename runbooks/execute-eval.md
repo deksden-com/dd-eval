@@ -23,6 +23,17 @@ never extend that window.
 
 ## Before launch
 
+Before a new E2E campaign, run `dd-eval runner eval preflight --profile
+<absolute-run-profile.json>`. It uses the normal E2E project/flow/runtime
+provisioning and writes its receipt and initial launcher under
+`DD_EVAL_HOME/conformance/e2e-preflight/`. It creates no provider Session and
+does not execute the Stage. A successful receipt proves the pinned pair,
+initial context and installed Subject/Judge profiles can be prepared; it does
+not replace a live harness compatibility smoke or the actual E2E result.
+E2E uses the input checkpoint, never a canonical stage-entry pack. Updating the
+engine requires a new checkpoint pointing to its committed project flow pack;
+changing a global CLI alone does not update the pinned experiment.
+
 После обновления runtime сверяйте не только версии, но и фактическую готовность
 пакета исправлений. Для плана 023 см. [аудит](../specs/023-verification-audit-2026-09-05.md):
 публикация beta.14 сама по себе не закрывает оставшиеся acceptance gates.

@@ -34,9 +34,10 @@ isolated `DD_FLOW_HOME` roots.
    smallest affected eval.
 4. Commit the flow and engine changes, give a changed engine a new prerelease
    version, install it, and commit the matching run-profile/checkpoint input.
-5. For a changed stage contract, first run a disposable diagnostic over the
-   affected boundary. When that is sound, build a fresh canonical entry-pack
-   revision and run the declared focused or E2E comparison.
+5. Verify the affected contract and prepare the pinned pair with `runner eval
+   preflight`. Rebuild canonical entry packs only for focused/segment runs
+   whose required boundary context changed. E2E starts from its input checkpoint
+   and never waits for canonical entry packs.
 6. Preserve every failed attempt as evidence. A new beta version is needed for
    a behaviour or contract change, not for a repeat of the same pair.
 
