@@ -131,8 +131,11 @@ nine child settings remained `gpt-5.6-sol`; the tenth child,
 later reported `kimi-k3`. Its initial `work start` had succeeded, so this was
 observed after Work entry. The installed `dd-flow-worker.md` explicitly pins
 `model: gpt-5.6-sol`, and the parent Task call contained no model override.
-The native cause of the change is not established; quota/fallback explanations
-are not verified facts.
+The native cause was not established during this initial audit. Follow-up
+investigation found a native HTTP 402 for the five-hour standard usage limit,
+followed by `overage_reactive_402` routing from Sol to Kimi. See the
+[root-cause investigation and repair plan](../specs/028-droid-eval-defects-root-cause-and-repair-plan.md)
+for the exact native-log timeline and confirmed account-preference mechanism.
 
 Four Execute calls were rejected with `profile_drift`. The controller did not
 terminate immediately on those hook errors: read tools continued until the

@@ -72,6 +72,8 @@ An evaluation run starts from an immutable `dd-tasks` checkpoint and measures a
 specific harness/model profile, not a model in isolation.
 The [Task Priority baseline audit](runbooks/task-priority-baseline-audit-2026-09-06.md)
 records the active tagged source, preparation checks and latest Droid qualification limits.
+The [Droid defect investigation and repair plan](specs/028-droid-eval-defects-root-cause-and-repair-plan.md)
+records the confirmed quota fallback, cancellation races and proposed test-world isolation changes.
 
 The active suite follows the vNext order:
 
