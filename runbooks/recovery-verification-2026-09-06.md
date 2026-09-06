@@ -80,3 +80,21 @@ the interrupted-work acceptance gates in plan 026.
 
 None of these runs yet qualifies interrupted → recovered → judged acceptance.
 The additional engine commits have not been published to npm.
+
+## Report history and stale MERGE continuations
+
+- Runner `0861696` derives execution segments and historical interruptions from
+  the operation journal. Capture enrichment does not count as a new failure;
+  two recovery operations remain two segments. Reports retain the latest RUN
+  usage measurement instead of summing overlapping cumulative snapshots.
+  Active/provider-wait time remains explicitly unavailable, not inferred from
+  segment wall time. The full runner suite passed 205 tests.
+- Engine `32d70b5` rechecks the captured RUN generation after MERGE lane waits,
+  bootstrap, checks, Work settlement and source-repair waits. A completed
+  recovery does not revive a stale continuation. Route changes check the guard
+  inside their write transaction. Typecheck and 15 focused checks passed,
+  including a generation change during source repair before archival begins.
+  This does not yet certify all mutation transactions or all adapter hooks.
+- The normal-flow third E2E reached CODE and native child dispatch. Its final
+  result and the full engine suite remain pending.
+- `npm whoami` still returns E401. No registry publication was performed.
