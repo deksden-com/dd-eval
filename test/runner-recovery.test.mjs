@@ -11,7 +11,17 @@ import { waitForSettlement } from "../lib/session-settlement.mjs";
 import { durableDaemonDispatch, inspectDaemonOperation } from "../lib/daemon-operations.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
-import { recoveryHistory } from "../lib/runner.mjs";
+import { recoveryHistory, assertTerminalReconciliation } from "../lib/runner.mjs";
+
+test("terminal reconciliation rejects every productive continuation state", () => {
+  const execution = { id: "e", terminal_stage: "MERGE" };
+  for (const status of ["running", "paused", "failed", undefined]) {
+    assert.throws(() => assertTerminalReconciliation(execution, "MERGE", { status }), { code: "reconcile_not_terminal" });
+  }
+  assert.throws(() => assertTerminalReconciliation(execution, "CODE", { status: "done" }), { code: "reconcile_not_terminal" });
+  assert.throws(() => assertTerminalReconciliation(execution, "MERGE", null), { code: "reconcile_not_terminal" });
+  assert.doesNotThrow(() => assertTerminalReconciliation(execution, "MERGE", { status: "done" }));
+});
 
 test("recovery report preserves failed segments without counting capture or cumulative usage twice", () => {
   const events = [];
