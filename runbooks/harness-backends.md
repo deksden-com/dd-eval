@@ -310,3 +310,31 @@ After creation, the runner records the native identity and exact
 ```text
 dd-eval runner eval run --profile <profile.json>
 ```
+
+## Factory Droid
+
+The `droid-cli` profile uses `dd-droid` and direct native JSON-RPC, pinned to
+Droid 0.212.0 / Factory protocol 1.201.0. `droid` is the dd-flow family alias;
+configuration uses `droid-cli`, `adapter_command: dd-droid`, and
+`runtime_command: droid`. The runner resolves the latter as `--droid-bin`.
+See [specification 025](../specs/025-factory-droid-harness-integration.md) for
+verified native behavior and the remaining qualification gates.
+
+Use `--no-flow` for standalone diagnostics and capacity checks. Productive
+runs receive the normal explicit dd-flow runtime contract. Both routes use
+the generated `dd-flow-worker` custom droid with fixed model/reasoning and no
+Task complexity override. The Sol/high profile was qualified on 2026-09-06 with 15 native children
+started and completed, followed by clean tree settlement. A runtime/profile
+change clears this capacity and requires a fresh check.
+
+Root interrupt is not tree cancellation. The verified graceful path is
+interrupt, close_session, observe tree exit, reap the owner, and only then
+load the same native root ID if continuing. Close alone settled the observed
+native and shell child; forced termination remains a bounded fallback needing
+ownership proof. Never recover by replaying the old prompt or asking a model
+to perform cleanup. Selective Task-child cancellation is not claimed.
+
+Cancellation can leave root inclusive usage without a child's spend. Account
+from the physical root and discovered child sessions, retain scope/completeness,
+and do not sum inclusive totals again. SubagentStop is not proof of Work
+success. Final cleanup must remove private copied credentials.

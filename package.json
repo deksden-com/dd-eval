@@ -9,7 +9,8 @@
     "dd-zcode": "./bin/dd-zcode.mjs",
     "dd-grok": "./bin/dd-grok.mjs",
     "dd-opencode": "./bin/dd-opencode.mjs",
-    "dd-agy": "./bin/dd-agy.mjs"
+    "dd-agy": "./bin/dd-agy.mjs",
+    "dd-droid": "./bin/dd-droid.mjs"
   },
   "scripts": {
     "test": "node --test",

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "id": "droid-cli-openai-gpt-5-6-sol-high",
+  "harness": "droid-cli",
+  "runtime_family": "droid",
+  "driver": "dd-droid",
+  "control_lifetime": "execution_daemon",
+  "delegated_background": true,
+  "provider": "openai",
+  "model": "gpt-5.6-sol",
+  "reasoning": "high",
+  "mode": "auto-high",
+  "runtime": {
+    "droid": "0.212.0",
+    "factory_protocol": "1.201.0",
+    "dd_harness_contract": "dd-droid-harness@1"
+  },
+  "notes": "Factory Droid native JSON-RPC profile. Capacity intentionally absent until qualified using the same dd-flow-worker custom droid as productive fan-out.",
+  "subagent_capacity": 15
+}
