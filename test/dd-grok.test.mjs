@@ -44,10 +44,11 @@ test("Grok daemon inspection never loads another Session into an active bridge",
   assert.equal(runtime.loadedSessionId, "active-other-root");
 });
 
-test("Grok Build profile drift fails closed", () => {
+test("Grok permits routing changes and rejects permission drift", () => {
   const requested = { provider: "xai", model: "grok-4.6", reasoning: "high", mode: "bypassPermissions" };
   assert.equal(assertProfile(requested, requested).status, "matched");
-  assert.throws(() => assertProfile(requested, { ...requested, reasoning: "low" }), /profile mismatch/);
+  assert.equal(assertProfile(requested, { ...requested, reasoning: "low" }).status, "mixed");
+  assert.throws(() => assertProfile(requested, { ...requested, mode: "foreign" }), { code: "profile_integrity_violation" });
 });
 
 test("Grok root registration happens before its first prompt", async () => {

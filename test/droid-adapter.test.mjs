@@ -13,7 +13,7 @@ async function fixture(t) {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'dd-droid-adapter-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
   const state = { root_session_id: 'root' };
-  const runtime = new DroidRuntime({ stateDir: dir, cwd: dir, home: path.join(dir, 'home'), journal: path.join(dir, 'events.jsonl'), daemonId: 'test', version: '0.212.0', provider: 'openai', model: 'gpt-5.6-sol', reasoning: 'high', mode: 'auto-high' }, state, async patch => Object.assign(state, patch));
+  const runtime = new DroidRuntime({ stateDir: dir, cwd: dir, home: path.join(dir, 'home'), journal: path.join(dir, 'events.jsonl'), daemonId: 'test', version: '0.212.0', provider: null, model: 'gpt-5.6-sol', reasoning: 'high', mode: 'auto-high' }, state, async patch => Object.assign(state, patch));
   await mkdir(runtime.paths.bindings, { recursive: true });
   const sessions = path.join(runtime.paths.factory, 'sessions', 'workspace');
   await mkdir(sessions, { recursive: true });
@@ -106,11 +106,10 @@ test('Droid recovery keeps its operation when prompt completes during binding pe
 
 test('Droid validates native model, reasoning and mode rather than requested values', async t => {
   const { runtime } = await fixture(t);
-  assert.deepEqual(runtime.profile(settings), { provider: 'openai', model: 'gpt-5.6-sol', reasoning: 'high', mode: 'auto-high' });
-  for (const change of [{ model: 'fallback' }, { reasoningEffort: 'low' }, { autonomyMode: 'auto-low' }]) {
-    assert.throws(() => runtime.profile({ ...settings, ...change }), { code: 'profile_drift' });
-  }
-  assert.throws(() => runtime.profile({}), { code: 'profile_drift' });
+  assert.deepEqual(runtime.profile(settings), { provider: null, model: 'gpt-5.6-sol', reasoning: 'high', mode: 'auto-high' });
+  for (const change of [{ model: 'fallback' }, { reasoningEffort: 'low' }]) assert.doesNotThrow(() => runtime.profile({ ...settings, ...change }));
+  assert.throws(() => runtime.profile({ ...settings, autonomyMode: 'auto-low' }), { code: 'profile_integrity_violation' });
+  assert.throws(() => runtime.profile({}), { code: 'profile_integrity_violation' });
 });
 
 async function resumeFixture(t, resumeInput, { toolName = 'Task', childParent = 'root' } = {}) {
@@ -158,4 +157,29 @@ test('Droid refuses child reuse without matching native Task resume evidence', a
       await assert.rejects(runtime.refreshTopology(), { code: 'droid_child_identity_invalid' });
     });
   }
+});
+
+test('Droid observes root and child fallback before Execute, permits Read and still stops foreign hooks without Flow', async t => {
+  const { runtime, dir, transcript } = await fixture(t);
+  const { readModelObservations } = await import('../lib/model-observations.mjs');
+  runtime.loaded = true;
+  const sessions = path.dirname(transcript);
+  await writeFile(path.join(sessions, 'child.jsonl'), jsonl([{ type: 'session_start', id: 'child', cwd: dir, callingSessionId: 'root', callingToolUseId: 'task-1' }]));
+  await writeFile(path.join(sessions, 'child.settings.json'), JSON.stringify(settings));
+  await writeFile(path.join(runtime.paths.factory, 'task-invocations.json'), JSON.stringify({ invocations: [{ parentSessionId: 'root', childSessionId: 'child' }] }));
+  await runtime.observeModels();
+  const log = path.join(runtime.paths.factory, 'logs', 'droid-log-single.log'); await mkdir(path.dirname(log), { recursive: true });
+  await writeFile(log, ['root', 'child'].map(sessionId => `[2026-09-07T00:00:00Z] INFO [Model-Router] Model transition | Context: ${JSON.stringify({ slot: 'main', sessionId, previousModelId: 'gpt-5.6-sol', modelId: 'kimi', reason: 'overage_reactive_402' })}\n`).join(''));
+  const started = Date.now(); await runtime.observeModels();
+  const events = await readModelObservations(runtime.config.journal);
+  assert.equal(events.filter(event => event.kind === 'model_changed').length, 2);
+  assert.ok(Date.now() - started < 4000);
+  assert.equal(runtime.fatalError, null);
+  await writeFile(path.join(sessions, 'child.settings.json'), JSON.stringify({ ...settings, model: 'kimi' }));
+  const payload = { session_id: 'child', hook_event_name: 'PreToolUse', tool_name: 'Read', cwd: dir, transcript_path: path.join(sessions, 'child.jsonl') };
+  assert.deepEqual(await runtime.observeHook(payload, 'read-1'), {});
+  let closed = false; runtime.closeTree = async () => { closed = true; };
+  await assert.rejects(runtime.observeHook({ ...payload, cwd: path.join(dir, 'foreign') }, 'read-2'), { code: 'droid_hook_identity_invalid' });
+  await new Promise(resolve => setTimeout(resolve, 15));
+  assert.equal(runtime.fatalError.code, 'droid_hook_identity_invalid'); assert.equal(closed, true);
 });

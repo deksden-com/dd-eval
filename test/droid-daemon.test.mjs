@@ -101,7 +101,7 @@ test('Droid shutdown cleans credentials and exits after physical cleanup even if
   const paths = droidPaths(stateDir);
   const settingsFile = path.join(paths.factory, 'sessions', 'fixture', id + '.settings.json');
   const settings = JSON.parse(await readFile(settingsFile, 'utf8'));
-  await writeFile(settingsFile, JSON.stringify({ ...settings, model: 'foreign-model', modelId: 'foreign-model' }));
+  await writeFile(settingsFile, JSON.stringify({ ...settings, autonomyMode: 'foreign-mode' }));
   const copiedAuth = path.join(paths.factory, 'auth.json');
   await writeFile(copiedAuth, '{"fixture":true}');
   const before = await callDaemon(stateDir, 'daemon.status');
@@ -109,7 +109,7 @@ test('Droid shutdown cleans credentials and exits after physical cleanup even if
   assert.equal(cleanup.stopped, true);
   assert.equal(cleanup.settled, true);
   assert.equal(cleanup.clean, false);
-  assert.equal(cleanup.cleanup.inspection_error.code, 'profile_drift');
+  assert.equal(cleanup.cleanup.inspection_error.code, 'profile_integrity_violation');
   await assert.rejects(access(copiedAuth), { code: 'ENOENT' });
   const state = JSON.parse(await readFile(paths.state, 'utf8'));
   assert.equal(state.shutdown_state, 'unclean');
