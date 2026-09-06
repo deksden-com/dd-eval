@@ -15,6 +15,6 @@
     "factory_protocol": "1.201.0",
     "dd_harness_contract": "dd-droid-harness@1"
   },
-  "notes": "Factory Droid native JSON-RPC profile. Capacity intentionally absent until qualified using the same dd-flow-worker custom droid as productive fan-out.",
+  "notes": "Factory Droid native JSON-RPC profile. Capacity 15 qualified on 2026-09-06 using the same dd-flow-worker custom droid as productive fan-out; runtime/profile changes require requalification.",
   "subagent_capacity": 15
 }

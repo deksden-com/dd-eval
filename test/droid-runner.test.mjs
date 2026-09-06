@@ -42,3 +42,20 @@ test('Droid technical capacity launches without flow integration', async () => {
   const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   assert.equal(pkg.bin['dd-droid'], './bin/dd-droid.mjs');
 });
+
+test('config-only Judge uses the configured adapter/runtime without enabling flow lifecycle', async () => {
+  const home = await mkdtemp(path.join(tmpdir(), 'dd-judge-config-'));
+  try {
+    await writeFile(path.join(home, 'harnesses.json'), JSON.stringify({ harnesses: { 'codex-desktop': { adapter_command: '/bin/echo', runtime_command: '/bin/false' } } }));
+    const options = { cwd: home, env: { DD_FLOW_CONFIG_HOME: home, PATH: '/unavailable-path', CODEX_HOME: path.join(home, 'codex-home') }, profile: { harness: 'codex-desktop' } };
+    assert.deepEqual(await driverAdapterInvocation(options.profile, options), { executable: '/bin/echo', prefix: [] });
+    assert.deepEqual(await driverRuntimeArgs(['daemon', 'start'], options), ['daemon', 'start', '--codex-bin', '/bin/false']);
+    assert.deepEqual(await driverRuntimeArgs(['doctor'], options), ['doctor', '--codex-bin', '/bin/false']);
+    assert.equal(options.env.DD_FLOW_HOME, undefined);
+    const source = await readFile(path.join(root, 'lib/runner.mjs'), 'utf8');
+    const final = source.slice(source.indexOf('async function finalJudge('), source.indexOf('async function interactionJudge('));
+    const interaction = source.slice(source.indexOf('async function interactionJudge('), source.indexOf('export function validateHitlMatch'));
+    assert.match(final, /DD_FLOW_CONFIG_HOME: roots\.runtimeRoot/);
+    assert.match(interaction, /DD_FLOW_CONFIG_HOME: runtimeRoot/);
+  } finally { await rm(home, { recursive: true, force: true }); }
+});
