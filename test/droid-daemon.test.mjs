@@ -73,3 +73,24 @@ test('Droid closeTree verifies a retained child even when its root has already e
   await exited;
   assert.equal((await closing).settled, true);
 });
+
+
+test('Droid native outcome recovery releases the original pending turn before new work', async t => {
+  const { stateDir, id, calls } = await setup(t);
+  let finished = false;
+  const pending = callDaemon(stateDir, 'session.prompt', { sessionId: id, prompt: 'lose-terminal' }, 30000, 'lost-terminal-op').then(reply => { finished = true; return reply; });
+  await until(async () => {
+    const file = path.join(droidPaths(stateDir).factory, 'sessions', 'fixture', id + '.jsonl');
+    return (await readFile(file, 'utf8')).includes('agent_turn_outcome');
+  });
+  assert.equal(finished, false, 'fixture must really withhold the terminal notification');
+  const receipt = await until(async () => {
+    const result = await callDaemon(stateDir, 'operation.inspect', { operationId: 'lost-terminal-op' });
+    return result.state === 'completed' ? result : null;
+  });
+  const original = await pending;
+  assert.equal(original.turn_id, receipt.result.turn_id);
+  const next = await callDaemon(stateDir, 'session.prompt', { sessionId: id, prompt: 'after recovery' }, 30000, 'after-recovery-op');
+  assert.equal(next.result.status, 'completed');
+  assert.equal((await calls()).filter(call => call.method === 'droid.add_user_message').length, 2);
+});

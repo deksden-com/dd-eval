@@ -67,6 +67,8 @@ and droid-recovery-20260906; they are not portable scored fixtures.
   prompt is used for cleanup. Reload remains forbidden while a prior owner
   might still be alive. Process groups of Execute descendants may differ from
   the root process group.
+- Forced teardown is retained as unclean. Same-ID resume is qualified only
+  after native close; forced-close executions fail closed on resume.
 - Selective cancellation of one ordinary Task child is not a supported claim.
   The SDK's kill_worker_session is Mission-oriented; do not substitute it for
   TaskStop or invent a generic tool-execution RPC.
@@ -79,7 +81,8 @@ The deterministic suite covers physical usage/caches/thinking, malformed partial
 transcripts, profile/identity drift, exact terminal correlation, durable native
 outcome recovery, disconnected observers and at-most-once dispatch. Fake native
 process tests verify cancel/load ordering and retained child ownership after
-root exit. The full repository suite passed 180 tests.
+root exit. The full repository suite passed 180 tests; a further regression verifies
+lost terminal notifications release the original operation without replay.
 
 Live adapter receipts under `DD_EVAL_HOME/conformance/droid-adapter-20260906`
 show two completed native children with separate physical counters, a live

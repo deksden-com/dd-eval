@@ -9,7 +9,7 @@ const folder = path.join(factory, 'sessions', 'fixture');
 mkdirSync(folder, { recursive: true });
 const settings = { model: 'gpt-5.6-sol', modelId: 'gpt-5.6-sol', reasoningEffort: 'high', autonomyMode: 'auto-high', tokenUsage: { inputTokens: 1, outputTokens: 1, cacheReadTokens: 0, cacheCreationTokens: 0, thinkingTokens: 0 } };
 const envelope = { jsonrpc: '2.0', factoryApiVersion: '1.0.0', factoryProtocolVersion: '1.201.0' };
-let sessionId, active, timer;
+let sessionId, active, timer, omitTerminal = false;
 const send = message => process.stdout.write(JSON.stringify({ ...envelope, ...message }) + '\n');
 const notify = notification => send({ type: 'notification', method: 'droid.session_notification', params: { sessionId, notification } });
 const persist = record => appendFileSync(path.join(folder, sessionId + '.jsonl'), JSON.stringify(record) + '\n');
@@ -20,7 +20,7 @@ function finish(reason) {
   active = null;
   persist({ type: 'agent_turn_outcome', turnId, reason });
   notify({ type: 'droid_working_state_changed', newState: 'idle' });
-  notify({ type: 'agent_turn_completed', turnId, reason });
+  if (!omitTerminal) notify({ type: 'agent_turn_completed', turnId, reason });
 }
 createInterface({ input: process.stdin }).on('line', line => {
   const request = JSON.parse(line), { method, params } = request;
@@ -39,6 +39,7 @@ createInterface({ input: process.stdin }).on('line', line => {
   } else if (method === 'droid.add_user_message') {
     if (!sessionId) throw new Error('prompt before initialize/load');
     active = params.messageId;
+    omitTerminal = params.text === 'lose-terminal';
     notify({ type: 'create_message', requestId: request.id, message: { id: active } });
     notify({ type: 'droid_working_state_changed', newState: 'thinking' });
     if (params.text !== 'hold') timer = setTimeout(() => finish('completed'), 250);
