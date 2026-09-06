@@ -64,7 +64,7 @@ changing a global CLI alone does not update the pinned experiment.
    pinned by the input checkpoint and recorded in each run manifest. Update a
    harness profile only when its provider settings change; rebuild the input
    checkpoint when a changed engine contract needs new qualification.
-3. Validate the accepted package:
+3. For focused/segment runs, validate the accepted package:
 
    ```sh
    export DD_EVAL_HOME=/absolute/path/to/eval-data
@@ -74,7 +74,8 @@ changing a global CLI alone does not update the pinned experiment.
    This verifies the declared entry descriptors and context blueprint. Focused
    and segment runs require a non-null `case.json.entry_pack` whose referenced
    package is accepted. E2E starts from the committed input checkpoint and does
-   not require an entry pack.
+   not require an entry pack. Do not call `fixtures validate` for an E2E-only
+   run with `entry_pack: null`: use `runner eval preflight` instead.
 4. Qualify the selected harness profile before a provider update is used in a
    scored run:
 
@@ -281,15 +282,26 @@ an E2E successor consumes the Subject's own preceding result.
 Some stages materialize a graph of fresh worker Work records. This is still
 one normal Stage: when the graph is agent-owned, the runner first returns the
 same coordinator once to materialize it; when it has a deterministic
-dispatcher, `dd-flow` materializes it directly. Only then the runner performs
-mechanical worker launches from engine-returned descriptors, waits for their
-`work finish` receipts and returns the coordinator to the normal stage-finish
-path. The runner does not choose review aspects, change the graph, author
-results or retry workers. If the graph first requires capacity, it performs one
-concurrent 15-agent probe,
-waits at most three minutes, records only the number of successful original
-launches, and reuses that RUN fact for later fan-out.  A quiet worker is not a
+dispatcher, `dd-flow` materializes it directly. The runner returns the ready
+descriptors to the existing coordinator, which launches native subagents.
+Each child calls its exact `work start` and `work finish` commands. The runner
+does not launch substitute root Sessions, choose aspects, change the graph,
+author results or retry workers. Capacity comes from the qualified harness
+profile and is recorded in RUN; qualification happens before E2E, not inside
+the evaluated stage. A quiet worker is not a
 failure and must not be stopped merely because no new message has appeared.
+
+Native terminal observations are reconciled through `stage fanout reconcile`.
+Only a unique registered Session/Work attempt may be failed or cancelled.
+Native completion never implies Work success. Ambiguous/absent bindings are
+explicit blockers with saved observations, not permission to relaunch a child.
+An active deterministic check remains owned by its original invocation.
+
+On a terminal failure the runner attempts `run snapshot create --incomplete`.
+This is retained forensic evidence, not a successful boundary or a restorable
+fixture. SQLite is captured consistently; files are copied non-atomically and
+that limitation is recorded. A failed capture is explicitly marked missing;
+neither cleanup nor capture failure replaces the original execution failure.
 
 Each launcher permits exactly its named Stage. Once that Stage is finished, the
 Subject stops; it must not follow a successor command shown by a normal

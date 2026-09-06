@@ -10,6 +10,17 @@ test("ZCode defaults to a ten-minute sliding liveness window", () => {
   assert.equal(DEFAULT_LIVENESS_TIMEOUT_MS, 600_000);
 });
 
+test("ACP tool accounting separates physical Sessions even when tool IDs collide", () => {
+  const bridge = new AcpBridge({});
+  const update = (sessionId, sessionUpdate, status) => bridge.observeToolCall({ method: "session/update", params: { sessionId, update: { sessionUpdate, toolCallId: "1", title: "Read", status } } });
+  update("root", "tool_call"); update("child", "tool_call");
+  update("child", "tool_call_update", "failed"); update("root", "tool_call");
+  assert.deepEqual(bridge.toolSummary("root"), { total: 1, failures: 0, by_tool: { Read: 1 } });
+  assert.deepEqual(bridge.toolSummary("child"), { total: 1, failures: 1, by_tool: { Read: 1 } });
+  assert.equal(bridge.toolSummary().total, 2);
+  assert.equal(bridge.toolSummary("new-session").total, 0);
+});
+
 test("ACP preserves provider detail carried in error.data.message", async () => {
   const bridge = new AcpBridge({});
   bridge.send = () => {};

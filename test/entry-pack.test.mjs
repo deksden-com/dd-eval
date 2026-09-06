@@ -5,7 +5,14 @@ import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateStageBlueprint, writeEntryPack } from "../lib/entry-pack.mjs";
-import { createHarnessPermits, runServerMerge, stageExecutor } from "../lib/runner.mjs";
+import { createHarnessPermits, runServerMerge, stageExecutor, needsAttemptContext } from "../lib/runner.mjs";
+
+test("recovery materializes each reopened stage attempt once", () => {
+  assert.equal(needsAttemptContext({ attempt: "try-001" }, {}), false);
+  assert.equal(needsAttemptContext({ attempt: "try-002" }, { attempt: "try-001" }), true);
+  assert.equal(needsAttemptContext({ attempt: "try-002" }, { attempt: "try-002" }), false);
+  assert.equal(needsAttemptContext({ attempt: "try-003" }, { attempt: "try-002" }), true);
+});
 
 const slice = {
   schema_id: "dd-eval/stage-context@1", stage: "specify", objective: "Specify the request.",
@@ -130,13 +137,13 @@ test("server merge is selected only by the persisted run execution mode", () => 
   assert.equal(stageExecutor("merge", { status: { index: {} } }), "subject");
 });
 
-test("runner delegates a server-routed merge to the deterministic merge server", async () => {
+for (const outcome of ["completed", "repair"]) test(`runner preserves server MERGE ${outcome} lifecycle`, async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-merge-server-")); const project = path.join(root, "project"); const runtime = path.join(root, "runtime"); const bin = path.join(root, "fake-dd-flow.mjs");
   await writeFile(bin, `#!/usr/bin/env node
 import fs from 'node:fs';
 const args = process.argv.slice(2).filter((arg) => arg !== '--json');
 const state = process.env.DD_FLOW_HOME + '/server-state';
-if (args[0] === 'run' && args[1] === 'status') { const done = fs.existsSync(state); process.stdout.write(JSON.stringify({ index: { execution_profile: { settings: { merge_mode: 'server' } }, stage_runs: [{ stage: 'merge', status: done ? 'done' : 'running' }] } })); }
+if (args[0] === 'run' && args[1] === 'status') { const done = fs.existsSync(state); const repair = done && ${JSON.stringify(outcome)} === 'repair'; process.stdout.write(JSON.stringify({ continuation: repair ? { kind: 'continue_stage', stage: 'code' } : { kind: 'terminal' }, index: { execution_profile: { settings: { merge_mode: 'server' } }, stage_runs: [repair ? { stage: 'code', status: 'running', attempt: 'try-002' } : { stage: 'merge', status: done ? 'done' : 'running' }] } })); }
 else if (args[0] === 'merge' && args[1] === 'serve') { fs.writeFileSync(state, 'done'); process.stderr.write(JSON.stringify({ phase: 'dispatch', message: 'started' }) + '\\n'); process.stdout.write(JSON.stringify({ ok: true, handled: 1 })); }
 else { process.exitCode = 2; }
 `);
@@ -145,6 +152,8 @@ else { process.exitCode = 2; }
   const prior = process.env.DD_FLOW_BIN; process.env.DD_FLOW_BIN = "/bin/false";
   try {
     const progress = []; const result = await runServerMerge({ profile: { id: "codex-test", harness: "codex-desktop", model: "test", reasoning: "high" }, projectRoot: project, runtimeRoot: runtime, runId: "RUN-001", onProgress: (item) => progress.push(item) });
-    assert.equal(result.receipt.handled, 1); assert.equal(result.lifecycle.stage_status, "done"); assert.equal(progress[0].phase, "dispatch");
+    assert.equal(result.receipt.handled, 1); assert.equal(progress[0].phase, "dispatch");
+    if (outcome === "completed") assert.equal(result.lifecycle.stage_status, "done");
+    else { assert.equal(result.lifecycle.stage_status, null); assert.equal(result.lifecycle.status.continuation.stage, "code"); }
   } finally { if (prior === undefined) delete process.env.DD_FLOW_BIN; else process.env.DD_FLOW_BIN = prior; }
 });

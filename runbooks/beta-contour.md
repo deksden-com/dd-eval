@@ -54,8 +54,8 @@ isolated `DD_FLOW_HOME` roots.
   `DD_FLOW_HOME=... DD_FLOW_BIN=... <absolute-runtime>/bin/dd-flow ...` as one
   Bash action so the hook can bind the real Session and the captured engine
   cannot be replaced by a host-global executable.
-- The runner alone dispatches successor stages, creates mechanical worker
-  Sessions, handles permitted HITL through an Interaction Judge and records
+- The runner alone dispatches successor stages, asks the coordinator to launch
+  native children for ready Work, handles permitted HITL through an Interaction Judge and records
   events. It never chooses product work or repairs Subject artifacts.
 - Do not manually send a Subject a recovery/continuation prompt after a
   provider turn ended with a running Stage. Preserve the trace as

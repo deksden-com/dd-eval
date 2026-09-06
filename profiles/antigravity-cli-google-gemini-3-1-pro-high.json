@@ -14,6 +14,6 @@
     "agy": "1.1.27",
     "dd_harness_contract": "dd-agy-harness@1"
   },
-  "notes": "Controlled Antigravity CLI profile using isolated config/runtime directories and deterministic replay starters.",
+  "notes": "Controlled Antigravity CLI profile using isolated config/runtime directories and one native Session across the E2E stages.",
   "subagent_capacity": 15
 }

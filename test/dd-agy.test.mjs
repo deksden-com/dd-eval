@@ -5,7 +5,40 @@ import os from "node:os";
 import net from "node:net";
 import path from "node:path";
 import { doctor, usageSnapshot } from "../lib/dd-agy.mjs";
-import { callDaemon, startDaemon, stopDaemon } from "../lib/dd-agy-daemon.mjs";
+import { callDaemon, startDaemon, stopDaemon, Runtime } from "../lib/dd-agy-daemon.mjs";
+
+test("AGY persists Stop observations and rejects an older execution after a new prompt", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-stop-scope-"));
+  const paths = { state: path.join(root, "daemon.json"), journal: path.join(root, "events.jsonl") };
+  const runtime = new Runtime(paths, { config: { daemonId: "d", cwd: root } });
+  runtime.init = { conversation_id: "root" };
+  try {
+    await runtime.observeHook("Stop", { conversationId: "root", executionNum: 4, fullyIdle: true, transcriptPath: "transcript" });
+    const saved = JSON.parse(await readFile(paths.state, "utf8"));
+    const resumed = new Runtime(paths, saved);
+    assert.equal(resumed.sessionObservations.get("root").stop.executionNum, 4);
+    resumed.init = runtime.init;
+    resumed.sessionObservations.set("root", { ...resumed.sessionObservations.get("root"), execution_floor: 4, stop: null });
+    await resumed.observeHook("Stop", { conversationId: "root", executionNum: 4, fullyIdle: false });
+    assert.equal(resumed.sessionObservations.get("root").stop, null);
+    await resumed.observeHook("Stop", { conversationId: "root", executionNum: 5, fullyIdle: true });
+    assert.equal(resumed.sessionObservations.get("root").stop.executionNum, 5);
+    resumed.lastActivityAt = "sentinel";
+    await resumed.observeHook("Stop", { conversationId: "root", executionNum: 5, fullyIdle: true });
+    assert.equal(resumed.lastActivityAt, "sentinel");
+    resumed.descendants.set("child", { provider_session_id: "child", parent_provider_session_id: "root", status: "unknown" });
+    await resumed.observeHook("Stop", { conversationId: "child", executionNum: 1, fullyIdle: true });
+    assert.equal(resumed.descendants.get("child").status, "completed");
+    const hook = { conversationId: "root", stepIdx: 0, toolCall: { name: "run_command", args: "same command" } };
+    const first = await resumed.observeHook("PreToolUse", { ...hook, executionNum: 5 });
+    const second = await resumed.observeHook("PreToolUse", { ...hook, executionNum: 6 });
+    assert.notEqual(first.event_id, second.event_id);
+    resumed.observeProviderActivity({ event: "step_update", step_update: { step_id: "1", state: "RUNNING" } });
+    resumed.lastActivityAt = "sentinel";
+    resumed.observeProviderActivity({ event: "step_update", step_update: { step_id: "1", state: "RUNNING" } });
+    assert.equal(resumed.lastActivityAt, "sentinel");
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 
 test("AGY usage preserves missing counters as unknown", () => {
   assert.equal(usageSnapshot({ usage: { input_tokens: null, total_tokens: undefined } }).input_tokens, null);
