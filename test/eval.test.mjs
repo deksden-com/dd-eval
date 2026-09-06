@@ -196,7 +196,7 @@ test("recovery retains native storage when restarting a stopped execution daemon
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /const primaryState = path\.join\(attempt, "drivers", "daemon"\)/);
   assert.match(source, /\["daemon", "status", \.\.\.primaryArgs/);
-  assert.match(source, /try \{ return await action\(\{ daemonArgs, env \}\); \}/);
+  assert.match(source, /try \{ return await action\(\{ daemonArgs, env, daemon \}\); \}/);
   assert.match(source, /if \(recoveryBridge\)/);
   assert.match(source, /daemonArgs = primaryArgs; recoveryBridge = true/);
 });

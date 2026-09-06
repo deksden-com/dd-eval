@@ -11,7 +11,18 @@ import { waitForSettlement } from "../lib/session-settlement.mjs";
 import { durableDaemonDispatch, inspectDaemonOperation } from "../lib/daemon-operations.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
-import { recoveryHistory, assertTerminalReconciliation, selectRecoverySource } from "../lib/runner.mjs";
+import { recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoveryPrompt } from "../lib/runner.mjs";
+
+test("recovery requires engine acceptance before productive work and preserves a paused Work", () => {
+  const recovery = { recovery_id: "R2", generation: 2, accept_command: "dd-flow run recovery accept RUN-1 --recovery-id R2 --project-root /project --json" };
+  const prompt = recoveryPrompt({ recovery, stage: "code" });
+  assert.ok(prompt.indexOf(recovery.accept_command) < prompt.indexOf("Continue only the unresolved"));
+  assert.match(prompt, /If acceptance fails, stop/);
+  const paused = recoveryPrompt({ recovery, stage: "code", paused: true });
+  assert.match(paused, /paused for a user answer/);
+  assert.doesNotMatch(paused, /Continue only the unresolved/);
+  assert.throws(() => recoveryPrompt({ recovery: { recovery_id: "R2" }, stage: "code" }), { code: "recovery_acceptance_missing" });
+});
 
 test("recovery selects exactly the requested current interruption, including idempotent repeats", () => {
   const failed = { execution: "e", state: "failed", recovery: { recovery_id: "R2" } };

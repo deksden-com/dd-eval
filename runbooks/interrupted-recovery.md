@@ -14,6 +14,18 @@ Recovery verifies the manifest, payloads, original case definition, and current
 workspace before dispatch. A retained operation ID prevents blind duplicate
 delivery. Unknown delivery remains blocked for reconciliation.
 
+The runner starts and identifies the replacement daemon before preparing a
+recovery binding. `dd-flow run recovery resume` requires `--daemon-id`,
+`--harness`, and `--native-session-id`; it leaves the RUN guarded as `resuming`.
+The retained root Session must execute the engine-generated `run recovery
+accept` command. Its immutable native hook must match the authorized daemon,
+Session, RUN, and recovery ID. Acceptance closes the old root WorkSession as
+interrupted, creates the new binding, and opens the RUN in one transaction.
+A paused Work remains paused; acceptance does not supply its user answer.
+Worker launch commands carry the current recovery ID. Receipts from old
+packets or retired daemons cannot acquire another segment, and finishing Work
+requires the daemon that owns its current WorkSession.
+
 `dd-flow run snapshot restore --snapshot /absolute/snapshot --project-root
 /absolute/empty-project --recovery-id RCV-ID --json` restores a sealed RUN to a
 fresh dedicated `DD_FLOW_HOME`. It does not import a native provider Session or
@@ -36,9 +48,9 @@ The implementation is not yet full acceptance of plan 026. In particular:
 - Fresh native-session import, selective same-ID child recovery, and credential
   refresh require adapter-specific qualification; file restore does not imply
   these capabilities.
-- Conflict-index/partial-MERGE round trips, capture crash/flush injection,
-  descendant-process registry races, and all late-hook generation races still
-  need their dedicated acceptance tests.
+- Conflict-index/partial-MERGE round trips, failed flush publication, and native
+  recovery binding/old-packet races have regression coverage. Full crash-window
+  and descendant-process race qualification remains incomplete.
 - Cross-segment usage/account-change accounting is not yet the complete plan
   026 report model.
 - The historical AGY run requires separate explicit recovery authorization.
