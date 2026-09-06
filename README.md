@@ -25,6 +25,13 @@ Current beta specifications live under [beta/](beta/README.md); they document
 candidate behavior without consuming canonical `SPC-*` numbering.
 
 Repository-level eval design specifications live under [specs/](specs/). The
+cross-repository [shared runtime adoption plan 030](specs/030-shared-runtime-adoption-and-mixed-execution.md)
+is a draft for moving general harness execution into dd-flow while retaining
+eval isolation, reproducibility and assessment; it does not describe an already
+completed migration. The
+reviewed plan also covers allowed model fallback, non-Work resource ownership,
+controller races, safe shared-store migration and mandatory commit/push/main
+delivery with adoption of released CLI/canon artifacts. The
 `sdlc-eval-2026-summer` suite is defined by
 [specification 001](specs/001-sdlc-eval-2026-summer.md); its canonical
 stage-checkpoint execution model is refined by
