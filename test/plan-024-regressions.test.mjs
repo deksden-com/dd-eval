@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 import { assertTargetSession, continuationStage, storedExecutionResults } from "../lib/runner.mjs";
+
+test("native child observation uses the reconciled flow RUN, not the event EVAL ID", async () => {
+  const source = await readFile(new URL("../lib/runner.mjs", import.meta.url), "utf8");
+  assert.match(source, /lifecycle = await reconcileFlow\([^\n]+\n\s+await observeNativeChildren\(\{[^\n]+flowRunId: lifecycle\.run_id/);
+  assert.match(source, /\["stage", "native", "observe", flowRunId,/);
+  assert.doesNotMatch(source, /await observeNativeChildren\(\{[^\n]*runtimeRoot, runId,/);
+});
 
 test("CLI continuation permits a repair edge and rejects missing authority", () => {
   assert.equal(continuationStage({ status: { continuation: { kind: "continue_stage", stage: "code", attempt: "try-002" } } }, "merge"), "code");
