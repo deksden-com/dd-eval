@@ -51,6 +51,32 @@ adapter could not confirm native settlement; it is not a successful recovery.
 
 Reproduce with `node tools/native-recovery-smoke.mjs <profile-id>`.
 The full runner suite after these changes passed 200 tests.
-The full-flow AGY campaign is `EVAL-20260906190344-6ffd759f`; its result is still
-pending. Native-root smoke success does not substitute for that result or for
+Native-root smoke success does not substitute for a full-flow result or for
 the interrupted-work acceptance gates in plan 026.
+
+## Subsequent full-flow attempts and snapshot checks
+
+- `EVAL-20260906190344-6ffd759f` completed with failures and a retained Judge
+  receipt. It reached PLAN-REVIEW, then native-child observation incorrectly
+  supplied the EVAL ID to `dd-flow`. Runner commit `ce633aa` uses the reconciled
+  flow RUN ID. Its old in-memory daemon inventory also rejected package
+  symlinks; a read-only check with the corrected inventory confirmed clean
+  settlement, without changing the historical failure or capture.
+- `EVAL-20260906192305-814fa61f` completed with failures and a retained Judge
+  receipt. Codex HITL Judge cleanup encountered a helper process group just
+  after its leader exited. Commit `87eeafa` permits bounded passive settlement
+  before refusing ownership; it never signals a leaderless group. The old
+  Judge bridge PID 70165 was subsequently stopped after exact PID/command
+  verification. Its `cleanup_failed` evidence was preserved, not relabeled
+  as a clean recovery. The current full runner suite passed 204 tests.
+- `EVAL-20260906193007-d5463c98` is the next normal-flow AGY attempt; its result
+  is pending. It still uses the frozen beta.20 override, not later source.
+- Engine commits `d753594`, `79787d3`, and `2a3818e` add pre-publication fsync,
+  conflicted-index/object-pack/partial-MERGE restoration, and executable-mode
+  integrity. The focused snapshot suite passed 10 tests and typecheck passed.
+  Coverage includes staged-only binary objects, tabbed filenames, a deleted
+  merge-source branch, index stages 1–3, merge-message drift, mode tampering,
+  and refusal to publish after a failed flush. A full engine rerun is pending.
+
+None of these runs yet qualifies interrupted → recovered → judged acceptance.
+The additional engine commits have not been published to npm.
