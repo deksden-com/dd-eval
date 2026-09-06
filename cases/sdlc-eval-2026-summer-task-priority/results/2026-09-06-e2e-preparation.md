@@ -1,6 +1,6 @@
 # Подготовка трёх E2E после плана 024
 
-Дата: 2026-09-06. Статус: проверки и подготовка выпуска выполняются.
+Дата: 2026-09-06. Статус: **три E2E подготовлены; все три preflight успешны**.
 Полные E2E не запускались. Этот документ дополняет, а не переписывает
 [предыдущую верификацию](2026-09-06-plan-024-verification.md).
 
@@ -78,6 +78,50 @@
 
 ## Финальная предпусковая фиксация
 
-Ожидаются: опубликованный CLI и readback его build-info, новый input checkpoint,
-чистый commit dd-eval и три успешных `runner eval preflight`.
+Опубликован `@deksden-com/dd-flow-cli@0.9.0-beta.17`, npm tag `beta`.
+Git tag `v0.9.0-beta.17` и исходники отправлены в origin.
+Из опубликованного npm-архива повторно прочитан `dist/build-info.json`:
+
+- CLI commit: `162dd994d19c0d454a2ad6b7b62abd70c3e848d6` — совпадает с Git tag.
+- Memory Bank: `4.0.4`, commit `ced59c19d0a4062146a1dc4ccb977e10284a2fe4`.
+- Проектный flow pack: `91b317a6d131808e08e0c2857e080bdf1a487ed0`.
+- Совместимость проектного пакета: `>=0.9.0-beta.13 <0.10.0`; beta.17 подходит.
+- Глобальный npm-пакет обновлён; выполнен `dd-flow engine install --force`.
+  Установленный engine содержит тот же build-info, что опубликованный архив.
+- [Input checkpoint cp-069](../../../checkpoints/cp-069-task-priority-project-flow-pack-4-0-4-engine-0-9-0-beta-17.json),
+  SHA-256 `b9413d6c29d30faca44a26ef6e606365703a70f338e9d33212911dbcf6cad9cb`.
+- Определение эвала при preflight: `b40b8ddb8287206a19bcfcbf3ddcc291e676130e`,
+  чистое рабочее дерево. После смены checkpoint полный dd-eval снова 168/168.
+- Engine integrity checksum всех трёх preflight одинаков:
+  `e3a16bac6129d173f16c8de8a74dd7cb2672fd5fed40262408f8c8625c1c3ddf`.
+
+Три receipts (в каждом `ok: true`, `provider_sessions_created: 0`):
+
+| Subject | Receipt |
+|---|---|
+| Luna xhigh | `/Users/deksden/.dd-eval/conformance/e2e-preflight/1788653897179-2ce0a5cc/e2e-inline-merge-luna-xhigh/receipt.json` |
+| AGY Gemini 3.1 Pro high | `/Users/deksden/.dd-eval/conformance/e2e-preflight/1788653897920-8908b8b3/e2e-inline-merge-agy-gemini-3-1-pro-high/receipt.json` |
+| ZCode GLM-5.3-Flash max | `/Users/deksden/.dd-eval/conformance/e2e-preflight/1788653897493-f4427d2d/e2e-inline-merge-zcode-glm-5-3-flash-max/receipt.json` |
+
+Сохранены стартовые launcher/context и отдельный подготовленный project/home
+для каждого preflight. Продуктивный `eval run` создаст свои отдельные каталоги;
+не продолжать и не выдавать preflight-каталоги за результаты E2E.
+
+## Следующий запуск
+
+Запустить следующие три команды параллельно в отдельных терминальных процессах.
+Все пути абсолютные; текущий каталог не определяет ни кейс, ни DD_FLOW_HOME.
+Раннер сам создаёт изолированные окружения. Judge включён в каждом профиле.
+
+```sh
+DD_EVAL_HOME=/Users/deksden/.dd-eval node /Users/deksden/Documents/_Projects/dd-eval/bin/dd-eval.mjs runner eval run --profile /Users/deksden/Documents/_Projects/dd-eval/cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-luna-xhigh.json
+DD_EVAL_HOME=/Users/deksden/.dd-eval node /Users/deksden/Documents/_Projects/dd-eval/bin/dd-eval.mjs runner eval run --profile /Users/deksden/Documents/_Projects/dd-eval/cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-agy-gemini-3-1-pro-high.json
+DD_EVAL_HOME=/Users/deksden/.dd-eval node /Users/deksden/Documents/_Projects/dd-eval/bin/dd-eval.mjs runner eval run --profile /Users/deksden/Documents/_Projects/dd-eval/cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-zcode-glm-5-3-flash-max.json
+```
+
+Фиксировать дефекты, не исправлять испытуемый продукт руками; останавливаться
+только при блокере. При неоднозначном исходе сначала согласовать наблюдение той
+же операции, не создавать дубль. Подробности — в `runbooks/execute-eval.md`.
+Предварительные проверки не доказывают успешность всей живой цепочки:
+её и поведение исправлений предстоит проверить собственно E2E и Judge.
 Сами модельные E2E запускаются следующей отдельной командой пользователя.
