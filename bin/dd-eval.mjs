@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualificationRecover, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalPreflight, evalRun, fixturesValidate, harnessCapacityCheck, harnessCompatibilityQualify, runnerCancel, runnerReconcile, runnerResume, runnerStatus } from "../lib/runner.mjs";
+import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualificationRecover, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalPreflight, evalRun, fixturesValidate, harnessCapacityCheck, harnessCompatibilityQualify, runnerCancel, runnerRecover, runnerReconcile, runnerResume, runnerStatus } from "../lib/runner.mjs";
 import { gcApply, gcPlan, storageList, storageStatus } from "../lib/storage.mjs";
 
 function usage() {
@@ -21,6 +21,7 @@ Usage:
   dd-eval runner eval judge --eval <path> [--profile <judge-profile-id>]
   dd-eval runner status --eval <path>
   dd-eval runner resume --eval <path>
+  dd-eval runner recover --eval <path> [--execution <id>]
   dd-eval runner reconcile --eval <path>
   dd-eval runner cancel --eval <path> [--execution <id>]
   dd-eval storage ls [--case <case-id>]
@@ -72,6 +73,7 @@ try {
   else if (family === "runner" && command === "eval" && action === "judge") result = await evalJudge({ evalRoot: required(options, "eval"), ...(options.profile ? { profileId: options.profile } : {}) });
   else if (family === "runner" && command === "status") result = await runnerStatus({ evalRoot: required(options, "eval") });
   else if (family === "runner" && command === "resume") result = await runnerResume({ evalRoot: required(options, "eval") });
+  else if (family === "runner" && command === "recover") result = await runnerRecover({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "reconcile") result = await runnerReconcile({ evalRoot: required(options, "eval") });
   else if (family === "runner" && command === "cancel") result = await runnerCancel({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "storage" && command === "ls") result = await storageList({ ...(options.case ? { caseId: options.case } : {}) });

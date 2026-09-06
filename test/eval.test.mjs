@@ -192,6 +192,17 @@ test("normal, resumed, judged, and cancelled runs share one terminal projection"
   assert.match(source, /event\.type === "dev\.dd\.eval\.execution\.cancelled"/);
 });
 
+test("provider interruption is sealed into an explicit recovery operation", async () => {
+  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.match(source, /function classifyInterruption\(error\)/);
+  assert.match(source, /\["run", "recovery", "begin", runId/);
+  assert.match(source, /\["run", "recovery", "seal", runId/);
+  assert.match(source, /--recovery-id/);
+  assert.match(source, /export async function runnerRecover/);
+  assert.match(source, /launch:recover:/);
+  assert.match(source, /candidate-revisions/);
+});
+
 test("a terminal incomplete execution keeps an immutable evidence candidate for Judge", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /schema_id: "dd-eval\/run-candidate@2"/);
