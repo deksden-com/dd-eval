@@ -26,6 +26,13 @@ Worker launch commands carry the current recovery ID. Receipts from old
 packets or retired daemons cannot acquire another segment, and finishing Work
 requires the daemon that owns its current WorkSession.
 
+Before sending the root recovery prompt, the runner durably saves its exact
+bytes, SHA-256, native Session identity, and stable adapter operation ID under
+the attempt's `recovery-packets/` directory. Changed bytes or identity conflict
+with that delivery; a lost response does not authorize a new operation ID.
+Atomic JSON receipts flush the file before publication and the parent directory
+afterward. Runner events are flushed before their caller proceeds.
+
 `dd-flow run snapshot restore --snapshot /absolute/snapshot --project-root
 /absolute/empty-project --recovery-id RCV-ID --json` restores a sealed RUN to a
 fresh dedicated `DD_FLOW_HOME`. It does not import a native provider Session or

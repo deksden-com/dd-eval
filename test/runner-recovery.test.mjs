@@ -1,19 +1,58 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, utimes, readdir, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, open, utimes, readdir, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
 import { withRunnerLock } from "../lib/runner-lock.mjs";
-import { recordOperation, completeOperation, readEvents, reduceEvents } from "../lib/runner-events.mjs";
+import { recordOperation, completeOperation, readEvents, reduceEvents, writeJsonAtomic } from "../lib/runner-events.mjs";
 import { commandJson } from "../lib/process-json.mjs";
 import { waitForSettlement } from "../lib/session-settlement.mjs";
 import { durableDaemonDispatch, inspectDaemonOperation } from "../lib/daemon-operations.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
-import { recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoveryPrompt } from "../lib/runner.mjs";
+import { recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoveryPrompt, prepareRecoveryDelivery, isInfrastructureFailure } from "../lib/runner.mjs";
+
+test("atomic receipts flush file and directory and preserve the old receipt after a failed flush", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "receipt-flush-"));
+  try {
+    const file = path.join(root, "receipt.json"); await writeFile(file, '{"old":true}');
+    const handle = await open(file, "r"); const prototype = Object.getPrototypeOf(handle); const sync = prototype.sync; await handle.close();
+    let failFlush = true; const flushed = [];
+    t.mock.method(prototype, "sync", async function () {
+      const directory = (await this.stat()).isDirectory();
+      flushed.push(directory ? "directory" : "file");
+      if (failFlush && !directory) throw new Error("injected flush failure");
+      return sync.call(this);
+    });
+    await assert.rejects(writeJsonAtomic(file, { next: true }), /injected flush failure/);
+    assert.deepEqual(JSON.parse(await readFile(file, "utf8")), { old: true });
+    assert.deepEqual(await readdir(root), ["receipt.json"]);
+    failFlush = false; flushed.length = 0;
+    await writeJsonAtomic(file, { next: true });
+    assert.deepEqual(flushed, ["file", "directory"]);
+    assert.deepEqual(JSON.parse(await readFile(file, "utf8")), { next: true });
+  } finally { t.mock.restoreAll(); await rm(root, { recursive: true, force: true }); }
+});
+
+test("recovery delivery pins exact prompt bytes and dispatch identity before use", async () => {
+  const attempt = await mkdtemp(path.join(os.tmpdir(), "recovery-delivery-"));
+  try {
+    const input = { attempt, recovery: { recovery_id: "RCV-1", run_id: "RUN-1", generation: 1, accept_command: "dd-flow run recovery accept RUN-1 --recovery-id RCV-1" }, stage: "code", sessionId: "native-root", harness: "codex-desktop" };
+    const first = await prepareRecoveryDelivery(input);
+    assert.equal(first.reused, false);
+    assert.deepEqual(JSON.parse(await readFile(first.file, "utf8")), first.packet);
+    const again = await prepareRecoveryDelivery(input);
+    assert.equal(again.reused, true); assert.equal(again.sha256, first.sha256);
+    assert.equal(again.packet.operation_id, first.packet.operation_id);
+    await assert.rejects(prepareRecoveryDelivery({ ...input, sessionId: "different-root" }), { code: "recovery_delivery_conflict" });
+    await assert.rejects(prepareRecoveryDelivery({ ...input, recovery: { ...input.recovery, accept_command: "changed command" } }), { code: "recovery_delivery_conflict" });
+    assert.deepEqual(JSON.parse(await readFile(first.file, "utf8")), first.packet);
+  } finally { await rm(attempt, { recursive: true, force: true }); }
+});
 
 test("recovery requires engine acceptance before productive work and preserves a paused Work", () => {
+  assert.equal(isInfrastructureFailure("agy_terminal_result_missing"), true);
   const recovery = { recovery_id: "R2", generation: 2, accept_command: "dd-flow run recovery accept RUN-1 --recovery-id R2 --project-root /project --json" };
   const prompt = recoveryPrompt({ recovery, stage: "code" });
   assert.ok(prompt.indexOf(recovery.accept_command) < prompt.indexOf("Continue only the unresolved"));
