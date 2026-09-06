@@ -175,12 +175,13 @@ test("recovery resumes the latest successor Subject Session", async () => {
   assert.match(source, /sessions\.at\(-1\).*session_id/s);
 });
 
-test("recovery reuses a live execution daemon before making a disposable bridge", async () => {
+test("recovery retains native storage when restarting a stopped execution daemon", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /const primaryState = path\.join\(attempt, "drivers", "daemon"\)/);
   assert.match(source, /\["daemon", "status", \.\.\.primaryArgs/);
   assert.match(source, /try \{ return await action\(\{ daemonArgs, env \}\); \}/);
   assert.match(source, /if \(recoveryBridge\)/);
+  assert.match(source, /daemonArgs = primaryArgs; recoveryBridge = true/);
 });
 
 test("normal, resumed, judged, and cancelled runs share one terminal projection", async () => {
