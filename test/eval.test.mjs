@@ -207,7 +207,7 @@ test("normal, resumed, judged, and cancelled runs share one terminal projection"
   assert.match(source, /await writeJsonAtomic\(path\.join\(root, "state\.json"\), projection\)/);
   assert.match(source, /existing candidate does not match completed executions/);
   assert.match(source, /state !== "awaiting_provider"/);
-  assert.match(source, /event\.type === "dev\.dd\.eval\.execution\.cancelled"/);
+  assert.equal(storedExecutionResults([{ executionid: "e", type: "dev.dd.eval.execution.cancelled", data: {} }], { run_id: "r", executions: [{ id: "e" }] })[0].state, "cancelled");
 });
 
 test("provider interruption is sealed into an explicit recovery operation", async () => {

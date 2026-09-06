@@ -63,3 +63,38 @@ test("Grok daemon keeps background subagents active until cancel", async () => {
     assert.equal((await run(["daemon", "stop", "--state-dir", stateDir])).clean, true);
   } finally { try { await run(["daemon", "stop", "--state-dir", stateDir, "--cancel-tree"]); } catch {} await rm(root, { recursive: true, force: true }); }
 });
+
+test("Grok cancellation uses its native cancelled prompt receipt when session/info omits status", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "dd-grok-cancelled-"));
+  const state = path.join(root, "state"), grok = path.join(root, "grok.mjs"), auth = path.join(root, "auth.json");
+  await writeFile(auth, "{}\n");
+  await writeFile(grok, `
+    import readline from "node:readline";
+    if (process.argv.includes("version")) { console.log(JSON.stringify({currentVersion:"1.0.17 fake"})); process.exit(0); }
+    if (process.argv.includes("inspect")) { console.log(JSON.stringify({configSources:{layers:[]},hooks:[],skills:[],agents:[],plugins:[],mcpServers:[],permissions:{sources:[]},externalCompat:{remoteSettingsLoaded:false,cells:[]},configWarnings:[]})); process.exit(0); }
+    let pending; const send = (id,result) => console.log(JSON.stringify({jsonrpc:"2.0",id,result}));
+    readline.createInterface({input:process.stdin}).on("line", line => {
+      const {id,method,params={}}=JSON.parse(line);
+      if (method === "session/cancel") { if (pending !== undefined) { send(pending,{stopReason:"cancelled"}); pending=undefined; } return; }
+      if (id === undefined) return;
+      if (method === "initialize") send(id,{protocolVersion:1,_meta:{modelState:{currentModelId:"grok-4.6",availableModels:[{modelId:"grok-4.6",_meta:{reasoningEffort:"high"}}]}}});
+      else if (method === "session/new") send(id,{sessionId:"root"});
+      else if (method === "session/prompt") pending=id;
+      else if (method === "_x.ai/session/info") send(id,{result:{sessionId:"root",cwd:${JSON.stringify(root)}}});
+      else if (method === "_x.ai/subagent/list_running") send(id,{result:{subagents:[]}});
+      else send(id,{});
+    });
+  `);
+  try {
+    await run(["daemon", "start", "--state-dir", state, "--cwd", root, "--journal", path.join(root, "events.jsonl"), "--grok-bin", grok, "--auth-path", auth, "--model", "grok-4.6", "--reasoning", "high", "--no-flow"]);
+    await run(["session", "create", "--state-dir", state]);
+    const pending = run(["session", "prompt", "--state-dir", state, "--session-id", "root", "--prompt", "wait"]);
+    for (let index=0; index<30; index++) {
+      if ((await run(["daemon", "status", "--state-dir", state])).active_operation === "session.prompt") break;
+      await new Promise(resolve => setTimeout(resolve, 20));
+    }
+    assert.equal((await run(["daemon", "stop", "--state-dir", state, "--cancel-tree"])).clean, true);
+    assert.equal((await pending).turn.stopReason, "cancelled");
+    await assert.rejects(readFile(path.join(state,"grok-home/auth.json")), {code:"ENOENT"});
+  } finally { try { await run(["daemon","stop","--state-dir",state,"--cancel-tree"]); } catch {} await rm(root,{recursive:true,force:true}); }
+});

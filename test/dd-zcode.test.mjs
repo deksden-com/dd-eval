@@ -168,14 +168,11 @@ test("ZCode daemon client permits a liveness-owned prompt without a wall-clock t
   }
 });
 
-test("ZCode observed profiles fail closed on drift", () => {
+test("ZCode profiles separate routing from integrity", () => {
   const observed = observedProfile({ settings: { model: { current: { providerId: "anthropic", modelId: "GLM-5.3" } }, thoughtLevel: { current: "high" }, mode: { current: "yolo" } } });
-  assert.deepEqual(assertProfile({ provider: "anthropic", model: "GLM-5.3", reasoning: "high", mode: "yolo" }, observed), {
-    status: "matched",
-    requested: { provider: "anthropic", model: "GLM-5.3", reasoning: "high", mode: "yolo" },
-    observed
-  });
-  assert.throws(() => assertProfile({ provider: "anthropic", model: "GLM-5.3", reasoning: "low", mode: "yolo" }, observed), /profile mismatch/);
+  assert.equal(assertProfile({ provider: "anthropic", model: "GLM-5.3", reasoning: "high", mode: "yolo" }, observed).status, "matched");
+  assert.equal(assertProfile({ provider: "anthropic", model: "GLM-5.3", reasoning: "low", mode: "yolo" }, observed).status, "mixed");
+  assert.throws(() => assertProfile({ mode: "safe" }, observed), { code: "profile_integrity_violation" });
 });
 
 test("ZCode probe output uses the final visible assistant message", () => {
@@ -259,7 +256,8 @@ test("dd-zcode controls create, prompt and fork through ACP with an append-only 
 test("lifecycle envelopes carry the verified ZCode profile and daemon identity", () => {
   assert.deepEqual(zcodeLifecycleEnvelope({ method: "session/update" }, { provider: "builtin:zai-coding-plan", model: "GLM-5.3", reasoning: "high", mode: "yolo", daemonId: "daemon-1" }, "native-root")._meta.ddZcode, {
     rootProviderSessionId: "native-root",
-    observedProfile: { provider: "builtin:zai-coding-plan", model: "GLM-5.3", reasoning: "high", mode: "yolo" },
+    requestedProfile: { provider: "builtin:zai-coding-plan", model: "GLM-5.3", reasoning: "high", mode: "yolo" },
+    observedProfile: { provider: null, model: null, reasoning: null, mode: null, permission_mode: null },
     daemonId: "daemon-1"
   });
 });
