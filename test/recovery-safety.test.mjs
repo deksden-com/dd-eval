@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { recoverySettlement } from "../lib/driver-recovery.mjs";
+import { recoverySettlement, authorizeRetainedDaemonResume } from "../lib/driver-recovery.mjs";
 import { frozenCandidate, storedExecutionResults, runnerRecoveryInspect } from "../lib/runner.mjs";
 import { appendEvent } from "../lib/runner-events.mjs";
 
@@ -59,5 +59,22 @@ test("recovery requires clean receipts for every dead daemon, not just a dead pi
     await mkdir(path.join(root, "fanout"));
     await writeFile(path.join(root, "fanout", "daemon.json"), JSON.stringify({ pid, shutdown_state: "cleanup_failed" }));
     await assert.rejects(recoverySettlement(root), { code: "recovery_settlement_unconfirmed" });
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("retained daemon restart fences identity and profile and archives its prior receipt", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "retained-daemon-"));
+  const child = spawn(process.execPath, ["-e", ""]); const pid = child.pid; await once(child, "exit");
+  const config = { cwd: root, model: "fixed-model", noFlow: true };
+  const previous = { daemon_id: "original", pid, shutdown_state: "clean", active_tree: false, sessions: [{ provider_session_id: "retained" }], config };
+  try {
+    await writeFile(path.join(root, "daemon.json"), JSON.stringify(previous));
+    await assert.rejects(authorizeRetainedDaemonResume(root, previous, null, config), { code: "daemon_state_terminal" });
+    await assert.rejects(authorizeRetainedDaemonResume(root, previous, "foreign", config), { code: "daemon_state_terminal" });
+    await assert.rejects(authorizeRetainedDaemonResume(root, previous, "retained", { ...config, model: "changed" }), { code: "daemon_config_mismatch" });
+    await assert.rejects(authorizeRetainedDaemonResume(root, { ...previous, shutdown_state: "unclean" }, "retained", config), { code: "daemon_state_terminal" });
+    await authorizeRetainedDaemonResume(root, previous, "retained", config);
+    await authorizeRetainedDaemonResume(root, previous, "retained", config);
+    assert.deepEqual(JSON.parse(await readFile(path.join(root, "daemon-history", "original.json"), "utf8")), previous);
   } finally { await rm(root, { recursive: true, force: true }); }
 });

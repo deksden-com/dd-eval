@@ -11,7 +11,7 @@ function parse(argv) { const positional = [], options = {}; for (let i = 0; i < 
 async function input() { let text = ""; for await (const chunk of process.stdin) text += chunk; return text; }
 try {
   const { positional: [family, command], options } = parse(process.argv.slice(2));
-  const config = { stateDir: options["state-dir"], cwd: options.cwd, projectRoot: options["project-root"], bin: options["droid-bin"] ?? "droid", entryPath: process.argv[1], journal: options.journal, authHome: options["auth-home"], model: options.model, provider: options.provider, reasoning: options.reasoning, mode: options.mode, ddFlowBin: options["dd-flow-bin"], ddFlowHome: options["dd-flow-home"], noFlow: options["no-flow"] === true, timeoutMs: options.timeout ? Number(options.timeout) * 1_000 : undefined };
+  const config = { stateDir: options["state-dir"], sessionId: options["session-id"], cwd: options.cwd, projectRoot: options["project-root"], bin: options["droid-bin"] ?? "droid", entryPath: process.argv[1], journal: options.journal, authHome: options["auth-home"], model: options.model, provider: options.provider, reasoning: options.reasoning, mode: options.mode, ddFlowBin: options["dd-flow-bin"], ddFlowHome: options["dd-flow-home"], noFlow: options["no-flow"] === true, timeoutMs: options.timeout ? Number(options.timeout) * 1_000 : undefined };
   let result;
   if (family === "doctor") {
     const dir = await mkdtemp(path.join(os.tmpdir(), "dd-droid-doctor-"));
