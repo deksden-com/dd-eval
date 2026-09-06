@@ -201,7 +201,7 @@ subject. Тест проверяет packet/contract; стабильность �
 не выдаётся за unit-test гарантию. На текущем exception path сохранность
 boundaries обязана дать red.
 
-### T4. Живая приёмка после детерминированных тестов — требуется после публикации
+### T4. Живая приёмка после публикации — выполнена, scored gate не пройден
 
 На новой private workspace и зафиксированных версиях выполнить bounded
 Droid smoke через настоящие hooks: отдельный child Work start/finish,
@@ -215,6 +215,21 @@ native settlement и удаление копий авторизации. Не и
 Затем новый scored E2E до MERGE с независимым Judge. Старый run и receipt
 не переписывать и не продолжать ради получения pass. Новый провал отдельно
 диагностировать; успешный unit test или Work smoke не заменяет этот gate.
+
+Публикация проведена как `dd-flow` `0.9.0-beta.19` и Memory Bank `4.0.6`.
+Живой negative/positive ownership probe подтвердил, что child не может
+завершить root lifecycle, а root с новым trusted receipt может; дерево и
+копии auth были убраны. Отдельный live stop-regression с реальным Droid
+подтвердил закрытие Unix socket до подтверждения `daemon stop`.
+
+Scored run `EVAL-20260906135233-403fab69` использовал CP-071, опубликованный
+engine beta.19 и adapter commit `5ad495b`; его итоговый cleanup-path был
+проверен следующим commit `3b03ce3`. Он корректно сохранил immutable
+failure evidence, но завершился `required_hitl_missing` уже на SPECIFY:
+subject не запросил обязательный HITL и зафиксировал противоречащий входному
+контракт. Final Judge признал flow legality 4/4, HITL 0/4 и run valid but
+incomplete. Это не qualification pass и не ошибка lifecycle ownership или
+fanout transport.
 
 ## Размещение тестов и порядок исполнения
 

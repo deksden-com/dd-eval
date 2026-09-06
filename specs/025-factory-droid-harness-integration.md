@@ -118,14 +118,18 @@ not strand copied authentication or keep the daemon alive.
 The scored run `EVAL-20260906033153-cdccbaff` used adapter commit
 `c1f60f3351fdeee7cee1cdd5e73f84b57f154c57`, released CLI beta.18 and Memory
 Bank 4.0.5. SPECIFY (including same-session HITL), PROTOCOLIZE and PLAN
-completed. PLAN-REVIEW stopped with `fanout_reconciliation_required`:
-three completed native children lacked Work launch associations. The subject
-delegated already-started Work without child `work start`, then omitted the
-required review dispatch. Native discovery must not manufacture those links.
+completed. PLAN-REVIEW stopped with `fanout_reconciliation_required` because
+three completed native children from earlier stages lacked Work launch
+associations. The runner reconciled that historical evidence before the
+PLAN-REVIEW dispatch. It is incorrect to describe the lawful
+stop-for-runner response as an omitted dispatch. The earlier child lifecycle
+violations and the late cross-stage reconciliation were repaired by beta.19
+and specification 027; native discovery still must not manufacture links.
 
-The independent Final Judge returned `run_validity=valid` and attributed the
-dispatch failure to subject behavior. CODE, CODE-REVIEW and MERGE were not
-reached; readiness and correction quality were not applicable. The frozen
+The independent Final Judge returned `run_validity=valid`, but that historical
+attribution was based on an incomplete pre-labelled failure packet and is not
+independent proof that the subject omitted dispatch. CODE, CODE-REVIEW and
+MERGE were not reached; readiness and correction quality were not applicable. The frozen
 candidate, native transcripts and Judge receipt remain under that run's
 private DD_EVAL_HOME directory. Droid cleanup was clean, without forced
 signals; daemon/provider absence and temporary authentication removal were
