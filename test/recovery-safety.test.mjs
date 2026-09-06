@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, symlink, rm } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import os from "node:os";
@@ -55,6 +55,9 @@ test("recovery requires clean receipts for every dead daemon, not just a dead pi
     await save({ shutdown_state: "clean", pid: process.pid });
     await assert.rejects(recoverySettlement(root), { code: "operation_observation_lost" });
     await save({ shutdown_state: "clean", active_tree: false });
+    assert.equal((await recoverySettlement(root)).settled, true);
+    await mkdir(path.join(root, "xdg-cache"));
+    await symlink("not-read-as-daemon-evidence", path.join(root, "xdg-cache", "native-package-link"));
     assert.equal((await recoverySettlement(root)).settled, true);
     await mkdir(path.join(root, "fanout"));
     await writeFile(path.join(root, "fanout", "daemon.json"), JSON.stringify({ pid, shutdown_state: "cleanup_failed" }));

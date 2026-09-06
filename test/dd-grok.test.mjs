@@ -6,6 +6,21 @@ import test from "node:test";
 import { assertProfile, createSession, createSessionWithBridge, forkSession, promptSession } from "../lib/dd-grok.mjs";
 import { Runtime } from "../lib/dd-grok-daemon.mjs";
 
+test("Grok missing status requires a native terminal receipt and clears it before the next dispatch", async () => {
+  const runtime = new Runtime({}, { daemon_id: "daemon", sessions: [] }, {}, {});
+  runtime.persist = async () => {};
+  const root = { provider_session_id: "root" };
+  runtime.track(root);
+  assert.equal(runtime.rootRunning(root), true);
+  await runtime.productive("session.create", async () => root);
+  assert.equal(runtime.rootRunning(root), false);
+  await assert.rejects(runtime.productive("session.prompt", async () => { assert.equal(runtime.rootRunning(root), true); throw new Error("lost reply"); }));
+  assert.equal(runtime.rootRunning(root), true);
+  await runtime.productive("session.prompt", async () => ({ ...root, turn: { stopReason: "end_turn" } }));
+  assert.equal(runtime.rootRunning(root), false);
+  assert.equal(runtime.rootRunning({ ...root, info: { status: "running" } }), true);
+});
+
 test("Grok retains a completed native child after list_running becomes empty", () => {
   const runtime = new Runtime({}, { sessions: [] }, {}, {});
   const send = update => runtime.observeSubagentEvent({ params: { sessionId: "root", update } });

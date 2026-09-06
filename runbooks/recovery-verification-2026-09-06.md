@@ -22,3 +22,35 @@ This is evidence of root Session retention across a clean daemon restart,
 not proof of selective child recovery, interrupted external effects, native
 archive portability, or full interrupted → recovered → judged acceptance.
 Full-flow E2E results and remaining plan-026 gates must be recorded separately.
+
+## Six-adapter retained-root smoke
+
+All six adapters completed the two-turn retained-context probe after a clean
+daemon stop/restart. These are the final passing receipts under
+`/Users/deksden/.dd-eval/conformance/` (earlier failures are retained too):
+
+| Adapter | Evidence directory |
+| --- | --- |
+| AGY | `recovery-agy.e53EeL` (native daemon journal) |
+| Codex | `undefined-recovery-vanjCa/receipt.json` |
+| Droid | `dd-droid-recovery-nEvovi/receipt.json` |
+| ZCode | `dd-zcode-recovery-FGdUGG/receipt.json` |
+| Grok | `dd-grok-recovery-GvLere/receipt.json` |
+| OpenCode | `undefined-recovery-m7F5Ed/receipt.json` |
+
+The `undefined-` prefix was only a smoke-tool naming defect, since those
+profiles infer their adapter. The tool now falls back to the harness name.
+
+Live probes exposed and drove fixes for Droid's retained root identity,
+ZCode/OpenCode response text, native package symlinks during daemon inventory,
+and Grok's missing native root status. Grok now requires the durable native
+session-created/end-turn receipt when status is absent, invalidates that
+receipt before dispatch, and remains blocked after an unknown outcome.
+One earlier Grok probe required verified process-group teardown after the
+adapter could not confirm native settlement; it is not a successful recovery.
+
+Reproduce with `node tools/native-recovery-smoke.mjs <profile-id>`.
+The full runner suite after these changes passed 200 tests.
+The full-flow AGY campaign is `EVAL-20260906190344-6ffd759f`; its result is still
+pending. Native-root smoke success does not substitute for that result or for
+the interrupted-work acceptance gates in plan 026.
