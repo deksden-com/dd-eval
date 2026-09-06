@@ -22,7 +22,7 @@ Usage:
   dd-eval runner eval judge --eval <path> [--profile <judge-profile-id>]
   dd-eval runner status --eval <path>
   dd-eval runner resume --eval <path>
-  dd-eval runner recover --eval <path> [--execution <id>]
+  dd-eval runner recover --eval <path> --from <recovery-id> [--execution <id>]
   dd-eval runner recovery inspect --eval <path> [--execution <id>]
   dd-eval runner reconcile --eval <path>
   dd-eval runner cancel --eval <path> [--execution <id>]
@@ -75,7 +75,7 @@ try {
   else if (family === "runner" && command === "eval" && action === "judge") result = await evalJudge({ evalRoot: required(options, "eval"), ...(options.profile ? { profileId: options.profile } : {}) });
   else if (family === "runner" && command === "status") result = await runnerStatus({ evalRoot: required(options, "eval") });
   else if (family === "runner" && command === "resume") result = await runnerResume({ evalRoot: required(options, "eval") });
-  else if (family === "runner" && command === "recover") result = await runnerRecover({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
+  else if (family === "runner" && command === "recover") result = await runnerRecover({ evalRoot: required(options, "eval"), fromRecoveryId: required(options, "from"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "recovery" && positional[2] === "inspect") result = await runnerRecoveryInspect({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "reconcile") result = await runnerReconcile({ evalRoot: required(options, "eval") });
   else if (family === "runner" && command === "cancel") result = await runnerCancel({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });

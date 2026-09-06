@@ -5,7 +5,7 @@ an unknown operation outcome is not permission to repeat a prompt.
 
 ```sh
 dd-eval runner recovery inspect --eval /absolute/eval --execution execution-id
-dd-eval runner recover --eval /absolute/eval --execution execution-id
+dd-eval runner recover --eval /absolute/eval --execution execution-id --from RCV-id-from-inspect
 ```
 
 The runner requires clean, stopped adapter receipts for every retained daemon,

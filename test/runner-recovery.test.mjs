@@ -11,7 +11,21 @@ import { waitForSettlement } from "../lib/session-settlement.mjs";
 import { durableDaemonDispatch, inspectDaemonOperation } from "../lib/daemon-operations.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
-import { recoveryHistory, assertTerminalReconciliation } from "../lib/runner.mjs";
+import { recoveryHistory, assertTerminalReconciliation, selectRecoverySource } from "../lib/runner.mjs";
+
+test("recovery selects exactly the requested current interruption, including idempotent repeats", () => {
+  const failed = { execution: "e", state: "failed", recovery: { recovery_id: "R2" } };
+  const other = { execution: "other", state: "failed", recovery: { recovery_id: "R3" } };
+  assert.equal(selectRecoverySource([failed, other], null, "R2"), failed);
+  assert.throws(() => selectRecoverySource([failed], "e", undefined), { code: "recovery_source_required" });
+  for (const [execution, from] of [["e", "R1"], ["other", "R2"], [null, "unknown"]]) {
+    assert.throws(() => selectRecoverySource([failed, other], execution, from), { code: "recovery_source_stale" });
+  }
+  assert.throws(() => selectRecoverySource([failed, { ...failed, execution: "duplicate" }], null, "R2"), { code: "recovery_source_stale" });
+  assert.throws(() => selectRecoverySource([{ ...failed, state: "awaiting_provider" }], "e", "R2"), { code: "recovery_not_eligible" });
+  const completed = { ...failed, state: "candidate_ready", recovery: { recovery_id: "R2", resumed_at: "2026-09-06T21:00:00Z" } };
+  assert.equal(selectRecoverySource([completed], "e", "R2"), completed);
+});
 
 test("terminal reconciliation rejects every productive continuation state", () => {
   const execution = { id: "e", terminal_stage: "MERGE" };
