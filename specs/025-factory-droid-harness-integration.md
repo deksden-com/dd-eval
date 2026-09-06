@@ -2,7 +2,8 @@
 
 Status: adapter implemented; native transport, tree cancellation, same-ID
 resume and capacity 15 verified on 2026-09-06. Generated-hook smoke also passed; scored
-E2E has a separate receipt; native probes alone do not imply those gates.
+E2E completed with a subject protocol failure at PLAN-REVIEW; full E2E
+qualification has not passed. Native probes alone do not imply those gates.
 
 ## Scope
 
@@ -112,10 +113,32 @@ Post-close metadata inspection errors are retained in cleanup evidence and
 produce an unclean receipt. Once owned process settlement is proven, they do
 not strand copied authentication or keep the daemon alive.
 
-## Remaining qualification gates
+## Scored E2E result and remaining qualification gates
 
-Run successful productive Work binding and the
-existing E2E qualification. Independent focused cells require an accepted
+The scored run `EVAL-20260906033153-cdccbaff` used adapter commit
+`c1f60f3351fdeee7cee1cdd5e73f84b57f154c57`, released CLI beta.18 and Memory
+Bank 4.0.5. SPECIFY (including same-session HITL), PROTOCOLIZE and PLAN
+completed. PLAN-REVIEW stopped with `fanout_reconciliation_required`:
+three completed native children lacked Work launch associations. The subject
+delegated already-started Work without child `work start`, then omitted the
+required review dispatch. Native discovery must not manufacture those links.
+
+The independent Final Judge returned `run_validity=valid` and attributed the
+dispatch failure to subject behavior. CODE, CODE-REVIEW and MERGE were not
+reached; readiness and correction quality were not applicable. The frozen
+candidate, native transcripts and Judge receipt remain under that run's
+private DD_EVAL_HOME directory. Droid cleanup was clean, without forced
+signals; daemon/provider absence and temporary authentication removal were
+read back separately. The earlier two failed runs retain evidence of the
+configured-Judge-binary and native-Task-resume defects fixed by this release.
+
+Successful productive Work binding is verified separately with a real native
+Task: `WRK-002-native-child` under `RUN-001-droid-binding` started and finished
+through generated hooks. The engine linked a distinct child Session to the
+root and retained the selected provider/model/reasoning/mode. This bounded
+probe does not qualify the failed scored E2E.
+
+Full E2E qualification remains open. Independent focused cells require an accepted
 portable entry pack; the current case has none. E2E uses its new immutable
 input checkpoint and does not qualify focused cells by inference.
 
