@@ -89,6 +89,21 @@ test('Droid recovery needs the exact persisted native outcome and a settled tree
   assert.equal(recovered.recovered_from, 'native.agent_turn_outcome');
 });
 
+test('Droid recovery keeps its operation when prompt completes during binding persistence', async t => {
+  const { runtime, transcript, header } = await fixture(t);
+  const current = { operationId: 'op', turnId: 'wanted', saved: { operation: 'session.prompt', provider_session_id: 'root', turn_id: 'wanted', assistant_text: 'saved answer' }, text: 'saved answer', resolve: outcome => { resolved = outcome; } };
+  let resolved = null;
+  await runtime.saveBinding(current);
+  await writeFile(transcript, jsonl([header, { type: 'agent_turn_outcome', turnId: 'wanted', reason: 'completed' }]));
+  runtime.inspect = async () => ({ settled: true, provider_session_id: 'root' });
+  runtime.active = current;
+  const save = runtime.saveBinding.bind(runtime);
+  runtime.saveBinding = async (...args) => { await save(...args); runtime.active = null; };
+  assert.equal(await runtime.recoverOperation('op'), null);
+  assert.equal(resolved.turnId, 'wanted');
+  assert.equal(runtime.active, null);
+});
+
 test('Droid validates native model, reasoning and mode rather than requested values', async t => {
   const { runtime } = await fixture(t);
   assert.deepEqual(runtime.profile(settings), { provider: 'openai', model: 'gpt-5.6-sol', reasoning: 'high', mode: 'auto-high' });
