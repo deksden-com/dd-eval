@@ -213,6 +213,7 @@ test("normal, resumed, judged, and cancelled runs share one terminal projection"
 test("provider interruption is sealed into an explicit recovery operation", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /function classifyInterruption\(error\)/);
+  assert.match(source, /terminal_result_missing\|process_crash/);
   assert.match(source, /\["run", "recovery", "begin", runId/);
   assert.match(source, /\["run", "recovery", "seal", runId/);
   assert.match(source, /--recovery-id/);
