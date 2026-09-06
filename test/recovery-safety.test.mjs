@@ -78,3 +78,19 @@ test("retained daemon restart fences identity and profile and archives its prior
     assert.deepEqual(JSON.parse(await readFile(path.join(root, "daemon-history", "original.json"), "utf8")), previous);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+test("a clean adapter receipt cannot hide an active managed check or service", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "managed-recovery-"));
+  const drivers = path.join(root, "drivers"); await mkdir(drivers);
+  const child = spawn(process.execPath, ["-e", ""]); const pid = child.pid; await once(child, "exit");
+  const cli = path.join(root, "registry.mjs");
+  const record = { id: "check", state: "running", stdout_path: path.join(root, "check.log") };
+  const writeRegistry = () => writeFile(cli, `process.stdout.write(${JSON.stringify(JSON.stringify({ ok: true, processes: [{ id: "daemon", state: "stopped" }, record] }))});`);
+  try {
+    await writeRegistry();
+    await writeFile(path.join(drivers, "daemon.json"), JSON.stringify({ pid, shutdown_state: "clean", daemon_id: "daemon", resource_process: { id: "daemon" }, config: { cwd: root, resourceHome: root, ddFlowHome: root, ddFlowBin: cli } }));
+    await assert.rejects(recoverySettlement(drivers), { code: "recovery_settlement_unconfirmed" });
+    record.state = "stopped"; await writeRegistry();
+    assert.equal((await recoverySettlement(drivers)).settled, true);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
