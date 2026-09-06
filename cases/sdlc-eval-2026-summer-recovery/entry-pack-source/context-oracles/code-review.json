@@ -1,0 +1,1 @@
+{"schema_id":"dd-eval/context-oracle@1","stage":"code-review","required_roles":["accepted_plans","code_verification","code_evidence","scenarios"],"forbidden":["judge assessment"]}

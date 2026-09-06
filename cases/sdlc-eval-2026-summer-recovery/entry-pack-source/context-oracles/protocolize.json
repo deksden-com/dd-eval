@@ -1,0 +1,1 @@
+{"schema_id":"dd-eval/context-oracle@1","stage":"protocolize","required_roles":["accepted_specify","epic_index","scenario_index"],"forbidden":["future-stage artifacts"]}

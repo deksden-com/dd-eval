@@ -1,0 +1,46 @@
+{
+  "schema_id": "dd-eval/case@7",
+  "suite_id": "sdlc-eval-2026-summer",
+  "id": "sdlc-eval-2026-summer-recovery",
+  "assessment": "assessment.json",
+  "input": [
+    {
+      "role": "initial_user_request",
+      "source": "entry-pack-source/task-priority.md",
+      "sha256": "af92baafdebc3ef4663e1049216a338f20b0948ae8310be7a9bf4f47d7fd694e"
+    }
+  ],
+  "input_checkpoint": {
+    "id": "cp-072-task-priority-project-flow-pack-4-0-6-engine-0-9-0-beta-20",
+    "sha256": "f553f5697a944a0f0aece8cee9eacc4b77f6407ab418e09b01bcef49d2b83bde"
+  },
+  "entry_pack": null,
+  "profiles": {
+    "subject": [
+      "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-9-0-beta-11",
+      "codex-desktop-gpt-5-6-terra-high-dd-flow-0-9-0-beta-11",
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-11",
+      "antigravity-cli-google-gemini-3-1-pro-high",
+      "grok-acp-xai-grok-4-6-high",
+      "zcode-acp-zai-glm-5-3-high",
+      "zcode-acp-zai-glm-5-3-flash-high",
+      "zcode-acp-zai-glm-5-3-flash-max",
+      "droid-cli-openai-gpt-5-6-sol-high"
+    ],
+    "judge": [
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-11"
+    ]
+  },
+  "flow": {
+    "contour": [
+      "specify",
+      "protocolize",
+      "plan",
+      "plan-review",
+      "code",
+      "code-review",
+      "merge"
+    ],
+    "terminal_stage": "merge"
+  }
+}
