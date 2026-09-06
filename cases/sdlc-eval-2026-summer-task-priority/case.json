@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-071-task-priority-project-flow-pack-4-0-6-engine-0-9-0-beta-19",
-    "sha256": "ad345bffc02b9574ea405fdc94e84d4ebe6f75ca9f6674a4b18f8b2ce4f33108"
+    "id": "cp-073-task-priority-tagged-baseline-flow-4-0-6-engine-0-9-0-beta-19",
+    "sha256": "ad590f72b7a25a87c5459bb7801534e2f365f1785a67e43c1ca3594417c8b3fd"
   },
   "entry_pack": null,
   "profiles": {

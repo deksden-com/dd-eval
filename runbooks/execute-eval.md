@@ -34,6 +34,13 @@ E2E uses the input checkpoint, never a canonical stage-entry pack. Updating the
 engine requires a new checkpoint pointing to its committed project flow pack;
 changing a global CLI alone does not update the pinned experiment.
 
+Keep the product baseline separate from the flow-pack revision. For the active
+Task Priority case, `source.tag` is `eval/cp-068-source` and `source.commit` is
+`44939e95060a65e80571acdcbf42609b80621e63`. The runner checks the tag resolves to
+that commit before E2E materialization or canonical preparation. Updating the
+engine or Memory Bank must not advance this source to current `dd-tasks/main`,
+where the feature is already implemented. See the [baseline audit](task-priority-baseline-audit-2026-09-06.md).
+
 После обновления runtime сверяйте не только версии, но и фактическую готовность
 пакета исправлений. Для плана 023 см. [аудит](../specs/023-verification-audit-2026-09-05.md):
 публикация beta.14 сама по себе не закрывает оставшиеся acceptance gates.

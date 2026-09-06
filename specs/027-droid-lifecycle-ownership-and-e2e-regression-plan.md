@@ -222,14 +222,19 @@ native settlement и удаление копий авторизации. Не и
 копии auth были убраны. Отдельный live stop-regression с реальным Droid
 подтвердил закрытие Unix socket до подтверждения `daemon stop`.
 
-Scored run `EVAL-20260906135233-403fab69` использовал CP-071, опубликованный
-engine beta.19 и adapter commit `5ad495b`; его итоговый cleanup-path был
-проверен следующим commit `3b03ce3`. Он корректно сохранил immutable
-failure evidence, но завершился `required_hitl_missing` уже на SPECIFY:
-subject не запросил обязательный HITL и зафиксировал противоречащий входному
-контракт. Final Judge признал flow legality 4/4, HITL 0/4 и run valid but
-incomplete. Это не qualification pass и не ошибка lifecycle ownership или
-fanout transport.
+Scored run `EVAL-20260906135233-403fab69` нельзя использовать для оценки
+subject: CP-071 ошибочно подменил исходный проект уже реализованной версией
+`f4d613d5`, одновременно обновляя flow pack. Код и активная Memory Bank
+задавали Low/Medium/High, default Medium и read-only архив, тогда как скрытый
+HITL fixture требовал четыре значения, default no_priority и исключение для
+архивных задач. `required_hitl_missing` и Judge verdict сохранены как
+исторические evidence, но атрибуция ошибки subject была необоснованной.
+Кроме того, `daemon_stop_incomplete` относился к Codex Judge; Droid
+stop-regression не доказывает исправление Codex cleanup.
+
+Повторная квалификация использует CP-073: исходный commit `44939e9` из тега
+`eval/cp-068-source`, отдельно наложенный flow pack 4.0.6 и engine beta.19.
+CP-071 и прежние run receipts не переписываются.
 
 ## Размещение тестов и порядок исполнения
 

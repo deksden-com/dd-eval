@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, executionEvidence, failureAttribution, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, nativeChildrenSince, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, executionEvidence, failureAttribution, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, nativeChildrenSince, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -21,11 +21,28 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-071-task-priority-project-flow-pack-4-0-6-engine-0-9-0-beta-19");
-  assert.equal(loaded.inputCheckpoint.value.source.commit, "f4d613d5b933aa7e0c77895e84dc9b8d24e4ffc9");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-073-task-priority-tagged-baseline-flow-4-0-6-engine-0-9-0-beta-19");
+  assert.equal(loaded.inputCheckpoint.value.source.commit, "44939e95060a65e80571acdcbf42609b80621e63");
+  assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-068-source");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "f4d613d5b933aa7e0c77895e84dc9b8d24e4ffc9");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.19");
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
+});
+
+test("source tag rejects a completed-product commit before materialization", async () => {
+  const temporary = await mkdtemp(path.join(tmpdir(), "dd-eval-source-tag-"));
+  const git = (...args) => run("git", args, { cwd: temporary });
+  try {
+    await git("init", "--quiet");
+    await git("-c", "user.name=Test", "-c", "user.email=test@localhost", "commit", "--allow-empty", "-m", "baseline");
+    const baseline = (await git("rev-parse", "HEAD")).stdout.trim();
+    await git("tag", "eval/baseline");
+    await assertSourceTag(temporary, { tag: "eval/baseline", commit: baseline });
+    await git("-c", "user.name=Test", "-c", "user.email=test@localhost", "commit", "--allow-empty", "-m", "feature implemented");
+    const completed = (await git("rev-parse", "HEAD")).stdout.trim();
+    await assert.rejects(assertSourceTag(temporary, { tag: "eval/baseline", commit: completed }), error => error.code === "input_checkpoint_source_tag_mismatch");
+    await assertSourceTag(temporary, { commit: baseline });
+  } finally { await rm(temporary, { recursive: true, force: true }); }
 });
 
 test("project flow-pack preflight rejects a bare canonical flow before a Session can start", async () => {
