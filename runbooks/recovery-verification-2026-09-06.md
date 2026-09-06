@@ -98,3 +98,28 @@ The additional engine commits have not been published to npm.
 - The normal-flow third E2E reached CODE and native child dispatch. Its final
   result and the full engine suite remain pending.
 - `npm whoami` still returns E401. No registry publication was performed.
+
+## Work evidence and import state
+
+- Engine `8b44233` preserves a Work's original `started_at` across reopening
+  and activates its recovery segment inside the session-binding transaction.
+- `6a0f9ee` references the verified capture's Work directory instead of copying
+  another archive inside SQL. Missing or symlinked directory components block
+  recovery. The regression test refuses any copy during resume and confirms
+  that subsequent edits to the working prompt leave captured bytes unchanged.
+- `9fa63e4` keeps running Work session records intact during a sealed recovery
+  import. Explicit resume closes them as interrupted, never as completed.
+  Typecheck and all 10 snapshot tests passed after these changes.
+- `bc11ec7` fences server MERGE queue selection, transactional claiming, adapter
+  calls and late receipts. Recovery blocks automatic requeue and expired-lease
+  reconciliation of guarded requests. All 17 focused server/repair/runtime
+  tests passed, including an interruption between claim and first adapter call.
+- The full engine run started before these edits ended with 295 passes and
+  5 failures: newly edited tests ran against cached pre-edit source (including
+  an old void guard and unguarded server dispatch). Fresh focused tests above
+  passed. A new full suite is running against clean `bc11ec7`; engine source
+  changes are paused until that run finishes. Its result remains pending.
+
+The third E2E is still executing CODE. Fresh native import, authenticated hook
+generation binding, selective child-session continuation and full interrupted
+E2E acceptance are not claimed complete by these checks.
