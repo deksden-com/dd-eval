@@ -120,6 +120,20 @@ The additional engine commits have not been published to npm.
   passed. A new full suite is running against clean `bc11ec7`; engine source
   changes are paused until that run finishes. Its result remains pending.
 
-The third E2E is still executing CODE. Fresh native import, authenticated hook
-generation binding, selective child-session continuation and full interrupted
-E2E acceptance are not claimed complete by these checks.
+## Completed verification checkpoint
+
+The clean `bc11ec7` full engine suite completed with 300 passing tests in 23
+files (1407.99 seconds). This supersedes the pending full-suite entries above.
+
+`EVAL-20260906193007-d5463c98` completed at `2026-09-06T20:57:59Z` with a valid
+Judge assessment and uninterrupted reliability. Its candidate SHA-256 is
+`eac531e8aea00e7c2c46bdd5bb88003d12e403cc9bbf39eb3c7bd90d128ae5e9`.
+The Judge identified five substantive defects: a rewritten historical
+migration that breaks upgrade, changed priority ordering, incorrect archived
+priority request-boundary behavior, a stale feature record, and an unsupported
+concurrency claim in review. A completed evaluation is not a clean product
+assessment; these findings remain retained.
+
+Fresh native import, authenticated hook generation binding, selective
+child-session continuation and full interrupted E2E acceptance are not claimed
+complete by these checks. This normal-flow E2E does not exercise interruption.
