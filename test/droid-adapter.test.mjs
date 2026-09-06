@@ -97,3 +97,50 @@ test('Droid validates native model, reasoning and mode rather than requested val
   }
   assert.throws(() => runtime.profile({}), { code: 'profile_drift' });
 });
+
+async function resumeFixture(t, resumeInput, { toolName = 'Task', childParent = 'root' } = {}) {
+  const base = await fixture(t);
+  const { runtime, transcript, header } = base;
+  const folder = path.dirname(transcript);
+  await writeFile(path.join(folder, 'child.jsonl'), jsonl([{ type: 'session_start', id: 'child', cwd: base.dir, callingSessionId: childParent, callingToolUseId: 'create-tool' }]));
+  await writeFile(path.join(folder, 'child.settings.json'), JSON.stringify(settings));
+  await writeFile(transcript, jsonl([header, { type: 'message', message: { role: 'assistant', content: [
+    { type: 'tool_use', id: 'create-tool', name: 'Task', input: { subagent_type: 'dd-flow-worker', prompt: 'original Work' } },
+    { type: 'tool_use', id: 'resume-tool', name: toolName, input: resumeInput },
+    { type: 'text', text: 'resume child; this text is not native identity evidence' },
+  ] } }]));
+  const catalog = path.join(runtime.paths.factory, 'task-invocations.json');
+  const first = { taskInvocationId: 'first-task', createdAt: 1, parentSessionId: 'root', parentToolUseId: 'create-tool', childSessionId: 'child', status: 'completed' };
+  const second = { taskInvocationId: 'resumed-task', createdAt: 2, parentSessionId: 'root', parentToolUseId: 'resume-tool', childSessionId: 'child', status: 'running' };
+  await writeFile(catalog, JSON.stringify({ invocations: [first, second] }));
+  return { ...base, catalog, first, second };
+}
+
+test('Droid native Task resume remains one physical child and follows the latest invocation state', async t => {
+  const { runtime, catalog, first, second } = await resumeFixture(t, { resume: 'child', subagent_type: 'dd-flow-worker' });
+  const observed = await runtime.refreshTopology();
+  assert.equal(observed.length, 1);
+  assert.equal(observed[0].provider_session_id, 'child');
+  assert.equal(observed[0].parent_provider_session_id, 'root');
+  assert.equal(observed[0].status, 'running');
+  assert.equal(observed[0].tool_use_id, 'create-tool');
+  assert.equal(observed[0].latest_tool_use_id, 'resume-tool');
+  assert.deepEqual(observed[0].task_invocation_ids, ['first-task', 'resumed-task']);
+  assert.equal((await runtime.refreshTopology()).length, 1, 'repeated observation must not interpret prior resume as another child');
+  await writeFile(catalog, JSON.stringify({ invocations: [first, { ...second, status: 'completed' }] }));
+  assert.equal((await runtime.refreshTopology())[0].status, 'completed');
+});
+
+test('Droid refuses child reuse without matching native Task resume evidence', async t => {
+  for (const scenario of [
+    { label: 'missing resume', input: { prompt: 'resume child' } },
+    { label: 'foreign resume', input: { resume: 'other-child' } },
+    { label: 'non-Task tool', input: { resume: 'child' }, options: { toolName: 'Execute' } },
+    { label: 'foreign parent', input: { resume: 'child' }, options: { childParent: 'other-root' } },
+  ]) {
+    await t.test(scenario.label, async childTest => {
+      const { runtime } = await resumeFixture(childTest, scenario.input, scenario.options);
+      await assert.rejects(runtime.refreshTopology(), { code: 'droid_child_identity_invalid' });
+    });
+  }
+});

@@ -94,3 +94,27 @@ test('Droid native outcome recovery releases the original pending turn before ne
   assert.equal(next.result.status, 'completed');
   assert.equal((await calls()).filter(call => call.method === 'droid.add_user_message').length, 2);
 });
+
+test('Droid shutdown cleans credentials and exits after physical cleanup even if profile inspection fails', async t => {
+  const { stateDir, id } = await setup(t);
+  const { writeFile, access } = await import('node:fs/promises');
+  const paths = droidPaths(stateDir);
+  const settingsFile = path.join(paths.factory, 'sessions', 'fixture', id + '.settings.json');
+  const settings = JSON.parse(await readFile(settingsFile, 'utf8'));
+  await writeFile(settingsFile, JSON.stringify({ ...settings, model: 'foreign-model', modelId: 'foreign-model' }));
+  const copiedAuth = path.join(paths.factory, 'auth.json');
+  await writeFile(copiedAuth, '{"fixture":true}');
+  const before = await callDaemon(stateDir, 'daemon.status');
+  const cleanup = await stopDaemon({ stateDir, cancelTree: true });
+  assert.equal(cleanup.stopped, true);
+  assert.equal(cleanup.settled, true);
+  assert.equal(cleanup.clean, false);
+  assert.equal(cleanup.cleanup.inspection_error.code, 'profile_drift');
+  await assert.rejects(access(copiedAuth), { code: 'ENOENT' });
+  const state = JSON.parse(await readFile(paths.state, 'utf8'));
+  assert.equal(state.shutdown_state, 'unclean');
+  await until(async () => {
+    const rows = await processSnapshot();
+    return !rows.some(row => !row.zombie && [before.pid, before.provider_pid].includes(row.pid));
+  });
+});

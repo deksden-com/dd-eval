@@ -81,8 +81,8 @@ The deterministic suite covers physical usage/caches/thinking, malformed partial
 transcripts, profile/identity drift, exact terminal correlation, durable native
 outcome recovery, disconnected observers and at-most-once dispatch. Fake native
 process tests verify cancel/load ordering and retained child ownership after
-root exit. The full repository suite passed 180 tests; a further regression verifies
-lost terminal notifications release the original operation without replay.
+root exit. The full repository suite passed 189 tests, including lost terminal
+notification recovery, native Task resume and metadata-error cleanup.
 
 Live adapter receipts under `DD_EVAL_HOME/conformance/droid-adapter-20260906`
 show two completed native children with separate physical counters, a live
@@ -99,6 +99,18 @@ updatedInput. The command reached the expected not-found response; this proves
 transport/rewrite, not successful Work acceptance. Physical usage and tool
 failure counts were retained; cleanup removed private authentication and both
 owned daemon/provider processes.
+
+A native `Task resume` continues an existing physical child. Its transcript
+retains the original callingToolUseId while task-invocations records a new
+parent tool ID. The adapter verifies the new native parent Task has
+`input.resume` equal to that child ID; absent, foreign or non-Task evidence is
+rejected. The creation edge stays stable and usage remains one physical
+counter. dd-flow continues to enforce Work binding. A separate live recall
+probe verified two invocations, one child and clean shutdown.
+
+Post-close metadata inspection errors are retained in cleanup evidence and
+produce an unclean receipt. Once owned process settlement is proven, they do
+not strand copied authentication or keep the daemon alive.
 
 ## Remaining qualification gates
 
