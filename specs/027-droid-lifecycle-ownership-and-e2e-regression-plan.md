@@ -236,6 +236,14 @@ stop-regression не доказывает исправление Codex cleanup.
 `eval/cp-068-source`, отдельно наложенный flow pack 4.0.6 и engine beta.19.
 CP-071 и прежние run receipts не переписываются.
 
+Повтор CP-073 `EVAL-20260906193630-e4169daa` подтвердил собственные
+`work start/finish` у пяти PLAN-REVIEW детей, трёх CODE детей и первого
+repair ребёнка; native observation/reconciliation вернули `issues: []`.
+Полный gate не пройден: далее обнаружены пересечение общей Vitest-БД с
+параллельным eval и смена native profile десятого ребёнка на `kimi-k3`.
+CODE-REVIEW и MERGE не достигнуты. Подробности и границы результата — в
+[аудите CP-073](../runbooks/task-priority-baseline-audit-2026-09-06.md).
+
 ## Размещение тестов и порядок исполнения
 
 - CLI: расширить `test/vnext-fanout-reconcile.test.ts` и

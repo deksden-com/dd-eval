@@ -70,6 +70,8 @@ The downstream implementation contour is being defined in
 
 An evaluation run starts from an immutable `dd-tasks` checkpoint and measures a
 specific harness/model profile, not a model in isolation.
+The [Task Priority baseline audit](runbooks/task-priority-baseline-audit-2026-09-06.md)
+records the active tagged source, preparation checks and latest Droid qualification limits.
 
 The active suite follows the vNext order:
 
