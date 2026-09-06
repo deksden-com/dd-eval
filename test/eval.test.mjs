@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, executionEvidence, failureAttribution, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, nativeChildrenSince, qualificationSucceeded, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -21,10 +21,10 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-070-task-priority-project-flow-pack-4-0-5-engine-0-9-0-beta-18");
-  assert.equal(loaded.inputCheckpoint.value.source.commit, "44939e95060a65e80571acdcbf42609b80621e63");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "357a47b49ec443c746c3137eb443bb749c73a6a5");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.18");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-071-task-priority-project-flow-pack-4-0-6-engine-0-9-0-beta-19");
+  assert.equal(loaded.inputCheckpoint.value.source.commit, "f4d613d5b933aa7e0c77895e84dc9b8d24e4ffc9");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "f4d613d5b933aa7e0c77895e84dc9b8d24e4ffc9");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.19");
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
 
@@ -293,6 +293,37 @@ test("productive fan-out uses the coordinator's native children and leaves sibli
   assert.match(source, /nativeChildFanoutPrompt/);
   assert.match(source, /native_children_required/);
   assert.match(source, /not a reason to cancel its siblings/);
+});
+
+test("a new fan-out stage ignores historical native children but keeps its new wave", () => {
+  const children = [{ session_id: "old", status: "completed" }, { session_id: "new", status: "running" }];
+  assert.deepEqual(nativeChildrenSince(children, new Set(["old"])), [{ session_id: "new", status: "running" }]);
+});
+
+test("reconciliation failures retain undetermined attribution for the Judge", () => {
+  assert.equal(failureAttribution("fanout_reconciliation_required"), "undetermined");
+  assert.equal(failureAttribution("provider_rate_limited"), "evaluation_infrastructure");
+  assert.equal(failureAttribution("unexpected_hitl"), "subject");
+  assert.equal(failureAttribution("future_unclassified_failure"), "undetermined");
+  const prompt = finalJudgePrompt({ assessmentFile: "/assessment", candidateFile: "/candidate", evidenceFile: "/evidence", scope: "e2e", assessment: { scopes: { e2e: { outcome: [{ id: "outcome" }], flow: [{ id: "flow" }] } } } });
+  assert.match(prompt, /stop for runner dispatch/);
+});
+
+test("failure evidence preserves reached boundaries, HITL, launcher, and observations", () => {
+  const evidence = executionEvidence({
+    execution: "e2e", state: "failed", code: "fanout_reconciliation_required", error: "native graph diverged",
+    stage: "plan-review", run_id: "RUN-001", session_id: "SES-root", launcher: "stop for runner dispatch",
+    boundaries: [{ stage: "specify", checkpoint: { manifest_sha256: "a".repeat(64) } }, { stage: "plan", checkpoint: { manifest_sha256: "b".repeat(64) } }],
+    hitl: [{ stage: "specify", answer_sha256: "c".repeat(64) }],
+    statistics: { usage: { total_tokens: 12 }, observation: { tool_calls: 3 }, sessions: [{ id: "SES-root" }] },
+    driver: { evidence: { tool_calls: [{ id: "tool-1" }] }, journal: "/attempt/drivers/subject.events.jsonl" }, attempt: "/attempt"
+  });
+  assert.equal(evidence.failure.attribution, "undetermined");
+  assert.equal(evidence.stage_boundaries.length, 2);
+  assert.equal(evidence.hitl.length, 1);
+  assert.deepEqual(evidence.usage, { total_tokens: 12 });
+  assert.deepEqual(evidence.observation, { tool_calls: 3 });
+  assert.equal(evidence.artifacts.driver_journal, "/attempt/drivers/subject.events.jsonl");
 });
 
 test("productive fan-out no longer creates an isolated worker root", async () => {

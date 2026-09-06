@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, realpath, rm } from 'node:fs/promises';
+import { lstat, mkdtemp, readFile, realpath, rm } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import net from 'node:net';
 import os from 'node:os';
@@ -117,4 +117,11 @@ test('Droid shutdown cleans credentials and exits after physical cleanup even if
     const rows = await processSnapshot();
     return !rows.some(row => !row.zombie && [before.pid, before.provider_pid].includes(row.pid));
   });
+});
+
+test('Droid stop retires its socket before acknowledging completion', async t => {
+  const { stateDir } = await setup(t);
+  const socket = droidPaths(stateDir).socket;
+  await stopDaemon({ stateDir, cancelTree: true });
+  await assert.rejects(lstat(socket), { code: 'ENOENT' });
 });
