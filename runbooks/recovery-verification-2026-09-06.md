@@ -137,3 +137,32 @@ assessment; these findings remain retained.
 Fresh native import, authenticated hook generation binding, selective
 child-session continuation and full interrupted E2E acceptance are not claimed
 complete by these checks. This normal-flow E2E does not exercise interruption.
+
+## Native acknowledgement and durable delivery
+
+- Engine `f90305c` requires an authorized replacement daemon/native Session
+  binding, keeps `resuming` guarded until native acceptance, and replaces the
+  root WorkSession transactionally. Work launch keys carry the recovery ID;
+  retired-daemon and old-packet receipts are rejected. Typecheck, all ten
+  snapshot tests, and all seven lifecycle-ownership tests passed. The full
+  engine suite is running against that frozen source.
+- Runner `7419db0` starts and identifies the replacement daemon before preparing
+  the engine binding. Its full suite passed 209 tests. `014bc3f` durably pins
+  recovery prompt bytes/hash/native identity/operation ID before dispatch and
+  adds file/directory flushes for atomic receipts. The full suite passed 211
+  tests; the focused recovery suite passed all 23 tests after the final native
+  process-exit classification check.
+- Controlled live run `EVAL-20260906220547-4863a8f2` uses engine `f90305c` and
+  runner `014bc3f`, from a clean detached checkout. At
+  `2026-09-06T22:08:06Z`, qualification requested native cancellation of only
+  its active Subject `71ee641c-6d12-4d90-b640-4662bbdeee2a`, after the SPECIFY
+  HITL answer had resumed root Work. The native cancellation returned settled.
+  The subsequent provider error remains recorded as `agy_provider_failed`;
+  the qualification event distinguishes this controlled intervention from a
+  spontaneous provider outage.
+- The runner retained generation 1 as
+  `RCV-7ec6eda0-e4d9-4d4a-bf0e-cb9f4f297d89`, with clean adapter settlement and
+  sealed capture manifest SHA-256
+  `825757d65ebcfda4ddc684f03e1d81d29a0f194683439607143c5b3f8f7fba67`.
+  Recovery continuation and its final Judge result are pending; capture
+  success alone is not interrupted-E2E acceptance.
