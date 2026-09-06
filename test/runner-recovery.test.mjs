@@ -11,6 +11,37 @@ import { waitForSettlement } from "../lib/session-settlement.mjs";
 import { durableDaemonDispatch, inspectDaemonOperation } from "../lib/daemon-operations.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
+import { recoveryHistory } from "../lib/runner.mjs";
+
+test("recovery report preserves failed segments without counting capture or cumulative usage twice", () => {
+  const events = [];
+  const emit = (type, data, seconds) => events.push({ id: `event-${events.length}`, executionid: "e", type: `dev.dd.eval.${type}`, time: new Date(seconds * 1000).toISOString(), data });
+  const launch = "EVAL:e:launch", first = `${launch}:recover:R1`, second = `${launch}:recover:R2`;
+  for (const [operation_id, start, terminal] of [[launch, 0, "failed"], [first, 20, "failed"], [second, 40, "completed"]]) {
+    emit("operation.started", { operation_id }, start);
+    emit(`operation.${terminal}`, { operation_id, ...(terminal === "failed" ? { error: { code: "quota" } } : { result: { state: "candidate_ready" } }) }, start + 10);
+    if (terminal === "failed") {
+      const data = { code: "quota", ...(operation_id === first ? { recovery_parent_id: "R1" } : {}) };
+      emit("execution.failed", data, start + 10);
+      emit("execution.failed", { ...data, recovery: { recovery_id: operation_id === launch ? "R1" : "R2" } }, start + 11);
+    }
+  }
+  const manifest = { run_id: "EVAL", executions: [{ id: "e" }] };
+  const statistics = { collected_at: "latest", usage: { totals: { total_tokens: 120 }, coverage: { measured: 3 } } };
+  const [report] = recoveryHistory(events, manifest, [{ execution: "e", state: "candidate_ready", statistics }]);
+  assert.equal(report.reliability, "recovered");
+  assert.equal(report.recovery_count, 2);
+  assert.equal(report.interruptions.length, 2);
+  assert.deepEqual(report.interruptions.map(item => item.receipt_ids.length), [2, 2]);
+  assert.deepEqual(report.segments.map(item => item.outcome), ["failed", "failed", "completed"]);
+  assert.deepEqual(report.segments.map(item => item.wall_clock_ms), [10000, 10000, 10000]);
+  assert.deepEqual(report.usage_accounting.usage, statistics.usage);
+  assert.equal(report.timing.active_ms, null);
+  assert.equal(recoveryHistory(events, manifest, [{ execution: "e", state: "failed" }])[0].reliability, "interrupted");
+  const pending = events.slice(0, -1);
+  assert.equal(recoveryHistory(pending, manifest, [{ execution: "e", state: "awaiting_provider" }])[0].segments.at(-1).outcome, "unknown");
+  assert.equal(recoveryHistory([], manifest, [{ execution: "e", state: "candidate_ready" }])[0].reliability, "uninterrupted");
+});
 
 async function temporary(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-recovery-"));
