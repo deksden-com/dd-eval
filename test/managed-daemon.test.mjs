@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { once } from "node:events";
 import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import net from "node:net";
 import os from "node:os";
@@ -75,6 +76,15 @@ test("daemon stop resolves only after its socket is gone", async () => {
     server.close();
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("leader exit allows helpers to finish naturally without signaling an unowned group", { skip: process.platform === "win32" }, async () => {
+  const script = `const {spawn}=require("node:child_process"); spawn(process.execPath,["-e","setTimeout(()=>{},300)"],{stdio:"ignore"}).unref();`;
+  const child = spawn(process.execPath, ["-e", script], { detached: true, stdio: "ignore" });
+  await once(child, "exit");
+  assert.equal(child.exitCode, 0);
+  await stopProcessGroup(child, 1_000);
+  assert.throws(() => process.kill(-child.pid, 0), { code: "ESRCH" });
 });
 
 test("owned cleanup escalates when its live provider ignores SIGTERM", async () => {
