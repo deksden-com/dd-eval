@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-069-task-priority-project-flow-pack-4-0-4-engine-0-9-0-beta-17",
-    "sha256": "b9413d6c29d30faca44a26ef6e606365703a70f338e9d33212911dbcf6cad9cb"
+    "id": "cp-070-task-priority-project-flow-pack-4-0-5-engine-0-9-0-beta-18",
+    "sha256": "59cbdad9e28561044cdb8ef4cbfd7b514b25dc8a601f8f86a46d9a5372d9b461"
   },
   "entry_pack": null,
   "profiles": {
@@ -24,7 +24,8 @@
       "grok-acp-xai-grok-4-6-high",
       "zcode-acp-zai-glm-5-3-high",
       "zcode-acp-zai-glm-5-3-flash-high",
-      "zcode-acp-zai-glm-5-3-flash-max"
+      "zcode-acp-zai-glm-5-3-flash-max",
+      "droid-cli-openai-gpt-5-6-sol-high"
     ],
     "judge": [
       "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-11"
