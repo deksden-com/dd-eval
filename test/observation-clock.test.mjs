@@ -34,3 +34,11 @@ test("observedTimeout expires once and supports native clearTimeout", async () =
   await new Promise(resolve => observedTimeout(() => { calls++; resolve(); }, 5));
   await new Promise(resolve => setTimeout(resolve, 15)); assert.equal(calls, 1);
 });
+
+test("short native inactivity windows are sampled before a whole window elapses", t => {
+  let time = 0, sample, interval, expired = false;
+  t.mock.method(globalThis, "setInterval", (callback, delay) => { sample = callback; interval = delay; return {}; });
+  observedTimeout(() => { expired = true; }, 1000, { wall: () => time, monotonic: () => time, progress: () => "unchanged" });
+  for (time = interval; time <= 1250; time += interval) sample();
+  assert.equal(expired, true);
+});
