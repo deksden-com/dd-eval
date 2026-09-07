@@ -1,6 +1,7 @@
 # 029 — Implementation evidence
 
-2026-09-07. Delivery in progress: E2E qualification is not yet accepted.
+2026-09-07. Delivery in progress: cp-077 stopped on a native provider capacity
+failure during CODE repair. Full E2E qualification is not yet accepted.
 
 ## Implemented
 
@@ -224,3 +225,67 @@ checksum `dfe8530a0640e7952792b023f444c300a913384e0d3c0a8525521894ba46a237`.
 Its qualification is pending; cp-076 and its evidence remain unchanged.
 
 The final cp-077 source suite passed 233/233; focused checkpoint/reducer/regression checks passed 72/72. cp-076 final Judge completed against the unchanged incomplete candidate.
+
+## cp-077 outcome and coordinated follow-up
+
+Run `EVAL-20260907045257-eab7aba4` used the frozen dd-eval definition
+`dd41ad0e9eca313317cef2fb9650f58166fc3efa` and the installed beta.26 engine.
+SPECIFY, PROTOCOLIZE, PLAN and PLAN-REVIEW completed. The scenario-owned HITL
+answer was matched by Interaction Judge. Five native PLAN-REVIEW children ran
+in waves of three and two; all submitted results. The coordinator corrected
+nine accepted findings and classified one duplicate before passing review.
+
+CODE Work `WRK-009-prt-007-task-priority-p1` completed with four passing
+receipts: API contract, PostgreSQL integration, pre-feature priority upgrade
+and web unit tests. The aggregate CODE gate subsequently passed API contract,
+integration, upgrade, docs and quality, but failed web unit and browser
+readiness checks. The original failed receipts remain evidence even though
+the earlier Work checks passed. A normal repair declaration created
+`WRK-010-code-gate-repair`.
+
+The repair child `01a07a84-890b-7be3-a2ec-7bc11d542b8a` ended before Work start
+at 06:18:42 UTC with native `server_overloaded` and no final agent message.
+The root `01a07a37-ff65-7df0-9a6d-e1cca14cbe18` then emitted
+`serverOverloaded`, `willRetry:false`, `thread/status = systemError` and a
+failed current turn at 06:19:39 UTC. This is a provider capacity failure, not
+an inferred quota fallback or a Subject code verdict. MERGE was not reached.
+
+The adapter reduced the failed turn to generic `turn_interrupted`, losing
+the native error detail on the normalized path. Its stop observation accepted
+terminal turns for `notLoaded` only, so the `systemError` thread remained
+unsettled despite a terminal failed turn and no active operation. Automatic
+cleanup and a subsequent normal cancellation both returned
+`tree_not_settled`. Recovery inspection reported `recovery:null`.
+
+The failed execution retains its original incomplete evidence snapshot:
+`executions/e2e/failure-evidence/f1eb27e9-fda2-4a83-8222-6e0e5e9a1e7a`, manifest
+SHA-256 `ca00b66f95325c1006e4f77c602dac3c3b80ba7068ec95f3a978f3c8a6504bd4`.
+No Subject prompt, source patch or engine replacement was injected. Local
+cleanup subsequently verified the retained daemon identity and its direct
+app-server child, stopped the provider group, and stopped the daemon through
+its managed process lease. No owned PID remained. The separate operational
+receipt is `~/.dd-eval/conformance/cp077-local-cleanup/receipt.json`.
+This does not rewrite the original adapter settlement; the run remains
+failed/cancelling, without a finalized candidate or Judge result.
+
+Coordination with tasks `dd-eval` and `dd-eval2` established these boundaries:
+
+- The shared runtime/policy CLI commits `4e29998`, `bcfd8cb` and `8274ba3`
+  are ancestors of published beta.26 `ca419f5`.
+- dd-eval PR #1 (`1999682`, bundled adapter execution) and dd-memorybank PR #1
+  (`8794e3a`, routing/policy guidance) were still open at verification. They
+  are not included in cp-077 or the canon `2aafb30` used by beta.26.
+- Consequently, cp-077 pins the Flow engine, but adapter dispatch still uses
+  the configured eval-side command. It does not qualify execution of the
+  adapters bundled inside the engine artifact.
+- Task `dd-eval` owns beta.27, synchronized adapter source/bundle integration,
+  AGY native-child hooks, active-coordinator recovery, and the confirmed Codex
+  terminal-settlement/error-detail fixes. It will run the shared full AGY
+  qualification through MERGE and Judge; acceptance remains pending.
+
+A concurrent late publication of beta.23 temporarily moved npm's `beta` tag
+backwards. Readback confirmed its correction to beta.26 (`latest` stayed
+0.8.0); the beta.26 artifact and pinned cp-077 engine were unaffected. The
+tasks agreed on one beta.27 release owner and a final artifact readback before
+the next qualification. This channel incident is separate from the native
+capacity failure above.
