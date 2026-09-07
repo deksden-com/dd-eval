@@ -128,3 +128,24 @@ beta.24 artifact `5ec4a3554b9231673301feaf299082f3ee4fee48b20fa0b0f096b8053a8e7c
 and selects a new Codex/Sol E2E run profile. Preflight uses the immutable installed
 engine under `~/.dd-eval/conformance/engine-beta24/`, independent of global updates.
 No earlier checkpoint, source tag, or scored Subject workspace was changed.
+
+
+The first Codex capacity probe created three completed children but was rejected
+because a stale `thread/turns/list` response (`interrupted`) overwrote an already
+observed native `turn/completed` event (`completed`). The adapter now prefers
+that exact Turn's terminal event after in-flight reads. Regressions cover both
+success and interruption precedence: 24/24 Codex tests passed; the bundled
+adapter regression suite passed 4/4. The repeated live probe qualified **3**
+children with clean cleanup, not the requested upper bound of 15:
+`~/.dd-eval/conformance/native-subagents/20260907023303665/codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-11/capacity.json`.
+The first failed receipt remains unchanged. cp-075 was rejected at capacity
+admission before baseline/Subject; a new checkpoint will pin the corrected
+beta.24 artifact rather than changing cp-075's content identity.
+
+The old Droid qualification was closed with the normal cancellation control
+path: retained adapter settlement confirmed cleanup; candidate remained
+`incomplete`, final state `cancelled`. Its final Judge completed on that
+incomplete candidate. No additional Subject prompt or replacement daemon ran.
+The integrated pre-race-fix CLI suite passed 321/321 in
+`/tmp/dd-flow-beta24-suite.log`; the final Codex-only delta is covered by the
+native and bundled regressions above.
