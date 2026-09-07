@@ -42,5 +42,9 @@
       "merge"
     ],
     "terminal_stage": "merge"
+  },
+  "baseline_admission": {
+    "file": "baseline-admission.json",
+    "sha256": "f7b8f7263743a9b54eaeb33cc76247f0c8ca8009149320549ec9ecc9d39184e7"
   }
 }

@@ -1,0 +1,38 @@
+{
+  "schema_id": "dd-eval/baseline-admission-policy@1",
+  "commands": [
+    {
+      "id": "install",
+      "command": "pnpm",
+      "args": [
+        "install",
+        "--frozen-lockfile"
+      ],
+      "timeout_ms": 600000
+    },
+    {
+      "id": "quality",
+      "command": "pnpm",
+      "args": [
+        "quality"
+      ],
+      "timeout_ms": 600000
+    },
+    {
+      "id": "browser",
+      "command": "pnpm",
+      "args": [
+        "test:browser"
+      ],
+      "timeout_ms": 600000
+    },
+    {
+      "id": "isolation",
+      "command": "pnpm",
+      "args": [
+        "test:world"
+      ],
+      "timeout_ms": 600000
+    }
+  ]
+}
