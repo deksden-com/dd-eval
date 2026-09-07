@@ -68,6 +68,9 @@ test("AGY ignores prior terminal results, keeps RUNNING open and persists real s
     assert.equal(restored.toolSnapshot().completeness, "complete");
     await runtime.finishTurn({ conversation_id: "root", status: "SUCCESS", num_turns: 5, response: "done" });
     assert.equal(resolved.assistant_text, "done"); assert.equal(resolved.settled, true);
+    await runtime.finishTurn({ conversation_id: "root", status: "ERROR", num_turns: 4, error: "late old quota" });
+    assert.equal(runtime.lastResult.status, "SUCCESS");
+    assert.equal(runtime.lastResult.num_turns, 5);
     await assert.rejects(runtime.finishTurn({ status: "UNKNOWN" }), { code: "agy_terminal_result_invalid" });
     assert.match(await readFile(journal, "utf8"), /stale_terminal_observed/);
     assert.equal(await readFile(journal, "utf8"), await readFile(paths.journal, "utf8"));
