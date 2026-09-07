@@ -111,7 +111,11 @@ snapshot checksum is
 The product baseline and project flow-pack commits are unchanged from cp-080.
 Use the documented absolute DD_FLOW_BIN development override for this
 qualification. Its historical snapshot remains immutable; a published-artifact
-checkpoint, if needed, must be a new definition rather than an edit to cp-081.
+checkpoint must be a new definition rather than an edit to cp-081. That
+published definition is now cp-082, pinned to beta.30 source
+`88b1f0f37ffa205a7ed21b56054849d083707501` and its independently installed
+package snapshot checksum
+`427d9afb69f2106bda39058be08e9c900517846f49b017c25b38e247aa239dce`.
 
 ## Native counter check
 
