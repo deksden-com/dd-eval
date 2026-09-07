@@ -133,6 +133,35 @@ test("AGY prompt timeout reports the final native activity instead of runner pro
   }
 });
 
+test("AGY liveness expires from the last native activity rather than a second full window", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-liveness-deadline-"));
+  const state = path.join(root, "state"); const socket = path.join(state, "daemon.sock");
+  await mkdir(state);
+  let statusCalls = 0;
+  const server = net.createServer((connection) => {
+    connection.setEncoding("utf8"); connection.once("data", (line) => {
+      const request = JSON.parse(line);
+      if (request.operation !== "daemon.status") return;
+      const lastActivity = statusCalls++ === 0 ? new Date().toISOString() : firstActivity;
+      if (statusCalls === 1) firstActivity = lastActivity;
+      connection.end(`${JSON.stringify({ ok: true, result: { active_tree: true, last_activity_at: lastActivity } })}\n`);
+    });
+  });
+  let firstActivity = null;
+  try {
+    await new Promise((resolve, reject) => { server.once("error", reject); server.listen(socket, resolve); });
+    const started = Date.now();
+    await assert.rejects(callDaemon(state, "session.prompt", {}, 200), error => error.code === "subject_liveness_timeout");
+    // The first activity is genuine progress, but it must not grant another
+    // complete timeout window from the later polling instant.
+    assert.ok(Date.now() - started < 350);
+    assert.ok(statusCalls >= 2);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("AGY daemon enforces liveness for a silent live provider", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-live-liveness-"));
   const fake = path.join(root, "fake-agy.mjs"), state = path.join(root, "state"), project = path.join(root, "project"), flowHome = path.join(root, "flow-home");

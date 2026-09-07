@@ -1,7 +1,8 @@
 # Recovery defect-class audit — 2026-09-07
 
-Status: implementation and regression verification in progress; release and
-live interrupted-flow qualification are not yet complete.
+Status: systemic fixes and regression verification are in progress. Beta.29
+was published; the first controlled recovery transition succeeded, while a
+later liveness interruption exposed two further defects now under correction.
 
 ## Evidence and limits
 
@@ -47,34 +48,70 @@ and dd-eval's fallback adapters.
 - Completed Work and historical candidate/Judge artifacts are not rewritten to
   make a recovery pass.
 
+## Controlled qualification evidence
+
+The first controlled provider kill at
+`EVAL-20260907122445-13e9d767` occurred only after PLAN and its retained Work
+Session had reached `completed`. Its pre-fix cleanup did not use cancel-tree
+for `agy_terminal_result_missing`, so capture correctly refused to fabricate a
+settlement. The exact owned daemon was subsequently cancelled and observed
+clean; that historical run remains unchanged.
+
+The second controlled run,
+`EVAL-20260907124625-aecb009f`, used the cleanup correction. It killed only
+the verified owned AGY provider after the same PLAN boundary, then sealed
+`RCV-3ace1f90-37c6-492f-9bab-76447be6776e` with a clean daemon receipt and
+immutable manifest `4d86d6a39bf75a3261f4284038f0b01fcdb5aa7e3bd0ec6d80af088cbe7e6e60`.
+Recovery accepted that exact manifest, retained `WRK-002-plan` as completed,
+captured its boundary once, and proceeded to PLAN-REVIEW and CODE without a
+second PLAN Work or stage start.
+
+During CODE, one direct native child became silent. The configured 600-second
+liveness limit did eventually raise `subject_liveness_timeout`, but only after
+an avoidable second full timeout window. The recovery bridge then attempted a
+normal daemon stop and received `tree_not_settled`, leaving the later capture
+correctly unavailable rather than sealing an unconfirmed tree. The daemon was
+explicitly cancelled only after its exact owner and active state were checked.
+The pinned run and its evidence were not modified. This is a failed
+qualification for the next recovery segment, not evidence of a passing full
+E2E run.
+
+The correction now polls durable native activity within the bounded interval
+and measures the deadline from the last observed activity, preserving
+observation-clock gap semantics. A recovery bridge uses cancel-tree for the
+same confirmed liveness/identity/provider-exit failure classes as the primary
+execution cleanup. Both changes are covered before the next release and fresh
+qualification.
+
 ## Verification
 
-- Full dd-eval suite after all runner and adapter corrections: 243/243 passed.
+- Full dd-eval suite after the liveness and bridge-cleanup correction: 244/244
+  passed.
 - Focused engine snapshot and bundled-runtime suites: 19/19 passed, including
   repeated boundary recovery and prior-generation hook refusal.
 - Journal identity, retry-label, superseded-source, and bundled provider-error
   checks passed. Engine typecheck and lint passed. The final latest-owner
   refusal check passed in the 12-test snapshot suite. The full engine suite
   remains pending at this checkpoint.
-- No new release or live qualification result is asserted here.
+- The bundled-runtime liveness regression and engine typecheck/lint pass. A
+  fresh full engine suite and a new clean qualification remain required before
+  asserting the follow-up release or full E2E recovery result.
 
 ## Release candidate
 
-Engine source `8b0e5fe4a8991172c6d6d5f0963a0adf5bc2228d` is the
-Changesets-generated beta.29 candidate. Strict build, release-build guard,
-typecheck, lint and npm package dry-run passed. Its full suite was restarted
-after freezing the commit: the earlier long-running process mixed cached
-pre-fix code with a later test edit and failed the new latest-owner refusal
-assertion; a fresh isolated run passed that test. The interrupted mixed-source
-run is not a successful full-suite receipt.
+Engine source `8b0e5fe4a8991172c6d6d5f0963a0adf5bc2228d` was published as
+`@deksden-com/dd-flow-cli@0.9.0-beta.29` under npm's `beta` tag and Git tag
+`v0.9.0-beta.29`. The published tarball build-info binds the same source commit
+to canon 4.0.6 / `c6fc50cb3b5526ea0162ee4454d1ee36f17be2da`. The next release
+will contain the liveness and recovery-bridge corrections above.
 
-Checkpoint cp-081 pins the local candidate, not an npm publication. Its engine
+Checkpoint cp-081 pins the local candidate, not the published tarball. Its engine
 snapshot checksum is
 `c73de06350815334c079ba68cb540ed91ab4987a1d0e9b02dfbd9c6cea380f59`.
 The product baseline and project flow-pack commits are unchanged from cp-080.
 Use the documented absolute DD_FLOW_BIN development override for this
-qualification. Publication and its separate artifact readback remain pending;
-the publish rebuild may change build metadata and therefore the snapshot hash.
+qualification. Its historical snapshot remains immutable; a published-artifact
+checkpoint, if needed, must be a new definition rather than an edit to cp-081.
 
 ## Native counter check
 

@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, executionEvidence, failureAttribution, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, nativeChildrenSince, qualificationSucceeded, requiresTreeCancellation, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, executionEvidence, failureAttribution, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, nativeChildrenSince, qualificationSucceeded, recoveryBridgeStopArgs, requiresTreeCancellation, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -78,6 +78,8 @@ test("AGY prompt liveness is bounded by native activity, not runner heartbeat", 
   assert.equal(requiresTreeCancellation("subject_liveness_timeout"), true);
   assert.equal(requiresTreeCancellation("agy_terminal_result_missing"), true);
   assert.equal(requiresTreeCancellation("operation_observation_lost"), false);
+  assert.deepEqual(recoveryBridgeStopArgs(["--state-dir", "/run/daemon"], "subject_liveness_timeout"), ["daemon", "stop", "--state-dir", "/run/daemon", "--cancel-tree"]);
+  assert.deepEqual(recoveryBridgeStopArgs(["--state-dir", "/run/daemon"], "operation_observation_lost"), ["daemon", "stop", "--state-dir", "/run/daemon"]);
 });
 
 test("a case without an accepted entry pack cannot start focused fixtures", async () => {
