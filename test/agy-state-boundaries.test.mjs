@@ -8,6 +8,14 @@ import { ObservationClock } from '../lib/observation-clock.mjs';
 import { Runtime as GrokRuntime } from '../lib/dd-grok-daemon.mjs';
 import { Runtime as OpenCodeRuntime } from '../lib/dd-opencode-daemon.mjs';
 import { DaemonRuntime as ZCodeRuntime } from '../lib/dd-zcode-daemon.mjs';
+import { settledCodexSession } from '../lib/dd-codex-daemon.mjs';
+
+test('Codex fallback keeps bundled terminal system-error settlement semantics', () => {
+  assert.equal(settledCodexSession('systemError', { status: 'failed' }, false), true);
+  assert.equal(settledCodexSession('systemError', { status: 'failed' }, true), false);
+  assert.equal(settledCodexSession('systemError', null, false), false);
+  assert.equal(settledCodexSession('systemError', { status: 'inProgress' }, false), false);
+});
 
 test('late observation honors native activity time and productive reservations survive disk failure', async () => {
   let time = 0;
