@@ -64,3 +64,26 @@ Build metadata pins canon 4.0.6 at `2aafb30d23e3f646b736b7ead25438cab97b16bf`.
 Baseline source: `eval/cp-074-source-final` (separate branch from historical
 `44939e9`), flow pack remains `f4d613d5b933aa7e0c77895e84dc9b8d24e4ffc9`.
 Historical checkpoints and scored workspaces were not modified.
+
+## Post-release qualification update
+
+Frozen dd-eval `5a88c2276b00cab050908909eb42f898114e6af6` passed preflight against
+installed beta.21. Baseline install, quality, browser and isolation all passed;
+receipt: `~/.dd-eval/conformance/e2e-preflight/1788739647239-58b70886/e2e-inline-merge-droid-sol-high/baseline-admission/receipt.json`.
+E2E `EVAL-20260907000948-658e07d0` started on that frozen definition and cp-074.
+It emitted a native Sol → Kimi transition with later cause `overage_proactive`;
+no account settings or intentional quota consumption were used to provoke it.
+
+Repeated live qualification root `b3ea74f6-7f71-4653-9391-ff5926fccd74` passed
+Droid, Codex, Grok, AGY and OpenCode. ZCode read passed but initial stop response
+exceeded its timeout; subsequent cleanup of the same daemon was confirmed clean.
+The original receipt remains unchanged. Investigation showed diagnostic read
+before cancellation and continued profile-preparation RPCs after cancellation.
+
+Follow-up changes cancel known owned Sessions before diagnostic observation,
+check ZCode's dispatch guard between profile RPCs, and cancel before inspecting
+its tree. Regression covers an expired deadline and failed child cancellation
+without skipping the root. Targeted tests: 46/46; full suite: **230/230 passed**,
+`/tmp/dd-eval-cancel-observation-full.log`. ZCode live read + immediate stop passed
+under `f8247e0e-d7c7-43a4-978c-7d829ba1f387/zcode-acp-zai-glm-5-3-high/receipt.json`.
+These follow-up changes did not alter the already running E2E definition.

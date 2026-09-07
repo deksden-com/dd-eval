@@ -4,6 +4,17 @@ import { mkdtemp, realpath, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { waitForSettlement } from '../lib/session-settlement.mjs';
+
+test('owned cancellation is attempted before diagnostic observation even at an expired deadline', async () => {
+  const order = [];
+  await assert.rejects(waitForSettlement({
+    knownSessions: () => ['child', 'root'],
+    cancel: async id => { order.push(`cancel:${id}`); if (id === 'child') throw new Error('child refused'); },
+    observe: async () => { order.push('observe'); throw new Error('offline'); },
+    timeoutMs: 0
+  }), { code: 'tree_not_settled' });
+  assert.deepEqual(order, ['cancel:child', 'cancel:root', 'observe']);
+});
 import { cancelOwnedDaemon } from '../lib/daemon-control.mjs';
 import { durableDaemonDispatch } from '../lib/daemon-operations.mjs';
 import { writeJsonAtomic } from '../lib/runner-events.mjs';
