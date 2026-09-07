@@ -2,6 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { ObservationClock, observedTimeout } from "../lib/observation-clock.mjs";
 
+test("delayed observation does not grant a second full inactivity window", () => {
+  let time = 0;
+  const clock = new ObservationClock({ timeoutMs: 200, wall: () => time, monotonic: () => time });
+  time = 150; assert.equal(clock.sample('activity-at-100', 100), false);
+  time = 299; assert.equal(clock.sample('activity-at-100', 100), false);
+  time = 300; assert.equal(clock.sample('activity-at-100', 100), true);
+});
+
 test("activity, not unchanged status, renews the observation budget", () => {
   let time = 0;
   const clock = new ObservationClock({ timeoutMs: 100, gapMs: 1000, wall: () => time, monotonic: () => time });
