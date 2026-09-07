@@ -170,7 +170,7 @@ test("Codex adapter falls back to the final message when hydrated Turn is still 
 
 test("Codex adapter clears a prior final-message fallback before a new Turn", async () => {
   const source = await (await import("node:fs/promises")).readFile(new URL("../lib/dd-codex.mjs", import.meta.url), "utf8");
-  assert.match(source, /await ensureThreadLoaded\(bridge, sessionId, options, cwd\);\n\s*\/\/ A final-message fallback[\s\S]*?bridge\.finalMessages\?\.delete\(sessionId\);\n\s*const started/);
+  assert.match(source, /await ensureThreadLoaded\(bridge, sessionId, options, cwd\);\n\s*\/\/ A final-message fallback[\s\S]*?bridge\.finalMessages\?\.delete\(sessionId\);\n\s*options\.assertDispatch\?\.\(\);\n\s*const started/);
 });
 
 test("Codex adapter hydrates one terminal Turn after an idle compact read", async () => {

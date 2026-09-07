@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-073-task-priority-tagged-baseline-flow-4-0-6-engine-0-9-0-beta-19",
-    "sha256": "ad590f72b7a25a87c5459bb7801534e2f365f1785a67e43c1ca3594417c8b3fd"
+    "id": "cp-074-task-priority-isolated-baseline-flow-4-0-6-engine-0-9-0-beta-21",
+    "sha256": "dbe5a9fa23ba16cac0b40ec6723964b507860d68f73a5f3368cfe39d2488ef40"
   },
   "entry_pack": null,
   "profiles": {
@@ -42,5 +42,9 @@
       "merge"
     ],
     "terminal_stage": "merge"
+  },
+  "baseline_admission": {
+    "file": "baseline-admission.json",
+    "sha256": "f7b8f7263743a9b54eaeb33cc76247f0c8ca8009149320549ec9ecc9d39184e7"
   }
 }
