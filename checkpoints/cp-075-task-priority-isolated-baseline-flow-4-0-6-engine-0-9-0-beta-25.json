@@ -1,0 +1,21 @@
+{
+  "id": "cp-075-task-priority-isolated-baseline-flow-4-0-6-engine-0-9-0-beta-25",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "f4d613d5b933aa7e0c77895e84dc9b8d24e4ffc9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.6",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "73e454ebdded3258c2c567e3495724b93ef528b6",
+      "version": "0.9.0-beta.25",
+      "artifact_sha256": "339a980c09b08304b1d925816729d1fb9e37eb372a57e1173686095a79d05c9b"
+    }
+  },
+  "state": "ready_for_e2e"
+}
