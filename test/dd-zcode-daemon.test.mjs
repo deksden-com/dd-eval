@@ -95,7 +95,11 @@ test("daemon preserves a live background tree across CLI processes and cancels i
     assert.equal(cancelled.after.running.length, 0);
     const longPrompt = run(["session", "prompt", "--state-dir", stateDir, "--session-id", "native-root", "--adapter-session-id", "adapter-root", ...profileArgs, "--prompt", "long"]);
     void longPrompt.catch(() => {});
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    const deadline = Date.now() + 10_000;
+    while (JSON.parse(await readFile(path.join(stateDir, "daemon.json"), "utf8")).active_operation !== "session.prompt") {
+      assert.ok(Date.now() < deadline, "long prompt did not enter its productive operation");
+      await new Promise(resolve => setTimeout(resolve, 25));
+    }
     await assert.rejects(
       () => run(["session", "inspect", "--state-dir", stateDir, "--session-id", "unregistered-child"]),
       (error) => JSON.parse(error.stderr).code === "child_inspection_unavailable"

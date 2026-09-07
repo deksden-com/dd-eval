@@ -1,3 +1,4 @@
+import { processSnapshot } from "../lib/process-snapshot.mjs";
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, writeFile, readFile, symlink, rm } from "node:fs/promises";
 import { spawn } from "node:child_process";
@@ -5,7 +6,7 @@ import { once } from "node:events";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { recoverySettlement, authorizeRetainedDaemonResume } from "../lib/driver-recovery.mjs";
+import { recoverySettlement, authorizeRetainedDaemonResume, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { frozenCandidate, storedExecutionResults, runnerRecoveryInspect } from "../lib/runner.mjs";
 import { appendEvent } from "../lib/runner-events.mjs";
 
@@ -95,5 +96,27 @@ test("a clean adapter receipt cannot hide an active managed check or service", a
     await assert.rejects(recoverySettlement(drivers), { code: "recovery_settlement_unconfirmed" });
     record.state = "stopped"; await writeRegistry();
     assert.equal((await recoverySettlement(drivers)).settled, true);
+    record.pid = process.pid;
+    record.pid_started_at = "Mon Jan 1 00:00:00 2001";
+    await writeRegistry();
+    assert.equal((await recoverySettlement(drivers)).settled, true);
+    record.pid_started_at = (await processSnapshot()).find(item => item.pid === process.pid).started;
+    await writeRegistry();
+    await assert.rejects(recoverySettlement(drivers), { code: "recovery_settlement_unconfirmed" });
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("retained process birth identity distinguishes a reused PID without signalling it", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "reused-process-"));
+  const current = (await processSnapshot()).find(record => record.pid === process.pid);
+  const save = owned => writeFile(path.join(root, "daemon.json"), JSON.stringify({ pid: process.pid, owned_processes: owned }));
+  try {
+    await save([{ ...current, started: "Mon Jan 1 00:00:00 2001" }]);
+    await assertDaemonReplaceable(root);
+    assert.equal(process.kill(process.pid, 0), true);
+    await save([current]);
+    await assert.rejects(assertDaemonReplaceable(root), { code: "operation_observation_lost" });
+    await save([{ pid: process.pid }]);
+    await assert.rejects(assertDaemonReplaceable(root), { code: "operation_observation_lost" });
   } finally { await rm(root, { recursive: true, force: true }); }
 });

@@ -357,6 +357,11 @@ test("worker failure remains primary when daemon cleanup also fails", async () =
   assert.match(source, /let subjectFailure = null/);
   assert.match(source, /if \(!subjectFailure\) throw cleanupError/);
   assert.match(source, /dev\.dd\.eval\.harness\.cleanup_failed/);
+  const semanticOutcome = source.indexOf('Subject turn ended without successful');
+  const rememberFailure = source.indexOf('subjectFailure = error;', semanticOutcome);
+  const cleanup = source.indexOf('if (!subjectFailure) throw cleanupError', rememberFailure);
+  assert.ok(semanticOutcome > 0 && rememberFailure > semanticOutcome && cleanup > rememberFailure);
+
 });
 
 test("HITL verdicts are strict, fail closed, and preserve exact response bytes", () => {

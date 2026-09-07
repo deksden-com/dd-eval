@@ -87,3 +87,35 @@ without skipping the root. Targeted tests: 46/46; full suite: **230/230 passed**
 `/tmp/dd-eval-cancel-observation-full.log`. ZCode live read + immediate stop passed
 under `f8247e0e-d7c7-43a4-978c-7d829ba1f387/zcode-acp-zai-glm-5-3-high/receipt.json`.
 These follow-up changes did not alter the already running E2E definition.
+
+
+## First full E2E outcome and follow-up
+
+`EVAL-20260907000948-658e07d0` reached completed CODE after native source repairs,
+then stopped during CODE-REVIEW repair WRK-019. Sixteen physical native children
+were reconciled to their registered Works. The final repair was blocked because
+the accepted check had `required_artifacts: []`, and the engine collected only
+required files; the repair could not retain an additional screenshot without
+changing the accepted packet. This run did not reach MERGE and is not accepted.
+
+The launch then lost its `daemon.stop` response. Retained daemon evidence records
+`shutdown_state: clean`, `active_tree: false`; the actual owned process identities
+have exited. An immutable `qualification-cleanup-addendum.json` under that EVAL
+root records this separately; original receipts remain unchanged. The control
+RPC reply was not recovered and is not claimed as observed.
+
+Follow-up runner fixes establish an incomplete semantic stage outcome before
+cleanup, so a lost stop response cannot mask that outcome. Recovery now compares
+retained process birth identities when available; a recycled PID belonging to a
+new unrelated process no longer blocks settlement. Missing identity remains
+unconfirmed. Both daemon-owned and managed-process evidence use this rule.
+The ZCode fixture waits for an observed productive operation instead of assuming
+it starts within 150 ms. Full suite: 231/231 passed
+(`/tmp/dd-eval-semantic-pid-full.log`); the subsequent managed-process birth-identity
+regression is recorded in `/tmp/dd-eval-recovery-birth-target.log`.
+
+CLI beta.23 is prepared separately with supplemental evidence collection shared
+by normal and recovered checks. Required files remain minimum pass obligations;
+symlinks are excluded. Publication and a fresh Codex/Sol E2E qualification remain
+pending. The previous Droid run is retained as an adaptive harness result with
+observed Sol → Kimi routing, not as a Sol-only completed E2E.
