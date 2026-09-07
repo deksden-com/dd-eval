@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-074-task-priority-isolated-baseline-flow-4-0-6-engine-0-9-0-beta-21",
-    "sha256": "dbe5a9fa23ba16cac0b40ec6723964b507860d68f73a5f3368cfe39d2488ef40"
+    "id": "cp-075-task-priority-supplemental-evidence-flow-4-0-6-engine-0-9-0-beta-24",
+    "sha256": "b35e9b0b851081a7a40c196618d5da28de72d878b4545cc39f9d181a1b105c5a"
   },
   "entry_pack": null,
   "profiles": {

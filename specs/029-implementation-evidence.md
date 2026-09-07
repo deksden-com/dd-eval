@@ -114,8 +114,17 @@ it starts within 150 ms. Full suite: 231/231 passed
 (`/tmp/dd-eval-semantic-pid-full.log`); the subsequent managed-process birth-identity
 regression is recorded in `/tmp/dd-eval-recovery-birth-target.log`.
 
-CLI beta.23 is prepared separately with supplemental evidence collection shared
+CLI beta.24 is prepared on the newly merged shared-harness-runtime baseline with supplemental evidence collection shared
 by normal and recovered checks. Required files remain minimum pass obligations;
-symlinks are excluded. Publication and a fresh Codex/Sol E2E qualification remain
-pending. The previous Droid run is retained as an adaptive harness result with
+symlinks are excluded. The supplemental collector passed 311/311 tests before integration;
+78/78 harness tests passed against the integrated bundled adapter files.
+Typecheck and lint passed. The complete integrated CLI suite is running.
+Publication and a fresh Codex/Sol E2E qualification remain pending. The previous Droid run is retained as an adaptive harness result with
 observed Sol → Kimi routing, not as a Sol-only completed E2E.
+
+
+Checkpoint cp-075 keeps the exact cp-074 source and flow pack, pins the installed
+beta.24 artifact `5ec4a3554b9231673301feaf299082f3ee4fee48b20fa0b0f096b8053a8e7c69`,
+and selects a new Codex/Sol E2E run profile. Preflight uses the immutable installed
+engine under `~/.dd-eval/conformance/engine-beta24/`, independent of global updates.
+No earlier checkpoint, source tag, or scored Subject workspace was changed.
