@@ -175,3 +175,52 @@ New E2E `EVAL-20260907024127-4abd3fe2` uses frozen dd-eval
 native capacity 3. Its own baseline admission passed; SPECIFY completed after
 the canonical interaction-Judge exchange. Remaining stages and final acceptance
 are pending. The frozen definition and Subject workspace remain untouched.
+
+
+cp-076 interim native review evidence (2026-09-07 03:18 UTC): SPECIFY,
+PROTOCOLIZE and PLAN completed. Five physical Codex children completed their
+PLAN-REVIEW assignments across two capacity-bounded waves. Four returned
+`needs_changes`, one returned `pass`; the coordinator is processing findings
+in the same run. This is not yet an E2E completion verdict.
+
+Model observation limitation: the adapter model journal currently contains
+root configuration observations only. The five child session journals each
+contain native `turn_context.model = gpt-5.6-sol`, but those child observations
+were not projected into the adapter model journal. Therefore the existing
+`available_native_sources` summary must not be read as complete tree-wide
+model attribution. The separate native evidence confirms child configuration,
+not hidden provider routing or per-model token costs. The running frozen engine
+and original observation journal have not been modified to backfill this gap.
+
+
+cp-076 final qualification outcome: cancelled before CODE-REVIEW completion,
+not a completed E2E. CODE completed after two Subject-owned browser repair
+Works and passed fresh API, web, docs, quality and browser receipts. The first
+CODE-REVIEW wave produced two completed reviewers, while WRK-014 remained in
+an interactive `--result-stdin` finish invocation for more than twenty minutes
+without a result receipt. WRK-013 had independently diagnosed terminal canonical
+input truncation and recovered using non-interactive redirection. No evaluator
+prompt, source edit or terminal input was injected into the Subject.
+
+The normal cancellation control receipt confirmed clean settlement; candidate
+`4cc376234cc758ea6f0738ca51fc1b1b4d35a3e73c60748a4725915ba6755ca0`
+was frozen as `incomplete`. A later launcher stop timed out after cancellation;
+read-only process checks confirmed the retained provider and waiting finish
+processes were gone. Runner cleanup now uses the existing generation reducer
+to skip an already settled cancellation and avoid stopping a newer generation;
+late stop transport errors reconcile against the accepted settlement.
+
+CLI beta.26 (`ca419f51a8553a6ddb6a8275412a98bfa10bd0d4`) now rejects interactive
+TTY result submission before routing, state creation or progress heartbeats.
+Pipes, redirection and result files remain available. The patch includes the
+parallel beta.25 test-isolation release. Two targeted rejection regressions,
+34 existing lifecycle tests, typecheck and lint passed. The final version/TTY
+suite passed 3/3; the published installed CLI rejected a real PTY immediately.
+All 165 package files matched the final source build. Artifact audit:
+`~/.dd-eval/conformance/engine-beta26/registry-artifact-audit.json`.
+
+New cp-077 preserves source and flow-pack identity and pins beta.26 installed
+checksum `dfe8530a0640e7952792b023f444c300a913384e0d3c0a8525521894ba46a237`.
+Its qualification is pending; cp-076 and its evidence remain unchanged.
+
+The final cp-077 source suite passed 233/233; focused checkpoint/reducer/regression checks passed 72/72. cp-076 final Judge completed against the unchanged incomplete candidate.
