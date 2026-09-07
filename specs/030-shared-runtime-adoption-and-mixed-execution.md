@@ -1,10 +1,17 @@
 # 030. Принятие общего runtime и оценивание смешанного исполнения
 
-Статус: DRAFT, план реализации; текущие adapters/runner ещё не перенесены.
+Статус: IN PROGRESS; current adapters/runner are not yet relocated.
 Дата: 2026-09-07.
-Редакция: 0.3.0 — добавлена обязательная поставка commits/push/main integration
-и adoption опубликованного CLI/canon release; реализация не запускалась.
+Редакция: 0.3.1 — начат общий context-envelope; обязательная поставка
+commits/push/main integration и adoption опубликованного CLI/canon release
+остаётся незавершённой.
 Scope: `dd-eval`, совместно с `dd-flow-cli` и `dd-memorybank`.
+
+Implementation receipt 2026-09-07: `7f80def` leaves accepted
+`dd-eval/stage-context@1` input unchanged and materializes a derived
+`dd-flow/stage-context@1` envelope with independent source hash. It passed the
+focused entry-pack test. This is not adapter/runtime cutover: the six local
+drivers remain until CLI-owned replacements and the full adoption matrix pass.
 
 ## 1. Владельцы документов
 
