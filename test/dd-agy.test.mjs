@@ -27,6 +27,9 @@ test("AGY persists Stop observations and rejects an older execution after a new 
     await resumed.observeHook("Stop", { conversationId: "root", executionNum: 5, fullyIdle: true });
     assert.equal(resumed.lastActivityAt, "sentinel");
     resumed.descendants.set("child", { provider_session_id: "child", parent_provider_session_id: "root", status: "unknown" });
+    await resumed.persist();
+    const restored = new Runtime(paths, JSON.parse(await readFile(paths.state, "utf8")));
+    assert.equal(restored.descendants.get("child").parent_provider_session_id, "root");
     await resumed.observeHook("Stop", { conversationId: "child", executionNum: 1, fullyIdle: true });
     assert.equal(resumed.descendants.get("child").status, "completed");
     const hook = { conversationId: "root", stepIdx: 0, toolCall: { name: "run_command", args: "same command" } };
@@ -37,6 +40,20 @@ test("AGY persists Stop observations and rejects an older execution after a new 
     resumed.lastActivityAt = "sentinel";
     resumed.observeProviderActivity({ event: "step_update", step_update: { step_id: "1", state: "RUNNING" } });
     assert.equal(resumed.lastActivityAt, "sentinel");
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("AGY refuses an unconfirmed child hook and does not treat an unknown child as settled", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-child-identity-"));
+  const paths = { state: path.join(root, "daemon.json"), journal: path.join(root, "events.jsonl") };
+  const runtime = new Runtime(paths, { config: { daemonId: "d", cwd: root } });
+  runtime.init = { conversation_id: "root" };
+  runtime.lastResult = { status: "SUCCESS" };
+  runtime.sessionObservations.set("root", { stop: { fullyIdle: true } });
+  runtime.descendants.set("child", { provider_session_id: "child", parent_provider_session_id: "root", status: "unknown" });
+  try {
+    assert.equal(runtime.receipt().settled, false);
+    await assert.rejects(runtime.observeHook("PreToolUse", { conversationId: "foreign", toolCall: { name: "run_command", args: {} } }), error => error.code === "agy_child_identity_unconfirmed");
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
@@ -83,6 +100,12 @@ test("dd-agy owns one streaming conversation and rejects headless fork semantics
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-test-"));
   const fake = path.join(root, "fake-agy.mjs"), flow = path.join(root, "fake-flow.mjs"), registry = path.join(root, "registry.log"), state = path.join(root, `state-${"x".repeat(180)}`), project = path.join(root, "project"), flowHome = path.join(root, "flow-home");
   await mkdir(project); await mkdir(flowHome);
+  await mkdir(path.join(project, ".agents"));
+  await writeFile(path.join(project, ".agents", "hooks.json"), JSON.stringify({
+    existing: { Stop: [] },
+    PreToolUse: [{ matcher: "*", hooks: [{ type: "command", command: `'${process.execPath}' '${path.resolve("bin/dd-agy.mjs")}' hook handle --old`, timeout: 30 }] }],
+    Stop: [{ type: "command", command: `'${process.execPath}' '${path.resolve("bin/dd-agy.mjs")}' hook handle --old`, timeout: 30 }]
+  }));
   await writeFile(fake, `#!/usr/bin/env node
 const args=process.argv.slice(2); if(args.includes('--version')){console.log('1.1.25');process.exit(0)} if(args.includes('models')){console.log('gemini-3.1-pro-high available');process.exit(0)}
 console.log(JSON.stringify({event:'init',conversation_id:'agy-root',init:{model:'gemini-3.1-pro-high',cwd:process.cwd(),permission_mode:'always-proceed'}}));
@@ -114,6 +137,12 @@ else process.stdout.write('{"ok":true}\\n');
     assert.equal(next.result.response, "answer");
     const config = JSON.parse(await readFile(path.join(state, "gemini", "config", "hooks.json"), "utf8"));
     assert.ok(config["dd-flow"].PreToolUse);
+    const workspaceHooks = JSON.parse(await readFile(path.join(project, ".agents", "hooks.json"), "utf8"));
+    assert.deepEqual(workspaceHooks.PreToolUse, config["dd-flow"].PreToolUse);
+    assert.deepEqual(workspaceHooks.PostToolUse, config["dd-flow"].PostToolUse);
+    assert.deepEqual(workspaceHooks.Stop, config["dd-flow"].Stop);
+    assert.deepEqual(workspaceHooks.existing, { Stop: [] });
+    assert.equal(status.config.workspaceHooksPath, path.join(status.config.projectRoot, ".agents", "hooks.json"));
     await stopDaemon({ stateDir: state });
     const terminal = JSON.parse(await readFile(path.join(state, "daemon.json"), "utf8")); assert.equal(terminal.shutdown_state, "clean");
     const calls = await readFile(registry, "utf8");

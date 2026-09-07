@@ -1,0 +1,21 @@
+{
+  "id": "cp-077-task-priority-noninteractive-results-flow-4-0-6-engine-0-9-0-beta-26",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "f4d613d5b933aa7e0c77895e84dc9b8d24e4ffc9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.6",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "ca419f51a8553a6ddb6a8275412a98bfa10bd0d4",
+      "version": "0.9.0-beta.26",
+      "artifact_sha256": "dfe8530a0640e7952792b023f444c300a913384e0d3c0a8525521894ba46a237"
+    }
+  },
+  "state": "ready_for_e2e"
+}

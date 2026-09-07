@@ -1,0 +1,21 @@
+{
+  "id": "cp-076-task-priority-native-terminal-evidence-flow-4-0-6-engine-0-9-0-beta-24",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "f4d613d5b933aa7e0c77895e84dc9b8d24e4ffc9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.6",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "931f704348792d785f3a32ec7ee09aaf176c97a9",
+      "version": "0.9.0-beta.24",
+      "artifact_sha256": "7608382cb1c5420813f1492836f720db6f237c4c1ddc4ee3c89a20d30cee1040"
+    }
+  },
+  "state": "ready_for_e2e"
+}

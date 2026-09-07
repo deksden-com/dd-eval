@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,6 +31,18 @@ test('Droid adapter and native runtime resolve separately from canonical configu
       assert.equal(fallback.executable, process.execPath);
       assert.deepEqual(fallback.prefix, [path.join(root, 'bin/dd-droid.mjs')]);
     }
+  } finally { await rm(home, { recursive: true, force: true }); }
+});
+
+test('isolated runtime prefers the adapter bundled with its selected engine', async () => {
+  const home = await mkdtemp(path.join(tmpdir(), 'dd-droid-bundled-'));
+  try {
+    const adapter = path.join(home, 'harness-runtime', 'bin', 'dd-droid.mjs');
+    await mkdir(path.dirname(adapter), { recursive: true }); await writeFile(adapter, '');
+    assert.deepEqual(
+      await driverAdapterInvocation({ harness: 'droid-cli' }, { cwd: home, env: { DD_FLOW_HOME: home } }),
+      { executable: process.execPath, prefix: [adapter] }
+    );
   } finally { await rm(home, { recursive: true, force: true }); }
 });
 
