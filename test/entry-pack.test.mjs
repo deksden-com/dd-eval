@@ -26,6 +26,9 @@ test("stage context has path-independent semantic identity and path-bearing mate
   const materialized = await materializeStageSlice({ blueprint, stage: "specify", roots: { project: root }, output: path.join(root, "runner", "specify.json") });
   const rendered = JSON.parse(await readFile(materialized.path, "utf8"));
   assert.equal(materialized.semantic_package_sha256, semanticContextHash(slice));
+  assert.equal(rendered.schema_id, "dd-flow/stage-context@1");
+  assert.equal(rendered.source_context_schema_id, "dd-eval/stage-context@1");
+  assert.equal(rendered.source_context_sha256, semanticContextHash(slice));
   assert.equal(rendered.sources[0].path, path.join(root, "README.md"));
   assert.notEqual(materialized.sha256, materialized.semantic_package_sha256);
 });
