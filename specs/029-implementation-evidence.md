@@ -157,3 +157,21 @@ The new cp-076 pins its installed digest
 cp-075 remains immutable. The final conformance engine lives under
 `~/.dd-eval/conformance/engine-beta24-final/`. Registry artifact audit, preflight
 and the new E2E remain in progress.
+
+
+Registry audit completed: all 165 files in the npm package match the installed
+conformance snapshot, including CLI/canon build metadata. Audit receipt:
+`~/.dd-eval/conformance/engine-beta24-final/registry-artifact-audit.json`.
+A fresh npm dependency resolution produced a different full-content digest;
+the global engine was explicitly aligned to the qualified immutable snapshot.
+Global CLI is beta.24 and selected snapshot checksum is `7608382...ee1040`.
+No running EVAL was rebound to the different dependency snapshot.
+
+cp-076 preflight passed install, quality, browser and isolation. Receipt:
+`~/.dd-eval/conformance/e2e-preflight/1788748741661-8ceaa3b6/e2e-inline-merge-sol-high/baseline-admission/receipt.json`,
+SHA-256 `582ac9320ecd9fa954fc0148575c31596b26acc453f4b327e2c74b70f123fe4c`.
+New E2E `EVAL-20260907024127-4abd3fe2` uses frozen dd-eval
+`9c5311ce4272864b3c7d18162f9762b4d76fadec`, the exact cp-076 engine, and qualified
+native capacity 3. Its own baseline admission passed; SPECIFY completed after
+the canonical interaction-Judge exchange. Remaining stages and final acceptance
+are pending. The frozen definition and Subject workspace remain untouched.
