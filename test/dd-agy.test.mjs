@@ -53,11 +53,13 @@ test("AGY ignores prior terminal results, keeps RUNNING open and persists real s
   const runtime = new Runtime(paths, { config: { daemonId: "d", cwd: root, journal } });
   runtime.init = { conversation_id: "root" };
   let resolved = null, rejected = null;
-  runtime.active = { resolve: value => { resolved = value; }, reject: error => { rejected = error; }, resultFloor: 4 };
   try {
+    runtime.lastResult = { conversation_id: "root", status: "SUCCESS", num_turns: 4 };
+    await runtime.finishTurn({ conversation_id: "root", status: "ERROR", num_turns: 3, error: "old quota" });
+    assert.equal(runtime.lastResult.status, "SUCCESS");
+    runtime.active = { resolve: value => { resolved = value; }, reject: error => { rejected = error; } };
     await runtime.finishTurn({ conversation_id: "root", status: "RUNNING", num_turns: 5 });
     assert.equal(resolved, null); assert.ok(runtime.active);
-    await runtime.finishTurn({ conversation_id: "root", status: "ERROR", num_turns: 4, error: "old quota" });
     assert.equal(rejected, null); assert.ok(runtime.active);
     const step = { conversation_id: "root", step_index: 100, step_type: "tool", state: "DONE", tool_name: "run_command" };
     runtime.observeStep(step); runtime.observeStep(step);
@@ -71,6 +73,10 @@ test("AGY ignores prior terminal results, keeps RUNNING open and persists real s
     await runtime.finishTurn({ conversation_id: "root", status: "ERROR", num_turns: 4, error: "late old quota" });
     assert.equal(runtime.lastResult.status, "SUCCESS");
     assert.equal(runtime.lastResult.num_turns, 5);
+    runtime.active = { resolve: () => assert.fail("native command rejection cannot succeed"), reject: error => { rejected = error; } };
+    await runtime.finishTurn({ conversation_id: "root", status: "ERROR", num_turns: 0, error: "native command unavailable" });
+    assert.equal(rejected.code, "agy_provider_failed");
+    assert.equal(runtime.active, null);
     await assert.rejects(runtime.finishTurn({ status: "UNKNOWN" }), { code: "agy_terminal_result_invalid" });
     assert.match(await readFile(journal, "utf8"), /stale_terminal_observed/);
     assert.equal(await readFile(journal, "utf8"), await readFile(paths.journal, "utf8"));
