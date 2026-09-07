@@ -1,0 +1,21 @@
+{
+  "id": "cp-080-task-priority-recovery-flow-4-0-6-engine-0-9-0-beta-28",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "f4d613d5b933aa7e0c77895e84dc9b8d24e4ffc9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.0.6",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "575fa0e034bf7564748628ae4d7d70ffa04be1c9",
+      "version": "0.9.0-beta.28",
+      "artifact_sha256": "fbd896d67d6e52f68a0ce38853aaab84667b5bf51d8916ddbe07191af8cb7810"
+    }
+  },
+  "state": "ready_for_controlled_recovery_e2e"
+}
