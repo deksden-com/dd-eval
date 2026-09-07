@@ -170,7 +170,7 @@ test("Codex adapter falls back to the final message when hydrated Turn is still 
 
 test("Codex adapter clears a prior final-message fallback before a new Turn", async () => {
   const source = await (await import("node:fs/promises")).readFile(new URL("../lib/dd-codex.mjs", import.meta.url), "utf8");
-  assert.match(source, /await ensureThreadLoaded\(bridge, sessionId, options, cwd\);\n\s*\/\/ A final-message fallback[\s\S]*?bridge\.finalMessages\?\.delete\(sessionId\);\n\s*const started/);
+  assert.match(source, /await ensureThreadLoaded\(bridge, sessionId, options, cwd\);\n\s*\/\/ A final-message fallback[\s\S]*?bridge\.finalMessages\?\.delete\(sessionId\);\n\s*options\.assertDispatch\?\.\(\);\n\s*const started/);
 });
 
 test("Codex adapter hydrates one terminal Turn after an idle compact read", async () => {
@@ -239,3 +239,24 @@ test("daemon client fails promptly when a stopped daemon closes an active reques
   await assert.rejects(() => callDaemon(directory, "session.prompt", {}, 1_000), { code: "daemon_connection_closed" });
   await new Promise((resolve) => server.close(resolve));
 });
+
+for (const [eventStatus, snapshotStatus] of [["completed", "interrupted"], ["interrupted", "completed"]]) {
+  test(`Codex keeps native ${eventStatus} when an in-flight snapshot returns ${snapshotStatus}`, async () => {
+    const turnId = "turn-001";
+    const bridge = {
+      turns: new Map(),
+      request: async method => {
+        if (method === "turn/start") return { turn: { id: turnId } };
+        if (method === "thread/turns/list") {
+          await new Promise(resolve => setTimeout(resolve, 1_100));
+          bridge.turns.set(turnId, { status: "completed", value: { turn: { id: turnId, status: eventStatus } } });
+          return { data: [{ id: turnId, status: snapshotStatus }] };
+        }
+        return { thread: { id: "thread-001", status: { type: "active" } } };
+      }
+    };
+    const pending = promptSessionWithBridge(bridge, { cwd: "/tmp", sessionId: "thread-001", prompt: "reply" });
+    if (eventStatus === "completed") assert.equal((await pending).status, "completed");
+    else await assert.rejects(pending, { code: "turn_interrupted" });
+  });
+}

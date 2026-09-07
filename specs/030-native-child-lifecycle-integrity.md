@@ -1,6 +1,6 @@
 # 030 — Native child lifecycle: hooks, identity, dispatch и settlement
 
-Дата: 2026-09-07. Статус: **спецификация исправлений; реализация и приёмка не выполнены**.
+Дата: 2026-09-07. Статус: **P01 source decision выполнен; реализация и приёмка остальных пакетов не выполнены**.
 
 План исполнения и доставки: [031](031-systemic-repair-delivery-plan.md).
 Расширяет [022](022-native-subagent-capacity-and-productive-fanout.md),
@@ -43,6 +43,21 @@ dd-flow-cli `463a6ff` / beta.20, dd-eval clean worktree `f8eb771`.
 Подтверждено отсутствие child events на входе daemon. Не установлено, не
 вызывает ли AGY child hook вообще или вызов теряется раньше daemon.
 Отсутствие в журналах не объявлять доказанным upstream bug.
+
+### P01 decision record (2026-09-07)
+
+Изолированный probe на установленном AGY 1.1.27 проверил один root и один
+direct child до dd-flow: ingress получил отдельные root и child события, а
+child `conversationId` был связан с наблюдённым native parent. Повтор через
+текущий `dd-agy` adapter подтвердил отдельные PreToolUse/PostToolUse/Stop
+записи child и тот же physical parent в lifecycle journal. Следовательно,
+исторический root-only журнал не доказывает отсутствие child hooks в текущем
+runtime и не является upstream blocker. Exact digest/configuration/evidence
+сохраняются в локальном qualification receipt, без секретов и сырых tool input.
+
+Это закрывает только source decision. Productive child lifecycle всё ещё
+требует изолированного Flow smoke и H-T01/H-T14 на release artifact; probe не
+даёт такого verdict.
 
 Официальные контракты, проверенные при исследовании:
 

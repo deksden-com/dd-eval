@@ -27,6 +27,9 @@ test("AGY persists Stop observations and rejects an older execution after a new 
     await resumed.observeHook("Stop", { conversationId: "root", executionNum: 5, fullyIdle: true });
     assert.equal(resumed.lastActivityAt, "sentinel");
     resumed.descendants.set("child", { provider_session_id: "child", parent_provider_session_id: "root", status: "unknown" });
+    await resumed.persist();
+    const restored = new Runtime(paths, JSON.parse(await readFile(paths.state, "utf8")));
+    assert.equal(restored.descendants.get("child").parent_provider_session_id, "root");
     await resumed.observeHook("Stop", { conversationId: "child", executionNum: 1, fullyIdle: true });
     assert.equal(resumed.descendants.get("child").status, "completed");
     const hook = { conversationId: "root", stepIdx: 0, toolCall: { name: "run_command", args: "same command" } };
@@ -37,6 +40,20 @@ test("AGY persists Stop observations and rejects an older execution after a new 
     resumed.lastActivityAt = "sentinel";
     resumed.observeProviderActivity({ event: "step_update", step_update: { step_id: "1", state: "RUNNING" } });
     assert.equal(resumed.lastActivityAt, "sentinel");
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("AGY refuses an unconfirmed child hook and does not treat an unknown child as settled", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-child-identity-"));
+  const paths = { state: path.join(root, "daemon.json"), journal: path.join(root, "events.jsonl") };
+  const runtime = new Runtime(paths, { config: { daemonId: "d", cwd: root } });
+  runtime.init = { conversation_id: "root" };
+  runtime.lastResult = { status: "SUCCESS" };
+  runtime.sessionObservations.set("root", { stop: { fullyIdle: true } });
+  runtime.descendants.set("child", { provider_session_id: "child", parent_provider_session_id: "root", status: "unknown" });
+  try {
+    assert.equal(runtime.receipt().settled, false);
+    await assert.rejects(runtime.observeHook("PreToolUse", { conversationId: "foreign", toolCall: { name: "run_command", args: {} } }), error => error.code === "agy_child_identity_unconfirmed");
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

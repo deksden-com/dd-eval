@@ -21,11 +21,13 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-073-task-priority-tagged-baseline-flow-4-0-6-engine-0-9-0-beta-19");
-  assert.equal(loaded.inputCheckpoint.value.source.commit, "44939e95060a65e80571acdcbf42609b80621e63");
-  assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-068-source");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-077-task-priority-noninteractive-results-flow-4-0-6-engine-0-9-0-beta-26");
+  assert.equal(loaded.inputCheckpoint.value.source.commit, "924ef61752b642f06c2c326b444ed7a3239f20ff");
+  assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-074-source-final");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "f4d613d5b933aa7e0c77895e84dc9b8d24e4ffc9");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.19");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.26");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, "dfe8530a0640e7952792b023f444c300a913384e0d3c0a8525521894ba46a237");
+  assert.match(loaded.value.baseline_admission.sha256, /^[a-f0-9]{64}$/);
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
 
@@ -355,6 +357,11 @@ test("worker failure remains primary when daemon cleanup also fails", async () =
   assert.match(source, /let subjectFailure = null/);
   assert.match(source, /if \(!subjectFailure\) throw cleanupError/);
   assert.match(source, /dev\.dd\.eval\.harness\.cleanup_failed/);
+  const semanticOutcome = source.indexOf('Subject turn ended without successful');
+  const rememberFailure = source.indexOf('subjectFailure = error;', semanticOutcome);
+  const cleanup = source.indexOf('if (!subjectFailure) throw cleanupError', rememberFailure);
+  assert.ok(semanticOutcome > 0 && rememberFailure > semanticOutcome && cleanup > rememberFailure);
+
 });
 
 test("HITL verdicts are strict, fail closed, and preserve exact response bytes", () => {

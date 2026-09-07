@@ -1,6 +1,6 @@
 # 031 — Сводный план системных исправлений, интеграции и релизов
 
-Дата: 2026-09-07. Статус: **план; реализация, commit/push и релизы этого плана впереди**.
+Дата: 2026-09-07. Статус: **P00 и P01 начаты; остальные delivery gates впереди**.
 
 Поручение текущего этапа: зафиксировать спецификации и порядок всей работы.
 Оно не запускает сейчас implementation, provider experiments, публикации или
@@ -66,10 +66,12 @@ feature worktrees с интеграцией в существующие ветк
 | P09 | CLI/canon/eval/baseline: commit/push/tag/package и consumer readback | P08 | Published artifact identities, compatibility и rollout evidence |
 | P10 | dd-eval: новый immutable checkpoint и release-artifact E2E/recovery | P09 | E2E до MERGE, controlled recovery, final reports; docs: record release acceptance |
 
-P01 upstream blocker не блокирует общие defensive fixes P02/P04–07, но блокирует
-объявление AGY productive child/recovery accepted. В таком случае допустим
-отдельный safety release с явным unsupported verdict; полный пакет остаётся
-открытым. Подменять AGY другой упряжкой без решения пользователя нельзя.
+P01 source probe на текущем AGY 1.1.27 подтвердил child hook ingress и
+physical-parent propagation через текущий adapter; historical root-only trace
+не воспроизводится этим bounded probe. Это не заменяет productive lifecycle
+qualification. Если последующий release-artifact smoke даст blocker, общие
+defensive fixes P02/P04–07 продолжаются, а AGY остаётся explicit unsupported.
+Подменять AGY другой упряжкой без решения пользователя нельзя.
 
 ## 4. Реестр причин и покрытие всего пакета
 
