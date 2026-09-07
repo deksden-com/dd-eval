@@ -58,6 +58,24 @@ and dd-eval's fallback adapters.
   remains pending at this checkpoint.
 - No new release or live qualification result is asserted here.
 
+## Release candidate
+
+Engine source `8b0e5fe4a8991172c6d6d5f0963a0adf5bc2228d` is the
+Changesets-generated beta.29 candidate. Strict build, release-build guard,
+typecheck, lint and npm package dry-run passed. Its full suite was restarted
+after freezing the commit: the earlier long-running process mixed cached
+pre-fix code with a later test edit and failed the new latest-owner refusal
+assertion; a fresh isolated run passed that test. The interrupted mixed-source
+run is not a successful full-suite receipt.
+
+Checkpoint cp-081 pins the local candidate, not an npm publication. Its engine
+snapshot checksum is
+`c73de06350815334c079ba68cb540ed91ab4987a1d0e9b02dfbd9c6cea380f59`.
+The product baseline and project flow-pack commits are unchanged from cp-080.
+Use the documented absolute DD_FLOW_BIN development override for this
+qualification. Publication and its separate artifact readback remain pending;
+the publish rebuild may change build metadata and therefore the snapshot hash.
+
 ## Native counter check
 
 An isolated AGY 1.1.27 check is retained at
