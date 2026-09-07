@@ -100,6 +100,12 @@ test("dd-agy owns one streaming conversation and rejects headless fork semantics
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-test-"));
   const fake = path.join(root, "fake-agy.mjs"), flow = path.join(root, "fake-flow.mjs"), registry = path.join(root, "registry.log"), state = path.join(root, `state-${"x".repeat(180)}`), project = path.join(root, "project"), flowHome = path.join(root, "flow-home");
   await mkdir(project); await mkdir(flowHome);
+  await mkdir(path.join(project, ".agents"));
+  await writeFile(path.join(project, ".agents", "hooks.json"), JSON.stringify({
+    existing: { Stop: [] },
+    PreToolUse: [{ matcher: "*", hooks: [{ type: "command", command: `'${process.execPath}' '${path.resolve("bin/dd-agy.mjs")}' hook handle --old`, timeout: 30 }] }],
+    Stop: [{ type: "command", command: `'${process.execPath}' '${path.resolve("bin/dd-agy.mjs")}' hook handle --old`, timeout: 30 }]
+  }));
   await writeFile(fake, `#!/usr/bin/env node
 const args=process.argv.slice(2); if(args.includes('--version')){console.log('1.1.25');process.exit(0)} if(args.includes('models')){console.log('gemini-3.1-pro-high available');process.exit(0)}
 console.log(JSON.stringify({event:'init',conversation_id:'agy-root',init:{model:'gemini-3.1-pro-high',cwd:process.cwd(),permission_mode:'always-proceed'}}));
@@ -131,6 +137,12 @@ else process.stdout.write('{"ok":true}\\n');
     assert.equal(next.result.response, "answer");
     const config = JSON.parse(await readFile(path.join(state, "gemini", "config", "hooks.json"), "utf8"));
     assert.ok(config["dd-flow"].PreToolUse);
+    const workspaceHooks = JSON.parse(await readFile(path.join(project, ".agents", "hooks.json"), "utf8"));
+    assert.deepEqual(workspaceHooks.PreToolUse, config["dd-flow"].PreToolUse);
+    assert.deepEqual(workspaceHooks.PostToolUse, config["dd-flow"].PostToolUse);
+    assert.deepEqual(workspaceHooks.Stop, config["dd-flow"].Stop);
+    assert.deepEqual(workspaceHooks.existing, { Stop: [] });
+    assert.equal(status.config.workspaceHooksPath, path.join(status.config.projectRoot, ".agents", "hooks.json"));
     await stopDaemon({ stateDir: state });
     const terminal = JSON.parse(await readFile(path.join(state, "daemon.json"), "utf8")); assert.equal(terminal.shutdown_state, "clean");
     const calls = await readFile(registry, "utf8");
