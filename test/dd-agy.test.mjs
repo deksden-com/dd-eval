@@ -57,6 +57,16 @@ test("AGY refuses an unconfirmed child hook and does not treat an unknown child 
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+test("AGY accepts a terminal root result when AGY omits its root Stop hook", () => {
+  const runtime = new Runtime({ state: "/unused", journal: "/unused" }, { config: { daemonId: "d", cwd: "/tmp" } });
+  runtime.init = { conversation_id: "root" };
+  runtime.lastResult = { status: "SUCCESS" };
+  runtime.descendants.set("child", { provider_session_id: "child", parent_provider_session_id: "root", status: "completed" });
+  assert.equal(runtime.receipt().settled, true);
+  runtime.sessionObservations.set("root", { stop: { fullyIdle: false } });
+  assert.equal(runtime.receipt().settled, false);
+});
+
 test("AGY usage preserves missing counters as unknown", () => {
   assert.equal(usageSnapshot({ usage: { input_tokens: null, total_tokens: undefined } }).input_tokens, null);
   assert.equal(usageSnapshot({ usage: { input_tokens: null, total_tokens: undefined } }).total_tokens, null);
