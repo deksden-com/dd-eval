@@ -1,6 +1,8 @@
 # 031 — Сводный план системных исправлений, интеграции и релизов
 
-Дата: 2026-09-07. Статус: **P00 и P01 начаты; остальные delivery gates впереди**.
+Дата: 2026-09-07. Статус: **кодовые/release delivery P00–P09 выполнены по
+связанным evidence commits; P10 частично выполнен: cp-079 дошёл до MERGE и
+Judge, controlled selective-recovery E2E остаётся открытым.**
 
 Поручение текущего этапа: зафиксировать спецификации и порядок всей работы.
 Оно не запускает сейчас implementation, provider experiments, публикации или
@@ -208,6 +210,18 @@ canon-blocked сохранить частичный статус и не promote
 - previous safe artifact set, rollback/roll-forward и partial publication state.
 
 ## 10. Финальный checklist
+
+### Verification update — 2026-09-07
+
+Новый release-artifact E2E `EVAL-20260907081412-cafebe6d` на cp-079 и
+Flow beta.28 дошёл до MERGE и final Judge. Он подтверждает normal lifecycle,
+native-child bindings и clean terminal settlement; Judge отдельно зафиксировал
+материальные дефекты Subject outcome. Это не доказательство recovery и не
+закрывает acceptance продукта. Полный `dd-eval` suite на cp-079: 237/237.
+
+Пункты ниже намеренно не помечены массово как выполненные: исходный план
+требует связанного cross-repository evidence и отдельного selective-recovery
+прогона, которого normal E2E не заменяет.
 
 - [ ] P00 inventory/WIP ownership выполнен; планы закоммичены и запушены.
 - [ ] AGY source decision принят на evidence; unsupported не выдан за fixed.

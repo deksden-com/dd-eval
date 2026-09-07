@@ -1,7 +1,8 @@
 # 029 — Implementation evidence
 
-2026-09-07. Delivery in progress: cp-077 stopped on a native provider capacity
-failure during CODE repair. Full E2E qualification is not yet accepted.
+2026-09-07. Delivery evidence is retained incrementally. cp-077 stopped on a
+native provider capacity failure during CODE repair; the later cp-079 run
+reached MERGE and final Judge, but its Subject outcome did not meet acceptance.
 
 ## Implemented
 
@@ -289,3 +290,28 @@ backwards. Readback confirmed its correction to beta.26 (`latest` stayed
 tasks agreed on one beta.27 release owner and a final artifact readback before
 the next qualification. This channel incident is separate from the native
 capacity failure above.
+
+## cp-079 full E2E verdict
+
+Run `EVAL-20260907081412-cafebe6d` used frozen dd-eval definition
+`488f3ab` and the installed `@deksden-com/dd-flow-cli` `0.9.0-beta.28`
+artifact, whose selected engine checksum was
+`fbd896d67d6e52f68a0ce38853aaab84667b5bf51d8916ddbe07191af8cb7810`.
+It completed SPECIFY, PROTOCOLIZE, PLAN, PLAN-REVIEW, CODE, CODE-REVIEW and
+MERGE in legal order. Native child Work was registered and reconciled in each
+fan-out; no recovery or duplicate dispatch occurred. The candidate was frozen
+as `d0c85a964babd98a0328272d899de66f0560e4c065dc6604e41e45fd9a76832c` and
+the final Judge returned `run_validity: valid`.
+
+This is a successful **flow qualification**, not a passing product acceptance.
+The Judge scored flow legality 4/4 and HITL 4/4, but found four material
+Subject defects: priority mutation changes the list ordering key; archived
+projects accept a non-priority-only payload; `null` priority mutates instead
+of rejecting; and the green checks do not exercise the priority acceptance
+matrix. Outcome/readiness therefore remains unaccepted. The immutable result
+is retained at
+`~/.dd-eval/runs/EVAL-20260907081412-cafebe6d/judge/result.json`.
+
+The complete dd-eval regression suite on the cp-079 source passed **237/237**
+on 2026-09-07. Controlled selective-recovery E2E remains a separate open P10
+gate; this normal completion must not be represented as its substitute.
