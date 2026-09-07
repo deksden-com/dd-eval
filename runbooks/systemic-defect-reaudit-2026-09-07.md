@@ -1,6 +1,14 @@
 # Повторная ревизия: flow, recovery, evidence и release
 
-Дата: 2026-09-07. Статус: исходная ревизия ниже сохранена; реализация и локальные проверки описаны в следующем разделе. Публикация и реальная qualification пока не подтверждены.
+Дата: 2026-09-07; обновлено 2026-09-08. Статус: исходная ревизия ниже сохранена как историческая. Системные исправления опубликованы в beta.35; реальная E2E/recovery qualification ещё не завершена.
+
+## Подтверждённый релиз и новая qualification
+
+Полный engine gate: 338/338 тестов, typecheck, lint и strict build прошли. Полный dd-eval после финальных adapter-изменений: 251/251. Опубликован `@deksden-com/dd-flow-cli@0.9.0-beta.35`: artifact/source/tag commit `e2ed74f88c272aa8269bd8be56b1f1d73467f4d7`, canon 4.0.6 commit `c6fc50cb3b5526ea0162ee4454d1ee36f17be2da`. Remote main и annotated tag проверены в release receipt. Isolated и global consumer дали одинаковый engine checksum `f4dceb3ab8f1c49d5a0373cdc155e2cd42a5461c91b13e362fb911e18f28e070` и compatibility `ok`. Receipt завершён 2026-09-07T22:00:23.249Z.
+
+Первый post-publish install остановился на npm `EALLOWSCRIPTS`: `pnpm run` добавляет `npm_config_allow_scripts=*`. Продолжение того же source tuple через Node проверило registry и завершило consumers без второй публикации. Последующий script-only commit `375a915` переносит inherited allow-scripts во временный npmrc, сохраняя политику. Проверены 4 release tests, typecheck, lint и реальный offline npm install: до нормализации ошибка воспроизводится, после неё policy readback сохранён и установка проходит. Скрипт не входит в package payload; новый npm bump не нужен, опубликованный runtime остаётся привязан к `e2ed74f`.
+
+Новый immutable checkpoint cp-084 закрепляет beta.35. Source baseline и project flow pack полностью сохранены из cp-083; исторические checkpoint, RUN и receipts не редактировались. Preflight и реальные normal-flow/recovery ячейки выполняются отдельно и не считаются пройденными на основании релиза.
 
 ## Выполненная реализация
 
