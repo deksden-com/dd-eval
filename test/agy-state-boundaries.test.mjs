@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { setImmediate } from 'node:timers';
-import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
+import { setImmediate, setTimeout } from 'node:timers';
+import process from 'node:process';
+import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { ObservationClock } from '../lib/observation-clock.mjs';
@@ -32,7 +33,61 @@ test('late observation honors native activity time and productive reservations s
     assert.equal(dispatched, false); assert.equal(value.active, null); assert.equal(value.activeProductive, null);
   }
 });
-import { Runtime, prepare } from '../lib/dd-agy-daemon.mjs';
+import { Runtime, prepare, retainedAgyState, startDaemon, stopDaemon, callDaemon } from '../lib/dd-agy-daemon.mjs';
+
+test('clean cancellation and same-session restart preserve failure and admit only fresh work', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'agy-restart-'));
+  const stateDir = path.join(root, 'state'), fake = path.join(root, 'provider.mjs'), input = path.join(root, 'input.jsonl');
+  const options = { stateDir, cwd: root, bin: fake, noFlow: true, entryPath: path.resolve('bin/dd-agy.mjs') };
+  await writeFile(fake, `import { appendFileSync } from 'node:fs';
+const args = process.argv.slice(2);
+if (args.includes('--version')) { console.log('1'); process.exit(0); }
+const emit = value => console.log(JSON.stringify(value));
+emit({event:'init',conversation_id:'root',init:{model:'gemini-3.1-pro-high',permission_mode:'always-proceed'}});
+if (args.includes('--conversation')) emit({event:'result',result:{conversation_id:'root',status:'ERROR',error:'injected failure'}});
+process.stdin.setEncoding('utf8'); let buffer='';
+process.stdin.on('data', chunk => { buffer+=chunk; let at;
+  while ((at=buffer.indexOf('\\n'))>=0) {
+    const message=JSON.parse(buffer.slice(0,at)); buffer=buffer.slice(at+1);
+    const text=message.message.content; appendFileSync(${JSON.stringify(input)},JSON.stringify(text)+'\\n');
+    if (text==='interrupt') {
+      emit({event:'step_update',step_update:{conversation_id:'root',step_index:1,subagent_info:{subagents:[{conversation_id:'child'}]}}});
+      emit({event:'result',result:{conversation_id:'root',status:'ERROR',error:'injected failure'}});
+    } else emit({event:'result',result:{conversation_id:'root',status:'SUCCESS',response:text}});
+  }
+});
+`);
+  try {
+    await startDaemon(options);
+    await callDaemon(stateDir, 'session.prompt', { sessionId: 'root', prompt: 'warmup' });
+    await assert.rejects(callDaemon(stateDir, 'session.prompt', { sessionId: 'root', prompt: 'interrupt' }), { code: 'agy_provider_failed' });
+    await callDaemon(stateDir, 'hook.observe', { event: 'PreToolUse', payload: { conversationId: 'child', stepIdx: 1 } });
+    await callDaemon(stateDir, 'hook.observe', { event: 'Stop', payload: { conversationId: 'root', fullyIdle: false } });
+    await assert.rejects(stopDaemon({ stateDir }), { code: 'tree_not_settled' });
+    await stopDaemon({ stateDir, cancelTree: true });
+    const stopped = JSON.parse(await readFile(path.join(stateDir, 'daemon.json'), 'utf8'));
+    assert.equal(stopped.shutdown_state, 'clean');
+    assert.equal(stopped.descendants[0].tree_settled, false);
+    const deadline = Date.now() + 5_000;
+    while (Date.now() < deadline) {
+      try { process.kill(stopped.pid, 0); } catch (error) { if (error.code === 'ESRCH') break; throw error; }
+      await new Promise(resolve => setTimeout(resolve, 25));
+    }
+    await startDaemon({ ...options, sessionId: 'root' });
+    const inspected = await callDaemon(stateDir, 'session.inspect', { sessionId: 'root' });
+    assert.equal(inspected.result.error, 'injected failure');
+    assert.equal(inspected.descendants[0].status, 'unknown');
+    assert.equal(inspected.descendants[0].tree_settled, true);
+    assert.equal((await callDaemon(stateDir, 'session.prompt', { sessionId: 'root', prompt: 'ack' })).assistant_text, 'ack');
+    await callDaemon(stateDir, 'hook.observe', { event: 'PreToolUse', payload: { conversationId: 'child', stepIdx: 2 } });
+    await assert.rejects(callDaemon(stateDir, 'session.prompt', { sessionId: 'root', prompt: 'blocked' }), { code: 'tree_not_settled' });
+    assert.deepEqual((await readFile(input, 'utf8')).trim().split('\n').map(JSON.parse), ['warmup', 'interrupt', 'ack']);
+    assert.deepEqual(JSON.parse(await readFile(path.join(stateDir, 'daemon-history', stopped.daemon_id + '.json'), 'utf8')), stopped);
+  } finally {
+    try { await stopDaemon({ stateDir, cancelTree: true }); } catch { /* retain the original test failure */ }
+    await rm(root, { recursive: true, force: true });
+  }
+});
 
 test('no-flow probes retain native Stop observation without workspace or flow hooks', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'agy-observer-'));
@@ -57,6 +112,52 @@ function runtime() {
   value.draining = Promise.resolve();
   return value;
 }
+
+test('verified daemon retirement scopes old tree flags without changing native outcomes', async () => {
+  const previous = {
+    daemon_id: 'retired', shutdown_state: 'clean', active_tree: false, turn_generation: 4,
+    sessions: [{ provider_session_id: 'root' }], last_result: { status: 'ERROR', error: 'original failure' },
+    session_observations: [['root', { last_step_index: 10, stop: { fullyIdle: false } }]],
+    descendants: [{ provider_session_id: 'child', status: 'unknown', tree_settled: false, activity_generation: 4 }]
+  };
+  const original = JSON.parse(JSON.stringify(previous));
+  const retained = retainedAgyState(previous, 'root');
+  const r = runtime();
+  r.state = retained;
+  r.turnGeneration = retained.turn_generation;
+  r.lastResult = retained.last_result;
+  r.sessionObservations = new Map(retained.session_observations);
+  r.descendants = new Map(retained.descendants.map(child => [child.provider_session_id, child]));
+  assert.deepEqual(previous, original, 'the historical shutdown receipt stays immutable');
+  assert.equal(r.descendants.get('child').status, 'unknown');
+  assert.equal(r.descendants.get('child').settlement_evidence, 'prior_clean_daemon_shutdown');
+  assert.equal(r.lastResult.error, 'original failure');
+  assert.equal(r.receipt().settled, true);
+  const writes = [];
+  r.child = { stdin: { write: value => writes.push(value) } };
+  const accepted = r.prompt('recovery acknowledgement', () => {});
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(writes.length, 1);
+  await r.finishTurn({ conversation_id: 'root', status: 'SUCCESS', response: 'acknowledged' });
+  assert.equal((await accepted).settled, true);
+  assert.deepEqual(previous, original);
+  r.observeStep({ conversation_id: 'child', step_index: 11, state: 'RUNNING' });
+  await assert.rejects(r.prompt('must not overlap', () => {}), { code: 'tree_not_settled' });
+  await r.observeHook('Stop', { conversationId: 'child', stepIdx: 11, fullyIdle: true });
+  assert.equal(r.receipt().settled, true);
+  r.observeStep({ conversation_id: 'root', step_index: 11, state: 'RUNNING' });
+  await assert.rejects(r.prompt('unclaimed root activity', () => {}), { code: 'tree_not_settled' });
+  const unclean = { ...previous, shutdown_state: 'running', active_tree: true };
+  assert.deepEqual(retainedAgyState(unclean, 'root'), unclean);
+  assert.deepEqual(retainedAgyState(previous, 'foreign'), {});
+});
+
+test('unclaimed root tool hooks invalidate restart admission', async () => {
+  const r = runtime();
+  r.lastResult = { status: 'SUCCESS' };
+  await r.observeHook('PreToolUse', { conversationId: 'root', stepIdx: 1 });
+  await assert.rejects(r.prompt('do not overlap root', () => {}), { code: 'tree_not_settled' });
+});
 
 test('idle child notifications preserve failure and new activity invalidates settlement', async () => {
   const r = runtime();
