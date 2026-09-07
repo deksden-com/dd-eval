@@ -11,6 +11,8 @@
 
 Локальные проверки: полный dd-eval после adapter-изменений — 249/249; snapshot/recovery и новые publication/retry crash-состояния — 15/15; fake release проходит accepted-publish/lost-reply, временно недоступный tarball и повтор после install failure без второй публикации. Полный engine gate и опубликованный consumer требуют отдельного завершения. Эти проверки не заменяют матрицу реального провайдера ниже и не доказывают causal identity отсутствующих native полей.
 
+Реальный no-flow probe выявил отсутствие Stop-наблюдения в техническом режиме. Первый probe остановлен owned cancellation; separate stop подтвердил clean/settled, его исходный capacity receipt остаётся failed и не исправлялся. В no-flow теперь устанавливается только process-local Stop observer, без workspace hooks и без dd-flow mutation. Повторный probe `20260907211948856/antigravity-cli-google-gemini-3-1-pro-high/capacity.json` запустил один native child, сохранил его исход `settled_by_root` (не completed), завершил root и clean/settled daemon; qualified=true, профиль не менялся. Это техническая проверка дерева, не оценка продукта. Release gate commit 4d8e860 остановлен до публикации; для исправленного source требуется новый commit той же неопубликованной beta.35 и новый gate.
+
 Исследованные исходники: dd-flow-cli `508b72a9e9bb17dfa6bff5e52462115507a8524c`, dd-eval `8b03c9a907cd43a5c6d34fabab24e757e6a742ec`. Опубликованный npm beta: `0.9.0-beta.34`. Выпуск beta.35 остановился до публикации: 332 теста прошли, тест AGY liveness превысил ограничение 350 мс. Исходники и исторические RUN в этой ревизии не менялись. Новые provider Sessions не запускались.
 
 ## Вывод

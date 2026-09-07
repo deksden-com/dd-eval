@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers';
+import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { ObservationClock } from '../lib/observation-clock.mjs';
 import { Runtime as GrokRuntime } from '../lib/dd-grok-daemon.mjs';
 import { Runtime as OpenCodeRuntime } from '../lib/dd-opencode-daemon.mjs';
@@ -21,7 +24,21 @@ test('late observation honors native activity time and productive reservations s
     assert.equal(dispatched, false); assert.equal(value.active, null); assert.equal(value.activeProductive, null);
   }
 });
-import { Runtime } from '../lib/dd-agy-daemon.mjs';
+import { Runtime, prepare } from '../lib/dd-agy-daemon.mjs';
+
+test('no-flow probes retain native Stop observation without workspace or flow hooks', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'agy-observer-'));
+  try {
+    const paths = { dir: root, gemini: path.join(root, 'gemini'), runtime: path.join(root, 'runtime'), config: path.join(root, 'config'), temporary: path.join(root, 'temporary') };
+    await prepare(paths, { noFlow: true, entryPath: '/test/dd-agy.mjs', projectRoot: root });
+    const hooks = JSON.parse(await readFile(path.join(paths.config, 'hooks.json'), 'utf8'));
+    const observer = hooks['dd-flow-observer'];
+    assert.deepEqual(Object.keys(observer), ['Stop']);
+    assert.match(observer.Stop[0].command, /hook handle --event Stop/);
+    assert.doesNotMatch(observer.Stop[0].command, /--dd-flow-bin|--dd-flow-home/);
+    await assert.rejects(stat(path.join(root, '.agents')), { code: 'ENOENT' });
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 
 function runtime() {
   const value = new Runtime({ state: '/unused' }, { config: { daemonId: 'test', cwd: '/tmp' } });
