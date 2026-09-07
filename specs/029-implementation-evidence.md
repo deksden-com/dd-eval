@@ -149,3 +149,11 @@ incomplete candidate. No additional Subject prompt or replacement daemon ran.
 The integrated pre-race-fix CLI suite passed 321/321 in
 `/tmp/dd-flow-beta24-suite.log`; the final Codex-only delta is covered by the
 native and bundled regressions above.
+
+
+Final beta.24 was published from CLI commit `931f704348792d785f3a32ec7ee09aaf176c97a9`.
+The new cp-076 pins its installed digest
+`7608382cb1c5420813f1492836f720db6f237c4c1ddc4ee3c89a20d30cee1040`;
+cp-075 remains immutable. The final conformance engine lives under
+`~/.dd-eval/conformance/engine-beta24-final/`. Registry artifact audit, preflight
+and the new E2E remain in progress.
