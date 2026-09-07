@@ -2,7 +2,8 @@
 
 Status: systemic fixes and regression verification are in progress. Published
 beta.30 exposed a final AGY terminal-settlement race during qualification; its
-historical evidence is retained and the corrective beta.31 is under test.
+historical evidence is retained. The corrective beta.31 is published and its
+separate, immutable qualification definition is ready for preflight.
 
 ## Evidence and limits
 
@@ -102,18 +103,20 @@ per-Work fan-out reconciliation.
   repeated boundary recovery and prior-generation hook refusal.
 - Journal identity, retry-label, superseded-source, and bundled provider-error
   checks passed. Engine typecheck and lint passed. The final latest-owner
-  refusal check passed in the 12-test snapshot suite. The full engine suite
-  remains pending at this checkpoint.
+  refusal check passed in the 12-test snapshot suite. The fresh full engine
+  suite passed 27 files / 330 tests after the root-settlement correction.
 - The bundled-runtime liveness regression and engine typecheck/lint pass. A
-  fresh full engine suite and a new clean qualification remain required before
-  asserting the follow-up release or full E2E recovery result.
+  new clean qualification remains required before asserting a full E2E
+  recovery result.
 
 ## Release candidate
 
 Engine source `88b1f0f37ffa205a7ed21b56054849d083707501` was published as
 `@deksden-com/dd-flow-cli@0.9.0-beta.30` under npm's `beta` tag and Git tag
-`v0.9.0-beta.30`. Its published-artifact checkpoint is cp-082. The next
-release, beta.31, will contain the root-settlement ordering correction above.
+`v0.9.0-beta.30`. Its published-artifact checkpoint is cp-082. Engine source
+`f21c8317e762f978272536faff6822921dffeff5`, containing the root-settlement
+ordering correction, is published as `@deksden-com/dd-flow-cli@0.9.0-beta.31`
+under the `beta` tag and Git tag `v0.9.0-beta.31`.
 
 Checkpoint cp-081 pins the local candidate, not the published tarball. Its engine
 snapshot checksum is
@@ -122,10 +125,13 @@ The product baseline and project flow-pack commits are unchanged from cp-080.
 Use the documented absolute DD_FLOW_BIN development override for this
 qualification. Its historical snapshot remains immutable; a published-artifact
 checkpoint must be a new definition rather than an edit to cp-081. That
-published definition is now cp-082, pinned to beta.30 source
+published definition cp-082 remains pinned to beta.30 source
 `88b1f0f37ffa205a7ed21b56054849d083707501` and its independently installed
 package snapshot checksum
 `427d9afb69f2106bda39058be08e9c900517846f49b017c25b38e247aa239dce`.
+The next definition is cp-083, pinned to the independently installed beta.31
+package snapshot checksum
+`e701e7367fb0f3e72a8bca097e4776ffd36feef3db6f2934933cf3d1888b1be1`.
 
 ## Native counter check
 
