@@ -11,7 +11,7 @@ import { waitForSettlement } from "../lib/session-settlement.mjs";
 import { durableDaemonDispatch, inspectDaemonOperation } from "../lib/daemon-operations.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
-import { recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoveryPrompt, prepareRecoveryDelivery, isInfrastructureFailure } from "../lib/runner.mjs";
+import { recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoverySourceFromEvents, recoveryOperationId, recoveryPrompt, prepareRecoveryDelivery, isInfrastructureFailure } from "../lib/runner.mjs";
 
 test("atomic receipts flush file and directory and preserve the old receipt after a failed flush", async (t) => {
   const root = await mkdtemp(path.join(os.tmpdir(), "receipt-flush-"));
@@ -75,6 +75,17 @@ test("recovery selects exactly the requested current interruption, including ide
   assert.throws(() => selectRecoverySource([{ ...failed, state: "awaiting_provider" }], "e", "R2"), { code: "recovery_not_eligible" });
   const completed = { ...failed, state: "candidate_ready", recovery: { recovery_id: "R2", resumed_at: "2026-09-06T21:00:00Z" } };
   assert.equal(selectRecoverySource([completed], "e", "R2"), completed);
+});
+
+test("recovery retries retain the sealed source and allocate a new durable operation", () => {
+  const run = "EVAL", execution = "e", recovery = "R2", base = `${run}:${execution}:launch:recover:${recovery}`;
+  const sourceEvent = { type: "dev.dd.eval.execution.failed", executionid: execution, data: { execution, state: "failed", recovery: { recovery_id: recovery, run_id: "RUN-1" } } };
+  const retryFailure = { type: "dev.dd.eval.execution.failed", executionid: execution, data: { execution, state: "failed", recovery_parent_id: recovery, code: "recovery_workspace_drift" } };
+  assert.equal(recoverySourceFromEvents([sourceEvent, retryFailure], execution, recovery), sourceEvent.data);
+  const failed = [{ type: "dev.dd.eval.operation.requested", data: { operation_id: base } }, { type: "dev.dd.eval.operation.started", data: { operation_id: base } }, { type: "dev.dd.eval.operation.failed", data: { operation_id: base, error: { code: "drift" } } }];
+  assert.equal(recoveryOperationId(failed, run, execution, recovery), `${base}:retry:1`);
+  const retried = [...failed, { type: "dev.dd.eval.operation.requested", data: { operation_id: `${base}:retry:1` } }, { type: "dev.dd.eval.operation.started", data: { operation_id: `${base}:retry:1` } }, { type: "dev.dd.eval.operation.failed", data: { operation_id: `${base}:retry:1`, error: { code: "drift" } } }];
+  assert.equal(recoveryOperationId(retried, run, execution, recovery), `${base}:retry:2`);
 });
 
 test("terminal reconciliation rejects every productive continuation state", () => {
