@@ -1,8 +1,8 @@
 # Recovery defect-class audit — 2026-09-07
 
-Status: systemic fixes and regression verification are in progress. Beta.29
-was published; the first controlled recovery transition succeeded, while a
-later liveness interruption exposed two further defects now under correction.
+Status: systemic fixes and regression verification are in progress. Published
+beta.30 exposed a final AGY terminal-settlement race during qualification; its
+historical evidence is retained and the corrective beta.31 is under test.
 
 ## Evidence and limits
 
@@ -26,6 +26,7 @@ runner reconciliation, engine recovery ownership, and immutable Judge input.
 | Evidence identity overwritten or incompletely compared | Event enrichment overwrote journal sequence; candidate matching ignored changed failure evidence; revision parent always referred to the original | Journal owns sequence; compare full candidate execution evidence; hash-check original and revised inputs; link to the immediately preceding frozen candidate |
 | Recovery progress omitted from projection | Recovery at a completed stage skipped ACK/boundary capture; retry allocation ignored pending or completed retries; reports flattened repeated attempts | ACK retained running/paused/completed state before continuation; reuse deterministic boundary captures and durable retry operations; retain per-operation interruption segments |
 | Evidence silently dropped during adapter packaging/restart | AGY/OpenCode CLI ignored configured journal; AGY restart dropped tool/descendant state; bundled AGY lacked the fallback hook-denial response | Forward and mirror configured journals with identical event identities; restore accounting completeness and topology; mirror the fail-closed hook response |
+| Root settlement was not propagated to previously replaced children | An authoritative AGY root `Stop(fullyIdle=true)` coexisted with earlier child IDs that emitted no individual terminal hook; the adapter released the root result before that Stop | Keep terminal SUCCESS pending until the root Stop settles unknown descendants as `settled_by_root`; retain that evidence distinctly and exclude it from Work reconciliation |
 
 Codex and Droid already bind productive outcomes to native turn/request IDs.
 Their existing terminal-identity and late-reply tests were included in the full
@@ -83,10 +84,20 @@ same confirmed liveness/identity/provider-exit failure classes as the primary
 execution cleanup. Both changes are covered before the next release and fresh
 qualification.
 
+The published-artifact run `EVAL-20260907141728-60c82e75` reached PLAN and
+PLAN-REVIEW using beta.30. Its root emitted SUCCESS and then
+`Stop(fullyIdle=true)`; the Work-backed child had its own terminal Stop, while
+two earlier, replaced native child IDs remained individually unobserved. The
+adapter had already returned the terminal root result, so the runner attempted
+the next prompt and correctly received `tree_not_settled`. This is a
+qualification failure, not a claim that those unknown children completed. The
+new handling records them as `settled_by_root`, waits for that root evidence
+before returning the prompt receipt, and never sends those records to
+per-Work fan-out reconciliation.
+
 ## Verification
 
-- Full dd-eval suite after the liveness and bridge-cleanup correction: 244/244
-  passed.
+- Full dd-eval suite after the root-settlement correction: 244/244 passed.
 - Focused engine snapshot and bundled-runtime suites: 19/19 passed, including
   repeated boundary recovery and prior-generation hook refusal.
 - Journal identity, retry-label, superseded-source, and bundled provider-error
@@ -99,11 +110,10 @@ qualification.
 
 ## Release candidate
 
-Engine source `8b0e5fe4a8991172c6d6d5f0963a0adf5bc2228d` was published as
-`@deksden-com/dd-flow-cli@0.9.0-beta.29` under npm's `beta` tag and Git tag
-`v0.9.0-beta.29`. The published tarball build-info binds the same source commit
-to canon 4.0.6 / `c6fc50cb3b5526ea0162ee4454d1ee36f17be2da`. The next release
-will contain the liveness and recovery-bridge corrections above.
+Engine source `88b1f0f37ffa205a7ed21b56054849d083707501` was published as
+`@deksden-com/dd-flow-cli@0.9.0-beta.30` under npm's `beta` tag and Git tag
+`v0.9.0-beta.30`. Its published-artifact checkpoint is cp-082. The next
+release, beta.31, will contain the root-settlement ordering correction above.
 
 Checkpoint cp-081 pins the local candidate, not the published tarball. Its engine
 snapshot checksum is

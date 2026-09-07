@@ -426,10 +426,12 @@ test("capacity qualification counts only authoritative direct native children", 
   const children = directNativeChildren({ descendants: [
     { provider_session_id: "child-completed", parent_provider_session_id: "root", status: "completed" },
     { provider_session_id: "child-failed", parent_provider_session_id: "root", status: "failed" },
+    { provider_session_id: "child-settled-by-root", parent_provider_session_id: "root", status: "settled_by_root" },
     { provider_session_id: "grandchild", parent_provider_session_id: "child-completed", status: "completed" }
   ] }, "root");
-  assert.deepEqual(children.map((child) => child.session_id), ["child-completed", "child-failed"]);
+  assert.deepEqual(children.map((child) => child.session_id), ["child-completed", "child-failed", "child-settled-by-root"]);
   assert.equal(children[1].status, "failed");
+  assert.equal(children[2].status, "settled_by_root");
   assert.deepEqual(
     directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-ended", status: "success" }] } } } }, "root"),
     [{ session_id: "zcode-ended", parent_session_id: "root", status: "completed", source: "zcode/session/subagents" }]

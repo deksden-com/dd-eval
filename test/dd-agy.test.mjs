@@ -83,16 +83,23 @@ test("AGY ignores prior terminal results, keeps RUNNING open and persists real s
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-test("AGY refuses an unconfirmed child hook and does not treat an unknown child as settled", async () => {
+test("AGY holds a terminal result until root settlement covers unknown children", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-child-identity-"));
   const paths = { state: path.join(root, "daemon.json"), journal: path.join(root, "events.jsonl") };
   const runtime = new Runtime(paths, { config: { daemonId: "d", cwd: root } });
   runtime.init = { conversation_id: "root" };
-  runtime.lastResult = { status: "SUCCESS" };
-  runtime.sessionObservations.set("root", { stop: { fullyIdle: true } });
   runtime.descendants.set("child", { provider_session_id: "child", parent_provider_session_id: "root", status: "unknown" });
+  let resolved = null;
+  runtime.active = { resolve: value => { resolved = value; }, reject: error => assert.fail(error.message) };
   try {
-    assert.equal(runtime.receipt().settled, false);
+    await runtime.finishTurn({ conversation_id: "root", status: "SUCCESS", response: "done" });
+    assert.equal(resolved, null);
+    assert.ok(runtime.active);
+    await runtime.observeHook("Stop", { conversationId: "root", fullyIdle: true });
+    assert.equal(runtime.descendants.get("child").status, "settled_by_root");
+    assert.equal(runtime.descendants.get("child").settlement_evidence, "root_fully_idle_stop");
+    assert.equal(resolved.settled, true);
+    assert.equal(runtime.active, null);
     await assert.rejects(runtime.observeHook("PreToolUse", { conversationId: "foreign", toolCall: { name: "run_command", args: {} } }), error => error.code === "agy_child_identity_unconfirmed");
   } finally { await rm(root, { recursive: true, force: true }); }
 });
