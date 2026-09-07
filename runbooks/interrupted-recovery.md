@@ -19,8 +19,11 @@ recovery binding. `dd-flow run recovery resume` requires `--daemon-id`,
 `--harness`, and `--native-session-id`; it leaves the RUN guarded as `resuming`.
 The retained root Session must execute the engine-generated `run recovery
 accept` command. Its immutable native hook must match the authorized daemon,
-Session, RUN, and recovery ID. Acceptance closes the old root WorkSession as
-interrupted, creates the new binding, and opens the RUN in one transaction.
+Session, RUN, and recovery ID. For unfinished Work, acceptance closes the old
+coordinator WorkSession as interrupted, creates the new binding, and opens the
+RUN in one transaction. At a completed stage boundary it retains the completed
+Work and WorkSession unchanged: the root acknowledges recovery, returns to the
+controller, and only then may the controller enter the next stage.
 A paused Work remains paused; acceptance does not supply its user answer.
 Worker launch commands carry the current recovery ID. Receipts from old
 packets or retired daemons cannot acquire another segment, and finishing Work
@@ -44,7 +47,9 @@ evidence is rejected. Published snapshot directories are immutable; incomplete
 temporary captures are not ready recovery evidence.
 
 Historical candidate and Judge files remain in place. New candidate revisions
-and their Judge outputs use separate paths. Reports identify recovered runs;
+and their Judge outputs use separate paths. Changed failure evidence creates a
+new candidate identity even when the sealed recovery source is unchanged;
+revisions link to their immediate predecessor. Reports identify recovered runs;
 ordinary GC retains runs ending with failures and rechecks eligibility under
 the same lifecycle lock used by recovery.
 

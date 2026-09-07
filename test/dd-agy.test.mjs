@@ -7,7 +7,7 @@ import path from "node:path";
 import { doctor, usageSnapshot } from "../lib/dd-agy.mjs";
 import { callDaemon, startDaemon, stopDaemon, Runtime } from "../lib/dd-agy-daemon.mjs";
 
-test("AGY persists Stop observations and rejects an older execution after a new prompt", async () => {
+test("AGY scopes Stop observations by turn and native step, not a reused execution counter", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-stop-scope-"));
   const paths = { state: path.join(root, "daemon.json"), journal: path.join(root, "events.jsonl") };
   const runtime = new Runtime(paths, { config: { daemonId: "d", cwd: root } });
@@ -18,11 +18,14 @@ test("AGY persists Stop observations and rejects an older execution after a new 
     const resumed = new Runtime(paths, saved);
     assert.equal(resumed.sessionObservations.get("root").stop.executionNum, 4);
     resumed.init = runtime.init;
-    resumed.sessionObservations.set("root", { ...resumed.sessionObservations.get("root"), execution_floor: 4, stop: null });
-    await resumed.observeHook("Stop", { conversationId: "root", executionNum: 4, fullyIdle: false });
+    resumed.sessionObservations.set("root", { ...resumed.sessionObservations.get("root"), step_floor: 4, stop: null });
+    await resumed.observeHook("Stop", { conversationId: "root", executionNum: 4, stepIdx: 4, fullyIdle: false });
     assert.equal(resumed.sessionObservations.get("root").stop, null);
     await resumed.observeHook("Stop", { conversationId: "root", executionNum: 5, fullyIdle: true });
     assert.equal(resumed.sessionObservations.get("root").stop.executionNum, 5);
+    await resumed.observeHook("Stop", { conversationId: "root", executionNum: 0, fullyIdle: false });
+    assert.equal(resumed.sessionObservations.get("root").stop.fullyIdle, false);
+    await resumed.observeHook("Stop", { conversationId: "root", executionNum: 5, fullyIdle: true });
     resumed.lastActivityAt = "sentinel";
     await resumed.observeHook("Stop", { conversationId: "root", executionNum: 5, fullyIdle: true });
     assert.equal(resumed.lastActivityAt, "sentinel");
@@ -32,7 +35,7 @@ test("AGY persists Stop observations and rejects an older execution after a new 
     assert.equal(restored.descendants.get("child").parent_provider_session_id, "root");
     await resumed.observeHook("Stop", { conversationId: "child", executionNum: 1, fullyIdle: true });
     assert.equal(resumed.descendants.get("child").status, "completed");
-    const hook = { conversationId: "root", stepIdx: 0, toolCall: { name: "run_command", args: "same command" } };
+    const hook = { conversationId: "root", stepIdx: 5, toolCall: { name: "run_command", args: "same command" } };
     const first = await resumed.observeHook("PreToolUse", { ...hook, executionNum: 5 });
     const second = await resumed.observeHook("PreToolUse", { ...hook, executionNum: 6 });
     assert.notEqual(first.event_id, second.event_id);
@@ -40,6 +43,34 @@ test("AGY persists Stop observations and rejects an older execution after a new 
     resumed.lastActivityAt = "sentinel";
     resumed.observeProviderActivity({ event: "step_update", step_update: { step_id: "1", state: "RUNNING" } });
     assert.equal(resumed.lastActivityAt, "sentinel");
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("AGY ignores prior terminal results, keeps RUNNING open and persists real step identities", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-agy-terminal-scope-"));
+  const paths = { state: path.join(root, "daemon.json"), journal: path.join(root, "events.jsonl") };
+  const journal = path.join(root, "subject", "events.jsonl");
+  const runtime = new Runtime(paths, { config: { daemonId: "d", cwd: root, journal } });
+  runtime.init = { conversation_id: "root" };
+  let resolved = null, rejected = null;
+  runtime.active = { resolve: value => { resolved = value; }, reject: error => { rejected = error; }, resultFloor: 4 };
+  try {
+    await runtime.finishTurn({ conversation_id: "root", status: "RUNNING", num_turns: 5 });
+    assert.equal(resolved, null); assert.ok(runtime.active);
+    await runtime.finishTurn({ conversation_id: "root", status: "ERROR", num_turns: 4, error: "old quota" });
+    assert.equal(rejected, null); assert.ok(runtime.active);
+    const step = { conversation_id: "root", step_index: 100, step_type: "tool", state: "DONE", tool_name: "run_command" };
+    runtime.observeStep(step); runtime.observeStep(step);
+    await runtime.persist();
+    const restored = new Runtime(paths, JSON.parse(await readFile(paths.state, "utf8")));
+    restored.init = runtime.init; restored.observeStep(step);
+    assert.equal(restored.toolSnapshot().total, 1);
+    assert.equal(restored.toolSnapshot().completeness, "complete");
+    await runtime.finishTurn({ conversation_id: "root", status: "SUCCESS", num_turns: 5, response: "done" });
+    assert.equal(resolved.assistant_text, "done"); assert.equal(resolved.settled, true);
+    await assert.rejects(runtime.finishTurn({ status: "UNKNOWN" }), { code: "agy_terminal_result_invalid" });
+    assert.match(await readFile(journal, "utf8"), /stale_terminal_observed/);
+    assert.equal(await readFile(journal, "utf8"), await readFile(paths.journal, "utf8"));
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

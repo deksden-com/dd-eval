@@ -20,7 +20,7 @@ async function hook(options) {
 }
 
 try {
-  const { positional, options } = parse(process.argv.slice(2)), [family, command] = positional; const common = { stateDir: options["state-dir"], cwd: options.cwd, bin: options["agy-bin"], provider: options.provider, model: options.model, reasoning: options.reasoning, mode: options.mode, projectRoot: options["project-root"], ddFlowBin: options["dd-flow-bin"], ddFlowHome: options["dd-flow-home"], noFlow: options["no-flow"] === true, timeoutMs: options.timeout ? Number(options.timeout) * 1000 : undefined }; let result;
+  const { positional, options } = parse(process.argv.slice(2)), [family, command] = positional; const common = { journal: options.journal, stateDir: options["state-dir"], cwd: options.cwd, bin: options["agy-bin"], provider: options.provider, model: options.model, reasoning: options.reasoning, mode: options.mode, projectRoot: options["project-root"], ddFlowBin: options["dd-flow-bin"], ddFlowHome: options["dd-flow-home"], noFlow: options["no-flow"] === true, timeoutMs: options.timeout ? Number(options.timeout) * 1000 : undefined }; let result;
   if (family === "doctor") result = await doctor(common);
   else if (family === "daemon" && command === "start") result = await startDaemon({ ...common, sessionId: options["session-id"], entryPath: process.argv[1] });
   else if (family === "daemon" && command === "serve") { await serveDaemon(common.stateDir); process.exit(0); }

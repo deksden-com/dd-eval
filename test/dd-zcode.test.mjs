@@ -31,6 +31,25 @@ test("ACP preserves provider detail carried in error.data.message", async () => 
   await bridge.flush();
 });
 
+test("ACP provider failures belong to the pending prompt, not concurrent reads or later turns", async () => {
+  const bridge = new AcpBridge({});
+  bridge.send = () => {};
+  const receive = value => bridge.receive(JSON.stringify(value));
+  const prompt = bridge.request("session/prompt", { sessionId: "root" }, 1000);
+  const failed = assert.rejects(prompt, error => error.code === "provider_quota_exhausted" && error.details.provider_update.message === "402 Payment Required");
+  receive({ method: "session/update", params: { sessionId: "root", update: { sessionUpdate: "retry_state", type: "failed", message: "402 Payment Required" } } });
+  const read = bridge.request("session/load", { sessionId: "root" }, 1000);
+  receive({ id: 2, result: {} });
+  await read;
+  receive({ id: 1, error: { code: -32603, message: "Internal error" } });
+  await failed;
+  const next = bridge.request("session/prompt", { sessionId: "root" }, 1000);
+  const nextFailed = assert.rejects(next, error => error.code === "acp_request_failed" && !error.details.provider_update);
+  receive({ id: 3, error: { code: -32603, message: "Internal error" } });
+  await nextFailed;
+  await bridge.flush();
+});
+
 test("ZCode retains the original native request across sleep and accepts its late result", async () => {
   const bridge = new AcpBridge({});
   bridge.send = () => {};

@@ -43,6 +43,25 @@ test("candidate revisions require a completed recovery and are reused without an
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+test("candidate identity includes failure evidence and links revisions to their immediate predecessor", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "recovery-candidate-evidence-"));
+  try {
+    const manifest = { run_id: "test" };
+    const failure = { execution: "one", state: "failed", code: "quota", error: "quota", recovery: { recovery_id: "R1", manifest_sha256: "snapshot" } };
+    const first = await frozenCandidate({ root, manifest, results: [failure] });
+    await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: "test", type: "dev.dd.eval.operation.failed", data: { operation_id: "test:one:launch:recover:R1", error: { code: "recovery_owner_missing" } } });
+    const second = await frozenCandidate({ root, manifest, results: [{ ...failure, code: "recovery_owner_missing", error: "no owner" }] });
+    assert.notEqual(second.candidate.immutable_hash, first.candidate.immutable_hash);
+    await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: "test", type: "dev.dd.eval.candidate.frozen", data: { candidate_sha256: second.candidate.immutable_hash } });
+    const third = await frozenCandidate({ root, manifest, results: [{ ...failure, recovery: { ...failure.recovery, manifest_sha256: "different snapshot" } }] });
+    assert.equal(third.candidate.parent_candidate_sha256, second.candidate.immutable_hash);
+    assert.equal((await frozenCandidate({ root, manifest, results: [{ ...failure, recovery: { ...failure.recovery, manifest_sha256: "different snapshot" } }] })).created, false);
+    const original = JSON.parse(await readFile(first.candidate.file, "utf8"));
+    original.outcome = "complete"; await writeFile(first.candidate.file, JSON.stringify(original));
+    await assert.rejects(frozenCandidate({ root, manifest, results: [failure] }), { code: "candidate_revision_invalid" });
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
 test("recovery requires clean receipts for every dead daemon, not just a dead pid", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "recovery-safety-"));
   const child = spawn(process.execPath, ["-e", ""]); const pid = child.pid; await once(child, "exit");

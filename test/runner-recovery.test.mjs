@@ -5,13 +5,20 @@ import path from "node:path";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
 import { withRunnerLock } from "../lib/runner-lock.mjs";
-import { recordOperation, completeOperation, readEvents, reduceEvents, writeJsonAtomic } from "../lib/runner-events.mjs";
+import { appendEvent, recordOperation, completeOperation, readEvents, reduceEvents, writeJsonAtomic } from "../lib/runner-events.mjs";
 import { commandJson } from "../lib/process-json.mjs";
 import { waitForSettlement } from "../lib/session-settlement.mjs";
 import { durableDaemonDispatch, inspectDaemonOperation } from "../lib/daemon-operations.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
 import { recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoverySourceFromEvents, recoveryOperationId, recoveryPrompt, prepareRecoveryDelivery, isInfrastructureFailure } from "../lib/runner.mjs";
+
+test("a productive recovery clears the previous terminal run projection", () => {
+  assert.equal(isInfrastructureFailure("opencode_provider_failed"), true);
+  const completed = { type: "dev.dd.eval.completed", data: { state: "completed_with_failures" } };
+  const started = { type: "dev.dd.eval.operation.started", executionid: "e", data: { operation_id: "EVAL:e:launch:recover:R1:retry:1" } };
+  assert.equal(reduceEvents([completed, started]).state, "awaiting_provider");
+});
 
 test("atomic receipts flush file and directory and preserve the old receipt after a failed flush", async (t) => {
   const root = await mkdtemp(path.join(os.tmpdir(), "receipt-flush-"));
@@ -60,6 +67,9 @@ test("recovery requires engine acceptance before productive work and preserves a
   const paused = recoveryPrompt({ recovery, stage: "code", paused: true });
   assert.match(paused, /paused for a user answer/);
   assert.doesNotMatch(paused, /Continue only the unresolved/);
+  const completed = recoveryPrompt({ recovery, stage: "plan", completed: true });
+  assert.match(completed, /plan stage already completed/);
+  assert.doesNotMatch(completed, /Continue only the unresolved/);
   assert.throws(() => recoveryPrompt({ recovery: { recovery_id: "R2" }, stage: "code" }), { code: "recovery_acceptance_missing" });
 });
 
@@ -82,10 +92,19 @@ test("recovery retries retain the sealed source and allocate a new durable opera
   const sourceEvent = { type: "dev.dd.eval.execution.failed", executionid: execution, data: { execution, state: "failed", recovery: { recovery_id: recovery, run_id: "RUN-1" } } };
   const retryFailure = { type: "dev.dd.eval.execution.failed", executionid: execution, data: { execution, state: "failed", recovery_parent_id: recovery, code: "recovery_workspace_drift" } };
   assert.equal(recoverySourceFromEvents([sourceEvent, retryFailure], execution, recovery), sourceEvent.data);
+  assert.equal(recoverySourceFromEvents([sourceEvent, sourceEvent, retryFailure], execution, recovery), sourceEvent.data);
+  const superseding = { ...sourceEvent, data: { ...sourceEvent.data, recovery: { recovery_id: "R3" } } };
+  assert.equal(recoverySourceFromEvents([sourceEvent, superseding], execution, recovery), null);
+  assert.equal(recoverySourceFromEvents([sourceEvent, superseding, sourceEvent], execution, recovery), null);
+  assert.equal(recoverySourceFromEvents([sourceEvent, superseding, sourceEvent], execution, "R3"), superseding.data);
   const failed = [{ type: "dev.dd.eval.operation.requested", data: { operation_id: base } }, { type: "dev.dd.eval.operation.started", data: { operation_id: base } }, { type: "dev.dd.eval.operation.failed", data: { operation_id: base, error: { code: "drift" } } }];
   assert.equal(recoveryOperationId(failed, run, execution, recovery), `${base}:retry:1`);
   const retried = [...failed, { type: "dev.dd.eval.operation.requested", data: { operation_id: `${base}:retry:1` } }, { type: "dev.dd.eval.operation.started", data: { operation_id: `${base}:retry:1` } }, { type: "dev.dd.eval.operation.failed", data: { operation_id: `${base}:retry:1`, error: { code: "drift" } } }];
   assert.equal(recoveryOperationId(retried, run, execution, recovery), `${base}:retry:2`);
+  const pending = [...failed, { type: "dev.dd.eval.operation.started", data: { operation_id: `${base}:retry:1` } }];
+  assert.equal(recoveryOperationId(pending, run, execution, recovery), `${base}:retry:1`);
+  pending.push({ type: "dev.dd.eval.operation.completed", data: { operation_id: `${base}:retry:1`, result: { state: "candidate_ready" } } });
+  assert.equal(recoveryOperationId(pending, run, execution, recovery), `${base}:retry:1`);
 });
 
 test("terminal reconciliation rejects every productive continuation state", () => {
@@ -126,6 +145,10 @@ test("recovery report preserves failed segments without counting capture or cumu
   const pending = events.slice(0, -1);
   assert.equal(recoveryHistory(pending, manifest, [{ execution: "e", state: "awaiting_provider" }])[0].segments.at(-1).outcome, "unknown");
   assert.equal(recoveryHistory([], manifest, [{ execution: "e", state: "candidate_ready" }])[0].reliability, "uninterrupted");
+  emit("operation.started", { operation_id: `${second}:retry:1` }, 60);
+  const retried = recoveryHistory(events, manifest, [])[0];
+  assert.equal(retried.segments.at(-1).recovery_id, "R2");
+  assert.equal(retried.segments.at(-1).operation_id, `${second}:retry:1`);
 });
 
 async function temporary(t) {
@@ -263,9 +286,21 @@ test("subprocess structured errors retain details, retryability and provider cau
   const root = await temporary(t);
   const script = path.join(root, "failure.mjs");
   const record = { code: "operation_observation_lost", message: "uncertain", retryable: false, details: { operation_id: "op-1" }, cause: { code: "socket_closed", message: "closed" } };
-  await writeFile(script, `console.error(JSON.stringify(${JSON.stringify({ error: record })})); process.exitCode = 1;`);
+  for (const formatted of [false, true]) {
+  await writeFile(script, `console.error(JSON.stringify(${JSON.stringify({ error: record })},null,${formatted ? 2 : 0})); process.exitCode = 1;`);
   await assert.rejects(commandJson(script, []), error => {
     assert.equal(error.code, record.code); assert.equal(error.retryable, false);
     assert.deepEqual(error.details, record.details); assert.deepEqual(error.cause, record.cause); return true;
   });
+  }
+  await writeFile(script, `console.error(JSON.stringify(${JSON.stringify({ ok: false, code: record.code, error: record.message, details: record.details, retryable: true })})); process.exitCode = 1;`);
+  await assert.rejects(commandJson(script, []), { code: record.code, message: record.message, retryable: true });
+});
+
+test("event enrichment cannot overwrite the journal-owned sequence", async t => {
+  const file = path.join(await temporary(t), "events.jsonl");
+  const input = { source: "test", runId: "run", type: "dev.dd.eval.execution.failed", data: { sequence: 999, code: "quota" } };
+  const first = await appendEvent(file, input);
+  const second = await appendEvent(file, { ...input, data: { ...first.data, recovery: { recovery_id: "R1" } } });
+  assert.deepEqual([first.data.sequence, second.data.sequence], [1, 2]);
 });
