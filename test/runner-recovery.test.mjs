@@ -11,7 +11,29 @@ import { waitForSettlement } from "../lib/session-settlement.mjs";
 import { durableDaemonDispatch, inspectDaemonOperation } from "../lib/daemon-operations.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
-import { recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoverySourceFromEvents, recoveryOperationId, recoveryPrompt, prepareRecoveryDelivery, isInfrastructureFailure } from "../lib/runner.mjs";
+import { appendRunEventOnce, runResultRevision, recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoverySourceFromEvents, recoveryOperationId, recoveryPrompt, prepareRecoveryDelivery, isInfrastructureFailure } from "../lib/runner.mjs";
+
+test("identical failures in successive recovery generations each finalize exactly once", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "recovery-projection-"));
+  try {
+    const eventsFile = path.join(root, "events.jsonl");
+    const manifest = { run_id: "EVAL", executions: [{ id: "e", stage: "code" }] };
+    const input = { source: "test", runId: "EVAL", executionId: "e" };
+    const revisions = new Set();
+    for (const operation_id of ["EVAL:e:launch", "EVAL:e:launch:recover:R1", "EVAL:e:launch:recover:R2"]) {
+      await appendEvent(eventsFile, { ...input, type: "dev.dd.eval.operation.started", data: { operation_id } });
+      assert.equal(reduceEvents(await readEvents(eventsFile)).state, "awaiting_provider");
+      await appendEvent(eventsFile, { ...input, type: "dev.dd.eval.operation.failed", data: { operation_id, error: { code: "provider_failed", message: "same failure" } } });
+      const result_revision = runResultRevision(await readEvents(eventsFile), manifest);
+      assert.equal(revisions.has(result_revision), false); revisions.add(result_revision);
+      const completion = { eventsFile, runId: "EVAL", type: "dev.dd.eval.completed", data: { state: "completed_with_failures", result_revision, executions: [{ execution: "e", state: "failed" }] } };
+      assert.equal(await appendRunEventOnce(completion), true);
+      assert.equal(await appendRunEventOnce(completion), false);
+      assert.equal(reduceEvents(await readEvents(eventsFile)).state, "completed_with_failures");
+    }
+    assert.equal((await readEvents(eventsFile)).filter(event => event.type === "dev.dd.eval.completed").length, 3);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 
 test("a productive recovery clears the previous terminal run projection", () => {
   assert.equal(isInfrastructureFailure("opencode_provider_failed"), true);

@@ -176,6 +176,35 @@ process.stdin.on('data', chunk => { buffer+=chunk; let at;
   }
 });
 
+test('AGY registers only shell PreToolUse and Stop once, preserving unrelated hooks', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'agy-hook-filter-'));
+  try {
+    const paths = { dir: root, gemini: path.join(root, 'gemini'), runtime: path.join(root, 'runtime'), config: path.join(root, 'config'), temporary: path.join(root, 'temporary') };
+    const config = { entryPath: '/test/dd-agy.mjs', projectRoot: root, ddFlowBin: '/test/flow', ddFlowHome: root };
+    await prepare(paths, config);
+    const file = path.join(root, '.agents', 'hooks.json');
+    const old = { command: '/test/dd-agy.mjs hook handle --old' };
+    const unrelated = { command: '/user/audit' };
+    await writeFile(file, JSON.stringify({
+      external: { enabled: false, PreToolUse: [{ matcher: '*', hooks: [unrelated, old] }], Stop: [] },
+      'dd-flow': { PreToolUse: [{ matcher: '*', hooks: [old] }], PostToolUse: [{ matcher: '*', hooks: [old] }], Stop: [old] },
+      PostToolUse: [{ matcher: '*', hooks: [old, unrelated] }]
+    }));
+    await prepare(paths, config);
+    const first = await readFile(file, 'utf8');
+    await prepare(paths, config);
+    assert.equal(await readFile(file, 'utf8'), first, 'installation must be idempotent');
+    const workspace = JSON.parse(first);
+    assert.deepEqual(workspace.external, { enabled: false, PreToolUse: [{ matcher: '*', hooks: [unrelated] }], Stop: [] });
+    assert.deepEqual(workspace['dd-flow-legacy'], { PostToolUse: [{ matcher: '*', hooks: [unrelated] }] });
+    assert.deepEqual(Object.keys(workspace['dd-flow']), ['PreToolUse', 'Stop']);
+    const matcher = new RegExp(workspace['dd-flow'].PreToolUse[0].matcher);
+    assert.equal(matcher.test('run_command'), true);
+    for (const name of ['view_file', 'write_to_file', 'replace_file_content', 'multi_replace_file_content', 'list_dir', 'find_by_name', 'grep_search', 'search_web', 'read_url_content', 'invoke_subagent', 'manage_subagents', 'manage_task', 'schedule', 'ask_permission', 'mcp_run_command']) assert.equal(matcher.test(name), false, name);
+    assert.deepEqual(JSON.parse(await readFile(path.join(paths.config, 'hooks.json'), 'utf8')), {}, 'no duplicate global handlers');
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
 test('no-flow probes retain native Stop observation without workspace or flow hooks', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'agy-observer-'));
   try {
