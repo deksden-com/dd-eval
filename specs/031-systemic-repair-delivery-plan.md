@@ -1,5 +1,9 @@
 # 031 — Сводный план системных исправлений, интеграции и релизов
 
+Актуальный порядок оставшихся работ и уточнение операторских pause/stop/resume
+на 2026-09-08: [032](032-remaining-delivery-and-operator-control-plan.md).
+Исторические статусы и evidence этого документа сохранены.
+
 Дата: 2026-09-07. Статус: **кодовые/release delivery P00–P09 выполнены по
 связанным evidence commits; P10 частично выполнен: cp-079 дошёл до MERGE и
 Judge, controlled selective-recovery E2E остаётся открытым.**
