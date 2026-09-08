@@ -71,6 +71,43 @@ test('provider exit finalization cannot overwrite an acknowledged clean stop', a
   }
 });
 
+test('control retries leaderless cleanup after natural exit without replaying the provider', { skip: process.platform === 'win32' }, async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'agy-cleanup-retry-'));
+  const fake = path.join(root, 'provider.mjs'), release = path.join(root, 'release'), finished = path.join(root, 'finished');
+  const flow = path.join(root, 'flow.mjs'), leaseLog = path.join(root, 'lease.jsonl');
+  await writeFile(flow, `#!/usr/bin/env node\nimport {appendFileSync} from 'node:fs';appendFileSync(${JSON.stringify(leaseLog)},JSON.stringify(process.argv.slice(2))+'\\n');console.log(JSON.stringify(process.argv[4]==='register'?{process:{id:'PROC-retry',lease_token:'owned'}}:{ok:true}));`, { mode: 0o755 });
+  const helper = `const fs=require('node:fs'); const timer=setInterval(()=>{if(fs.existsSync(${JSON.stringify(release)})){clearInterval(timer);fs.writeFileSync(${JSON.stringify(finished)},'natural');}},25);`;
+  await writeFile(fake, `import {spawn} from 'node:child_process'; console.log(JSON.stringify({event:'init',conversation_id:'root',init:{model:'gemini-3.1-pro-high',permission_mode:'always-proceed'}})); process.stdin.once('data',()=>{spawn(process.execPath,['-e',${JSON.stringify(helper)}],{stdio:'ignore'}).unref();process.kill(process.pid,'SIGKILL');});`);
+  const r = new Runtime({ dir: root, state: path.join(root, 'daemon.json'), gemini: root }, { config: { daemonId: 'retry-test', cwd: root, bin: fake, model: 'gemini-3.1-pro-high', reasoning: 'high', mode: 'accept-edits', noFlow: true, ddFlowBin: flow, ddFlowHome: root, resourceHome: root } });
+  r.journal = async () => {};
+  try {
+    await r.start();
+    await assert.rejects(r.prompt('exit', () => {}), { code: 'agy_terminal_result_missing' });
+    await assert.rejects(r.providerFinalization, { code: 'process_group_ownership_unknown' });
+    assert.equal(r.state.shutdown_state, 'cleanup_failed');
+    assert.equal(r.state.active_tree, true);
+    await assert.rejects(r.start(), { code: 'process_group_ownership_unknown' });
+    await assert.rejects(r.close(true), { code: 'process_group_ownership_unknown' });
+    assert.equal(r.state.active_tree, true);
+    assert.doesNotThrow(() => process.kill(-r.child.pid, 0));
+    assert.equal((await readFile(leaseLog, 'utf8')).includes('"finish"'), false);
+    await writeFile(release, 'release');
+    await Promise.all([r.close(true), r.close(true)]);
+    assert.equal(await readFile(finished, 'utf8'), 'natural');
+    assert.equal(r.state.active_tree, false);
+    assert.equal(r.state.provider_exit.signal, 'SIGKILL');
+    const finishes = (await readFile(leaseLog, 'utf8')).trim().split('\n').map(JSON.parse).filter(args => args[2] === 'finish');
+    assert.equal(finishes.length, 1, 'concurrent cleanup must finalize the original lease once');
+    assert.ok(finishes[0].includes('owned') && finishes[0].includes('failed') && finishes[0].includes('provider_interrupted'));
+    assert.throws(() => process.kill(-r.child.pid, 0), { code: 'ESRCH' });
+  } finally {
+    await writeFile(release, 'release');
+    await new Promise(resolve => setTimeout(resolve, 200));
+    await r.persisting;
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test('provider finalization failures block stop, cancellation, abort and replacement', async () => {
   for (const operation of [r => r.cancel(), r => r.close(true), r => r.close(false), r => r.abortProvider('test'), r => r.start()]) {
     const r = new Runtime({ state: '/unused' }, { config: {}, active_tree: false });
@@ -79,6 +116,7 @@ test('provider finalization failures block stop, cancellation, abort and replace
     r.exited = true;
     r.providerFinalization = Promise.reject(error);
     void r.providerFinalization.catch(() => {});
+    r.retryProviderFinalization = async () => assert.fail('only a group-ownership failure permits a control retry');
     r.persist = async () => assert.fail('failed finalization must not publish clean state');
     await assert.rejects(operation(r), failure => failure === error);
   }
