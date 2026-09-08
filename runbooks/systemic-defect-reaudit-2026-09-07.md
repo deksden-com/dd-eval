@@ -1,6 +1,6 @@
 # Повторная ревизия: flow, recovery, evidence и release
 
-Дата: 2026-09-07; обновлено 2026-09-08. Статус: исходная ревизия ниже сохранена как историческая. Системные исправления опубликованы в beta.35, restart-правка — в beta.36, ожидание provider-exit finalization — в beta.37; реальная E2E/recovery qualification ещё не завершена.
+Дата: 2026-09-07; обновлено 2026-09-08. Статус: исходная ревизия ниже сохранена как историческая. Системные исправления опубликованы в beta.35, restart-правка — в beta.36, ожидание provider-exit finalization — в beta.37, control retry delayed cleanup — в beta.38; реальная E2E/recovery qualification ещё не завершена.
 
 ## Подтверждённый релиз и новая qualification
 
@@ -67,6 +67,8 @@ Shutdown больше не дал противоречивый clean/active rece
 Дополнительное исправление оставляет исходную exit-finalization closure привязанной к точным child handle/process record и сохраняемому исходу. Только control может повторить её после `process_group_ownership_unknown`; конкурентные callers ждут одну текущую попытку с существующим пятсекундным control-бюджетом. Startup по-прежнему не повторяет failed cleanup, другие ошибки финализации не подавляются. Живая leaderless group остаётся fail-closed и не получает сигналов; clean допустим только после новой успешной проверки и исходных persistence/lease writes. Regression сначала воспроизвёл отказ, затем проверил повторный отказ при живом helper, естественный выход, concurrent stop, ровно один finish исходного lease и сохранение SIGKILL. Focused dd-eval 52/52, полный dd-eval 259/259, bundled runtime/assets 10/10, typecheck и lint прошли. Полный engine release gate, публикация и live flow qualification этой дополнительной правки ещё требуются.
 
 Native no-flow probe `conformance/agy-cleanup-retry.xTIIwF/receipt.json` завершился успешно `2026-09-08T03:32:28.586Z` на AGY 1.1.27: controlled SIGKILL, сохранённый `agy_terminal_result_missing`, устойчивый clean/false, same-Session restart `b04523e0-095a-4a01-abd4-be8c0ec16603`, новая команда без replay и clean stop. SHA-256 проверенного source adapter `6f3cb8418ac7e1cfdeee330f6ba048efbaa63de7e8c25cd42cc65368ad576096`. Native probe проверяет продолжение общей цепочки shutdown/restart; именно delayed leaderless group с lease детерминированно проверена regression-тестом. Ни одна из этих проверок не выдана за полный recovery E2E.
+
+Дополнительная правка опубликована как `0.9.0-beta.38`, source/artifact/tag `e1d723e620ee5aeec961c2bee1de1e72fcfb71a9`. Guarded release завершился одним запуском `2026-09-08T03:58:57.917Z`: 339/339 engine tests, typecheck, lint, strict build, registry artifact и remote refs, isolated/global consumers. Оба consumer дали compatibility `ok` и checksum `db7ca06504c4edf3c6f087c9b8acf467b76ae13086a9ea18c3964cfbd0847272`. Runner fix `8f5e5d2ea68ec9df352b6a142baf5300f7831eb3` committed/pushed, полный suite 259/259. Canon остаётся 4.0.6 / `c6fc50cb3b5526ea0162ee4454d1ee36f17be2da`. Новый immutable cp-087 сохраняет source baseline и project flow pack cp-086, меняя только ID и engine tuple. Live flow qualification нового checkpoint ещё не завершена.
 
 ## Выполненная реализация
 
