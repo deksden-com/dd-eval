@@ -35,6 +35,55 @@ test('late observation honors native activity time and productive reservations s
 });
 import { Runtime, prepare, retainedAgyState, startDaemon, stopDaemon, callDaemon } from '../lib/dd-agy-daemon.mjs';
 
+test('provider exit finalization cannot overwrite an acknowledged clean stop', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'agy-exit-stop-'));
+  const fake = path.join(root, 'provider.mjs');
+  await writeFile(fake, `console.log(JSON.stringify({event:'init',conversation_id:'root',init:{model:'gemini-3.1-pro-high',permission_mode:'always-proceed'}})); process.stdin.once('data',()=>process.exit(17));`);
+  const r = new Runtime({ dir: root, state: path.join(root, 'daemon.json'), gemini: root }, { config: { daemonId: 'exit-test', cwd: root, bin: fake, model: 'gemini-3.1-pro-high', reasoning: 'high', mode: 'accept-edits', noFlow: true } });
+  r.journal = async () => {};
+  const persist = r.persist.bind(r);
+  let release, entered;
+  const pending = new Promise(resolve => { release = resolve; });
+  const finalizing = new Promise(resolve => { entered = resolve; });
+  r.persist = async patch => {
+    if (patch?.provider_exit) { entered(); await pending; }
+    return persist(patch);
+  };
+  let stopped = false, closing;
+  try {
+    await r.start();
+    await assert.rejects(r.prompt('exit', () => {}), { code: 'agy_terminal_result_missing' });
+    await finalizing;
+    closing = r.close(true).then(async () => { stopped = true; await r.persist({ shutdown_state: 'clean', active_tree: false }); });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(stopped, false, 'clean stop must wait for provider finalization');
+    release();
+    await closing;
+    assert.equal(r.state.shutdown_state, 'clean');
+    assert.equal(r.state.active_tree, false);
+    assert.equal(r.state.provider_exit.code, 17);
+  } finally {
+    release();
+    await closing;
+    await r.abortProvider('test_cleanup');
+    await r.persisting;
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('provider finalization failures block stop, cancellation, abort and replacement', async () => {
+  for (const operation of [r => r.cancel(), r => r.close(true), r => r.close(false), r => r.abortProvider('test'), r => r.start()]) {
+    const r = new Runtime({ state: '/unused' }, { config: {}, active_tree: false });
+    const error = new Error('provider group settlement failed');
+    r.child = {};
+    r.exited = true;
+    r.providerFinalization = Promise.reject(error);
+    void r.providerFinalization.catch(() => {});
+    r.persist = async () => assert.fail('failed finalization must not publish clean state');
+    await assert.rejects(operation(r), failure => failure === error);
+  }
+});
+
 test('clean cancellation and same-session restart preserve failure and admit only fresh work', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'agy-restart-'));
   const stateDir = path.join(root, 'state'), fake = path.join(root, 'provider.mjs'), input = path.join(root, 'input.jsonl');

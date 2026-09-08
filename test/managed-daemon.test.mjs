@@ -93,3 +93,20 @@ test("owned cleanup escalates when its live provider ignores SIGTERM", async () 
   await stopProcessGroup(child, 50);
   assert.throws(() => process.kill(-child.pid, 0), { code: "ESRCH" });
 });
+
+test("signal-terminated leader does not authorize signaling its remaining group", { skip: process.platform === "win32" }, async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-signal-exit-"));
+  const marker = path.join(root, "finished");
+  const helper = `setTimeout(() => require("node:fs").writeFileSync(${JSON.stringify(marker)}, "natural exit"), 200);`;
+  const script = `const {spawn}=require("node:child_process"); spawn(process.execPath,["-e",${JSON.stringify(helper)}],{stdio:"ignore"}).unref(); process.kill(process.pid,"SIGKILL");`;
+  const child = spawn(process.execPath, ["-e", script], { detached: true, stdio: "ignore" });
+  try {
+    await once(child, "exit");
+    assert.equal(child.signalCode, "SIGKILL");
+    await stopProcessGroup(child, 1_000);
+    assert.equal(await readFile(marker, "utf8"), "natural exit");
+  } finally {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await rm(root, { recursive: true, force: true });
+  }
+});
