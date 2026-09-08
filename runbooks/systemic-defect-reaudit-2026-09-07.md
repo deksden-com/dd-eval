@@ -1,6 +1,6 @@
 # Повторная ревизия: flow, recovery, evidence и release
 
-Дата: 2026-09-07; обновлено 2026-09-08. Статус: исходная ревизия ниже сохранена как историческая. Системные исправления опубликованы в beta.35, дополнительная restart-правка — в beta.36; реальная E2E/recovery qualification ещё не завершена.
+Дата: 2026-09-07; обновлено 2026-09-08. Статус: исходная ревизия ниже сохранена как историческая. Системные исправления опубликованы в beta.35, restart-правка — в beta.36, ожидание provider-exit finalization — в beta.37; реальная E2E/recovery qualification ещё не завершена.
 
 ## Подтверждённый релиз и новая qualification
 
@@ -53,6 +53,8 @@ Native `agy_terminal_result_missing` сохранён. Оба процесса �
 Native no-flow probe `conformance/agy-exit-finalization.JRSK6I/receipt.json` завершился `2026-09-08T02:31:19.127Z`: фактический SIGKILL, сохранённый `agy_terminal_result_missing`, устойчивый clean/false receipt, restart той же Session `7e2c8042-9f00-45af-a5ef-7b433417ae5a`, новый ответ без повторения команды и clean stop. SHA-256 AGY source `3e9c1218ed146b093861fd08c9fa5c79c3f4fac051fd3ced90ef10ec272fd044`. Этот no-flow probe не включает leased flow persistence и не заменяет новую E2E qualification.
 
 Связанный process-group guard теперь распознаёт выход лидера и по `signalCode`, а не только по `exitCode`. Test подтвердил, что прежний guard после SIGKILL лидера посылал SIGTERM оставшемуся helper вместо разрешённого наблюдения; исправленный guard даёт helper завершиться естественно, а при неопределённой ownership по-прежнему отказывает. Итоговые проверки: полный dd-eval 258/258, bundled regression, typecheck и lint прошли. Никакие ранее принятые snapshots или shutdown receipts не переписывались. Публикация этой дополнительной runtime-правки и live flow qualification ещё не завершены.
+
+Дополнительная правка опубликована как `0.9.0-beta.37`, source/artifact/tag `04f94a5faa271bc0e837d6d3020f3a3668835e17`. Guarded release завершился одним запуском `2026-09-08T03:01:30.122Z`: полный engine gate 339/339, typecheck, lint, strict build, registry artifact и remote refs, isolated и global consumers. Оба consumer дали compatibility `ok` и checksum `3a2a1f5b9cc9664595541f09c328123941e60f5956be2344be0da2b4127651b0`. Canon остаётся 4.0.6 / `c6fc50cb3b5526ea0162ee4454d1ee36f17be2da`. Новый immutable cp-086 меняет только ID и engine tuple относительно cp-085. Новый live flow experiment требуется отдельно; публикация и unit coverage не выданы за его успех.
 
 ## Выполненная реализация
 
