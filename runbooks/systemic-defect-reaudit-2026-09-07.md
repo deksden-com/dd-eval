@@ -1,6 +1,6 @@
 # Повторная ревизия: flow, recovery, evidence и release
 
-Дата: 2026-09-07; обновлено 2026-09-08. Статус: исходная ревизия ниже сохранена как историческая. Системные исправления опубликованы в beta.35; реальная E2E/recovery qualification ещё не завершена.
+Дата: 2026-09-07; обновлено 2026-09-08. Статус: исходная ревизия ниже сохранена как историческая. Системные исправления опубликованы в beta.35, дополнительная restart-правка — в beta.36; реальная E2E/recovery qualification ещё не завершена.
 
 ## Подтверждённый релиз и новая qualification
 
@@ -22,7 +22,9 @@ Preflight cp-084 прошёл на definition `010e9145a4f5f0ddd255346ce6ba169d9
 
 Проверки дополнительной правки: IPC integration с fake provider воспроизводит error → cancel → clean stop → same-session restart → новый prompt, сохраняет прежнюю ошибку/receipt и отвергает prompt после новой child activity. Полный dd-eval: 254/254. Native no-flow probe `conformance/agy-restart-jVB6o3/receipt.json` на AGY 1.1.27 завершён успешно `2026-09-07T23:50:22.986Z`: root `9a49244f-63e4-418a-9450-c9cbcd8eb8ed`, один child, controlled cancellation, новый daemon той же Session, новый короткий ответ и normal clean stop. Проверенный source SHA-256 adapter: `49b15e82fa44cf4c7a87070f0ece2cffd175b85c12738f1e45a1be2370223839`.
 
-Этот probe не выполнял flow recovery acceptance, не доказывает selective child import или все descendant crash races. Новая runtime-правка требует отдельного опубликованного артефакта и нового checkpoint; исторический cp-084 RUN не переводится на другую версию на месте. Публикация этой дополнительной правки и полная матрица qualification пока открыты.
+Этот probe не выполнял flow recovery acceptance, не доказывает selective child import или все descendant crash races. Исторический cp-084 RUN не переводится на другую версию на месте.
+
+Дополнительная правка опубликована как `0.9.0-beta.36`, source/artifact/tag `af66ec6e0c2e101f6966c96196d862599bde97eb`. Полный gate прошёл: 339/339 engine tests, typecheck, lint, strict build. Release script завершился одним запуском `2026-09-08T00:27:02.988Z`, включая isolated и global consumers; compatibility `ok`, общий checksum `8cf44566ce8ee23da4714fd85dac6fe1e80d155b5c59d73b4b17b685ffaddbcb`. Canon остаётся 4.0.6 / `c6fc50cb3b5526ea0162ee4454d1ee36f17be2da`. Runner source `acbb8cf98d1543294867d96e9c504d698e7f0139` прошёл 254/254 tests. Новый immutable cp-085 меняет только engine tuple и ID checkpoint относительно cp-084: source baseline и project flow pack сохранены. Полная матрица live qualification остаётся открытой.
 
 ## Выполненная реализация
 
