@@ -25,6 +25,13 @@ RUN in one transaction. At a completed stage boundary it retains the completed
 Work and WorkSession unchanged: the root acknowledges recovery, returns to the
 controller, and only then may the controller enter the next stage.
 A paused Work remains paused; acceptance does not supply its user answer.
+For a running fan-out stage, the runner reads its engine-owned orchestration
+before preparing recovery delivery. The root recovery Turn acknowledges only
+and returns; the normal fan-out path then reconciles the graph and provides
+current Work start commands. The coordinator must not perform a child's Work
+or message an old child during the acknowledgement Turn. Existing launch
+policies remain in force: `fresh_agent_required` still requires a fresh worker
+Session, and retained native child identity alone does not authorize Work reuse.
 Worker launch commands carry the current recovery ID. Receipts from old
 packets or retired daemons cannot acquire another segment, and finishing Work
 requires the daemon that owns its current WorkSession.

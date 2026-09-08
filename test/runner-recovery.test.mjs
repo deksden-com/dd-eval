@@ -73,6 +73,33 @@ test("recovery requires engine acceptance before productive work and preserves a
   assert.throws(() => recoveryPrompt({ recovery: { recovery_id: "R2" }, stage: "code" }), { code: "recovery_acceptance_missing" });
 });
 
+test("fan-out recovery acknowledges only and pins the return to ordinary runner dispatch", async () => {
+  const attempt = await mkdtemp(path.join(os.tmpdir(), "recovery-fanout-"));
+  try {
+    const input = { attempt, recovery: { recovery_id: "RCV-fanout", run_id: "RUN-1", generation: 1, accept_command: "dd-flow run recovery accept RUN-1 --recovery-id RCV-fanout" }, stage: "code", sessionId: "native-root", harness: "antigravity-cli", orchestration: { kind: "work_fanout", stage: "code", state: "awaiting_children", works: { created: 1, completed: 2 } } };
+    const first = await prepareRecoveryDelivery(input);
+    assert.equal(first.packet.coordinator_only, true);
+    assert.match(first.packet.prompt, /After acceptance, stop this Turn immediately/);
+    assert.match(first.packet.prompt, /Do not perform or finish child Work/);
+    assert.match(first.packet.prompt, /runner will reconcile the current Work graph/);
+    assert.doesNotMatch(first.packet.prompt, /Continue only the unresolved/);
+    const again = await prepareRecoveryDelivery({ ...input, orchestration: { ...input.orchestration, state: "ready", works: { created: 1, completed: 3 } } });
+    assert.equal(again.reused, true);
+    assert.deepEqual(again.packet, first.packet);
+    await assert.rejects(prepareRecoveryDelivery({ ...input, orchestration: null }), { code: "recovery_delivery_conflict" });
+    await assert.rejects(prepareRecoveryDelivery({ ...input, orchestration: { kind: "work_fanout", stage: "plan-review" } }), { code: "fanout_contract_invalid" });
+    for (const stage of ["plan-review", "code-review"]) {
+      const packet = await prepareRecoveryDelivery({ ...input, stage, recovery: { ...input.recovery, recovery_id: `RCV-${stage}` }, orchestration: { kind: "work_fanout", stage } });
+      assert.equal(packet.packet.coordinator_only, true);
+    }
+    for (const state of [{ paused: true }, { completed: true }]) {
+      const packet = await prepareRecoveryDelivery({ ...input, ...state, recovery: { ...input.recovery, recovery_id: `RCV-${Object.keys(state)[0]}` } });
+      assert.equal(packet.packet.coordinator_only, undefined);
+      assert.doesNotMatch(packet.packet.prompt, /Continue only the unresolved/);
+    }
+  } finally { await rm(attempt, { recursive: true, force: true }); }
+});
+
 test("recovery selects exactly the requested current interruption, including idempotent repeats", () => {
   const failed = { execution: "e", state: "failed", recovery: { recovery_id: "R2" } };
   const other = { execution: "other", state: "failed", recovery: { recovery_id: "R3" } };
