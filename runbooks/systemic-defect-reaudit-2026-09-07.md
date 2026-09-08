@@ -1,6 +1,6 @@
 # Повторная ревизия: flow, recovery, evidence и release
 
-Дата: 2026-09-07; обновлено 2026-09-08. Статус: исходная ревизия ниже сохранена как историческая. Системные исправления опубликованы в beta.35, restart-правка — в beta.36, ожидание provider-exit finalization — в beta.37, control retry delayed cleanup — в beta.38; реальная E2E/recovery qualification ещё не завершена.
+Дата: 2026-09-07; обновлено 2026-09-08. Статус: исходная ревизия ниже сохранена как историческая. Системные исправления опубликованы в beta.35, restart-правка — в beta.36, ожидание provider-exit finalization — в beta.37, control retry delayed cleanup — в beta.38. На beta.38 подтверждены два последовательных recovery до принятого CODE; полный E2E до MERGE остаётся незавершённым после provider liveness timeout на CODE-REVIEW.
 
 ## Подтверждённый релиз и новая qualification
 
@@ -69,6 +69,42 @@ Shutdown больше не дал противоречивый clean/active rece
 Native no-flow probe `conformance/agy-cleanup-retry.xTIIwF/receipt.json` завершился успешно `2026-09-08T03:32:28.586Z` на AGY 1.1.27: controlled SIGKILL, сохранённый `agy_terminal_result_missing`, устойчивый clean/false, same-Session restart `b04523e0-095a-4a01-abd4-be8c0ec16603`, новая команда без replay и clean stop. SHA-256 проверенного source adapter `6f3cb8418ac7e1cfdeee330f6ba048efbaa63de7e8c25cd42cc65368ad576096`. Native probe проверяет продолжение общей цепочки shutdown/restart; именно delayed leaderless group с lease детерминированно проверена regression-тестом. Ни одна из этих проверок не выдана за полный recovery E2E.
 
 Дополнительная правка опубликована как `0.9.0-beta.38`, source/artifact/tag `e1d723e620ee5aeec961c2bee1de1e72fcfb71a9`. Guarded release завершился одним запуском `2026-09-08T03:58:57.917Z`: 339/339 engine tests, typecheck, lint, strict build, registry artifact и remote refs, isolated/global consumers. Оба consumer дали compatibility `ok` и checksum `db7ca06504c4edf3c6f087c9b8acf467b76ae13086a9ea18c3964cfbd0847272`. Runner fix `8f5e5d2ea68ec9df352b6a142baf5300f7831eb3` committed/pushed, полный suite 259/259. Canon остаётся 4.0.6 / `c6fc50cb3b5526ea0162ee4454d1ee36f17be2da`. Новый immutable cp-087 сохраняет source baseline и project flow pack cp-086, меняя только ID и engine tuple. Live flow qualification нового checkpoint ещё не завершена.
+
+### Beta.38: два последовательных recovery и принятый CODE
+
+cp-087 preflight прошёл на definition `e7b0b943c856b183eede240c6e9784e93aea74a0`: baseline quality/browser и оба doctor успешны, provider Sessions не создавались. Свежий `EVAL-20260908040242-7c8c7f57` использует опубликованную beta.38 и неизменный project baseline. Ни runtime, ни checkpoint этого RUN не заменялись во время исполнения.
+
+Первый controlled helper подтвердил PLAN `done`, `WRK-002-plan` и его WorkSession `completed`, отсутствие PLAN-REVIEW и точную принадлежность provider/daemon. Один SIGKILL отправлен `2026-09-08T04:16:16.437Z`, после завершения PLAN `04:16:15.079Z`. Исходный provider exit SIGKILL и первоначальный `process_group_ownership_unknown` сохранены; последующая control-проверка дала устойчивый `clean/active_tree=false`, оба процесса завершились. Создан `RCV-272ff3a5-ea68-42da-81a7-1739fc6ccda5`, manifest SHA-256 `f050343d3ff8a4f29163bd53d13fcf7cf598fc1d2d7eb5dabc7684d100cef3c5`, Work result integrity valid. Это реальная leased flow qualification cleanup retry, а не только no-flow probe.
+
+После отдельного Judge исходной неполной попытки выполнен явный recovery. Root сохранил native Session `65897059-87bc-4ae7-9851-af8c4ccd4a70`; первый tool call `04:29:11.712Z` — точный `run recovery accept`. ACK принят `04:29:15.784Z`, PLAN boundary сохранена `04:29:49.998Z`, затем начался PLAN-REVIEW. Все поля принятого PLAN Work и WorkSession совпали со snapshot: повторного PLAN Work/исполнения не было.
+
+После завершения обоих PLAN reviewers и перехода в CODE второй helper подтвердил running P1 Work `WRK-006-prt-007-task-priority-crud-p1`, WorkSession `WS-3dccdbca-573d-4b74-8ef4-66b556e63a20` и native child `f4e072f1-a78e-49f8-adf4-16069f198f63`. Один SIGKILL точному root provider отправлен `04:39:51.523Z`. Снова получен clean/false shutdown с сохранённой исходной ошибкой. Generation 2 — `RCV-6b0a90e8-ea77-4232-9d40-42016232249b`, manifest `014af34096ce7f7429adf20c9c6aa87ffd795efeec0660c560a2cc01cee4911c`; parent — первый recovery, Work result integrity valid.
+
+После второго отдельного Judge явный recovery выполнил ACK первым tool call `04:51:31.560Z`; guard принял его `04:51:34.085Z`. Root вернул управление runner: `recovery_prompted` записан `04:51:45.669Z`, штатный fan-out dispatch — `04:51:49.980Z`, следующий root tool `invoke_subagent` — `04:51:59.434Z`. ACK-only routing не позволил координатору подменить P1 исполнителя. Тот же P1 Work получил новый native child `bce51fc6-bb6d-4bed-8005-264a030f89dd` и WorkSession `WS-a8a00d6a-a764-474f-a4b9-8deea47fb867`; прежний сегмент сохранился `interrupted`. Политика `fresh_agent_required` не ослаблялась, старый child не переиспользовался.
+
+P1 принят `04:57:53.062Z`, зависимый P2 — `05:03:19.787Z`. Первый aggregate CODE gate прошёл DB/API/web, но отказал на formatting. Координатор объявил отдельный `WRK-008-code-gate-repair`; первый repair quality receipt failed, второй passed `05:15:41.107Z`, Work принят `05:15:41.111Z`. Повторный aggregate gate прошёл, CODE boundary сохранена как `code-36fbc0f57cc2ba3f951a0f9d71656669397138779947e600eff03755144c7a89`. CODE-REVIEW начался `05:19:38.305Z`. Принятые P1/P2 не переоткрывались ради formatting repair.
+
+Read-only сравнение SQLite generation 2 с immutable CODE boundary подтвердило полное равенство всех колонок четырёх ранее completed Work и пяти completed WorkSession. Та же проверка прошла с последующим generation 3 snapshot. Новый P1 WorkSession completed, прежний interrupted: завершение CODE не стёрло границу прерывания.
+
+### Beta.38: незавершённый CODE-REVIEW и предел qualification
+
+Из трёх CODE reviewers `WRK-009-code-review-1` принят `05:22:27.927Z` с material finding: проверка membership/archive state отделена от записи, нарушается write-boundary concurrency rule. Это замечание к продукту, не к recovery. Два других reviewer Work остались running без новой native activity. Третьего искусственного прерывания не было.
+
+От последнего наблюдения `05:22:42.901Z` сработал штатный `subject_liveness_timeout`; cleanup подтвердил clean shutdown `05:32:53.957Z`, failure записан `05:33:14.696Z`, без второго полного timeout окна. Daemon `22d9dc5c-39c1-4d35-8342-02e0f8787d58` сохранил `shutdown_state=clean, active_tree=false`; provider и daemon PID отсутствуют. Generation 3 — `RCV-2762dda7-6181-4417-9cd3-9ebfef4e9655`, parent generation 2, manifest `3f313307e8de46d1ecdcce757911f941f105768170099f0ff3c71e82089b178c`, `work_result_integrity.valid=true`, restorable `same-runtime-or-explicit-restore`. CODE и первый reviewer сохранены; два незавершённых reviewer не объявлены completed.
+
+Original candidate `b15d20eb8bb0f3e2dffaab03c5361156473fd43eb4613be776b81b41a5fe4ebd` и его Judge не изменены. Первая revision `7f83667aafe583d158194d9402c3ced6833b5a093aa98645d80eb450833728ba` ссылается на original; вторая `0ec3b99c6bc1c7ed9e4f45971221a6b9ffabd32cb7b3ef4346b6f1bfabf3056f` — именно на первую revision. Отдельный final Judge завершён `2026-09-08T05:41:52.680Z`; итог runner — `completed_with_failures`, run validity — valid, candidate — incomplete. Judge отделил provider timeout от Subject и не оценивал недостигнутые CODE-REVIEW closure/MERGE как выполненные.
+
+Четыре material finding Judge относятся к продукту и semantic handoff: UI отправляет title/description вместе с priority и потому не может изменить priority архивного проекта; membership/archive predicates не атомарны с записью; generic migration/API/web checks не доказывают feature-specific AC (migration command фактически не применил миграцию); принятое PLAN исправление не перенесло UI-edit/archive obligations в P2 без потерь. Успешный formatting repair и зелёный общий gate не устраняют эти дефекты. Итоговый Judge receipt сохранён в `judge/revisions/0ec3b99c6bc1c7ed9e4f45971221a6b9ffabd32cb7b3ef4346b6f1bfabf3056f/result.json` внутри указанного EVAL.
+
+| Live ячейка beta.38 | Подтверждённый результат |
+| --- | --- |
+| Completed PLAN boundary interruption → recovery | PASS: clean capture, same-root ACK, completed Work/WorkSession сохранены, переход в PLAN-REVIEW |
+| Running P1 interruption → второй recovery | PASS до принятого CODE: ACK-only, новый child/WorkSession при fresh-agent policy, P1/P2 и repair завершены |
+| Повторные candidate/recovery generations | Три capture целостны, последовательные parent links сохранены, исторические ошибки не стёрты |
+| Полный flow до MERGE + Judge | Не завершён: provider liveness timeout на CODE-REVIEW; MERGE не достигнут, отдельный Judge неполной попытки завершён |
+| Native observed model attribution | Неполна: AGY child hooks не сообщают текущую модель; requested profile не выдан за observed |
+
+Эти результаты не закрывают всю historical failure-permutation matrix ниже и не доказывают selective same-ID child recovery при другой policy. Новый resume generation 3 не выполнен; он должен быть отдельной явной операцией после Judge, без смены definition и без правки сохранённых receipts.
 
 ## Выполненная реализация
 
