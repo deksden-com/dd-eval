@@ -350,11 +350,13 @@ dd-eval runner eval run --profile \
   cases/sdlc-eval-2026-summer-task-priority/run-profiles/<profile>.json
 ```
 
-The runner restores isolated project/runtime state, materializes the active
-context slice, creates the Session, records the exact launcher and reconciles
-the final provider turn with `dd-flow`. A chat reply alone never completes a
-stage. Subject-visible input excludes assessment, golden answers and HITL
-selection rationale; a clean Judge receives immutable candidate evidence only.
+The runner restores isolated project/runtime state and supplies the active
+context slice to the CLI's managed controller. The controller owns Sessions,
+provider turns, lifecycle reconciliation and immutable boundary captures;
+eval observes its receipts and supplies context/HITL answers. A chat reply alone
+never completes a stage. Subject-visible input excludes assessment, golden
+answers and HITL selection rationale; a clean Judge receives immutable candidate
+evidence only.
 
 ## Materialized run repositories
 

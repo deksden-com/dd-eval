@@ -34,11 +34,11 @@ E2E uses the input checkpoint, never a canonical stage-entry pack. Updating the
 engine requires a new checkpoint pointing to its committed project flow pack;
 changing a global CLI alone does not update the pinned experiment.
 
-Keep the product baseline separate from the flow-pack revision. For the active
-Task Priority case, `source.tag` is `eval/cp-068-source` and `source.commit` is
-`44939e95060a65e80571acdcbf42609b80621e63`. The runner checks the tag resolves to
-that commit before E2E materialization or canonical preparation. Updating the
-engine or Memory Bank must not advance this source to current `dd-tasks/main`,
+Keep the product baseline separate from the flow-pack revision. Resolve
+`source.tag` and `source.commit` from the hash-pinned input checkpoint referenced
+by the committed case, not from a historical runbook example. The runner checks
+the tag resolves to that commit before E2E materialization or canonical preparation.
+Updating the engine or Memory Bank must not advance this source to current `dd-tasks/main`,
 where the feature is already implemented. See the [baseline audit](task-priority-baseline-audit-2026-09-06.md).
 
 После обновления runtime сверяйте не только версии, но и фактическую готовность
@@ -278,18 +278,19 @@ JSON, comments or heredoc bodies is data and must not be trusted or blocked.
 If a real lifecycle invocation is joined to another command with `;`, `&&` or
 a pipe, `dd-flow` rejects it and returns the standalone retry.
 
-For each E2E stage the operational sequence is: runner sends one launcher →
+For each E2E stage the operational sequence is: eval supplies context to the
+managed CLI controller → controller sends one launcher →
 Subject invokes standalone `stage start` first → Subject performs only that
-Stage → `dd-flow` returns a terminal receipt or a registered pause → runner
-records the boundary → runner, not the Subject, sends the successor in a later
-turn. A focused execution stops at the same boundary. This difference is
+Stage → `dd-flow` returns a terminal receipt or a registered pause → controller
+captures the boundary → controller, not eval or the Subject, sends the successor
+in a later turn. A focused execution stops at the same boundary. This difference is
 intentional: a focused result may use its accepted predecessor snapshot, while
 an E2E successor consumes the Subject's own preceding result.
 
 Some stages materialize a graph of fresh worker Work records. This is still
-one normal Stage: when the graph is agent-owned, the runner first returns the
-same coordinator once to materialize it; when it has a deterministic
-dispatcher, `dd-flow` materializes it directly. The runner returns the ready
+one normal Stage: when the graph is agent-owned, the CLI controller first returns
+the same coordinator once to materialize it; when it has a deterministic
+dispatcher, `dd-flow` materializes it directly. The controller returns the ready
 descriptors to the existing coordinator, which launches native subagents.
 Each child calls its exact `work start` and `work finish` commands. The runner
 does not launch substitute root Sessions, choose aspects, change the graph,
@@ -304,15 +305,15 @@ Native completion never implies Work success. Ambiguous/absent bindings are
 explicit blockers with saved observations, not permission to relaunch a child.
 An active deterministic check remains owned by its original invocation.
 
-On a terminal failure the runner attempts `run snapshot create --incomplete`.
-This is retained forensic evidence, not a successful boundary or a restorable
-fixture. SQLite is captured consistently; files are copied non-atomically and
-that limitation is recorded. A failed capture is explicitly marked missing;
-neither cleanup nor capture failure replaces the original execution failure.
+Recovery capture belongs to the CLI controller. Eval accepts only its sealed
+receipt and verified immutable bytes; it never creates a replacement snapshot
+to bypass a missing capture. Until the controller publishes a usable capture,
+eval records incomplete evidence explicitly. Neither cleanup nor capture failure
+replaces the original execution failure or authorizes replay.
 
 Each launcher permits exactly its named Stage. Once that Stage is finished, the
 Subject stops; it must not follow a successor command shown by a normal
-`dd-flow` receipt. The runner checkpoints the boundary and sends the successor
+`dd-flow` receipt. The CLI controller captures the boundary and sends the successor
 only in a later provider turn.
 
 For Codex Desktop, the runner creates an isolated `CODEX_HOME` through
