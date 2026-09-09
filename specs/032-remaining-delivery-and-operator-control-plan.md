@@ -19,6 +19,20 @@
 
 Уточнение по текущему WIP (не release acceptance):
 
+- Source gates и подготовка Codex comparison (2026-09-09): CLI commit
+  `803d2d0262cb6979fedd1a3e3001d7ce87cacba4` отправлен в feature-ветку;
+  полный suite завершился: 572/572, 52 files, 1657.17 s. На этом commit
+  отдельно пройдены полный lint (zero warnings) и typecheck.
+  Eval preflight теперь создаёт unstarted logical RUN через публичный CLI
+  prepare, проверяя все frozen routing profiles до doctor/provider launch
+  (`d4a50773a81568add89f320e6fa2a70706ffa5e8`). Mixed Codex profile
+  (`c1314d1`) сохраняет Luna coordinator и назначает external Sol только
+  PLAN-REVIEW/CODE-REVIEW; comparison regression входит в 65/65 eval tests.
+  Нативный Codex probe ниже не заменяет полный default/mixed RUN.
+  Canon source `c762f517762b2b225af00d2d1c6403d827f75360` отправлен,
+  назначение версии 4.1.0 ожидает решения пользователя. Coupled release,
+  новый immutable checkpoint и published-artifact E2E остаются открыты.
+
 - Codex active-native-child stop/resume PASS (2026-09-09), local digest
   `717aa1e58b61cfd56a1f78fad81fd7965de973a34de11b96c23f2fbd2e557870`.
   Receipt: `/Users/deksden/.dd-eval/conformance/codex-desktop-recovery-xe0NkP/receipt.json`.
