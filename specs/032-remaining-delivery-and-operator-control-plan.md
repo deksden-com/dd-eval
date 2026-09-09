@@ -19,6 +19,21 @@
 
 Уточнение по текущему WIP (не release acceptance):
 
+- Published beta.40 adoption (2026-09-09): release commit
+  `652524c6f370aa17c75474de5ebb7b3b9bf0b3a2` passed 575/575 tests,
+  lint and build; main/tag/artifact and isolated/global consumers verified.
+  Receipt `dd-flow-cli:.tasks/release-0.9.0-beta.40.json` completed at
+  17:32:43 UTC. Both consumers have engine checksum
+  `42d498cfe876e1aadec3ab01a0b2079293ed176848287b38ec11c66c67bb294e`.
+  CP-089 selects this artifact while retaining original product `924ef61`
+  and flow-pack `dee7dba`; CP-088 is unchanged. The capture fix excludes
+  managed shared Codex-home aliases and temporary entries, not owned evidence.
+  Failed retry `EVAL-20260909162708-b1471fd1` is now stopped and sealed;
+  its detached worker completed after recovery capture at
+  `/Users/deksden/.dd-eval/conformance/capture-repair-EVAL-20260909162708-b1471fd1`.
+  This cleanup does not convert the failed run into acceptance. Full native
+  default/mixed/control and remaining harness acceptance are still open.
+
 - Published-artifact E2E follow-up (2026-09-09): CP-088 and its exact test
   pins are committed/pushed at `dd-eval:7b6660a`. Default and mixed preflight
   passed baseline admission and Luna/Sol doctors with beta.39; no provider
