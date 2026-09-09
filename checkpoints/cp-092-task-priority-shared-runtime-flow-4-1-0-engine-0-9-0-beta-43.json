@@ -1,0 +1,21 @@
+{
+  "id": "cp-092-task-priority-shared-runtime-flow-4-1-0-engine-0-9-0-beta-43",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "dee7dba1ae721ac1c2b12d8d9c5f16e0bbee0c8b",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.0",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "387b5ce2c63b7e4f97ff240d0a22763f7cc38c47",
+      "version": "0.9.0-beta.43",
+      "artifact_sha256": "a61d853baf81d2d5bf575fcb95f2d9373b5e323ecf4f521f7a512005d1141832"
+    }
+  },
+  "state": "published_release_candidate_for_default_mixed_control_e2e"
+}

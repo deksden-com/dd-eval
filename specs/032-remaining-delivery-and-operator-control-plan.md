@@ -19,6 +19,18 @@
 
 Уточнение по текущему WIP (не release acceptance):
 
+- Published beta.43 adoption (2026-09-09): CP-092 selects
+  `387b5ce2c63b7e4f97ff240d0a22763f7cc38c47`, checksum
+  `a61d853baf81d2d5bf575fcb95f2d9373b5e323ecf4f521f7a512005d1141832`.
+  Release completed at 21:44:48 UTC after 576/576 tests, typecheck, lint/build,
+  artifact/refs and isolated/global consumer verification. The installed
+  artifact digest was independently recalculated by eval's admission helper.
+  Source and pack remain `924ef61` and `dee7dba`; CP-091 remains immutable.
+  Codex receipts now omit historical Turn payloads while preserving the
+  current Turn, exact assistant answer and native history reference.
+  Native default/mixed/control acceptance remains open; the failed CP-091
+  PLAN output-limit run is not reclassified as a successful qualification.
+
 - Published beta.42 adoption (2026-09-09): CP-091 selects
   `fb9736bf2af837404a43027631113232f0134b58`, checksum
   `7d0ba0ffaf22a3ce6bd65ce8e8c4f28d9cfce82802fdfc054489bc9757626a31`.
