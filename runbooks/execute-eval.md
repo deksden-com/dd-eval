@@ -30,6 +30,11 @@ provisioning and writes its receipt and initial launcher under
 does not execute the Stage. A successful receipt proves the pinned pair,
 initial context and installed Subject/Judge profiles can be prepared; it does
 not replace a live harness compatibility smoke or the actual E2E result.
+It also prepares an unstarted logical RUN through the CLI's normal routing
+boundary, validating and freezing every selected agent profile before provider
+checks. Missing or invalid stage/worker profiles fail preflight, not the first
+productive launch. The receipt retains `prepared_run`; no controller or provider
+Session is started.
 E2E uses the input checkpoint, never a canonical stage-entry pack. Updating the
 engine requires a new checkpoint pointing to its committed project flow pack;
 changing a global CLI alone does not update the pinned experiment.

@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 import os from "node:os";
 import path from "node:path";
 import { commandJson, commandText } from "../lib/process-json.mjs";
-import { observeManagedRun } from "../lib/managed-flow-client.mjs";
+import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
 
 test("eval client drives two real CLI lifecycle stages and retains controller-owned captures", { skip: !process.env.DD_EVAL_TEST_FLOW_CLI || !process.env.DD_EVAL_TEST_FLOW_ADAPTER, timeout: 120_000 }, async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-managed-flow-"));
@@ -28,8 +28,11 @@ test("eval client drives two real CLI lifecycle stages and retains controller-ow
     await mkdir(env.CODEX_HOME);
     const git = args => commandText("git", args, { cwd: project });
     await git(["init", "--quiet", "-b", "main"]); await git(["add", "."]); await git(["-c", "user.name=Fixture", "-c", "user.email=fixture@example.test", "commit", "--quiet", "-m", "fixture"]);
-    const started = await commandJson(cli, ["run", "start", "--project-root", project, "--flow-kind", "vnext_protocolize", "--subject-type", "discussion", "--subject-id", "controller-fixture", "--slug", "controller-stages"], { cwd: project, env });
-    runId = started.run.id;
+    const executionRoutingFile = await write("routing.json", { schema_id: "dd-flow/execution-routing@1", execution: { agent_profile_id: "first", stage_overrides: { protocolize: { agent_profile_id: "missing" } } } });
+    await assert.rejects(prepareManagedRun({ bin: cli, env, projectRoot: project, slug: "missing-profile", executionRoutingFile }), { code: "agent_profile_missing" });
+    await write("routing.json", { schema_id: "dd-flow/execution-routing@1", execution: { agent_profile_id: "first", stage_overrides: { protocolize: { agent_profile_id: "second" } } } });
+    const started = await prepareManagedRun({ bin: cli, env, projectRoot: project, slug: "controller-stages", executionRoutingFile });
+    runId = started.run_id;
     const intake = await write("task.md", "Add task priority so members can order existing tasks.\n");
     const references = {};
     for (const stage of ["specify", "protocolize"]) {
