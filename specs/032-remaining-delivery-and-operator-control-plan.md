@@ -19,6 +19,17 @@
 
 Уточнение по текущему WIP (не release acceptance):
 
+- Published beta.42 adoption (2026-09-09): CP-091 selects
+  `fb9736bf2af837404a43027631113232f0134b58`, checksum
+  `7d0ba0ffaf22a3ce6bd65ce8e8c4f28d9cfce82802fdfc054489bc9757626a31`.
+  Release completed at 19:13:17 UTC after 576/576 tests, lint/build,
+  artifact/refs and isolated/global consumer verification. Source and pack
+  remain `924ef61` and `dee7dba`; CP-090 remains immutable.
+  CLI `3e1f87f` reuses an existing RUN control during EVAL scope drain,
+  retaining its exact request/options; scope stop still escalates pause.
+  The extended control/recovery gate passed 79/79 tests across nine files.
+  Native default/mixed/control acceptance on this tuple remains open.
+
 - CP-090 native follow-up (2026-09-09): both default/mixed preflights
   passed on beta.41. Default `EVAL-20260909182516-9014a32a` reached native
   SPECIFY and its interaction Judge, then exposed an observer race: the
