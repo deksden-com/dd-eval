@@ -7,6 +7,7 @@ import { promisify } from "node:util";
 import test from "node:test";
 import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, executionEvidence, failureAttribution, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
+import { interactionJudgePrompt } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -394,6 +395,16 @@ test("worker failure remains primary when daemon cleanup also fails", async () =
   assert.match(execution, /evidence\.control = \{ settled: false, cleanup_error: errorRecord\(cleanupError\) \}/);
   assert.match(execution, /\.\.\.errorRecord\(error\)/);
   assert.match(execution, /!isObservationLoss\(error\)/);
+});
+
+test("Interaction Judge accepts alternatives without dropping independent decisions", () => {
+  const prompt = interactionJudgePrompt('/packet with "quotes".json');
+  assert.ok(prompt.includes(JSON.stringify('/packet with "quotes".json')));
+  assert.match(prompt, /Proposed options are not exhaustive or binding/);
+  assert.match(prompt, /Do not require it to affirm a proposed option's assumptions or consequences/);
+  assert.match(prompt, /independent question about delivery time remains uncovered/);
+  assert.match(prompt, /Never author, paraphrase or strengthen a response/);
+  assert.match(prompt, /Return matched only when every material decision is covered/);
 });
 
 test("HITL verdicts are strict, fail closed, and preserve exact response bytes", () => {
