@@ -360,6 +360,13 @@ evidence only.
 
 ## Materialized run repositories
 
+For the Codex comparison, `e2e-inline-merge-luna-xhigh.json` uses default native
+delegation; `e2e-mixed-codex-luna-sol.json` keeps the same Luna coordinator and
+assigns PLAN-REVIEW/CODE-REVIEW workers to Sol through explicit external
+delegation. Both use the same case input, Judges and concurrency limits. Their
+selected CLI agent profiles must exist in the configuration home. The mixed
+definition is prepared, not yet qualified by a full published-artifact E2E.
+
 The `dd-eval` CLI exports the tree from an exact `dd-tasks` commit into a
 new repository. It does not give the agent the canonical repository's history,
 remote, later refs, evaluation cases, assessment/golden material,

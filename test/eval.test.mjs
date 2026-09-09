@@ -135,6 +135,19 @@ test("Final Judge receives a bounded evidence scope", () => {
   assert.match(prompt, /"id":"integrity"/);
 });
 
+test("Codex default and mixed E2E differ only in explicit reviewer routing", async () => {
+  const directory = path.join(root, "cases", caseId, "run-profiles");
+  const baseline = (await loadRunProfile(path.join(directory, "e2e-inline-merge-luna-xhigh.json"))).value;
+  const mixed = (await loadRunProfile(path.join(directory, "e2e-mixed-codex-luna-sol.json"))).value;
+  for (const key of ["case_id", "selection", "judge", "interaction_judge", "concurrency", "failure_policy"]) assert.deepEqual(mixed[key], baseline[key]);
+  assert.equal(mixed.subject.profile_id, baseline.subject.profile_id);
+  assert.equal(mixed.subject.execution.agent_profile_id, baseline.subject.profile_id);
+  assert.deepEqual(Object.keys(mixed.subject.execution.stage_overrides).sort(), ["code-review", "plan-review"]);
+  for (const override of Object.values(mixed.subject.execution.stage_overrides)) {
+    assert.deepEqual(override, { delegation: { mode: "external", agent_profile_id: mixed.judge.profile_id, max_parallel: 1 } });
+  }
+});
+
 test("run profiles are explicit experiments rather than harness defaults", async () => {
   const reference = await loadRunProfile(buildProfile); const qualification = await loadRunProfile(qualificationProfile);
   assert.equal(reference.value.selection.e2e, false);
