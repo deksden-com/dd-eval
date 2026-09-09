@@ -19,6 +19,23 @@
 
 Уточнение по текущему WIP (не release acceptance):
 
+- Coupled source/registry delivery (2026-09-09): canon 4.1.0 integrated at
+  `ef349bf47cba1c987468e51d73a0dbadbd48dc1f`, annotated `v4.1.0` pushed and
+  peeled SHA verified. CLI beta.39 main/tag/artifact identify
+  `adabaee64d3de604908351aa1ee048208c1dd249` and that exact canon source.
+  Guarded release completed at 16:10:01 UTC: 572/572 tests (52 files,
+  1737.04 s), lint, strict build, tarball and refs readback, isolated/global
+  consumer verification. Both installed engine checksums are
+  `b868f40c7e070d0f05c9e6526660509ce89c79ef6bf057882967065289eed854`;
+  compatibility is `ok`, npm `latest` remains 0.8.0, `beta` is beta.39.
+  Receipt: `dd-flow-cli:.tasks/release-0.9.0-beta.39.json`.
+  Eval adoption is integrated in main (`1d8d92f`); project flow pack 4.1.0
+  is integrated/pushed at `dd-tasks:dee7dba1ae721ac1c2b12d8d9c5f16e0bbee0c8b`.
+  CP-088 preserves original product source `924ef61` and selects this pack
+  and published engine. Existing checkpoints and source tags are unchanged.
+  Full native default/mixed/control E2E remains open. User reports Grok/AGY
+  access blockers resolved; fresh qualification must verify that report.
+
 - Source gates и подготовка Codex comparison (2026-09-09): CLI commit
   `803d2d0262cb6979fedd1a3e3001d7ce87cacba4` отправлен в feature-ветку;
   полный suite завершился: 572/572, 52 files, 1657.17 s. На этом commit

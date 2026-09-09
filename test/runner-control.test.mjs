@@ -38,7 +38,7 @@ test('runner resume routes an unstarted execution through launch without rewriti
   const bytes = JSON.stringify(manifest), file = path.join(root, 'manifest.json'); await writeFile(file, bytes);
   const retained = path.join(root, 'executions', execution.id, 'retained'); await mkdir(path.dirname(retained), { recursive: true }); await writeFile(retained, 'fixture blocks before provider preparation');
   const [first, duplicate] = await Promise.allSettled([runnerResume({ evalRoot: root }), runnerResume({ evalRoot: root })]);
-  assert.equal(first.status, 'fulfilled');
+  assert.equal(first.status, 'fulfilled', first.reason?.stack);
   assert.equal(duplicate.status, 'rejected');
   assert.equal(duplicate.reason.code, 'operation_terminal');
   const result = first.value;
