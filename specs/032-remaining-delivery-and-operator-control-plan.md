@@ -19,6 +19,23 @@
 
 Уточнение по текущему WIP (не release acceptance):
 
+- Published beta.41 adoption (2026-09-09): CP-090 pins release
+  `a8be25a9ff2a4f772e2b006d29d23176cbd01736`, checksum
+  `ae319bebf00ef8109d66fd870e84213e233b7ad6ca3116e3b865bad3377467ec`.
+  Guarded release completed at 18:20:42 UTC: 576/576 tests, lint/build,
+  artifact/refs and isolated/global consumers verified. Product and pack
+  remain `924ef61` and `dee7dba`; earlier checkpoints remain unchanged.
+  Default CP-089 run `EVAL-20260909173838-cfed7fde` exposed the generated
+  hook's global PATH precedence before SPECIFY could start. CLI `c30ae89`
+  now honors DD_FLOW_BIN, then the runtime shim, before global installations;
+  a real-shell regression first reproduced the wrong global selection.
+  The affected native Session and controller were physically stopped and
+  RUN capture `RCV-ed356f2d-fc77-44d1-90e1-7530e90c6ed1` verified.
+  Its EVAL dispatch fence remains in place until explicit recovery/resume;
+  no resume was issued merely to finish the retained scope owner.
+  Both CP-089 preflights and 37 published-CLI fixture integrations passed,
+  but full native default/mixed/control acceptance remains unproven.
+
 - Published beta.40 adoption (2026-09-09): release commit
   `652524c6f370aa17c75474de5ebb7b3b9bf0b3a2` passed 575/575 tests,
   lint and build; main/tag/artifact and isolated/global consumers verified.
