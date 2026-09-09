@@ -306,6 +306,7 @@ test("new-session handoff is a flow invariant rather than an eval-profile option
 
 test("E2E dispatch delegates Session handoff and fan-out to the CLI controller", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  assert.doesNotMatch(source, /function (?:runServerMerge|materializeMergeAgentProfile|stageExecutor|mergeHarness)\b/);
   const execution = source.slice(source.indexOf("async function executeEval("), source.indexOf("export async function evalJudge("));
   assert.match(execution, /await observeManagedExecution/);
   assert.doesNotMatch(execution, /providerTurn\(|callDriver\(|driveFanout\(|runServerMerge\(|captureExecutionCandidate\(/);
