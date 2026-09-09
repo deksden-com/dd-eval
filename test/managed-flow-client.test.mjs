@@ -15,7 +15,9 @@ const state=fs.existsSync(stateFile)?JSON.parse(fs.readFileSync(stateFile)): {st
 const controller={controller_id:'DRV-fixture',stage:'plan',sessions:[{session_id:'native',stopped:true}]};
 let result;
 if(args[0]!=='run') throw new Error('eval must not call native adapters');
-if(args[1]==='status') result={index:{stage_runs:[{stage:'plan',status:'paused',pause:{id:'PAUSE-1'}}]}};
+if(args[1]==='status') result={index:{stage_runs:[process.env.TEST_MANAGED_ANSWER_RACE?
+  {stage:'plan',status:process.env.TEST_MANAGED_ANSWER_RACE,...(process.env.TEST_MANAGED_ANSWER_RACE==='paused'?{pause:{id:'PAUSE-1'}}:{})}:
+  {stage:'plan',status:'paused',pause:{id:'PAUSE-1'}}]}};
 else if(args[1]==='drive' && args[2]==='launch') result={controller};
 else if(args[1]==='drive' && args[2]==='context') {state.context=true;result={ok:true};}
 else if(args[1]==='drive' && args[2]==='answer') {state.answer=fs.readFileSync(args[args.indexOf('--answer-file')+1],'utf8');result={ok:true};}
@@ -23,6 +25,11 @@ else if(args[1]==='drive' && args[2]==='status') {
   if(process.env.TEST_MANAGED_LOST==='1') {console.log(JSON.stringify({ok:false,error:{code:'rpc_timeout',message:'observer lost'}}));process.exit(1);}
   if(process.env.TEST_MANAGED_CONTROL==='1') {
     console.log(JSON.stringify({controller:{...controller,status:'control_requested'},events:[]}));process.exit(0);
+  }
+  if(process.env.TEST_MANAGED_ANSWER_RACE) {
+    result={controller:{...controller,status:'waiting_for_user'},events:process.env.TEST_MANAGED_ACCEPTED==='0'?[]:
+      [{sequence:1,type:'answer_accepted',data:{pause_id:'PAUSE-1'}}]};
+    console.log(JSON.stringify(result));process.exit(0);
   }
   if(process.env.TEST_MANAGED_REVIEW==='1') {
     result={controller:{...controller,status:'waiting_for_context'},events:[
@@ -49,6 +56,28 @@ else if(args[1]==='drive' && args[2]==='status') {
 } else throw new Error('unexpected command '+JSON.stringify(args));
 fs.writeFileSync(stateFile,JSON.stringify(state));console.log(JSON.stringify(result));
 `;
+
+for (const stageStatus of ['running', 'done', 'paused', 'failed']) {
+  for (const accepted of [true, false]) test(`HITL observation reconciles accepted answer: ${stageStatus}, accepted=${accepted}`, async t => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'managed-answer-race-'));
+    t.after(() => rm(root, { recursive: true, force: true }));
+    const bin = path.join(root, 'cli.mjs');
+    await writeFile(bin, fixture);
+    const input = { bin, env: { TEST_MANAGED_ROOT: root, TEST_MANAGED_ANSWER_RACE: stageStatus, TEST_MANAGED_ACCEPTED: accepted ? '1' : '0' },
+      projectRoot: root, runId: 'RUN-fixture', controllerId: 'DRV-fixture', requestId: 'reattach', observeOnce: true,
+      answerFor: async () => assert.fail('accepted answer must not be authored again'),
+      beforeDispatch: async () => assert.fail('observation must not dispatch') };
+    if (accepted && stageStatus !== 'failed') {
+      assert.equal((await observeManagedRun(input)).controller.status, 'waiting_for_user');
+    } else if (stageStatus !== 'paused') {
+      await assert.rejects(observeManagedRun(input), { code: 'hitl_pause_invalid' });
+    } else {
+      let questions = 0;
+      await assert.rejects(observeManagedRun({ ...input, answerFor: async () => { questions++; throw new Error('new question'); } }), /new question/);
+      assert.equal(questions, 1);
+    }
+  });
+}
 
 test('operator control suspends the retained operation without terminal failure or replay', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'managed-controlled-'));

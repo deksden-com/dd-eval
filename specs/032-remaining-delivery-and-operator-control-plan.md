@@ -19,6 +19,19 @@
 
 Уточнение по текущему WIP (не release acceptance):
 
+- CP-090 native follow-up (2026-09-09): both default/mixed preflights
+  passed on beta.41. Default `EVAL-20260909182516-9014a32a` reached native
+  SPECIFY and its interaction Judge, then exposed an observer race: the
+  accepted answer Turn had resumed the Stage while the controller still
+  reported `waiting_for_user`. Eval now replays accepted-answer events and
+  observes the resumed Stage without duplicating the answer, including after
+  reattachment. Missing unaccepted pause identities still fail closed.
+  Focused tests: 14/14; full eval suite: 201 passed, 8 opt-in skipped.
+  RUN stop is settled and recovery capture sealed at
+  `RCV-c4055438-687e-44b5-a03a-712b53596092`; native Session is idle,
+  not a claim that its retained daemon exited. Full native acceptance remains
+  open; this failed run is not reused as a successful qualification.
+
 - Published beta.41 adoption (2026-09-09): CP-090 pins release
   `a8be25a9ff2a4f772e2b006d29d23176cbd01736`, checksum
   `ae319bebf00ef8109d66fd870e84213e233b7ad6ca3116e3b865bad3377467ec`.
