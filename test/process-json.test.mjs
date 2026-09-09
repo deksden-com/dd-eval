@@ -18,3 +18,25 @@ test("commandJson accepts a JavaScript CLI entrypoint without executable mode", 
   await writeFile(executable, "process.stdout.write(JSON.stringify({ ok: true }) + '\\n');\n");
   assert.deepEqual(await commandJson(executable, [], { cwd: root }), { ok: true });
 });
+
+test("commandJson bounds an unresponsive CLI observer without requiring cooperative shutdown", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-process-json-"));
+  const executable = path.join(root, "waiting-cli.mjs");
+  await writeFile(executable, "process.on('SIGTERM', () => {}); setInterval(() => {}, 1000); process.stderr.write(JSON.stringify({ ready: true }) + '\\n');\n");
+  const controller = new AbortController();
+  const safety = setTimeout(() => controller.abort(), 5000);
+  t.after(() => clearTimeout(safety));
+  let ready = false;
+  await assert.rejects(commandJson(executable, [], {
+    cwd: root, signal: controller.signal,
+    onProgress: (event) => { ready = event.ready; controller.abort(); },
+  }), { name: "AbortError" });
+  assert.equal(ready, true);
+});
+
+test("commandJson rejects an expired deadline before starting a CLI", async () => {
+  const controller = new AbortController();
+  const reason = new Error("observation deadline expired");
+  controller.abort(reason);
+  await assert.rejects(commandJson("missing-cli", [], { signal: controller.signal }), (error) => error === reason);
+});

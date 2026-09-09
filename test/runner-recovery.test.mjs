@@ -7,8 +7,6 @@ import { spawnSync } from "node:child_process";
 import { withRunnerLock } from "../lib/runner-lock.mjs";
 import { appendEvent, recordOperation, completeOperation, readEvents, reduceEvents, writeJsonAtomic } from "../lib/runner-events.mjs";
 import { commandJson } from "../lib/process-json.mjs";
-import { waitForSettlement } from "../lib/session-settlement.mjs";
-import { durableDaemonDispatch, inspectDaemonOperation } from "../lib/daemon-operations.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
 import { appendRunEventOnce, runResultRevision, recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoverySourceFromEvents, recoveryOperationId, recoveryPrompt, prepareRecoveryDelivery, isInfrastructureFailure } from "../lib/runner.mjs";
@@ -206,65 +204,6 @@ async function temporary(t) {
   return root;
 }
 
-test("stop waits for cancellation settlement, discovering new children without duplicate cancel", async () => {
-  let observations = 0; const cancelled = [];
-  await waitForSettlement({
-    observe: async () => { observations++; return { active: observations < 4, sessions: observations < 2 ? ["root"] : observations < 4 ? ["child", "root"] : [] }; },
-    cancel: async id => { cancelled.push(id); }, timeoutMs: 1000
-  });
-  assert.deepEqual(cancelled, ["root", "child"]); assert.equal(observations, 4);
-});
-
-test("unsettled stop fails rather than reporting clean or cancelling without authorization", async () => {
-  await assert.rejects(waitForSettlement({ observe: async () => ({ sessions: ["root"], active: true }) }), { code: "tree_not_settled" });
-  await assert.rejects(waitForSettlement({ observe: async () => ({ sessions: [], active: true }), cancel: async () => {}, timeoutMs: 10 }), { code: "tree_not_settled" });
-});
-
-test("daemon saves the terminal response before returning and never redispatches the same id", async t => {
-  const root = await temporary(t); let calls = 0;
-  const request = { id: "prompt-1", operation: "session.prompt", params: { sessionId: "native", prompt: "hello" } };
-  assert.deepEqual(await durableDaemonDispatch(root, request, async () => { calls++; return { text: "done" }; }), { text: "done" });
-  assert.equal((await inspectDaemonOperation(root, request.id)).state, "completed");
-  assert.deepEqual(await durableDaemonDispatch(root, request, () => assert.fail("duplicate Turn")), { text: "done" });
-  await assert.rejects(durableDaemonDispatch(root, { ...request, params: { prompt: "changed" } }, () => assert.fail("mismatched Turn")), { code: "operation_conflict" });
-  assert.equal(calls, 1);
-});
-
-test("disconnecting the observer does not discard a daemon's late result", async t => {
-  const root = await temporary(t); const request = { id: "prompt-2", operation: "session.prompt", params: {} };
-  let finish; let started;
-  const entered = new Promise(resolve => { started = resolve; });
-  const pending = durableDaemonDispatch(root, request, () => { started(); return new Promise(resolve => { finish = resolve; }); });
-  await entered;
-  await assert.rejects(durableDaemonDispatch(root, request, () => assert.fail("second request")), { code: "operation_observation_lost" });
-  finish({ text: "late" }); await pending;
-  assert.deepEqual((await inspectDaemonOperation(root, request.id)).result, { text: "late" });
-});
-
-test("concurrent duplicate requests never read partial JSON or dispatch twice", async t => {
-  const root = await temporary(t); let calls = 0;
-  const request = { id: "race", operation: "session.prompt", params: { sessionId: "native" } };
-  const results = await Promise.allSettled(Array.from({ length: 30 }, () => durableDaemonDispatch(root, request, async () => { calls++; return { text: "done" }; })));
-  assert.equal(calls, 1);
-  for (const result of results) if (result.status === "rejected") assert.equal(result.reason.code, "operation_observation_lost");
-  assert.equal((await inspectDaemonOperation(root, "race")).session_id, "native");
-});
-
-test("recovery consumes a late reply and unblocks the next request without replay", async t => {
-  const root = await temporary(t), request = { id: "late", operation: "session.prompt", params: {} };
-  await mkdir(path.join(root, "client-operations"));
-  await writeFile(path.join(root, "client-operations", "late.json"), JSON.stringify({ operation_id: "late", state: "requested" }));
-  let finish, entered;
-  const started = new Promise(resolve => { entered = resolve; });
-  const pending = durableDaemonDispatch(root, request, () => { entered(); return new Promise(resolve => { finish = resolve; }); });
-  await started;
-  await assert.rejects(reconcileDriverReplies(root), { code: "operation_observation_lost" });
-  const recovered = recoverDriverReply(root, "late", { timeoutMs: 1000, pollMs: 5 });
-  finish({ text: "late" }); await pending;
-  assert.deepEqual(await recovered, { text: "late" });
-  await reconcileDriverReplies(root);
-  await reconcileDriverReplies(root);
-});
 
 test("unknown dispatch remains blocked after a runner crash", async t => {
   const root = await temporary(t);

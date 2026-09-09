@@ -182,11 +182,11 @@ test("ZCode daemon receives a resolved ACP executable", async () => {
   assert.deepEqual(args, ["daemon", "start", "--state-dir", "/tmp/daemon", "--dd-flow-bin", "/bin/echo", "--dd-flow-home", "/tmp/flow-zcode", "--project-root", "/tmp/project", "--zcode-acp-bin", "/bin/echo"]);
 });
 
-test("isolated runner launches the configured harness adapter", async () => {
+test("isolated runner never substitutes a configured adapter for a missing engine bundle", async () => {
   const home = await mkdtemp(path.join(tmpdir(), "dd-eval-harness-"));
   try {
     await writeFile(path.join(home, "harnesses.json"), JSON.stringify({ schema_id: "dd-flow/harness-config@1", harnesses: { "zcode-acp": { adapter_command: "/bin/echo", runtime_command: "/bin/echo" } } }));
-    assert.deepEqual(await driverAdapterInvocation({ harness: "zcode-acp" }, { cwd: "/tmp/project", env: { DD_FLOW_HOME: home } }), { executable: "/bin/echo", prefix: [] });
+    await assert.rejects(driverAdapterInvocation({ harness: "zcode-acp" }, { cwd: "/tmp/project", env: { DD_FLOW_HOME: home } }), { code: "canonical_engine_missing" });
   } finally { await rm(home, { recursive: true, force: true }); }
 });
 
@@ -211,10 +211,9 @@ test("focused result checkpoints preserve a legal successor entry", () => {
   assert.deepEqual(resultCheckpointMode("merge"), { purpose: "candidate", stage_entry: null });
 });
 
-test("resume reuses an in-flight immutable snapshot instead of treating it as a conflict", async () => {
+test("eval does not retain a second execution snapshot controller", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /snapshot output already exists/i);
-  assert.match(source, /await waitForFile\(manifestFile\)/);
+  assert.doesNotMatch(source, /async function (captureCandidate|captureExecutionCandidate|captureStageBoundary|captureIncompleteEvidence|waitForFile)\(/);
 });
 
 test("recovery resumes the latest successor Subject Session", async () => {
@@ -223,13 +222,13 @@ test("recovery resumes the latest successor Subject Session", async () => {
   assert.match(source, /sessions\.at\(-1\).*session_id/s);
 });
 
-test("recovery retains native storage when restarting a stopped execution daemon", async () => {
+test("recovery retains the logical CLI controller rather than restarting an eval daemon", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /const primaryState = path\.join\(attempt, "drivers", "daemon"\)/);
-  assert.match(source, /\["daemon", "status", \.\.\.primaryArgs/);
-  assert.match(source, /try \{ return await action\(\{ daemonArgs, env, daemon \}\); \}/);
-  assert.match(source, /if \(recoveryBridge\)/);
-  assert.match(source, /daemonArgs = primaryArgs; recoveryBridge = true/);
+  const recovery = source.slice(source.indexOf('export async function recoverExecution('), source.indexOf('async function runnerBlueprint('));
+  assert.match(recovery, /\["run", "control", "resume"/);
+  assert.match(recovery, /resumed\.controller\?\.controller_id !== controller\.controller_id/);
+  assert.doesNotMatch(recovery, /withExecutionDaemon|callDriver\(|providerTurn\(/);
+  assert.doesNotMatch(source, /async function withExecutionDaemon/);
 });
 
 test("normal, resumed, judged, and cancelled runs share one terminal projection", async () => {
@@ -241,12 +240,12 @@ test("normal, resumed, judged, and cancelled runs share one terminal projection"
   assert.equal(storedExecutionResults([{ executionid: "e", type: "dev.dd.eval.execution.cancelled", data: {} }], { run_id: "r", executions: [{ id: "e" }] })[0].state, "cancelled");
 });
 
-test("provider interruption is sealed into an explicit recovery operation", async () => {
+test("provider interruption consumes the CLI-owned sealed recovery capture", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /function classifyInterruption\(error\)/);
-  assert.match(source, /\["run", "recovery", "begin", runId/);
-  assert.match(source, /\["run", "recovery", "seal", runId/);
-  assert.match(source, /--recovery-id/);
+  assert.doesNotMatch(source, /\["run", "recovery", "(?:begin|seal|capture)"/);
+  assert.match(source, /control\.admission !== "sealed"/);
+  assert.match(source, /path\.join\(control\.capture_path, "snapshot.json"\)/);
   assert.match(source, /export async function runnerRecover/);
   assert.match(source, /launch:recover:/);
   assert.match(source, /candidate-revisions/);
@@ -265,19 +264,6 @@ test("a local engine override refreshes a same-version runtime snapshot", async 
   assert.match(source, /commandJson\(bin, \["engine", "install", "--force"\]/);
 });
 
-test("harness transports leave lifecycle semantics to dd-flow", async () => {
-  const [zcode, grok, opencode] = await Promise.all([
-    readFile(path.join(root, "lib", "dd-zcode.mjs"), "utf8"),
-    readFile(path.join(root, "lib", "dd-grok-daemon.mjs"), "utf8"),
-    readFile(path.join(root, "lib", "dd-opencode-daemon.mjs"), "utf8")
-  ]);
-  for (const source of [zcode, grok, opencode]) {
-    assert.match(source, /includes\("dd-flow"\)/);
-    assert.doesNotMatch(source, /session\\s\+register\|stage\\s/);
-  }
-  assert.match(opencode, /if\(result\?\.observed\) participating\.add/);
-});
-
 test("successor Session mode reads the persisted execution profile from run status", () => {
   assert.equal(stageSessionMode({ status: { index: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } }), "new_session");
   assert.equal(stageSessionMode({ status: { run: { execution_profile: { settings: { stage_session_mode: "new_session" } } } } }), "new_session");
@@ -292,10 +278,10 @@ test("successor context uses the registered v2 RUN artifact root", () => {
 
 test("canonical reference recovery also requires the registered v2 RUN artifact root", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  const start = source.indexOf("async function referenceRoots");
-  const end = source.indexOf("async function startReferenceDaemon", start);
+  const start = source.indexOf("async function canonicalResumeUnlocked");
+  const end = source.indexOf("export async function canonicalBoundaryAccept", start);
   const implementation = source.slice(start, end);
-  assert.match(implementation, /run\?\.run_root/);
+  assert.match(implementation, /restoredRoots\(\{ status \}, projectRoot, runtimeRoot\)/);
   assert.doesNotMatch(implementation, /run_home_path/);
 });
 
@@ -305,10 +291,14 @@ test("new-session handoff is a flow invariant rather than an eval-profile option
   assert.notEqual(stageSessionMode(lifecycle), "same_session");
 });
 
-test("E2E handoff keeps the current Subject Session replaceable", async () => {
+test("E2E dispatch delegates Session handoff and fan-out to the CLI controller", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /let sessionId = created\.provider_session_id/);
-  assert.match(source, /sessionId = successorSessionId/);
+  const execution = source.slice(source.indexOf("async function executeEval("), source.indexOf("export async function evalJudge("));
+  assert.match(execution, /await observeManagedExecution/);
+  assert.doesNotMatch(execution, /providerTurn\(|callDriver\(|driveFanout\(|runServerMerge\(|captureExecutionCandidate\(/);
+  const managed = source.slice(source.indexOf("async function observeManagedExecution("), source.indexOf("export async function recoverExecution("));
+  assert.match(managed, /await observeManagedRun/);
+  assert.match(managed, /observed\.controller\.sessions/);
 });
 
 test("accepted boundary clears the terminal turn marker before a successor launch", async () => {
@@ -337,11 +327,13 @@ test("native child packets cannot create nested HITL and unqualified capacity is
   assert.equal(isInfrastructureFailure("provider_quota_exhausted"), true);
 });
 
-test("productive fan-out uses the coordinator's native children and leaves siblings settled", async () => {
+test("productive fan-out has no second execution loop in eval", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /nativeChildFanoutPrompt/);
-  assert.match(source, /native_children_required/);
-  assert.match(source, /not a reason to cancel its siblings/);
+  assert.doesNotMatch(source, /async function driveFanout/);
+  const recovery = source.slice(source.indexOf('export async function recoverExecution('), source.indexOf('async function runnerBlueprint('));
+  assert.match(recovery, /await observeManagedExecution/);
+  assert.doesNotMatch(recovery, /nativeChildFanoutPrompt\(|promptExistingSession\(/);
 });
 
 test("a new fan-out stage ignores historical native children but keeps its new wave", () => {
@@ -383,14 +375,10 @@ test("productive fan-out no longer creates an isolated worker root", async () =>
 
 test("worker failure remains primary when daemon cleanup also fails", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /let subjectFailure = null/);
-  assert.match(source, /if \(!subjectFailure\) throw cleanupError/);
-  assert.match(source, /dev\.dd\.eval\.harness\.cleanup_failed/);
-  const semanticOutcome = source.indexOf('Subject turn ended without successful');
-  const rememberFailure = source.indexOf('subjectFailure = error;', semanticOutcome);
-  const cleanup = source.indexOf('if (!subjectFailure) throw cleanupError', rememberFailure);
-  assert.ok(semanticOutcome > 0 && rememberFailure > semanticOutcome && cleanup > rememberFailure);
-
+  const execution = source.slice(source.indexOf("async function executeEval("), source.indexOf("export async function evalJudge("));
+  assert.match(execution, /evidence\.control = \{ settled: false, cleanup_error: errorRecord\(cleanupError\) \}/);
+  assert.match(execution, /\.\.\.errorRecord\(error\)/);
+  assert.match(execution, /!isObservationLoss\(error\)/);
 });
 
 test("HITL verdicts are strict, fail closed, and preserve exact response bytes", () => {
@@ -415,14 +403,14 @@ test("HITL recovery enforces the same round, receipt, and evidence contract", as
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /rounds >= fixture\.max_rounds/);
   assert.match(source, /type: "dev\.dd\.eval\.hitl\.matched"[\s\S]*recovered: true/);
-  assert.match(source, /hitl: await hitlEvidenceFor\(events, execution\.id\)/);
+  assert.match(source, /hitl\.push\(\.\.\.await hitlEvidenceFor\(retained, execution\.id\)\)/);
 });
 
 test("canonical recovery reuses accepted HITL bytes without spending another round", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /answered_pauses/);
-  assert.match(source, /hitl\.resume_retried/);
-  assert.match(source, /hitl_resume_not_applied/);
+  const implementation = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalBoundaryAccept"));
+  assert.match(implementation, /if \(prior\) \{\s+await acceptedHitlAnswer\(\{ answerFile: prior\.answer_file, answerSha256: prior\.answer_sha256 \}\);\s+return prior\.answer_file/);
   assert.match(source, /answer_file: answerFile/);
 });
 
@@ -464,7 +452,7 @@ test("capacity qualification counts only authoritative direct native children", 
 
 test("capacity qualification stays outside the flow runtime", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  const helper = source.match(/export async function harnessCapacityCheck[\s\S]*?\n}\n\n\/\*\* Ask the current coordinator/);
+  const helper = source.match(/export async function harnessCapacityCheck[\s\S]*?\n}/);
   assert.ok(helper);
   assert.doesNotMatch(helper[0], /DD_FLOW_HOME/);
   assert.doesNotMatch(helper[0], /provisionCapacityRuntime/);
@@ -483,7 +471,7 @@ test("capacity reads Codex native child metadata rather than model text", async 
   const helper = source.match(/async function capacityCodexChildren[\s\S]*?\n}/);
   assert.ok(helper);
   assert.match(helper[0], /parent_thread_id === rootSessionId/);
-  assert.match(helper[0], /SubAgentActivity/);
+  assert.doesNotMatch(helper[0], /SubAgentActivity/);
   assert.doesNotMatch(helper[0], /assistant_text/);
 });
 
@@ -493,11 +481,13 @@ test("native packet contains the exact Work start command", () => {
   assert.match(packet, /one direct native child agent/);
 });
 
-test("native-child recovery waits instead of restarting a Work Session", async () => {
+test("reference native-child recovery delegates to its retained CLI owner", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /nativeChildWaitPrompt/);
   assert.match(source, /awaiting_native_children/);
-  assert.match(source, /dev\.dd\.eval\.reference\.fanout_recovery_authorized/);
+  const reference = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalBoundaryAccept"));
+  assert.match(reference, /controllerId: state\.reference\.controller_id/);
+  assert.doesNotMatch(reference, /driveFanout\(|providerTurn\(|callDriver\(/);
 });
 
 test("observer loss remains recoverable instead of producing a failed execution", async () => {
@@ -507,25 +497,23 @@ test("observer loss remains recoverable instead of producing a failed execution"
   assert.match(source, /dev\.dd\.eval\.execution\.awaiting_provider/);
 });
 
-test("a terminal coordinator Turn with a running Stage receives a finish-only recovery", async () => {
+test("reference stage continuation is owned by the shared controller", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /fanout\?\.state === "awaiting_native_children" \? nativeChildWaitPrompt\(\{ stage \}\) : fanout\?\.continuation \?\? interruptedStageContinuation\(stage\)/);
-  assert.match(source, /a rejected finish does not itself create a repair Work/);
+  const reference = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalBoundaryAccept"));
+  assert.match(reference, /await observeManagedRun\(/);
+  assert.match(reference, /if \(requested !== stage\) return null/);
+  assert.doesNotMatch(reference, /interruptedStageContinuation|session.*prompt/);
 });
 
-test("canonical recovery does not trust a stale active Desktop record", async () => {
+test("canonical recovery does not infer liveness from provider timestamps", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /function providerTurnIsLive\(provider, activeTurn\)/);
-  assert.match(source, /Date\.now\(\) - updatedAt < 120_000/);
-  assert.match(source, /providerTurnIsLive\(provider, state\.reference\.active_turn\)/);
+  assert.doesNotMatch(source, /function providerTurnIsLive\(/);
+  assert.match(source, /reference_migration_required/);
 });
 
-test("canonical recovery clears its private daemon slot before resuming an interrupted Turn", async () => {
+test("canonical reference no longer owns a private daemon restart loop", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  const helper = source.match(/async function restartIdleReferenceDaemon[\s\S]*?\n}\nfunction providerTurnIsActive/);
-  assert.ok(helper);
-  assert.match(helper[0], /\["daemon", "stop", \.\.\.daemon\.daemonArgs\]/);
-  assert.doesNotMatch(helper[0], /provider\.thread\?\.status/);
+  assert.doesNotMatch(source, /function (?:restartIdleReferenceDaemon|startReferenceDaemon|stopReferenceDaemon)\(/);
 });
 
 test("settled fan-out fingerprint changes when a repair Work changes the graph", () => {

@@ -2,6 +2,8 @@
 import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualificationRecover, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalPreflight, evalRun, fixturesValidate, harnessCapacityCheck, harnessCompatibilityQualify, runnerCancel, runnerRecover, runnerReconcile, runnerResume, runnerStatus } from "../lib/runner.mjs";
 import { gcApply, gcPlan, storageList, storageStatus } from "../lib/storage.mjs";
 import { runnerRecoveryInspect } from "../lib/runner.mjs";
+import { runnerControlReconcile, runnerControlRequest, runnerControlStatus } from "../lib/runner.mjs";
+import { requestEvalResume } from "../lib/eval-resume-worker.mjs";
 
 function usage() {
   return `dd-eval — deterministic evaluation runner
@@ -21,6 +23,10 @@ Usage:
   dd-eval runner eval run --profile <run-profile.json>
   dd-eval runner eval judge --eval <path> [--profile <judge-profile-id>]
   dd-eval runner status --eval <path>
+  dd-eval runner control status --eval <path> [--execution <id>]
+  dd-eval runner control pause|stop --eval <path> --request-id <id>
+  dd-eval runner control reconcile --eval <path> --from <request-id>
+  dd-eval runner control resume --eval <path> --from <control-request-id> --request-id <id> [--wait-ms <0..60000>]
   dd-eval runner resume --eval <path>
   dd-eval runner recover --eval <path> --from <recovery-id> [--execution <id>]
   dd-eval runner recovery inspect --eval <path> [--execution <id>]
@@ -30,6 +36,11 @@ Usage:
   dd-eval storage status
   dd-eval gc plan
   dd-eval gc apply --plan <file>
+
+Operator control resume starts durable recovery preparation and applies a proven
+all-role release. --wait-ms defaults to 0; pending is not resumed work.
+An independent EVAL observer continues reconciliation after release.
+accepted confirms the EVAL request; runtime_accepted may still be null.
 `;
 }
 
@@ -74,6 +85,23 @@ try {
   else if (family === "runner" && command === "eval" && action === "run") result = await evalRun({ profileFile: required(options, "profile") });
   else if (family === "runner" && command === "eval" && action === "judge") result = await evalJudge({ evalRoot: required(options, "eval"), ...(options.profile ? { profileId: options.profile } : {}) });
   else if (family === "runner" && command === "status") result = await runnerStatus({ evalRoot: required(options, "eval") });
+  else if (family === "runner" && command === "control" && action === "status") {
+    if (positional.length !== 3 || Object.keys(options).some(key => !["eval", "execution"].includes(key))) throw new Error("Use runner control status --eval <path> [--execution <id>]");
+    result = await runnerControlStatus({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
+  }
+  else if (family === "runner" && command === "control" && ["pause", "stop"].includes(action)) {
+    if (positional.length !== 3 || Object.keys(options).some(key => !["eval", "request-id"].includes(key))) throw new Error("Use runner control pause|stop --eval <path> --request-id <id>");
+    result = await runnerControlRequest({ evalRoot: required(options, "eval"), requestId: required(options, "request-id"), mode: action });
+  }
+  else if (family === "runner" && command === "control" && action === "reconcile") {
+    if (positional.length !== 3 || Object.keys(options).some(key => !["eval", "from"].includes(key))) throw new Error("Use runner control reconcile --eval <path> --from <request-id>");
+    result = await runnerControlReconcile({ evalRoot: required(options, "eval"), requestId: required(options, "from") });
+  }
+  else if (family === "runner" && command === "control" && action === "resume") {
+    if (positional.length !== 3 || Object.keys(options).some(key => !["eval", "from", "request-id", "wait-ms"].includes(key))) throw new Error("Use runner control resume --eval <path> --from <control-request-id> --request-id <id> [--wait-ms <0..60000>]");
+    if (options["wait-ms"] !== undefined && !/^\d+$/.test(options["wait-ms"])) throw Object.assign(new Error("--wait-ms must be an integer between 0 and 60000"), { code: "control_request_invalid" });
+    result = await requestEvalResume({ evalRoot: required(options, "eval"), requestId: required(options, "request-id"), fromRequestId: required(options, "from"), ...(options["wait-ms"] !== undefined ? { waitMs: Number(options["wait-ms"]) } : {}) });
+  }
   else if (family === "runner" && command === "resume") result = await runnerResume({ evalRoot: required(options, "eval") });
   else if (family === "runner" && command === "recover") result = await runnerRecover({ evalRoot: required(options, "eval"), fromRecoveryId: required(options, "from"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "recovery" && positional[2] === "inspect") result = await runnerRecoveryInspect({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
@@ -87,5 +115,5 @@ try {
   process.stdout.write(`${JSON.stringify({ ok: true, ...result })}\n`);
 } catch (error) {
   process.stderr.write(`${JSON.stringify({ ok: false, error: error.message, code: error.code ?? "operation_failed", ...(error.retryable === true ? { retryable: true } : {}), ...(error.details !== undefined ? { details: error.details } : {}) })}\n`);
-  process.exit(1);
+  process.exit(error.code === "control_request_invalid" ? 2 : 1);
 }

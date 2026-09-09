@@ -1,5 +1,11 @@
 # dd-eval
 
+This package exposes only `dd-eval`. The six harness adapter commands belong to
+`@deksden-com/dd-flow-cli`; execution and qualification use the adapters bundled
+with their selected engine runtime. Missing bundles are errors, not a reason to
+substitute a configured command or an adapter from this checkout. Local adapter
+sources currently retained for test migration are not supported runner entrypoints.
+
 Factory Droid integration uses `dd-droid`, native JSON-RPC and the pinned
 `droid-cli-openai-gpt-5-6-sol-high` profile. Native close/reload and child identity
 are verified; the profile has measured capacity 15. Scored E2E remains a separate
@@ -466,3 +472,19 @@ results worth inspecting. Current Exe.dev public CLI documentation exposes VM
 creation, copy, restart, and deletion, but no stable stop command. Until the
 account-specific lifecycle is verified, `dd-eval` must treat delete-and-recreate
 as the dependable zero-runtime lifecycle and must not claim pause/resume support.
+
+## EVAL operator continuation (qualification pending)
+
+`dd-eval runner control resume --eval <path> --from <control-request-id> --request-id <id> [--wait-ms <0..60000>]`
+persists an experiment continuation request and starts an independent observer.
+The default wait is zero. `accepted: true` confirms that local request;
+`runtime_accepted: null` means the runtime has not yet returned its receipt.
+Neither acceptance nor `pending: false` proves that the EVAL has completed.
+
+After the exact all-role release, the observer registers its owned process and
+uses the existing `runner resume` path. Client exit does not cancel it. Repeat
+the same request to reconcile an interrupted observer; do not invent a new ID
+to bypass unknown operation outcomes. `runner control status --eval <path>`
+includes recorded continuation state and errors. Real-process fixture tests
+cover client exit and observer replacement, not native-provider or published
+artifact qualification; plan 032 remains in progress.

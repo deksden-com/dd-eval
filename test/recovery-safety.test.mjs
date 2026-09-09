@@ -1,12 +1,10 @@
 import { processSnapshot } from "../lib/process-snapshot.mjs";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, readFile, symlink, rm } from "node:fs/promises";
-import { spawn } from "node:child_process";
-import { once } from "node:events";
+import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { recoverySettlement, authorizeRetainedDaemonResume, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
+import { assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { frozenCandidate, storedExecutionResults, runnerRecoveryInspect } from "../lib/runner.mjs";
 import { appendEvent } from "../lib/runner-events.mjs";
 
@@ -62,68 +60,6 @@ test("candidate identity includes failure evidence and links revisions to their 
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-test("recovery requires clean receipts for every dead daemon, not just a dead pid", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "recovery-safety-"));
-  const child = spawn(process.execPath, ["-e", ""]); const pid = child.pid; await once(child, "exit");
-  const save = state => writeFile(path.join(root, "daemon.json"), JSON.stringify({ pid, daemon_id: "test", ...state }));
-  try {
-    await assert.rejects(recoverySettlement(root), { code: "recovery_settlement_unconfirmed" });
-    await save({ shutdown_state: "running" });
-    await assert.rejects(recoverySettlement(root), { code: "recovery_settlement_unconfirmed" });
-    await save({ shutdown_state: "clean", active_tree: true });
-    await assert.rejects(recoverySettlement(root), { code: "recovery_settlement_unconfirmed" });
-    await save({ shutdown_state: "clean", pid: process.pid });
-    await assert.rejects(recoverySettlement(root), { code: "operation_observation_lost" });
-    await save({ shutdown_state: "clean", active_tree: false });
-    assert.equal((await recoverySettlement(root)).settled, true);
-    await mkdir(path.join(root, "xdg-cache"));
-    await symlink("not-read-as-daemon-evidence", path.join(root, "xdg-cache", "native-package-link"));
-    assert.equal((await recoverySettlement(root)).settled, true);
-    await mkdir(path.join(root, "fanout"));
-    await writeFile(path.join(root, "fanout", "daemon.json"), JSON.stringify({ pid, shutdown_state: "cleanup_failed" }));
-    await assert.rejects(recoverySettlement(root), { code: "recovery_settlement_unconfirmed" });
-  } finally { await rm(root, { recursive: true, force: true }); }
-});
-
-test("retained daemon restart fences identity and profile and archives its prior receipt", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "retained-daemon-"));
-  const child = spawn(process.execPath, ["-e", ""]); const pid = child.pid; await once(child, "exit");
-  const config = { cwd: root, model: "fixed-model", noFlow: true };
-  const previous = { daemon_id: "original", pid, shutdown_state: "clean", active_tree: false, sessions: [{ provider_session_id: "retained" }], config };
-  try {
-    await writeFile(path.join(root, "daemon.json"), JSON.stringify(previous));
-    await assert.rejects(authorizeRetainedDaemonResume(root, previous, null, config), { code: "daemon_state_terminal" });
-    await assert.rejects(authorizeRetainedDaemonResume(root, previous, "foreign", config), { code: "daemon_state_terminal" });
-    await assert.rejects(authorizeRetainedDaemonResume(root, previous, "retained", { ...config, model: "changed" }), { code: "daemon_config_mismatch" });
-    await assert.rejects(authorizeRetainedDaemonResume(root, { ...previous, shutdown_state: "unclean" }, "retained", config), { code: "daemon_state_terminal" });
-    await authorizeRetainedDaemonResume(root, previous, "retained", config);
-    await authorizeRetainedDaemonResume(root, previous, "retained", config);
-    assert.deepEqual(JSON.parse(await readFile(path.join(root, "daemon-history", "original.json"), "utf8")), previous);
-  } finally { await rm(root, { recursive: true, force: true }); }
-});
-
-test("a clean adapter receipt cannot hide an active managed check or service", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "managed-recovery-"));
-  const drivers = path.join(root, "drivers"); await mkdir(drivers);
-  const child = spawn(process.execPath, ["-e", ""]); const pid = child.pid; await once(child, "exit");
-  const cli = path.join(root, "registry.mjs");
-  const record = { id: "check", state: "running", stdout_path: path.join(root, "check.log") };
-  const writeRegistry = () => writeFile(cli, `process.stdout.write(${JSON.stringify(JSON.stringify({ ok: true, processes: [{ id: "daemon", state: "stopped" }, record] }))});`);
-  try {
-    await writeRegistry();
-    await writeFile(path.join(drivers, "daemon.json"), JSON.stringify({ pid, shutdown_state: "clean", daemon_id: "daemon", resource_process: { id: "daemon" }, config: { cwd: root, resourceHome: root, ddFlowHome: root, ddFlowBin: cli } }));
-    await assert.rejects(recoverySettlement(drivers), { code: "recovery_settlement_unconfirmed" });
-    record.state = "stopped"; await writeRegistry();
-    assert.equal((await recoverySettlement(drivers)).settled, true);
-    record.pid = process.pid;
-    record.pid_started_at = "Mon Jan 1 00:00:00 2001";
-    await writeRegistry();
-    assert.equal((await recoverySettlement(drivers)).settled, true);
-    record.pid_started_at = (await processSnapshot()).find(item => item.pid === process.pid).started;
-    await writeRegistry();
-    await assert.rejects(recoverySettlement(drivers), { code: "recovery_settlement_unconfirmed" });
-  } finally { await rm(root, { recursive: true, force: true }); }
-});
 
 test("retained process birth identity distinguishes a reused PID without signalling it", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "reused-process-"));

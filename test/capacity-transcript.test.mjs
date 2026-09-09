@@ -15,5 +15,6 @@ test("capacity reads native leaf completion, not a parent textual claim", async 
   assert.equal((await capacityCodexChildren(root, "root"))[0].status, "completed");
   records.push({ type: "event_msg", payload: { type: "task_started" } });
   await writeFile(file, records.map(JSON.stringify).join("\n"));
+  await writeFile(path.join(root, "sessions", "parent.jsonl"), JSON.stringify({ payload: { item: { type: "SubAgentActivity", kind: "completed", agent_thread_id: "child" } } }));
   assert.equal((await capacityCodexChildren(root, "root"))[0].status, "unknown");
 });

@@ -1,52 +1,12 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
-import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import net from "node:net";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { assertDaemonOwnership, heartbeatDaemonProcess, confirmDaemonProcess, confirmDaemonStopped, finishDaemonProcess, registerDaemonProcess, stopProcessGroup } from "../lib/managed-daemon.mjs";
+import { stopProcessGroup } from "../lib/managed-daemon.mjs";
 
-test("a false heartbeat blocks productive dispatch even if its caller suppresses the error", async t => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "dd-lease-test-"));
-  t.after(() => rm(root, { recursive: true, force: true }));
-  const flow = path.join(root, "flow.mjs");
-  await writeFile(flow, `#!/usr/bin/env node\nprocess.stdout.write(JSON.stringify({ok: process.argv[4] === "finish"}));\n`, { mode: 0o755 });
-  const config = { cwd: root, ddFlowBin: flow, ddFlowHome: root, resourceHome: root };
-  const record = { id: "PROC-false-heartbeat", lease_token: "old" };
-  await assert.rejects(heartbeatDaemonProcess(config, record), { code: "process_lease_lost" });
-  assert.throws(assertDaemonOwnership, { code: "process_lease_lost" });
-  await finishDaemonProcess(config, record);
-  assert.doesNotThrow(assertDaemonOwnership);
-});
-
-test("managed daemon lifecycle registers, confirms, terminates its group, and finalizes", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "dd-managed-daemon-"));
-  const flow = path.join(root, "flow.mjs"), log = path.join(root, "calls.log");
-  await writeFile(flow, `#!/usr/bin/env node
-import { appendFileSync } from "node:fs";
-appendFileSync(${JSON.stringify(log)}, process.argv.slice(2).join(" ")+"\\n");
-if (process.argv[4] === "register") process.stdout.write('{"process":{"id":"PROC-test","lease_token":"lease-test"}}\\n');
-else process.stdout.write('{"ok":true}\\n');
-`, { mode: 0o755 });
-  await chmod(flow, 0o755);
-  const config = { cwd: root, ddFlowBin: flow, ddFlowHome: root, resourceHome: path.join(root, "resources"), env: { DD_FLOW_HOME: root } };
-  const child = spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"], { detached: true, stdio: "ignore" }); child.unref();
-  try {
-    const processRecord = await registerDaemonProcess(config, { kind: "test", owner: "test", operation: "test" });
-    await confirmDaemonProcess(config, processRecord, child);
-    await stopProcessGroup(child, 20);
-    await finishDaemonProcess(config, processRecord, "failed", "test_cleanup");
-    const calls = await readFile(log, "utf8");
-    assert.match(calls, /runtime process register/);
-    assert.match(calls, /runtime process confirm .*--process-group-id/);
-    assert.match(calls, /runtime process finish .*--state failed/);
-  } finally {
-    await stopProcessGroup(child, 20).catch(() => {});
-    await rm(root, { recursive: true, force: true });
-  }
-});
 
 test("managed daemon cleanup terminates a detached child tree", async () => {
   const child = spawn(process.execPath, ["-e", `
@@ -64,19 +24,6 @@ test("managed daemon cleanup terminates a detached child tree", async () => {
   }
 });
 
-test("daemon stop resolves only after its socket is gone", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "dd-managed-daemon-stop-"));
-  const socket = path.join(root, "daemon.sock");
-  const server = net.createServer();
-  await new Promise((resolve, reject) => { server.once("error", reject); server.listen(socket, resolve); });
-  setTimeout(() => server.close(), 25);
-  try {
-    assert.deepEqual(await confirmDaemonStopped(async () => ({ stopped: true }), socket, 1_000), { stopped: true });
-  } finally {
-    server.close();
-    await rm(root, { recursive: true, force: true });
-  }
-});
 
 test("leader exit allows helpers to finish naturally without signaling an unowned group", { skip: process.platform === "win32" }, async () => {
   const script = `const {spawn}=require("node:child_process"); spawn(process.execPath,["-e","setTimeout(()=>{},300)"],{stdio:"ignore"}).unref();`;
@@ -97,8 +44,8 @@ test("owned cleanup escalates when its live provider ignores SIGTERM", async () 
 test("signal-terminated leader does not authorize signaling its remaining group", { skip: process.platform === "win32" }, async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-signal-exit-"));
   const marker = path.join(root, "finished");
-  const helper = `setTimeout(() => require("node:fs").writeFileSync(${JSON.stringify(marker)}, "natural exit"), 200);`;
-  const script = `const {spawn}=require("node:child_process"); spawn(process.execPath,["-e",${JSON.stringify(helper)}],{stdio:"ignore"}).unref(); process.kill(process.pid,"SIGKILL");`;
+  const helper = `setTimeout(() => require("node:fs").writeFileSync(${JSON.stringify(marker)}, "natural exit"), 200); process.send("ready");`;
+  const script = `const {spawn}=require("node:child_process"); const helper=spawn(process.execPath,["-e",${JSON.stringify(helper)}],{stdio:["ignore","ignore","ignore","ipc"]}); helper.once("message",()=>process.kill(process.pid,"SIGKILL"));`;
   const child = spawn(process.execPath, ["-e", script], { detached: true, stdio: "ignore" });
   try {
     await once(child, "exit");
@@ -109,4 +56,17 @@ test("signal-terminated leader does not authorize signaling its remaining group"
     await new Promise(resolve => setTimeout(resolve, 300));
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("leader exit during SIGTERM grace prevents SIGKILL of its remaining helper", { skip: process.platform === "win32" }, async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-grace-exit-"));
+  const marker = path.join(root, "finished");
+  const helper = `process.on("SIGTERM",()=>{});setTimeout(()=>{require("node:fs").writeFileSync(${JSON.stringify(marker)},"natural exit");process.exit(0);},300);process.send("ready");`;
+  const script = `const {spawn}=require("node:child_process");const helper=spawn(process.execPath,["-e",${JSON.stringify(helper)}],{stdio:["ignore","ignore","ignore","ipc"]});helper.once("message",()=>process.stdout.write("ready"));setInterval(()=>{},1000);`;
+  const child = spawn(process.execPath, ["-e", script], { detached: true, stdio: ["ignore", "pipe", "ignore"] });
+  try {
+    await new Promise(resolve => child.stdout.once("data", resolve));
+    await stopProcessGroup(child, 50);
+    assert.equal(await readFile(marker, "utf8"), "natural exit");
+  } finally { child.kill(); await new Promise(resolve => setTimeout(resolve, 350)); await rm(root, { recursive: true, force: true }); }
 });
