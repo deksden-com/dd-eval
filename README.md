@@ -369,6 +369,9 @@ A run repository starts with one `eval-input` commit. The agent's final state is
 tagged or committed as `eval-output`. The run manifest retained here binds both
 states to the case, profile, prompts, and verification evidence.
 
+The following early-development notes are historical, not current launch
+instructions. The old `prepare` command is retired; use `dd-eval runner` above.
+
 After the smoke run, the next CLI increment validates a case, collects the
 result, runs deterministic checks, and produces a report. Automatic harness
 execution and Exe.dev lifecycle management are added only after one full manual

@@ -1,6 +1,6 @@
 # Create an eval case
 
-An eval case is a Git definition plus runner-owned immutable snapshots. It
+An eval case is a Git definition plus CLI-produced immutable snapshots. It
 does not contain canonical provider Sessions, starter Sessions or provider
 forks. Every routine focused execution starts in an empty Session.
 
