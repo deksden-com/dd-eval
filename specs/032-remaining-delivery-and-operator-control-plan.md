@@ -19,6 +19,23 @@
 
 Уточнение по текущему WIP (не release acceptance):
 
+- Published-artifact E2E follow-up (2026-09-09): CP-088 and its exact test
+  pins are committed/pushed at `dd-eval:7b6660a`. Default and mixed preflight
+  passed baseline admission and Luna/Sol doctors with beta.39; no provider
+  Sessions were created by preflight. Eval suite: 193 passed, 8 opt-in skipped;
+  the separate published-CLI lifecycle integrations: 37/37, no skips.
+  First full default `EVAL-20260909161904-638fbe57` failed before Subject
+  creation: copied harness configuration retained retired adapter paths.
+  `dd-eval:9c671c6` binds every copied adapter path to the selected isolated
+  engine, preserving native executables and host configuration. Regression
+  compares doctor and productive configuration; full eval suite passes again.
+  Shared resource data migration archived 1041 physically dead unscoped
+  registrations and attributed 3 live registrations using exact daemon
+  receipts. Full recoverable backup: `~/.dd-eval/resources/runtime-before-scope-migration-20260909.sqlite`.
+  The failed RUN's stop is now settled/sealed, worker completed, no pending
+  reasons. Retry `EVAL-20260909162708-b1471fd1` is running on `9c671c6`;
+  full default/mixed/control acceptance is still unproven.
+
 - Coupled source/registry delivery (2026-09-09): canon 4.1.0 integrated at
   `ef349bf47cba1c987468e51d73a0dbadbd48dc1f`, annotated `v4.1.0` pushed and
   peeled SHA verified. CLI beta.39 main/tag/artifact identify
