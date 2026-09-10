@@ -2,6 +2,11 @@
 
 Дата: 2026-09-08. Статус: IN PROGRESS; полная готовность не объявляется.
 
+Уточнение пользователя от 2026-09-10: ближайшая поставка — готовность запускать
+E2E и подтверждение основных default/mixed путей. Расширенная квалификация шести
+harnesses остаётся отдельным этапом. Правила §7.1 имеют приоритет над прежними
+требованиями повторять полные проверки после каждого узкого исправления.
+
 Уточнение пользователя от 2026-09-09: поставляется только актуальный код и
 актуальные форматы. Legacy productive paths, version-compatibility branches
 и fallback на старые форматы удаляются. Нужные данные мигрируются; ненужные
@@ -979,7 +984,9 @@ engine, input или account policy. Секреты не входят в capture
 | R08 | Shared WP-07/08: canon, eval adoption, schemas/migration, docs/help | Нет второго productive drive loop; historical artifacts читаются, immutable inputs не изменены |
 | R09 | dd-tasks baseline: завершить ранее scoped test-world/keyboard qualification | Изоляция двух invocation/checkout; source branch интегрирована по policy; новый baseline при необходимости |
 | R10 | Интеграция, candidate tests и согласованные releases | WP-09/10, проверенные remote main SHA, tags, registry artifacts и compatibility tuple |
-| R11 | Published-artifact qualification и delivery evidence | WP-11: full default/mixed/recovery/control E2E, readback, curated manifest и итоговые verdicts |
+| R11a | Готовность запуска E2E | Published artifact/readback, pushed eval definition, immutable checkpoint, квалифицированные выбранные profiles и успешный preflight |
+| R11b | Подтверждение основных путей | Default/mixed до MERGE/Judge; evidence и разбор findings по правилам повторов §7.1 |
+| R11c | Расширенная квалификация, отдельный этап | Шесть harnesses, recovery/control matrix, curated manifest и capability verdicts; не блокирует R11a/R11b |
 
 Основная цепочка: R00 → R01/R02/R03 → R04 → R05 → R06 → R07 → R08 → R10 → R11.
 R09 идёт отдельным scoped пакетом и блокирует зависящие от baseline acceptance.
@@ -991,6 +998,51 @@ R03 проверяет готовые foundations до переноса; R11 п�
 после cutover на published artifact. Это разные gates, не двойная реализация.
 
 ## 7. Проверки и честная capability matrix
+
+### 7.1. Объём проверок и правила повторов
+
+Ближайшая поставка завершается по R11a/R11b. R11c сохраняет перечисленные ниже
+сценарии и инварианты, но не становится неявным условием готовности к запуску.
+Неизвестная capability остаётся unknown; отделение этапов не разрешает заявлять
+непроверенные stop/recovery возможности как поддержанные.
+
+- Для дефекта: воспроизводящая его точечная регрессия и проверки затронутых
+  sibling paths. Для изменений только документации — review diff/ссылок, без
+  engine suite или provider-сессий.
+- Для релиза: сначала подготовить окончательный release commit, затем один
+  полный gate через guarded publish runbook. Не запускать такой же полный gate
+  вручную перед ним. Успешный gate пригоден только для проверенных source/canon
+  inputs; изменение этих inputs требует соответствующей повторной проверки.
+- После публикации обязательны проверка package/build metadata, registry/tag
+  readback и установленного consumer. Они проверяют поставку и не заменяются
+  source tests. При auth/readback/install failure сначала определить достигнутую
+  фазу и использовать штатное возобновление runbook, не повторять всю цепочку
+  автоматически и не обходить его guards.
+- Preflight выполнять перед новым scored E2E. Capacity/compatibility повторять
+  только при изменении соответствующего runtime/profile или новом evidence
+  несоответствия; не измерять заново после каждой engine-правки.
+- После узкой engine-правки повторить затронутый E2E путь. Повтор остальных
+  путей нужен при изменении их общей логики, контракта или обнаруженном риске;
+  основание записать до запуска. Предыдущее evidence сохраняет свой exact tuple
+  и не переименовывается в PASS новой версии.
+- Текущий переход beta.45 → beta.46: default PASS на CP-094 сохраняется;
+  исправление external dispatch требует нового mixed E2E на новом checkpoint.
+  Full default на beta.46 повторять только при выявленном влиянии на native
+  путь. В отчёте явно указать разные версии этих двух доказательств.
+- Не повторять шесть harnesses и C01–C12 после каждой узкой правки. Для R11c
+  выбрать сценарии по изменённой capability; полную матрицу выполнять при
+  широком изменении общего runtime либо отдельном milestone квалификации.
+- Активную попытку наблюдать по её process/job handle. Сообщать достигнутые
+  этапы, ошибки и решения; отсутствие нового вывода не считать failure или
+  основанием для нового запуска. Не утверждать причину «race» без evidence
+  конкурентного исполнения: текущий mixed-дефект доказывает несогласованность
+  источников стадии.
+
+Перед каждой проверкой достаточно записать в существующем ledger: что изменено,
+что проверяется, какое прежнее evidence используется и что потребует повтора.
+Новый dashboard, отдельный test framework или дублирующий manifest не нужны.
+
+### 7.2. Расширенная матрица R11c
 
 Для Codex, ZCode, Grok, OpenCode, AGY, Droid завести evidence-строку с exact
 version/digest/OS/config и verdict по каждой capability: steer, safe-point ACK,
@@ -1063,5 +1115,6 @@ dashboard или параллельная система учёта: доста�
 - [ ] Исторические результаты сохранены; runtime и product-quality verdicts разделены.
 - [ ] Ограничения каждой упряжки и реальные blockers перечислены в итоговом отчёте.
 
-До выполнения этих пунктов статус всего пакета — partial, даже при зелёных
-unit tests, опубликованной beta или одном успешном normal E2E.
+Этот checklist определяет завершение расширенного пакета R11c. До его выполнения
+полная квалификация остаётся partial. Готовность R11a и основные пути R11b
+принимаются отдельно по §6–7.1; их завершение не требует всей матрицы R11c.
