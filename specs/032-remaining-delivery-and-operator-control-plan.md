@@ -19,6 +19,40 @@
 
 Уточнение по текущему WIP (не release acceptance):
 
+- Published beta.44 adoption (2026-09-10): `b42ef93d9732bcce8ad290e0e456d7d394159af2`, tag
+  `v0.9.0-beta.44`, is published on npm's `beta` channel with installed-engine
+  checksum `7acf7791ad6c68464638f2a001de083ec4acc59ca2d0757ef5e80e7a8a9a69fe`.
+  The guarded release completed at 01:01:01 UTC: 576/576 tests, typecheck,
+  lint/build, refs, tarball and isolated/global consumer verification; its
+  durable receipt is `dd-flow-cli:.tasks/release-0.9.0-beta.44.json`.  It
+  raises only the managed prompt watchdog from 45 minutes to two hours, so an
+  active multi-stage native controller cannot be declared failed by the
+  wrapper before the native session itself times out.  The beta.43 timeout
+  run remains stopped with sealed recovery evidence and is not replayed.
+  CP-093 selects this new tuple; CP-092 remains immutable.
+  Native default/mixed scored E2E acceptance is still open.
+
+- Current-profile Codex active-tree control qualification (2026-09-10):
+  `codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-9-0-beta-11` passed the
+  isolated published-router probe at
+  `/Users/deksden/.dd-eval/conformance/codex-desktop-recovery-Rfvduu/receipt.json`.
+  The probe observed an active native child, physically drained generation 1,
+  released the same root/session and preserved the retained marker, then
+  verified a three-node final scope stop and its idempotent replay.  The
+  historical beta.43 profile was rejected before launch because its declared
+  runtime contract no longer matches the current Codex contract.  This is
+  control evidence only; it does not qualify the full default or mixed scored
+  E2E paths.
+
+- Current OpenCode control attempt (2026-09-10) is not a qualification.  The
+  isolated `opencode-server-opencode-big-pickle-default` probe retained its
+  failed receipt at
+  `/Users/deksden/.dd-eval/conformance/opencode-server-recovery-PtoT4E/receipt.json`:
+  the provider aborted its initial `/doc` observation with retryable
+  `operation_observation_lost`, before doctor or Session creation.  Cleanup
+  had no error.  Do not treat the earlier OpenCode smoke as evidence for this
+  current tuple.
+
 - Published beta.43 adoption (2026-09-09): CP-092 selects
   `387b5ce2c63b7e4f97ff240d0a22763f7cc38c47`, checksum
   `a61d853baf81d2d5bf575fcb95f2d9373b5e323ecf4f521f7a512005d1141832`.
