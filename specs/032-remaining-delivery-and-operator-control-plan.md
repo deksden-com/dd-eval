@@ -19,6 +19,17 @@
 
 Уточнение по текущему WIP (не release acceptance):
 
+- Published beta.45 adoption (2026-09-10): `de0b193db602b54625897ad9af2fc3d661c32bc4`, tag
+  `v0.9.0-beta.45`, is published on npm's `beta` channel with installed-engine
+  checksum `34e46c4ec5d5229c6f3dece3978b318f0f94945d36324029c22cf390506d04f1`.
+  The guarded release completed at 04:42:39 UTC: 577/577 tests, typecheck,
+  lint/build, refs, tarball and isolated/global consumer verification; its
+  durable receipt is `dd-flow-cli:.tasks/release-0.9.0-beta.45.json`. It
+  fixes Codex fan-in only when the adapter's own persisted tree observation
+  has already settled that exact unloaded descendant; unknown children remain
+  non-terminal. CP-094 selects this tuple. CP-093 and its stopped diagnostic
+  E2E remain immutable and are not reclassified as acceptance.
+
 - Published beta.44 adoption (2026-09-10): `b42ef93d9732bcce8ad290e0e456d7d394159af2`, tag
   `v0.9.0-beta.44`, is published on npm's `beta` channel with installed-engine
   checksum `7acf7791ad6c68464638f2a001de083ec4acc59ca2d0757ef5e80e7a8a9a69fe`.
