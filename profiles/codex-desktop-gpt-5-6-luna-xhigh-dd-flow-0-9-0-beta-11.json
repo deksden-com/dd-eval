@@ -6,7 +6,7 @@
   "reasoning": "xhigh",
   "notes": "Luna Subject settings. The historical profile ID is stable; the committed input checkpoint alone selects the flow pack and engine version.",
   "runtime": {
-    "codex_cli": "0.153.4",
+    "codex_cli": "0.154.0",
     "dd_harness_contract": "dd-codex-harness@1"
   },
   "subagent_capacity": 6

@@ -30,6 +30,24 @@
   non-terminal. CP-094 selects this tuple. CP-093 and its stopped diagnostic
   E2E remain immutable and are not reclassified as acceptance.
 
+- CP-094 default native scored E2E (2026-09-10):
+  `EVAL-20260910083307-bd65e921` completed with a `valid` final Judge
+  verdict on the published beta.45 tuple.  It reached MERGE/Judge through
+  the shared CLI controller; all required stages completed and Judge reported
+  no open product finding.  The startup admission receipt is
+  `/Users/deksden/.dd-eval/conformance/e2e-preflight/1789015525227-5ede19c3/e2e-inline-merge-luna-xhigh/receipt.json`.
+  This closes the default path for CP-094 only; independent mixed and control
+  acceptance remain open.
+
+- Codex Desktop 0.154.0 requalification (2026-09-10): the provider runtime
+  changed after that default run, so a fresh mixed preflight correctly failed
+  before Session creation.  Both committed profiles were requalified using
+  isolated native-child smoke and capacity measurements: Luna completed 6/6
+  children (`.../native-subagents/20260910115356725/.../capacity.json`) and
+  Sol completed 3/3 (`.../native-subagents/20260910115749818/.../capacity.json`),
+  each with clean cleanup.  A new mixed preflight is required after committing
+  these profile definitions; this evidence alone is not an E2E verdict.
+
 - Published beta.44 adoption (2026-09-10): `b42ef93d9732bcce8ad290e0e456d7d394159af2`, tag
   `v0.9.0-beta.44`, is published on npm's `beta` channel with installed-engine
   checksum `7acf7791ad6c68464638f2a001de083ec4acc59ca2d0757ef5e80e7a8a9a69fe`.
