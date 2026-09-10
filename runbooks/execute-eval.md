@@ -117,10 +117,14 @@ dd-eval runner eval run --profile \
   cases/<case-id>/run-profiles/<profile>.json
 ```
 
-### Pinned local engine before a beta publish
+### Pinned engine override
+
+The checkpoint is the engine identity for a scored run.  Use the same explicit
+`DD_FLOW_BIN` value for its preflight and its eventual run; the runner records
+the resolved version and full-content checksum and refuses a mismatch.
 
 When a committed engine release is temporarily unavailable from npm, use its
-absolute, already-built source entrypoint for the entire runner invocation:
+absolute, already-built source entrypoint:
 
 ```sh
 DD_FLOW_BIN=/absolute/path/to/dd-flow-cli/dist/cli.js \
@@ -128,11 +132,30 @@ DD_EVAL_HOME=/absolute/path/to/eval-data \
 dd-eval runner eval run --profile /absolute/path/to/profile.json
 ```
 
-This is one explicit development override. Its commit and package version must
-match the case input checkpoint, and the runner records the resolved engine in
-the run manifest. Do not mix a local override with another checkpoint or
-silently fall back to the host-global executable. Once npm publication is
-available, remove `DD_FLOW_BIN` and use the published engine.
+This is a development override. Its commit and package version must match the
+case input checkpoint. Do not mix it with another checkpoint or silently fall
+back to the host-global executable.
+
+After npm publication, the normal router may still select an older compatible
+snapshot already present in the host engine store.  For published-artifact
+acceptance, install the exact public package into a fresh temporary prefix and
+pin that installed entrypoint instead of using source bytes or changing the
+global installation:
+
+```sh
+eval_engine_root="$(mktemp -d /tmp/dd-flow-eval-engine.XXXXXX)"
+npm install --prefix "$eval_engine_root" --ignore-scripts --no-save \
+  @deksden-com/dd-flow-cli@<checkpoint-version>
+DD_FLOW_BIN="$eval_engine_root/node_modules/@deksden-com/dd-flow-cli/dist/cli.js" \
+dd-eval runner eval preflight --profile /absolute/path/to/profile.json
+DD_FLOW_BIN="$eval_engine_root/node_modules/@deksden-com/dd-flow-cli/dist/cli.js" \
+dd-eval runner eval run --profile /absolute/path/to/profile.json
+```
+
+Keep that prefix until the run is terminal; then remove only that exact
+temporary directory. The recorded engine version, commit and checksum must
+equal the immutable checkpoint. This is a published-package pin, not a local
+development override.
 
 The runner allocates a fresh directory under
 `$DD_EVAL_HOME/runs/<eval-id>/`. Each execution gets its own restored project,
