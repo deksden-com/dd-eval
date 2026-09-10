@@ -24,6 +24,18 @@ harnesses остаётся отдельным этапом. Правила §7.1
 
 Уточнение по текущему WIP (не release acceptance):
 
+- Beta.46 release attempt (2026-09-10): source commit
+  `412219119d588c6d1a3178dd4bd80a54535bebc7` and tag `v0.9.0-beta.46`
+  are pushed, and the guarded release completed its one required gate
+  (578/578 tests, typecheck, lint, build). The registry did not publish the
+  artifact: the configured token passed `npm whoami` but npm rejected the
+  scoped PUT and the scope access readback. Its durable receipt,
+  `dd-flow-cli:.tasks/release-0.9.0-beta.46.json`, ends at
+  `publish_reply_failed`; registry confirms beta.46 is absent. This is an
+  external publish-permission blocker, not a valid artifact or checkpoint.
+  Restore write access for `@deksden-com/dd-flow-cli`, then resume the same
+  runbook/tuple; do not repeat its completed gate beforehand.
+
 - Published beta.45 adoption (2026-09-10): `de0b193db602b54625897ad9af2fc3d661c32bc4`, tag
   `v0.9.0-beta.45`, is published on npm's `beta` channel with installed-engine
   checksum `34e46c4ec5d5229c6f3dece3978b318f0f94945d36324029c22cf390506d04f1`.
