@@ -24,17 +24,24 @@ harnesses остаётся отдельным этапом. Правила §7.1
 
 Уточнение по текущему WIP (не release acceptance):
 
-- Beta.46 release attempt (2026-09-10): source commit
-  `412219119d588c6d1a3178dd4bd80a54535bebc7` and tag `v0.9.0-beta.46`
-  are pushed, and the guarded release completed its one required gate
-  (578/578 tests, typecheck, lint, build). The registry did not publish the
-  artifact: the configured token passed `npm whoami` but npm rejected the
-  scoped PUT and the scope access readback. Its durable receipt,
-  `dd-flow-cli:.tasks/release-0.9.0-beta.46.json`, ends at
-  `publish_reply_failed`; registry confirms beta.46 is absent. This is an
-  external publish-permission blocker, not a valid artifact or checkpoint.
-  Restore write access for `@deksden-com/dd-flow-cli`, then resume the same
-  runbook/tuple; do not repeat its completed gate beforehand.
+- Published beta.46 adoption (2026-09-10): source commit
+  `412219119d588c6d1a3178dd4bd80a54535bebc7`, tag `v0.9.0-beta.46`, and
+  package `@deksden-com/dd-flow-cli@0.9.0-beta.46` are now the `beta` tuple.
+  The guarded release already completed its one required gate (578/578 tests,
+  typecheck, lint, build). The local granular token authenticated as the
+  expected user but npm rejected its scoped publish; npm Trusted Publishing
+  (GitHub Actions OIDC) was configured for
+  `deksden-com/dd-flow-cli/.github/workflows/npm-publish.yml` instead.
+  Recovery run `34519531860` published the immutable tuple; its only failure
+  was a post-publish shell quoting error. The corrected idempotent recovery
+  run `34519716896` completed green and read the package back. A fresh,
+  isolated install independently reports engine commit
+  `412219119d588c6d1a3178dd4bd80a54535bebc7`, canon `4.1.0` at
+  `ef349bf47cba1c987468e51d73a0dbadbd48dc1f`, checksum
+  `87192496008983b724180f2101cf3d2cc9a75d89b3e1c852de98b43ceaa48400`, and
+  compatibility `ok`. CP-095 selects this tuple for the affected mixed E2E.
+  The token incident and OIDC recovery procedure are recorded in the CLI
+  release runbook; no second full gate was run.
 
 - Published beta.45 adoption (2026-09-10): `de0b193db602b54625897ad9af2fc3d661c32bc4`, tag
   `v0.9.0-beta.45`, is published on npm's `beta` channel with installed-engine
