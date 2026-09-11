@@ -28,7 +28,7 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "dee7dba1ae721ac1c2b12d8d9c5f16e0bbee0c8b");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.49");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.commit, "111629d923b54e718a4bb1466416f5089c59bed2");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, "6c5752be18beefeebc625ec1e758d8085096e01522cdb1c2fdbe13ce4dab645d");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, "22baa48f7088702d6123adacb5334a1141ee01ba440b50c5a8524f59a170d0a6");
   assert.match(loaded.value.baseline_admission.sha256, /^[a-f0-9]{64}$/);
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
