@@ -65,6 +65,12 @@ doctor подменяется стандартным Node module mock для п�
 Это повтор после FAIL, не дублирование успешного gate. Используется OIDC и
 фиксированный canon `ef349bf47cba1c987468e51d73a0dbadbd48dc1f`; итог ожидается.
 
+Второй job остановился на lint до build/test: в новом test fixture пропущен
+явный импорт URL из node:url. Импорт добавлен, полный локальный lint PASS.
+Текущий release commit `db14065`, job
+https://github.com/deksden-com/dd-flow-cli/actions/runs/34734083263.
+Версия всё ещё не опубликована; исходный runtime fix не изменился.
+
 Обновление после native qualification: повторный production probe PASS,
 артефакты `/private/var/folders/3d/083xyfws1x57r5mm5t1_rxqm0000gp/T/dd-zcode-production-rkPvjV`.
 Три Work завершены, шесть start/finish имеют успешный сохранённый outcome;
