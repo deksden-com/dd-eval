@@ -1,6 +1,7 @@
 # cp-105: включение RUN pause/recovery fixes из dd-eval3
 
-Статус: review, release gate и опубликованный beta.56 PASS; два preflight ожидаются.
+Статус: готово к новому Luna/ZCode E2E. Review, release gate, опубликованный
+beta.56 и оба preflight PASS. Живой E2E не запускался.
 Новые scored E2E не запускались. Предыдущая готовность cp-104/beta.55
 не включала эти изменения и не заменяет проверку нового пакета.
 
@@ -42,7 +43,7 @@ repair/status (включая три дополнительных pause cases) P
 OIDC publication, registry/tag verification и consumer smoke PASS.
 Attempt 1 также прошёл 657 tests, но отправка в npm завершилась сетевой ошибкой;
 версия не появилась в registry. Штатный повтор на том же commit прошёл успешно.
-Нужны два preflight на чистом committed dd-eval definition.
+Два preflight прошли на чистом committed dd-eval definition (подробности ниже).
 Не использовать hash только dist: engine snapshot включает metadata и dependencies.
 
 Первый gate 34781258351: 649 PASS, 8 FAIL из-за неполных RUN index fixtures
@@ -66,3 +67,35 @@ Build-info и peeled tag совпали с CLI/canon commits выше.
 `be90599c2e32e3d2f02d2611b920b16ae412d3c54baa18668690f9ff7f2101ac`.
 Новый [checkpoint cp-105](../checkpoints/cp-105-task-priority-recovery-status-flow-4-1-1-engine-0-9-0-beta-56.json)
 закреплён в case checksum `548cd5903c28e9991b7e2604b70758ebdae145bd1cb96aeac3593ed8a547ed91`.
+
+## Завершённая подготовка
+
+Definition: `0f9bb511c9f842696e33d9789a17814fdf9867a5`.
+Тест закрепления checkpoint PASS. Оба preflight: `ok:true`, baseline admission
+passed, Subject/Judge doctor PASS, engine version/digest совпадают с cp-105,
+`provider_sessions_created:0`.
+
+Receipts:
+
+- Luna: `/Users/deksden/.dd-eval/qualification/cp-105-luna-zcode/conformance/e2e-preflight/1789334615023-ae6b354e/e2e-inline-merge-luna-xhigh/receipt.json`.
+- ZCode: `/Users/deksden/.dd-eval/qualification/cp-105-luna-zcode/conformance/e2e-preflight/1789334616309-40b72cd3/e2e-inline-merge-zcode-glm-5-3-flash-max/receipt.json`.
+
+ZCode doctor подтвердил qualification root/concurrent_children/child_continuation;
+native nested children по-прежнему не поддержаны. Это не новая заявленная возможность.
+После preflight изменён только этот отчёт. Старые checkpoints и EVAL не изменялись.
+Готовность означает допуск к новому эксперименту, не гарантию его успешного результата.
+
+## Запуск — только по отдельному запросу
+
+Не продолжать preflight RUN: обычный eval run создаст новый EVAL.
+Из `/Users/deksden/Documents/_Projects/dd-eval`:
+
+```sh
+export DD_EVAL_HOME=/Users/deksden/.dd-eval/qualification/cp-105-luna-zcode
+export DD_FLOW_BIN=/Users/deksden/.dd-eval/qualification/cp-105-luna-zcode/published-engine/node_modules/@deksden-com/dd-flow-cli/dist/cli.js
+node bin/dd-eval.mjs runner eval run --profile /Users/deksden/Documents/_Projects/dd-eval/cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-luna-xhigh.json
+node bin/dd-eval.mjs runner eval run --profile /Users/deksden/Documents/_Projects/dd-eval/cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-zcode-glm-5-3-flash-max.json
+```
+
+Эти команды в рамках подготовки НЕ выполнялись. Сопровождение — по
+[execute-eval](execute-eval.md).
