@@ -70,11 +70,11 @@ function validateCommand({ positional, options }) {
     "runner resume": [2, ["eval"]], "runner recover": [2, ["eval", "from", "execution"]], "runner recovery inspect": [3, ["eval", "execution"]], "runner reconcile": [2, ["eval"]], "runner cancel": [2, ["eval", "execution"]],
     "storage ls": [2, ["case"]], "storage status": [2, []], "gc plan": [2, []], "gc apply": [2, ["plan"]]
   };
-  let rule = rules[key];
+  let rule = rules[key] ?? rules[positional.slice(0, 2).join(" ")];
   if (key === "runner canonical engine" && positional[3] === "capture") rule = [4, ["build"]];
   if (key === "runner canonical boundary" && positional[3] === "accept") rule = [4, ["build", "stage", "review"]];
   if (key === "runner canonical qualification" && positional[3] === "recover") rule = [4, ["build", "receipt"]];
-  if (!rule) return;
+  if (!rule) throw Object.assign(new Error(`unknown command: ${positional.join(" ")}`), { code: "usage" });
   if (positional.length !== rule[0] || Object.keys(options).some(option => !rule[1].includes(option))) throw Object.assign(new Error(`unknown argument for ${key}`), { code: "usage" });
 }
 

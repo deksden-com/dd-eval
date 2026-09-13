@@ -21,6 +21,7 @@ test("eval CLI rejects ambiguous mutations and treats help as a non-mutating com
   assert.match(help.stdout, /dd-eval — deterministic evaluation runner/);
   await assert.rejects(run(process.execPath, [cli, "runner", "cancel", "--eval", "/tmp/a", "--eval", "/tmp/b"], { cwd: root }), error => error.code === 2 && /only once/.test(error.stderr));
   await assert.rejects(run(process.execPath, [cli, "runner", "cancel", "--eval", "/tmp/a", "--executoin", "e2e"], { cwd: root }), error => error.code === 2 && /unknown argument/.test(error.stderr));
+  await assert.rejects(run(process.execPath, [cli, "runner", "cancel", "unexpected", "--eval", "/tmp/a"], { cwd: root }), error => error.code === 2 && /unknown argument/.test(error.stderr));
 });
 
 test("case pins its input checkpoint and exact engine without Session starter state", async () => {

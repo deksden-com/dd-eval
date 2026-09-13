@@ -39,8 +39,8 @@ test('runner resume routes an unstarted execution through launch without rewriti
   const retained = path.join(root, 'executions', execution.id, 'retained'); await mkdir(path.dirname(retained), { recursive: true }); await writeFile(retained, 'fixture blocks before provider preparation');
   const [first, duplicate] = await Promise.allSettled([runnerResume({ evalRoot: root }), runnerResume({ evalRoot: root })]);
   assert.equal(first.status, 'fulfilled', first.reason?.stack);
-  assert.equal(duplicate.status, 'rejected');
-  assert.equal(duplicate.reason.code, 'operation_terminal');
+  assert.equal(duplicate.status, 'fulfilled', duplicate.reason?.stack);
+  assert.equal(duplicate.value.state, 'completed_with_failures');
   const result = first.value;
   assert.equal(result.executions[0].code, 'execution_preparation_unproven');
   assert.equal(await readFile(file, 'utf8'), bytes);
@@ -48,7 +48,7 @@ test('runner resume routes an unstarted execution through launch without rewriti
   const events = await readEvents(path.join(root, 'events.jsonl'));
   assert.equal(events.filter(event => event.type === 'dev.dd.eval.operation.started').length, 1);
   assert.equal(events.find(event => event.type === 'dev.dd.eval.operation.started').data.operation_id, `${manifest.run_id}:queued:launch`);
-  await assert.rejects(runnerResume({ evalRoot: root }), { code: 'operation_terminal' });
+  assert.equal((await runnerResume({ evalRoot: root })).executions[0].code, 'execution_preparation_unproven');
 });
 
 for (const real of [false, true]) test(`resume cannot observe the initial EVAL queue until its owner finishes projection (real CLI: ${real})`, { skip: real && !process.env.DD_EVAL_TEST_FLOW_CLI, timeout: 60_000 }, async t => {
@@ -93,7 +93,7 @@ if(result.error)throw result.error; process.exit(result.status??1);`);
   });
   const result = await initial;
   assert.equal(result.executions[0].code, 'execution_preparation_unproven');
-  assert.equal((await resumed).code, 'operation_terminal');
+  assert.equal((await resumed).executions[0].code, 'execution_preparation_unproven');
   assert.equal((await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.operation.started').length, 1);
   assert.equal(await readFile(retained, 'utf8'), 'block before provider preparation');
   const manifest = JSON.parse(await readFile(path.join(root, 'manifest.json'), 'utf8'));

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, readFile, open, utimes, readdir, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, open, utimes, readdir, rm, chmod } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -9,6 +9,51 @@ import { appendEvent, recordOperation, completeOperation, readEvents, reduceEven
 import { commandJson } from "../lib/process-json.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
+import { runnerResume } from "../lib/runner.mjs";
+
+for (const enabled of [false, true]) test(`resume finalizes a pre-session failure without replay (Judge enabled: ${enabled})`, async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-failed-resume-"));
+  try {
+    const manifest = { run_id: "EVAL-test", case_id: "sdlc-eval-2026-summer-task-priority", executions: [{ id: "e", stage: "specify", terminal_stage: "merge", mode: "e2e" }], subject_profile: {}, profile: { judge: { enabled, profile_id: "nonexistent-review-test-profile" } } };
+    await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
+    for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "preflight_failed", message: "before session" } } });
+    const first = await runnerResume({ evalRoot: root });
+    assert.equal(first.state, "completed_with_failures");
+    assert.equal(first.judge_status, enabled ? "failed" : "not_requested");
+    if (enabled) assert.equal(JSON.parse(await readFile(path.join(root, "reports/report.json"), "utf8")).judge_status, "failed");
+    const before = await readEvents(path.join(root, "events.jsonl"));
+    const second = await runnerResume({ evalRoot: root });
+    assert.equal(second.candidate.immutable_hash, first.candidate.immutable_hash);
+    assert.equal((await readEvents(path.join(root, "events.jsonl"))).length, before.length);
+    assert.equal(second.executions[0].code, "preflight_failed");
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("failed execution waits for delayed capture, clears pending evidence, and freezes once", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-late-capture-"));
+  try {
+    const attempt = path.join(root, "executions/e"), runtime = path.join(attempt, "dd-flow-home"), project = path.join(attempt, "project");
+    await mkdir(path.join(runtime, "bin"), { recursive: true }); await mkdir(project);
+    const statusFile = path.join(root, "control.json"), bin = path.join(runtime, "bin/dd-flow");
+    await writeFile(bin, `#!/usr/bin/env node\nconsole.log(require('node:fs').readFileSync(${JSON.stringify(statusFile)},'utf8'))\n`); await chmod(bin, 0o700);
+    await writeJsonAtomic(statusFile, { ok: true, settled: false });
+    await writeJsonAtomic(path.join(attempt, "managed-runtime.json"), { schema_id: "dd-eval/managed-runtime@1", project_root: project, runtime_root: runtime, run_id: "RUN-test" });
+    const manifest = { run_id: "EVAL-test", runtime_resource_home: path.join(root, "resources"), case_id: "sdlc-eval-2026-summer-task-priority", executions: [{ id: "e", stage: "specify", terminal_stage: "merge", mode: "e2e" }], subject_profile: {}, profile: { judge: { enabled: false } } };
+    await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
+    for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "unexpected_hitl", message: "second question" } } });
+    assert.equal((await runnerResume({ evalRoot: root })).state, "awaiting_provider");
+    const capture = path.join(root, "capture"); await mkdir(capture); await writeJsonAtomic(path.join(capture, "snapshot.json"), { consistency: "sealed" });
+    await writeJsonAtomic(statusFile, { ok: true, settled: true, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test" } });
+    const final = await runnerResume({ evalRoot: root });
+    assert.equal(final.state, "completed_with_failures");
+    assert.equal(final.executions[0].incomplete_evidence, null);
+    assert.equal(final.executions[0].code, "unexpected_hitl");
+    assert.equal(final.executions[0].recovery.recovery_id, "REC-test");
+    const count = (await readEvents(path.join(root, "events.jsonl"))).length;
+    assert.equal((await runnerResume({ evalRoot: root })).candidate.immutable_hash, final.candidate.immutable_hash);
+    assert.equal((await readEvents(path.join(root, "events.jsonl"))).length, count);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 import { appendRunEventOnce, runResultRevision, recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoverySourceFromEvents, recoveryOperationId, recoveryPrompt, prepareRecoveryDelivery, isInfrastructureFailure } from "../lib/runner.mjs";
 
 test("identical failures in successive recovery generations each finalize exactly once", async () => {

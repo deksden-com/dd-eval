@@ -10,7 +10,10 @@ test("storage enumerates terminal runs and GC deletes only its explicit plan", a
   try {
     const run = path.join(home, "runs", "EVAL-001");
     await mkdir(run, { recursive: true });
-    await writeFile(path.join(run, "manifest.json"), JSON.stringify({ case_id: "case-a", kind: "scored", created_at: "2026-01-01T00:00:00.000Z" }));
+    const bin = path.join(home, "runtime.mjs"), inventory = path.join(home, "inventory.json");
+    await writeFile(bin, `import fs from 'node:fs'; console.log(fs.readFileSync(${JSON.stringify(inventory)},'utf8'));`);
+    await writeFile(inventory, JSON.stringify({ scope_id: "EVAL-001", processes: [{ state: "running" }], provider_turns: [] }));
+    await writeFile(path.join(run, "manifest.json"), JSON.stringify({ run_id: "EVAL-001", runtime_control_bin: bin, runtime_resource_home: home, case_id: "case-a", kind: "scored", created_at: "2026-01-01T00:00:00.000Z" }));
     await writeFile(path.join(run, "events.jsonl"), `${JSON.stringify({ specversion: "1.0", id: "event", source: "dd-eval://test", type: "dev.dd.eval.completed", time: "2026-01-01T00:00:00.000Z", datacontenttype: "application/json", runid: "EVAL-001", traceid: "EVAL-001", data: { sequence: 1, state: "completed" } })}\n`);
     const listed = await storageList({ caseId: "case-a" }); assert.equal(listed.runs.length, 1); assert.equal((await storageStatus()).runs.active.length, 0);
     const plan = await gcPlan(); assert.equal(plan.candidates.length, 1); assert.equal(JSON.parse(await readFile(plan.file, "utf8")).schema_id, "dd-eval/gc-plan@1");
@@ -20,6 +23,10 @@ test("storage enumerates terminal runs and GC deletes only its explicit plan", a
     await assert.rejects(gcApply({ planFile: plan.file }), /no longer disposable/);
     assert.equal((await storageList()).runs.length, 1);
     await writeFile(eventFile, completed);
+    await assert.rejects(gcApply({ planFile: plan.file }), /active or unknown runtime owners/);
+    await writeFile(inventory, JSON.stringify({ scope_id: "EVAL-001", processes: [], provider_turns: ["pending"] }));
+    await assert.rejects(gcApply({ planFile: plan.file }), /active or unknown runtime owners/);
+    await writeFile(inventory, JSON.stringify({ scope_id: "EVAL-001", processes: [], provider_turns: [] }));
     const applied = await gcApply({ planFile: plan.file }); assert.equal(applied.deleted.length, 1); assert.equal((await storageList()).runs.length, 0);
   } finally { if (prior === undefined) delete process.env.DD_EVAL_HOME; else process.env.DD_EVAL_HOME = prior; await rm(home, { recursive: true, force: true }); }
 });
