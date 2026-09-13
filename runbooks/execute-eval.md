@@ -197,6 +197,15 @@ engines, logs or daemons from the source home. A missing or invalid harness
 configuration is a setup blocker; do not work around it with PATH discovery or
 ad-hoc adapter environment variables.
 
+An eval profile in `profiles/` is not an installed Flow agent profile. Every
+profile referenced by execution routing must also exist in the configuration
+home's `agent-profiles/<id>.json` using `dd-flow/agent-profile@1`. Match its
+provider/model/reasoning/mode to the committed eval profile; use Flow's harness
+key (`zcode`, not the eval key `zcode-acp`) and the approved permission policy.
+Do not copy an eval profile verbatim: it has a different schema. Missing
+profiles must be installed in the configuration home before a fresh preflight,
+not patched into a failed run's frozen state.
+
 Before opening a Subject session, the runner validates the materialized input
 as a **project** flow pack: its manifest, every declared file and both
 project-owned execution/workspace contracts must be present and match the
