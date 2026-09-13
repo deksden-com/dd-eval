@@ -23,6 +23,16 @@ never extend that window.
 
 ## Before launch
 
+Check the source baseline's local prerequisites before preflight. For Task
+Priority, PostgreSQL must accept connections on loopback port 55433. Start
+Docker Desktop if needed, inspect existing containers, and start only the
+project-owned PostgreSQL service described by the source bootstrap runbook.
+Reuse a healthy existing service; do not create a competing container or reset
+its volume. Baseline tests create and clean their own invocation databases.
+`ECONNREFUSED` here is a host prerequisite failure, not a Subject verdict or
+permission to skip baseline admission. Retain the failed receipt and repeat
+preflight after restoring the service.
+
 Before a new E2E campaign, run `dd-eval runner eval preflight --profile
 <absolute-run-profile.json>`. It uses the normal E2E project/flow/runtime
 provisioning and writes its receipt and initial launcher under

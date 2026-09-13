@@ -1,6 +1,6 @@
 # План: надёжное исполнение dd-flow / dd-eval после Luna и ZCode
 
-Статус на 2026-09-13: production-интеграция CLI invocation выполнена; native root, concurrent children и child continuation проверены на настоящих Work/receipt/CLI. Полной готовности к E2E пока нет: остаются финальный релиз, пакет, checkpoint и preflight. Актуальный дизайн и результаты: `zcode-cli-rendezvous-2026-09-13.md`; он заменяет ниже исторические требования новой native сборки и hook-only admission для ZCode. Основание общего плана: `e2e-systemic-investigation-2026-09-12.md` (I-01…I-09). Продуктовые исправления Subject не входят: их выполняет flow в рамках оценки.
+Статус на 2026-09-13: production-интеграция CLI invocation выполнена; native root, concurrent children и child continuation проверены на настоящих Work/receipt/CLI. Beta.53 опубликована и проверена, cp-101 зафиксирован. Остаётся preflight: первый запуск обоих профилей остановлен недоступным локальным PostgreSQL (ECONNREFUSED 127.0.0.1:55433), до provider Sessions. Актуальный дизайн и результаты: `zcode-cli-rendezvous-2026-09-13.md`; он заменяет ниже исторические требования новой native сборки и hook-only admission для ZCode. Основание общего плана: `e2e-systemic-investigation-2026-09-12.md` (I-01…I-09). Продуктовые исправления Subject не входят: их выполняет flow в рамках оценки.
 
 ## 1. Сохранить существующее разделение обязанностей
 
