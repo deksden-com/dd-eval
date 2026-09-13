@@ -31,13 +31,13 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-104-task-priority-autonomous-proof-flow-4-1-1-engine-0-9-0-beta-55");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-105-task-priority-recovery-status-flow-4-1-1-engine-0-9-0-beta-56");
   assert.equal(loaded.inputCheckpoint.value.source.commit, "924ef61752b642f06c2c326b444ed7a3239f20ff");
   assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-074-source-final");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "9b121e24f94ac56c2a076cd95e84f427eeea8c6d");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.55");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.commit, "84e76cfa798732b3121534551515b02f4a238425");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, "65c15097f9e8e7d0ade01bd665b44dab5ace4ae05ac1f4f1ad2b078b457005b0");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.56");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.commit, "ae4bbaa5b2299aeedf3ee90bccc8ed3db19a6191");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, "be90599c2e32e3d2f02d2611b920b16ae412d3c54baa18668690f9ff7f2101ac");
   assert.match(loaded.value.baseline_admission.sha256, /^[a-f0-9]{64}$/);
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });

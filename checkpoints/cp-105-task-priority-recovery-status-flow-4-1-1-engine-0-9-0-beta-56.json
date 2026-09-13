@@ -1,0 +1,21 @@
+{
+  "id": "cp-105-task-priority-recovery-status-flow-4-1-1-engine-0-9-0-beta-56",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "9b121e24f94ac56c2a076cd95e84f427eeea8c6d",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "ae4bbaa5b2299aeedf3ee90bccc8ed3db19a6191",
+      "version": "0.9.0-beta.56",
+      "artifact_sha256": "be90599c2e32e3d2f02d2611b920b16ae412d3c54baa18668690f9ff7f2101ac"
+    }
+  },
+  "state": "published_release_candidate_for_luna_and_zcode_e2e"
+}
