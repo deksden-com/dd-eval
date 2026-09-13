@@ -50,9 +50,20 @@ beta.52 engine snapshot из home и закономерно не содержа�
 (`production/`, `reattach-read/`, `eval-tests.log`, `eval-real-cli-tests.log`).
 Это диагностические доказательства, не candidate checkpoint продукта.
 
-CLI release commit: `0976f2e` (0.9.0-beta.53). Полный gate выполняется один раз
-в npm-publish.yml с OIDC и фиксированным canon commit
-`ef349bf47cba1c987468e51d73a0dbadbd48dc1f`; результат ещё ожидается.
+Первый полный gate на `0976f2e` (0.9.0-beta.53),
+https://github.com/deksden-com/dd-flow-cli/actions/runs/34733282357,
+завершился до публикации: 623 PASS, 9 FAIL. Причины — тестовый AppContext без
+обязательного env (5), две проверки старого вида shell quoting, ожидание
+удалённого Grok ACP writer и fake ZCode без квалификации. Production admission
+не ослаблен: fake binary сначала проверяется на отказ, затем только в fixture
+doctor подменяется стандартным Node module mock для проверки daemon ownership.
+Точечный повтор: 10 PASS; исторический gate сохранён как неуспешный.
+
+Новый CLI release commit: `5776e35f9dd0d7359e64cde53317aef202cdc54b`, версия
+по-прежнему 0.9.0-beta.53 (публикации ещё не было). Обязательный gate на этом
+коммите: https://github.com/deksden-com/dd-flow-cli/actions/runs/34733974857.
+Это повтор после FAIL, не дублирование успешного gate. Используется OIDC и
+фиксированный canon `ef349bf47cba1c987468e51d73a0dbadbd48dc1f`; итог ожидается.
 
 Обновление после native qualification: повторный production probe PASS,
 артефакты `/private/var/folders/3d/083xyfws1x57r5mm5t1_rxqm0000gp/T/dd-zcode-production-rkPvjV`.
