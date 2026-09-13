@@ -1,8 +1,12 @@
 # ZCode: точное подтверждение вызова внутри CLI
 
-Статус: production CLI probe PASS для root/concurrent children/child continuation; native reattach/read PASS. Beta.53 опубликована и проверена, checkpoint cp-101 подготовлен; остаются preflight Luna/ZCode. E2E-ready до их результата не подтверждено. Полный E2E не запускался. Этот документ заменяет требование получить новую сборку ZCode с child hooks из раздела 2 исходного reliability-плана.
+Итоговый статус: готово к новому E2E Luna xhigh и ZCode GLM-5.3-Flash max. Production CLI probe и native reattach/read PASS; опубликованная beta.53 проверена, cp-101 закреплён, оба preflight PASS. Provider Sessions в preflight: 0; scored E2E не запускался. Итоговая сверка и receipts: [readiness audit](e2e-readiness-audit-2026-09-13.md). Этот документ заменяет требование получить новую сборку ZCode с child hooks из раздела 2 исходного reliability-плана.
 
 ## Ход реализации, 2026-09-13
+
+Ниже — хронология, включая прежние незавершённые состояния и неуспешные
+попытки. Текущий статус определяется итогом выше и readiness audit, а не
+историческими формулировками «ещё не выполнено».
 
 Реализована и проверяется общая граница: persistent lifecycle_invocations в flow DB,
 явная issuance, точная привязка native identity, совместный commit с existing
