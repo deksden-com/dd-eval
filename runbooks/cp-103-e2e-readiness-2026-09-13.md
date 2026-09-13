@@ -1,6 +1,6 @@
 # Fix 033: подготовка Luna / ZCode, исправленный checkpoint cp-104
 
-Статус: release gate и опубликованный пакет PASS; два preflight ещё выполняются.
+Статус: готово к новым Luna / ZCode E2E. Release gate, опубликованный пакет и оба preflight PASS.
 Scored E2E не запускались. Цель — готовность к новому эксперименту, не гарантия
 успешного продуктового результата и не полная квалификация всех harnesses.
 
@@ -43,10 +43,39 @@ Full-content engine snapshot digest: `65c15097f9e8e7d0ade01bd665b44dab5ace4ae05a
 Два независимо установленных snapshot beta.55 совпали по полному digest;
 `verifyEngineArtifact` пересчитал и подтвердил их содержимое.
 Каталог кампании по-прежнему `cp-103-luna-zcode`, но input checkpoint — cp-104.
-Следующий шаг на чистом committed definition — по одному `runner eval preflight` для Luna и ZCode.
-Оба должны дать `ok:true`, baseline admission passed, Subject/Judge doctor PASS
-и `provider_sessions_created:0`. До этого этот документ не разрешает запуск.
+Оба preflight выполнены на чистом definition `ded5d6a56ef9b0ee17dc2aa432b4cb5b1ccad019`:
+`ok:true`, baseline install/quality/browser/isolation passed, Subject/Judge doctor PASS,
+`provider_sessions_created:0`. В browser baseline по 6 tests PASS.
+
+Receipts:
+
+- Luna: `/Users/deksden/.dd-eval/qualification/cp-103-luna-zcode/conformance/e2e-preflight/1789327843016-e4323ca1/e2e-inline-merge-luna-xhigh/receipt.json`.
+- ZCode: `/Users/deksden/.dd-eval/qualification/cp-103-luna-zcode/conformance/e2e-preflight/1789327843030-1c2840b4/e2e-inline-merge-zcode-glm-5-3-flash-max/receipt.json`.
+
+Перед успешным повтором preflight выявил отсутствие Chromium Headless Shell
+1234 в host cache. Установлен через `pnpm exec playwright install chromium --only-shell`
+из восстановленного baseline apps/web. Это исправление окружения, не продукта,
+не изменение fixture и не основание для нового release gate. Неуспешные receipts сохранены.
+
+После успешных preflight изменён только этот отчёт и статус плана. Параллельные
+незакоммиченные изменения в рабочем дереве dd-flow-cli не включены в квалификацию:
+все проверки выше относятся к опубликованному beta.55 / 84e76cf.
 
 PostgreSQL `dd-tasks-postgres-1` healthy на `127.0.0.1:55433`; данные не сбрасывались.
 Новый `DD_EVAL_HOME`: `/Users/deksden/.dd-eval/qualification/cp-103-luna-zcode`.
 Публичный engine сохранять в `published-engine/` до завершения кампании.
+
+## Следующий шаг — отдельный запрос на живой запуск
+
+Не продолжать preflight RUN; обычный eval run создаёт собственный новый EVAL.
+Из `/Users/deksden/Documents/_Projects/dd-eval`:
+
+```sh
+export DD_EVAL_HOME=/Users/deksden/.dd-eval/qualification/cp-103-luna-zcode
+export DD_FLOW_BIN=/Users/deksden/.dd-eval/qualification/cp-103-luna-zcode/published-engine/node_modules/@deksden-com/dd-flow-cli/dist/cli.js
+node bin/dd-eval.mjs runner eval run --profile /Users/deksden/Documents/_Projects/dd-eval/cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-luna-xhigh.json
+node bin/dd-eval.mjs runner eval run --profile /Users/deksden/Documents/_Projects/dd-eval/cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-zcode-glm-5-3-flash-max.json
+```
+
+Оба запуска используют общий `$DD_EVAL_HOME/resources`. Сопровождение — по
+[execute-eval](execute-eval.md); определение после запуска не менять.

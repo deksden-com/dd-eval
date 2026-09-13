@@ -1,6 +1,6 @@
 # Fix 033: cp-102 — доказательства, команды повторения и завершение RUN
 
-Дата: 2026-09-13. Статус: реализация прошла ревью и адресные проверки; release gate и два preflight фиксируются в cp-103 readiness.
+Дата: 2026-09-13. Статус: реализация и ревью завершены; beta.55 release gate и оба preflight PASS. Новый корректный input checkpoint — cp-104; подробности в [readiness](../runbooks/cp-103-e2e-readiness-2026-09-13.md).
 Область: dd-flow-cli, его semantic package и dd-eval. Продуктовые ошибки Subject остаются результатами эвала.
 Исходные EVAL, snapshots, receipts и их hashes не менять; автоматически не возобновлять.
 
