@@ -23,18 +23,56 @@ never extend that window.
 
 ## Before launch
 
-Check the source baseline's local prerequisites before preflight. For Task
+### Bounded preparation policy (2026-09-13)
+
+Preparation is not a product qualification or a live E2E. Reuse an accepted
+published engine and checkpoint when their inputs have not changed; a new
+campaign alone requires neither a CLI release nor another full test suite.
+Check the committed case/checkpoint, exact engine identity and integrity,
+installed profile/configuration agreement, existing harness qualification and
+host prerequisites. Do not run product `quality`, `test:browser` or `test:world`
+manually as additional preparation gates.
+
+The actual E2E runs baseline admission in its own restored project before the
+Subject starts. It establishes whether a failure already exists before the
+model's changes; it is not a test of the requested new feature. Keep this
+per-execution baseline and its receipt. Do not share a baseline PASS between
+Luna and ZCode workspaces or use an old receipt to excuse a broken environment.
+
+Current limitation: `runner eval preflight` still runs the full baseline.
+It is an optional deep diagnostic, not a mandatory step before every E2E.
+Use it when provisioning changed or a concrete setup failure needs diagnosis;
+do not repeat it for unchanged inputs or documentation-only edits. Report a
+light preparation as "inputs/environment ready; baseline pending actual run",
+not as a successful deep preflight. A request to prepare only never authorizes
+`eval run` or a live compatibility/capacity experiment.
+
+Future implementation: remove baseline execution from the default preflight,
+retain identity/configuration checks, normal unstarted RUN preparation and
+non-generative doctors. Mark baseline explicitly `not_run` in its receipt;
+retain a deliberate deep-check path if needed, never fabricate baseline PASS.
+Tests must prove that light preflight invokes neither baseline commands nor
+provider sessions, while actual E2E still refuses a failed baseline before
+productive dispatch. No new cache or cross-execution receipt reuse is needed.
+
+Requalify a harness only when its native runtime, adapter or relevant contract
+changes (or qualification is absent). Broader stop/recovery and all-harness
+matrices are separate acceptance work, not hidden readiness prerequisites.
+Historical cp-* reports record what was done, not a checklist to repeat.
+
+Check the source baseline's local prerequisites before launch. For Task
 Priority, PostgreSQL must accept connections on loopback port 55433. Start
 Docker Desktop if needed, inspect existing containers, and start only the
 project-owned PostgreSQL service described by the source bootstrap runbook.
 Reuse a healthy existing service; do not create a competing container or reset
 its volume. Baseline tests create and clean their own invocation databases.
 `ECONNREFUSED` here is a host prerequisite failure, not a Subject verdict or
-permission to skip baseline admission. Retain the failed receipt and repeat
-preflight after restoring the service.
+permission to skip baseline admission. Retain the failed receipt and restore
+the service; do not add an independent full baseline rerun before the runner's
+next authorized attempt.
 
-Before a new E2E campaign, run `dd-eval runner eval preflight --profile
-<absolute-run-profile.json>`. It uses the normal E2E project/flow/runtime
+For an optional deep preparation check, run `dd-eval runner eval preflight
+--profile <absolute-run-profile.json>`. It uses the normal E2E project/flow/runtime
 provisioning and writes its receipt and initial launcher under
 `DD_EVAL_HOME/conformance/e2e-preflight/`. It creates no provider Session and
 does not execute the Stage. A successful receipt proves the pinned pair,
@@ -97,7 +135,7 @@ where the feature is already implemented. See the [baseline audit](task-priority
    and segment runs require a non-null `case.json.entry_pack` whose referenced
    package is accepted. E2E starts from the committed input checkpoint and does
    not require an entry pack. Do not call `fixtures validate` for an E2E-only
-   run with `entry_pack: null`: use `runner eval preflight` instead.
+   run with `entry_pack: null`: follow the bounded preparation policy above.
 4. Qualify the selected harness profile before a provider update is used in a
    scored run:
 
@@ -173,8 +211,6 @@ global installation:
 eval_engine_root="$(mktemp -d /tmp/dd-flow-eval-engine.XXXXXX)"
 npm install --prefix "$eval_engine_root" --ignore-scripts --no-save \
   @deksden-com/dd-flow-cli@<checkpoint-version>
-DD_FLOW_BIN="$eval_engine_root/node_modules/@deksden-com/dd-flow-cli/dist/cli.js" \
-dd-eval runner eval preflight --profile /absolute/path/to/profile.json
 DD_FLOW_BIN="$eval_engine_root/node_modules/@deksden-com/dd-flow-cli/dist/cli.js" \
 dd-eval runner eval run --profile /absolute/path/to/profile.json
 ```
@@ -274,9 +310,10 @@ focused-stage set.
 
 ## Live qualification
 
-Every selected harness follows the same sequence: compatibility qualification,
-native-capacity probe when its contour can fan out, deterministic suites, a
-committed definition, then the E2E run. A smoke failure is a harness blocker:
+Every selected harness needs valid compatibility and, for fanout, capacity
+qualification; reuse these while their bound inputs remain unchanged. Run
+affected deterministic suites for code changes, commit the definition, then
+start E2E only when requested. A smoke failure is a harness blocker:
 retain its receipt and do not start that profile's E2E. The run profile—not a
 literal command-line model/version—remains the source of truth for Subject,
 Judge and interaction Judge. Continue stages in the same Subject session unless

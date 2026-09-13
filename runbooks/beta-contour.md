@@ -35,8 +35,10 @@ snapshot and checkpoint. Do not copy engine directories between isolated homes.
    smallest affected eval.
 4. Commit the flow and engine changes, give a changed engine a new prerelease
    version, install it, and commit the matching run-profile/checkpoint input.
-5. Verify the affected contract and prepare the pinned pair with `runner eval
-   preflight`. Rebuild canonical entry packs only for focused/segment runs
+5. Verify the affected contract and follow the bounded preparation policy in
+   [execute-eval](execute-eval.md#bounded-preparation-policy-2026-09-13).
+   Full `runner eval preflight` is optional diagnostics, not a repeated baseline
+   gate. Rebuild canonical entry packs only for focused/segment runs
    whose required boundary context changed. E2E starts from its input checkpoint
    and never waits for canonical entry packs.
 6. Preserve every failed attempt as evidence. A new beta version is needed for
