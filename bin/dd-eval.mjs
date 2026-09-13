@@ -50,15 +50,38 @@ function parse(argv) {
     const token = argv[index];
     if (!token.startsWith("--")) { positional.push(token); continue; }
     const key = token.slice(2); const value = argv[index + 1];
-    if (value === undefined || value.startsWith("--")) throw new Error(`--${key} requires a value`);
+    if (value === undefined || value.startsWith("--")) throw Object.assign(new Error(`--${key} requires a value`), { code: "usage" });
+    if (Object.hasOwn(options, key)) throw Object.assign(new Error(`--${key} may be supplied only once`), { code: "usage" });
     options[key] = value; index += 1;
   }
   return { positional, options };
 }
-function required(options, key) { if (!options[key]) throw new Error(`--${key} is required`); return options[key]; }
+function required(options, key) { if (!options[key]) throw Object.assign(new Error(`--${key} is required`), { code: "usage" }); return options[key]; }
+function validateCommand({ positional, options }) {
+  const key = positional.slice(0, 3).join(" ");
+  const rules = {
+    "runner fixtures validate": [3, ["case", "revision"]], "runner eval preflight": [3, ["profile"]],
+    "harness capacity check": [3, ["profile", "max", "project-root", "write-profile"]], "harness compatibility qualify": [3, ["profile", "project-root"]],
+    "runner canonical build": [3, ["profile", "project-root", "flow-root"]], "runner canonical status": [3, ["build"]], "runner canonical resume": [3, ["build", "detach"]],
+    "runner canonical qualify": [3, ["build", "profile"]], "runner canonical accept": [3, ["build", "entry", "review"]],
+    "runner eval run": [3, ["profile"]], "runner eval judge": [3, ["eval", "profile"]],
+    "runner status": [2, ["eval"]], "runner control status": [3, ["eval", "execution"]], "runner control pause": [3, ["eval", "request-id"]], "runner control stop": [3, ["eval", "request-id"]],
+    "runner control reconcile": [3, ["eval", "from"]], "runner control resume": [3, ["eval", "from", "request-id", "wait-ms"]],
+    "runner resume": [2, ["eval"]], "runner recover": [2, ["eval", "from", "execution"]], "runner recovery inspect": [3, ["eval", "execution"]], "runner reconcile": [2, ["eval"]], "runner cancel": [2, ["eval", "execution"]],
+    "storage ls": [2, ["case"]], "storage status": [2, []], "gc plan": [2, []], "gc apply": [2, ["plan"]]
+  };
+  let rule = rules[key];
+  if (key === "runner canonical engine" && positional[3] === "capture") rule = [4, ["build"]];
+  if (key === "runner canonical boundary" && positional[3] === "accept") rule = [4, ["build", "stage", "review"]];
+  if (key === "runner canonical qualification" && positional[3] === "recover") rule = [4, ["build", "receipt"]];
+  if (!rule) return;
+  if (positional.length !== rule[0] || Object.keys(options).some(option => !rule[1].includes(option))) throw Object.assign(new Error(`unknown argument for ${key}`), { code: "usage" });
+}
 
 try {
-  const { positional, options } = parse(process.argv.slice(2)); const [family, command, action] = positional;
+  const argv = process.argv.slice(2);
+  if (!argv.length || argv[0] === "help" || argv.includes("--help") || argv.includes("-h")) { process.stdout.write(usage()); process.exit(0); }
+  const { positional, options } = parse(argv); validateCommand({ positional, options }); const [family, command, action] = positional;
   if (!family || family === "help" || family === "--help") { process.stdout.write(usage()); process.exit(0); }
   let result;
   if (family === "runner" && command === "fixtures" && action === "validate") result = await fixturesValidate({ caseId: required(options, "case"), ...(options.revision ? { revision: options.revision } : {}) });
@@ -115,5 +138,5 @@ try {
   process.stdout.write(`${JSON.stringify({ ok: true, ...result })}\n`);
 } catch (error) {
   process.stderr.write(`${JSON.stringify({ ok: false, error: error.message, code: error.code ?? "operation_failed", ...(error.retryable === true ? { retryable: true } : {}), ...(error.details !== undefined ? { details: error.details } : {}) })}\n`);
-  process.exit(error.code === "control_request_invalid" ? 2 : 1);
+  process.exit(["control_request_invalid", "usage"].includes(error.code) ? 2 : 1);
 }

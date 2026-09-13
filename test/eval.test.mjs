@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, executionEvidence, failureAttribution, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, authorizeHitl, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, executionEvidence, failureAttribution, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 
@@ -15,6 +15,14 @@ const buildProfile = path.join(root, "cases", caseId, "run-profiles", "build-ent
 const qualificationProfile = path.join(root, "cases", caseId, "run-profiles", "qualify-entry-pack-terra-high.json");
 const run = promisify(execFile);
 
+test("eval CLI rejects ambiguous mutations and treats help as a non-mutating command", async () => {
+  const cli = path.join(root, "bin", "dd-eval.mjs");
+  const help = await run(process.execPath, [cli, "--help"], { cwd: root });
+  assert.match(help.stdout, /dd-eval — deterministic evaluation runner/);
+  await assert.rejects(run(process.execPath, [cli, "runner", "cancel", "--eval", "/tmp/a", "--eval", "/tmp/b"], { cwd: root }), error => error.code === 2 && /only once/.test(error.stderr));
+  await assert.rejects(run(process.execPath, [cli, "runner", "cancel", "--eval", "/tmp/a", "--executoin", "e2e"], { cwd: root }), error => error.code === 2 && /unknown argument/.test(error.stderr));
+});
+
 test("case pins its input checkpoint and exact engine without Session starter state", async () => {
   const loaded = await loadCase(caseId);
   assert.equal(loaded.value.schema_id, "dd-eval/case@7");
@@ -22,13 +30,13 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-100-task-priority-shared-runtime-flow-4-1-0-engine-0-9-0-beta-52");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-101-task-priority-shared-runtime-flow-4-1-0-engine-0-9-0-beta-53");
   assert.equal(loaded.inputCheckpoint.value.source.commit, "924ef61752b642f06c2c326b444ed7a3239f20ff");
   assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-074-source-final");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "dee7dba1ae721ac1c2b12d8d9c5f16e0bbee0c8b");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.52");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.commit, "9f8e20f5aab016e2e7246b8939af9e4ad91e37dc");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, "194ac34b8dd443a3b41f393f6c6e6c88c4e1c353575fc77014acfcfbba7b2aa1");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.53");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.commit, "db14065f43f320bc69dacbec425cd04eac8236ae");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, "16dad1459a0ec0e5a81e5583b3e5de391609cb0603a290e10b257219ff22305f");
   assert.match(loaded.value.baseline_admission.sha256, /^[a-f0-9]{64}$/);
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
@@ -427,9 +435,20 @@ test("HITL verdicts are strict, fail closed, and preserve exact response bytes",
 
 test("HITL recovery enforces the same round, receipt, and evidence contract", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /rounds >= fixture\.max_rounds/);
+  assert.match(source, /rounds < fixture\.max_rounds/);
+  assert.match(source, /error\.code = "unexpected_hitl"/);
   assert.match(source, /type: "dev\.dd\.eval\.hitl\.matched"[\s\S]*recovered: true/);
   assert.match(source, /hitl\.push\(\.\.\.await hitlEvidenceFor\(retained, execution\.id\)\)/);
+});
+
+test("unplanned HITL fails before Judge dispatch and preserves the exact question evidence", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "dd-eval-unplanned-hitl-"));
+  const question = path.join(directory, "question.md");
+  await writeFile(question, "May direct API callers use no_priority?\n");
+  try {
+    await assert.rejects(authorizeHitl({ fixture: { mode: "optional", max_rounds: 1 }, stage: "specify", pause: { id: "pause-2", question_path: question }, rounds: 1 }), error =>
+      error.code === "unexpected_hitl" && error.hitl.reason === "max_rounds_exceeded" && error.hitl.question_sha256.length === 64);
+  } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
 test("canonical recovery reuses accepted HITL bytes without spending another round", async () => {
