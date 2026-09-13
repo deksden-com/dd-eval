@@ -1,0 +1,21 @@
+{
+  "id": "cp-103-task-priority-autonomous-proof-flow-4-1-1-engine-0-9-0-beta-55",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "9b121e24f94ac56c2a076cd95e84f427eeea8c6d",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "84e76cfa798732b3121534551515b02f4a238425",
+      "version": "0.9.0-beta.55",
+      "artifact_sha256": "e9b43922ebf5107e8355059507b2f4dc8bf4a007942c3f610e2a481462e66a98"
+    }
+  },
+  "state": "published_release_candidate_for_luna_and_zcode_e2e"
+}
