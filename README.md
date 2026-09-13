@@ -510,3 +510,23 @@ and contains only the durable observation boundary: `run_id`, `observed_at`,
 local read-only tools such as `dd-console`. Consumers must not invoke live
 status/provider commands or copy `reduceEvents`; they may fall back to a
 historical journal only with an explicit partial-observation indication.
+
+### Local Eval home registry
+
+`~/.dd-eval/homes.json` is the shared registry, independent of `DD_EVAL_HOME`.
+The version 1 document contains `schema_version: 1` and `homes` entries with
+`id`, canonical `root`, `label`, `created_at` and `disabled` fields.
+Creating an Eval or requesting continuation registers its home automatically.
+An explicit removal stays disabled until explicitly added again.
+
+```sh
+dd-eval homes list
+dd-eval homes add --path /absolute/path/to/eval-home --label qualification
+dd-eval homes remove --id SRC-...
+```
+
+The console reads the registry on each request, keeps unavailable sources visible,
+and deduplicates it against its own sources. Local source removal overrides
+registry discovery in that console. A new home requires no console restart.
+Registry mutations use a process-owned lock and atomic replacement; malformed
+registry data is preserved and reported instead of reset.

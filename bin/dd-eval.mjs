@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { addHome, listHomes, removeHome } from "../lib/homes.mjs";
 import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualificationRecover, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalPreflight, evalRun, fixturesValidate, harnessCapacityCheck, harnessCompatibilityQualify, runnerCancel, runnerRecover, runnerReconcile, runnerResume, runnerStatus } from "../lib/runner.mjs";
 import { gcApply, gcPlan, storageList, storageStatus } from "../lib/storage.mjs";
 import { runnerRecoveryInspect } from "../lib/runner.mjs";
@@ -9,6 +10,9 @@ function usage() {
   return `dd-eval — deterministic evaluation runner
 
 Usage:
+  dd-eval homes list
+  dd-eval homes add --path <home> [--label <name>]
+  dd-eval homes remove --id <id>
   dd-eval runner fixtures validate --case <case-id> [--revision REV-NNN]
   dd-eval runner eval preflight --profile <run-profile.json>
   dd-eval harness capacity check --profile <profile-id> --max <n> [--project-root <path>] [--write-profile true|false]
@@ -60,6 +64,7 @@ function required(options, key) { if (!options[key]) throw Object.assign(new Err
 function validateCommand({ positional, options }) {
   const key = positional.slice(0, 3).join(" ");
   const rules = {
+    "homes list": [2, []], "homes add": [2, ["path", "label"]], "homes remove": [2, ["id"]],
     "runner fixtures validate": [3, ["case", "revision"]], "runner eval preflight": [3, ["profile"]],
     "harness capacity check": [3, ["profile", "max", "project-root", "write-profile"]], "harness compatibility qualify": [3, ["profile", "project-root"]],
     "runner canonical build": [3, ["profile", "project-root", "flow-root"]], "runner canonical status": [3, ["build"]], "runner canonical resume": [3, ["build", "detach"]],
@@ -84,7 +89,10 @@ try {
   const { positional, options } = parse(argv); validateCommand({ positional, options }); const [family, command, action] = positional;
   if (!family || family === "help" || family === "--help") { process.stdout.write(usage()); process.exit(0); }
   let result;
-  if (family === "runner" && command === "fixtures" && action === "validate") result = await fixturesValidate({ caseId: required(options, "case"), ...(options.revision ? { revision: options.revision } : {}) });
+  if (family === "homes" && command === "list") result = await listHomes();
+  else if (family === "homes" && command === "add") result = await addHome(required(options, "path"), options.label);
+  else if (family === "homes" && command === "remove") result = await removeHome(required(options, "id"));
+  else if (family === "runner" && command === "fixtures" && action === "validate") result = await fixturesValidate({ caseId: required(options, "case"), ...(options.revision ? { revision: options.revision } : {}) });
   else if (family === "runner" && command === "eval" && action === "preflight") result = await evalPreflight({ profileFile: required(options, "profile") });
   else if (family === "harness" && command === "capacity" && action === "check") result = await harnessCapacityCheck({ profileId: required(options, "profile"), maximum: required(options, "max"), ...(options["project-root"] ? { projectRoot: options["project-root"] } : {}), ...(options["write-profile"] ? { writeProfile: options["write-profile"] === "true" } : {}) });
   else if (family === "harness" && command === "compatibility" && action === "qualify") result = await harnessCompatibilityQualify({ profileId: required(options, "profile"), ...(options["project-root"] ? { projectRoot: options["project-root"] } : {}) });
