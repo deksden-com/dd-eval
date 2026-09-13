@@ -68,7 +68,11 @@ test('cancel projects terminal results without loading case or starting configur
   assert.equal((await readdir(root)).includes('judge'), false);
   assert.equal((await readdir(root)).includes('candidate.json'), false);
   const commands = (await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse);
-  assert.equal(commands.length, 4);
+  assert.deepEqual(commands.map(args => args.slice(0, 3)), [
+    ['runtime', 'scope', 'fence'], ['runtime', 'scope', 'stop'],
+    ['runtime', 'scope', 'fence'], ['runtime', 'scope', 'stop'],
+    ['runtime', 'scope', 'status']
+  ]);
   for (const args of commands) assert.equal(args.at(-1), manifest.runtime_resource_home);
   for (const args of commands.filter(args => args[2] === 'fence')) assert.deepEqual(args.slice(0, 7), ['runtime', 'scope', 'fence', '--scope-id', manifest.run_id, '--request-id', `eval-cancel:${manifest.run_id}`]);
   await writeFile(bin, `#!${process.execPath}\nconsole.log(JSON.stringify({scope_id:'EVAL-cancel',dispatch_blocked:true,settled:false,nodes:[{process_id:'judge-still-owned',settled:false}]}));\n`);

@@ -408,9 +408,12 @@ silence and never fabricates `work finish` for a failed child.
 Only a registered `dd-flow` pause at an interaction point declared by the
 case may receive a response. The runner preserves the actual question, asks a
 clean Interaction Judge to select an existing canonical response, and resumes
-the same Stage and Session only after a match. If no answer is authorized,
-the managed observer returns `pending_answer` and leaves the registered pause
-intact; it must neither invent an answer nor continue the Subject. Classification
+the same Stage and Session only after a match. A forbidden interaction or an
+exhausted round budget fails the execution with `unexpected_hitl` and retained
+question identity/checksum. An unmatched question also fails with its classified
+reason; it is not an indefinite `pending_answer` wait. The runner preserves the
+primary failure and observes cleanup/capture without replaying productive work.
+It must neither invent an answer nor continue the Subject. Classification
 of an unplanned question remains evaluation evidence, not permission to resume. A
 `fixture_gap` or ambiguous match marks the run invalid as evaluation
 infrastructure and is not a Subject-quality failure; an unnecessary or
