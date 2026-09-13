@@ -1,4 +1,4 @@
-# cp-103: Fix 033 и подготовка Luna / ZCode
+# Fix 033: подготовка Luna / ZCode, исправленный checkpoint cp-104
 
 Статус: release gate и опубликованный пакет PASS; два preflight ещё выполняются.
 Scored E2E не запускались. Цель — готовность к новому эксперименту, не гарантия
@@ -33,9 +33,16 @@ Scored E2E не запускались. Цель — готовность к н�
 ## Предзапусковая фиксация
 
 Публичный beta.55 установлен изолированно, build-info/canon/peeled tag совпали.
-Full-content digest: `e9b43922ebf5107e8355059507b2f4dc8bf4a007942c3f610e2a481462e66a98`.
-[Checkpoint cp-103](../checkpoints/cp-103-task-priority-autonomous-proof-flow-4-1-1-engine-0-9-0-beta-55.json)
-закреплён в case SHA-256 `67375a817bc80260d6987d534cceb7afdb3fb0560b304117bd86fb77f5452c6d`.
+Full-content engine snapshot digest: `65c15097f9e8e7d0ade01bd665b44dab5ace4ae05ac1f4f1ad2b078b457005b0`.
+[Checkpoint cp-104](../checkpoints/cp-104-task-priority-autonomous-proof-flow-4-1-1-engine-0-9-0-beta-55.json)
+закреплён в case SHA-256 `3cd1f68f3124cf859282f257c37208219d02af142f2b331c7c6169d9613b5d80`.
+Первая подготовка cp-103 ошибочно закрепила digest только dist, а не snapshot
+(включая package metadata и зависимости). Оба preflight корректно отказали
+до baseline и provider Sessions: `input_checkpoint_engine_mismatch`.
+Исторический cp-103 и failure receipts сохранены, вместо переписывания создан cp-104.
+Два независимо установленных snapshot beta.55 совпали по полному digest;
+`verifyEngineArtifact` пересчитал и подтвердил их содержимое.
+Каталог кампании по-прежнему `cp-103-luna-zcode`, но input checkpoint — cp-104.
 Следующий шаг на чистом committed definition — по одному `runner eval preflight` для Luna и ZCode.
 Оба должны дать `ok:true`, baseline admission passed, Subject/Judge doctor PASS
 и `provider_sessions_created:0`. До этого этот документ не разрешает запуск.
