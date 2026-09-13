@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, authorizeHitl, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, executionEvidence, failureAttribution, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, authorizeHitl, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 
@@ -390,6 +390,14 @@ test("failure evidence preserves reached boundaries, HITL, launcher, and observa
   assert.deepEqual(evidence.usage, { total_tokens: 12 });
   assert.deepEqual(evidence.observation, { tool_calls: 3 });
   assert.deepEqual(evidence.artifacts.evidence_journals, []);
+});
+
+test("failure reconciliation ignores volatile controller snapshots but records recovery transitions", () => {
+  const failure = { execution: "e2e", state: "failed", code: "provider_unavailable", error: "offline", stage: "code", lifecycle: { status: { observed_at: "first" } }, recovery: { unavailable: true, capture_error: { code: "recovery_capture_pending", message: "wait" } } };
+  const first = failureEvidenceRevision(failure);
+  assert.equal(failureEvidenceRevision({ ...failure, lifecycle: { status: { observed_at: "later" } }, statistics: { sampled_at: "later" } }), first);
+  assert.notEqual(failureEvidenceRevision({ ...failure, recovery: { recovery_id: "RCV-001", control_id: "CTL-001", generation: 1 } }), first);
+  assert.notEqual(failureEvidenceRevision({ ...failure, recovery: { unavailable: true, capture_error: { code: "recovery_capture_pending", message: "writer still active" } } }), first);
 });
 
 test("productive fan-out no longer creates an isolated worker root", async () => {

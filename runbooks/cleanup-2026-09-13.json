@@ -1,0 +1,14 @@
+{
+  "status": "applied_and_verified",
+  "policy": "User approved Trash only; retain cp-102, active processes, configs and uncertain dependencies. Never empty Trash.",
+  "trash_directory": "/Users/deksden/.Trash/dd-runtime-cleanup-2026-09-13",
+  "moves": [
+    {"source": "/Users/deksden/.dd-flow/archive/PRJ-001", "destination": "/Users/deksden/.Trash/dd-runtime-cleanup-2026-09-13/dd-flow-archive-PRJ-001"},
+    {"source": "/Users/deksden/.dd-flow/archive/PRJ-002", "destination": "/Users/deksden/.Trash/dd-runtime-cleanup-2026-09-13/dd-flow-archive-PRJ-002"},
+    {"source": "/Users/deksden/.dd-flow/archive/PRJ-007", "destination": "/Users/deksden/.Trash/dd-runtime-cleanup-2026-09-13/dd-flow-archive-PRJ-007"},
+    {"source": "/Users/deksden/.dd-eval/qualification/cp-099-luna-zcode/runs/EVAL-20260912092306-4529be64", "destination": "/Users/deksden/.Trash/dd-runtime-cleanup-2026-09-13/cp099-EVAL-20260912092306-4529be64"},
+    {"source": "/Users/deksden/.dd-eval/qualification/cp-099-luna-zcode/runs/EVAL-20260912092834-37491c84", "destination": "/Users/deksden/.Trash/dd-runtime-cleanup-2026-09-13/cp099-EVAL-20260912092834-37491c84"},
+    {"source": "/Users/deksden/.dd-eval/qualification/cp-100-luna-zcode/runs/EVAL-20260912145714-a6df3a35", "destination": "/Users/deksden/.Trash/dd-runtime-cleanup-2026-09-13/cp100-EVAL-20260912145714-a6df3a35"}
+  ],
+  "retained": ["cp-102", "cp-101 (live controller/daemons)", "canonical snapshots", "nonterminal/unknown attempts", "projects and Git worktrees", "configs/profiles/credentials/databases", "engine-sources", "other unexamined runtime data"]
+}
