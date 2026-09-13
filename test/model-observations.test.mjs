@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, appendFile, rm } from 'node:fs/promises';
+import { mkdtemp, appendFile, mkdir, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { checkObservedProfile, readModelObservations, modelAttribution, modelObservationFile } from '../lib/model-observations.mjs';
+import { resolveEvidenceJournals } from '../lib/runner.mjs';
 import { modelProgressPump } from '../lib/model-progress.mjs';
 import { readEvents } from '../lib/runner-events.mjs';
 
@@ -14,6 +15,25 @@ test('routing permits mixed profiles, unknown is never matched, integrity remain
   assert.equal(checkObservedProfile({ model: 'sol' }, { model: 'kimi' }).status, 'mixed');
   assert.throws(() => checkObservedProfile({ mode: 'safe' }, { mode: 'yolo' }), { code: 'profile_integrity_violation' });
   assert.throws(() => checkObservedProfile({ model: 'sol' }, { model: 'kimi' }, { strict: true }), { code: 'profile_integrity_violation' });
+});
+
+test('evidence resolver uses every published controller journal and reports missing observations', async t => {
+  const { root, journal } = await fixture(t);
+  const secondary = path.join(root, 'child', 'events.jsonl');
+  await mkdir(path.dirname(secondary), { recursive: true });
+  await appendFile(journal, ""); await appendFile(secondary, "");
+  await appendFile(modelObservationFile(journal), `${JSON.stringify({ harness: 'zcode-acp', session_id: 'root', observed: { model: 'root-model' } })}\n`);
+  await appendFile(modelObservationFile(secondary), `${JSON.stringify({ harness: 'zcode-acp', session_id: 'child', parent_session_id: 'root', observed: { model: 'child-model' } })}\n`);
+  const resolved = await resolveEvidenceJournals({ attempt: path.join(root, 'attempt'), driver: { controller: { sessions: [{ session_id: 'root', journal }, { session_id: 'child', journal: secondary }, { session_id: 'missing', journal: path.join(root, 'missing', 'events.jsonl') }] } }, lifecycle: { untrusted: { journal_path: '/unrelated/private.jsonl' } } });
+  assert.deepEqual(new Set(resolved.attribution.models), new Set(['child-model', 'root-model']));
+  assert.equal(resolved.attribution.observation_completeness, 'incomplete');
+  assert.equal(resolved.journals.filter(item => item.status === 'available').length, 2);
+  assert.ok(resolved.journals.some(item => item.reason === 'journal_missing'));
+  assert.equal(resolved.journals.length, 3);
+  assert.equal(resolved.tools.status, 'partial');
+  const failed = await resolveEvidenceJournals({ details: { controller: { sessions: [{ journal }, { journal }] } } });
+  assert.equal(failed.journals.length, 1);
+  assert.equal(failed.attribution.sessions.length, 1);
 });
 
 test('402 transitions and return are durable before progress, replay deduplicates journal across consumers', async t => {

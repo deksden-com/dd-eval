@@ -380,7 +380,7 @@ test("failure evidence preserves reached boundaries, HITL, launcher, and observa
   assert.equal(evidence.hitl.length, 1);
   assert.deepEqual(evidence.usage, { total_tokens: 12 });
   assert.deepEqual(evidence.observation, { tool_calls: 3 });
-  assert.equal(evidence.artifacts.driver_journal, "/attempt/drivers/subject.events.jsonl");
+  assert.deepEqual(evidence.artifacts.evidence_journals, []);
 });
 
 test("productive fan-out no longer creates an isolated worker root", async () => {

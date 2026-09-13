@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "enabled": true,
+    "timeoutMs": 30000,
+    "events": {
+      "PreToolUse": [{
+        "matcher": "Bash",
+        "hooks": [{
+          "type": "process",
+          "command": "node",
+          "args": ["/Users/deksden/Documents/_Projects/dd-eval/tools/probe-zcode-native-hook.mjs"],
+          "enabled": true,
+          "timeoutMs": 30000
+        }]
+      }]
+    }
+  }
+}

@@ -3,7 +3,7 @@ import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngi
 import { gcApply, gcPlan, storageList, storageStatus } from "../lib/storage.mjs";
 import { runnerRecoveryInspect } from "../lib/runner.mjs";
 import { runnerControlReconcile, runnerControlRequest, runnerControlStatus } from "../lib/runner.mjs";
-import { requestEvalResume } from "../lib/eval-resume-worker.mjs";
+import { requestEvalResume, requestEvalRun, requestRunnerContinuation } from "../lib/eval-resume-worker.mjs";
 
 function usage() {
   return `dd-eval — deterministic evaluation runner
@@ -82,7 +82,7 @@ try {
     result = await canonicalQualificationRecover({ buildRoot: required(options, "build"), receiptFile: required(options, "receipt") });
   }
   else if (family === "runner" && command === "canonical" && action === "accept") result = await canonicalAccept({ buildRoot: required(options, "build"), entry: required(options, "entry"), reviewFile: required(options, "review") });
-  else if (family === "runner" && command === "eval" && action === "run") result = await evalRun({ profileFile: required(options, "profile") });
+  else if (family === "runner" && command === "eval" && action === "run") result = await requestEvalRun({ profileFile: required(options, "profile") });
   else if (family === "runner" && command === "eval" && action === "judge") result = await evalJudge({ evalRoot: required(options, "eval"), ...(options.profile ? { profileId: options.profile } : {}) });
   else if (family === "runner" && command === "status") result = await runnerStatus({ evalRoot: required(options, "eval") });
   else if (family === "runner" && command === "control" && action === "status") {
@@ -102,7 +102,7 @@ try {
     if (options["wait-ms"] !== undefined && !/^\d+$/.test(options["wait-ms"])) throw Object.assign(new Error("--wait-ms must be an integer between 0 and 60000"), { code: "control_request_invalid" });
     result = await requestEvalResume({ evalRoot: required(options, "eval"), requestId: required(options, "request-id"), fromRequestId: required(options, "from"), ...(options["wait-ms"] !== undefined ? { waitMs: Number(options["wait-ms"]) } : {}) });
   }
-  else if (family === "runner" && command === "resume") result = await runnerResume({ evalRoot: required(options, "eval") });
+  else if (family === "runner" && command === "resume") result = await requestRunnerContinuation({ evalRoot: required(options, "eval") });
   else if (family === "runner" && command === "recover") result = await runnerRecover({ evalRoot: required(options, "eval"), fromRecoveryId: required(options, "from"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "recovery" && positional[2] === "inspect") result = await runnerRecoveryInspect({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "reconcile") result = await runnerReconcile({ evalRoot: required(options, "eval") });

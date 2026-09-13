@@ -441,7 +441,7 @@ else throw Error('foreign registration must not be used');`);
   assert.equal((await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.operation.started').length, 0);
 });
 
-for (const outcome of ['invalid-engine', 'new-stop']) test(`background observer reattaches after managed observation loss and respects ${outcome}`, { timeout: 12_000 }, async t => {
+for (const outcome of ['invalid-engine', 'new-stop']) test(`background observer reattaches after managed observation loss and respects ${outcome}`, { timeout: 45_000 }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-worker-reattach-'));
   const runId = 'EVAL-reattach', cli = path.join(root, 'flow.mjs'), calls = path.join(root, 'calls.jsonl');
   const workerFile = evalResumeWorkerFile(root, 'resume'), registered = path.join(root, 'registered.json');
@@ -455,7 +455,7 @@ for (const outcome of ['invalid-engine', 'new-stop']) test(`background observer 
   const execution = { id: 'retained', stage: 'specify', terminal_stage: 'specify', mode: 'e2e' };
   const attempt = path.join(root, 'executions', execution.id), runtime = path.join(attempt, 'dd-flow-home'), project = path.join(attempt, 'project');
   await mkdir(project, { recursive: true }); await mkdir(path.join(runtime, 'bin'), { recursive: true });
-  const manifest = { run_id: runId, case_id: loaded.value.id, runtime_control_bin: cli, runtime_resource_home: path.join(root, 'resources'), executions: [execution], subject_profile: { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' }, profile: { concurrency: { global: 1, per_harness: {} }, judge: { enabled: false } } };
+  const manifest = { run_id: runId, case_id: loaded.value.id, input_checkpoint: { sha256: loaded.inputCheckpoint.sha256 }, definition: { commit: await commandText('git', ['rev-parse', 'HEAD']) }, runtime_control_bin: cli, runtime_resource_home: path.join(root, 'resources'), executions: [execution], subject_profile: { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' }, profile: { concurrency: { global: 1, per_harness: {} }, judge: { enabled: false } } };
   await writeFile(path.join(root, 'manifest.json'), JSON.stringify(manifest));
   await writeFile(path.join(attempt, 'managed-runtime.json'), JSON.stringify({ schema_id: 'dd-eval/managed-runtime@1', run_id: 'RUN-retained', project_root: project, runtime_root: runtime }));
   const release = { scope_id: runId, source_request_id: 'stop', request_id: 'resume', generation: 1, capture_key: 'a'.repeat(64), journal_sha256: 'b'.repeat(64), current: true };
@@ -485,14 +485,17 @@ console.log(JSON.stringify({ok:false,error:{code:fs.existsSync(${JSON.stringify(
   await assert.rejects(recordOperation({ eventsFile, source: 'fixture', runId, executionId: execution.id, operationId: `${runId}:${execution.id}:launch`, operation: 'execution.retained.launch', action: async () => { throw Object.assign(new Error('lost'), { code: 'rpc_timeout' }); } }), { code: 'rpc_timeout' });
   await appendEvent(eventsFile, { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
   await requestEvalResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop' });
-  const deadline = performance.now() + 8000;
+  // This is a real detached-process integration, including several CLI starts
+  // and the observer's one-second retry delay. Bound the protocol, not host speed.
+  const deadline = performance.now() + 30_000;
   const readCalls = async () => (await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse);
   let saved;
   for (;;) {
     saved = JSON.parse(await readFile(workerFile, 'utf8'));
     assert.notEqual(saved.status, 'failed', JSON.stringify(saved.error));
     if (saved.status === 'observation_lost' && (await readCalls()).filter(args => args[0] === 'engine').length >= 2) break;
-    assert.ok(performance.now() < deadline, 'same observer retries managed observation'); await delay(25);
+    if (performance.now() >= deadline) assert.fail(`same observer retries managed observation: ${JSON.stringify({ saved, calls: await readCalls() })}`);
+    await delay(25);
   }
   assert.equal(saved.error.code, 'rpc_timeout');
   if (outcome === 'invalid-engine') await writeFile(path.join(root, 'invalid-engine'), 'changed');
@@ -500,7 +503,7 @@ console.log(JSON.stringify({ok:false,error:{code:fs.existsSync(${JSON.stringify(
   for (;;) {
     saved = JSON.parse(await readFile(workerFile, 'utf8'));
     if (['failed', 'superseded'].includes(saved.status) && !(await processSnapshot()).some(item => item.pid === saved.owner_pid)) break;
-    assert.ok(performance.now() < deadline, 'observer exits on a conclusive error or newer stop'); await delay(25);
+    assert.ok(performance.now() < deadline, `observer exits on a conclusive error or newer stop: ${JSON.stringify(saved)}`); await delay(25);
   }
   assert.equal(saved.status, outcome === 'invalid-engine' ? 'failed' : 'superseded');
   assert.equal(saved.error.code, outcome === 'invalid-engine' ? 'input_checkpoint_engine_mismatch' : 'managed_run_controlled');

@@ -117,6 +117,23 @@ dd-eval runner eval run --profile \
   cases/<case-id>/run-profiles/<profile>.json
 ```
 
+Ordinary `eval run` and `runner resume` start a detached observer using the
+existing resume worker. Their initial reply acknowledges the request; it is
+not the eval verdict. Closing the invoking terminal does not intentionally
+stop that observer or the flow controller. Use `runner status --eval <path>`.
+
+Inspect `runner-attempts/<id>/` for retained attempt state, process identity,
+stdout/stderr and process events. Status separates the persisted EVAL result,
+latest observation, live controller information and observer liveness. A
+missing process with no recorded exit cause means **unknown cause**, not an
+inferred timeout or sleep. PID reuse is checked using process start identity.
+Before productive resume, the retained definition and context checksums must
+still match, including untracked case inputs. Do not edit them to unblock a run.
+
+Current ZCode readiness and the replacement for child-hook admission are
+tracked in [the CLI receipt plan](zcode-cli-rendezvous-2026-09-13.md). A marker
+probe is not a release or permission to launch an E2E before that checklist closes.
+
 ### Pinned engine override
 
 The checkpoint is the engine identity for a scored run.  Use the same explicit
@@ -259,12 +276,13 @@ of an earlier provider conversation.
 | Materialize the stage slice | Runner + `dd-flow` | read-only context; `stage start` resolves live paths and lifecycle commands |
 | Perform the stage | Subject | its own artifacts and a `dd-flow` lifecycle receipt |
 | Handle an allowed question | Runner + clean Interaction Judge | exact question, match decision and one authorized answer in the same Stage/Session |
-| Capture or advance | Runner | candidate boundary, append-only journal and, for E2E, the next provider turn |
+| Capture or advance | `dd-flow` controller | candidate boundary, append-only journal and, for E2E, the next provider turn |
 | Assess | clean Judge | verdict over immutable evidence; it never edits the evaluated RUN |
 
-`dd-flow` is the sole authority for RUN, Stage and Work state. The runner is
-the sole authority for restoring attempts, creating provider Sessions,
-dispatching turns and recording the journal. The Subject makes product and
+`dd-flow` is the sole authority for RUN, Stage and Work state; its managed
+controller owns provider Sessions, productive turns and capture. Eval owns
+experiment preparation, observation, permitted answers and Judge evidence.
+The Subject makes product and
 flow decisions; it does not manufacture snapshots, statistics or Judge
 evidence. A Judge assesses captured facts and cannot repair the Subject's
 output. The human operator only accepts a canonical reference boundary or
@@ -371,8 +389,10 @@ silence and never fabricates `work finish` for a failed child.
 Only a registered `dd-flow` pause at an interaction point declared by the
 case may receive a response. The runner preserves the actual question, asks a
 clean Interaction Judge to select an existing canonical response, and resumes
-the same Stage and Session only after a match. An unplanned question or
-unmatched response terminates that execution with its evidence intact. A
+the same Stage and Session only after a match. If no answer is authorized,
+the managed observer returns `pending_answer` and leaves the registered pause
+intact; it must neither invent an answer nor continue the Subject. Classification
+of an unplanned question remains evaluation evidence, not permission to resume. A
 `fixture_gap` or ambiguous match marks the run invalid as evaluation
 infrastructure and is not a Subject-quality failure; an unnecessary or
 out-of-scope question remains a Subject failure. Repair the committed fixture
@@ -400,9 +420,11 @@ On a host/controller restart, use:
 dd-eval runner resume --eval "$DD_EVAL_HOME/runs/<eval-id>"
 ```
 
-Resume first reduces `events.jsonl` and observes both harness and `dd-flow`.
-It may finalize a completed stage, deliver one already-authorized HITL answer,
-or send the next E2E-stage launcher after its predecessor boundary is present;
+The detached resume observer first reduces `events.jsonl` and observes the
+existing `dd-flow` controller. It may finalize an observed result or supply an
+already-authorized HITL answer/context through the controller API; only the
+controller sends a successor launcher after its predecessor boundary is present.
+The observer
 it never repeats a launcher, model turn, stage finish, resume, or checkpoint
 whose operation receipt is already terminal. To stop an isolated execution
 without touching another cell:

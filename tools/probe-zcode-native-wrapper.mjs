@@ -1,0 +1,10 @@
+import { spawn } from 'node:child_process';
+import { appendFileSync } from 'node:fs';
+import path from 'node:path';
+if (!process.env.DD_ZCODE_HOOK_PROBE_DIR) throw new Error('isolated probe directory required');
+const preload = process.env.DD_ZCODE_PROBE_INHERIT_HOOKS;
+const child = spawn(process.execPath, [...(preload ? ['--require', preload] : []), '/Applications/ZCode.app/Contents/Resources/glm/zcode.cjs', ...process.argv.slice(2)], { stdio: ['inherit', 'inherit', 'pipe'] });
+child.stderr.on('data', bytes => appendFileSync(path.join(process.env.DD_ZCODE_HOOK_PROBE_DIR, 'native.stderr.log'), bytes));
+for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, () => child.kill(signal));
+child.on('error', error => { console.error(error.message); process.exitCode = 1; });
+child.on('exit', (code, signal) => { process.exitCode = code ?? (signal ? 1 : 0); });
