@@ -1,6 +1,6 @@
 # ZCode: точное подтверждение вызова внутри CLI
 
-Статус: production CLI probe PASS для root/concurrent children/child continuation; storage/CLI/observer и managed command producers реализованы. Итоговый release/package/checkpoint/preflight ещё не выполнен, E2E-ready не подтверждено. Полный E2E не запускался. Этот документ заменяет требование получить новую сборку ZCode с child hooks из раздела 2 исходного reliability-плана.
+Статус: production CLI probe PASS для root/concurrent children/child continuation; native reattach/read PASS. Beta.53 опубликована и проверена, checkpoint cp-101 подготовлен; остаются preflight Luna/ZCode. E2E-ready до их результата не подтверждено. Полный E2E не запускался. Этот документ заменяет требование получить новую сборку ZCode с child hooks из раздела 2 исходного reliability-плана.
 
 ## Ход реализации, 2026-09-13
 
@@ -70,6 +70,17 @@ doctor подменяется стандартным Node module mock для п�
 Текущий release commit `db14065`, job
 https://github.com/deksden-com/dd-flow-cli/actions/runs/34734083263.
 Версия всё ещё не опубликована; исходный runtime fix не изменился.
+
+Итог третьего job: SUCCESS, 55 файлов / 632 теста PASS. Beta.53 опубликована
+из `db14065f43f320bc69dacbec425cd04eac8236ae`; annotated tag v0.9.0-beta.53
+указывает на тот же commit, dist-tag beta=0.9.0-beta.53 (latest=0.8.0).
+Отдельная установка публичного npm-пакета, проверка build/canon identity,
+status compatibility и full-content digest PASS. Digest:
+`16dad1459a0ec0e5a81e5583b3e5de391609cb0603a290e10b257219ff22305f`.
+Receipt: `/Users/deksden/.dd-eval/qualification/cp-101-luna-zcode/published-package-verification.json`.
+Checkpoint cp-101 сохраняет прежние source commit/tag и flow-pack commit;
+меняется только опубликованный engine. Дальше — preflight двух прежних
+run profiles с тем же абсолютным entrypoint из этого receipt, без provider Session.
 
 Обновление после native qualification: повторный production probe PASS,
 артефакты `/private/var/folders/3d/083xyfws1x57r5mm5t1_rxqm0000gp/T/dd-zcode-production-rkPvjV`.

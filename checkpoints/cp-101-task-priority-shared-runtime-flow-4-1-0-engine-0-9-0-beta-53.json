@@ -1,0 +1,21 @@
+{
+  "id": "cp-101-task-priority-shared-runtime-flow-4-1-0-engine-0-9-0-beta-53",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "dee7dba1ae721ac1c2b12d8d9c5f16e0bbee0c8b",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.0",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "db14065f43f320bc69dacbec425cd04eac8236ae",
+      "version": "0.9.0-beta.53",
+      "artifact_sha256": "16dad1459a0ec0e5a81e5583b3e5de391609cb0603a290e10b257219ff22305f"
+    }
+  },
+  "state": "published_release_candidate_for_luna_and_zcode_e2e"
+}
