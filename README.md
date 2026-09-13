@@ -500,3 +500,13 @@ to bypass unknown operation outcomes. `runner control status --eval <path>`
 includes recorded continuation state and errors. Real-process fixture tests
 cover client exit and observer replacement, not native-provider or published
 artifact qualification; plan 032 remains in progress.
+
+## Read-only observation export
+
+After each committed root `events.jsonl` event, the runner atomically writes
+`observation.json` beside that journal. Its schema is `dd-eval/observation@1`
+and contains only the durable observation boundary: `run_id`, `observed_at`,
+`last_sequence`, overall state, and per-execution states. It is intended for
+local read-only tools such as `dd-console`. Consumers must not invoke live
+status/provider commands or copy `reduceEvents`; they may fall back to a
+historical journal only with an explicit partial-observation indication.
