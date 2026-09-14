@@ -14,7 +14,7 @@
 | Сохранение primary, drain | Primary фиксируется перед fence/stop. Adapter promise и fanout join, cancellation после control. Ошибка failure persistence/cleanup/response-file не заменяет primary. Controller, adapter и process-json tests |
 | Принятие стадий по актуальным входам | PLAN-REVIEW, CODE, CODE-REVIEW сверяют Work graph и входные hashes внутри writer reservation; тяжёлые checks вне него. Git preparation MERGE отделена от nested SQL settlement. Stage-consistency и сквозной vnext-protocolize test |
 | Строгий журнал EVAL | Проверяются scope, sequence, duplicate identity/payload, malformed/truncated tail. После fsync projection failure — отдельное warning, duplicate восстанавливает projection |
-| Наблюдаемость EVAL | Один status reader во время context/HITL callback; терминальный worker receipt восстанавливает root event; observation содержит stage/status/error, последний Work/operation и pending operations. Nested infrastructure cause учитывается в failure policy и validity |
+| Наблюдаемость EVAL | Один status reader во время context/HITL callback; терминальный worker receipt восстанавливает root event; observation содержит stage/status/error, последний Work/operation и pending operations. Проекция использует тот же execution reducer, что productive admission: поздний waiting не оживляет failed, старое поколение не загрязняет recovery. Nested infrastructure cause учитывается в failure policy и validity |
 | Старые engines не обходят гарантии | Writer contract 2. Старый writer отказывается писать новый store; исторические homes не мигрируются. Новый E2E — новый cp-108 и новые homes |
 
 Новый универсальный ledger, event broker, внешние зависимости и новые model-authored
@@ -42,5 +42,13 @@ RUN control; завершение transport не считается доказа
 6. Запуск ZCode из существующего `e2e-inline-merge-zcode-glm-5-3-flash-max` profile.
    Номер EVAL, release receipt и фактический старт дописать после выполнения.
 
-Статус на момент записи: адресные регрессии выполняются; release gate и живой E2E
-ещё не выполнены. Этот документ не подменяет их результат.
+Адресные проверки: 64 storage/lifecycle/stage; 45 lifecycle/Work publication;
+44 writer/migration/vnext protocolize; 3 реальные controller-stage регрессии;
+111 EVAL client/journal/transport и 11 execution/projection/race — прошли.
+Это пересекающиеся наборы, их числа не суммируются в число уникальных тестов.
+Последняя проверка fallback diagnostics также завершилась без failures (Vitest receipt).
+
+CLI commit `f21e056086e7f7be765b8f16f045cad0ee11dfb4`, beta.64.
+Единственный release gate: https://github.com/deksden-com/dd-flow-cli/actions/runs/34866898070.
+На момент записи job выполняется; публикация и живой E2E ещё не подтверждены.
+Этот документ не подменяет их результат.

@@ -43,6 +43,29 @@ test("cleanup exhaustion replaces awaiting_provider and preserves execution fail
   assert.equal(observation.executions[0].state, "failed");
 });
 
+test("late observations cannot revive a terminal execution or contaminate explicit recovery", () => {
+  const events = [];
+  const add = (type, data, executionid = "e2e") => events.push({ runid: "EVAL", executionid, type: `dev.dd.eval.${type}`, data: { ...data, sequence: events.length + 1 } });
+  const launch = "EVAL:e2e:launch", recovery = `${launch}:recover:one`;
+  add("operation.started", { operation_id: launch });
+  add("operation.failed", { operation_id: launch, error: { code: "storage_write_failed" } });
+  add("execution.failed", { execution_operation_id: launch, state: "failed", code: "storage_write_failed" });
+  add("completed", { state: "finished_with_failures" }, undefined);
+  add("execution.awaiting_provider", { execution_operation_id: launch, state: "awaiting_provider" });
+  add("operation.started", { operation_id: launch });
+  let result = observationProjection(events);
+  assert.equal(result.state, "finished_with_failures");
+  assert.equal(result.executions[0].state, "failed");
+  add("operation.started", { operation_id: recovery });
+  add("controller.event", { execution_operation_id: recovery, data: { stage: "code", status: "running" } });
+  add("controller.event", { execution_operation_id: launch, data: { stage: "plan", error: { code: "old_failure" } } });
+  result = observationProjection(events);
+  assert.equal(result.state, "awaiting_provider");
+  assert.equal(result.executions[0].state, "awaiting_provider");
+  assert.equal(result.executions[0].stage, "code");
+  assert.equal(result.executions[0].failure, undefined);
+});
+
 test("runner publishes a durable console observation after a committed event", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-observation-"));
   const eventsFile = path.join(root, "events.jsonl");
