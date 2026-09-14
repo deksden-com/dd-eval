@@ -3,6 +3,18 @@
 Recovery is explicit. A provider failure is not a failed business result, and
 an unknown operation outcome is not permission to repeat a prompt.
 
+For beta.64 and later, retained lifecycle outcomes distinguish `no_effect`,
+`committed`, and `unknown`. A committed Work-start response is recovered from
+its stored packet/reply, not by creating another binding. Only a proven SQL-only
+rollback permits the runtime-issued bounded storage retry. Follow that runtime
+directive; never invent an invocation ID or edit the ledger to mark it ready.
+Keep the original error and receipt even if stop/capture also fails. A retained
+error is not evidence of a currently held SQLite lock or a live native process.
+Use the owner/process and RUN-control receipts to establish those facts.
+Diagnostic fallback files explain failed outcome persistence; they are not
+authority to replay an operation. Historical writer-contract-1 homes stay on
+their pinned engines; new beta.64 campaigns use fresh contract-2 homes.
+
 ## Continue blocked cleanup without resuming work
 
 The recovery observer has 120 seconds of active observation, persisted across

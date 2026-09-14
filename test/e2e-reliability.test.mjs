@@ -6,7 +6,7 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { setTimeout as delay } from 'node:timers/promises';
-import { appendEvent, readEvents, recordControllerEvent, recordOperationError, reduceEvents } from '../lib/runner-events.mjs';
+import { appendEvent, readEvents, recordControllerEvent, recordOperationError, reduceEvents, sha256 } from '../lib/runner-events.mjs';
 import { assertRetainedRunDefinition, loadCase, runnerResume } from '../lib/runner.mjs';
 import { workerLiveness, evalRunnerAttemptsStatus } from '../lib/eval-resume-worker.mjs';
 import { commandText } from '../lib/process-json.mjs';
@@ -17,6 +17,20 @@ async function fixture(t) {
   t.after(() => rm(root, { recursive: true, force: true }));
   return root;
 }
+
+for (const status of ['failed', 'recovery_blocked']) test(`terminal observer receipt repairs its missing root event without executing (${status})`, async t => {
+  const root = await fixture(t), request = 'retained';
+  const directory = path.join(root, 'runner-attempts', sha256(request));
+  await mkdir(directory, { recursive: true });
+  const file = path.join(directory, 'attempt.json');
+  await writeFile(file, JSON.stringify({ schema_id: 'dd-eval/resume-worker@1', intent: { kind: 'run', eval_root: root, request_id: request, run_id: 'EVAL' }, status, process_id: 'retained-owner', error: { code: 'observer_failed' } }));
+  const worker = new URL('../lib/eval-resume-worker.mjs', import.meta.url);
+  for (let i = 0; i < 2; i++) await promisify(execFile)(process.execPath, [worker.pathname, file], { timeout: 5000 });
+  const events = await readEvents(path.join(root, 'events.jsonl'));
+  assert.equal(events.length, 1);
+  assert.equal(events[0].data.error.code, 'observer_failed');
+  assert.equal(reduceEvents(events).state, status);
+});
 
 test('controller replay is deduplicated independently of the EVAL sequence', async t => {
   const root = await fixture(t), file = path.join(root, 'events.jsonl');

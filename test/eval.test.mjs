@@ -69,6 +69,8 @@ test("project flow-pack preflight rejects a bare canonical flow before a Session
 });
 
 test("runtime compatibility is owned by the selected harness profile", () => {
+  for (const code of ["write_transaction_unowned", "write_transaction_failed", "work_start_projection_conflict", "harness_adapter_invalid", "harness_adapter_aborted"]) assert.equal(isInfrastructureFailure(code), true);
+  assert.equal(isInfrastructureFailure("work_checks_failed"), false);
   const profile = { id: "example", runtime: { tool: "1.2.3", dd_harness_contract: "example@1" } };
   assert.doesNotThrow(() => assertObservedRuntime({ observed_runtime: profile.runtime }, profile, "doctor"));
   assert.throws(() => assertObservedRuntime({ compatible: false, observed_runtime: profile.runtime }, profile, "doctor"), { code: "harness_runtime_incompatible" });
@@ -321,9 +323,11 @@ test("new-session handoff is a flow invariant rather than an eval-profile option
 test("E2E dispatch delegates Session handoff and fan-out to the CLI controller", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.doesNotMatch(source, /function (?:runServerMerge|materializeMergeAgentProfile|stageExecutor|mergeHarness)\b/);
-  const execution = source.slice(source.indexOf("async function executeEval("), source.indexOf("export async function evalJudge("));
+  const execution = source.slice(source.indexOf("export async function launchEvalExecution("), source.indexOf("async function observeManagedExecution("));
   assert.match(execution, /await observeManagedExecution/);
-  assert.doesNotMatch(execution, /providerTurn\(|callDriver\(|driveFanout\(|runServerMerge\(|captureExecutionCandidate\(/);
+  // Harness doctor is an admission preflight, not a provider turn.  Productive
+  // handoff/fan-out must remain exclusively behind the CLI controller.
+  assert.doesNotMatch(execution, /providerTurn\(|driveFanout\(|runServerMerge\(|captureExecutionCandidate\(/);
   const managed = source.slice(source.indexOf("async function observeManagedExecution("), source.indexOf("export async function recoverExecution("));
   assert.match(managed, /await observeManagedRun/);
   assert.match(managed, /observed\.controller\.sessions/);
@@ -374,6 +378,11 @@ test("reconciliation failures retain undetermined attribution for the Judge", ()
   assert.equal(failureAttribution("provider_rate_limited"), "evaluation_infrastructure");
   assert.equal(failureAttribution("unexpected_hitl"), "subject");
   assert.equal(failureAttribution("future_unclassified_failure"), "undetermined");
+  assert.equal(failureAttribution({ code: "wrapper", cause: { code: "storage_write_failed" } }), "evaluation_infrastructure");
+  assert.equal(failureAttribution({ code: "usage", details: { lifecycle_outcome: { disposition: "fatal" } } }), "evaluation_infrastructure");
+  for (const code of ["lifecycle_outcome_unknown", "work_start_publication_failed"]) {
+    assert.equal(failureAttribution(code), "evaluation_infrastructure");
+  }
   const prompt = finalJudgePrompt({ assessmentFile: "/assessment", candidateFile: "/candidate", evidenceFile: "/evidence", scope: "e2e", assessment: { scopes: { e2e: { outcome: [{ id: "outcome" }], flow: [{ id: "flow" }] } } } });
   assert.match(prompt, /stop for runner dispatch/);
 });

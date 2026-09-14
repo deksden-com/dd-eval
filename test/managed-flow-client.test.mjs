@@ -28,13 +28,15 @@ else if(args[1]==='drive' && args[2]==='status') {
   }
   if(process.env.TEST_MANAGED_ANSWER_RACE) {
     result={controller:{...controller,status:'waiting_for_user'},events:process.env.TEST_MANAGED_ACCEPTED==='0'?[]:
-      [{sequence:1,type:'answer_accepted',data:{pause_id:'PAUSE-1'}}]};
+      (Number(args[args.indexOf('--after')+1]) < 1 ? [{sequence:1,type:'answer_accepted',data:{pause_id:'PAUSE-1'}}] : [])};
+    result.events = result.events.filter(e=>e.sequence>Number(args[args.indexOf('--after')+1]));
     console.log(JSON.stringify(result));process.exit(0);
   }
   if(process.env.TEST_MANAGED_REVIEW==='1') {
     result={controller:{...controller,status:'waiting_for_context'},events:[
       ...(process.env.TEST_MANAGED_CAPTURE==='0'?[]:[{sequence:1,type:'boundary_captured',data:{stage:'specify',manifest:'review-manifest'}}]),
       {sequence:2,type:'context_required',data:{stage:'protocolize',attempt:1}}]};
+    result.events = result.events.filter(e=>e.sequence>Number(args[args.indexOf('--after')+1]));
     console.log(JSON.stringify(result));process.exit(0);
   }
   if(process.env.TEST_MANAGED_REATTACH==='1') {
@@ -45,17 +47,38 @@ else if(args[1]==='drive' && args[2]==='status') {
     console.log(JSON.stringify(result));process.exit(0);
   }
   state.step++;
-  if(state.step===1) result={controller:{...controller,status:'waiting_for_context'},events:[{sequence:1,type:'context_required',data:{stage:'plan',attempt:1}}]};
-  else if(state.step===2) {
+  if(!state.context) result={controller:{...controller,status:'waiting_for_context'},events:[{sequence:1,type:'context_required',data:{stage:'plan',attempt:1}}]};
+  else if(!state.answer) {
     if(!state.context) throw new Error('context missing');
     result={controller:{...controller,status:'waiting_for_user'},events:[{sequence:2,type:'session_created',data:{stage:'plan',session_id:'native'}}]};
   } else {
     if(state.answer!=='raw answer\\n') throw new Error('raw answer changed');
     result={controller:{...controller,status:'stop_target_reached'},events:[{sequence:3,type:'boundary_captured',data:{stage:'plan',manifest:'fixture-manifest'}}]};
   }
+  result.events = result.events.filter(e=>e.sequence>Number(args[args.indexOf('--after')+1]));
 } else throw new Error('unexpected command '+JSON.stringify(args));
 fs.writeFileSync(stateFile,JSON.stringify(state));console.log(JSON.stringify(result));
 `;
+
+for (const slow of [false, true]) test(`input preparation observes failure and never dispatches late input (slow: ${slow})`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-input-fence-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), stop = path.join(root, 'stopped');
+  await writeFile(bin, `import fs from 'node:fs';
+    const args=process.argv.slice(2), after=Number(args[args.indexOf('--after')+1]);
+    if(args[2]!=='status') throw new Error('unexpected dispatch');
+    const stopped=fs.existsSync(${JSON.stringify(stop)});
+    console.log(JSON.stringify({controller:{controller_id:'DRV',stage:'plan',status:stopped?'control_requested':'waiting_for_context',...(stopped?{error:{code:'write_transaction_failed',message:'storage failed'}}:{})},
+      events: stopped ? (after<2?[{sequence:2,type:'recovery_required',data:{}}]:[]) : (after<1?[{sequence:1,type:'context_required',data:{stage:'plan',attempt:1}}]:[])}));`);
+  const delivered = []; let actions = 0;
+  await assert.rejects(observeManagedRun({ bin, projectRoot: root, runId: 'RUN', controllerId: 'DRV', requestId: 'request', pollMs: 50,
+    onEvent: event => { delivered.push(event.sequence); },
+    contextFor: async () => { actions++; await writeFile(stop, 'yes'); return slow ? new Promise(() => {}) : { file: '/must-not-send', sha256: 'unused' }; },
+    beforeDispatch: () => assert.fail('input crossed the stop fence'),
+  }), { code: 'write_transaction_failed', message: 'storage failed' });
+  assert.deepEqual(delivered, [1, 2]);
+  assert.equal(actions, 1);
+});
 
 test('missing authorized HITL answer preserves the pause without sending a turn or answer', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'managed-no-answer-'));
@@ -181,7 +204,7 @@ test('manual boundary review leaves the same controller waiting without dispatch
     }
     await assert.rejects(observeManagedRun({ ...input, env: { ...input.env, TEST_MANAGED_CAPTURE: '0' } }), { code: 'controller_boundary_missing' });
     const calls = (await readFile(path.join(root, 'calls.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
-    assert.equal(calls.length, 3);
+    assert.equal(calls.length, 6); // Initial observation and post-callback fence for each call.
     assert.ok(calls.every(args => args[1] === 'drive' && args[2] === 'status'));
   } finally { await rm(root, { recursive: true, force: true }); }
 });

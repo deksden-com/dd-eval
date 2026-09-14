@@ -23,6 +23,21 @@ never extend that window.
 
 ## Before launch
 
+### Writer contract and lifecycle outcomes (cp-108)
+
+For engine beta.64, prepare a fresh campaign home and resource home using writer
+contract 2. Do not implicitly migrate historical contract-1 stores or point the
+new engine at their shared registry. Keep one explicit resource home for every
+process in the new campaign; account for old campaigns before allocating shared
+host resources. A receipt with unknown effects is not permission to repeat a
+provider prompt. Recover a committed Work start from its retained packet/reply;
+only a proven SQL-only rollback permits the retained bounded storage retry.
+
+Use controller/root journal outcomes and observation.json to monitor progress.
+An observation projection warning after journal fsync does not mean the productive
+operation failed. A corrupt journal or unavailable retained outcome must stop
+admission and preserve evidence; never truncate the journal to make resume pass.
+
 ### Comparison does not require identical runtime versions
 
 Follow [the comparison policy](../methodology/evaluation-methodology.md#comparability-across-runtime-versions).
