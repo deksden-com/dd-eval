@@ -34,6 +34,28 @@ flow/memory-bank and case inputs rather than requiring equal whole-file hashes.
 Each new run must still satisfy its own exact pinned-engine admission checks;
 never replace an old run's engine or edit its manifest to make it comparable.
 
+### Harness admission after an upgrade (cp-106 incident)
+
+Before declaring readiness, run the non-generative `doctor` from the exact
+campaign engine's `harness-runtime/bin`, with the actual configured native
+binary/bridge. For ZCode, use `node <runtime>/harness-runtime/bin/dd-zcode.mjs
+doctor --zcode-acp-bin <configured-bridge> --json`. Check both `compatible: true`
+and every `observed_runtime` field against the selected eval profile. A zero
+exit code, unchanged version string, successful engine install, or passing
+release tests alone does not prove admission. Retain the JSON receipt.
+
+When a bridge commit changes, review its relevant protocol changes, update its
+qualified tuple and selected profile together, and verify the actual doctor.
+Unknown tuples must still fail closed. Do not blindly replace a qualification
+hash to make a launch pass. Run a focused live probe only when the changed
+behavior lacks evidence; this is not another product baseline or full E2E.
+
+The ordinary E2E runner now checks its provisioned Subject adapter before
+baseline admission and saves `harness-admission.json` on success. Preparation
+must also check any selected Judge/worker adapters. Engine fixes require the
+normal release and a new checkpoint before the next published-engine campaign;
+source tests do not upgrade an already installed beta.62 snapshot.
+
 ### Bounded preparation policy (2026-09-13)
 
 Preparation is not a product qualification or a live E2E. Reuse an accepted

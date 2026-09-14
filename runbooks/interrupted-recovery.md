@@ -10,6 +10,19 @@ owner replacement. Host sleep is not evidence of death. Poll backoff is
 1/2/5/10 seconds; cleanup RPC waits are capped by the remaining budget.
 An exhausted observer exits with the fence intact, not with fabricated success.
 
+A rejected startup is not necessarily an unknown live Session. If the durable
+`daemon.start` failure explicitly records `details.startup_resources:
+"not_created"`, and the retained operation/resource inventory proves no
+predecessor daemon or later dispatch, RUN control can settle that empty target.
+An absent Session id, generic error, timeout or missing receipt is insufficient.
+Keep the original startup failure even when empty-resource cleanup succeeds.
+
+After budget exhaustion, `recovery_blocked` must appear in the root EVAL journal
+and `observation.json`, not only in the attempt file. Read these together when
+diagnosing historical runs such as cp-106, whose old projection incorrectly
+remained `awaiting_provider`. Do not restart observation repeatedly to hide an
+unresolved startup/settlement defect.
+
 For a failed EVAL execution with pending cleanup:
 
 ```sh

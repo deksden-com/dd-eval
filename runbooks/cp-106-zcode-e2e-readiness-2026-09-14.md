@@ -1,8 +1,18 @@
 # cp-106: подготовка ZCode E2E на beta.62
 
-Статус: готово к новому ZCode E2E. Живой E2E и `runner eval preflight` не
-запускались: следующий `runner eval run` должен создать единственный новый
-EVAL.
+Статус: готовность опровергнута запуском `EVAL-20260914094108-1d25fff4`.
+Baseline прошёл, но beta.62 отклонила bridge `60af0d3`: в допуске остался
+commit `e0600fe3`. Сессия Subject не создавалась. Остановка завершилась
+`recovery_blocked`, поскольку не учитывала отказ до создания ресурсов.
+Этот документ сохраняет исторические входы, а не разрешение повторить запуск.
+После выпуска исправления нужен новый checkpoint и проверка фактической связки
+по [execute-eval](execute-eval.md); старый runtime нельзя исправлять на месте.
+
+Исправление в исходниках проверено 2026-09-14: non-generative doctor с локальным
+bridge `/Users/deksden/Library/pnpm/zcode-acp` вернул `compatible: true`,
+`lifecycle_qualification.status: qualified`, ZCode `0.16.5`, bridge `0.13.1`,
+commit `60af0d31e13076a313d9770f10aa70f7c94742cf`, contract `dd-zcode-harness@1`.
+Это проверка исходников; установленный пакет beta.62 остаётся прежним.
 
 ## Зафиксированные входы
 

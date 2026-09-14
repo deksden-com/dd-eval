@@ -71,6 +71,9 @@ test("project flow-pack preflight rejects a bare canonical flow before a Session
 test("runtime compatibility is owned by the selected harness profile", () => {
   const profile = { id: "example", runtime: { tool: "1.2.3", dd_harness_contract: "example@1" } };
   assert.doesNotThrow(() => assertObservedRuntime({ observed_runtime: profile.runtime }, profile, "doctor"));
+  assert.throws(() => assertObservedRuntime({ compatible: false, observed_runtime: profile.runtime }, profile, "doctor"), { code: "harness_runtime_incompatible" });
+  assert.throws(() => assertObservedRuntime({ compatible: false }, {}, "doctor"), { code: "harness_runtime_incompatible" });
+  for (const code of ["harness_runtime_incompatible", "harness_runtime_mismatch", "harness_runtime_unobservable", "zcode_lifecycle_unqualified"]) assert.equal(isInfrastructureFailure(code), true);
   assert.throws(() => assertObservedRuntime({ observed_runtime: { tool: "1.2.4", dd_harness_contract: "example@1" } }, profile, "doctor"), error => error.code === "harness_runtime_mismatch" && /compatibility qualify/.test(error.details.next_command));
 });
 
