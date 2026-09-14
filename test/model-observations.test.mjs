@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, appendFile, mkdir, rm } from 'node:fs/promises';
+import { mkdtemp, appendFile, mkdir, rm, symlink } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { checkObservedProfile, readModelObservations, modelAttribution, modelObservationFile } from '../lib/model-observations.mjs';
@@ -34,6 +34,20 @@ test('evidence resolver uses every published controller journal and reports miss
   const failed = await resolveEvidenceJournals({ details: { controller: { sessions: [{ journal }, { journal }] } } });
   assert.equal(failed.journals.length, 1);
   assert.equal(failed.attribution.sessions.length, 1);
+
+  const owned = path.join(root, 'daemon', 'owned.events.jsonl');
+  await mkdir(path.dirname(owned), { recursive: true }); await appendFile(owned, '');
+  const guarded = await resolveEvidenceJournals({ driver: { controller: { sessions: [
+    { state_dir: path.join(root, 'daemon'), journal: owned },
+    { state_dir: path.join(root, 'daemon'), journal },
+  ] } } });
+  assert.equal(guarded.journals.filter(item => item.status === 'available').length, 1);
+  assert.ok(guarded.journals.some(item => item.reason === 'journal_outside_published_state_dir'));
+  const escaped = path.join(root, 'daemon', 'escaped.jsonl');
+  await symlink(journal, escaped);
+  const linked = await resolveEvidenceJournals({ driver: { controller: { sessions: [{ state_dir: path.join(root, 'daemon'), journal: escaped }] } } });
+  assert.equal(linked.journals[0].reason, 'journal_outside_published_state_dir');
+  assert.equal(linked.journals[0].status, 'unavailable');
 });
 
 test('402 transitions and return are durable before progress, replay deduplicates journal across consumers', async t => {

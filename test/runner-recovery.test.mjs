@@ -5,11 +5,62 @@ import path from "node:path";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
 import { withRunnerLock } from "../lib/runner-lock.mjs";
-import { appendEvent, recordOperation, completeOperation, readEvents, reduceEvents, writeJsonAtomic } from "../lib/runner-events.mjs";
+import { appendEvent, recordOperation, completeOperation, readEvents, reduceEvents, writeJsonAtomic, sha256 } from "../lib/runner-events.mjs";
+import { requestRunnerContinuation } from "../lib/eval-resume-worker.mjs";
+import { setTimeout as delay } from "node:timers/promises";
+
+test("public cleanup retry retains an exhausted attempt and a new identity runs cleanup only", { timeout: 15000 }, async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-cleanup-worker-"));
+  try {
+    const manifest = { run_id: "EVAL-test", executions: [{ id: "e" }], profile: { judge: { enabled: true } } };
+    await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
+    for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "preflight_failed", message: "before session" } } });
+    const file = path.join(root, "runner-attempts", sha256("spent"), "attempt.json");
+    await writeJsonAtomic(file, { schema_id: "dd-eval/resume-worker@1", intent: { eval_root: root, run_id: manifest.run_id, request_id: "spent", kind: "cleanup", manifest_sha256: sha256(await readFile(path.join(root, "manifest.json"))) }, status: "recovery_blocked", recovery_observation: { remaining_ms: 0 } });
+    assert.equal((await requestRunnerContinuation({ evalRoot: root, kind: "cleanup", requestId: "spent" })).continuation.status, "recovery_blocked");
+    assert.equal(JSON.parse(await readFile(file)).recovery_observation.remaining_ms, 0);
+    const fresh = await requestRunnerContinuation({ evalRoot: root, kind: "cleanup", requestId: "fresh" });
+    let saved;
+    const deadline = performance.now() + 10000;
+    do {
+      saved = JSON.parse(await readFile(fresh.continuation.file));
+      if (saved.status === "failed") assert.fail(JSON.stringify(saved.error));
+      if (performance.now() > deadline) assert.fail("cleanup owner did not exit");
+      await delay(50);
+    } while (saved.status !== "completed" || (await processSnapshot()).some(item => item.pid === saved.owner_pid && !item.zombie));
+    assert.equal(saved.result.judge_status, "not_run_cleanup_only");
+    assert.equal((await requestRunnerContinuation({ evalRoot: root, kind: "cleanup", requestId: "fresh" })).continuation.status, "completed");
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 import { commandJson } from "../lib/process-json.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
-import { runnerResume } from "../lib/runner.mjs";
+import { migrateLegacyCanonicalResumeLock, runnerResume, runnerCleanup } from "../lib/runner.mjs";
+import { processSnapshot } from "../lib/process-snapshot.mjs";
+import { recoveryObservationBudget, withRecoveryObservation } from "../lib/recovery-observation-budget.mjs";
+
+test("cleanup leaves queued executions and Judge undispatched", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-cleanup-only-"));
+  try {
+    const manifest = { run_id: "EVAL-test", executions: [{ id: "e" }, { id: "queued" }], profile: { judge: { enabled: true, profile_id: "must-not-run" } } };
+    await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
+    for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "preflight_failed", message: "before session" } } });
+    const result = await runnerCleanup({ evalRoot: root, requestId: "cleanup-1" });
+    assert.equal(result.execution_state, "failed");
+    assert.equal(result.judge_status, "not_run_cleanup_only");
+    const events = await readEvents(path.join(root, "events.jsonl"));
+    assert.equal(events.filter(event => event.type === "dev.dd.eval.operation.started").length, 1);
+    await assert.rejects(readFile(path.join(root, "candidate.json")), { code: "ENOENT" });
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("cleanup RPC is bounded while productive calls do not inherit its timeout", async () => {
+  const budget = recoveryObservationBudget({ recovery_observation: { remaining_ms: 30 } });
+  await assert.rejects(withRecoveryObservation(budget, () => commandJson(process.execPath, ["-e", "setTimeout(()=>{}, 10000)", "--"])), { name: "AbortError" });
+  assert.deepEqual(await commandJson(process.execPath, ["-e", "console.log('{}')", "--"]), {});
+  const backoff = recoveryObservationBudget(null);
+  assert.deepEqual([backoff.nextDelay(),backoff.nextDelay(),backoff.nextDelay(),backoff.nextDelay()], [1000,2000,5000,10000]);
+});
 
 for (const enabled of [false, true]) test(`resume finalizes a pre-session failure without replay (Judge enabled: ${enabled})`, async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-failed-resume-"));
@@ -19,6 +70,8 @@ for (const enabled of [false, true]) test(`resume finalizes a pre-session failur
     for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "preflight_failed", message: "before session" } } });
     const first = await runnerResume({ evalRoot: root });
     assert.equal(first.state, "completed_with_failures");
+    assert.equal(first.execution_state, "failed");
+    assert.equal(first.cleanup_state, "settled");
     assert.equal(first.judge_status, enabled ? "failed" : "not_requested");
     if (enabled) assert.equal(JSON.parse(await readFile(path.join(root, "reports/report.json"), "utf8")).judge_status, "failed");
     const before = await readEvents(path.join(root, "events.jsonl"));
@@ -26,6 +79,10 @@ for (const enabled of [false, true]) test(`resume finalizes a pre-session failur
     assert.equal(second.candidate.immutable_hash, first.candidate.immutable_hash);
     assert.equal((await readEvents(path.join(root, "events.jsonl"))).length, before.length);
     assert.equal(second.executions[0].code, "preflight_failed");
+    await runnerCleanup({ evalRoot: root, requestId: "already-clean" });
+    const retained = JSON.parse(await readFile(path.join(root, "reports", "report.json")));
+    assert.equal(retained.candidate.immutable_hash, first.candidate.immutable_hash);
+    assert.equal(retained.judge_status, first.judge_status);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
@@ -41,7 +98,10 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
     const manifest = { run_id: "EVAL-test", runtime_resource_home: path.join(root, "resources"), case_id: "sdlc-eval-2026-summer-task-priority", executions: [{ id: "e", stage: "specify", terminal_stage: "merge", mode: "e2e" }], subject_profile: {}, profile: { judge: { enabled: false } } };
     await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
     for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "unexpected_hitl", message: "second question" } } });
-    assert.equal((await runnerResume({ evalRoot: root })).state, "awaiting_provider");
+    const pending = await runnerResume({ evalRoot: root });
+    assert.equal(pending.state, "awaiting_provider");
+    assert.equal(pending.execution_state, "failed");
+    assert.equal(pending.cleanup_state, "pending");
     const capture = path.join(root, "capture"); await mkdir(capture); await writeJsonAtomic(path.join(capture, "snapshot.json"), { consistency: "sealed" });
     await writeJsonAtomic(statusFile, { ok: true, settled: true, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test" } });
     const final = await runnerResume({ evalRoot: root });
@@ -53,6 +113,52 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
     assert.equal((await runnerResume({ evalRoot: root })).candidate.immutable_hash, final.candidate.immutable_hash);
     assert.equal((await readEvents(path.join(root, "events.jsonl"))).length, count);
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("canonical legacy lock migration reclaims only a proven dead owner", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "canonical-lock-migration-"));
+  const file = path.join(root, "build", "canonical-resume.lock");
+  try {
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, JSON.stringify({ pid: 999_999, started_at: "never" }));
+    await migrateLegacyCanonicalResumeLock(root);
+    await assert.rejects(readFile(file), { code: "ENOENT" });
+
+    await writeFile(file, "{");
+    await assert.rejects(migrateLegacyCanonicalResumeLock(root), { code: "canonical_resume_active" });
+
+    const self = (await processSnapshot()).find(item => item.pid === process.pid);
+    assert.ok(self && !self.zombie);
+    await writeFile(file, JSON.stringify({ pid: process.pid, started_at: self.started }));
+    await assert.rejects(migrateLegacyCanonicalResumeLock(root), { code: "canonical_resume_active" });
+    await writeFile(file, JSON.stringify({ pid: process.pid, started_at: new Date().toISOString() }));
+    await assert.rejects(migrateLegacyCanonicalResumeLock(root), { code: "canonical_resume_active" });
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("recovery observer budget carries remaining observed time across replacement", () => {
+  let time = 0;
+  const first = recoveryObservationBudget(null, () => time);
+  time += 20;
+  assert.equal(first.exhausted(), false);
+  const replacement = recoveryObservationBudget({ recovery_observation: first.state() }, () => time);
+  time += 60_000;
+  assert.equal(replacement.exhausted(), false);
+  time += 60_000;
+  assert.equal(replacement.exhausted(), true);
+});
+
+test("productive evaluation time does not spend the cleanup observation budget", () => {
+  let time = 0;
+  const budget = recoveryObservationBudget(null, () => time);
+  for (let i = 0; i < 20; i++) {
+    time += 30_000;
+    assert.equal(budget.exhausted(false), false);
+  }
+  assert.equal(budget.state().remaining_ms, 120_000);
+  time += 30_000;
+  budget.exhausted();
+  assert.equal(budget.state().remaining_ms, 90_000);
 });
 import { appendRunEventOnce, runResultRevision, recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoverySourceFromEvents, recoveryOperationId, recoveryPrompt, prepareRecoveryDelivery, isInfrastructureFailure } from "../lib/runner.mjs";
 

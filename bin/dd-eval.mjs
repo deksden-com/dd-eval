@@ -32,6 +32,7 @@ Usage:
   dd-eval runner control reconcile --eval <path> --from <request-id>
   dd-eval runner control resume --eval <path> --from <control-request-id> --request-id <id> [--wait-ms <0..60000>]
   dd-eval runner resume --eval <path>
+  dd-eval runner cleanup --eval <path> --request-id <id>
   dd-eval runner recover --eval <path> --from <recovery-id> [--execution <id>]
   dd-eval runner recovery inspect --eval <path> [--execution <id>]
   dd-eval runner reconcile --eval <path>
@@ -72,7 +73,7 @@ function validateCommand({ positional, options }) {
     "runner eval run": [3, ["profile"]], "runner eval judge": [3, ["eval", "profile"]],
     "runner status": [2, ["eval"]], "runner control status": [3, ["eval", "execution"]], "runner control pause": [3, ["eval", "request-id"]], "runner control stop": [3, ["eval", "request-id"]],
     "runner control reconcile": [3, ["eval", "from"]], "runner control resume": [3, ["eval", "from", "request-id", "wait-ms"]],
-    "runner resume": [2, ["eval"]], "runner recover": [2, ["eval", "from", "execution"]], "runner recovery inspect": [3, ["eval", "execution"]], "runner reconcile": [2, ["eval"]], "runner cancel": [2, ["eval", "execution"]],
+    "runner resume": [2, ["eval"]], "runner cleanup": [2, ["eval", "request-id"]], "runner recover": [2, ["eval", "from", "execution"]], "runner recovery inspect": [3, ["eval", "execution"]], "runner reconcile": [2, ["eval"]], "runner cancel": [2, ["eval", "execution"]],
     "storage ls": [2, ["case"]], "storage status": [2, []], "gc plan": [2, []], "gc apply": [2, ["plan"]]
   };
   let rule = rules[key] ?? rules[positional.slice(0, 2).join(" ")];
@@ -134,6 +135,7 @@ try {
     result = await requestEvalResume({ evalRoot: required(options, "eval"), requestId: required(options, "request-id"), fromRequestId: required(options, "from"), ...(options["wait-ms"] !== undefined ? { waitMs: Number(options["wait-ms"]) } : {}) });
   }
   else if (family === "runner" && command === "resume") result = await requestRunnerContinuation({ evalRoot: required(options, "eval") });
+  else if (family === "runner" && command === "cleanup") result = await requestRunnerContinuation({ evalRoot: required(options, "eval"), kind: "cleanup", requestId: required(options, "request-id") });
   else if (family === "runner" && command === "recover") result = await runnerRecover({ evalRoot: required(options, "eval"), fromRecoveryId: required(options, "from"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "recovery" && positional[2] === "inspect") result = await runnerRecoveryInspect({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "reconcile") result = await runnerReconcile({ evalRoot: required(options, "eval") });

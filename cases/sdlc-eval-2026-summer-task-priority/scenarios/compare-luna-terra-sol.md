@@ -30,9 +30,10 @@ are diagnostic evidence only and are not substituted into this comparison.
   on that profile and only the initial E2E entry; downstream artifacts are its
   own.
 - Every candidate has one clean Judge Session. The same committed case
-  definition, accepted entry pack, project input, permissions and Desktop
-  harness apply to every profile. The resolved manifest is the sole source of
-  the engine/flow pair.
+  task definition, accepted entry pack, project input and permissions apply to
+  every profile. This scenario selects the Desktop harness, but its supporting
+  software versions need not be identical. Each resolved manifest records the
+  exact engine/flow pair and eval/harness provenance.
 
 Subject profile selection is resolved from the current `case.json` by matching
 the model/reasoning pair below; the scenario deliberately does not repeat
@@ -44,8 +45,12 @@ gpt-5.6-terra / high
 gpt-5.6-sol / high
 ```
 
-Do not edit prompts, interactions, assessment, starters or runtime
-configuration between profiles. A changed definition starts a new comparison.
+Keep prompts, interactions, assessment, starters and substantive execution
+conditions fixed between profiles. Supporting CLI/runner/harness upgrades do
+not start a new comparison merely by changing a commit or artifact hash.
+Use the [comparison policy](../../../methodology/evaluation-methodology.md#comparability-across-runtime-versions):
+checkpoint task inputs and flow/memory-bank must remain the same; disclose
+runtime differences and any known effect on behavior or measurements.
 
 ## Controller procedure
 
@@ -108,7 +113,8 @@ performs no semantic synthesis.
 
 The comparison report records:
 
-- scenario path and `dd-eval` definition commit;
+- scenario path, checkpoint input equivalence and each run's `dd-eval`, CLI
+  and harness/adapter version or commit;
 - all 21 execution IDs, Subject Sessions and Judge Sessions;
 - effective model/reasoning verified by the harness;
 - a stage-by-profile quality table;

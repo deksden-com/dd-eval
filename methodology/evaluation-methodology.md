@@ -175,6 +175,40 @@ shared one scale. When an assessment changes, either statically rejudge the old
 candidate under the new assessment or show the historical and new-method lanes
 separately. Never silently mix their weighted scores or radar axes.
 
+## Comparability across runtime versions
+
+Runs may be compared across different versions of `dd-flow-cli`, `dd-eval`,
+native harnesses and adapters. Identical supporting software is not a condition
+for comparison. Preserve its exact versions/commits in each run's provenance
+and disclose differences in the comparison; do not discard valid results or
+require reruns merely because that software was upgraded.
+
+The comparison requires the same checkpoint inputs: source project state,
+flow-pack content and memory-bank content/version. It also requires the same
+task and stage scope, entry context, HITL answer fixtures, applicable permissions
+and assessment/methodology axes. Subject model/harness differences may be the
+declared variable being compared. The same version label alone is not evidence
+of equal input content.
+
+Checkpoint files currently also pin an engine artifact. Their full hash is an
+exact execution identity, not the comparison key. Checkpoints differing only
+in supporting runtime pins remain comparable when the substantive inputs above
+are unchanged and that equivalence is recorded from their retained manifests.
+Do not rewrite historical checkpoints to make their IDs or hashes match.
+
+A runtime version difference alone is not an exclusion. A known substantive
+behavior difference—changed model-visible instructions, available tools, flow
+gates, HITL behavior or scoring—is a changed experimental condition, regardless
+of which repository implemented it. Disclose the affected dimension and avoid
+attributing its effect solely to the model. Infrastructure-invalid attempts
+remain diagnostic evidence, not model-quality scores. Timing, retry and token
+differences may reflect harness changes even when outcome quality is comparable.
+
+This policy concerns comparisons between runs, not mutation or recovery of one
+run. Exact manifest/engine checks, immutable artifacts, admission and recovery
+identity checks remain mandatory. No new compatibility qualification suite is
+required solely to compare different runtime versions.
+
 ## Reporting
 
 Outcome and flow have separate score vectors. Efficiency remains raw data.

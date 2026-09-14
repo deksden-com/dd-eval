@@ -23,6 +23,17 @@ never extend that window.
 
 ## Before launch
 
+### Comparison does not require identical runtime versions
+
+Follow [the comparison policy](../methodology/evaluation-methodology.md#comparability-across-runtime-versions).
+Equal checkpoint task inputs, flow/memory-bank and evaluation conditions allow
+comparison across CLI, eval-runner and harness/adapter versions. Record those
+versions per run; an upgrade alone does not require rerunning earlier candidates.
+If checkpoint files differ only in engine pins, record equality of their source,
+flow/memory-bank and case inputs rather than requiring equal whole-file hashes.
+Each new run must still satisfy its own exact pinned-engine admission checks;
+never replace an old run's engine or edit its manifest to make it comparable.
+
 ### Bounded preparation policy (2026-09-13)
 
 Preparation is not a product qualification or a live E2E. Reuse an accepted

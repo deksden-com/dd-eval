@@ -3,6 +3,54 @@
 Recovery is explicit. A provider failure is not a failed business result, and
 an unknown operation outcome is not permission to repeat a prompt.
 
+## Continue blocked cleanup without resuming work
+
+The recovery observer has 120 seconds of active observation, persisted across
+owner replacement. Host sleep is not evidence of death. Poll backoff is
+1/2/5/10 seconds; cleanup RPC waits are capped by the remaining budget.
+An exhausted observer exits with the fence intact, not with fabricated success.
+
+For a failed EVAL execution with pending cleanup:
+
+```sh
+dd-eval runner cleanup --eval /absolute/eval --request-id cleanup-1
+dd-eval runner status --eval /absolute/eval
+```
+
+This detached attempt only reconciles existing managed RUN controls and reports
+cleanup/capture. It never launches queued executions, Subject, Judge or recovery.
+Repeating the same request ID reuses its attempt and budget; a different ID is an
+explicit new observation allowance. A live owner is never displaced.
+
+For an operator-controlled EVAL, keep its captured journal frozen and use its
+retained `DD_FLOW_HOME`, `DD_FLOW_RESOURCE_HOME`, control executable and current
+generation (from `runtime scope status`):
+
+```sh
+dd-flow runtime scope reconcile --scope-id EVAL-ID --generation N --request-id cleanup-1 --json
+```
+
+For an individual RUN, using that RUN's retained runtime home:
+
+```sh
+dd-flow run control reconcile --run RUN-ID --project-root /absolute/project --control-id CONTROL-ID --request-id cleanup-1 --json
+```
+
+These commands do not change the control generation or release admission. A
+boundary-capture failure first needs explicit RUN pause/stop; its existing
+controller is not restarted merely to grant more observation time. Productive
+recovery remains the separate operation described below. Never patch old
+immutable EVAL engine snapshots in place to install these commands.
+
+ZCode cleanup requires the bridge's `zcode/session/retainedSubagents` extension.
+After native close, dd-flow reads topology recursively without implicit resume
+and checks every node's residency. A stale `running` label in retained history
+does not mean a live resident; transport failure does not mean a dead one.
+An older bridge lacking this method remains unsettled until explicitly upgraded
+through the normal engine preparation workflow.
+
+## Productive recovery
+
 ```sh
 dd-eval runner recovery inspect --eval /absolute/eval --execution execution-id
 dd-eval runner recover --eval /absolute/eval --execution execution-id --from RCV-id-from-inspect
