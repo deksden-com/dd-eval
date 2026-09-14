@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-107-task-priority-zcode-admission-flow-4-1-1-engine-0-9-0-beta-63",
-    "sha256": "8a040e89f88a6266c43f5e6321dbe7f702a7817630292fd2db8f7895522e1557"
+    "id": "cp-108-task-priority-durable-lifecycle-flow-4-1-1-engine-0-9-0-beta-64",
+    "sha256": "ee78fc0c5ab4eaf0da8711b4f6aaceebbdca22faf37b6fa20cb28dd781c3b3e1"
   },
   "entry_pack": null,
   "profiles": {

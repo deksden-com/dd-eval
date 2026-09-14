@@ -48,7 +48,35 @@ RUN control; завершение transport не считается доказа
 Это пересекающиеся наборы, их числа не суммируются в число уникальных тестов.
 Последняя проверка fallback diagnostics также завершилась без failures (Vitest receipt).
 
-CLI commit `f21e056086e7f7be765b8f16f045cad0ee11dfb4`, beta.64.
-Единственный release gate: https://github.com/deksden-com/dd-flow-cli/actions/runs/34866898070.
-На момент записи job выполняется; публикация и живой E2E ещё не подтверждены.
-Этот документ не подменяет их результат.
+Первый release gate на `f21e056` дал 693 PASS / 7 FAIL: два тестовых адаптера
+ещё использовали прежний transaction API. Исправленная точка fault injection
+дополнительно обнаружила реальный конфликт Work packet после recovery.
+Он исправлен: старый пакет остаётся evidence, новое поколение использует отдельный
+путь `works/<Work>/starts/<WorkSession>/prompt.md`. Проверка подтверждает сохранность
+старых bytes и публикацию нового recovery packet. Unit resource registries вынесены
+из пользовательского home и из проверяемого workspace.
+Адресные 13 проверок, typecheck и lint после этой доработки прошли.
+
+CLI commit `53046a13b2a4370531d64b380974abbd6bf2383b`, beta.64.
+Повторный release gate после исправления причин падения:
+https://github.com/deksden-com/dd-flow-cli/actions/runs/34868774949.
+Первую неуспешную попытку не считаем успешной квалификацией; повтор нужен для
+исправленного release commit, отдельный локальный full gate не запускался.
+Итог повторного gate: **700/700 PASS, 58 файлов**, публикация beta.64 и проверки
+release consumers завершены успешно. Локально установлен точный npm-пакет;
+engine install/resolve дал checksum
+`26970ba55cca2070d806041962837356077bbcf1948ebdccd6067c04cabe5029`.
+Build provenance совпал с CLI commit и canon `97f811d` / MemoryBank 4.1.1.
+Doctors из опубликованного runtime подтвердили ZCode 0.16.5 / bridge 0.13.1
+(`60af0d3`, qualified root/concurrent children/continuation) и Codex CLI 0.154.0
+для Judge Sol high. Native nested children не заявляются поддержанными.
+После изменения проекции дополнительно прошли 80 EVAL admission/recovery tests.
+
+Checkpoint: `cp-108-task-priority-durable-lifecycle-flow-4-1-1-engine-0-9-0-beta-64`.
+Campaign home: `/Users/deksden/.dd-eval/qualification/cp-108-zcode`;
+portable config — `config`, общий новый registry — `resources`.
+Receipt подготовки: `preparation-receipt.json` внутри campaign home.
+Source/flow/MB/task/ответы не менялись. PostgreSQL healthy на 127.0.0.1:55433.
+Подготовка закончена; baseline и verdict до фактического E2E не заявляются.
+Фактический EVAL ID и ход выполнения сохраняет штатный runner в `runs/` этого home;
+definition worktree после запуска не редактировать для дописывания статуса.
