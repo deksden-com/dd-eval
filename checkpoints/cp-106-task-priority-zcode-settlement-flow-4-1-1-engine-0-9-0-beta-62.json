@@ -1,0 +1,21 @@
+{
+  "id": "cp-106-task-priority-zcode-settlement-flow-4-1-1-engine-0-9-0-beta-62",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "9b121e24f94ac56c2a076cd95e84f427eeea8c6d",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "a496c8a3b9781cd1808bd4a49fe314f0ef17c52c",
+      "version": "0.9.0-beta.62",
+      "artifact_sha256": "367e4f0ff47f4865235fb02e4e7ec6e3ebb6871959385db146b0d77dc8908ad8"
+    }
+  },
+  "state": "published_release_candidate_for_zcode_e2e"
+}
