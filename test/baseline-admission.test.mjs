@@ -5,7 +5,21 @@ import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { commandText, commandJson } from "../lib/process-json.mjs";
-import { runBaselineAdmission } from "../lib/baseline-admission.mjs";
+import { readBaselineAdmissionPolicy, runBaselineAdmission } from "../lib/baseline-admission.mjs";
+
+test("light preparation validates the baseline policy without executing its command", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "baseline-policy-"));
+  try {
+    const marker = path.join(root, "must-not-exist");
+    const policy = { schema_id: "dd-eval/baseline-admission-policy@1", commands: [{ id: "check", command: process.execPath, args: ["-e", `require('node:fs').writeFileSync(${JSON.stringify(marker)},'executed')`], timeout_ms: 1000 }] };
+    const bytes = JSON.stringify(policy);
+    await writeFile(path.join(root, "policy.json"), bytes);
+    const definition = { file: "policy.json", sha256: createHash("sha256").update(bytes).digest("hex") };
+    assert.deepEqual(await readBaselineAdmissionPolicy({ caseRoot: root, definition }), policy);
+    await assert.rejects(readFile(marker), { code: "ENOENT" });
+    await assert.rejects(readBaselineAdmissionPolicy({ caseRoot: root, definition: { ...definition, sha256: "0".repeat(64) } }), { code: "baseline_admission_definition_mismatch" });
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 
 test("baseline admission is pinned, records failure and rejects source mutations", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "baseline-admission-"));

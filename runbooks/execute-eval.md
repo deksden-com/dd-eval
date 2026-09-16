@@ -87,21 +87,15 @@ model's changes; it is not a test of the requested new feature. Keep this
 per-execution baseline and its receipt. Do not share a baseline PASS between
 Luna and ZCode workspaces or use an old receipt to excuse a broken environment.
 
-Current limitation: `runner eval preflight` still runs the full baseline.
-It is an optional deep diagnostic, not a mandatory step before every E2E.
-Use it when provisioning changed or a concrete setup failure needs diagnosis;
-do not repeat it for unchanged inputs or documentation-only edits. Report a
-light preparation as "inputs/environment ready; baseline pending actual run",
-not as a successful deep preflight. A request to prepare only never authorizes
-`eval run` or a live compatibility/capacity experiment.
-
-Future implementation: remove baseline execution from the default preflight,
-retain identity/configuration checks, normal unstarted RUN preparation and
-non-generative doctors. Mark baseline explicitly `not_run` in its receipt;
-retain a deliberate deep-check path if needed, never fabricate baseline PASS.
-Tests must prove that light preflight invokes neither baseline commands nor
-provider sessions, while actual E2E still refuses a failed baseline before
-productive dispatch. No new cache or cross-execution receipt reuse is needed.
+`runner eval preflight` is light preparation: it validates the pinned baseline
+policy but does not execute its commands. Its receipt explicitly records
+baseline `not_run`. Identity/configuration checks, unstarted RUN preparation
+and non-generative doctors remain. Report success as "inputs/environment ready;
+baseline pending actual run", never as baseline PASS. The actual execution
+still runs baseline before Subject dispatch. No cross-workspace cache is used.
+Do not repeat preflight for unchanged inputs or documentation-only edits.
+A request to prepare only never authorizes `eval run` or a live compatibility/
+capacity experiment.
 
 Requalify a harness only when its native runtime, adapter or relevant contract
 changes (or qualification is absent). Broader stop/recovery and all-harness
@@ -119,7 +113,7 @@ permission to skip baseline admission. Retain the failed receipt and restore
 the service; do not add an independent full baseline rerun before the runner's
 next authorized attempt.
 
-For an optional deep preparation check, run `dd-eval runner eval preflight
+For a non-generative preparation check, run `dd-eval runner eval preflight
 --profile <absolute-run-profile.json>`. It uses the normal E2E project/flow/runtime
 provisioning and writes its receipt and initial launcher under
 `DD_EVAL_HOME/conformance/e2e-preflight/`. It creates no provider Session and
