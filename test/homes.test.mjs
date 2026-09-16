@@ -17,6 +17,8 @@ test('homes deduplicate physical paths, serialize writes, retain removal and pre
     await removeHome(first.id, env);
     await registerRunHome(path.join(dirs[0], 'runs', 'EVAL-1'), env);
     assert.equal((await listHomes(env)).homes.find(h => h.id === first.id).disabled, true);
+    await registerRunHome(path.join(dirs[1], 'forks', 'plan-review-label'), env);
+    assert.equal((await listHomes(env)).homes.find(h => h.label === 'b').disabled, false);
     await addHome(dirs[0], undefined, env);
     assert.equal((await listHomes(env)).homes.find(h => h.id === first.id).disabled, false);
     assert.equal(homesFile(env), path.join(root,'.dd-eval','homes.json'));

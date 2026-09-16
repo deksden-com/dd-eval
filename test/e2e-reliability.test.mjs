@@ -63,6 +63,9 @@ test('started reattach checks definition before any engine call; untracked case 
   await assert.rejects(runnerResume({ evalRoot: root }), { code: 'runner_definition_drift' });
   assert.equal((await readEvents(path.join(root, 'events.jsonl'))).length, 1);
   manifest.input_checkpoint.sha256 = loaded.inputCheckpoint.sha256;
+  manifest.executions[0].terminal_stage = 'specify';
+  const { interactionFixtureManifest } = await import('../lib/runner.mjs');
+  manifest.interaction_fixtures = await interactionFixtureManifest(loaded.root, manifest.executions);
   await assertRetainedRunDefinition(manifest, loaded);
   const untracked = path.join(loaded.root, `.definition-probe-${path.basename(root)}.json`);
   await writeFile(untracked, '{}', { flag: 'wx' });

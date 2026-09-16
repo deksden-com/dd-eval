@@ -6,7 +6,7 @@ import os from 'node:os';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { setTimeout as delay } from 'node:timers/promises';
-import { executeEval, runnerControlReconcile, runnerControlRequest, runnerControlResume, runnerControlStatus, runnerResume, launchEvalExecution, loadCase, assertEvalExecutionDispatch } from '../lib/runner.mjs';
+import { executeEval, runnerControlReconcile, runnerControlRequest, runnerControlResume, runnerControlStatus, runnerResume, launchEvalExecution, loadCase, assertEvalExecutionDispatch, interactionFixtureManifest } from '../lib/runner.mjs';
 import { appendEvent, controlOperationInventory, readEvents, recordOperation, reduceEvents } from '../lib/runner-events.mjs';
 import { commandJson, commandText } from '../lib/process-json.mjs';
 import { withRunnerLock } from '../lib/runner-lock.mjs';
@@ -35,6 +35,7 @@ test('runner resume routes an unstarted execution through launch without rewriti
   const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
   const execution = { id: 'queued', stage: 'specify', terminal_stage: 'specify', mode: 'e2e' };
   const manifest = { run_id: 'EVAL-resume-queue', case_id: loaded.value.id, executions: [execution], input_checkpoint: { id: loaded.inputCheckpoint.value.id, sha256: loaded.inputCheckpoint.sha256 }, definition: { commit: await commandText('git', ['rev-parse', 'HEAD']) }, runtime_resource_home: path.join(root, 'resources'), subject_profile: { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' }, profile: { concurrency: { global: 1, per_harness: {} }, interaction_judge: { profile_id: 'fixture' }, judge: { enabled: false }, failure_policy: { stop_run_on_infrastructure_error: false } } };
+  manifest.interaction_fixtures = await interactionFixtureManifest(loaded.root, manifest.executions);
   const bytes = JSON.stringify(manifest), file = path.join(root, 'manifest.json'); await writeFile(file, bytes);
   const retained = path.join(root, 'executions', execution.id, 'retained'); await mkdir(path.dirname(retained), { recursive: true }); await writeFile(retained, 'fixture blocks before provider preparation');
   const [first, duplicate] = await Promise.allSettled([runnerResume({ evalRoot: root }), runnerResume({ evalRoot: root })]);
@@ -456,6 +457,7 @@ for (const outcome of ['invalid-engine', 'new-stop']) test(`background observer 
   const attempt = path.join(root, 'executions', execution.id), runtime = path.join(attempt, 'dd-flow-home'), project = path.join(attempt, 'project');
   await mkdir(project, { recursive: true }); await mkdir(path.join(runtime, 'bin'), { recursive: true });
   const manifest = { run_id: runId, case_id: loaded.value.id, input_checkpoint: { sha256: loaded.inputCheckpoint.sha256 }, definition: { commit: await commandText('git', ['rev-parse', 'HEAD']) }, runtime_control_bin: cli, runtime_resource_home: path.join(root, 'resources'), executions: [execution], subject_profile: { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' }, profile: { concurrency: { global: 1, per_harness: {} }, judge: { enabled: false } } };
+  manifest.interaction_fixtures = await interactionFixtureManifest(loaded.root, manifest.executions);
   await writeFile(path.join(root, 'manifest.json'), JSON.stringify(manifest));
   await writeFile(path.join(attempt, 'managed-runtime.json'), JSON.stringify({ schema_id: 'dd-eval/managed-runtime@1', run_id: 'RUN-retained', project_root: project, runtime_root: runtime }));
   const release = { scope_id: runId, source_request_id: 'stop', request_id: 'resume', generation: 1, capture_key: 'a'.repeat(64), journal_sha256: 'b'.repeat(64), current: true };

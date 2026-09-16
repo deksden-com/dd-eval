@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { addHome, listHomes, removeHome } from "../lib/homes.mjs";
-import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualificationRecover, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalPreflight, evalRun, fixturesValidate, harnessCapacityCheck, harnessCompatibilityQualify, runnerCancel, runnerRecover, runnerReconcile, runnerResume, runnerStatus } from "../lib/runner.mjs";
+import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualificationRecover, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalPreflight, evalRun, fixturesValidate, harnessCapacityCheck, harnessCompatibilityQualify, runnerCancel, runnerCheckpoints, runnerFork, runnerRecover, runnerReconcile, runnerResume, runnerStatus } from "../lib/runner.mjs";
 import { gcApply, gcPlan, storageList, storageStatus } from "../lib/storage.mjs";
 import { runnerRecoveryInspect } from "../lib/runner.mjs";
 import { runnerControlReconcile, runnerControlRequest, runnerControlStatus } from "../lib/runner.mjs";
@@ -35,6 +35,8 @@ Usage:
   dd-eval runner cleanup --eval <path> --request-id <id>
   dd-eval runner recover --eval <path> --from <recovery-id> [--execution <id>]
   dd-eval runner recovery inspect --eval <path> [--execution <id>]
+  dd-eval runner checkpoints --eval <path> [--execution <id>]
+  dd-eval runner fork --eval <source-eval> --execution <id> --from <checkpoint-id> --output <new-eval-root> --engine-version <exact-version> --request-id <id> [--integrity-checksum <sha256>] [--start true]
   dd-eval runner reconcile --eval <path>
   dd-eval runner cancel --eval <path> [--execution <id>]
   dd-eval storage ls [--case <case-id>]
@@ -73,7 +75,7 @@ function validateCommand({ positional, options }) {
     "runner eval run": [3, ["profile"]], "runner eval judge": [3, ["eval", "profile"]],
     "runner status": [2, ["eval"]], "runner control status": [3, ["eval", "execution"]], "runner control pause": [3, ["eval", "request-id"]], "runner control stop": [3, ["eval", "request-id"]],
     "runner control reconcile": [3, ["eval", "from"]], "runner control resume": [3, ["eval", "from", "request-id", "wait-ms"]],
-    "runner resume": [2, ["eval"]], "runner cleanup": [2, ["eval", "request-id"]], "runner recover": [2, ["eval", "from", "execution"]], "runner recovery inspect": [3, ["eval", "execution"]], "runner reconcile": [2, ["eval"]], "runner cancel": [2, ["eval", "execution"]],
+    "runner resume": [2, ["eval"]], "runner cleanup": [2, ["eval", "request-id"]], "runner recover": [2, ["eval", "from", "execution"]], "runner recovery inspect": [3, ["eval", "execution"]], "runner checkpoints": [2, ["eval", "execution"]], "runner fork": [2, ["eval", "execution", "from", "output", "engine-version", "request-id", "integrity-checksum", "start"]], "runner reconcile": [2, ["eval"]], "runner cancel": [2, ["eval", "execution"]],
     "storage ls": [2, ["case"]], "storage status": [2, []], "gc plan": [2, []], "gc apply": [2, ["plan"]]
   };
   let rule = rules[key] ?? rules[positional.slice(0, 2).join(" ")];
@@ -138,6 +140,8 @@ try {
   else if (family === "runner" && command === "cleanup") result = await requestRunnerContinuation({ evalRoot: required(options, "eval"), kind: "cleanup", requestId: required(options, "request-id") });
   else if (family === "runner" && command === "recover") result = await runnerRecover({ evalRoot: required(options, "eval"), fromRecoveryId: required(options, "from"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "recovery" && positional[2] === "inspect") result = await runnerRecoveryInspect({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
+  else if (family === "runner" && command === "checkpoints") result = await runnerCheckpoints({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
+  else if (family === "runner" && command === "fork") result = await runnerFork({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), from: required(options, "from"), output: required(options, "output"), engineVersion: required(options, "engine-version"), requestId: required(options, "request-id"), ...(options["integrity-checksum"] ? { integrityChecksum: options["integrity-checksum"] } : {}), ...(options.start ? { start: options.start === "true" } : {}) });
   else if (family === "runner" && command === "reconcile") result = await runnerReconcile({ evalRoot: required(options, "eval") });
   else if (family === "runner" && command === "cancel") result = await runnerCancel({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "storage" && command === "ls") result = await storageList({ ...(options.case ? { caseId: options.case } : {}) });

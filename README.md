@@ -31,6 +31,9 @@ Current beta specifications live under [beta/](beta/README.md); they document
 candidate behavior without consuming canonical `SPC-*` numbering.
 
 Repository-level eval design specifications live under [specs/](specs/). The
+current [execution-control consolidation specification 035](specs/035-execution-control-consolidation.md)
+defines the planned ownership, state, timeout and recovery boundary with dd-flow.
+The
 cross-repository [shared runtime adoption plan 030](specs/030-shared-runtime-adoption-and-mixed-execution.md)
 is a draft for moving general harness execution into dd-flow while retaining
 eval isolation, reproducibility and assessment; it does not describe an already
