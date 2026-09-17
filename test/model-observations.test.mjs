@@ -10,6 +10,22 @@ import { readEvents } from '../lib/runner-events.mjs';
 
 async function fixture(t) { const root = await mkdtemp(path.join(os.tmpdir(), 'model-observations-')); t.after(() => rm(root, { recursive: true, force: true })); return { root, journal: path.join(root, 'native.jsonl') }; }
 
+test('canonical inventory carries inherited journals without adding legacy aggregates', async t => {
+  const { root, journal } = await fixture(t);
+  await appendFile(journal, '');
+  const observations = { schema_id: 'dd-flow/run-observations@1', home: root, sources: [{ path: 'native.jsonl', provenance: 'inherited' }], tools: { total: 7, completeness: 'complete', observed_sessions: 2, expected_sessions: 2 } };
+  const result = await resolveEvidenceJournals({ statistics: { usage: { observations, legacy_tool_calls: { total: 99 } } } });
+  assert.equal(result.tools.status, 'complete');
+  assert.equal(result.tools.counters.total, 7);
+  assert.equal(result.tools.legacy_counters.total, 99);
+  assert.equal(result.journals[0].provenance, 'inherited');
+  assert.equal(result.attribution.observation_completeness, 'incomplete');
+  observations.sources.push({ path: '../outside.jsonl', provenance: 'inherited' });
+  const rejected = await resolveEvidenceJournals({ statistics: { usage: { observations } } });
+  assert.equal(rejected.tools.status, 'partial');
+  assert.ok(rejected.journals.some(j => j.reason === 'journal_outside_published_home'));
+});
+
 test('routing permits mixed profiles, unknown is never matched, integrity remains enforced', () => {
   assert.equal(checkObservedProfile({ model: 'sol' }, {}).status, 'incomplete');
   assert.equal(checkObservedProfile({ model: 'sol' }, { model: 'kimi' }).status, 'mixed');

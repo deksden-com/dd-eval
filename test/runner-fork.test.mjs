@@ -127,6 +127,9 @@ test('fork inherits pins, crosses a boundary and finalizes through ordinary EVAL
   const [ready, repeatedReady] = await Promise.all([f.runner.runnerFork(f.input), f.runner.runnerFork(f.input)]);
   assert.equal(ready.status, 'ready');
   assert.equal(repeatedReady.run_id, ready.run_id);
+  const preparedProject = path.join(f.output, 'executions/e2e/project');
+  await write(path.join(preparedProject, '.dd-eval/task.md'), 'Retained eval task');
+  assert.equal(await commandText('git', ['status', '--porcelain'], { cwd: preparedProject }), '');
   const manifest = JSON.parse(await readFile(path.join(f.output, 'manifest.json')));
   assert.deepEqual(manifest.interaction_fixtures, f.source.interaction_fixtures);
   assert.deepEqual(manifest.definition, f.source.definition);

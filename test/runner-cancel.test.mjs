@@ -1,10 +1,36 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, readdir, rm, chmod, readFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readdir, rm, chmod, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { runnerCancel, runnerStatus, executionDispatchBarrier, assertEvalExecutionDispatch } from '../lib/runner.mjs';
 import { appendEvent, readEvents, reduceEvents, recordOperation } from '../lib/runner-events.mjs';
+
+test('cancel reuses the current fatal stop and reconciles its failed observer without replacing the intent', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-retained-stop-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const attempt = path.join(root, 'executions', 'e2e'), runtime = path.join(attempt, 'dd-flow-home');
+  const project = path.join(attempt, 'project'), bin = path.join(runtime, 'bin', 'dd-flow');
+  await mkdir(path.dirname(bin), { recursive: true }); await mkdir(project);
+  const calls = path.join(root, 'calls.jsonl'), stateFile = path.join(root, 'control.json');
+  const receipt = { ok: true, settled: true, control: { current: true, requested_mode: 'stop', control_id: 'CTL-fatal' }, worker: { status: 'failed' } };
+  await writeFile(stateFile, JSON.stringify(receipt));
+  await writeFile(bin, `#!${process.execPath}\nconst fs=require('node:fs'); const args=process.argv.slice(2); fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify(args)+'\\n'); const state=JSON.parse(fs.readFileSync(${JSON.stringify(stateFile)})); if(args[2]==='stop'){ console.log(JSON.stringify({ok:false,error:{code:'run_control_in_progress',message:'existing stop',details:{control_id:'CTL-fatal'}}}));process.exit(1); } console.log(JSON.stringify(state));\n`);
+  await chmod(bin, 0o755);
+  await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ run_id: 'EVAL-stop', runtime_control_bin: bin, runtime_resource_home: path.join(root, 'resources'), executions: [{ id: 'e2e' }] }));
+  await writeFile(path.join(attempt, 'managed-runtime.json'), JSON.stringify({ schema_id: 'dd-eval/managed-runtime@1', run_id: 'RUN-one', project_root: project, runtime_root: runtime }));
+  // A foreign control cannot be treated as the accepted stop.
+  await writeFile(stateFile, JSON.stringify({ ...receipt, control: { ...receipt.control, control_id: 'CTL-other' } }));
+  const changed = await runnerCancel({ evalRoot: root, executionId: 'e2e' });
+  assert.equal(changed.cancelled[0].settled, false);
+  await writeFile(stateFile, JSON.stringify(receipt));
+  await writeFile(calls, '');
+  const result = await runnerCancel({ evalRoot: root, executionId: 'e2e' });
+  assert.equal(result.cancelled[0].settled, true);
+  const commands = (await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse);
+  assert.deepEqual(commands.map(args => args.slice(0, 3)), [['run', 'control', 'stop'], ['run', 'control', 'status'], ['run', 'control', 'reconcile']]);
+  assert.equal(commands[2][commands[2].indexOf('--control-id') + 1], 'CTL-fatal');
+});
 
 test('EVAL cancellation rejects a queued repetition before preparation', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-queued-cancel-'));

@@ -73,6 +73,11 @@ source tests do not upgrade an already installed beta.62 snapshot.
 
 ### Bounded preparation policy (2026-09-13)
 
+For a checkpoint fork, inspect Git status in both restored checkouts before
+declaring readiness. A feature repair cannot repair the separate MERGE target.
+Historical `.env.example` omissions require an evidenced repair in the new fork,
+not an automatic reset; see [the Fork-023 runbook](cp-108-fork-023-template-recovery.md).
+
 Preparation is not a product qualification or a live E2E. Reuse an accepted
 published engine and checkpoint when their inputs have not changed; a new
 campaign alone requires neither a CLI release nor another full test suite.
@@ -562,6 +567,19 @@ the attempt remains failed/incomplete with its evidence. It never searches for
 question-like text heuristically and never invents an answer.
 
 ## Result interpretation
+
+For new engines, use `statistics.usage.observations` as the RUN evidence
+inventory: it includes current and inherited journals from the copied home.
+Do not inspect only the current controller, and do not add `legacy_tool_calls`
+to canonical counters. Tool coverage, journal availability, token measurement
+and model attribution are separate facts; a missing counter is not proof that
+a transcript was lost. Missing historical observations lower confidence, not
+the already accepted MERGE result. Re-analysis must not overwrite an immutable
+earlier report or reactivate archived controllers.
+
+Equivalent CODE/MERGE requirements execute once within the same gate and share
+one receipt containing all `check_refs`. This is not permission to reuse a
+previous gate automatically: cross-invocation reuse remains explicitly opt-in.
 
 The immutable execution directory contains the resolved manifest, launcher,
 harness journal, `dd-flow` receipts, a terminal candidate checkpoint and
