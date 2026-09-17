@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-108-task-priority-durable-lifecycle-flow-4-1-1-engine-0-9-0-beta-64",
-    "sha256": "ee78fc0c5ab4eaf0da8711b4f6aaceebbdca22faf37b6fa20cb28dd781c3b3e1"
+    "id": "cp-109-task-priority-observability-flow-4-1-1-engine-0-9-0-beta-74",
+    "sha256": "5348119494d8cdb1171c38689260080a0c6f26f5b6b6ca480ef5a0a9117c9f50"
   },
   "entry_pack": null,
   "profiles": {

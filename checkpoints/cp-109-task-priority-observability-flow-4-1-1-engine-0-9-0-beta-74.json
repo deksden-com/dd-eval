@@ -1,0 +1,21 @@
+{
+  "id": "cp-109-task-priority-observability-flow-4-1-1-engine-0-9-0-beta-74",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "9b121e24f94ac56c2a076cd95e84f427eeea8c6d",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "b9495b1c198fded3294040d1dfdc34d36e6aa809",
+      "version": "0.9.0-beta.74",
+      "artifact_sha256": "fb71236510a0b15272b77be4305f5fddaf0169d4024026349f3638a9271f6ee1"
+    }
+  },
+  "state": "published_release_candidate_for_zcode_e2e"
+}
