@@ -9,6 +9,7 @@ import { callDriver, judgeRuntimeEnvironment, loadProfile, provisionRuntimeEngin
 import { commandJson } from "../lib/process-json.mjs";
 import { writeJsonAtomic } from "../lib/runner-events.mjs";
 import { errorRecord } from "../lib/operation-errors.mjs";
+import { loadDelegationInstructions } from "../lib/delegation-instructions.mjs";
 
 // Explicit live qualification: two to four read-only prompts, no business workflow.
 const profileId = process.argv[2];
@@ -51,6 +52,7 @@ let running = false;
 let activePrompt;
 try {
   result.engine = await provisionRuntimeEngine(root, runtimeRoot);
+  const delegation = activeStop ? await loadDelegationInstructions(runtimeRoot) : null;
   if (scopeStop) {
     Object.assign(env, judgeRuntimeEnvironment({ runtimeRoot, daemonState: state, profile, codexHome: env.CODEX_HOME,
       resourceHome: path.join(root, "resources"), budget: { schema_id: "dd-flow/runtime-budget@1", scope_id: scopeId, per_harness: {} } }));
@@ -75,7 +77,7 @@ try {
   if (activeStop) {
     assert.equal(profile.harness, "codex-desktop", "Active-tree probe currently verifies Codex tree observations only");
     activePrompt = call(["session", "prompt", "--session-id", sessionId, "--prompt",
-      "Technical native child cancellation qualification, not product work. Explicitly use your native subagent mechanism to launch exactly one child. The child must run one read-only command: node -e 'setTimeout(() => console.log(\"done\"), 60000)'. It must not access files, use the network, modify anything, or create children. You must wait for that child; do not close it early or start replacements. External operator control will interrupt this tree."])
+      delegation.renderRecoveryProbeInstructions({ harness: profile.harness, command: "node -e 'setTimeout(() => console.log(\"done\"), 60000)'" })])
       .then(receipt => { result.active_prompt = { completed: true, receipt }; }, error => { result.active_prompt = { completed: false, error: errorRecord(error) }; });
     const deadline = Date.now() + 60_000;
     do {

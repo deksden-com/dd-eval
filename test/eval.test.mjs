@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, authorizeHitl, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, fanoutWorkerPrompt, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeCapacityPrompt, nativeChildFanoutPrompt, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, authorizeHitl, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, entryLauncher, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 
@@ -31,13 +31,13 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-108-task-priority-durable-lifecycle-flow-4-1-1-engine-0-9-0-beta-64");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-109-task-priority-observability-flow-4-1-1-engine-0-9-0-beta-74");
   assert.equal(loaded.inputCheckpoint.value.source.commit, "924ef61752b642f06c2c326b444ed7a3239f20ff");
   assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-074-source-final");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "9b121e24f94ac56c2a076cd95e84f427eeea8c6d");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.64");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.commit, "53046a13b2a4370531d64b380974abbd6bf2383b");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, "26970ba55cca2070d806041962837356077bbcf1948ebdccd6067c04cabe5029");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.74");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.commit, "b9495b1c198fded3294040d1dfdc34d36e6aa809");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, "fb71236510a0b15272b77be4305f5fddaf0169d4024026349f3638a9271f6ee1");
   assert.match(loaded.value.baseline_admission.sha256, /^[a-f0-9]{64}$/);
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
@@ -347,13 +347,7 @@ test("stage launcher makes registered HITL pause the only way to ask a material 
   assert.match(launcher, /Otherwise finish this Stage/);
 });
 
-test("native child packets cannot create nested HITL and unqualified capacity is infrastructure", () => {
-  const prompt = fanoutWorkerPrompt({ workId: "WRK-001", startCommand: "dd-flow work start WRK-001 --json" });
-  assert.match(prompt, /cannot ask the user or pause the parent Stage/);
-  const packet = nativeChildFanoutPrompt({ stage: "code", capacity: 2, works: [{ work_id: "WRK-001", start_command: "dd-flow work start WRK-001 --json", launch_policy: "fresh_agent_required" }] });
-  assert.match(packet, /direct child of this current Session/);
-  assert.match(packet, /not a reason to cancel its siblings/);
-  assert.match(packet, /empty, non-inherited context/);
+test("unqualified capacity is infrastructure", () => {
   assert.equal(isInfrastructureFailure("subagent_capacity_unqualified"), true);
   assert.equal(isInfrastructureFailure("provider_rate_limited"), true);
   assert.equal(isInfrastructureFailure("provider_quota_exhausted"), true);
@@ -361,7 +355,7 @@ test("native child packets cannot create nested HITL and unqualified capacity is
 
 test("productive fan-out has no second execution loop in eval", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /nativeChildFanoutPrompt/);
+  assert.doesNotMatch(source, /export function nativeChildFanoutPrompt/);
   assert.doesNotMatch(source, /async function driveFanout/);
   const recovery = source.slice(source.indexOf('export async function recoverExecution('), source.indexOf('async function runnerBlueprint('));
   assert.match(recovery, /await observeManagedExecution/);
@@ -498,9 +492,6 @@ test("run profiles cannot request an unauthorized continuation after unmatched H
 });
 
 test("capacity qualification counts only authoritative direct native children", () => {
-  const prompt = nativeCapacityPrompt(7);
-  assert.match(prompt, /at most 7 direct leaf children/);
-  assert.match(prompt, /Do not retry, replace, or add children/);
   const children = directNativeChildren({ descendants: [
     { provider_session_id: "child-completed", parent_provider_session_id: "root", status: "completed" },
     { provider_session_id: "child-failed", parent_provider_session_id: "root", status: "failed" },
@@ -541,15 +532,9 @@ test("capacity reads Codex native child metadata rather than model text", async 
   assert.doesNotMatch(helper[0], /assistant_text/);
 });
 
-test("native packet contains the exact Work start command", () => {
-  const packet = nativeChildFanoutPrompt({ stage: "plan-review", capacity: 1, works: [{ work_id: "WRK-001", start_command: "dd-flow work start WRK-001 --json" }] });
-  assert.match(packet, /dd-flow work start WRK-001 --json/);
-  assert.match(packet, /one direct native child agent/);
-});
-
 test("reference native-child recovery delegates to its retained CLI owner", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /nativeChildWaitPrompt/);
+  assert.doesNotMatch(source, /export function nativeChildWaitPrompt/);
   assert.match(source, /awaiting_native_children/);
   const reference = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalBoundaryAccept"));
   assert.match(reference, /controllerId: state\.reference\.controller_id/);
