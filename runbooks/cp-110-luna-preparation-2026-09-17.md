@@ -19,6 +19,8 @@
 - Subject: `codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-9-0-beta-11`
 - Judge: `codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-11`
 - Isolated home: `/Users/deksden/.dd-eval/qualification/cp-110-luna`
+- Published engine entrypoint (keep this directory until the E2E finishes):
+  `/Users/deksden/.dd-eval/qualification/cp-110-luna/published-engine/node_modules/@deksden-com/dd-flow-cli/dist/cli.js`
 
 The old CP-109 home and runs remain immutable. No provider Session is created by
 preflight. Product baseline and the actual E2E are deferred until an explicit
@@ -28,6 +30,7 @@ launch request.
 
 ```sh
 DD_EVAL_HOME=/Users/deksden/.dd-eval/qualification/cp-110-luna \
+DD_FLOW_BIN=/Users/deksden/.dd-eval/qualification/cp-110-luna/published-engine/node_modules/@deksden-com/dd-flow-cli/dist/cli.js \
 node /Users/deksden/Documents/_Projects/dd-eval/bin/dd-eval.mjs \
   runner eval preflight \
   --profile /Users/deksden/Documents/_Projects/dd-eval/cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-luna-xhigh.json
@@ -45,6 +48,7 @@ isolated `DD_EVAL_HOME` and the committed run profile:
 
 ```sh
 DD_EVAL_HOME=/Users/deksden/.dd-eval/qualification/cp-110-luna \
+DD_FLOW_BIN=/Users/deksden/.dd-eval/qualification/cp-110-luna/published-engine/node_modules/@deksden-com/dd-flow-cli/dist/cli.js \
 node /Users/deksden/Documents/_Projects/dd-eval/bin/dd-eval.mjs \
   runner eval run \
   --profile /Users/deksden/Documents/_Projects/dd-eval/cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-luna-xhigh.json
