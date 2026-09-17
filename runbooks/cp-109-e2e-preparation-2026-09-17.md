@@ -30,11 +30,11 @@ The old `cp-108` checkpoint and qualification home were not modified.
 
 Preflight receipt:
 
-`/Users/deksden/.dd-eval/qualification/cp-109-zcode/conformance/e2e-preflight/1789606409032-f468cf9a/e2e-inline-merge-zcode-glm-5-3-flash-max/receipt.json`
+`/Users/deksden/.dd-eval/qualification/cp-109-zcode/conformance/e2e-preflight/1789606565984-8ceb66e1/e2e-inline-merge-zcode-glm-5-3-flash-max/receipt.json`
 
 The receipt confirms:
 
-- the committed definition tree is `dd-eval@ef3bf243507cc5a0f241f12827ae0c10af38629e`;
+- the committed definition tree is `dd-eval@c46c11fa783d3e8e8679e7f1c25e9945adf9f786`;
 - the selected engine version and artifact checksum match CP-109;
 - the runtime project is registered as `PRJ-001-project` in the isolated home;
 - ZCode doctor is `compatible: true` with ZCode `0.16.5`, ACP `0.13.1`, native
