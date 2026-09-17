@@ -41,6 +41,14 @@ frozen package, source/flow identity, configured Subject/Judge profiles and
 unstarted RUN preparation. A successful receipt records `baseline: not_run` and
 `provider_sessions_created: 0`; it is not a live-E2E verdict.
 
+Successful preflight receipt:
+`/Users/deksden/.dd-eval/qualification/cp-110-luna/conformance/e2e-preflight/1789642021471-cd6c8887/e2e-inline-merge-luna-xhigh/receipt.json`.
+It records definition commit `dd5e9e944b93445b7dbc615f1aed97f894de40aa`,
+engine checksum `d2848cfc16578cc9f108159bb8be88fd606372ee42fed6084c7ad2d454017574`,
+both Codex doctors as `ok:true`, prepared `RUN-001-eval-preflight`, and zero
+provider Sessions. This receipt is preparation evidence only; the future live
+run must still execute its own baseline admission before Subject dispatch.
+
 ## Launch after preflight
 
 Do not run this during preparation. When explicitly authorized, use the same
