@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import test from 'node:test';
+import { interactionFixtureManifest, launchEvalExecution, prepareFocusedEntries } from '../lib/runner.mjs';
+
+test('focused launch rejects its entry before recording an operation and uses prepared data after source deletion', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-focused-prepare-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const priorConfig = process.env.DD_FLOW_CONFIG_HOME, priorEval = process.env.DD_EVAL_HOME;
+  process.env.DD_FLOW_CONFIG_HOME = path.join(root, 'config'); process.env.DD_EVAL_HOME = path.join(root, 'home');
+  t.after(() => {
+    if (priorConfig === undefined) delete process.env.DD_FLOW_CONFIG_HOME; else process.env.DD_FLOW_CONFIG_HOME = priorConfig;
+    if (priorEval === undefined) delete process.env.DD_EVAL_HOME; else process.env.DD_EVAL_HOME = priorEval;
+  });
+  await mkdir(path.join(root, 'config', 'agent-profiles'), { recursive: true });
+  const execution = { id: 'focus-merge', entry: 'merge', stage: 'merge', terminal_stage: 'merge', mode: 'focused' };
+  const pack = { entries: { merge: 'merge.json' } }, file = path.join(root, 'merge.json');
+  const loaded = { root: path.join(root, 'case') };
+  const manifest = { run_id: 'EVAL-fixture', kind: 'scored', executions: [execution], subject_profile: { id: 'fixture' }, profile: { concurrency: { global: 1 }, failure_policy: { stop_run_on_infrastructure_error: true } }, runtime_resource_home: path.join(root, 'resources') };
+  manifest.interaction_fixtures = await interactionFixtureManifest(loaded.root, [execution]);
+  manifest.profile.subject = { profile_id: 'fixture' };
+  const output = path.join(root, 'output');
+  const input = { root: output, manifest, execution, loaded, blueprint: {}, pack, packRoot: root };
+  await writeFile(file, '{');
+  await assert.rejects(launchEvalExecution(input), { code: 'invalid_json' });
+  await assert.rejects(readFile(path.join(output, 'events.jsonl')), { code: 'ENOENT' });
+  await writeFile(file, JSON.stringify({ schema_id: 'dd-eval/stage-entry@1' }));
+  await assert.rejects(launchEvalExecution(input));
+  await assert.rejects(readFile(path.join(output, 'events.jsonl')), { code: 'ENOENT' });
+  const entry = { schema_id: 'dd-eval/stage-entry@1', case_id: 'fixture', revision: 'REV-001', checkpoint_id: 'fixture', stage: 'merge', snapshot: { kind: 'run', locator: 'missing', manifest_sha256: 'a'.repeat(64), run_id: 'RUN-fixture' }, semantic_package_sha256: 'b'.repeat(64), context_slice_sha256: 'c'.repeat(64) };
+  await writeFile(file, JSON.stringify(entry));
+  const prepared = await prepareFocusedEntries([execution], pack, root);
+  await rm(file);
+  await mkdir(output);
+  await writeFile(path.join(output, 'manifest.json'), JSON.stringify(manifest));
+  const result = await launchEvalExecution({ ...input, preparedEntry: prepared[execution.id] });
+  assert.equal(result.code, 'snapshot_missing', JSON.stringify(result));
+  assert.equal(result.state, 'failed');
+  assert.match(await readFile(path.join(output, 'events.jsonl'), 'utf8'), /snapshot_missing/);
+});

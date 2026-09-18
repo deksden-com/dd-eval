@@ -23,6 +23,84 @@ never extend that window.
 
 ## Before launch
 
+### Native child slots and completed parent turns (cp-113)
+
+Codex children continue occupying native slots after completion until closed.
+Coordinators must retain terminal results and Work finish/fail receipts, then
+use native `close_agent` on their owned, no-longer-needed children. Follow the
+exposed schema; never interrupt a running child merely to make room. On a
+capacity refusal, check retained children from earlier waves as well, preserve
+successful spawns, wait for them and report unlaunched assignments. The existing
+controller dispatches the remainder; a failed batch does not undo its successful
+spawns. Do not add a separate slot ledger or a routine capacity requalification.
+
+A completed parent Turn with `settlement.reason=tree_unsettled` is normal child
+activity, not a bookkeeping timeout. The controller observes it through its
+existing waiting loop; the daemon keeps its budget until a settled inspection.
+Real bookkeeping errors retain bounded retries. Stop and checkpoint barriers
+still require physical settlement. Monitor controller stage and child receipts,
+not only parent Turn completion or run-control status.
+
+The installed Codex 0.154.0 slot reuse was proven by the bounded native probe
+in [the CP-113 investigation](cp-113-luna-capacity-settlement-investigation-2026-09-17.md).
+Do not repeat it before every E2E when that native contract is unchanged.
+
+### Hook → CLI admission (cp-110)
+
+Qualification: the bounded native Luna/Codex 0.154.0 probe passed root,
+code-mode and six concurrent child admissions; evidence is recorded in spec
+038 section 14. This is transport qualification, not a complete product E2E.
+Use the newly built engine for a new fork; do not patch the original CP-110 RUN.
+
+Native hooks are synchronous ingress only: the hook records a minimal native
+identity/operation receipt in the already-prepared RUN database and returns
+after COMMIT. The CLI then reads and claims that exact receipt and owns the
+Work/Stage mutation. Do not make required admission depend on `updatedInput`,
+which is not reliable across all installed transports. Managed commands carry
+a runtime-issued invocation ID so the CLI can correlate the native call even
+when a provider executes the original command. The hook must not migrate the
+store, validate CLI arguments/payload files, bind logical RUN/Work state, issue
+retry commands, start Work, launch a detached writer or be repaired by the model.
+Its project anchor comes from the owning daemon/configured workspace, never
+from the model's `--project-root`. Native identity and receipt storage errors
+remain infrastructure failures. Apply this boundary to all harness adapters.
+
+Managed Codex uses the lightweight CLI ingress, not the business router.
+Before opening storage it asks the existing owning daemon to verify the active
+native `hook/started` event (exact root/child/tool/turn). `hook/completed` retires
+that proof. Supplied stdin IDs alone are insufficient; `native_hook_unproven`
+is an infrastructure failure, never a request for manual repair. The awaited
+worker has a 20-second budget inside the native host's 30-second timeout;
+the owning daemon verification has a 5-second budget within that worker.
+Unrelated tools return before opening storage. Hook stderr contains phase
+timings; the native journal contains the complete host duration.
+
+If the hook fails before COMMIT, the command has no admission and must fail
+with `effect=no_effect`; the controller receives the infrastructure failure and
+stops the owned tree without waiting for a later `finish`. A committed write
+is visible to a new SQLite transaction without a WAL checkpoint or sleep; do
+not keep an old read snapshot while waiting. A timeout after COMMIT is
+reconciled from durable state and never blindly replayed. A stale, foreign,
+ambiguous or reused receipt is rejected. A real hook failure stops execution
+without automatic retry, even when no effect is proven. `status`, a direct
+hook-handler call and generated IDs are not valid recovery.
+
+CLI argument rejection is different: validate before claiming execution or
+starting Work. An issued/observed invocation with incorrect arguments returns
+`effect=no_effect`, `recoverable=true` and an exact `retry_command`. The CLI
+atomically settles the rejected attempt and issues its sole corrected successor.
+The same native Session may execute that command; it must not repair the hook
+or invent an invocation ID. Executing/unknown-effect attempts never get this
+replacement. Old IDs replay retained outcomes; storage rollback must not expose
+a usable successor. CP-114's mistyped project path is the regression case.
+
+An unobserved issued invocation times out as a retained infrastructure error,
+not as a correctable result and not as an automatically issued successor.
+Retained outcomes are read before hook observation; replay never requires a
+fresh receipt. Managed Codex hook failures use the adapter's owned native tree
+and managed hooks.json source, preserve the first cause and leave cancellation
+available; unrelated user hooks must not abort a RUN.
+
 ### Writer contract and lifecycle outcomes (cp-108)
 
 For engine beta.64, prepare a fresh campaign home and resource home using writer
@@ -424,8 +502,10 @@ Lifecycle recognition is centralized in `dd-flow`, not duplicated in provider
 adapters. A quoted absolute `dd-flow` executable emitted by the launcher is a
 valid command word. Text such as `dd-flow stage start` inside `grep` patterns,
 JSON, comments or heredoc bodies is data and must not be trusted or blocked.
-If a real lifecycle invocation is joined to another command with `;`, `&&` or
-a pipe, `dd-flow` rejects it and returns the standalone retry.
+Hooks may recognize a lifecycle call inside shell composition for observation,
+but do not police shell syntax or issue retries. The invoked CLI validates its
+own argv; an ambiguous shell observation is not execution authority. Continue
+to use the issued standalone command as the supported launcher format.
 
 For each E2E stage the operational sequence is: eval supplies context to the
 managed CLI controller → controller sends one launcher →

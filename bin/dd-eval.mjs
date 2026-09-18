@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { addHome, listHomes, removeHome } from "../lib/homes.mjs";
+import { parse, validateCommand } from "../lib/cli-input.mjs";
 import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualificationRecover, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalPreflight, evalRun, fixturesValidate, harnessCapacityCheck, harnessCompatibilityQualify, runnerCancel, runnerCheckpoints, runnerFork, runnerRecover, runnerReconcile, runnerResume, runnerStatus } from "../lib/runner.mjs";
 import { gcApply, gcPlan, storageList, storageStatus } from "../lib/storage.mjs";
 import { runnerRecoveryInspect } from "../lib/runner.mjs";
@@ -51,45 +52,23 @@ accepted confirms the EVAL request; runtime_accepted may still be null.
 `;
 }
 
-function parse(argv) {
-  const positional = []; const options = {};
-  for (let index = 0; index < argv.length; index += 1) {
-    const token = argv[index];
-    if (!token.startsWith("--")) { positional.push(token); continue; }
-    const key = token.slice(2); const value = argv[index + 1];
-    if (value === undefined || value.startsWith("--")) throw Object.assign(new Error(`--${key} requires a value`), { code: "usage" });
-    if (Object.hasOwn(options, key)) throw Object.assign(new Error(`--${key} may be supplied only once`), { code: "usage" });
-    options[key] = value; index += 1;
-  }
-  return { positional, options };
-}
 function required(options, key) { if (!options[key]) throw Object.assign(new Error(`--${key} is required`), { code: "usage" }); return options[key]; }
-function validateCommand({ positional, options }) {
-  const key = positional.slice(0, 3).join(" ");
-  const rules = {
-    "homes list": [2, []], "homes add": [2, ["path", "label"]], "homes remove": [2, ["id"]],
-    "runner fixtures validate": [3, ["case", "revision"]], "runner eval preflight": [3, ["profile"]],
-    "harness capacity check": [3, ["profile", "max", "project-root", "write-profile"]], "harness compatibility qualify": [3, ["profile", "project-root"]],
-    "runner canonical build": [3, ["profile", "project-root", "flow-root"]], "runner canonical status": [3, ["build"]], "runner canonical resume": [3, ["build", "detach"]],
-    "runner canonical qualify": [3, ["build", "profile"]], "runner canonical accept": [3, ["build", "entry", "review"]],
-    "runner eval run": [3, ["profile"]], "runner eval judge": [3, ["eval", "profile"]],
-    "runner status": [2, ["eval"]], "runner control status": [3, ["eval", "execution"]], "runner control pause": [3, ["eval", "request-id"]], "runner control stop": [3, ["eval", "request-id"]],
-    "runner control reconcile": [3, ["eval", "from"]], "runner control resume": [3, ["eval", "from", "request-id", "wait-ms"]],
-    "runner resume": [2, ["eval"]], "runner cleanup": [2, ["eval", "request-id"]], "runner recover": [2, ["eval", "from", "execution"]], "runner recovery inspect": [3, ["eval", "execution"]], "runner checkpoints": [2, ["eval", "execution"]], "runner fork": [2, ["eval", "execution", "from", "output", "engine-version", "request-id", "integrity-checksum", "start"]], "runner reconcile": [2, ["eval"]], "runner cancel": [2, ["eval", "execution"]],
-    "storage ls": [2, ["case"]], "storage status": [2, []], "gc plan": [2, []], "gc apply": [2, ["plan"]]
-  };
-  let rule = rules[key] ?? rules[positional.slice(0, 2).join(" ")];
-  if (key === "runner canonical engine" && positional[3] === "capture") rule = [4, ["build"]];
-  if (key === "runner canonical boundary" && positional[3] === "accept") rule = [4, ["build", "stage", "review"]];
-  if (key === "runner canonical qualification" && positional[3] === "recover") rule = [4, ["build", "receipt"]];
-  if (!rule) throw Object.assign(new Error(`unknown command: ${positional.join(" ")}`), { code: "usage" });
-  if (positional.length !== rule[0] || Object.keys(options).some(option => !rule[1].includes(option))) throw Object.assign(new Error(`unknown argument for ${key}`), { code: "usage" });
+function optionalBoolean(options, key) {
+  if (options[key] === undefined) return undefined;
+  if (options[key] === "true") return true;
+  if (options[key] === "false") return false;
+  throw Object.assign(new Error(`--${key} must be true or false`), { code: "usage" });
 }
 
 try {
   const argv = process.argv.slice(2);
   if (!argv.length || argv[0] === "help" || argv.includes("--help") || argv.includes("-h")) { process.stdout.write(usage()); process.exit(0); }
-  const { positional, options } = parse(argv); validateCommand({ positional, options }); const [family, command, action] = positional;
+  const { positional, options } = parse(argv); validateCommand({ positional, options });
+  // Validate every scalar CLI spelling before dispatch can create a home,
+  // register a run, or launch a worker.  A corrected invocation is therefore
+  // always safe to repeat.
+  for (const key of ["write-profile", "detach", "start"]) optionalBoolean(options, key);
+  const [family, command, action] = positional;
   if (!family || family === "help" || family === "--help") { process.stdout.write(usage()); process.exit(0); }
   let result;
   if (family === "homes" && command === "list") result = await listHomes();
@@ -97,11 +76,11 @@ try {
   else if (family === "homes" && command === "remove") result = await removeHome(required(options, "id"));
   else if (family === "runner" && command === "fixtures" && action === "validate") result = await fixturesValidate({ caseId: required(options, "case"), ...(options.revision ? { revision: options.revision } : {}) });
   else if (family === "runner" && command === "eval" && action === "preflight") result = await evalPreflight({ profileFile: required(options, "profile") });
-  else if (family === "harness" && command === "capacity" && action === "check") result = await harnessCapacityCheck({ profileId: required(options, "profile"), maximum: required(options, "max"), ...(options["project-root"] ? { projectRoot: options["project-root"] } : {}), ...(options["write-profile"] ? { writeProfile: options["write-profile"] === "true" } : {}) });
+  else if (family === "harness" && command === "capacity" && action === "check") result = await harnessCapacityCheck({ profileId: required(options, "profile"), maximum: required(options, "max"), ...(options["project-root"] ? { projectRoot: options["project-root"] } : {}), ...(options["write-profile"] ? { writeProfile: optionalBoolean(options, "write-profile") } : {}) });
   else if (family === "harness" && command === "compatibility" && action === "qualify") result = await harnessCompatibilityQualify({ profileId: required(options, "profile"), ...(options["project-root"] ? { projectRoot: options["project-root"] } : {}) });
   else if (family === "runner" && command === "canonical" && action === "build") result = await canonicalBuild({ profileFile: required(options, "profile"), projectRoot: required(options, "project-root"), flowRoot: required(options, "flow-root") });
   else if (family === "runner" && command === "canonical" && action === "status") result = await canonicalStatus({ buildRoot: required(options, "build") });
-  else if (family === "runner" && command === "canonical" && action === "resume") result = await canonicalResume({ buildRoot: required(options, "build"), detachTurns: options.detach === "true" });
+  else if (family === "runner" && command === "canonical" && action === "resume") result = await canonicalResume({ buildRoot: required(options, "build"), detachTurns: optionalBoolean(options, "detach") ?? false });
   else if (family === "runner" && command === "canonical" && action === "engine") {
     if (positional[3] !== "capture") throw new Error(`unknown command: ${positional.join(" ")}`);
     result = await canonicalEngineCapture({ buildRoot: required(options, "build") });
@@ -141,7 +120,7 @@ try {
   else if (family === "runner" && command === "recover") result = await runnerRecover({ evalRoot: required(options, "eval"), fromRecoveryId: required(options, "from"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "recovery" && positional[2] === "inspect") result = await runnerRecoveryInspect({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "checkpoints") result = await runnerCheckpoints({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
-  else if (family === "runner" && command === "fork") result = await runnerFork({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), from: required(options, "from"), output: required(options, "output"), engineVersion: required(options, "engine-version"), requestId: required(options, "request-id"), ...(options["integrity-checksum"] ? { integrityChecksum: options["integrity-checksum"] } : {}), ...(options.start ? { start: options.start === "true" } : {}) });
+  else if (family === "runner" && command === "fork") result = await runnerFork({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), from: required(options, "from"), output: required(options, "output"), engineVersion: required(options, "engine-version"), requestId: required(options, "request-id"), ...(options["integrity-checksum"] ? { integrityChecksum: options["integrity-checksum"] } : {}), ...(options.start ? { start: optionalBoolean(options, "start") } : {}) });
   else if (family === "runner" && command === "reconcile") result = await runnerReconcile({ evalRoot: required(options, "eval") });
   else if (family === "runner" && command === "cancel") result = await runnerCancel({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "storage" && command === "ls") result = await storageList({ ...(options.case ? { caseId: options.case } : {}) });

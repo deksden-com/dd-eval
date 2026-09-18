@@ -8,7 +8,7 @@ import path from 'node:path';
 import { commandText } from '../lib/process-json.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 
-test('public canonical resume and review retain one managed owner in a committed definition', { timeout: 30000 }, async () => {
+test('public canonical resume and review retain one managed owner in a committed definition', { timeout: 60000 }, async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'canonical-managed-'));
   const repository = path.join(root, 'definition'), home = path.join(root, 'eval'), build = path.join(home, 'canonical', 'fixture', 'REV-001');
   const project = path.join(build, 'reference', 'project'), runtime = path.join(build, 'reference', 'dd-flow-home');
@@ -40,6 +40,7 @@ const root=${JSON.stringify(build)}, project=${JSON.stringify(project)}, engine=
 const args=process.argv.slice(2), file=root+'/transport.json';
 fs.appendFileSync(root+'/calls.jsonl',JSON.stringify(args)+'\\n');
 const s=fs.existsSync(file)?JSON.parse(fs.readFileSync(file)): {stage:'specify',launched:false};
+if(s.removeReview){fs.unlinkSync(s.removeReview);delete s.removeReview;}
 const boundary=()=>{const next=s.stage==='specify'?'protocolize':null, output=root+'/reference/boundaries/'+s.stage;fs.mkdirSync(output,{recursive:true});const manifest=output+'/snapshot.json';const value={schema_id:'dd-flow/eval-run-snapshot@5',run_id:'RUN-fixture',purpose:next?'stage_entry':'candidate',stage_entry:next,boundary_capture:{controller_id:'DRV-fixture',operation_id:s.stage,boundary_key:s.stage}};if(!fs.existsSync(manifest))fs.writeFileSync(manifest,JSON.stringify(value));return {stage:s.stage,manifest,manifest_sha256:createHash('sha256').update(fs.readFileSync(manifest)).digest('hex'),operation_id:s.stage,boundary_key:s.stage};};
 const controller=()=>({controller_id:'DRV-fixture',status:s.stage==='specify'?'waiting_for_context':'stop_target_reached',stage:s.stage,sessions:[{session_id:'native-retained',stopped:s.stage!=='specify'}]});
 let out;
@@ -58,6 +59,8 @@ fs.writeFileSync(file,JSON.stringify(s));console.log(JSON.stringify(out));
     await write(path.join(build, 'build', 'state.json'), state);
     const module = pathToFileURL(path.join(repository, 'lib', 'runner.mjs')).href;
     const invoke = expression => commandText(process.execPath, ['--input-type=module', '-e', `const m=await import(${JSON.stringify(module)});console.log(JSON.stringify(await ${expression}));`], { cwd: root, env: { DD_EVAL_HOME: home } });
+    await assert.rejects(invoke(`m.evalPreflight({profileFile:${JSON.stringify(profileFile)}})`), /Case requires a pinned baseline admission definition/);
+    await assert.rejects(readFile(path.join(home, 'conformance')), { code: 'ENOENT' });
     const review = await write(path.join(root, 'review.md'), 'Reviewed fixture.');
     const resume = `m.canonicalResume({buildRoot:${JSON.stringify(build)}})`;
     const accept = stage => `m.canonicalBoundaryAccept({buildRoot:${JSON.stringify(build)},stage:${JSON.stringify(stage)},reviewFile:${JSON.stringify(review)}})`;
@@ -73,8 +76,11 @@ fs.writeFileSync(file,JSON.stringify(s));console.log(JSON.stringify(out));
     const transport = await json(transportFile);
     await write(transportFile, { ...transport, stageStatus: 'running' });
     await assert.rejects(invoke(accept('specify')), /Reference stage is no longer complete/);
-    await write(transportFile, transport);
-    assert.equal(JSON.parse(await invoke(accept('specify'))).state.current_stage, 'protocolize');
+    await write(transportFile, { ...transport, removeReview: review });
+    const accepted = JSON.parse(await invoke(accept('specify')));
+    assert.equal(accepted.state.current_stage, 'protocolize');
+    assert.equal(accepted.state.accepted_boundaries[0].sha256, hash('Reviewed fixture.'));
+    await write(review, 'Reviewed fixture.');
     assert.equal(JSON.parse(await invoke(resume)).state.completed_stage, 'protocolize');
     assert.equal(JSON.parse(await invoke(accept('protocolize'))).state.status, 'entries_captured');
     const calls = (await readFile(path.join(build, 'calls.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
@@ -82,5 +88,54 @@ fs.writeFileSync(file,JSON.stringify(s));console.log(JSON.stringify(out));
     assert.equal(calls.filter(args => args[2] === 'context').length, 1);
     assert.ok(calls.every(args => !args.includes('snapshot') && !args.includes('session')));
     assert.equal((await json(path.join(build, 'build', 'state.json'))).reference.controller_id, 'DRV-fixture');
+    // Promotion validates the whole input batch before publishing any file.
+    const promoting = await json(path.join(build, 'build', 'state.json'));
+    const allStages = ['specify', 'protocolize', 'plan', 'plan-review', 'code', 'code-review', 'merge'];
+    const template = await json(path.join(build, 'entries', 'protocolize.json'));
+    for (const stage of allStages.slice(2)) {
+      await write(path.join(build, 'entries', `${stage}.json`), { ...template, stage });
+      promoting.entries[stage] = `entries/${stage}.json`;
+    }
+    promoting.status = 'waiting_for_entry_review';
+    promoting.qualification = { receipt: 'qualification/receipt.json' };
+    promoting.input_checkpoint = { id: checkpoint.id, sha256: cpHash };
+    const qualificationProfile = { ...await json(profileFile), selection: { focused_stages: allStages, segment: null, e2e: false, repetitions: 1 }, subject: { profile_id: 'missing-profile' } };
+    const qualificationProfileFile = await write(path.join(root, 'qualification-profile.json'), qualificationProfile);
+    await write(path.join(build, 'build', 'state.json'), { ...promoting, status: 'entries_captured' });
+    await assert.rejects(invoke(`m.canonicalQualify({buildRoot:${JSON.stringify(build)},profileFile:${JSON.stringify(qualificationProfileFile)}})`), /ENOENT/);
+    await assert.rejects(readFile(path.join(build, 'entry-pack.json')), { code: 'ENOENT' });
+    qualificationProfile.subject.profile_id = 'fixture';
+    await write(qualificationProfileFile, qualificationProfile);
+    await assert.rejects(invoke(`m.canonicalQualify({buildRoot:${JSON.stringify(build)},profileFile:${JSON.stringify(qualificationProfileFile)}})`), /no qualified subagent capacity/);
+    await assert.rejects(readFile(path.join(build, 'entry-pack.json')), { code: 'ENOENT' });
+    const recoveryReceipt = { profile_file: qualificationProfileFile, result: { executions: [{ execution: 'focus-specify', state: 'candidate_ready' }, { execution: 'unknown', state: 'candidate_ready' }] } };
+    const recoveryFile = await write(path.join(root, 'recovery.json'), recoveryReceipt);
+    const recover = `m.canonicalQualificationRecover({buildRoot:${JSON.stringify(build)},receiptFile:${JSON.stringify(recoveryFile)}})`;
+    await assert.rejects(invoke(recover), /unknown, duplicate or invalid execution/);
+    await assert.rejects(readFile(path.join(build, 'qualification', 'cells', 'focus-specify')), { code: 'ENOENT' });
+    recoveryReceipt.result.executions.pop();
+    await write(recoveryFile, recoveryReceipt);
+    assert.deepEqual(JSON.parse(await invoke(recover)).recovered, ['focus-specify']);
+    const recoveredState = await json(path.join(build, 'build', 'state.json'));
+    const cell = recoveredState.qualification_cells['focus-specify'];
+    await write(path.join(build, cell.receipt), 'broken retained JSON');
+    cell.sha256 = hash('broken retained JSON');
+    await write(path.join(build, 'build', 'state.json'), recoveredState);
+    recoveryReceipt.result.executions[0].execution = 'focus-protocolize';
+    await write(recoveryFile, recoveryReceipt);
+    await assert.rejects(invoke(recover), /Invalid JSON/);
+    await assert.rejects(readFile(path.join(build, 'qualification', 'cells', 'focus-protocolize')), { code: 'ENOENT' });
+    promoting.entry_reviews = Object.fromEntries(allStages.slice(0, -1).map(stage => [stage, { review, sha256: hash('Reviewed fixture.') }]));
+    await write(path.join(build, 'qualification', 'receipt.json'), { schema_id: 'dd-eval/qualification-receipt@2', status: 'qualified' });
+    await write(path.join(build, 'build', 'state.json'), promoting);
+    await write(review, 'Changed after acceptance');
+    const promote = `m.canonicalAccept({buildRoot:${JSON.stringify(build)},entry:'merge',reviewFile:${JSON.stringify(review)}})`;
+    await assert.rejects(invoke(promote), /Accepted review changed/);
+    const destination = path.join(caseRoot, 'stage-entries', 'REV-001');
+    await assert.rejects(readFile(path.join(destination, 'stage-context.json')), { code: 'ENOENT' });
+    assert.equal((await json(path.join(build, 'build', 'state.json'))).status, 'waiting_for_entry_review');
+    await write(review, 'Reviewed fixture.');
+    assert.equal(JSON.parse(await invoke(promote)).state.status, 'promoted_pending_commit');
+    assert.equal((await json(path.join(destination, 'merge.json'))).stage, 'merge');
   } finally { await rm(root, { recursive: true, force: true }); }
 });

@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import test from 'node:test';
+import { materializeTaskInput, prepareTaskInput } from '../lib/runner.mjs';
+
+test('task input validates the whole batch before git exclusion or copying, then consumes prepared bytes', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-task-input-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const project = path.join(root, 'project'), source = path.join(root, 'entry-pack-source');
+  await mkdir(path.join(project, '.git', 'info'), { recursive: true });
+  await mkdir(source);
+  const exclusion = path.join(project, '.git', 'info', 'exclude');
+  await writeFile(exclusion, '# retained\n');
+  const hash = text => createHash('sha256').update(text).digest('hex');
+  const inputs = ['one', 'two'].map(name => ({ role: name, source: `${name}.md`, path: `.dd-eval/${name}.md`, sha256: hash(name) }));
+  const blueprint = { stages: { specify: { task_input: inputs } } };
+  await writeFile(path.join(source, 'one.md'), 'one', { mode: 0o600 });
+  await assert.rejects(materializeTaskInput(root, blueprint, 'specify', project), { code: 'ENOENT' });
+  assert.equal(await readFile(exclusion, 'utf8'), '# retained\n');
+  await assert.rejects(stat(path.join(project, '.dd-eval')), { code: 'ENOENT' });
+  await writeFile(path.join(source, 'two.md'), 'wrong');
+  await assert.rejects(materializeTaskInput(root, blueprint, 'specify', project), { code: 'task_input_checksum_mismatch' });
+  assert.equal(await readFile(exclusion, 'utf8'), '# retained\n');
+  await writeFile(path.join(source, 'two.md'), 'two');
+  const prepared = await prepareTaskInput(root, blueprint, 'specify', project);
+  await rm(path.join(source, 'one.md'));
+  await rm(path.join(source, 'two.md'));
+  await materializeTaskInput(root, blueprint, 'specify', project, prepared);
+  assert.equal(await readFile(path.join(project, '.dd-eval', 'one.md'), 'utf8'), 'one');
+  assert.equal(await readFile(path.join(project, '.dd-eval', 'two.md'), 'utf8'), 'two');
+  assert.equal((await stat(path.join(project, '.dd-eval', 'one.md'))).mode & 0o777, 0o600);
+  assert.match(await readFile(exclusion, 'utf8'), /\.dd-eval\//);
+});

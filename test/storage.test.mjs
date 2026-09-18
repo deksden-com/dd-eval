@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { gcApply, gcPlan, storageList, storageStatus } from "../lib/storage.mjs";
+import { gcApply, gcPlan, prepareGcApply, storageList, storageStatus } from "../lib/storage.mjs";
 
 test("storage enumerates terminal runs and GC deletes only its explicit plan", async () => {
   const home = await mkdtemp(path.join(os.tmpdir(), "dd-eval-storage-")); const prior = process.env.DD_EVAL_HOME; process.env.DD_EVAL_HOME = home;
@@ -27,7 +27,25 @@ test("storage enumerates terminal runs and GC deletes only its explicit plan", a
     await writeFile(inventory, JSON.stringify({ scope_id: "EVAL-001", processes: [], provider_turns: ["pending"] }));
     await assert.rejects(gcApply({ planFile: plan.file }), /active or unknown runtime owners/);
     await writeFile(inventory, JSON.stringify({ scope_id: "EVAL-001", processes: [], provider_turns: [] }));
-    const applied = await gcApply({ planFile: plan.file }); assert.equal(applied.deleted.length, 1); assert.equal((await storageList()).runs.length, 0);
+    const invalid = path.join(home, "runs", "EVAL-invalid");
+    await mkdir(invalid);
+    await writeFile(path.join(invalid, "manifest.json"), JSON.stringify({ run_id: "EVAL-invalid" }));
+    const originalPlan = await readFile(plan.file, "utf8");
+    const malformed = JSON.parse(originalPlan);
+    malformed.candidates.push({ path: run, bytes: "not-a-number" });
+    await writeFile(plan.file, JSON.stringify(malformed));
+    await assert.rejects(gcApply({ planFile: plan.file }), { code: "usage", details: { parameter: "plan", phase: "prepare", effect: "no_effect", recoverable: true } });
+    assert.equal(JSON.parse(await readFile(path.join(run, "manifest.json"), "utf8")).run_id, "EVAL-001");
+    const mixed = JSON.parse(originalPlan);
+    mixed.candidates.push({ path: invalid, bytes: 0 });
+    await writeFile(plan.file, JSON.stringify(mixed));
+    await assert.rejects(gcApply({ planFile: plan.file }), /no longer disposable/);
+    assert.equal(JSON.parse(await readFile(path.join(run, "manifest.json"), "utf8")).run_id, "EVAL-001");
+    await rm(invalid, { recursive: true });
+    await writeFile(plan.file, originalPlan);
+    const prepared = await prepareGcApply({ planFile: plan.file });
+    await rm(plan.file);
+    const applied = await gcApply({ planFile: plan.file }, prepared); assert.equal(applied.deleted.length, 1); assert.equal((await storageList()).runs.length, 0);
   } finally { if (prior === undefined) delete process.env.DD_EVAL_HOME; else process.env.DD_EVAL_HOME = prior; await rm(home, { recursive: true, force: true }); }
 });
 

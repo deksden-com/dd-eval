@@ -89,6 +89,39 @@ The runner therefore waits for the provider terminal event or a registered
 only by native provider events or child hooks, not runner polling; expiry is a
 recorded `subject_liveness_timeout` and closes the managed tree.
 
+### Lifecycle admission
+
+The native PreToolUse hook is a synchronous, short ingress. It validates the
+native Session/tool identity, writes the receipt to the prepared RUN store and
+returns only after SQLite COMMIT. It does not start Work, migrate schema,
+launch a background writer, validate model CLI arguments/payloads, bind logical
+RUN state or repair a failed command. Its project comes from native/configured
+workspace. A real hook error is fatal infrastructure failure without retry;
+an argument error is returned by CLI before effects, with an exact corrected
+command when safe. `dd-flow work/stage`
+performs the admission and state transition in its own transaction.
+
+Managed Codex commands receive a runtime-issued `--invocation-id` before the
+agent sees them. This ID is correlated with the native tool call in the store;
+it is not model-authored and is not interchangeable with SES/ACP/native IDs.
+The command is valid even if a provider version ignores `updatedInput`. A
+missing, stale, foreign or conflicting receipt fails closed and never selects
+the newest similar event. If `work start` fails, the worker stops and reports
+the infrastructure error; `status`, manual hook calls and invented IDs are not
+recovery mechanisms.
+
+The generated hook has a 30-second bounded timeout for the prepared hot path.
+The lightweight CLI entry runs an awaited receipt worker with a 20-second
+deadline; this is not a detached writer. Native provenance is confirmed through
+the existing daemon's read-only `hook.verify` against its active app-server
+notification and owned topology, with a 5-second request budget. A completed
+native hook cannot be reused to manufacture another receipt. The daemon must
+pass its selected CODEX_HOME/state directory to its native process. These
+checks are not an OS security boundary against code with full filesystem access.
+Store migrations and writer preparation happen before the native Session. A
+hook store that is not prepared fails explicitly with `hook_storage_unprepared`
+instead of migrating while Codex is waiting.
+
 ## Antigravity CLI
 
 `dd-agy` controls the Antigravity CLI version qualified by the selected profile
@@ -184,9 +217,11 @@ The adapter turns root and subagent Bash calls into the existing trusted
 lifecycle receipt. A child is identified by ZCode's native `childSessionId`;
 its dd-flow identity is `zcode-acp:<childSessionId>` and its immutable parent is
 the controlled root Session. ZCode publishes a nested-agent Bash notification
-concurrently with command startup, so `dd-flow` gives the matching immutable
-receipt up to 250 ms to reach SQLite before failing closed. The observed live
-delay was about 1 ms; an absent or mismatched event is still rejected.
+concurrently with command startup. Managed issued commands wait for their exact
+invocation receipt, with one persisted deadline (30 seconds by default), before
+observation or dispatch. Timeout is a durable infrastructure failure without an
+automatic successor. The legacy recent-match window is not a fallback for an
+issued invocation. Retained outcomes are replayed without a new hook receipt.
 
 Before and after every productive daemon operation, `dd-zcode` forwards the
 provider's cumulative token counters plus cumulative ACP tool-call counters.

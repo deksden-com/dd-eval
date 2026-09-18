@@ -22,6 +22,7 @@ test("eval CLI rejects ambiguous mutations and treats help as a non-mutating com
   await assert.rejects(run(process.execPath, [cli, "runner", "cancel", "--eval", "/tmp/a", "--eval", "/tmp/b"], { cwd: root }), error => error.code === 2 && /only once/.test(error.stderr));
   await assert.rejects(run(process.execPath, [cli, "runner", "cancel", "--eval", "/tmp/a", "--executoin", "e2e"], { cwd: root }), error => error.code === 2 && /unknown argument/.test(error.stderr));
   await assert.rejects(run(process.execPath, [cli, "runner", "cancel", "unexpected", "--eval", "/tmp/a"], { cwd: root }), error => error.code === 2 && /unknown argument/.test(error.stderr));
+  await assert.rejects(run(process.execPath, [cli, "runner", "fork", "--eval", "/tmp/source", "--execution", "e2e", "--from", `plan-${"a".repeat(64)}`, "--output", "/tmp/output", "--engine-version", "1.0.0", "--request-id", "test", "--start", "sometimes"], { cwd: root }), error => error.code === 2 && /--start must be true or false/.test(error.stderr));
 });
 
 test("case pins its input checkpoint and exact engine without Session starter state", async () => {
@@ -31,13 +32,13 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.equal(loaded.inputCheckpoint.value.id, "cp-109-task-priority-observability-flow-4-1-1-engine-0-9-0-beta-74");
+  assert.equal(loaded.inputCheckpoint.value.id, "cp-110-task-priority-adapter-delegation-flow-4-1-1-engine-0-9-0-beta-75");
   assert.equal(loaded.inputCheckpoint.value.source.commit, "924ef61752b642f06c2c326b444ed7a3239f20ff");
   assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-074-source-final");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "9b121e24f94ac56c2a076cd95e84f427eeea8c6d");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.74");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.commit, "b9495b1c198fded3294040d1dfdc34d36e6aa809");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, "fb71236510a0b15272b77be4305f5fddaf0169d4024026349f3638a9271f6ee1");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.version, "0.9.0-beta.75");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.commit, "60b05d220e32542b0e4cf38234595fdad51b8e80");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, "d2848cfc16578cc9f108159bb8be88fd606372ee42fed6084c7ad2d454017574");
   assert.match(loaded.value.baseline_admission.sha256, /^[a-f0-9]{64}$/);
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
@@ -70,6 +71,9 @@ test("project flow-pack preflight rejects a bare canonical flow before a Session
 
 test("runtime compatibility is owned by the selected harness profile", () => {
   for (const code of ["write_transaction_unowned", "write_transaction_failed", "work_start_projection_conflict", "harness_adapter_invalid", "harness_adapter_aborted"]) assert.equal(isInfrastructureFailure(code), true);
+  for (const code of ["invocation_storage_unprepared", "native_hook_timeout", "native_hook_failed", "native_hook_response_invalid", "hook_storage_unprepared", "codex_identity_missing", "invocation_receipt_missing", "invocation_identity_mismatch", "invocation_identity_conflict"]) assert.equal(isInfrastructureFailure(code), true);
+  assert.equal(isInfrastructureFailure("invocation_receipt_timeout"), true);
+  assert.equal(isInfrastructureFailure("native_hook_unproven"), true);
   assert.equal(isInfrastructureFailure("work_checks_failed"), false);
   const profile = { id: "example", runtime: { tool: "1.2.3", dd_harness_contract: "example@1" } };
   assert.doesNotThrow(() => assertObservedRuntime({ observed_runtime: profile.runtime }, profile, "doctor"));
@@ -124,7 +128,7 @@ test("owned cleanup uses tree evidence independently of failure attribution", as
 
 test("a case without an accepted entry pack cannot start focused fixtures", async () => {
   await assert.rejects(fixturesValidate({ caseId }), /requires --revision/);
-  await assert.rejects(fixturesValidate({ caseId, revision: "REV-001" }), /not found|Invalid JSON/);
+  await assert.rejects(fixturesValidate({ caseId, revision: "REV-001" }), { code: "ENOENT" });
 });
 
 test("E2E starts from case input while focused and segment runs require an entry pack", () => {

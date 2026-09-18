@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, cp, readFile, writeFile, chmod, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, cp, readFile, writeFile, chmod, rm, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import os from 'node:os';
@@ -12,11 +12,11 @@ import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { interactionFixtureManifest, assertExecutionEngine } from '../lib/runner.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
-async function waitForState(runner, evalRoot, expected, timeoutMs = 10_000) {
+async function waitForState(runner, evalRoot, expected, timeoutMs = 10_000, ready = () => true) {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     const status = await runner.runnerStatus({ evalRoot });
-    if (expected.includes(status.state)) return status;
+    if (expected.includes(status.state) && await ready(status)) return status;
     if (Date.now() >= deadline) throw new Error(`Timed out waiting for ${expected.join(', ')}; got ${status.state}; attempts=${JSON.stringify(status.runner_attempts)}`);
     await delay(50);
   }
@@ -62,6 +62,11 @@ async function setup(t, fault = null) {
   const sourceRoot = path.join(temp, 'home/runs/source'), output = path.join(temp, 'home/forks/derived');
   const source = { schema_id: 'dd-eval/runner-manifest@1', kind: 'scored', run_id: 'EVAL-source', case_id: 'fixture', definition: { commit }, input_checkpoint: { id: checkpoint.id, sha256: checkpointHash }, executions: [execution], interaction_fixtures: Object.fromEntries(stages.map(stage => [stage, { interaction_fixture_sha256: hashJson(policy(stage)) }])), runtime_resource_home: path.join(temp, 'resources'), profile: { subject: {}, concurrency: { global: 1 }, judge: { enabled: false }, failure_policy: { stop_run_on_infrastructure_error: true } }, subject_profile: { id: 'fake', harness: 'zcode-acp', model: 'fake', reasoning: 'low', subagent_capacity: 5 } };
   const baselineFile = await write(path.join(sourceRoot, 'executions/e2e/baseline-admission/receipt.json'), { status: 'passed', checkpoint_id: checkpoint.id, checkpoint_sha256: checkpointHash, source_commit: checkpoint.source.commit, policy_sha256: 'e'.repeat(64), checks: [{ exit_code: 0 }] });
+  Object.assign(source.profile, {
+    schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: 'fixture', subject: { profile_id: 'fake' },
+    selection: { focused_stages: [], segment: null, e2e: true, repetitions: 1 },
+    failure_policy: { stop_run_on_infrastructure_error: true, stop_execution_on_unexpected_hitl: true, stop_execution_on_unmatched_hitl: true }
+  });
   await write(path.join(sourceRoot, 'manifest.json'), source);
   await appendEvent(path.join(sourceRoot, 'events.jsonl'), { source: 'fixture', runId: source.run_id, executionId: execution.id, type: 'dev.dd.eval.execution.context_prepared', data: { stage: 'plan-review', baseline_admission: { file: baselineFile, sha256: hash(await readFile(baselineFile)) } } });
   const from = `plan-${'f'.repeat(64)}`;
@@ -138,7 +143,7 @@ test('fork inherits pins, crosses a boundary and finalizes through ordinary EVAL
   const [result, concurrent] = await Promise.all([f.runner.runnerFork({ ...f.input, start: true }), f.runner.runnerFork({ ...f.input, start: true })]);
   assert.equal(result.status, 'accepted');
   assert.equal(concurrent.status, 'accepted');
-  const status = await waitForState(f.runner, f.output, ['completed']);
+  const status = await waitForState(f.runner, f.output, ['completed'], 30_000);
   assert.equal(status.execution_results[0].boundaries.length, 2);
   assert.equal(status.execution_results[0].stage, 'code');
   assert.equal((await f.runner.runnerFork({ ...f.input, start: true })).status, 'accepted');
@@ -148,6 +153,16 @@ test('fork inherits pins, crosses a boundary and finalizes through ordinary EVAL
   assert.equal(calls.filter(a => a[1] === 'drive' && a[2] === 'context').length, 1);
   assert.deepEqual(await readFile(path.join(f.sourceRoot, 'manifest.json')), sourceBytes);
   assert.equal((await waitForState(f.runner, f.output, ['completed'])).state, 'completed');
+});
+
+test('completed fork replay does not require its archived source checkpoint', async t => {
+  const f = await setup(t);
+  const ready = await f.runner.runnerFork(f.input);
+  await rm(f.sourceRoot, { recursive: true, force: true });
+  const replay = await f.runner.runnerFork(f.input);
+  assert.equal(replay.run_id, ready.run_id);
+  assert.equal(replay.status, 'ready');
+  await assert.rejects(f.runner.runnerFork({ ...f.input, requestId: 'another-request' }), { code: 'fork_request_conflict' });
 });
 
 test('boundary callback failure retains primary error, stops the RUN and finalizes failure', async t => {
@@ -181,11 +196,17 @@ test('failed fork stays pending until cleanup is confirmed, then finalizes witho
   const f = await setup(t, 'unsettled');
   const first = await f.runner.runnerFork({ ...f.input, start: true });
   assert.equal(first.status, 'accepted');
-  const initial = await waitForState(f.runner, f.output, ['awaiting_provider']);
+  // awaiting_provider is also an observer-startup state. Wait for the actual
+  // failed RUN's stop request before changing the fixture's settlement reply.
+  await waitForState(f.runner, f.output, ['awaiting_provider'], 10_000, async () => {
+    try { await stat(path.join(f.output, 'stopped')); return true; }
+    catch (error) { if (error.code === 'ENOENT') return false; throw error; }
+  });
   const config = JSON.parse(await readFile(f.configFile));
   await write(f.configFile, { ...config, fault: null });
   const next = await f.runner.runnerFork({ ...f.input, start: true });
   assert.equal(next.status, 'accepted');
+  await waitForState(f.runner, f.output, ['completed_with_failures']);
   const calls = (await readFile(f.callsFile, 'utf8')).trim().split('\n').map(JSON.parse);
   assert.equal(calls.filter(a => a[1] === 'drive' && a[2] === 'launch').length, 1);
 });
@@ -197,6 +218,7 @@ test('missing or changed source pins fail before fork preparation or native disp
     await assert.rejects(f.runner.runnerFork({ ...f.input, start: true }), error => ['interaction_fixture_invalid', 'interaction_fixture_checksum_mismatch'].includes(error.code));
     await assert.rejects(readFile(f.callsFile), { code: 'ENOENT' });
     await assert.rejects(readFile(path.join(f.output, 'fork.json')), { code: 'ENOENT' });
+    await assert.rejects(stat(path.dirname(f.output)), { code: 'ENOENT' });
   }
 });
 
@@ -205,6 +227,13 @@ test('fork never substitutes an ambient engine when the requested retained artif
   await assert.rejects(f.runner.runnerFork({ ...f.input, engineVersion: 'not-retained' }), { code: 'fork_engine_artifact_missing' });
   await assert.rejects(readFile(f.callsFile), { code: 'ENOENT' });
   await assert.rejects(readFile(path.join(f.output, 'fork.json')), { code: 'ENOENT' });
+  await assert.rejects(stat(path.dirname(f.output)), { code: 'ENOENT' });
+});
+
+test('invalid fork arguments do not register or create an output home', async t => {
+  const f = await setup(t);
+  await assert.rejects(f.runner.runnerFork({ ...f.input, engineVersion: 'bad engine version' }), { code: 'fork_input_invalid' });
+  await assert.rejects(readFile(path.join(f.output, 'manifest.json')), { code: 'ENOENT' });
 });
 
 test('an explicit digest admits one installed upgrade artifact without router selection', async t => {
@@ -226,11 +255,10 @@ test('prepared fork revalidates its complete stage range before launch', async t
   const file = path.join(f.output, 'manifest.json'), manifest = JSON.parse(await readFile(file));
   delete manifest.interaction_fixtures.code;
   await write(file, manifest);
-  assert.equal((await f.runner.runnerFork({ ...f.input, start: true })).status, 'accepted');
-  await waitForState(f.runner, f.output, ['failed']);
+  await assert.rejects(f.runner.runnerFork({ ...f.input, start: true }), { code: 'interaction_fixture_invalid' });
+  await assert.rejects(stat(path.join(f.output, 'runner-attempts')), { code: 'ENOENT' });
   const calls = (await readFile(f.callsFile, 'utf8')).trim().split('\n').map(JSON.parse);
-  // The detached observer may register and inspect its own scope before it
-  // reads the tampered manifest. It must never dispatch the prepared RUN.
+  // Invalid retained inputs are rejected before creating a detached observer.
   assert.equal(calls.filter(args => args[1] === 'drive' && args[2] === 'launch').length, 0);
   assert.equal(calls.filter(args => args[1] === 'fork').length, 1);
 });

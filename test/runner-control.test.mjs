@@ -13,12 +13,45 @@ import { withRunnerLock } from '../lib/runner-lock.mjs';
 import { evalResumeWorkerFile, requestEvalResume } from '../lib/eval-resume-worker.mjs';
 import { processSnapshot } from '../lib/process-snapshot.mjs';
 
+function initialRunProfile(caseId) {
+  return { value: { schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: caseId, subject: { profile_id: 'fixture' },
+    selection: { focused_stages: [], segment: null, e2e: true, repetitions: 1 },
+    concurrency: { global: 1, per_harness: {} }, interaction_judge: { profile_id: 'fixture' }, judge: { enabled: false },
+    failure_policy: { stop_run_on_infrastructure_error: false, stop_execution_on_unexpected_hitl: true, stop_execution_on_unmatched_hitl: true } } };
+}
+
+test('operator control validates the retained scope before publishing intent', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-control-prepare-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ run_id: 'EVAL-invalid', executions: [null], runtime_control_bin: path.join(root, 'missing-dd-flow') }));
+  await assert.rejects(runnerControlRequest({ evalRoot: root, requestId: 'stop', mode: 'stop' }), { code: 'control_input_invalid' });
+  await assert.rejects(readFile(path.join(root, 'events.jsonl')), { code: 'ENOENT' });
+});
+
+async function completeContinuationFixture(root) {
+  const file = path.join(root, 'manifest.json'), manifest = JSON.parse(await readFile(file, 'utf8'));
+  const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
+  const executions = manifest.executions.length ? manifest.executions : [{ id: 'queued', mode: 'e2e', stage: 'merge', terminal_stage: 'merge' }];
+  const subject = manifest.subject_profile ?? { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' };
+  await writeFile(file, JSON.stringify({ ...manifest, schema_id: 'dd-eval/runner-manifest@1', case_id: loaded.value.id,
+    executions, subject_profile: subject, input_checkpoint: { sha256: loaded.inputCheckpoint.sha256 },
+    definition: { commit: await commandText('git', ['rev-parse', 'HEAD']) },
+    interaction_fixtures: await interactionFixtureManifest(loaded.root, executions),
+    profile: { schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: loaded.value.id, subject: { profile_id: subject.id },
+      selection: { focused_stages: [], segment: null, e2e: true, repetitions: 1 }, judge: { enabled: false }, interaction_judge: { profile_id: 'fixture' },
+      concurrency: { global: 1 }, failure_policy: { stop_execution_on_unexpected_hitl: true, stop_execution_on_unmatched_hitl: true } }
+  }));
+}
+
 test('initial EVAL waits for the lifecycle owner and rechecks control before publishing its queue', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-initial-owner-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   let started, finished = false;
+  const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
+  const profile = { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' };
+  const runProfile = initialRunProfile(loaded.value.id);
   await withRunnerLock(`${root}.lifecycle`, async () => {
-    started = executeEval({ root, runId: 'EVAL-initial' }).catch(error => { finished = true; return error; });
+    started = executeEval({ root, runId: 'EVAL-initial', loaded, profile, runProfile, executions: [{ id: 'queued', mode: 'e2e', stage: 'merge', terminal_stage: 'merge' }] }).catch(error => { finished = true; return error; });
     await delay(50);
     assert.equal(finished, false);
     await assert.rejects(readFile(path.join(root, 'manifest.json')), { code: 'ENOENT' });
@@ -29,6 +62,19 @@ test('initial EVAL waits for the lifecycle owner and rechecks control before pub
   assert.equal((await readEvents(path.join(root, 'events.jsonl'))).length, 1);
 });
 
+test('initial EVAL rejects a missing context before creating its output parent or runtime', async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'eval-input-prepare-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const root = path.join(directory, 'not-created', 'eval');
+  const loaded = { root: path.join(directory, 'case'), value: { id: 'fixture', flow: { terminal_stage: 'merge' } } };
+  const profile = { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' };
+  const runProfile = initialRunProfile(loaded.value.id);
+  await assert.rejects(executeEval({ root, loaded, profile, runProfile, executions: [{ id: 'queued', mode: 'e2e', stage: 'merge', terminal_stage: 'merge' }] }), error => error.code === 'ENOENT' && error.path.endsWith('stage-context.json'));
+  await assert.rejects(executeEval({ root, loaded, profile, runProfile, executions: [{ id: '../escape', mode: 'e2e', stage: 'merge', terminal_stage: 'merge' }] }), { code: 'control_input_invalid' });
+  await assert.rejects(executeEval({ root, loaded, profile, runProfile: { value: { ...runProfile.value, concurrency: { global: 0 } } } }), /concurrency is invalid/);
+  await assert.rejects(readFile(path.dirname(root)), { code: 'ENOENT' });
+});
+
 test('runner resume routes an unstarted execution through launch without rewriting its manifest', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-resume-queue-'));
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -36,7 +82,9 @@ test('runner resume routes an unstarted execution through launch without rewriti
   const execution = { id: 'queued', stage: 'specify', terminal_stage: 'specify', mode: 'e2e' };
   const manifest = { run_id: 'EVAL-resume-queue', case_id: loaded.value.id, executions: [execution], input_checkpoint: { id: loaded.inputCheckpoint.value.id, sha256: loaded.inputCheckpoint.sha256 }, definition: { commit: await commandText('git', ['rev-parse', 'HEAD']) }, runtime_resource_home: path.join(root, 'resources'), subject_profile: { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' }, profile: { concurrency: { global: 1, per_harness: {} }, interaction_judge: { profile_id: 'fixture' }, judge: { enabled: false }, failure_policy: { stop_run_on_infrastructure_error: false } } };
   manifest.interaction_fixtures = await interactionFixtureManifest(loaded.root, manifest.executions);
-  const bytes = JSON.stringify(manifest), file = path.join(root, 'manifest.json'); await writeFile(file, bytes);
+  const file = path.join(root, 'manifest.json'); await writeFile(file, JSON.stringify(manifest));
+  await completeContinuationFixture(root);
+  const bytes = await readFile(file, 'utf8');
   const retained = path.join(root, 'executions', execution.id, 'retained'); await mkdir(path.dirname(retained), { recursive: true }); await writeFile(retained, 'fixture blocks before provider preparation');
   const [first, duplicate] = await Promise.allSettled([runnerResume({ evalRoot: root }), runnerResume({ evalRoot: root })]);
   assert.equal(first.status, 'fulfilled', first.reason?.stack);
@@ -78,7 +126,7 @@ if(result.error)throw result.error; process.exit(result.status??1);`);
   const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
   const execution = { id: 'queued', stage: 'specify', terminal_stage: 'specify', mode: 'e2e' };
   const profile = { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' };
-  const runProfile = { value: { concurrency: { global: 1, per_harness: {} }, interaction_judge: { profile_id: 'fixture' }, judge: { enabled: false }, failure_policy: { stop_run_on_infrastructure_error: false } } };
+  const runProfile = initialRunProfile(loaded.value.id);
   const retained = path.join(root, 'executions', execution.id, 'retained');
   await mkdir(path.dirname(retained), { recursive: true }); await writeFile(retained, 'block before provider preparation');
   let initial, resumed, finished = false;
@@ -405,6 +453,7 @@ test('background resume admission respects the caller deadline without a late qu
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-worker-deadline-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ run_id: 'EVAL-deadline', runtime_control_bin: process.execPath, runtime_resource_home: path.join(root, 'resources'), executions: [] }));
+  await completeContinuationFixture(root);
   await appendEvent(path.join(root, 'events.jsonl'), { source: 'fixture', runId: 'EVAL-deadline', type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
   const file = evalResumeWorkerFile(root, 'resume'); await mkdir(path.dirname(file), { recursive: true });
   await withRunnerLock(file, async () => {
@@ -429,6 +478,7 @@ else if(args[1]==='process'&&args[2]==='register') console.log(JSON.stringify({p
 else throw Error('foreign registration must not be used');`);
   await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ run_id: runId, runtime_control_bin: cli, runtime_resource_home: path.join(root, 'resources'), executions: [] }));
   await appendEvent(path.join(root, 'events.jsonl'), { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
+  await completeContinuationFixture(root);
   const receipt = await requestEvalResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop' });
   const deadline = performance.now() + 5000; let saved;
   for (;;) {
@@ -486,6 +536,7 @@ console.log(JSON.stringify({ok:false,error:{code:fs.existsSync(${JSON.stringify(
   const eventsFile = path.join(root, 'events.jsonl');
   await assert.rejects(recordOperation({ eventsFile, source: 'fixture', runId, executionId: execution.id, operationId: `${runId}:${execution.id}:launch`, operation: 'execution.retained.launch', action: async () => { throw Object.assign(new Error('lost'), { code: 'rpc_timeout' }); } }), { code: 'rpc_timeout' });
   await appendEvent(eventsFile, { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
+  await completeContinuationFixture(root);
   await requestEvalResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop' });
   // This is a real detached-process integration, including several CLI starts
   // and the observer's one-second retry delay. Bound the protocol, not host speed.
