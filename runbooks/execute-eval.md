@@ -23,16 +23,15 @@ never extend that window.
 
 ## Before launch
 
-### Native child slots and completed parent turns (cp-113)
+### Native child slots and completed parent turns (cp-113/cp-118)
 
-Codex children continue occupying native slots after completion until closed.
-Coordinators must retain terminal results and Work finish/fail receipts, then
-use native `close_agent` on their owned, no-longer-needed children. Follow the
-exposed schema; never interrupt a running child merely to make room. On a
-capacity refusal, check retained children from earlier waves as well, preserve
-successful spawns, wait for them and report unlaunched assignments. The existing
-controller dispatches the remainder; a failed batch does not undo its successful
-spawns. Do not add a separate slot ledger or a routine capacity requalification.
+Codex multi-agent v2 owns completed-child residency and slot reuse. Coordinators
+retain terminal results and Work finish/fail receipts, but must not interrupt or
+close completed children as cleanup. On a capacity refusal, preserve successful
+spawns, wait for them and report unlaunched assignments. Never interrupt a
+running child merely to make room. The existing controller dispatches the
+remainder; a failed batch does not undo its successful spawns. Do not add a
+separate slot ledger or a routine capacity requalification.
 
 A completed parent Turn with `settlement.reason=tree_unsettled` is normal child
 activity, not a bookkeeping timeout. The controller observes it through its
@@ -80,10 +79,15 @@ with `effect=no_effect`; the controller receives the infrastructure failure and
 stops the owned tree without waiting for a later `finish`. A committed write
 is visible to a new SQLite transaction without a WAL checkpoint or sleep; do
 not keep an old read snapshot while waiting. A timeout after COMMIT is
-reconciled from durable state and never blindly replayed. A stale, foreign,
-ambiguous or reused receipt is rejected. A real hook failure stops execution
-without automatic retry, even when no effect is proven. `status`, a direct
-hook-handler call and generated IDs are not valid recovery.
+reconciled from durable state and never blindly replayed. A stale, foreign or
+ambiguous receipt is rejected. Repeating the same issued command from a new
+native tool call is allowed only while no CLI has claimed execution: the hook
+records the new observation and the CLI's atomic `observed -> executing`
+transition still admits exactly one executor. This covers a native shell launch
+rejected before the CLI process existed. Once execution starts, another
+observation cannot replace its receipt or replay the effect. A real hook failure
+stops execution without automatic retry, even when no effect is proven.
+`status`, a direct hook-handler call and generated IDs are not valid recovery.
 
 CLI argument rejection is different: validate before claiming execution or
 starting Work. An issued/observed invocation with incorrect arguments returns

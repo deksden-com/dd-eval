@@ -1,0 +1,21 @@
+{
+  "id": "cp-119-task-priority-native-retry-flow-4-1-1-engine-0-9-0-beta-77",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "9b121e24f94ac56c2a076cd95e84f427eeea8c6d",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "d3cea603afa0af228d4e3e7d29a4e0efdda6d5cb",
+      "version": "0.9.0-beta.77",
+      "artifact_sha256": "9df9b012c3870c40db6bed3db6e5f0f501ac1c16f00c5c99c33e5cc1390fb1ef"
+    }
+  },
+  "state": "local_development_candidate_for_luna_e2e"
+}
