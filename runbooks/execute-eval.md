@@ -55,9 +55,12 @@ Native hooks are synchronous ingress only: the hook records a minimal native
 identity/operation receipt in the already-prepared RUN database and returns
 after COMMIT. The CLI then reads and claims that exact receipt and owns the
 Work/Stage mutation. Do not make required admission depend on `updatedInput`,
-which is not reliable across all installed transports. Managed commands carry
-a runtime-issued invocation ID so the CLI can correlate the native call even
-when a provider executes the original command. The hook must not migrate the
+which is not reliable across all installed transports. Managed model-facing
+commands omit the runtime invocation UUID. The hook correlates the exact
+operation/target with a prepared attempt inside the trusted native root and
+commits that receipt before returning; the CLI admits only that receipt. If
+more than one attempt matches, admission fails closed and the compatibility
+path may expose an explicit ID. The hook must not migrate the
 store, validate CLI arguments/payload files, bind logical RUN/Work state, issue
 retry commands, start Work, launch a detached writer or be repaired by the model.
 Its project anchor comes from the owning daemon/configured workspace, never
@@ -94,7 +97,10 @@ starting Work. An issued/observed invocation with incorrect arguments returns
 `effect=no_effect`, `recoverable=true` and an exact `retry_command`. The CLI
 atomically settles the rejected attempt and issues its sole corrected successor.
 The same native Session may execute that command; it must not repair the hook
-or invent an invocation ID. Executing/unknown-effect attempts never get this
+or invent an invocation ID. RUN/Work commands may use their scoped short IDs;
+`@project` is expanded only in declared dd-flow path parameters. `@workspace`,
+`@run` and `@eval` are context aliases only where the corresponding CLI declares
+them; shell tools do not expand these names. Executing/unknown-effect attempts never get this
 replacement. Old IDs replay retained outcomes; storage rollback must not expose
 a usable successor. CP-114's mistyped project path is the regression case.
 

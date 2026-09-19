@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { addHome, listHomes, removeHome } from "../lib/homes.mjs";
-import { parse, validateCommand } from "../lib/cli-input.mjs";
+import { parse, resolveEvalReference, validateCommand } from "../lib/cli-input.mjs";
 import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualificationRecover, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalPreflight, evalRun, fixturesValidate, harnessCapacityCheck, harnessCompatibilityQualify, runnerCancel, runnerCheckpoints, runnerFork, runnerRecover, runnerReconcile, runnerResume, runnerStatus } from "../lib/runner.mjs";
 import { gcApply, gcPlan, storageList, storageStatus } from "../lib/storage.mjs";
 import { runnerRecoveryInspect } from "../lib/runner.mjs";
@@ -68,6 +68,8 @@ try {
   // register a run, or launch a worker.  A corrected invocation is therefore
   // always safe to repeat.
   for (const key of ["write-profile", "detach", "start"]) optionalBoolean(options, key);
+  if (options["wait-ms"] !== undefined && (!/^\d+$/.test(options["wait-ms"]) || Number(options["wait-ms"]) > 60_000)) throw Object.assign(new Error("--wait-ms must be an integer between 0 and 60000"), { code: "control_request_invalid" });
+  if (options.eval) options.eval = resolveEvalReference(options.eval);
   const [family, command, action] = positional;
   if (!family || family === "help" || family === "--help") { process.stdout.write(usage()); process.exit(0); }
   let result;
@@ -112,7 +114,6 @@ try {
   }
   else if (family === "runner" && command === "control" && action === "resume") {
     if (positional.length !== 3 || Object.keys(options).some(key => !["eval", "from", "request-id", "wait-ms"].includes(key))) throw new Error("Use runner control resume --eval <path> --from <control-request-id> --request-id <id> [--wait-ms <0..60000>]");
-    if (options["wait-ms"] !== undefined && !/^\d+$/.test(options["wait-ms"])) throw Object.assign(new Error("--wait-ms must be an integer between 0 and 60000"), { code: "control_request_invalid" });
     result = await requestEvalResume({ evalRoot: required(options, "eval"), requestId: required(options, "request-id"), fromRequestId: required(options, "from"), ...(options["wait-ms"] !== undefined ? { waitMs: Number(options["wait-ms"]) } : {}) });
   }
   else if (family === "runner" && command === "resume") result = await requestRunnerContinuation({ evalRoot: required(options, "eval") });

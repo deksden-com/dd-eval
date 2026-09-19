@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdtemp, rm, stat } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import test from 'node:test';
-import { commandInputs, parse, validateCommand } from '../lib/cli-input.mjs';
+import { commandInputs, parse, resolveEvalReference, validateCommand } from '../lib/cli-input.mjs';
 
 const run = promisify(execFile);
 const cli = path.resolve(import.meta.dirname, '../bin/dd-eval.mjs');
@@ -29,3 +29,21 @@ for (const [name, [arity, allowed]] of Object.entries(commandInputs)) {
     } finally { await rm(root, { recursive: true, force: true }); }
   });
 }
+
+test('EVAL references resolve only inside the selected home or bound context', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-cli-reference-'));
+  const home = path.join(root, 'home'), runId = 'EVAL-20260919123456-deadbeef', run = path.join(home, 'runs', runId);
+  try {
+    await mkdir(run, { recursive: true });
+    await writeFile(path.join(run, 'manifest.json'), JSON.stringify({ schema_id: 'dd-eval/runner-manifest@1', run_id: runId }));
+    assert.equal(resolveEvalReference(runId, { DD_EVAL_HOME: home }), run);
+    assert.equal(resolveEvalReference('@eval', { DD_EVAL_HOME: home, DD_EVAL_RUN_ID: runId }), run);
+    assert.equal(resolveEvalReference('@eval', { DD_EVAL_HOME: home, DD_EVAL_CURRENT: run }), run);
+    assert.throws(() => resolveEvalReference('@eval', { DD_EVAL_HOME: home, DD_EVAL_CURRENT: run, DD_EVAL_RUN_ID: 'EVAL-other' }), { code: 'usage' });
+    assert.throws(() => resolveEvalReference('@eval', { DD_EVAL_HOME: home }), { code: 'usage' });
+    const foreign = 'EVAL-20260919123456-foreign';
+    await mkdir(path.join(home, 'runs', foreign), { recursive: true });
+    await writeFile(path.join(home, 'runs', foreign, 'manifest.json'), JSON.stringify({ run_id: runId }));
+    assert.throws(() => resolveEvalReference(foreign, { DD_EVAL_HOME: home }), { code: 'usage' });
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
