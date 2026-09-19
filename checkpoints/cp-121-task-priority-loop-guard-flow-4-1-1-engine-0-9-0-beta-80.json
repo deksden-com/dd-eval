@@ -1,0 +1,21 @@
+{
+  "id": "cp-121-task-priority-loop-guard-flow-4-1-1-engine-0-9-0-beta-80",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "9b121e24f94ac56c2a076cd95e84f427eeea8c6d",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "258058b332954cc3760d11838a3a8a55de4bb0dd",
+      "version": "0.9.0-beta.80",
+      "artifact_sha256": "f498d2a6808599b9551ed436c6509b1f5371c1cc19aac5ddfcd7bce56396dc4c"
+    }
+  },
+  "state": "local_development_candidate_for_luna_e2e"
+}
