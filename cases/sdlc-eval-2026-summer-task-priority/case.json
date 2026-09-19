@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-117-task-priority-cli-prepare-flow-4-1-1-engine-0-9-0-beta-75",
-    "sha256": "2aa331eba47f45b3481b778ee98b8d138def025f6a329967d3cb98a6799bdbb6"
+    "id": "cp-118-task-priority-codex-v2-flow-4-1-1-engine-0-9-0-beta-76",
+    "sha256": "75ccffc402e28dbc766c242e62a76df0afffd21f83099dccf15ed2e96c375eb5"
   },
   "entry_pack": null,
   "profiles": {
