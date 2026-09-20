@@ -62,8 +62,10 @@ invocation_receipt_missing, контроллер — stage_entry_nonprogressing.
    stage/Work/MRG bindings. Не удалять семантические решения, result JSON,
    вопрос/ответ, reason и выбор из нескольких целей.
 4. Публичные формы: `stage start --stage specify`, `stage finish`,
-   `work start WRK-003`, `work finish --result-stdin`,
-   `stage pause --question-stdin`, `stage resume --answer-stdin`.
+   `work start WRK-003`, `work finish --result-file <runtime-issued-file>`,
+   `stage pause --question-file <runtime-issued-file>`,
+   `stage resume --answer-file <retained-file>`. Stdin остаётся совместимостью
+   для программных callers, но новые model-facing prompts его не рекомендуют.
    Эти формы реализованы общей проекцией retained lifecycle invocation. Stage/WRK оставлять
    там, где они различают допустимые назначения; не требовать их повторно,
    если session binding даёт ровно одну цель.

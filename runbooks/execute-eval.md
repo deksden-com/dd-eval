@@ -565,6 +565,15 @@ Monitor without modifying the evaluated Session:
 dd-eval runner status --eval "$DD_EVAL_HOME/runs/<eval-id>"
 ```
 
+Follow [E2E monitoring](./e2e-monitoring.md#determine-the-current-stage) when reporting the
+stage. In particular, `manifest.executions[].stage` is the configured entry stage, not live
+progress; use the RUN/controller projection or the RUN's durable `timeline.jsonl` events.
+
+Model-facing structured submissions use a runtime-issued JSON file followed by a separate
+standalone CLI command. HITL uses the retained question/answer text files. Do not instruct the
+Subject to combine file creation and a lifecycle call with heredoc, pipe, shell variable,
+command substitution or base64; legacy stdin forms are compatibility paths, not examples.
+
 Provider silence or a missing current tool call is not a failure. The runner
 waits for a provider terminal state, a registered `dd-flow` pause, an explicit
 provider error/cancellation or a configured hard deadline. A terminal chat

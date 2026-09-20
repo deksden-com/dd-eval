@@ -5,10 +5,39 @@ For direct controller diagnostics use the execution's pinned wrapper with
 `DD_FLOW_HOME=<runtime-root> <runtime-root>/bin/dd-flow run drive status --run <RUN-ID> --project-root <project-root> --after <cursor> --json`.
 The explicit home is required for historical wrappers; newly generated wrappers pin it themselves.
 
-Read the current stage from the live RUN/controller and `execution_results[].stage`.
-`manifest.executions[].stage` is the configured entry stage, not current progress.
-If live evidence is unavailable, report the current stage as unknown with the observation
-error; label any retained execution result as last known rather than substituting entry stage.
+## Determine the current stage
+
+`manifest.executions[].stage` is the configured entry stage. It is immutable run input and
+must never be reported as current progress.
+
+Determine the current stage in this order:
+
+1. Use an explicit live stage projection from the RUN/controller when status provides one.
+2. Otherwise read the RUN's `timeline.jsonl`: the latest `stage_attached` without a later
+   matching `stage_completed` is current. If the latest stage was completed, report the RUN
+   as between stages and include that completed stage as the last known stage.
+3. Corroborate the result with current Work states and recently written stage artifacts.
+
+For example:
+
+```sh
+jq -r '
+  select(.type == "stage_attached" or .type == "stage_completed") |
+  [.at, .type, .stage, (.status // "-")] | @tsv
+' <absolute-run-root>/timeline.jsonl | tail -n 20
+```
+
+Do not infer stage progress from `state: awaiting_provider`, process leases or provider-turn
+count: those describe orchestration/liveness, not the semantic stage. If the timeline and a
+live projection disagree, report the discrepancy and use the newer durable RUN event. If live
+RUN evidence is unavailable, report the current stage as unknown with the observation error;
+label retained evidence as last known rather than substituting the entry stage.
+
+When a lifecycle call fails, inspect the retained hook event and CLI error together. A
+`lifecycle_shell_syntax_invalid` error means the hook observed the call but rejected its shell
+composition; it is not missing delivery. `invocation_receipt_missing` is reserved for absent
+or unbindable native evidence. Preserve the original code/reason in the report instead of
+replacing it with a later `execution_ended_without_work_result` or cleanup error.
 
 A diagnostic timeout means observation failed. Validate arguments, runtime home and engine;
 retry the read through the ordinary runner path. Never stop an EVAL solely because a diagnostic
