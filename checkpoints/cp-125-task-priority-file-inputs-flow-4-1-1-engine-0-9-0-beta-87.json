@@ -1,0 +1,21 @@
+{
+  "id": "cp-125-task-priority-file-inputs-flow-4-1-1-engine-0-9-0-beta-87",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "9b121e24f94ac56c2a076cd95e84f427eeea8c6d",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "68245785d197ab491e80db40faf2e57a18a6a055",
+      "version": "0.9.0-beta.87",
+      "artifact_sha256": "e947db1faf5a6fdbcd86ca809fd0dfd628f1e1dbc93c3a2e0490f09b8f1e46a3"
+    }
+  },
+  "state": "local_development_candidate_for_luna_e2e"
+}
