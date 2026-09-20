@@ -1,0 +1,21 @@
+{
+  "id": "cp-123-task-priority-escaped-alias-flow-4-1-1-engine-0-9-0-beta-83",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "9b121e24f94ac56c2a076cd95e84f427eeea8c6d",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "7ede03ea5da48b77ab59b46bed8028b2a885da61",
+      "version": "0.9.0-beta.83",
+      "artifact_sha256": "2b1732129bb762f274774d5d7e3377fbf31a89cabb9a29233690b9ecb65bf09d"
+    }
+  },
+  "state": "local_development_candidate_for_luna_e2e"
+}
