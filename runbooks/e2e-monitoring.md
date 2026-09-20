@@ -5,6 +5,11 @@ For direct controller diagnostics use the execution's pinned wrapper with
 `DD_FLOW_HOME=<runtime-root> <runtime-root>/bin/dd-flow run drive status --run <RUN-ID> --project-root <project-root> --after <cursor> --json`.
 The explicit home is required for historical wrappers; newly generated wrappers pin it themselves.
 
+Read the current stage from the live RUN/controller and `execution_results[].stage`.
+`manifest.executions[].stage` is the configured entry stage, not current progress.
+If live evidence is unavailable, report the current stage as unknown with the observation
+error; label any retained execution result as last known rather than substituting entry stage.
+
 A diagnostic timeout means observation failed. Validate arguments, runtime home and engine;
 retry the read through the ordinary runner path. Never stop an EVAL solely because a diagnostic
 timed out, a timestamp did not change, the root session is quiet or a Work has not finished.
