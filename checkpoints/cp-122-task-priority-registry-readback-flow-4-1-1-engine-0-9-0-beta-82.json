@@ -1,0 +1,21 @@
+{
+  "id": "cp-122-task-priority-registry-readback-flow-4-1-1-engine-0-9-0-beta-82",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "9b121e24f94ac56c2a076cd95e84f427eeea8c6d",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "e6ab8fb3cc284cc7f3c2ca4dd77c4490ef980f76",
+      "version": "0.9.0-beta.82",
+      "artifact_sha256": "a3cfcf0409da53aa1e4e0d0bf77d82898b0c24af217aeeab934a30f7e79ab6b4"
+    }
+  },
+  "state": "local_development_candidate_for_luna_e2e"
+}

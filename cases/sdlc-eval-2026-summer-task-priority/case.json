@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-121-task-priority-loop-guard-flow-4-1-1-engine-0-9-0-beta-80",
-    "sha256": "c17a89b3b68636bb1c1ce318f8b06797386d3c2a6b43bf88fd75c7557174682d"
+    "id": "cp-122-task-priority-registry-readback-flow-4-1-1-engine-0-9-0-beta-82",
+    "sha256": "61a9f68c4655d9185b58a41b449ff73e07710df9bbc147727f5351b33a447788"
   },
   "entry_pack": null,
   "profiles": {
