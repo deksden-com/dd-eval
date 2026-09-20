@@ -1,0 +1,21 @@
+{
+  "id": "cp-124-task-priority-lifecycle-preparation-flow-4-1-1-engine-0-9-0-beta-86",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "9b121e24f94ac56c2a076cd95e84f427eeea8c6d",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "979a6151c910228ed3da8daa015bcf89098b04f1",
+      "version": "0.9.0-beta.86",
+      "artifact_sha256": "581afda3673b489dcce2ae10299653056098290d15a1f674dc6becefbc92ab56"
+    }
+  },
+  "state": "local_development_candidate_for_luna_e2e"
+}
