@@ -14,7 +14,7 @@
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
       "commit": "7ede03ea5da48b77ab59b46bed8028b2a885da61",
       "version": "0.9.0-beta.83",
-      "artifact_sha256": "2b1732129bb762f274774d5d7e3377fbf31a89cabb9a29233690b9ecb65bf09d"
+      "artifact_sha256": "fbc7abdeb64eac3e8290fabbe56229accf6229bc1a00b92760b4a253051dc3a7"
     }
   },
   "state": "local_development_candidate_for_luna_e2e"
