@@ -60,6 +60,24 @@ else if(args[1]==='drive' && args[2]==='status') {
 fs.writeFileSync(stateFile,JSON.stringify(state));console.log(JSON.stringify(result));
 `;
 
+for (const status of ['running', 'recovery_required']) test(`repair continuation and primary cause survive managed observation (${status})`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-repair-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs');
+  const continuation = { schema_id: 'dd-flow/continuation@1', kind: 'repair_required', work_id: 'WRK-repair', identity: 'intent', stage: 'code', attempt: 'try-001' };
+  const error = { code: 'input_file_missing', message: 'Original objective missing', details: { phase: 'prepare', effect: 'no_effect', hook_event_id: 42, cause: { code: 'code_gate_failed' } } };
+  await writeFile(bin, `console.log(JSON.stringify(${JSON.stringify({ controller: { controller_id: 'DRV-repair', stage: 'code', status, ...(status === 'recovery_required' ? { error } : {}) }, events: [{ sequence: 1, type: 'lifecycle_outcome', data: { error: { code: 'code_gate_failed', details: { continuation } } } }] })}));`);
+  const events = [];
+  const input = { bin, env: process.env, projectRoot: root, runId: 'RUN', controllerId: 'DRV-repair', observeOnce: true, onEvent: async event => events.push(event) };
+  if (status === 'running') assert.equal((await observeManagedRun(input)).controller.status, 'running');
+  else await assert.rejects(observeManagedRun(input), failure => {
+    assert.equal(failure.code, error.code);
+    assert.deepEqual(failure.details.controller.error, error);
+    return true;
+  });
+  assert.deepEqual(events[0].data.error.details.continuation, continuation);
+});
+
 for (const slow of [false, true]) test(`input preparation observes failure and never dispatches late input (slow: ${slow})`, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'managed-input-fence-'));
   t.after(() => rm(root, { recursive: true, force: true }));

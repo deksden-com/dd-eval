@@ -40,6 +40,21 @@ native evidence. `invocation_assignment_missing` means native delivery succeeded
 did not match an issued assignment. Preserve the original code/reason in the report instead of
 replacing it with a later `execution_ended_without_work_result` or cleanup error.
 
+For a CODE/CODE-REVIEW aggregate failure, distinguish the check result from its continuation.
+`code_gate_failed`/`code_review_gate_failed` with a durable `repair_required` binding is not
+stage success or a terminal engine failure: inspect the registered repair Work, its stage,
+attempt/cycle, causal receipts and fresh child. Report the repair transition once. Completed
+repair Work still requires the subsequent semantic verification and aggregate gate. Never
+create another repair, copy receipt/Work IDs into a model-authored command, or retry a check
+as a monitoring action. Environment recovery requires factual JSON evidence, not a placeholder.
+
+Use explicit stage/attempt/cycle membership for counts and dispatch. PLAN and PLAN-REVIEW
+siblings under the same coordinator are historical evidence, not CODE children. A legacy or
+stale membership projection is a compatibility blocker; status must not invent membership.
+For unchanged continuation failures, retain the same-turn CLI rejection (route, phase/effect,
+native hook event and scope). `fanout_stage_nonprogressing` is only the fallback when no
+correlated primary cause exists; a fresh process heartbeat does not invalidate that cause.
+
 A diagnostic timeout means observation failed. Validate arguments, runtime home and engine;
 retry the read through the ordinary runner path. Never stop an EVAL solely because a diagnostic
 timed out, a timestamp did not change, the root session is quiet or a Work has not finished.
