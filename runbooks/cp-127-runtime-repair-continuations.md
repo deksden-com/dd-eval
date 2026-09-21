@@ -45,7 +45,10 @@ typecheck/lint. Beta.89 was not published by the failed gate; no version was ski
 1. Require successful release gate, read npm beta tag and peeled git tag.
 2. Inspect published tarball `dist/build-info.json`, not a source build; compare exact CLI
    and canon tuples above. Install the exact version in this home's `published-engine`.
-3. Compute the installed full-content digest using `engineArtifactDigest`; pin it in a new
+3. Compute the installed engine snapshot digest using `engineArtifactDigest` on
+   `engine.json.snapshot_root`, NOT on the npm package directory: the snapshot also
+   contains resolved production dependencies. Verify it against `engine.json.integrity`
+   and the published engine's `prepareForkEngine` source inventory; pin it in a new
    checkpoint and update the case checkpoint file checksum. Never ask a model to copy hashes.
    Run `node scripts/qualify-published-repair.mjs /Users/deksden/Documents/_Projects/dd-flow-cli /Users/deksden/.dd-eval/qualification/cp-127-luna/published-engine/node_modules/@deksden-com/dd-flow-cli`.
    This reuses matching-commit regression fixtures with imports redirected to installed npm
@@ -69,11 +72,18 @@ failure or completion; stay quiet on unchanged live state.
 Release workflow `35580147738` succeeded at `2026-09-21T09:13:04Z`.
 Npm beta dist-tag is `0.9.0-beta.89`; peeled `v0.9.0-beta.89` resolves to the
 CLI commit above. Published tarball and installed `dist/build-info.json` match
-the exact CLI/canon tuple. Installed package full-content SHA-256:
-`b09555e6fcc9f58c1d7f076fe3169ffc343279ca8780bc394f5125f825f18e5d`.
+the exact CLI/canon tuple. Installed engine snapshot full-content SHA-256:
+`964c1ed0d58c7d3d26b40515c139de1d6660bd684e5783dad1a9a70f635e9402`.
 Npm integrity: `sha512-XXUWKZZa0i0FO7lzO383aafdq3OYw0y3I8S0TuYov+FQEpHIl5ahllHsoqz9dlttQIUvFos2QhNFOhSAxYGMWQ==`.
 
 Published-engine repair qualification: 16 passed, 20 deliberately unselected,
 2 test files passed. The checkpoint/case pin contract also passed.
 The new home contains portable configuration and the installed package only;
-no historical runtime state was copied. Preflight and new EVAL allocation pending.
+no historical runtime state was copied.
+
+First preflight `1789982148186-6636b60b` rejected `input_checkpoint_engine_mismatch`
+before provider execution: preparation had pinned the bare npm directory digest rather
+than the engine snapshot inventory (which includes production dependencies).
+The corrected digest was independently verified by `verifyEngineArtifact` and the
+published engine's `prepareForkEngine`. The failed receipt is retained unchanged.
+Corrected preflight and new EVAL allocation pending.
