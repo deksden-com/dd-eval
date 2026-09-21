@@ -86,4 +86,10 @@ before provider execution: preparation had pinned the bare npm directory digest 
 than the engine snapshot inventory (which includes production dependencies).
 The corrected digest was independently verified by `verifyEngineArtifact` and the
 published engine's `prepareForkEngine`. The failed receipt is retained unchanged.
-Corrected preflight and new EVAL allocation pending.
+Corrected preflight `1789982252986-500dadd2` passed at `2026-09-21T09:17:48Z`
+against definition `a5e8df5be7715cc374f2c9e2ace3053214fd5c27`.
+Receipt: `/Users/deksden/.dd-eval/qualification/cp-127-luna/conformance/e2e-preflight/1789982252986-500dadd2/e2e-inline-merge-luna-xhigh/receipt.json`.
+Subject Luna xhigh and Judge Sol high doctors passed for Codex 0.154.0;
+provider Sessions created: 0; baseline: `not_run` (owned by the actual E2E).
+New EVAL allocation pending. This receipt-only documentation update does not
+change qualified inputs and does not require repeating preflight.
