@@ -14,7 +14,7 @@ assert.equal(info.cli_commit, commit, "Fixtures must come from the published sou
 assert.equal(info.cli_version, JSON.parse(fs.readFileSync(path.join(installedPackage, "package.json"))).version);
 const temporary = fs.mkdtempSync(path.join(checkout, "test", ".published-repair-"));
 try {
-  for (const name of ["repair-continuation.test.ts", "vnext-protocolize.test.ts"]) {
+  for (const name of ["repair-continuation.test.ts", "vnext-protocolize.test.ts", "vnext-fanout-storage.test.ts"]) {
     let source = fs.readFileSync(path.join(checkout, "test", name), "utf8");
     source = source.replace(/from "\.\.\/src\/([^\"]+)"/g, (_, relative) => `from ${JSON.stringify(path.join(installedPackage, "dist", relative))}`);
     source = source.replace(/from '\.\/dist\/([^']+)'/g, (_, relative) => `from '${pathToFileURL(path.join(installedPackage, "dist", relative)).href}'`);
@@ -22,7 +22,7 @@ try {
     assert(!source.includes('"../src/') && !source.includes("'./dist/"), "Smoke must not load development modules");
     fs.writeFileSync(path.join(temporary, name), source);
   }
-  const result = spawnSync("pnpm", ["exec", "vitest", "run", "--pool=forks", "--no-file-parallelism", path.relative(checkout, temporary), "-t", "closes review-off|accepts a PLAN, starts|resolves repair paths|contains aliases|registers every|serializes concurrent|excludes historical|renders shell|covers every|recognizes exact|retains only|recovers a committed"], { cwd: checkout, stdio: "inherit" });
+  const result = spawnSync("pnpm", ["exec", "vitest", "run", "--pool=forks", "--no-file-parallelism", path.relative(checkout, temporary), "-t", "closes review-off|accepts a PLAN, starts|resolves repair paths|contains aliases|registers every|serializes concurrent|excludes historical|renders shell|covers every|recognizes exact|retains only|recovers a committed|asks .* to finish semantically"], { cwd: checkout, stdio: "inherit" });
   if (result.error) throw result.error;
   assert.equal(result.status, 0, "Published repair qualification failed");
   console.log(JSON.stringify({ schema_id: "dd-eval/published-repair-smoke@1", status: "passed", version: info.cli_version, commit, package_root: installedPackage }));
