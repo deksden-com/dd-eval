@@ -91,5 +91,12 @@ against definition `a5e8df5be7715cc374f2c9e2ace3053214fd5c27`.
 Receipt: `/Users/deksden/.dd-eval/qualification/cp-127-luna/conformance/e2e-preflight/1789982252986-500dadd2/e2e-inline-merge-luna-xhigh/receipt.json`.
 Subject Luna xhigh and Judge Sol high doctors passed for Codex 0.154.0;
 provider Sessions created: 0; baseline: `not_run` (owned by the actual E2E).
-New EVAL allocation pending. This receipt-only documentation update does not
-change qualified inputs and does not require repeating preflight.
+This receipt-only documentation update does not change qualified inputs and
+does not require repeating preflight.
+
+Scored E2E launched: `EVAL-20260921091816-52de5f6f`, definition `1be67d8`.
+Root: `/Users/deksden/.dd-eval/qualification/cp-127-luna/runs/EVAL-20260921091816-52de5f6f`.
+At `2026-09-21T09:18:34Z`, observer PID 25654 was alive, baseline install had
+completed and baseline quality was running. No provider Turn had started yet;
+this is baseline admission, not an observed SPECIFY stage. No E2E verdict claimed.
+Heartbeat `cp-127-luna-e2e-release-and-monitor` now targets this exact EVAL.
