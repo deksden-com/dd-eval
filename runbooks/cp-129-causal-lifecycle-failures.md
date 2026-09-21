@@ -68,4 +68,10 @@ failure investigation is read-only: do not resume, retry, repair or edit code.
 
 ## Receipts
 
-Preflight and scored-run receipts will be appended after they exist.
+Preflight `1790015204405-7daf9985` passed against committed definition
+`b3bb2ef5c45be0584820628306633febdac3babe` and tree
+`ecac6562a72dfc361fe1301cd647e033630fdd6a`. Receipt root:
+`/Users/deksden/.dd-eval/qualification/cp-129-luna/conformance/e2e-preflight/1790015204405-7daf9985/e2e-inline-merge-luna-xhigh`.
+Both Luna subject and Sol judge doctors passed with Codex `0.154.0`, no provider
+Sessions were created, and baseline remained correctly `not_run` for the actual
+execution workspace. The scored-run receipt will be appended after launch.
