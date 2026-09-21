@@ -66,4 +66,14 @@ failure or completion; stay quiet on unchanged live state.
 
 ## Launch receipt
 
-Pending published package verification, preflight and new EVAL allocation.
+Release workflow `35580147738` succeeded at `2026-09-21T09:13:04Z`.
+Npm beta dist-tag is `0.9.0-beta.89`; peeled `v0.9.0-beta.89` resolves to the
+CLI commit above. Published tarball and installed `dist/build-info.json` match
+the exact CLI/canon tuple. Installed package full-content SHA-256:
+`b09555e6fcc9f58c1d7f076fe3169ffc343279ca8780bc394f5125f825f18e5d`.
+Npm integrity: `sha512-XXUWKZZa0i0FO7lzO383aafdq3OYw0y3I8S0TuYov+FQEpHIl5ahllHsoqz9dlttQIUvFos2QhNFOhSAxYGMWQ==`.
+
+Published-engine repair qualification: 16 passed, 20 deliberately unselected,
+2 test files passed. The checkpoint/case pin contract also passed.
+The new home contains portable configuration and the installed package only;
+no historical runtime state was copied. Preflight and new EVAL allocation pending.
