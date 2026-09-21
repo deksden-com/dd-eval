@@ -77,3 +77,12 @@ Both Luna subject and Sol judge doctors passed with Codex `0.154.0`, no provider
 Sessions were created, and baseline remained correctly `not_run` for the actual
 execution workspace. Until the launch receipt is appended, no scored-E2E quality
 claim is made.
+
+Scored E2E launched once as `EVAL-20260921122436-1ffe0a80` from committed
+definition `3be66456af466de68cc6ea61b1b960a7aff2ebe5` (tree
+`d57acdff73ce313ce15e7f2b9906066d23e1ae43`). Root:
+`/Users/deksden/.dd-eval/qualification/cp-128-luna/runs/EVAL-20260921122436-1ffe0a80`.
+The accepted launch entered `awaiting_provider`; observer PID `62114` was alive,
+its lease current, and baseline/runtime materialization had not yet produced a
+managed RUN or provider Turn. This is a healthy launch transition, not evidence
+that SPECIFY has begun and not a scored quality verdict.
