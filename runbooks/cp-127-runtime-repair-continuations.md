@@ -4,9 +4,9 @@ Date: 2026-09-21. Release/live qualification in progress; no live PASS claimed.
 
 ## Immutable inputs
 
-- CLI candidate: `0.9.0-beta.89`, `f8c076777d04ea8209a6614e8a1b811f51788774`.
+- CLI candidate: `0.9.0-beta.89`, `e36aabd9160805831809ca27575600fb6db47511`.
 - Canon: `d1a6081ab15ab92ac917ff5d037121a40c709db1`, version `4.1.1`.
-- Release gate: GitHub Actions `35578276811` in `deksden-com/dd-flow-cli`.
+- Release gate: GitHub Actions `35580147738` in `deksden-com/dd-flow-cli`.
 - Product source remains `924ef61752b642f06c2c326b444ed7a3239f20ff`, tag `eval/cp-074-source-final`.
 - Project flow pack: `53d4b76943900f122957c78cc0fefa2051bd7b1a` in `deksden-com/dd-tasks`.
   Only five flow instructions and manifest notes changed from CP-126:
@@ -31,6 +31,14 @@ successfully. Eval managed-client regressions: 19/19 passed.
 
 The release workflow owns the full suite; targeted success is not a replacement for its PASS.
 Do not rebuild shared `dist` while subprocess integration tests use it.
+
+First release gate `35578276811` stopped before publication: 1526/1532 tests passed.
+One snapshot test asserted JSON double-quote spelling and removed a recovery argument using
+that spelling; it now parses argv and uses the renderer for the deliberate stale-packet case.
+Five MERGE recovery fault-injection cases mocked the old renderer module and supplied an
+incomplete AppContext. The stale mock was removed and the real context home supplied.
+Commit `e36aabd` changes only these tests; both complete suites reran 38/38 PASS, as did
+typecheck/lint. Beta.89 was not published by the failed gate; no version was skipped.
 
 ## Published qualification and launch
 
