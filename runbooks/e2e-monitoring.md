@@ -36,7 +36,8 @@ label retained evidence as last known rather than substituting the entry stage.
 When a lifecycle call fails, inspect the retained hook event and CLI error together. A
 `lifecycle_shell_syntax_invalid` error means the hook observed the call but rejected its shell
 composition; it is not missing delivery. `invocation_receipt_missing` is reserved for absent
-or unbindable native evidence. Preserve the original code/reason in the report instead of
+native evidence. `invocation_assignment_missing` means native delivery succeeded but argv
+did not match an issued assignment. Preserve the original code/reason in the report instead of
 replacing it with a later `execution_ended_without_work_result` or cleanup error.
 
 A diagnostic timeout means observation failed. Validate arguments, runtime home and engine;
@@ -60,6 +61,13 @@ Retain the source evidence and exact reason before issuing the standard control 
 Lease heartbeats and polling timestamps are infrastructure evidence, not model progress. Report
 the latest durable native content/tool event separately; if it is absent or unreadable, label it
 unknown rather than calling the flow healthy or hung.
+
+For HITL, correlate the pause ID, accepted answer operation and its native prompt receipt.
+An accepted answer plus a completed/settled answer Turn with the **same pause still active**
+and no active provider Turn is a no-progress blocker even when controller/observer leases
+are fresh. The controller must report `controller_answer_not_applied`, not mark the answer
+completed and wait for the same user answer again. A different subsequent pause is legitimate.
+Report this contradiction immediately; do not resend the answer or resume automatically.
 
 Status distinguishes physical stop from recovery readiness. `stopped` means the matching scope
 generation has a durable physical settlement receipt. Recovery may still be pending because
