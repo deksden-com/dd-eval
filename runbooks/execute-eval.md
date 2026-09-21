@@ -174,6 +174,14 @@ installed profile/configuration agreement, existing harness qualification and
 host prerequisites. Do not run product `quality`, `test:browser` or `test:world`
 manually as additional preparation gates.
 
+The checkpoint engine checksum is the installed immutable engine snapshot
+checksum from `engine.json.integrity`, not the digest of the bare npm package
+directory and not npm tarball integrity. A snapshot includes copied production
+dependencies. Verify the value with `engineArtifactDigest(engine.snapshot_root)`
+and `verifyEngineArtifact` from `lib/engine-admission.mjs`; do not implement a
+second checksum algorithm or ask a model/operator to rewrite the hash. Record
+tarball SHA-256, npm integrity and snapshot SHA-256 as separate identities.
+
 The actual E2E runs baseline admission in its own restored project before the
 Subject starts. It establishes whether a failure already exists before the
 model's changes; it is not a test of the requested new feature. Keep this
