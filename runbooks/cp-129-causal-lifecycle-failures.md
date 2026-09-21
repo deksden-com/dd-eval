@@ -74,4 +74,13 @@ Preflight `1790015204405-7daf9985` passed against committed definition
 `/Users/deksden/.dd-eval/qualification/cp-129-luna/conformance/e2e-preflight/1790015204405-7daf9985/e2e-inline-merge-luna-xhigh`.
 Both Luna subject and Sol judge doctors passed with Codex `0.154.0`, no provider
 Sessions were created, and baseline remained correctly `not_run` for the actual
-execution workspace. The scored-run receipt will be appended after launch.
+execution workspace.
+
+Scored E2E launched once as `EVAL-20260921182734-4213f786` from committed
+definition `460ae87bb95058ad5090307c99a46ddc5f9d1134` (tree
+`47e650ce7946748919f3bf199bf68156b8d485cc`). Root:
+`/Users/deksden/.dd-eval/qualification/cp-129-luna/runs/EVAL-20260921182734-4213f786`.
+The accepted launch entered `awaiting_provider`; observer PID `7345` was alive,
+its lease current, and no managed RUN or provider Turn existed yet. This is a
+healthy launch transition, not evidence that SPECIFY has begun or a quality
+verdict.
