@@ -89,3 +89,17 @@ generation has a durable physical settlement receipt. Recovery may still be pend
 operation journals require reconciliation; show its reasons and verified RUN capture paths.
 Keep historical execution results and the initiating control request visible. Do not freeze a
 candidate, start Judge, resume or create another fork as a side effect of status monitoring.
+## Causal lifecycle failures
+
+When a managed Turn ends without completing its Stage, do not treat
+`incomplete_subject_turn` alone as the primary cause. Correlate the current RUN,
+controller generation, Session, Stage attempt/cycle and latest durable lifecycle
+receipt. A rejected runtime-owned option, authority failure or unknown effect is
+an engine/infrastructure failure. A generic wrapper without correlated evidence
+has undetermined attribution. Historical failures superseded by a successful
+attempt, registered repair, accepted HITL answer or handoff are not current.
+
+Record the primary error code, message and receipt identity separately from
+controller wrappers and cleanup/dashboard warnings. An unchanged corrective
+retry must have changed semantic input or durable lifecycle state; a new UUID or
+timestamp is not progress.

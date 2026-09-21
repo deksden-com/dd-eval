@@ -366,6 +366,8 @@ test("reconciliation failures retain undetermined attribution for the Judge", ()
   assert.equal(failureAttribution("fanout_reconciliation_required"), "undetermined");
   assert.equal(failureAttribution("provider_rate_limited"), "evaluation_infrastructure");
   assert.equal(failureAttribution("unexpected_hitl"), "subject");
+  assert.equal(failureAttribution("incomplete_subject_turn"), "undetermined");
+  assert.equal(failureAttribution("lifecycle_contract_invalid"), "evaluation_infrastructure");
   assert.equal(failureAttribution("future_unclassified_failure"), "undetermined");
   assert.equal(failureAttribution({ code: "wrapper", cause: { code: "storage_write_failed" } }), "evaluation_infrastructure");
   assert.equal(failureAttribution({ code: "usage", details: { lifecycle_outcome: { disposition: "fatal" } } }), "evaluation_infrastructure");
