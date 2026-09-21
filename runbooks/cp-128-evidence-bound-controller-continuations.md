@@ -64,5 +64,16 @@ read-only: do not resume, retry, repair or edit code after a runtime failure.
 
 ## Receipts
 
-Published-engine qualification, preflight and launch receipts are appended here
-after they complete. Until then, this document makes no scored-E2E quality claim.
+Published-engine qualification passed against exact-commit fixtures redirected
+to installed npm modules: 19 selected tests passed across three files, including
+the three settled-fanout regressions; 27 unrelated tests were deliberately
+unselected. Eval contract tests passed 67/67.
+
+Preflight `1789993420090-d319a964` passed against committed definition
+`3e8ef8eea1311365c1bb078fa4aca42ec6876421` and tree
+`99ae138b72d2040d1f3a128883e25d2cb5bfbd2a`. Receipt root:
+`/Users/deksden/.dd-eval/qualification/cp-128-luna/conformance/e2e-preflight/1789993420090-d319a964/e2e-inline-merge-luna-xhigh`.
+Both Luna subject and Sol judge doctors passed with Codex `0.154.0`, no provider
+Sessions were created, and baseline remained correctly `not_run` for the actual
+execution workspace. Until the launch receipt is appended, no scored-E2E quality
+claim is made.
