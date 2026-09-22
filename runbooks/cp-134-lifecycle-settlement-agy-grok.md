@@ -67,5 +67,19 @@ or code change.
 
 ## Receipts
 
-Preflight and scored launch receipts are appended only after the commands
-return their durable identifiers.
+Grok preflight `1790081859615-d5ec0c57` passed against committed definition
+`93cfc0232bbe0bac4dbdd27b06e3920a96fb2b5a` and tree
+`f42f40de393ab4fc74b25f4efdb3ee7a60462721`. Receipt root:
+`/Users/deksden/.dd-eval/qualification/cp-134-grok/conformance/e2e-preflight/1790081859615-d5ec0c57/e2e-inline-merge-grok-4-7-high`.
+The exact Grok and Sol judge doctors passed, no provider Session was created,
+and baseline remained `not_run` for the actual execution workspace.
+
+AGY preflight `1790081859820-aefe589a` passed against the same definition and
+tree. Receipt root:
+`/Users/deksden/.dd-eval/qualification/cp-135-agy/conformance/e2e-preflight/1790081859820-aefe589a/e2e-inline-merge-agy-gemini-3-1-pro-high`.
+The exact AGY and Sol judge doctors passed; isolated Gemini/app-data roots,
+authentication and the requested native model catalog entry were verified.
+No provider Session was created and baseline remained `not_run`.
+
+Scored launch receipts are appended after both admitted commands return their
+durable EVAL identifiers.
