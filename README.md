@@ -1,5 +1,9 @@
 # dd-eval
 
+Harness upgrades follow the [common upgrade runbook](runbooks/update-harnesses.md),
+with [ZCode-specific operations](runbooks/update-zcode.md) and the
+[cross-repository Git workflow](runbooks/git-workflow.md).
+
 This package exposes only `dd-eval`. The six harness adapter commands belong to
 `@deksden-com/dd-flow-cli`; execution and qualification use the adapters bundled
 with their selected engine runtime. Missing bundles are errors, not a reason to

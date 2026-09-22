@@ -199,8 +199,10 @@ the execution journal and manifest, not in a shared Session starter registry.
 
 ## ZCode
 
-The supported baseline is ZCode `0.16.5` with `zcode-acp` `0.13.1` at pinned
-dd-harness commit `bf21f38dcbb85b8f98cd7ab3062aa050d1b5777c`. For delegated evals, `dd-zcode` keeps the ACP
+Read the exact runtime tuple from the selected profile and its qualification
+receipts. Upgrade it using [the ZCode runbook](update-zcode.md); adapter ownership
+is defined by the [dd-zcode contract](https://github.com/deksden-com/dd-flow-cli/blob/main/src/harness-runtime/DD-ZCODE.md).
+For delegated evals, `dd-zcode` keeps the ACP
 server alive for the whole execution and synchronously forwards
 `session/update` tool calls to:
 
