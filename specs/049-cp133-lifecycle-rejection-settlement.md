@@ -1,6 +1,7 @@
 # 049 — Lifecycle rejection settlement и аудит всех упряжек
 
-Дата: 2026-09-22. Статус: план реализации; production code не изменён.
+Дата: 2026-09-22. Статус: реализовано в dd-flow beta.96; post-release
+квалификация AGY/Grok выполняется в новых чистых checkpoint homes.
 
 ## 1. Цель, границы и baseline
 
@@ -202,6 +203,35 @@ Evidence paths относительно EVAL:
 Уточнения после расширения аудита: добавлены все шесть transports, identity/redelivery risks Grok/Droid, OpenCode command-filter gap, AGY stale-forwarding/transport envelope, sibling-target isolation controller, routed writer/unknown-effect ограничения и schema/draft consistency остальных стадий. Codex/ZCode описаны как защищённые managed paths с обязательными regression checks, а не как доказанно сломанные.
 
 План расширен WP5–WP8 ниже; готов к реализации начиная с регрессий WP0/WP5. Закрытие R-пунктов требует воспроизведения и native contract evidence; заранее обещать отсутствие всех дефектов или успешную native qualification нельзя. Условие полного завершения: каждый пункт имеет diff+test либо доказанный no-change verdict; package/native checks и новые AGY/Grok scored E2E записаны отдельно. До этих проверок статус не менять на implemented/qualified.
+
+### Реализация
+
+Production-изменения выполнены в `deksden-com/dd-flow-cli` и выпущены как
+`0.9.0-beta.96` из merge commit
+`cb6c669ff3f24115ac0a4d2c04c8877eb8683bc6`. Общий CLI теперь сохраняет
+структурированный prepare/output failure в доверенно сопоставленный lifecycle
+receipt; controller перед новым prompt сверяет незавершённый predecessor через
+существующий inspect/reconciliation путь; capacity bookkeeping больше не ждёт
+собственный retained slot без причинного blocker. Causal continuation scope
+учитывает session/Work/attempt и не подавляет sibling failure.
+
+Упряжки используют общий bounded native-hook transport и сохраняют свои
+envelope contracts. AGY закрывает stale/equal-step и late-terminal paths; Grok
+проверяет native terminal proof, scoped cache invalidation и resume inspection;
+Droid сохраняет точный terminal outcome; OpenCode распознаёт literal
+`DD_FLOW_BIN`, соблюдает stop barrier и primary-error precedence; ZCode не
+теряет terminal outcome при post-terminal observation error. Prompt/canon
+PROTOCOLIZE используют один populated ownership draft. Новых зависимостей и
+универсального adapter framework не добавлено.
+
+Acceptance evidence: 66/66 affected fixtures, typecheck, lint,
+runtime-sensitive 29/29 и исправленные vNext contract fixtures прошли локально;
+полный immutable-candidate release gate повторяет полный current-tree suite.
+Первый workflow был отклонён до checkout из-за опечатки в canon SHA; повторный
+dispatch использует опубликованный
+`678daa038287c948ada5b2d785a6dcc925c7b891`, а не несуществующий
+`678daa098…`. Post-release package identity, checkpoint hashes, preflight и
+scored E2E receipts фиксируются в CP-134 runbook.
 
 ## 10. Фокусные аудиты субагентов и независимая перепроверка
 

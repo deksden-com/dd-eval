@@ -1,0 +1,21 @@
+{
+  "id": "cp-134-task-priority-lifecycle-settlement-flow-4-1-1-engine-0-9-0-beta-96",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "53d4b76943900f122957c78cc0fefa2051bd7b1a",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "cb6c669ff3f24115ac0a4d2c04c8877eb8683bc6",
+      "version": "0.9.0-beta.96",
+      "artifact_sha256": "77c9596cf424bf3a0eeef94f17a975250834975e849a76bc73629be1c2f661b1"
+    }
+  },
+  "state": "qualified_candidate_for_lifecycle_settlement_e2e"
+}
