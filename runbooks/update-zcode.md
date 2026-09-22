@@ -17,9 +17,17 @@ verify it again before execution; detect drift rather than accepting it.
 
 The recorded v0.43.2 overlay is based on upstream
 `54acb495c30966f3d22d48ec09bbd749fd2d9475` with downstream head
-`8c0a893f3c26a0b96cb138acf762db84c800298b` on `dd-eval/v0.43.2-overlay`.
+`8c0a893f3c26a0b96cb138acf762db84c800298b` at immutable tag
+`archive/dd-eval-v0.43.2-overlay` (the former branch has been retired).
 This is a historical candidate reference, not a moving latest/supported claim.
 Consult the selected profile and receipts for the accepted tuple.
+
+The native-recovery integration must also be qualified against the installed
+tuple: delayed create response/rejection, bridge restart with unresolved
+allocation, reverse RPC ID collision, close during a prompt, and inferred versus
+native-confirmed completion. `native_outcome_unknown` is not permission to retry
+or delete an allocation intent. A late identity receipt is evidence only, not a
+request to replay productive work. Preserve these cases when upgrading upstream.
 
 ## Candidate sequence
 
