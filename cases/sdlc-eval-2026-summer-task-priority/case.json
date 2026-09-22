@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-132-task-priority-grok-1-0-40-grok-4-7-flow-4-1-1-engine-0-9-0-beta-95",
-    "sha256": "27e0133b31061affee96807412704b0101750ffeb7753bdb9c7e76773b36ab7d"
+    "id": "cp-133-task-priority-agy-1-2-8-gemini-3-1-pro-flow-4-1-1-engine-0-9-0-beta-95",
+    "sha256": "f4279388060fc329240c05b6e1c99fd448ed87ce863bc569a90a8587025d0241"
   },
   "entry_pack": null,
   "profiles": {
