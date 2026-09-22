@@ -91,4 +91,12 @@ was qualified for root, concurrent children and child continuation, no provider
 Session was created, and baseline remained correctly `not_run` before the
 actual execution workspace existed.
 
-The scored-E2E receipt will be appended after its single admitted launch.
+Scored E2E `EVAL-20260922071817-08e57c49` was launched once from committed
+definition `8878d34ca0efa5b1e3299f75cbeaec9cb3be81b7` and tree
+`f79db168449e6a712089e7608efa8bdae84e4eac`. Root:
+`/Users/deksden/.dd-eval/qualification/cp-131-zcode/runs/EVAL-20260922071817-08e57c49`.
+The accepted launch entered `awaiting_provider` while the isolated baseline
+installation was live. Observer PID `36018` and baseline PID `36227` were
+alive with current leases; no managed RUN or provider turn existed yet. This
+is a healthy launch transition, not evidence that SPECIFY has started or a
+quality verdict.
