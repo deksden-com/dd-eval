@@ -52,6 +52,8 @@ smoke and publication. Independent registry readback confirmed:
 Installing the public package into an isolated scratch engine home produced
 the full-content SHA above; `engineArtifactDigest` and `verifyEngineArtifact`
 independently agreed with its `engine.json.integrity.checksum`.
+The package-only published repair smoke loaded the installed beta.98 modules
+and passed all 19 selected tests (28 unrelated cases skipped).
 
 The public package is installed separately into each home's
 `published-engine` prefix. The checkpoint pin uses the installed engine's
@@ -100,5 +102,15 @@ SPECIFY without a provider Session; the baseline remained `not_run` in both.
   AGY `1.2.8`, isolated Gemini/app-data roots, auth, the requested
   `gemini-3.1-pro-high` catalog entry and Sol judge doctor were verified.
 
-Scored EVAL receipts are appended only after each launch returns its durable
-identifier.
+Both scored launches were accepted against committed definition
+`4cf0b350c67a7168ed253694f9b61fcb070ee94b` without duplicates:
+
+- Grok: `EVAL-20260922200445-74f14dc1` under
+  `/Users/deksden/.dd-eval/qualification/cp-138-grok/runs/`;
+- AGY: `EVAL-20260922200459-fedc6f5a` under
+  `/Users/deksden/.dd-eval/qualification/cp-139-agy/runs/`.
+
+Initial `runner status` reported `awaiting_provider` with live observer owners
+while execution installation was still in progress. That is an accepted
+launch, not a completed E2E or proof of the current semantic Stage. The
+thread heartbeat `cp-138-139-grok-and-agy-e2e-monitor` tracks both exact IDs.
