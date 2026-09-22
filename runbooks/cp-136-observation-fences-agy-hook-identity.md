@@ -77,4 +77,19 @@ manual repair or code change.
 
 ## Receipts
 
-Preflight and scored E2E receipts are appended after admission.
+Grok preflight `1790092888282-dcaba057` passed against definition commit
+`9e334d2a7781dc5ea24a3d1f87ffa2d50a03080c` and tree
+`7a392fc05df64e53da39275990b1284185403769`. Receipt root:
+`/Users/deksden/.dd-eval/qualification/cp-136-grok/conformance/e2e-preflight/1790092888282-dcaba057/e2e-inline-merge-grok-4-7-high`.
+The exact Grok and Sol judge doctors passed, no provider Session was created,
+and baseline remained `not_run` for the actual execution workspace.
+
+AGY preflight `1790092888671-10cfd76c` passed against the same definition and
+tree. Receipt root:
+`/Users/deksden/.dd-eval/qualification/cp-137-agy/conformance/e2e-preflight/1790092888671-10cfd76c/e2e-inline-merge-agy-gemini-3-1-pro-high`.
+The exact AGY and Sol judge doctors passed; isolated Gemini/app-data roots,
+authentication and requested native model entry were verified. No provider
+Session was created and baseline remained `not_run`.
+
+Scored E2E receipts are appended after both admitted commands return their
+durable EVAL identifiers.
