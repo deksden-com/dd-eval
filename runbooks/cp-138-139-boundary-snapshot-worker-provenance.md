@@ -87,5 +87,18 @@ create a duplicate EVAL.
 
 ## Receipts
 
-Publication, preflight and scored EVAL receipts are appended only after each
-operation has a verified durable result.
+Both preflights passed against committed definition
+`3087e5e955c45f9eb2008cb7de7ded1140c12001` and tree
+`7cfbdd81983940bb6c9239b0ba1e0ecb740ab90b`. The prepared RUN reached
+SPECIFY without a provider Session; the baseline remained `not_run` in both.
+
+- Grok receipt:
+  `/Users/deksden/.dd-eval/qualification/cp-138-grok/conformance/e2e-preflight/1790107333424-5987f48a/e2e-inline-merge-grok-4-7-high`.
+  Grok `1.0.40`/ACP1 and the Sol judge doctor were compatible.
+- AGY receipt:
+  `/Users/deksden/.dd-eval/qualification/cp-139-agy/conformance/e2e-preflight/1790107376639-485d8d3e/e2e-inline-merge-agy-gemini-3-1-pro-high`.
+  AGY `1.2.8`, isolated Gemini/app-data roots, auth, the requested
+  `gemini-3.1-pro-high` catalog entry and Sol judge doctor were verified.
+
+Scored EVAL receipts are appended only after each launch returns its durable
+identifier.
