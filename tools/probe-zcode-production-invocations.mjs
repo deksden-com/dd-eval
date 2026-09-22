@@ -4,14 +4,20 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { randomUUID } from 'node:crypto';
-import { createContext } from '../../dd-flow-cli/dist/runtime/context.js';
-import { startFlowRun } from '../../dd-flow-cli/dist/services/runs.js';
-import { managedLifecycleCommand } from '../../dd-flow-cli/dist/services/lifecycle-invocations.js';
-import { flowCommand } from '../../dd-flow-cli/dist/services/stage-pause.js';
-import { prepareHarnessFlowExecutable } from '../../dd-flow-cli/dist/services/harness-adapter.js';
-import { storageSessionId } from '../../dd-flow-cli/dist/services/session-identity.js';
-import { AcpBridge, zcodeInvocationObserver } from '../../dd-flow-cli/src/harness-runtime/lib/dd-zcode.mjs';
+
+const engineRoot = fs.realpathSync(process.env.DD_FLOW_ENGINE_ROOT ?? path.resolve(import.meta.dirname, '../../dd-flow-cli'));
+const bridgeBin = fs.realpathSync(process.env.DD_ZCODE_ACP_BIN ?? '/Users/deksden/Library/pnpm/zcode-acp');
+const engine = relative => import(pathToFileURL(path.join(engineRoot, relative)));
+const { createContext } = await engine('dist/runtime/context.js');
+const { startFlowRun } = await engine('dist/services/runs.js');
+const { registerFlowSession } = await engine('dist/services/sessions.js');
+const { managedLifecycleCommand } = await engine('dist/services/lifecycle-invocations.js');
+const { flowCommand } = await engine('dist/services/stage-pause.js');
+const { prepareHarnessFlowExecutable } = await engine('dist/services/harness-adapter.js');
+const { storageSessionId } = await engine('dist/services/session-identity.js');
+const { AcpBridge, zcodeInvocationObserver } = await engine('src/harness-runtime/lib/dd-zcode.mjs');
 
 const directory = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'dd-zcode-production-')));
 const projectRoot = path.join(directory, 'project'); fs.mkdirSync(projectRoot);
@@ -26,22 +32,32 @@ const roles = ['root', 'left', 'right'];
 for (const role of roles) context.db.run("INSERT INTO works (work_id, project_id, run_id, parent_work_id, task, status, launch_policy, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'created', ?, ?, ?)",
   [`WRK-probe-${role}`, project.project_id, runId, role === 'root' ? null : 'WRK-probe-root', 'Bounded native lifecycle qualification. Execute only the supplied start/finish commands; no product changes.', role === 'root' ? 'reuse_allowed' : 'fresh_agent_required', context.now(), context.now()]);
 const journal = path.join(directory, 'adapter.events.jsonl');
-const bridge = new AcpBridge({ bin: '/Users/deksden/Library/pnpm/zcode-acp', cwd: projectRoot, journal, permission: 'allow' });
+const daemonId = `probe-${randomUUID()}`;
+const bridge = new AcpBridge({ bin: bridgeBin, cwd: projectRoot, journal, permission: 'allow', env: {
+  DD_FLOW_BIN: bin, DD_FLOW_HOME: home, DD_FLOW_DAEMON_ID: daemonId,
+} });
 let sessionId;
 console.log(JSON.stringify({ directory, runId }));
 try {
   await bridge.start();
   ({ sessionId } = await bridge.request('session/new', { cwd: projectRoot, mcpServers: [] }, 30000));
-  const scope = { projectRoot, daemonId: `probe-${randomUUID()}`, rootSessionId: sessionId, runId, generation: 0 };
+  registerFlowSession(context, { sessionId, payloadJson: JSON.stringify({
+    harness: 'zcode-acp', provider_session_id: sessionId, project_root: projectRoot,
+    flow_kind: 'implementation', run_id: runId, session_kind: 'orchestrator',
+    continuation_policy: 'go_router', workspace_path: projectRoot, cwd: projectRoot,
+  }) });
+  const scope = { projectRoot, daemonId, rootSessionId: sessionId, runId, generation: 0 };
   context.env.DD_FLOW_INVOCATION_SCOPE = JSON.stringify(scope);
   bridge.configure({ onLifecycleNotification: await zcodeInvocationObserver({ ddFlowBin: bin, ddFlowHome: home, projectRoot, daemonId: scope.daemonId, adapterSessionId: sessionId, journal }, sessionId) });
   const commands = Object.fromEntries(roles.map(role => [role, {
     start: managedLifecycleCommand(context, `${flowCommand(context)} work start WRK-probe-${role} --project-root ${JSON.stringify(projectRoot)} --json`),
-    finish: managedLifecycleCommand(context, `${flowCommand(context)} work finish WRK-probe-${role} --result-stdin --project-root ${JSON.stringify(projectRoot)} --json --progress-jsonl`) + " <<'RESULT'\n{}\nRESULT",
+    result: path.join(projectRoot, `${role}-result.json`),
+    finish: null,
   }]));
-  const task = role => `Use Bash to execute exactly this start command:\n${commands[role].start}\nThen execute exactly this finish command:\n${commands[role].finish}\nWait for each process to exit; never retry it or change its arguments. Report any error verbatim. No other shell commands or file edits.`;
+  for (const role of roles) commands[role].finish = managedLifecycleCommand(context, `${flowCommand(context)} work finish WRK-probe-${role} --result-file ${JSON.stringify(commands[role].result)} --project-root ${JSON.stringify(projectRoot)} --json --progress-jsonl`);
+  const task = role => `Use the file-writing tool to create exactly this JSON file containing {}: ${commands[role].result}\nUse Bash separately to execute exactly this start command:\n${commands[role].start}\nThen use Bash separately to execute exactly this finish command:\n${commands[role].finish}\nWait for each process to exit; never retry it or change its arguments. Report any error verbatim. Do not use shell redirection, heredoc, or create any other file.`;
   const leftTask = `Execute only this start command yourself:\n${commands.left.start}\nThen return STARTED to the parent and stop this turn. Do not finish the Work yet. No other commands, file edits, or children.`;
-  const prompt = `Bounded native runtime qualification in an isolated temporary RUN, not product work. Use only the exact commands below, no inspection or help commands. Preserve each command's environment and invocation-id. Poll the same process handle until it exits, never retry. First execute this root start command yourself:\n${commands.root.start}\nThen create exactly two fresh subagents concurrently. LEFT task:\n${leftTask}\nRIGHT task:\n${task('right')}\nWait until LEFT returns STARTED and RIGHT completes. Use SendMessage to continue the SAME LEFT agent, with its returned agentId, asking it to execute exactly:\n${commands.left.finish}\nWait for LEFT to complete. Then execute this root finish command yourself:\n${commands.root.finish}\nNever execute a child's command yourself or replace an unavailable operation with a new agent. If any command or required tool is unavailable, report its actual error and stop. Answer DONE after all commands succeed.`;
+  const prompt = `Bounded native runtime qualification in an isolated temporary RUN, not product work. Use only the exact public commands below, no inspection or help commands. Never invent or add an invocation ID. Poll the same process handle until it exits, never retry. First use the file-writing tool to create exactly this JSON file containing {}: ${commands.root.result}\nThen use Bash separately to execute this root start command:\n${commands.root.start}\nThen create exactly two fresh subagents concurrently. LEFT task:\n${leftTask}\nRIGHT task:\n${task('right')}\nWait until LEFT returns STARTED and RIGHT completes. Use SendMessage to continue the SAME LEFT agent, with its returned agentId, asking it first to create exactly this JSON file containing {} using the file-writing tool: ${commands.left.result}\nand then use Bash separately to execute exactly:\n${commands.left.finish}\nWait for LEFT to complete. Then use Bash separately to execute this root finish command:\n${commands.root.finish}\nDo not use shell redirection or heredoc. Never execute a child's command yourself or replace an unavailable operation with a new agent. If any command or required tool is unavailable, report its actual error and stop. Answer DONE after all commands succeed.`;
   fs.writeFileSync(path.join(directory, 'request.json'), JSON.stringify({ scope, commands, prompt }, null, 2));
   const response = await bridge.request('session/prompt', { sessionId, prompt: [{ type: 'text', text: prompt }] }, 240000);
   await bridge.flush();
