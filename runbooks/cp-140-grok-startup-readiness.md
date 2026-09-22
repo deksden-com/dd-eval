@@ -75,5 +75,14 @@ resume, restart, manually repair or edit code.
 
 ## Receipts
 
-Preflight and scored EVAL receipts are appended only after observed PASS and
-accepted launch, respectively.
+The standard preflight passed against committed definition
+`980792a6de4b98fff5cfa266a593867466141550`:
+
+- receipt:
+  `/Users/deksden/.dd-eval/qualification/cp-140-grok/conformance/e2e-preflight/1790113820041-379e3132/e2e-inline-merge-grok-4-7-high`;
+- installed engine beta.99 and its full-content checksum matched the
+  checkpoint; Grok `1.0.40`/ACP1 and the Sol Judge doctor were compatible;
+- the prepared RUN reached `specify` without a provider Session;
+  baseline `not_run` awaits the scored workspace.
+
+The scored EVAL receipt is appended only after accepted launch.
