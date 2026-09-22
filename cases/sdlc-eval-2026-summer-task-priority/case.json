@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-138-task-priority-boundary-snapshot-worker-provenance-flow-4-1-1-engine-0-9-0-beta-98",
-    "sha256": "374e6bc4366c6185ae496a3a4af3937de97acc57c02fec866b1fa29e4bbfa674"
+    "id": "cp-140-task-priority-grok-startup-readiness-flow-4-1-1-engine-0-9-0-beta-99",
+    "sha256": "9cb34d3464574567a9b88586b53de50846f6f77e62f17271ebab815ff7053151"
   },
   "entry_pack": null,
   "profiles": {
