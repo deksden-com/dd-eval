@@ -38,4 +38,11 @@ launch exactly one scored E2E only after PASS. Monitor using
 
 ## Receipts
 
-Preflight and launch receipts will be appended after admission.
+Preflight `1790063319675-d1f0417a` passed against definition
+`03d4749b1d0a8d1a69bcd8594081ae6f21c64b4a` and tree
+`eb59787904e3ec3cb6e485124e8c62985d09638b`. Receipt root:
+`/Users/deksden/.dd-eval/qualification/cp-132-grok/conformance/e2e-preflight/1790063319675-d1f0417a/e2e-inline-merge-grok-4-7-high`.
+The exact Grok and Sol judge doctors passed, no provider Session was created,
+and baseline remained `not_run` before execution-workspace creation.
+
+The launch receipt will be appended after the single admitted scored run.
