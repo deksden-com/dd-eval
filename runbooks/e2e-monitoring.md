@@ -59,6 +59,14 @@ A diagnostic timeout means observation failed. Validate arguments, runtime home 
 retry the read through the ordinary runner path. Never stop an EVAL solely because a diagnostic
 timed out, a timestamp did not change, the root session is quiet or a Work has not finished.
 
+For boundary capture, keep `snapshot_source_changed` and `owned_inventory_changed` distinct.
+The former compares copied source content and Git state; inspect its bounded
+`last_capture_mismatch.components` paths to identify the changed source. The latter is a
+productive writer or owned inventory fence. A retry with unchanged source diagnostics is
+not progress; report the component and capture deadline instead of calling SQLite WAL
+activity a model turn. If the budget expires, retain the last concrete mismatch in the
+report. Do not manually checkpoint a database or restart the controller while monitoring.
+
 For each current controller operation report two independent facts: its productive outcome
 (`completed`, `failed`, `interrupted`, or unknown) and its settlement (`settled`, `pending`, or
 `blocked`). A completed native prompt with pending settlement is not a failed prompt and must
@@ -76,6 +84,13 @@ Retain the source evidence and exact reason before issuing the standard control 
 Lease heartbeats and polling timestamps are infrastructure evidence, not model progress. Report
 the latest durable native content/tool event separately; if it is absent or unreadable, label it
 unknown rather than calling the flow healthy or hung.
+
+For AGY, `settled_by_root` proves native tree settlement, not successful Work completion.
+Correlate every direct child with its Work and lifecycle result; an unbound settled child
+requires reconciliation. An early `hook_rejected` receipt (for example
+`agy_child_identity_unconfirmed` or `agy_child_parent_unqualified`) is the causal error when
+it precedes a generic `fanout_stage_nonprogressing` wrapper. Check its conversation ID,
+daemon ID and turn generation against the active native turn before attributing it.
 
 For HITL, correlate the pause ID, accepted answer operation and its native prompt receipt.
 An accepted answer plus a completed/settled answer Turn with the **same pause still active**
