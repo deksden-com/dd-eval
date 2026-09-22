@@ -60,8 +60,10 @@ resolution changes. The release must identify the actual tested source commit;
 do not assume a pre-merge commit qualification automatically covers a new build.
 
 Use the [fork's instructions](https://github.com/deksden-com/zcode-acp/blob/main/docs/FORK-UPDATES.md)
-for technical patch maintenance. Existing `dd-eval/v0.43.2-overlay` is a retained
-candidate branch; migration to this naming policy does not require rewriting it.
+for technical patch maintenance. The historical overlay is retained at immutable
+tag `archive/dd-eval-v0.43.2-overlay`; its old candidate branch was removed without
+rewriting the source commit. The reviewed old recovery experiment is similarly
+preserved at tag `archive/zcode-0.13.1-native-recovery`, not as an active branch.
 
 ## Hotfixes and rollback
 
