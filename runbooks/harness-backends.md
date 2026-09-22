@@ -227,8 +227,11 @@ issued invocation. Retained outcomes are replayed without a new hook receipt.
 
 Before and after every productive daemon operation, `dd-zcode` forwards the
 provider's cumulative token counters plus cumulative ACP tool-call counters.
-For ZCode `0.16.5`, the compact provider projection can omit cache detail, so
-`zcode-acp` also aggregates the native per-request token facts. The exact
+The compact provider projection can omit cache detail. With bridge contract
+`dd-zcode-harness@2`, `dd-zcode` aggregates native per-request facts from full
+`session/read` history; the bridge only transports native evidence. Legacy `@1`
+measured aggregates remain supported. Missing or conflicting facts are marked
+incomplete rather than reported as measured totals. The exact
 fields are `requestInputTokens`, `requestCacheCreationTokens`,
 `requestCacheReadTokens`, `requestOutputTokens`, `requestReasoningTokens`,
 `requestTotalTokens` and `requestCount`; `requestUsageStatus=measured` tells
