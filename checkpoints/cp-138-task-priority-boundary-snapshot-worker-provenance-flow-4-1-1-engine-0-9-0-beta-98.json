@@ -1,0 +1,21 @@
+{
+  "id": "cp-138-task-priority-boundary-snapshot-worker-provenance-flow-4-1-1-engine-0-9-0-beta-98",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "53d4b76943900f122957c78cc0fefa2051bd7b1a",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "a06d4c113d22f31d344bfdf5b740ce5371da8ae2",
+      "version": "0.9.0-beta.98",
+      "artifact_sha256": "e799fb861a9cee6204307af4fb3666c5621ab7a9fccd1981f3404b8c42eb3085"
+    }
+  },
+  "state": "qualified_candidate_for_boundary_snapshot_worker_provenance_e2e"
+}

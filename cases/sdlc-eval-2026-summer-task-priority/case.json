@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-136-task-priority-observation-fences-flow-4-1-1-engine-0-9-0-beta-97",
-    "sha256": "c6439c05f1b672860c0e5f9a22d21b029b27cc09220ec12eedaf33e76f0491b3"
+    "id": "cp-138-task-priority-boundary-snapshot-worker-provenance-flow-4-1-1-engine-0-9-0-beta-98",
+    "sha256": "374e6bc4366c6185ae496a3a4af3937de97acc57c02fec866b1fa29e4bbfa674"
   },
   "entry_pack": null,
   "profiles": {
