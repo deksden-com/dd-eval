@@ -17,7 +17,16 @@ const { managedLifecycleCommand } = await engine('dist/services/lifecycle-invoca
 const { flowCommand } = await engine('dist/services/stage-pause.js');
 const { prepareHarnessFlowExecutable } = await engine('dist/services/harness-adapter.js');
 const { storageSessionId } = await engine('dist/services/session-identity.js');
-const { AcpBridge, zcodeInvocationObserver } = await engine('src/harness-runtime/lib/dd-zcode.mjs');
+const { AcpBridge, zcodeInvocationObserver } = await engine('dist/harness-runtime/lib/dd-zcode.mjs');
+
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+async function waitForWork(context, workId, status, timeoutMs = 120000) {
+  const deadline = Date.now() + timeoutMs;
+  while (context.db.get('SELECT status FROM works WHERE work_id = ?', [workId])?.status !== status) {
+    assert.ok(Date.now() < deadline, `Timed out waiting for ${workId} to become ${status}`);
+    await delay(250);
+  }
+}
 
 const directory = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'dd-zcode-production-')));
 const projectRoot = path.join(directory, 'project'); fs.mkdirSync(projectRoot);
@@ -59,12 +68,16 @@ try {
   const leftTask = `Execute only this start command yourself:\n${commands.left.start}\nThen return STARTED to the parent and stop this turn. Do not finish the Work yet. No other commands, file edits, or children.`;
   const prompt = `Bounded native runtime qualification in an isolated temporary RUN, not product work. Use only the exact public commands below, no inspection or help commands. Never invent or add an invocation ID. Poll the same process handle until it exits, never retry. First use the file-writing tool to create exactly this JSON file containing {}: ${commands.root.result}\nThen use Bash separately to execute this root start command:\n${commands.root.start}\nThen create exactly two fresh subagents concurrently. LEFT task:\n${leftTask}\nRIGHT task:\n${task('right')}\nWait until LEFT returns STARTED and RIGHT completes. Use SendMessage to continue the SAME LEFT agent, with its returned agentId, asking it first to create exactly this JSON file containing {} using the file-writing tool: ${commands.left.result}\nand then use Bash separately to execute exactly:\n${commands.left.finish}\nWait for LEFT to complete. Then use Bash separately to execute this root finish command:\n${commands.root.finish}\nDo not use shell redirection or heredoc. Never execute a child's command yourself or replace an unavailable operation with a new agent. If any command or required tool is unavailable, report its actual error and stop. Answer DONE after all commands succeed.`;
   fs.writeFileSync(path.join(directory, 'request.json'), JSON.stringify({ scope, commands, prompt }, null, 2));
-  const response = await bridge.request('session/prompt', { sessionId, prompt: [{ type: 'text', text: prompt }] }, 240000);
+  const responses = [await bridge.request('session/prompt', { sessionId, prompt: [{ type: 'text', text: prompt }] }, 240000)];
+  await waitForWork(context, 'WRK-probe-left', 'completed');
+  if (context.db.get('SELECT status FROM works WHERE work_id = ?', ['WRK-probe-root'])?.status !== 'completed') {
+    responses.push(await bridge.request('session/prompt', { sessionId, prompt: [{ type: 'text', text: `The continued LEFT agent has completed. Use Bash to execute exactly this root finish command, wait for it to exit, and report any error verbatim:\n${commands.root.finish}` }] }, 120000));
+  }
   await bridge.flush();
   const works = context.db.all('SELECT work_id, status FROM works ORDER BY work_id');
   const sessions = context.db.all('SELECT ws.work_id, s.provider_session_id, s.provider_parent_session_id FROM work_sessions ws JOIN sessions s ON s.session_id = ws.session_id AND s.project_id = ? ORDER BY ws.work_id', [project.project_id]);
   const attempts = context.db.all('SELECT status, event_key, identity_json, outcome_json FROM lifecycle_invocations');
-  const evidence = { response, works, sessions, attempts, topology: await bridge.request('zcode/session/subagents', { sessionId }, 15000) };
+  const evidence = { responses, works, sessions, attempts, topology: await bridge.request('zcode/session/subagents', { sessionId }, 15000) };
   fs.writeFileSync(path.join(directory, 'result.json'), JSON.stringify(evidence, null, 2));
   assert.equal(works.length, 3); assert.ok(works.every(work => work.status === 'completed'));
   assert.equal(new Set(sessions.map(session => session.provider_session_id)).size, 3);
