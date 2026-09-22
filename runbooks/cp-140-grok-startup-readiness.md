@@ -85,4 +85,12 @@ The standard preflight passed against committed definition
 - the prepared RUN reached `specify` without a provider Session;
   baseline `not_run` awaits the scored workspace.
 
-The scored EVAL receipt is appended only after accepted launch.
+The new scored E2E was accepted against committed definition
+`0dcd0be32cd29d91cd8bac81f26ea515d64296e9`:
+
+- Grok `EVAL-20260922215238-dd3c5adf` under
+  `/Users/deksden/.dd-eval/qualification/cp-140-grok/runs/`.
+
+The initial `runner status` was `awaiting_provider` with a live observer;
+this is an accepted launch, not yet proof of successful Grok daemon startup
+or completion of the scored E2E.
