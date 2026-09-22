@@ -91,5 +91,12 @@ The exact AGY and Sol judge doctors passed; isolated Gemini/app-data roots,
 authentication and requested native model entry were verified. No provider
 Session was created and baseline remained `not_run`.
 
-Scored E2E receipts are appended after both admitted commands return their
-durable EVAL identifiers.
+Scored launches were accepted without duplicates:
+
+- Grok: `EVAL-20260922160326-05f4ffca` under
+  `/Users/deksden/.dd-eval/qualification/cp-136-grok/runs/`;
+- AGY: `EVAL-20260922160325-a042c4e4` under
+  `/Users/deksden/.dd-eval/qualification/cp-137-agy/runs/`.
+
+Both detached observers own their continuation. Final verdicts come from the
+durable EVAL state, not the initial accepted reply.
