@@ -82,5 +82,13 @@ is read-only: do not resume, retry, manually repair or edit code.
 
 ## Receipts
 
-Preflight and scored-E2E receipts will be appended after the committed
-definition is admitted.
+Preflight `1790061413879-505f826d` passed against committed definition
+`e290adfff2c125c8a553c41d04ea86e9a5ba26b3` and tree
+`28874b2999e3796c24808043e8803d16cab4033c`. Receipt root:
+`/Users/deksden/.dd-eval/qualification/cp-131-zcode/conformance/e2e-preflight/1790061413879-505f826d/e2e-inline-merge-zcode-glm-5-3-flash-max`.
+Both the exact ZCode tuple and Sol judge doctors passed, lifecycle capability
+was qualified for root, concurrent children and child continuation, no provider
+Session was created, and baseline remained correctly `not_run` before the
+actual execution workspace existed.
+
+The scored-E2E receipt will be appended after its single admitted launch.
