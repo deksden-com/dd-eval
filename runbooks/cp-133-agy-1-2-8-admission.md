@@ -51,4 +51,11 @@ authentication were verified, `gemini-3.1-pro-high` was present in the native
 model catalog, no provider Session was created, and baseline remained
 `not_run` before execution-workspace creation.
 
-The launch receipt will be appended after the single admitted scored run.
+Scored E2E `EVAL-20260922075252-129d85b8` was launched once from definition
+`1e9b31f52b652751d558b917a97dd73857524136` and tree
+`e9987f4416c5af217f8e62cb75c608e24c64843e`. Root:
+`/Users/deksden/.dd-eval/qualification/cp-133-agy/runs/EVAL-20260922075252-129d85b8`.
+The accepted launch entered `awaiting_provider`; observer PID `58940` was alive
+with a current lease while the isolated baseline process was being admitted.
+No provider Session existed yet, so this is launch evidence rather than a stage
+or quality verdict.
