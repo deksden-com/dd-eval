@@ -42,4 +42,13 @@ investigation is read-only.
 
 ## Receipts
 
-Preflight and launch receipts will be appended after admission.
+Preflight `1790063483401-980d7862` passed against definition
+`eaada533935f35519cc615f836d783315afaa448` and tree
+`02fb200d36559922b73fe8072500a05ecbbc00ec`. Receipt root:
+`/Users/deksden/.dd-eval/qualification/cp-133-agy/conformance/e2e-preflight/1790063483401-980d7862/e2e-inline-merge-agy-gemini-3-1-pro-high`.
+The exact AGY and Sol judge doctors passed, isolated Gemini/app-data roots and
+authentication were verified, `gemini-3.1-pro-high` was present in the native
+model catalog, no provider Session was created, and baseline remained
+`not_run` before execution-workspace creation.
+
+The launch receipt will be appended after the single admitted scored run.
