@@ -45,4 +45,10 @@ Preflight `1790063319675-d1f0417a` passed against definition
 The exact Grok and Sol judge doctors passed, no provider Session was created,
 and baseline remained `not_run` before execution-workspace creation.
 
-The launch receipt will be appended after the single admitted scored run.
+Scored E2E `EVAL-20260922074953-449265a0` was launched once from definition
+`a58a8eaa35b3dc49c30e5b5a6e76fbcacae54804` and tree
+`921f541dca28360eb6b296e76a107fad1ae5c6be`. Root:
+`/Users/deksden/.dd-eval/qualification/cp-132-grok/runs/EVAL-20260922074953-449265a0`.
+The accepted launch entered `awaiting_provider`; observer PID `54602` and the
+current baseline process were alive with current leases. No provider Session
+existed yet, so this is launch evidence rather than a stage or quality verdict.
