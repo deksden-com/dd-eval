@@ -2,12 +2,11 @@
   "schema_version": 1,
   "id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-9-0-beta-11",
   "harness": "codex-desktop",
-  "model": "gpt-5.6-luna",
+  "model": "gpt-6-luna",
   "reasoning": "xhigh",
-  "notes": "Luna Subject settings. The historical profile ID is stable; the committed input checkpoint alone selects the flow pack and engine version.",
+  "notes": "Luna Subject settings. The historical profile ID is stable; the committed input checkpoint alone selects the flow pack and engine version. The live CPA model is gpt-6-luna.",
   "runtime": {
-    "codex_cli": "0.154.0",
+    "codex_cli": "0.156.1",
     "dd_harness_contract": "dd-codex-harness@1"
-  },
-  "subagent_capacity": 6
+  }
 }

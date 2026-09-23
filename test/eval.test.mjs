@@ -512,11 +512,15 @@ test("capacity qualification stays outside the flow runtime", async () => {
   assert.doesNotMatch(helper[0], /provisionCapacityRuntime/);
 });
 
-test("capacity Codex home links authentication without sharing Sessions", async () => {
+test("capacity Codex home inherits CPA routing without sharing auth state or hooks", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   const helper = source.match(/async function provisionCapacityCodexHome[\s\S]*?\n}/);
   assert.ok(helper);
   assert.match(helper[0], /symlink\(sourceAuth/);
+  assert.match(helper[0], /sourceConfig/);
+  assert.match(helper[0], /sqlite_home/);
+  assert.match(helper[0], /hooks = false/);
+  assert.match(helper[0], /plugins = false/);
   assert.doesNotMatch(helper[0], /sessions/);
 });
 
