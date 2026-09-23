@@ -8,5 +8,6 @@
   "runtime": {
     "codex_cli": "0.156.1",
     "dd_harness_contract": "dd-codex-harness@1"
-  }
+  },
+  "subagent_capacity": 3
 }
