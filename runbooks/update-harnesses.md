@@ -59,6 +59,11 @@ homes, then run one normal dd-flow command to complete the hook-store migration
 before starting a native Codex session. Do not replace an engine or hook under
 an active EVAL home; candidate EVAL homes must use their own published engine.
 
+External read-only reviewer Work runs use an engine-created workspace snapshot
+under that Work's RUN home. The shared RUN workspace remains the review-input
+authority; do not disable the input-drift guard or whitelist reviewer edits in
+the product checkout.
+
 Commands below assume all four variables are explicitly set to the candidate's
 absolute paths: `DD_EVAL_HOME`, `DD_FLOW_BIN`, `DD_FLOW_CONFIG_HOME` and
 `DD_FLOW_RESOURCE_HOME`. `profile_id` names a harness profile; `run_profile`
