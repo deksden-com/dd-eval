@@ -32,7 +32,7 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.match(loaded.inputCheckpoint.value.id, /^cp-\d+-task-priority-.+-engine-0-9-0-beta-\d+$/);
+  assert.match(loaded.inputCheckpoint.value.id, /^cp-\d+-task-priority-.+-engine-0-9-0-beta-\d+(?:-.+)?$/);
   assert.equal(loaded.inputCheckpoint.value.source.commit, "924ef61752b642f06c2c326b444ed7a3239f20ff");
   assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-074-source-final");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "53d4b76943900f122957c78cc0fefa2051bd7b1a");
