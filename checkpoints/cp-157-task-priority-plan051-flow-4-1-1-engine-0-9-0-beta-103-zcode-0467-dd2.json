@@ -1,0 +1,21 @@
+{
+  "id": "cp-157-task-priority-plan051-flow-4-1-1-engine-0-9-0-beta-103-zcode-0467-dd2",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "53d4b76943900f122957c78cc0fefa2051bd7b1a",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "f04e6983aef3f66bf01b869ae6485e1057768ee4",
+      "version": "0.9.0-beta.103",
+      "artifact_sha256": "4d4b54014d0fdd7b9d3bb8c8e0f31b1f02136a168a18b9f85189df2e4c5c6838"
+    }
+  },
+  "state": "qualified_candidate_for_zcode_0467_dd2_live_e2e"
+}
