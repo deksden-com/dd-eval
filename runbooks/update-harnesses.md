@@ -47,6 +47,18 @@ artifacts rather than copying a version from prose documentation.
    EVAL ID/path and installed tuple. Follow [execute-eval.md](execute-eval.md)
    and [e2e-monitoring.md](e2e-monitoring.md).
 
+### Codex CLI / dd-flow hook refresh
+
+When the candidate engine is published, refresh the installed Codex hook
+runtime before qualification. Update both Codex homes (`~/.codex` and
+`~/.codex-cpa`); `cx` must continue to select `CODEX_HOME=~/.codex-cpa`.
+The active hook command must call the absolute installed binary
+`/Users/deksden/Library/pnpm/dd-flow`, not an older copied `dist/cli.js` or a
+PATH-dependent command. Verify the binary version and hook target in both
+homes, then run one normal dd-flow command to complete the hook-store migration
+before starting a native Codex session. Do not replace an engine or hook under
+an active EVAL home; candidate EVAL homes must use their own published engine.
+
 Commands below assume all four variables are explicitly set to the candidate's
 absolute paths: `DD_EVAL_HOME`, `DD_FLOW_BIN`, `DD_FLOW_CONFIG_HOME` and
 `DD_FLOW_RESOURCE_HOME`. `profile_id` names a harness profile; `run_profile`
