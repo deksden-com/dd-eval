@@ -6,14 +6,14 @@ import path from 'node:path';
 import { runnerCancel, runnerStatus, executionDispatchBarrier, assertEvalExecutionDispatch } from '../lib/runner.mjs';
 import { appendEvent, readEvents, reduceEvents, recordOperation } from '../lib/runner-events.mjs';
 
-test('cancel reuses the current fatal stop and reconciles its failed observer without replacing the intent', async t => {
+for (const workerStatus of ['failed', 'starting', 'running']) test(`cancel reuses current fatal stop and reconciles retained ${workerStatus} worker`, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-retained-stop-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const attempt = path.join(root, 'executions', 'e2e'), runtime = path.join(attempt, 'dd-flow-home');
   const project = path.join(attempt, 'project'), bin = path.join(runtime, 'bin', 'dd-flow');
   await mkdir(path.dirname(bin), { recursive: true }); await mkdir(project);
   const calls = path.join(root, 'calls.jsonl'), stateFile = path.join(root, 'control.json');
-  const receipt = { ok: true, settled: true, control: { current: true, requested_mode: 'stop', control_id: 'CTL-fatal' }, worker: { status: 'failed' } };
+  const receipt = { ok: true, settled: true, control: { current: true, requested_mode: 'stop', control_id: 'CTL-fatal' }, worker: { status: workerStatus } };
   await writeFile(stateFile, JSON.stringify(receipt));
   await writeFile(bin, `#!${process.execPath}\nconst fs=require('node:fs'); const args=process.argv.slice(2); fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify(args)+'\\n'); const state=JSON.parse(fs.readFileSync(${JSON.stringify(stateFile)})); if(args[2]==='stop'){ console.log(JSON.stringify({ok:false,error:{code:'run_control_in_progress',message:'existing stop',details:{control_id:'CTL-fatal'}}}));process.exit(1); } console.log(JSON.stringify(state));\n`);
   await chmod(bin, 0o755);

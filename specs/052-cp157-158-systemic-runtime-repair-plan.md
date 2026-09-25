@@ -1032,8 +1032,9 @@ external reviewer isolation: cwd-копия сама по себе не явля
 `_worktrees/dd-eval-051-live`. Имеющиеся изменения отправлены в remote branches:
 dd-flow `fix/051-snapshot-worker-provenance` @ `fbcf7a1`, dd-eval
 `eval/plan051-live` @ `e56a89c` (код `34aebd7`). Это исходный код, **не**
-выпущенный/pinned EVAL engine; новые findings A7/R6–R7/H7/C1–C5 ещё не
-реализованы. Старые EVAL не возобновлялись и не переписывались.
+выпущенный/pinned EVAL engine. Следующие изменения пока находятся в working
+trees и не означают новый E2E PASS. Старые EVAL не возобновлялись и не
+переписывались.
 
 | Пакет | Состояние и проверка |
 | --- | --- |
@@ -1041,10 +1042,10 @@ dd-flow `fix/051-snapshot-worker-provenance` @ `fbcf7a1`, dd-eval
 | H1–H6 | Реализованы bounded hook transport, lease renewal вне persist, сквозной admission budget, причинная ошибка и Droid/AGY ветви; выявленный позднее control-worker startup оставляет живого owner pending. Изолированные hook/AGY tests прошли; Windows process-tree ветвь проверена синтетически, не нативным Windows запуском. |
 | A1/A2/A4/A5/A6 | Реализованы service-path policy, `.zcode` и credential exclusions, AGY qualification до baseline с check-only без записи, точная ownership-классификация в MERGE/fingerprint/snapshot и перенос только canonical untracked hook в feature worktree. Целевые tests прошли; старые credential payload проверены только по именам путей. |
 | R1–R5 | Реализованы dispatch phase, принятые PLAN/CODE input checksums, baseline из первого committed Work start receipt, copy/source checks и read-only prompt. Последующий аудит добавил cross-generation review barrier, framing hash, fail-closed copy receipt и AGY external reviewer qualification. Целевые/integration tests выполняются. |
-| A3 | **Не реализован.** Для stage-entry теперь выбран узкий контракт: явные dd-flow evidence и свежая native Session; Grok home по blacklist не контролировать. Отдельный [native inventory](../runbooks/native-payload-inventory-052.md) и fixture `flow:test/fixtures/grok-native-import-gate.mjs` доказали, что native import/load может пропустить потерянный asset и stale absolute ref. Это blocker только для будущей заявленной portable same-Session recovery, не для stage-entry. Existing `native_session_portability: requires_adapter_verification` остаётся честным. |
-| A7 | **Добавлен проверкой готовности, не реализован.** Source proof colocated resource DB пока реагирует на renewal timestamps; нужны узкая semantic projection и regression с heartbeat во время capture. Полный sealed payload hash сохраняется. |
-| H7/R6/R7/C1–C5 | **Добавлены аудитом, runtime не исправлен.** В этой редакции документации уже исправлена ошибочная инструкция `runner reconcile` из C5; его structured-cause часть и остальные runtime fixes открыты. До нового релиза обязательны bounded hook input, безопасный review selector/terminal guard, точный physical owner и правдивое разделение native/physical/EVAL cancellation. CP-153/CP-152 служат evidence, но не изменяются. |
-| P5/P6 | Build и `test:release` проходят на прежнем наборе; общий кандидат, установка в operator homes и четыре новых scored E2E **не выполнялись**. Теперь релиз дополнительно блокируют A7/H7/R6/R7/C1–C5 и stage-entry A3. Свежая отдельная AGY native-проба на установленном `agy 1.2.11` остановилась до первого turn с `Eligibility check failed: ... not currently available in your location`; это внешний provider blocker, а не hook timeout. Версия отличается от прежнего pin и требует новой квалификации после устранения доступа. Preflight и provider eligibility не подменяются историческими PASS. |
+| A3 | Реализован purpose-based stage-entry/candidate/incomplete selector: исключает лишь provider root из проверенного `dd-grok/daemon-state@1`, сохраняет соседние daemon/operation evidence и одноимённые чужие каталоги; recovery сохраняет прежний полный payload. Новые manifests несут `flow-evidence@1`; неизвестная policy отклоняется. Capture regression с provider churn прошла. Portable same-Session recovery по-прежнему **не заявлена**: native import/load не доказывает полноту assets и `native_session_portability: requires_adapter_verification` сохранён. |
+| A7 | Реализована semantic projection только для `managed_processes.lease_expires_at`/`updated_at` в source proof resource DB; sealed DB payload hash не ослаблен. Heartbeat во время capture и реальные owner/data изменения проверены регрессиями. |
+| H7/R6/R7/C1–C5 | Код и регрессии реализованы: bounded hook stdin, terminal reviewer guard, единая выбранная source/copy/Git revision без credential paths, register/confirm provider перед initialize, physical cleanup без ложного native settlement, повторный reconcile retained worker при EVAL cancel. Адресные тесты и typecheck/lint проходят; общий integration gate ещё выполняется. CP-153/CP-152 служат evidence, но не изменяются. |
+| P5/P6 | `pnpm test:runtime-sensitive` 30/30 и dd-eval `npm test` 321 PASS/8 SKIP. `typecheck`, `lint`, адресные tests проходят; общий integration gate, финальный build/release gate, публикация, новый checkpoint и четыре новых scored E2E **ещё открыты**. Внешняя AGY eligibility должна проверяться заново: предыдущая проба `agy 1.2.11` вернула location restriction. Исторический PASS не заменяет свежий preflight. |
 
 Проверенные команды этого этапа: `pnpm typecheck`, `pnpm build`,
 `pnpm test:release`, целевые `vitest` для review-copy/stage-consistency/
@@ -1064,6 +1065,6 @@ external-review-lifecycle (3/3) и реальный review recovery (1/1). По�
 полные
 `test:integration`/`test:runtime-sensitive` не объявлены пройденными.
 
-Перед **release** обновить эту таблицу результатами повторных suites и новым
-candidate commit SHA. Нельзя считать план полностью выполненным, пока A3,
-A7/H7/R6/R7/C1–C5 и P5/P6 остаются открытыми.
+Перед **release** обновить эту таблицу результатами общего integration gate и
+новым candidate commit SHA. Нельзя считать план полностью выполненным, пока
+P5/P6 остаются открытыми.
