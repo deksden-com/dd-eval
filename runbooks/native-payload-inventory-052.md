@@ -1,7 +1,8 @@
 # Native payload selection — plan 052 / A3 qualification gate
 
-Status: **A3 remains open; native base-import gate passed, replacement
-selection is not qualified and production native-home selection is unchanged**.
+Status: **A3 stage-entry selection remains open; native base-import gate passed,
+production native-home selection is unchanged**. Stage-entry is a new
+experiment with a fresh native Session, not a portable restore of the old one.
 The credential exclusions and `.zcode` project-service selection are independent
 fixes. They do not establish that an arbitrary native Session can be restored
 from a reduced provider home. Existing recovery behavior must not be replaced
@@ -99,13 +100,17 @@ portable-recovery claim. A supplemental exact sidecar manifest must therefore
 preserve the loader dependencies above and qualify their references, not merely
 check that files exist after copying.
 
-The immediate supported purpose to qualify is **forward continuation from a
-stage-entry snapshot**, not arbitrary native rewind or forensic replay. Rewind
-points and dead replay branches need a separate capability claim; their absence
-must not become an unnecessary gate for forward-only E2E. The remaining sidecar
-and path-reference gaps above still affect forward continuation itself (loaded
-tool/workflow state and subsequent access to image/compaction context), so this
-narrower purpose does not justify dropping them without a native-load test.
+The immediate supported stage-entry purpose is a **new experiment**: the
+importer stops old Session/lease ownership and the next stage starts a fresh
+native Session. Its semantic payload needs product inputs and selected dd-flow
+RUN/Work/adapter evidence, not the old Grok provider home. Qualify that
+purpose with a stage-entry restore plus fresh Session start and negative tests
+for arbitrary Grok-home churn and selected RUN-evidence drift. The native
+import/load probe below is a gate only if a separate **portable same-Session
+recovery** capability is claimed. Its sidecar/reference gaps make that claim
+unsupported today, even though base metadata import and load pass. Rewind and
+forensic replay would require further distinct capabilities, not an accidental
+stage-entry requirement.
 
 The smallest usable existing load entrypoint is the standalone
 `dd-grok.mjs::inspectSession`: its `identity()` sends ACP `session/load` when
@@ -117,7 +122,8 @@ The native source also provides `agent/testkit/e2e.rs::load_session_via_agent`
 (real ACP initialize/auth/load over in-process pipes with a mock backend), so
 an offline loader roundtrip does not require a model prompt or a new framework.
 
-Concrete unsupported pieces of the current dd-flow archive API are tree export
+Concrete unsupported pieces of the current dd-flow archive API for portable
+same-Session recovery are tree export
 and relocation: export accepts one Session ID, import requires the original cwd,
 and no API manifest enumerates retained child archive/asset references. The base
 native API probe supplies the portable metadata/transcript primitive, but not

@@ -410,8 +410,14 @@ correctness remain agent/`dd-flow` responsibilities.
 `cancel_requested`; the adapter then reports whether the root Session and all
 native children actually settled. Only a receipt with `settled: true` writes
 terminal `execution.cancelled` and finalizes the eval. Otherwise the eval is
-`cancelling`: use `runner reconcile` to observe it again. Do not restart the
-Subject, send a recovery prompt or delete its daemon while it is cancelling.
+`cancelling`: use `runner status --eval <path>` for read-only observation.
+`runner reconcile` applies only to a terminally failed launch and returns
+`reconcile_not_eligible` for cancellation. A repeat
+`runner cancel --eval <path>` is an explicit scoped retry of the same
+cancellation intent, not an
+observation-only command; first check owner/lease and the retained stop receipt.
+Do not restart the Subject, send a recovery prompt or delete its daemon while
+it is cancelling. Process death alone does not prove native-tree settlement.
 
 ## Parallel canonical preparation and E2E
 
