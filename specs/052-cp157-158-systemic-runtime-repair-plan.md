@@ -1176,3 +1176,14 @@ Grok `EVAL-20260925142631-067b67a8`: baseline PASS,
 затем зафиксирован `stage_waiting_for_user`. EVAL ещё активен, итог не заявлен.
 После AGY blocker новые ZCode/Luna scored E2E не запускаются до разрешения
 P8; ранее пройденные preflight не являются E2E результатом.
+
+**P8 implementation, CP-161 preparation.** В отдельной ветке
+`eval/cp161-hitl-contract` входное задание прямо оставляет существенные
+правила на согласование и просит сначала задать вопрос. Значения скрытого
+ответа не раскрыты. Обновлены оба SHA pin: в `case.json` и blueprint
+`stage-context.json`; исторические stage-entry snapshots не изменены.
+Отдельный checkout сохраняет CP-160 Grok definition без дрейфа.
+`npm test -- --test-concurrency=2`: 321 passed, 8 skipped, 0 failed.
+Новый scored AGY на изменённом входе **не запускался**: сначала нужен новый
+isolated preflight, затем E2E только после разбора текущего blocker/решения
+продолжить кампанию. Полный P6 по четырём harness остаётся открытым.
