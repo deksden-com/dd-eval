@@ -1173,7 +1173,9 @@ SHA входа, E2E materialization и matched HITL на новом EVAL. Это
 Grok `EVAL-20260925142631-067b67a8`: baseline PASS,
 `daemon.start.ready=true`, native Session
 `01a0d8f7-f6aa-7ef2-ba98-85515425bae1` создана, RUN вошёл в SPECIFY;
-затем зафиксирован `stage_waiting_for_user`. EVAL ещё активен, итог не заявлен.
+затем зафиксированы `stage_waiting_for_user`, ответ и resume той же Session.
+SPECIFY и PROTOCOLIZE завершены; последняя проверенная Stage — PLAN.
+EVAL ещё активен, итог не заявлен.
 После AGY blocker новые ZCode/Luna scored E2E не запускаются до разрешения
 P8; ранее пройденные preflight не являются E2E результатом.
 
