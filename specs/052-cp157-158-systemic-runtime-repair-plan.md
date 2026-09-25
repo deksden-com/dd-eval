@@ -1,8 +1,9 @@
 # 052 — CP-157/158: native outcomes, hook latency, service artifacts, review revisions
 
-Дата: 2026-09-25. Редакция 4: N1–N6/H1–H6/A1–A2/A4–A6/R1–R5
+Дата: 2026-09-25. Редакция 5, после проверки готовности: N1–N6/H1–H6/A1–A2/A4–A6/R1–R5
 закоммичены и отправлены в отдельные ветки; новый аудит добавил H7, R6–R7
-и C1–C5. Это план оставшихся исправлений, а не объявление нового релиза.
+и C1–C5, проверка готовности — A7 и уточнения их контрактов/приёмки.
+Это план оставшихся исправлений, а не объявление нового релиза.
 Для A3 разделены stage-entry и переносимое возобновление native Session.
 Продолжение [плана 051](051-boundary-snapshot-and-native-worker-provenance.md).
 Исходные версии: dd-flow `8f9dd86` / beta.103; dd-eval `61542a1`.
@@ -74,7 +75,7 @@ normalizer и timeout процесса. Ниже **И** — наблюдённы
 | Native дерево/результаты | Все 6 `dd-{grok,zcode,codex,agy,opencode,droid}*.mjs`, `controller-fanout.ts`, `vnext-fanout.ts`, fixtures | N1–N6; native settlement и Work result остаются разными фактами |
 | Hooks/lease/таймауты | Все 6 bin entrypoints и daemon, `managed-daemon.mjs`, `process-json.mjs`, `native-hook-command.mjs`, `daemon-operations.mjs`, `harness-adapter.ts` | H1–H7; не нужен новый dispatch framework |
 | Ошибка до EVAL | Adapter receipt → controller → `eval:lib/runner.mjs` и managed-flow client | Исправлять потерю у источника; общая обёртка уже сохраняет `details.cause`, cleanup/statistics отделены |
-| Служебные файлы | `eval:lib/runner.mjs` preparation/restore/fork; `eval-snapshots.ts`, `code-checks.ts`, `external-work-launch.ts`, `vnext-merge.ts` | A1–A6; Git-ignore, snapshot payload и native recovery — разные наборы |
+| Служебные файлы | `eval:lib/runner.mjs` preparation/restore/fork; `eval-snapshots.ts`, `code-checks.ts`, `external-work-launch.ts`, `vnext-merge.ts`, resource heartbeat | A1–A7; Git-ignore, snapshot payload и native recovery — разные наборы |
 | Остальные Git consumers | `runs.ts`, `vnext-specify.ts`, `branch-context.ts`, `stage-lifecycle.ts`, `cleanup.ts`, `protocols.ts` | Наследуют штатный Git ignore; локальные исключения в каждом не нужны |
 | Ревью | `work-registry.ts`, `controller-fanout.ts`, `delegation-instructions.mjs`, `vnext-plan-review.ts`, `vnext-code-review.ts`, external launch, stage/recovery scope | R1–R7; terminal decision и единый input selector тоже требуют проверки |
 | Остановка и EVAL lifecycle | `runtime-scope-stop.ts`, managed process/daemon bindings, `run-control-worker.ts`, `eval:lib/runner.mjs`, cancellation runbook | C1–C5; native settlement, физическая остановка и terminal EVAL — разные факты |
@@ -207,11 +208,25 @@ run-control suite повторяется после новой сборки бе
 При незакрытом pipe либо чрезмерном payload внутренний 25-секундный бюджет
 не остановит чтение; native host может оборвать wrapper раньше причинного
 receipt. Это sibling-пробел, а не доказанная причина исторических 10 секунд AGY.
-Переиспользовать один bounded stdin reader в этих трёх entrypoints: тот же
-оставшийся budget, разумный protocol byte cap, точная причина `input_timeout`/
-`input_too_large`, без запуска admission после отказа. Проверить открытый stdin
-за пределом, oversized payload и нормальный JSON. Остальные hook entrypoints
-проверить по их native способу доставки, не навязывать им stdin-обёртку.
+Та же ошибка есть у **Droid** (`dd-droid.mjs::input`, deadline создаётся после
+EOF) и **Codex** (`src/cli/hook-ingress.ts`, 1 MiB cap есть, но 20-секундный
+budget начинается после чтения). Worker-ветвь Codex тоже должна ограничивать
+вход, сохраняя оставшееся время родителя. OpenCode получает события через
+plugin API и отдельного stdin reader не требует.
+Переиспользовать общий native-hook helper для этих пяти ingress-путей: один
+reader, тот же оставшийся budget, принятый лимит 1 MiB в **байтах** и точная
+причина с phase=`input`. Проверить максимальный легальный native payload
+в fixture; если 1 MiB недостаточно, документировать доказанный protocol limit,
+а не добавлять произвольные per-provider настройки.
+Timeout/overflow должен прекратить чтение, снять handlers и позволить процессу
+выйти: одного `Promise.race` недостаточно. Сохранить native deny/exit формат
+каждого caller, не вызывать RPC/admission после отказа. AGY parse/input failure
+до ответа daemon — ingress error; он не доказывает привязку request к turn и
+не получает выдуманную generation. Тесты: незакрытый pipe с проверкой **выхода
+процесса**, oversized и multibyte UTF-8 JSON, отсутствие RPC/admission effects,
+корректный обычный hook. Обычные CLI `--task-stdin`/`--result-stdin` не получают
+hook timeout. `total_ms` включает чтение входа, а вложенные операции не начинают
+новый полный бюджет.
 
 ### A. Владение артефактами вместо контроля всего home
 
@@ -264,6 +279,23 @@ Grok home ничего не меняет, правка выбранного RUN 
 native importer только ради stage-entry. Полнота проверки **уже sealed**
 snapshot остаётся неизменной: старые байты и manifest проверяются по старой
 версии selection, а не задним числом по новой.
+
+Точки реализации: `captureEvalRunSnapshot`, `snapshotSourceVersion`,
+`runtimeSnapshotKind`, `copyRuntimeTree` и `captureRecoveryAuxiliary`.
+Один resolved purpose и выбранные roots передать в copy и обе source-проверки;
+сейчас `snapshotSourceVersion` получает только project/run и не знает purpose.
+В новых manifests добавить `runtime_payload_policy: flow-evidence@1` для
+stage-entry/candidate/incomplete. Отсутствующее поле означает legacy contract;
+неизвестная policy не допускает новый restore/acceptance. Существующее
+`project_payload_policy` не переиспользовать для runtime.
+Grok provider root брать из проверенного `stateDir/config.grokHome`, а не
+исключать каждый путь с именем `grok-home`. Реальная структура —
+`stateDir/daemon.json`, `stateDir/operations/...` и соседний
+`stateDir/grok-home/`. Нынешняя fixture `run-controller-capture.test.ts`
+ошибочно кладёт daemon.json внутрь provider home: исправить её на реальную
+структуру и проверить sibling evidence, arbitrary home churn и чужой
+одноимённый product path. Для recovery вызовов сохранить отдельную selection;
+общий helper не должен незаметно применить к ним stage-entry exclusion.
 
 **Отдельная capability — recovery той же native Session.** Сейчас результат
 restore честно содержит `native_session_portability: requires_adapter_verification`;
@@ -329,6 +361,24 @@ nonrepository. Nongit scan также включает `.zcode`.
 gitless workspace использует A2 policy, испорченный Git/permission error явно
 останавливает оценку. Не выдавать новый файловый набор за прежний fingerprint.
 Тест: nonrepo, повреждённый Git, ошибка доступа, tracked+ignored service paths.
+
+**A7 — К: штатный resource heartbeat меняет semantic source snapshot.**
+`snapshotSourceVersion` хеширует все строки `runtime.sqlite`; префикс
+`resource-sqlite` не меняет итоговое сравнение. `heartbeatManagedProcess`
+обновляет `managed_processes.lease_expires_at/updated_at`, поэтому renewal
+другого daemon между before/after при colocated registry вызывает ложный
+`snapshot_source_changed`. Собственный JS timer синхронного capture при этом
+не исполняется: проверять внешнюю запись или детерминированную инъекцию в copy.
+Это доказанный пробел кода, без утверждения о причине исторического EVAL.
+Согласовать source proof с существующим `run-control.ts::processVersion`:
+исключить **только значения этих двух полей** `managed_processes` в известной
+resource DB. Схема, набор строк, owner/token, PID/birth, state, metadata,
+finished/reason и остальные таблицы остаются значимыми. Controller lease
+и inventory по-прежнему проверяются отдельно. Полный VACUUM payload и его
+sealed hash не фильтруются. Тесты: heartbeat во время copy допускается;
+смена token/PID/state и добавление/удаление owner отвергаются; испорченный
+sealed runtime.sqlite не проходит проверку. Не игнорировать timestamps во
+всех SQLite или всех таблицах.
 
 ### R. Единая ревизия ревью и реальные границы read-only
 
@@ -434,11 +484,18 @@ recovery контракт. R1/R2/R4/R5 используют существующ
 созданные/исполняемые Work и Work Session в terminal SQL-статус. Это не
 доказательство остановки native Session. `completeFlowRun` затем видит
 закрытые строки и может завершить RUN при физически живых reviewers.
-Минимальный фикс: для terminal decision тоже требовать завершения reviewer
-Works; если нужно остановить живое дерево — использовать уже имеющийся RUN
-control stop/cancel и ждать отдельного native settlement, а не подменять его
-SQL-закрытием. Тесты: active child + failed/cancelled не дают terminal RUN;
-после доказанного settlement штатная terminal ветка работает. Не ставить
+Минимальный фикс: для любого terminal decision проверять все нетерминальные
+reviewer Works (`created/running/paused`) до `preserveDecisionReceipt` и любых
+report/timeline writes, сохранив код `worker_jobs_incomplete`. Paused Work
+сохраняет открытую Work Session; одного переноса прежнего guard недостаточно.
+Удалить SQL-закрытие активных children из `settleReviewChildren` как способ
+принудительного завершения. Если children уже семантически terminal, обычный
+terminal PLAN-REVIEW может завершиться. Для живого/paused дерева использовать
+существующий RUN control stop; после него RUN остаётся fenced/stopped.
+Это не обещает повторный `stage finish`: stop запечатывает recovery и не
+снимает mutation fence. Тесты: failed/cancelled при created/running/paused
+child не меняют БД и не публикуют decision/report/timeline; terminal children
+позволяют штатное завершение. Не ставить
 безусловный native-settled guard на каждый `completeFlowRun`: нормальный
 координатор исполняет CLI в момент завершения стадии.
 
@@ -451,13 +508,43 @@ SQL-закрытием. Тесты: active child + failed/cancelled не даю�
 общий Git fingerprint, не сравнивая сохранённый source hash с текущим.
 Следовательно, у явно допускаемого ignored input возможен stale review, а
 секрет может попасть во внешнюю execution copy. Использовать одну небольшую
-policy выбора review inputs для copy/source/start/finish: credential-like env
-files исключить до внешнего запуска, требуемые продуктовые inputs обозначить
-явно, сохранённый `source_sha256` проверять перед принятием result наряду с
-copy hash и RUN checksums. Не объявлять все ignored files неважными. Тесты:
-`.env.local` не копируется; правка включённого ignored input после launch
-отвергает результат; неизменные inputs принимаются, штатный сервисный churn —
-нет. Не считать copy sandbox для symlinks/внешних ссылок.
+policy выбора review inputs для copy/source/start/finish и **всей группы**.
+Одной per-Work сверки `source_sha256` недостаточно: ignored input может
+измениться после завершения первой волны, и новая копия следующей волны
+будет внутренне согласована с другой ревизией. Новый `ReviewInput@3` сохраняет
+checksum выбранного source-набора и `source_policy: review-inputs@1` в уже
+существующем committed start receipt; это общий baseline native/external
+PLAN/CODE reviewers в одном cycle, включая recovery generation. Copy receipt
+использует ту же policy. При dispatch/start/finish сравнивать с первым
+committed baseline, не пересчитывать его по сегодняшним байтам.
+
+Для env exclusions переиспользовать точный `snapshotEnvironmentAllowed`:
+`.env`/`.env.*` исключаются, `.env.example` сохраняется. Применить правило и
+к `writeReviewGitEvidence`: текущий `git diff --binary <base> --` может
+выдать tracked/staged или удалённый secret, даже если копирование файла
+запрещено. Один выбор путей для copy/hash/Git diff должен учитывать обе стороны
+rename/deletion и корректное Git quoting; не фильтровать готовый patch
+по строкам. Env exclusion имеет приоритет над tracked/explicit при внешней
+передаче. Если такой файл объявлен обязательным review input, отклонить
+подготовку с именем недоступного входа; исходный файл не менять.
+Selection составлять из уже существующего tracked + nonignored product
+inventory, accepted ignored refs из `ReviewInput.run_inputs` и обязательных
+`.dd-eval` task inputs. Сохранить квалифицированный AGY hook по его отдельному
+infra-контракту. Для gitless workspace использовать ту же service/env policy
+и требуемые inputs, сохраняя явное отличие от ошибки Git. Не включать каждый
+ignored cache/junk файл в новый native fingerprint. Все consumers этой
+review-границы используют выбранный набор; прежний широкий fingerprint не
+должен оставаться вторым veto по уже исключённым service/env файлам. Нужные
+Git base/index/branch evidence сохранить отдельно от файлового input hash.
+Никакого универсального secret scanner или нового config registry.
+
+Тесты: root/nested/tracked/staged/deleted/renamed `.env.local` отсутствует
+в copy **и diff**; `.env.example` остаётся; включённый ignored input меняется
+во время Work и между волнами3+1 — оба случая отвергаются, в том числе после
+recovery. Неизменная группа и штатный сервисный churn проходят. Legacy
+ReviewInput@2/copy receipts читаются как история; новый acceptance не смешивает
+@2/@3 внутри одного cycle и не переписывает старые receipts. Копия не является
+sandbox для symlinks/внешних ссылок.
 
 ### C. Остановка, physical identity и EVAL terminal state
 
@@ -471,11 +558,49 @@ registered daemon живым после `tree_not_settled`. Сохранить n
 превращает неизвестный исход native child/Work в `settled:true`. Retry того же
 stop ID и соседний foreign process проверяются отдельно.
 
+Контракт ответа остаётся совместимым: `settled` и `nodes[].settled` сохраняют
+прежний смысл полного требуемого подтверждения. Для native nodes добавить
+`native_settled:boolean` и `physical_stopped:boolean|null` (null — недостаточна
+identity либо проверка liveness); отсутствующие поля legacy receipt не означают
+true. `runnerCancel`/`runnerStatus` должны показывать `cancelling` при
+physical=true/native=false. Не терять per-execution RUN control state даже
+при settled scope inventory. Проверить полный receipt path до EVAL projection.
+Node с `process_id` сообщает только о своём зарегистрированном процессе/группе.
+На уровне scope `physical_stopped:true` требует полного покрытия owned
+provider/daemon identities; при незарегистрированном legacy bridge сохранить
+`physical_stopped:null` и `physical_outcome_unknown`, даже если все известные
+nodes остановлены. Не выводить остановку всего harness по одной daemon node.
+Остановка идёт provider→daemon; явно передавать escalation policy:
+для scope fallback без force-параметра сохранить `force:false`, при имеющемся
+RUN control intent использовать его force. `stopManagedProcess` по умолчанию
+допускает SIGKILL, поэтому опущенный аргумент меняет поведение. Использовать
+существующие bounded grace/termination, не новый бесконечный wait.
+Если leader группы исчез и birth identity уже не подтверждается, helper
+намеренно не сигналит группу; живые потомки дают неполное physical settlement.
+Тест SIGTERM-resistant процесса, исчезнувшего leader с живым child и чужого
+соседа обязателен; регистрация bridge не даёт обещания остановить произвольное
+дерево после потери physical identity.
+
 **C2 — К: detached provider bridge не всегда имеет durable physical owner.**
-Grok/ZCode/Codex запускают ACP bridge в другой process group; registration
-daemon не доказывает остановку bridge. До продуктивного dispatch записать
-точную physical identity provider bridge в существующий managed-process/
-daemon binding и проверить её при scope stop. Если bridge был создан старым
+Grok/ZCode/Codex запускают bridge в другой process group; registration
+daemon не доказывает остановку bridge. В managed launch порядок обязателен:
+подтверждённая daemon identity → provider registration **до spawn** → spawn →
+подтверждение PID/birth/group и публикация provider binding → initialize/auth →
+productive admission. Сейчас общий `AcpBridge.start` (Grok/ZCode) и
+`CodexBridge.start` ждут initialize внутри start, прежде чем daemon получит
+child; registration после возврата start оставит прежнюю дыру.
+Использовать register/confirm/heartbeat/finish из `managed-daemon.mjs`,
+проверяя все поля `managedProviderBelongsToDaemon`, включая physical owner
+daemon, scope и dispatch barrier. При no-flow diagnostic caller сохраняется
+локальный child cleanup без создания фиктивного managed owner.
+Initialization reject/timeout, ошибка confirm/state write и штатный close
+обязаны проходить cleanup известного child. Неуспешный cleanup сохраняет
+registration и primary error; provider lease получает один renewal timer,
+который прекращается после завершения lifecycle. Существующий
+`cleanupFailedStart`, останавливающий только daemon group, дополнить учётом
+отдельного provider. Проверять это через реальные adapter callers с fake
+provider, а не только вручную заполненные bindings в scope fixture.
+Если bridge был создан старым
 runtime без такой записи, сообщить `physical_outcome_unknown`, не искать PID
 по имени и не посылать сигнал чужому процессу. Тест detached provider + native
 stop failure: подтверждённо owned provider и daemon физически остановлены,
@@ -489,7 +614,11 @@ AGY Subject: retained daemon ещё имел `shutdown_state:starting,pid:null`,
 подтверждён. Для такого зарегистрированного старта разрешить только
 identity-checked physical retirement по существующей записи, сохраняя
 `native_settled:false` и исходную ошибку. Тест gap до публикации `daemon.json`,
-изменённая lease/PID/birth и повторная попытка; чужой PID не трогать.
+изменённая lease/PID/birth и повторная попытка; чужой PID не трогать. Раннюю
+публикацию подтверждённой daemon identity выполнить до provider startup;
+отдельно проверить crash между registry-confirm и state publication, а также
+между provider spawn/confirm/publication. Unknown registration не удаляется
+только потому, что у него нет опубликованного daemon PID.
 
 **C4 — К: dead `running` control-worker не получает уже допустимый reconcile.**
 `eval:lib/runner.mjs` вызывает `run control reconcile` при общем stop intent
@@ -501,6 +630,11 @@ reclaim `starting/running/failed`, но лишь после доказанной
 intent. Если identity недостаточна, оставить `cancelling` с причиной.
 Тесты: dead running проходит штатный reconcile; live running остаётся pending;
 foreign/reused PID не принимается.
+Сохранить ограничение observation budget: повтор одного reconcile request ID
+не пополняет исчерпанное время. `runner cancel` использует стабильный ID и не
+создаёт новый budget при каждом вызове. Для отдельного явно запрошенного
+наблюдения остаётся существующий `run control reconcile` с новым request ID;
+по исчерпании автоматической попытки сохраняются причина и `cancelling`.
 
 **C5 — К: неверная инструкция наблюдения и потеря structured cause.**
 `eval:runbooks/execute-eval.md` советует `runner reconcile` для `cancelling`,
@@ -511,6 +645,12 @@ foreign/reused PID не принимается.
 безопасные structured `details.cause` из adapter error отдельно от cleanup,
 чтобы CP-153-подобный отказ был диагностируем. Тест reason/details и неверного
 reconcile path; не добавлять новую EVAL-команду без необходимости.
+На повторе читать также retained daemon operation со status=`failed`:
+сейчас prior-ветка ожидает только `completed` и заменяет исходную причину
+на generic unknown. Сохранить original native error после физической
+остановки и смерти daemon; новое cleanup error дописывается отдельно.
+Regression: первый `tree_not_settled` → physical cleanup → повтор observe
+показывает ту же первопричину и не объявляет native settlement.
 
 ## Порядок реализации и критерии завершения
 
@@ -531,7 +671,8 @@ reconcile path; не добавлять новую EVAL-команду без н
    Fixtures `managed-daemon`, `agy-state-boundaries`, Droid и
    `test/harness-runtime-assets.test.ts`. Deadline фиксируется по проверенной
    общей цепочке; не обещать, что30 секунд всегда достаточно без измерений.
-4. **P3 / service ownership:** A1/A2/A5/A6 и purpose-based selection A3;
+4. **P3 / service ownership:** A1/A2/A5/A6 и purpose-based selection A3, затем
+   A7 resource heartbeat projection;
    `eval:test/task-input-preparation.test.mjs`, snapshot/bootstrap/recovery,
    merge/check suites. Для stage-entry gate — новая Session после restore,
    сохранённое dd-flow evidence и отсутствие Grok-home churn в semantic hash;
@@ -578,11 +719,11 @@ reconcile path; не добавлять новую EVAL-команду без н
 - Открытый stdin не может держать hook бесконечно; dead control owner и live
   control owner дают разные результаты без второго stop intent.
 
-## Проверка готовности к реализации — редакция 4
+## Проверка готовности к реализации — редакция 5
 
 Повторная проверка выявила пробелы не в списке основных инцидентов, а в
 совместимости, переходных состояниях и зависимостях предлагаемых исправлений.
-Ниже обязательные дополнения к N/H/A/R, а не новый параллельный проект.
+Ниже обязательные дополнения к N/H/A/R/C, а не новый параллельный проект.
 
 ### 1. Старые receipts, snapshots и перенос путей
 
@@ -710,7 +851,7 @@ diagnostic archive subsystem. Проверка A4 распространяетс
 Порядок зависимостей уточнён: H4→H2/H5; H1→измерение H3; H7 переиспользует
 имеющийся общий hook budget и может идти параллельно измерению H3;
 A2→R3/R7; R4/R5→R1/R3/R7; C2→полное physical cleanup в C1;
-A3 purpose selection→stage-entry gate. Native roundtrip требуется лишь для
+A3 purpose selection и A7 resource projection→stage-entry gate. Native roundtrip требуется лишь для
 отдельной same-Session recovery capability. A4, N1–N3,
 A1 и независимые regressions можно начинать без ожидания остальных gates.
 H2 correlation contract можно реализовывать до подбора окончательных чисел H3.
@@ -728,7 +869,9 @@ commit, точную команду regression и результат. Не со�
    `vnext-fanout-storage`; hooks — `hook-responsibility`, `hook-ingress`,
    `harness-runtime-assets`, `codex-hook-delivery`; payload — `eval-snapshots`,
    `runtime-recovery`; review — `stage-consistency`, `external-work-launch`,
-   `work-receipt-publication` (имена `test/*.test.ts`). Native fixtures также
+   `work-receipt-publication` (имена `test/*.test.ts`). C1–C5 —
+   `runtime-scope-stop`, `runtime-scope-control`, `run-control-worker`, плюс
+   `eval:test/runner-cancel.test.mjs`. Native fixtures также
    запускать штатным runner, который реально исполняет изменённые assets.
 3. До candidate: штатные `pnpm test:release`, `pnpm test:integration`,
    `pnpm test:runtime-sensitive`; зависший/прерванный suite не считать PASS.
@@ -750,6 +893,56 @@ commit, точную команду regression и результат. Не со�
 квалификации. До их закрытия соответствующие пакеты и общий релиз не принимать.
 Полное устранение практических blockers четырёх harness подтверждается только
 P6, отдельно от доказательства корректности guards/normalizers.
+
+### 7. Новые форматы и проверки на стыках пакетов
+
+Реализация не выбирает новые fallback-правила по месту. Решения этой редакции:
+
+| Область | Новый контракт и совместимость | Приёмка |
+| --- | --- | --- |
+| Runtime selection A3/A7 | `runtime_payload_policy: flow-evidence@1` только для нового non-recovery capture; legacy manifest проверяется целиком, recovery purpose не получает случайный whole-home exclusion | source-before/copy/source-after выбирают один набор; colocated и separate resource home; новая Session после restore; tampered sealed bytes отвергаются |
+| Review selection R7 | `ReviewInput@3`, stage context version3 и `review-inputs@1` в copy/source receipts; обновить все проверки `version===2` и legacy fallback в work-registry, producers PLAN/CODE-REVIEW и recovery readers | @2 history читается; новая принимаемая cycle не смешивает @2/@3; ignored input между волнами обнаружен; legacy hashes не пересчитаны |
+| Terminal review R6 | created/running/paused guard до файловых и SQL effects; обычный semantic terminal и RUN stop используют свои существующие пути | отказ не оставляет terminal decision/report; stop остаётся fenced, повтор stage finish не предполагается |
+| Scope stop C1–C5 | Дополнительные physical/native facts при прежнем boolean settled, сохранённые operation/control/request IDs | dd-flow stop receipt проходит dd-eval projection: physical cleanup с unknown native оставляет cancelling; legacy receipt читается |
+| Hook input H7 | Один outer budget, 1 MiB protocol cap в байтах, прежний native deny/exit формат | все пять ingress-путей завершают процесс при открытом stdin; no late RPC/admission; UTF-8 и нормальный hook проходят |
+
+Для R7 фиксировать policy и ожидаемый состав selection до первого review
+dispatch; первый committed start receipt остаётся авторитетом принятой группы.
+Текущий inventory получать заново по той же policy и сравнивать состав вместе
+с содержимым: новый/удалённый/переименованный выбранный product file вызывает
+drift, baseline не расширяется вслед за ним. Regression с новым nonignored
+файлом между reviewers обязателен; ignored junk остаётся исключённым.
+Copy/source/Git evidence
+проверяются по одному input-контракту, включая удалённые/переименованные пути.
+Производные файлы review evidence остаются outputs capture и inputs reviewer,
+не включаются в authoritative source задним числом.
+Для C2 проверить отмену/потерю lease между register/spawn/confirm/initialize:
+новая Session/turn не стартует после fence, известный child проходит cleanup,
+неподтверждённая registration остаётся видимой. Lifecycle-тест fake provider
+должен использовать реальные Grok/ZCode/Codex daemon entrypoints.
+
+Точный набор проверок выбирается по изменённому пакету; после него запускаются
+связанные соседние suites. Успешный docs/link check не доказывает runtime fix.
+Перед общим candidate требуется единый успешный прогон штатных release,
+integration и runtime-sensitive gates; старые разрозненные PASS и увеличенные
+test ceilings не заменяют его. Публикуемый engine и квалификация hooks
+должны ссылаться на тот же проверенный commit/упакованный artifact.
+
+### 8. Ограничения, которые остаются явными
+
+- Историческое распределение задержки AGY по фазам не записано: его нельзя
+  восстановить новой fixture. Новый тест подтверждает выбранный путь задержки
+  и budget, а свежая native квалификация — поведение установленной версии.
+- Provider eligibility/auth — внешняя предпосылка P6. Проверить доступ перед
+  свежим запуском; успешный doctor не доказывает первый native turn.
+- Старые EVAL с потерянной physical/native identity могут остаться cancelling;
+  новые фиксы не фабрикуют для них settlement receipt. Новый runtime нельзя
+  подставлять в их pinned homes ради завершения cancellation.
+- Portable same-Session recovery Grok остаётся отдельной неподтверждённой
+  capability; stage-entry E2E от неё не зависит. До отдельного контракта
+  sidecar importer/rewind engine в этот план не входят.
+- Текущий запрос — проверка и уточнение плана. Runtime-реализация и новые EVAL
+  этой редакцией документа не выполняются.
 
 ## Проверки, уже выполненные при составлении плана
 
@@ -774,8 +967,9 @@ P6, отдельно от доказательства корректности 
 
 ## Проверка плана по `$ponytail` (full)
 
-1. **Нужно ли вообще:** убрать контроль неизвестного home-содержимого и лишний
-   heartbeat на каждый persist; сохранить лишь проверки с конкретной целью
+1. **Нужно ли вообще:** убрать контроль неизвестного home-содержимого, лишний
+   heartbeat на каждый persist и false drift от renewal timestamps (A7);
+   сохранить лишь проверки с конкретной целью
    (ownership, единая ревизия, целостность принятого evidence, отсутствие secrets).
 2. **Уже есть:** Git exclude helper; runtime snapshot classifier; lease timer;
    owned process termination; structured errors; hook rejection; Work start
@@ -784,8 +978,10 @@ P6, отдельно от доказательства корректности 
    H1/H4 в shared helpers и малых callers; A1 в одной preparation функции;
    R1/R2 в общих prompt/start путях. Для новых findings — один bounded stdin
    reader (H7), существующий managed-process stop (C1–C3), уже сохранённый
-   review source hash и общий selector (R7), существующий run-control reconcile
-   (C4). Не чинить каждый EVAL отдельной веткой.
+   review source hash, exact env predicate и общий selector (R7), существующий
+   run-control reconcile (C4). Новая ReviewInput version использует существующие
+   receipts; A7 расширяет source projection известной resource DB.
+   Не чинить каждый EVAL отдельной веткой.
 4. **Отклонено:** просто10→30; `.zcode/acp/sandbox.json`-only exception; безусловный
    игнор tracked файлов; «всё Git-ignored не нужно»; пересоздание детей по тишине;
    повторное разделение уже разделённых controller phases; clone как обещание
@@ -806,6 +1002,12 @@ mixed tracked/untracked service directory; native load вместо одного
 Повторный аудит убрал ложный gate Grok native forward-resume для stage-entry,
 но сохранил его как условие **только** будущего portable same-Session recovery;
 не ослабил проверку неизменности уже опубликованных snapshots.
+Проверка готовности редакции5 добавила реальные Droid/Codex ingress callers,
+paused-reviewer guard до любых writes, startup binding до initialize, общий
+baseline выбранных review inputs, безопасный Git diff export и A7 heartbeat.
+Из плана убраны подразумеваемый `stage finish` после fenced RUN stop и
+распространение raw ignored-file hash на native reviewers. Новые зависимости,
+generic secret scanner и отдельный lifecycle framework не требуются.
 
 Изменения operational docs выполнять вместе с реализацией:
 `runbooks/update-harnesses.md` (квалификация/обновление hooks и binary, service
@@ -830,7 +1032,7 @@ external reviewer isolation: cwd-копия сама по себе не явля
 `_worktrees/dd-eval-051-live`. Имеющиеся изменения отправлены в remote branches:
 dd-flow `fix/051-snapshot-worker-provenance` @ `fbcf7a1`, dd-eval
 `eval/plan051-live` @ `e56a89c` (код `34aebd7`). Это исходный код, **не**
-выпущенный/pinned EVAL engine; новые findings R6–R7/H7/C1–C5 ещё не
+выпущенный/pinned EVAL engine; новые findings A7/R6–R7/H7/C1–C5 ещё не
 реализованы. Старые EVAL не возобновлялись и не переписывались.
 
 | Пакет | Состояние и проверка |
@@ -840,8 +1042,9 @@ dd-flow `fix/051-snapshot-worker-provenance` @ `fbcf7a1`, dd-eval
 | A1/A2/A4/A5/A6 | Реализованы service-path policy, `.zcode` и credential exclusions, AGY qualification до baseline с check-only без записи, точная ownership-классификация в MERGE/fingerprint/snapshot и перенос только canonical untracked hook в feature worktree. Целевые tests прошли; старые credential payload проверены только по именам путей. |
 | R1–R5 | Реализованы dispatch phase, принятые PLAN/CODE input checksums, baseline из первого committed Work start receipt, copy/source checks и read-only prompt. Последующий аудит добавил cross-generation review barrier, framing hash, fail-closed copy receipt и AGY external reviewer qualification. Целевые/integration tests выполняются. |
 | A3 | **Не реализован.** Для stage-entry теперь выбран узкий контракт: явные dd-flow evidence и свежая native Session; Grok home по blacklist не контролировать. Отдельный [native inventory](../runbooks/native-payload-inventory-052.md) и fixture `flow:test/fixtures/grok-native-import-gate.mjs` доказали, что native import/load может пропустить потерянный asset и stale absolute ref. Это blocker только для будущей заявленной portable same-Session recovery, не для stage-entry. Existing `native_session_portability: requires_adapter_verification` остаётся честным. |
+| A7 | **Добавлен проверкой готовности, не реализован.** Source proof colocated resource DB пока реагирует на renewal timestamps; нужны узкая semantic projection и regression с heartbeat во время capture. Полный sealed payload hash сохраняется. |
 | H7/R6/R7/C1–C5 | **Добавлены аудитом, runtime не исправлен.** В этой редакции документации уже исправлена ошибочная инструкция `runner reconcile` из C5; его structured-cause часть и остальные runtime fixes открыты. До нового релиза обязательны bounded hook input, безопасный review selector/terminal guard, точный physical owner и правдивое разделение native/physical/EVAL cancellation. CP-153/CP-152 служат evidence, но не изменяются. |
-| P5/P6 | Build и `test:release` проходят на прежнем наборе; общий кандидат, установка в operator homes и четыре новых scored E2E **не выполнялись**. Теперь релиз дополнительно блокируют H7/R6/R7/C1–C5 и stage-entry A3. Свежая отдельная AGY native-проба на установленном `agy 1.2.11` остановилась до первого turn с `Eligibility check failed: ... not currently available in your location`; это внешний provider blocker, а не hook timeout. Версия отличается от прежнего pin и требует новой квалификации после устранения доступа. Preflight и provider eligibility не подменяются историческими PASS. |
+| P5/P6 | Build и `test:release` проходят на прежнем наборе; общий кандидат, установка в operator homes и четыре новых scored E2E **не выполнялись**. Теперь релиз дополнительно блокируют A7/H7/R6/R7/C1–C5 и stage-entry A3. Свежая отдельная AGY native-проба на установленном `agy 1.2.11` остановилась до первого turn с `Eligibility check failed: ... not currently available in your location`; это внешний provider blocker, а не hook timeout. Версия отличается от прежнего pin и требует новой квалификации после устранения доступа. Preflight и provider eligibility не подменяются историческими PASS. |
 
 Проверенные команды этого этапа: `pnpm typecheck`, `pnpm build`,
 `pnpm test:release`, целевые `vitest` для review-copy/stage-consistency/
@@ -863,4 +1066,4 @@ external-review-lifecycle (3/3) и реальный review recovery (1/1). По�
 
 Перед **release** обновить эту таблицу результатами повторных suites и новым
 candidate commit SHA. Нельзя считать план полностью выполненным, пока A3,
-H7/R6/R7/C1–C5 и P5/P6 остаются открытыми.
+A7/H7/R6/R7/C1–C5 и P5/P6 остаются открытыми.
