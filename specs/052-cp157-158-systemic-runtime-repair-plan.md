@@ -1067,3 +1067,58 @@ external-review-lifecycle (3/3) и реальный review recovery (1/1). По�
 
 Нельзя считать план полностью выполненным, пока свежая квалификация P5 и
 controlled live verification P6 остаются открытыми.
+
+### CP-159: результат свежей проверки и новые блокеры
+
+Четыре изолированных preflight прошли на опубликованном beta.103; полный
+`npm test` dd-eval: 321 passed, 8 skipped, 0 failed. Запущены четыре новые
+scored E2E. Это проверка P6, а не продолжение старых EVAL. Ни один из четырёх
+пока не даёт полного E2E PASS:
+
+| Harness / EVAL | Проверенная граница | Терминальная причина либо блокер |
+| --- | --- | --- |
+| AGY `EVAL-20260925125216-0082ce39` | baseline PASS, SPECIFY и PROTOCOLIZE завершены, PLAN начат | `incomplete_subject_turn` после `ambiguous_lifecycle_receipt`: два корректируемых `stage finish` PLAN завершились `no_effect` на подготовке входа, но их native hook events остались `observed` без outcome; третий вызов нашёл несколько живых receipts. Не provider auth. |
+| Grok `EVAL-20260925125602-b7ee4573` | baseline PASS; `daemon.start ready=true`, native Session создана; SPECIFY, PROTOCOLIZE и PLAN завершены | перед PLAN-REVIEW `session.prompt` отклонён `process_ownership_unknown` для provider process. |
+| Luna `EVAL-20260925130209-2e6a645c` | baseline PASS; native Subject вошёл в SPECIFY и создал ожидаемый HITL | отдельный Codex Interaction Judge turn завершился `serverOverloaded` / `Selected model is at capacity`; EVAL корректно зафиксировал `turn_interrupted`. Это подтверждённая внешняя ёмкость, а не ошибка HITL-артефакта. |
+| ZCode `EVAL-20260925130644-5725b26d` | baseline PASS; SPECIFY-HITL отвечен, SPECIFY завершён | перед PROTOCOLIZE `session.prompt` отклонён `process_ownership_unknown` для provider process. |
+
+**P7a — AGY / ранний correctable hook outcome.** Подготовка CLI-входа
+происходит до claim. Диагностическая корреляция точного argv не узнавала
+составной native shell (`python ... && dd-flow stage finish`), хотя hook уже
+имел точный lifecycle `match_key`. При `phase=prepare`, `effect=no_effect` и
+существующем runtime DB разрешить поиск только единственного свежего hook по
+штатному match key и сохранить `correctable` outcome до следующей попытки.
+Несколько подходящих событий остаются неоднозначностью; ownership/claim не
+ослабляются. Адресная регрессия compound shell → no-effect → fresh retry
+прошла; существующий простой AGY stage-finish тест также прошёл. Совместный
+`stage-lifecycle-ownership`/`run-cli-admission` набор: 167/167 PASS. Нужны
+полный release gate, выпуск нового pinned engine и новый AGY E2E; старый не
+ремонтировать.
+
+**P7b — transient renewal и причина Grok/ZCode.** Оба падения вышли из
+`heartbeatDaemonProcess`: он сохранял любой разовый сбой heartbeat в
+`lease.error`, а следующий `assertDaemonOwnership` немедленно отказывал.
+Первоначальный `cause` не попал в наружный error receipt; поэтому конкретную
+историческую причину сбоя CLI/БД/timeout **установить по этим EVAL невозможно**.
+Исправление не признаёт старый lease достаточным: перед продуктивной операцией
+повторно подтверждает именно этот lease, а при повторном отказе, утрате либо
+истечении запрещает dispatch. Проверка ограничена lease текущего `stateDir`,
+а structured cause сохраняется. Синтетический первый отказ/успешный повтор
+прошёл; hook/runtime-scope набор: 12/12 PASS. `pnpm typecheck`, `pnpm lint` и
+`pnpm test:release` после кода — PASS. Нужны full gate и новые Grok/ZCode E2E
+с сохранённым cause при отказе.
+
+**P7c — Luna provider capacity.** `serverOverloaded` получен от отдельного
+Interaction Judge turn; runtime сохранил конкретный provider error и безопасно
+остановил EVAL. Не объявлять это дефектом схемы или автоматически менять модель:
+профиль Judge остаётся `gpt-6-sol high`. Повторная квалификация/E2E возможна
+только как новый run после доступности провайдера, с новым preflight; текущий
+failed EVAL не возобновлять. Если перегрузка воспроизводится, отдельно
+спроектировать ограниченный retry *до* irreversible HITL answer, с durable
+identity и без дубля взаимодействия; не добавлять его по одному внешнему сбою.
+
+P6 остаётся **не завершён**. Дальнейшая последовательность: закончить P7a/P7b
+адресными и полными тестами → отдельный выпуск/pin новой версии → preflight
+четырёх свежих homes → новые scored E2E по одному на harness. При новом
+blocker — read-only расследование и остановка, без правки runtime-состояния,
+resume или автоматического дублирования EVAL.
