@@ -4,7 +4,7 @@
     "specify": {
       "schema_id": "dd-eval/stage-context@1", "stage": "specify",
       "objective": "Уточнить требуемое поведение приоритета задач, сформировать требования и проверяемые критерии приёмки.",
-      "task_input": [{"role": "initial_user_request", "path": ".dd-eval/task-priority.md", "source": "task-priority.md", "sha256": "af92baafdebc3ef4663e1049216a338f20b0948ae8310be7a9bf4f47d7fd694e"}],
+      "task_input": [{"role": "initial_user_request", "path": ".dd-eval/task-priority.md", "source": "task-priority.md", "sha256": "6a675112a9269f8bd61d41833ab9f1804be10300b82557b2d788e8fba932d9ba"}],
       "sources": [
         {"role": "project_index", "root": "project", "path": ".memory-bank/index.md", "required": true, "reason": "Входной индекс действующего Memory Bank."},
         {"role": "flow_index", "root": "project", "path": ".memory-bank/dd-flow/index.md", "required": true, "reason": "Действующие правила SDLC-флоу."},
