@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { execFileSync } from 'node:child_process';
 import { materializeTaskInput, prepareTaskInput } from '../lib/runner.mjs';
 
 test('task input validates the whole batch before git exclusion or copying, then consumes prepared bytes', async t => {
@@ -11,6 +12,7 @@ test('task input validates the whole batch before git exclusion or copying, then
   t.after(() => rm(root, { recursive: true, force: true }));
   const project = path.join(root, 'project'), source = path.join(root, 'entry-pack-source');
   await mkdir(path.join(project, '.git', 'info'), { recursive: true });
+  execFileSync('git', ['init', '-q', project]);
   await mkdir(source);
   const exclusion = path.join(project, '.git', 'info', 'exclude');
   await writeFile(exclusion, '# retained\n');
@@ -33,4 +35,27 @@ test('task input validates the whole batch before git exclusion or copying, then
   assert.equal(await readFile(path.join(project, '.dd-eval', 'two.md'), 'utf8'), 'two');
   assert.equal((await stat(path.join(project, '.dd-eval', 'one.md'))).mode & 0o777, 0o600);
   assert.match(await readFile(exclusion, 'utf8'), /\.dd-eval\//);
+  assert.match(await readFile(exclusion, 'utf8'), /\.zcode\//);
+});
+
+test('local state ignores all ZCode service files while retaining tracked inputs and linked worktrees', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-service-input-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+  git('init', '-q'); git('config', 'user.name', 'Test'); git('config', 'user.email', 'test@example.invalid');
+  await mkdir(path.join(root, '.zcode'), { recursive: true });
+  await writeFile(path.join(root, '.zcode', 'config'), 'tracked');
+  git('add', '.'); git('commit', '-qm', 'initial');
+  const blueprint = { stages: { specify: { task_input: [] } } };
+  await materializeTaskInput(root, blueprint, 'specify', root);
+  await mkdir(path.join(root, '.zcode', 'future'), { recursive: true });
+  await writeFile(path.join(root, '.zcode', 'future', 'anything'), 'service');
+  assert.equal(git('status', '--porcelain'), '');
+  await writeFile(path.join(root, '.zcode', 'config'), 'changed');
+  assert.match(git('status', '--porcelain'), /\.zcode\/config/);
+  const linked = path.join(root, 'linked'); git('worktree', 'add', '--detach', linked);
+  await materializeTaskInput(root, blueprint, 'specify', linked);
+  await materializeTaskInput(root, blueprint, 'specify', linked);
+  const excluded = await readFile(path.resolve(linked, execFileSync('git', ['rev-parse', '--git-path', 'info/exclude'], { cwd: linked, encoding: 'utf8' }).trim()), 'utf8');
+  assert.equal(excluded.split('\n').filter(line => line === '.zcode/').length, 1);
 });

@@ -32,7 +32,7 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.match(loaded.inputCheckpoint.value.id, /^cp-\d+-task-priority-.+-engine-0-9-0-beta-\d+$/);
+  assert.match(loaded.inputCheckpoint.value.id, /^cp-\d+-task-priority-.+-engine-0-9-0-beta-\d+(?:-.+)?$/);
   assert.equal(loaded.inputCheckpoint.value.source.commit, "924ef61752b642f06c2c326b444ed7a3239f20ff");
   assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-074-source-final");
   assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "53d4b76943900f122957c78cc0fefa2051bd7b1a");
@@ -512,11 +512,15 @@ test("capacity qualification stays outside the flow runtime", async () => {
   assert.doesNotMatch(helper[0], /provisionCapacityRuntime/);
 });
 
-test("capacity Codex home links authentication without sharing Sessions", async () => {
+test("capacity Codex home inherits CPA routing without sharing auth state or hooks", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   const helper = source.match(/async function provisionCapacityCodexHome[\s\S]*?\n}/);
   assert.ok(helper);
   assert.match(helper[0], /symlink\(sourceAuth/);
+  assert.match(helper[0], /sourceConfig/);
+  assert.match(helper[0], /sqlite_home/);
+  assert.match(helper[0], /hooks = false/);
+  assert.match(helper[0], /plugins = false/);
   assert.doesNotMatch(helper[0], /sessions/);
 });
 

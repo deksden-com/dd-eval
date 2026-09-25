@@ -12,7 +12,9 @@ import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { interactionFixtureManifest, assertExecutionEngine } from '../lib/runner.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
-async function waitForState(runner, evalRoot, expected, timeoutMs = 10_000, ready = () => true) {
+// The detached owner remains observable while fixture startup/settlement runs;
+// allow loaded CI hosts to finish without weakening the production deadline.
+async function waitForState(runner, evalRoot, expected, timeoutMs = 30_000, ready = () => true) {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     const status = await runner.runnerStatus({ evalRoot });
@@ -134,6 +136,7 @@ test('fork inherits pins, crosses a boundary and finalizes through ordinary EVAL
   assert.equal(repeatedReady.run_id, ready.run_id);
   const preparedProject = path.join(f.output, 'executions/e2e/project');
   await write(path.join(preparedProject, '.dd-eval/task.md'), 'Retained eval task');
+  await write(path.join(preparedProject, '.zcode/acp/future-service.json'), 'Provider service state');
   assert.equal(await commandText('git', ['status', '--porcelain'], { cwd: preparedProject }), '');
   const manifest = JSON.parse(await readFile(path.join(f.output, 'manifest.json')));
   assert.deepEqual(manifest.interaction_fixtures, f.source.interaction_fixtures);

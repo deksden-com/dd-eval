@@ -92,6 +92,27 @@ requires reconciliation. An early `hook_rejected` receipt (for example
 it precedes a generic `fanout_stage_nonprogressing` wrapper. Check its conversation ID,
 daemon ID and turn generation against the active native turn before attributing it.
 
+For every harness, keep native child outcome and Work settlement separate. A Grok
+`TaskOutput.MultiResult` can settle several children at once; inspect each retained child
+identity, outcome and matching Work finish. ZCode `lost`, a contradictory parent, or a
+missing terminal result is an observation/reconciliation blocker, not completion. An
+unknown child may still be executing if its native owner is live. Do not infer success
+from an idle root, an empty list, or a single page of a paginated child directory.
+
+For hook admission, distinguish the client-visible deny/timeout from a later daemon
+response. Correlate request ID, native event, Session, daemon incarnation and active
+operation/generation before naming the primary error. A late allow does not undo a
+native deny. If the wrapper died without a durable outcome, report effect unknown;
+do not retry the Work-start command or replace the first error with a lease timeout.
+
+For PLAN/CODE review waves, use the first committed reviewer start receipt as the
+group's input baseline across recovery generations. The accepted stage report, batch,
+aspect maps, workspace source and external review copy have distinct checks. A
+`read_only_input_changed` between waves means the group cannot combine those results;
+do not move the baseline, silently re-review, or treat a new provider turn as a fix.
+Untracked provider-owned `.zcode/` files and an exact qualified untracked AGY hook are
+service state, not product changes; tracked or mixed files remain product inputs.
+
 For HITL, correlate the pause ID, accepted answer operation and its native prompt receipt.
 An accepted answer plus a completed/settled answer Turn with the **same pause still active**
 and no active provider Turn is a no-progress blocker even when controller/observer leases

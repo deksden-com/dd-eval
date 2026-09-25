@@ -5,6 +5,18 @@ from an empty provider Session and a portable stage-entry fixture; it does not
 fork, warm up, or read a canonical provider Session.  All mutable files belong
 under an absolute `DD_EVAL_HOME`.
 
+Project materialization installs local Git exclusions for `.dd-eval/` task
+context and the complete `.zcode/` service directory before Subject work starts.
+The same preparation runs after restore/fork; do not fix historical EVALs by
+editing their excludes. Tracked project files remain tracked, including any
+deliberately versioned `.zcode` configuration. Git ignore is not a snapshot
+policy: task context and uncommitted product work must survive capture; only
+untracked provider-owned `.zcode` data is omitted from new project payloads.
+New recovery snapshots record that selection policy; old sealed payloads retain
+their original verification semantics. Native-home reduction has a separate
+[loader qualification gate](native-payload-inventory-052.md); do not infer
+portable Session recovery from a successful summary/inspect call.
+
 Reliability work is tracked in [repair plan 019](../specs/019-durable-execution-and-e2e-repair-plan.md)
 and [plan 023](../specs/023-suspend-aware-execution-and-repair-contracts.md).
 The shipped runtime rule is deliberately narrow: an observed host/event-loop
@@ -398,8 +410,14 @@ correctness remain agent/`dd-flow` responsibilities.
 `cancel_requested`; the adapter then reports whether the root Session and all
 native children actually settled. Only a receipt with `settled: true` writes
 terminal `execution.cancelled` and finalizes the eval. Otherwise the eval is
-`cancelling`: use `runner reconcile` to observe it again. Do not restart the
-Subject, send a recovery prompt or delete its daemon while it is cancelling.
+`cancelling`: use `runner status --eval <path>` for read-only observation.
+`runner reconcile` applies only to a terminally failed launch and returns
+`reconcile_not_eligible` for cancellation. A repeat
+`runner cancel --eval <path>` is an explicit scoped retry of the same
+cancellation intent, not an
+observation-only command; first check owner/lease and the retained stop receipt.
+Do not restart the Subject, send a recovery prompt or delete its daemon while
+it is cancelling. Process death alone does not prove native-tree settlement.
 
 ## Parallel canonical preparation and E2E
 

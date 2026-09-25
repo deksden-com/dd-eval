@@ -4,6 +4,17 @@ Use this procedure for a native harness, transport bridge or adapter update.
 Provider-specific details live in [update-zcode.md](update-zcode.md).
 Git integration and release rules live in [git-workflow.md](git-workflow.md).
 
+Provider service output is not a product change. Qualification/materialization
+must establish its service-file policy before the productive baseline, without
+hiding tracked user files. AGY hooks can contain both owned dd-flow handlers and user
+handlers: preserve the latter and do not ignore a mixed file wholesale.
+`.zcode/` is local service state unless a file is an explicit tracked input.
+Never include credentials in runtime snapshots, including Droid
+`auth.encrypted`, `auth.v2.key`, and `auth.v2.file`. Historical archive inspection
+uses paths/metadata only; deletion or credential rotation requires a separate
+operator decision. See the [native payload inventory](native-payload-inventory-052.md)
+for the unresolved native-loader gates; it does not qualify reduced-home recovery.
+
 ## Discover and inventory
 
 Review official native runtime releases, bridge releases where applicable,
@@ -46,6 +57,62 @@ artifacts rather than copying a version from prose documentation.
 6. Run preflight, then launch exactly one scored E2E only after PASS. Capture
    EVAL ID/path and installed tuple. Follow [execute-eval.md](execute-eval.md)
    and [e2e-monitoring.md](e2e-monitoring.md).
+
+### Codex CLI / dd-flow hook refresh
+
+When the candidate engine is published, refresh the installed Codex hook
+runtime before qualification. Update both Codex homes (`~/.codex` and
+`~/.codex-cpa`); `cx` must continue to select `CODEX_HOME=~/.codex-cpa`.
+The active hook command must call the absolute installed binary
+`/Users/deksden/Library/pnpm/dd-flow`, not an older copied `dist/cli.js` or a
+PATH-dependent command. Verify the binary version and hook target in both
+homes, then run one normal dd-flow command to complete the hook-store migration
+before starting a native Codex session. Do not replace an engine or hook under
+an active EVAL home; candidate EVAL homes must use their own published engine.
+
+### AGY qualified hooks and per-launch binding
+
+Install and verify the owned `.agents/hooks.json` handlers before accepting the
+productive project baseline. Record the installed hook checksum as qualification
+evidence. Reusing the qualified file must not rewrite it when a daemon, engine
+path or workspace changes. The AGY launcher supplies `DD_AGY_HOOK_NODE`,
+`DD_AGY_HOOK_ENTRY`, `DD_AGY_STATE_DIR` and `DD_AGY_DAEMON_ID` to that launch and
+its children; the daemon validates the binding. Never substitute a global
+"last daemon" pointer or take a routing path from an untrusted native event.
+Qualification must prove native root-to-child environment inheritance, a second
+independent launch, relocated engine/workspace, stale/foreign binding rejection
+and preservation of user handlers. A technical `noFlow` probe does not by
+itself establish productive workspace-hook installation.
+
+Use the selected engine's bundled adapter, not an ambient adapter:
+`dd-agy hooks install --project-root <actual-provider-cwd> --json`, followed by
+`dd-agy hooks check --project-root <actual-provider-cwd> --json`. The runner does
+this for newly materialized execution workspaces before baseline and records
+the receipts under `workspace-hook-qualification/` in that runtime.
+Selected cross-harness root/stage/delegation routes are inspected too: a Codex
+coordinator with an AGY external reviewer qualifies the source workspace before
+the baseline so isolated copies inherit the same hooks. Unselected installed
+AGY profiles do not trigger workspace installation. Check-only calls preserve
+the installation receipt byte-for-byte.
+Existing execution homes are check-only. Feature-worktree bootstrap propagates an exact
+owned untracked canonical source hook into a missing untracked target; it never
+overwrites mixed/tracked target hooks. The provider's cwd may differ from the
+integration project root: qualify/check the former without changing lifecycle
+routing to the latter. Daemon startup does not install or repair project hooks.
+
+Checks/review/MERGE omit only an untracked file whose entire parsed document
+equals the canonical owned hook template. Tracked or mixed user hook changes
+remain visible. This is a shared semantic classification, not a Git-ignore
+write: `info/exclude` is shared by linked worktrees and would otherwise hide a
+sibling's mixed hooks. Native `git status` may therefore still list the wholly
+owned untracked file; the qualification file is retained in project snapshots.
+Verify this together with idempotency before launch; never hide tracked changes
+at MERGE to compensate for a late hook installation.
+
+External read-only reviewer Work runs use an engine-created workspace snapshot
+under that Work's RUN home. The shared RUN workspace remains the review-input
+authority; do not disable the input-drift guard or whitelist reviewer edits in
+the product checkout.
 
 Commands below assume all four variables are explicitly set to the candidate's
 absolute paths: `DD_EVAL_HOME`, `DD_FLOW_BIN`, `DD_FLOW_CONFIG_HOME` and
