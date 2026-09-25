@@ -5,6 +5,18 @@ from an empty provider Session and a portable stage-entry fixture; it does not
 fork, warm up, or read a canonical provider Session.  All mutable files belong
 under an absolute `DD_EVAL_HOME`.
 
+Project materialization installs local Git exclusions for `.dd-eval/` task
+context and the complete `.zcode/` service directory before Subject work starts.
+The same preparation runs after restore/fork; do not fix historical EVALs by
+editing their excludes. Tracked project files remain tracked, including any
+deliberately versioned `.zcode` configuration. Git ignore is not a snapshot
+policy: task context and uncommitted product work must survive capture; only
+untracked provider-owned `.zcode` data is omitted from new project payloads.
+New recovery snapshots record that selection policy; old sealed payloads retain
+their original verification semantics. Native-home reduction has a separate
+[loader qualification gate](native-payload-inventory-052.md); do not infer
+portable Session recovery from a successful summary/inspect call.
+
 Reliability work is tracked in [repair plan 019](../specs/019-durable-execution-and-e2e-repair-plan.md)
 and [plan 023](../specs/023-suspend-aware-execution-and-repair-contracts.md).
 The shipped runtime rule is deliberately narrow: an observed host/event-loop

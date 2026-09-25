@@ -1,5 +1,9 @@
 # 051 — Stable boundary snapshots and native worker provenance
 
+Follow-up audit and remaining CP-157/158 fixes (2026-09-25):
+[Plan 052](052-cp157-158-systemic-runtime-repair-plan.md). It supersedes proposed
+remedies for those new incidents, not this plan's historical implementation record.
+
 Status: implementation in progress; release and fresh qualification pending. Date:
 2026-09-22. Follow-up to Plan 050 and the two terminal scored runs on published
 `@deksden-com/dd-flow-cli@0.9.0-beta.97` (commit
