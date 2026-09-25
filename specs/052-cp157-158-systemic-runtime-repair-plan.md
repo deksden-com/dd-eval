@@ -1122,3 +1122,14 @@ P6 остаётся **не завершён**. Дальнейшая послед
 четырёх свежих homes → новые scored E2E по одному на harness. При новом
 blocker — read-only расследование и остановка, без правки runtime-состояния,
 resume или автоматического дублирования EVAL.
+
+**Выпуск P7a/P7b.** Изолированный workflow
+[36142771929](https://github.com/deksden-com/dd-flow-cli/actions/runs/36142771929)
+завершился success: prepare, runtime-sensitive, все четыре integration shard-а,
+candidate acceptance, публикация и registry-consumer smoke. Опубликован
+`0.9.0-beta.104` от `d8b1b96db830c5e56e8409dfc94837fb73638673`;
+выборка registry и аннотированный tag подтвердили версию/commit. Установленный
+в новом изолированном home snapshot проверен штатным `verifyEngineArtifact`:
+`990d2dc9b4e318d88219bd4cbc65ca16349a92deff9e5d95ab86701ae5e79459`.
+CP-160 сохраняет те же source и flow-pack commits; меняется только этот
+проверенный engine pin. Квалификация и новые E2E CP-160 ещё не заявлены PASS.
