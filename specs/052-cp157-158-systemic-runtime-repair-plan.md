@@ -1045,7 +1045,7 @@ trees и не означают новый E2E PASS. Старые EVAL не во�
 | A3 | Реализован purpose-based stage-entry/candidate/incomplete selector: исключает лишь provider root из проверенного `dd-grok/daemon-state@1`, сохраняет соседние daemon/operation evidence и одноимённые чужие каталоги; recovery сохраняет прежний полный payload. Новые manifests несут `flow-evidence@1`; неизвестная policy отклоняется. Capture regression с provider churn прошла. Portable same-Session recovery по-прежнему **не заявлена**: native import/load не доказывает полноту assets и `native_session_portability: requires_adapter_verification` сохранён. |
 | A7 | Реализована semantic projection только для `managed_processes.lease_expires_at`/`updated_at` в source proof resource DB; sealed DB payload hash не ослаблен. Heartbeat во время capture и реальные owner/data изменения проверены регрессиями. |
 | H7/R6/R7/C1–C5 | Код и регрессии реализованы: bounded hook stdin, terminal reviewer guard, единая выбранная source/copy/Git revision без credential paths, register/confirm provider перед initialize, physical cleanup без ложного native settlement, повторный reconcile retained worker при EVAL cancel. Адресные тесты и typecheck/lint проходят; общий integration gate ещё выполняется. CP-153/CP-152 служат evidence, но не изменяются. |
-| P5/P6 | `pnpm test:runtime-sensitive` 30/30 и dd-eval `npm test` 321 PASS/8 SKIP. `typecheck`, `lint`, адресные tests проходят; общий integration gate, финальный build/release gate, публикация, новый checkpoint и четыре новых scored E2E **ещё открыты**. Внешняя AGY eligibility должна проверяться заново: предыдущая проба `agy 1.2.11` вернула location restriction. Исторический PASS не заменяет свежий preflight. |
+| P5/P6 | Guarded workflow [36132712351](https://github.com/deksden-com/dd-flow-cli/actions/runs/36132712351) прошёл typecheck/lint/release, все 4 integration shard-а, runtime-sensitive, isolated candidate и registry consumer. Опубликован `0.9.0-beta.103` от `26ffa3e3ac8382c8a83bae2593a91a3e922f10a9`, artifact SHA-256 `3eed2390a37f0d1d9e28c4cd62e4ee501eadb8ac5b070206cb2540dc09f6a702`, engine snapshot `5ace75d1e48ec03485f42b95c10c11db626c214c021a11d72a0a13c0c6876184`. Глобальный Codex hook binary обновлён и обе конфигурации указывают на него. Новый CP-159 и четыре isolated homes подготовлены; профиль AGY 1.2.11 обновлён после `doctor compatible:true`. Свежие preflight, productive eligibility и новые scored E2E **ещё открыты**; исторический PASS их не заменяет. |
 
 Проверенные команды этого этапа: `pnpm typecheck`, `pnpm build`,
 `pnpm test:release`, целевые `vitest` для review-copy/stage-consistency/
@@ -1065,6 +1065,5 @@ external-review-lifecycle (3/3) и реальный review recovery (1/1). По�
 полные
 `test:integration`/`test:runtime-sensitive` не объявлены пройденными.
 
-Перед **release** обновить эту таблицу результатами общего integration gate и
-новым candidate commit SHA. Нельзя считать план полностью выполненным, пока
-P5/P6 остаются открытыми.
+Нельзя считать план полностью выполненным, пока свежая квалификация P5 и
+controlled live verification P6 остаются открытыми.
