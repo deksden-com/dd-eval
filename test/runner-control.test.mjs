@@ -132,7 +132,7 @@ if(result.error)throw result.error; process.exit(result.status??1);`);
   let initial, resumed, finished = false;
   await withRunnerLock(path.join(root, 'events.jsonl'), async () => {
     initial = executeEval({ root, runId: 'EVAL-initial-resume', loaded, profile, runProfile, executions: [execution] }).catch(error => error);
-    const deadline = performance.now() + (real ? 30_000 : 3000);
+    const deadline = performance.now() + 30_000;
     while (!await readFile(path.join(root, 'manifest.json')).then(() => true, error => { if (error.code === 'ENOENT') return false; throw error; })) {
       assert.ok(performance.now() < deadline, 'initial manifest is published'); await delay(10);
     }

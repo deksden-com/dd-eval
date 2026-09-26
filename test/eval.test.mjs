@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, authorizeHitl, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, authorizeHitl, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 
@@ -284,6 +284,17 @@ test("provider interruption consumes the CLI-owned sealed recovery capture", asy
   assert.match(source, /candidate-revisions/);
 });
 
+test("interruption attribution preserves structured lifecycle and storage errors", () => {
+  for (const code of ["invocation_receipt_timeout", "storage_write_failed"]) {
+    assert.deepEqual(classifyInterruption({ code, message: "timeout waiting for writer" }).category, "execution_failure");
+  }
+  assert.deepEqual(classifyInterruption({ code: "provider_timeout", message: "provider timed out" }).category, "provider_unavailable");
+  assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "connection timeout" }).category, "provider_unavailable");
+  assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "timeout while saving lifecycle result", details: { primary_error: { code: "storage_write_failed" } } }).category, "execution_failure");
+  assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "operation timed out", details: { cause: { code: "invocation_receipt_timeout" } } }).category, "execution_failure");
+  assert.deepEqual(classifyInterruption({ code: "agy_provider_rate_limited", message: "request failed" }).category, "provider_rate_limit");
+});
+
 test("a terminal incomplete execution keeps an immutable evidence candidate for Judge", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /schema_id: "dd-eval\/run-candidate@2"/);
@@ -502,6 +513,8 @@ test("capacity qualification counts only authoritative direct native children", 
     directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-ended", status: "success" }] } } } }, "root"),
     [{ session_id: "zcode-ended", parent_session_id: "root", status: "completed", source: "zcode/session/subagents" }]
   );
+  assert.equal(directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-lost", status: "lost" }] } } } }, "root")[0].status, "unknown");
+  assert.equal(directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-unproven" }] } } } }, "root")[0].status, "unknown");
 });
 
 test("capacity qualification stays outside the flow runtime", async () => {
