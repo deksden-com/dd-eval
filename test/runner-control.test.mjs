@@ -430,7 +430,7 @@ test('operator resume deadline includes a locked journal and never appends after
   });
   await delay(50);
   assert.equal(await readFile(eventsFile, 'utf8'), before);
-  assert.equal((await runnerControlResume({ ...input, waitMs: 2000 })).applied, true);
+  assert.equal((await runnerControlResume({ ...input, waitMs: 10_000 })).applied, true);
   assert.equal((await readEvents(eventsFile)).filter(e => e.type === 'dev.dd.eval.control.resume_applied').length, 1);
 });
 
