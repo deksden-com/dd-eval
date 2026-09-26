@@ -25,6 +25,7 @@
       "schema_id": "dd-eval/stage-context@1", "stage": "plan",
       "objective": "Подготовить исполнимый план, проверки и граф работ для принятых протоколов.", "task_input": [],
       "sources": [
+        {"role": "accepted_specify", "root": "run", "path": "01-specify/specify.json", "required": true, "reason": "Принятые пользовательские решения имеют приоритет над прежними общими правилами только в явно согласованных границах."},
         {"role": "accepted_protocolize", "root": "run", "path": "02-protocolize/protocolize-result.json", "required": true, "reason": "Принятый набор протоколов."},
         {"role": "protocol_index", "root": "workspace", "path": ".memory-bank/protocol", "required": true, "reason": "Документы текущих протоколов."},
         {"role": "engineering_index", "root": "workspace", "path": ".memory-bank/spec/engineering/index.md", "required": true, "reason": "Инженерные стандарты и проверочные алиасы."},
