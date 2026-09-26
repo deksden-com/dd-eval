@@ -1,6 +1,7 @@
 # 053 — CP-161: единый контракт флоу, рабочие каталоги и короткие SQLite-транзакции
 
-Дата: 2026-09-26. Статус: реализация в работе, **не новый E2E PASS**.
+Дата: 2026-09-26. Статус на 2026-09-27: engine/flow-pack исправлены и
+выпущены, **четыре новых scored E2E ещё не подтверждены**.
 Продолжает [план 052](052-cp157-158-systemic-runtime-repair-plan.md), не меняя его
 исторических результатов. Исходники для аудита: dd-flow
 `fix/051-snapshot-worker-provenance` @ `d8b1b96` (beta.104), dd-eval
@@ -16,7 +17,18 @@ scored E2E через все семь Stage до принятого MERGE, за�
 и сохранённого отчёта. Начало SPECIFY, terminal failure или один лишь
 `state=completed` этой цели не закрывают. Разделы III–VI задают зависимости,
 совместимую конфигурацию и доказательства приёмки. Изменения и адресные
-проверки идут; полный release gate и live acceptance ещё не выполнены.
+проверки выполнены; полный release gate пройден, live acceptance ещё не выполнена.
+
+Реализационный receipt: dd-flow `0.9.0-beta.105` из
+`e55ba4f273ae0873e06ebe9ea75e6a6e1eb8b095`, canon
+`678daa038287c948ada5b2d785a6dcc925c7b891`, release workflow
+`36277905924` — SUCCESS, включая четыре integration shards и
+runtime-sensitive. Flow pack dd-tasks `b0b124f3816bf3604161398d2cb0c7d7b287f462`.
+Опубликованный пакет установлен в четыре изолированные CP-162 homes;
+`verifyEngineArtifact` и `engineArtifactDigest` подтвердили у всех один
+полный snapshot SHA-256
+`7b0aa89b9bd5b62ecfdb1b93ba3ee194cacb21a0704fa570f5a10ccfa29b8cb6`.
+Checkpoint CP-162 отделяет эти новые входы от исторических EVAL.
 
 ## I. Уже согласованные исправления — до расширенного аудита
 
@@ -118,6 +130,35 @@ hook receipt SQL, isolated import schema migration и специально drain
 `recoverable=true` само по себе не разрешение повторять: различать
 correctable input, разрешённый runtime retry, зарегистрированный repair-child,
 ожидание уже запущенной операции, HITL и recovery неизвестного эффекта.
+
+Дополнительный gate, выявленный при проверке реализации L1: native root
+управляемого Grok/AGY может принадлежать не только controller Session, но и
+отдельному `work_launches` либо server `merge_requests`. Hook admission должен
+сверять **точный** root с сохранённым launch, daemon/process binding и RUN
+generation; чужой или завершённый root не получает authority. Исторический
+launch другого root не должен блокировать обычный hook и не должен ломать
+обработку из-за старого malformed receipt. Для управляемого root составная
+или обёрнутая shell-команда с lifecycle-вызовом отклоняется **до выполнения**,
+включая попытку сбросить `DD_FLOW_DAEMON_ID`; diagnostic-only allow недостаточен.
+Проверки: controller, external Work и server MERGE, тот же и иной harness,
+issued/unissued команда, stale root и составная shell-форма.
+У server MERGE есть два штатных владельца с разными persisted receipts:
+контроллер (`controller_id` и Session в `run_controllers`) и отдельный
+`merge-server` (`runtime_adapter.owner`). Exact-root lookup обязан доказать
+соответствующий dispatch owner/lease в обоих случаях; нельзя требовать поля
+второго формата у первого или пропускать первый без проверки active owner.
+
+Trust boundary этого gate ограничен подтверждённым native hook transport.
+В изученном исходнике grok-build ACP публикует pending tool-call до hook, но
+соответствие установленному бинарю и порядок доставки ещё не квалифицированы,
+а текущий bridge не сопоставляет это событие с hook input. AGY `step_update`
+не доказывает точные shell argv. Daemon-bound active Turn/ancestry и
+issued-command fingerprint не
+являются криптографическим доказательством подлинности hook stdin против
+модели, способной вызвать локальный handler напрямую или сконструировать
+lifecycle-команду динамически через `eval`. Не заявлять такую
+гарантию без отдельной native qualification и проверенного независимого
+сигнала; это ограничение не даёт права ослабить нынешний fail-closed scope.
 
 ### W. Workspace identity и фактический cwd
 
@@ -503,5 +544,6 @@ EVAL не ремонтировать; новый повтор возможен �
 - [x] Выбрана конкретная совместимая политика четырёх новых запусков.
 - [x] Названы репозитории, зависимости, packaging и чистый checkpoint gate.
 - [x] Полный цикл и semantic успех отделены от start/terminal state/Judge failure.
-- [ ] Реализация, release gates, новый pinned engine и свежие E2E: отдельная
-      следующая работа; этот план не утверждает их выполнение.
+- [x] Реализация, полный release gate и новый pinned engine CP-162.
+- [ ] Четыре свежих scored E2E, семь Stage, MERGE, terminal candidate и
+      завершённый Judge: приёмка ещё не доказана.
