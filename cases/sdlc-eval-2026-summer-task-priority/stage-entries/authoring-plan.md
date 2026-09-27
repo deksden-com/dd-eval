@@ -264,10 +264,11 @@ Each oracle records required facts/source roles, not answer wording:
 
 ## HITL material
 
-Replace `interactions/specify.json` with `canonical-responses@1` for SPECIFY.
-The existing response text in `interactions/clarification-task-priority.md`
-becomes one immutable response item with topic and applicability metadata. The
-fixture does not encode expected question wording or `after_pause` position.
+The only executable SPECIFY response fixture is
+`entry-pack-source/interactions/specify.json` (`canonical-responses@1`). The
+older `interactions/specify.json` and its Markdown answer were removed to avoid
+two divergent sources. The response item has topic and applicability metadata;
+it does not encode expected question wording or `after_pause` position.
 All downstream stages declare HITL `forbidden` unless their accepted case
 contract is deliberately changed.
 
