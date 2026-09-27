@@ -41,6 +41,18 @@ snapshot `87f7cfb1d3c6da4265c32cb325e2772615f0ef4e0c743d0b278e9035a987d3b4`.
 Memory Bank сохранены. Глобальный Codex hook binary обновлён до beta.109,
 оба Codex homes по-прежнему указывают на один абсолютный путь.
 
+CP-170 native qualification (2026-09-27): после восстановления доступа
+прямые AGY и Grok Turns завершились успешно, но CP-169 preflight отклонил
+изменившиеся runtime: AGY 1.2.12 вместо 1.2.11, Grok 1.0.42 вместо 1.0.41.
+В отдельном definition checkout compatibility smoke прошёл для обеих версий.
+AGY probe на 15 children получил provider `RESOURCE_EXHAUSTED 429` и не
+квалифицировал ёмкость; после чистого settlement probe на 4 children измерил
+capacity 4 (`settled_by_root`, не Work success). Grok probe на 4 children
+измерил capacity 4, все четыре завершились `completed`. Новые профили
+закрепляют только наблюдённые runtime/capacity; checkpoint engine/source/flow
+не меняется. Следующий gate — clean committed CP-170 definition, свежий
+preflight и отдельные scored E2E; прежние CP-166 блокированные EVAL не resume.
+
 Дата: 2026-09-26. Статус на 2026-09-27: engine/flow-pack исправлены и
 выпущены, **четыре новых scored E2E ещё не подтверждены**.
 
