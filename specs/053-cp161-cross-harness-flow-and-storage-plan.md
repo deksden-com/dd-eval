@@ -35,6 +35,19 @@ EVAL не возобновлять. Следующий gate — опублико
 committed checkpoint и четыре **новых** scored E2E с отдельными baseline,
 семью Stage, MERGE, Final Judge и сохранёнными primary errors.
 
+Дополнение CP-166/167: AGY `EVAL-20260927045212-439eb842` прошёл все
+baseline checks и остановился до native Session на ответе provider
+`agy_provider_rejected`: account unavailable in current location, 0 turns.
+Это внешний eligibility blocker, не повторение `native_hook_timeout`.
+ZCode `EVAL-20260927045611-ea950b3c` прошёл baseline и прежний startup
+blocker: daemon ready, native Session создана, RUN вошёл в SPECIFY. На
+ожидаемом HITL Interaction Judge вернул `fixture_gap`: ответ не определял
+видимость приоритета в detail-виде и отдельную текстовую подпись в API.
+CP-167 уточняет **только будущую** committed canonical response: detail-вид
+показывает ту же подпись, API возвращает код `priority` без отдельной подписи;
+исторический frozen EVAL остаётся terminal. Luna CP-166 на момент фиксации
+ещё выполняется. Grok preflight PASS, но auth до native Session не доказана.
+
 Дополнение CP-164 (2026-09-27): beta.105 не закрыла live acceptance.
 Luna CP-162 завершился `incomplete_subject_turn`: Codex-обёртка потеряла
 handle ещё выполнявшегося `stage resume` и приняла пустой промежуточный
