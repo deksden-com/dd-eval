@@ -31,6 +31,16 @@ failed `daemon.start`, отсутствии любых native/controller create,
 committed checkpoint с проверенным installed digest, свежие scored E2E и
 полный семиэтапный цикл с MERGE/Final Judge; source tests не заменяют его.
 
+CP-169 release gate: workflow `36301974325` — SUCCESS (prepare,
+runtime-sensitive, четыре integration shards, candidate и publish). npm
+`0.9.0-beta.109` и peeled tag указывают на
+`350120c67365b0b0c8f2fc81c7cd73548aae6617`; PR #24 слит в `main`.
+`engineArtifactDigest` и `verifyEngineArtifact` подтвердили installed
+snapshot `87f7cfb1d3c6da4265c32cb325e2772615f0ef4e0c743d0b278e9035a987d3b4`.
+Новый checkpoint CP-169 меняет только engine pin; source, flow pack и
+Memory Bank сохранены. Глобальный Codex hook binary обновлён до beta.109,
+оба Codex homes по-прежнему указывают на один абсолютный путь.
+
 Дата: 2026-09-26. Статус на 2026-09-27: engine/flow-pack исправлены и
 выпущены, **четыре новых scored E2E ещё не подтверждены**.
 
