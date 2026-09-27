@@ -2,6 +2,30 @@
 
 Дата: 2026-09-26. Статус на 2026-09-27: engine/flow-pack исправлены и
 выпущены, **четыре новых scored E2E ещё не подтверждены**.
+
+Дополнение CP-164 (2026-09-27): beta.105 не закрыла live acceptance.
+Luna CP-162 завершился `incomplete_subject_turn`: Codex-обёртка потеряла
+handle ещё выполнявшегося `stage resume` и приняла пустой промежуточный
+вывод за окончательный. AGY CP-162 выявил пробел в SPECIFY Interaction
+fixture об ответе list/detail API; fixture исправлен в `05ccccb`.
+AGY CP-163 затем прошёл SPECIFY и PROTOCOLIZE, но PLAN был остановлен
+`agy_directory_mismatch`: модель исполнила штатную сокращённую команду без
+публичного RUN ID в правильно выбранном feature worktree, а hook проверил её
+относительно старого project root вместо RUN из выданного invocation scope.
+ZCode CP-162 остановлен в PLAN-REVIEW после конкурентных `work finish`:
+проекция RUN читалась до получения SQLite writer lock и завершилась
+`RUN projection changed during preparation`. Grok CP-162 не получил scored
+EVAL: native smoke отвергнут `Authentication required` до создания root
+Session. Исторические EVAL не исправлять и не продолжать вручную.
+
+Для beta.106 PR #19 и #20 распространяют общий контракт ожидания финального
+CLI-результата на Stage entry, HITL resume, server MERGE, external Work,
+recovery и controller continuation; hook извлекает скрытый RUN только из
+точного выданного invocation; проекция RUN резервирует writer до чтения.
+Адресные тесты пройдены. Повторный официальный release gate запущен под
+workflow `36283580180`; новая кампания разрешена лишь после его успеха,
+публикации и проверки pinned snapshot. Закрытие плана всё ещё требует четыре
+новых scored E2E через MERGE и Final Judge, а не только unit tests.
 Продолжает [план 052](052-cp157-158-systemic-runtime-repair-plan.md), не меняя его
 исторических результатов. Исходники для аудита: dd-flow
 `fix/051-snapshot-worker-provenance` @ `d8b1b96` (beta.104), dd-eval
