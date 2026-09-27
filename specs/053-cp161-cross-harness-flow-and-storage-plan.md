@@ -696,3 +696,27 @@ lint, release/integration/runtime-sensitive tests, immutable package candidate
 scored запуск на готовую cell. Полная приёмка остаётся прежней: семь Stage,
 MERGE, immutable candidate и Final Judge для каждой упряжки. Блокер одной
 cell не останавливает остальные, а терминальный EVAL не возобновляется.
+
+## CP173–175: full-cycle runtime findings and remaining acceptance
+
+CP173 использует собственный baseline PASS в каждой cell и beta.112. Не
+смешивать RUN `done` с терминальным scored EVAL/Judge. Терминальные неуспешные
+EVAL остаются неизменными; замена — новый home, checkpoint и scored EVAL.
+
+| Cell / EVAL | Установленная первопричина | Системный фикс и доказательство |
+| --- | --- | --- |
+| AGY CP173 `EVAL-20260927142100-dfffc6a9`; ZCode CP173 `EVAL-20260927142802-f162d549` | `startBoundWork` сравнивал весь `RUN.index_json` при подготовке соседних reviewer Work. Первый корректный старт обновлял общую RUN-проекцию и ошибочно запрещал второй (`work_not_ready`). | PR #33, beta.113: оставить guards собственного Work/generation/dependencies/review-input, убрать только глобальное сравнение проекции. AGY CP174 запустил и завершил все четыре CODE-REVIEW Work. ZCode CP174 `EVAL-20260927170147-b5668788` запущен на beta.113, итог ожидается. |
+| AGY CP174 `EVAL-20260927154655-dbb94a7c` | На MERGE native launch cwd был integration target, но общий hook-router определял его только для `stage ... --stage merge`. Для `merge apply`/`merge repair` без Stage/RUN позиции он падал обратно на feature cwd и давал ложный `agy_directory_mismatch`. | PR #35, beta.114: получать integration cwd по сохранённому `MRG-ID`, с прежним fail-closed cwd guard. Регрессии покрывают обе команды и состояния `dispatching`/`active`/`action_required`; targeted tests, typecheck, lint PASS. Нужен новый AGY scored E2E на опубликованном engine. |
+| Luna CP173 `EVAL-20260927143220-6354677a` | MERGE замораживал hash check-профиля integration target *до* применения принятого source, а после `merge apply` сравнивал его с target, содержащим две новые task-priority aliases. Старая политика не менялась; `check_profile_drift` был ложным. | PR #37, beta.115: до enqueue разрешить только добавление новых aliases к baseline, запретить изменение/удаление существующих bindings, metadata и mandatory policy; заморозить hash reviewed source и после apply сверить target с ним. Положительная и отрицательные регрессии, typecheck, lint PASS. Нужен новый Luna scored E2E на опубликованном engine. |
+| Grok CP173 `EVAL-20260927142324-34415c11` | Runtime-дефекта в этой cell не возникло. | Все семь Stage и MERGE завершены; `execution_state=completed`, `cleanup_state=settled`, `judge_status=completed`, `run_validity=valid`. Полная acceptance Grok PASS. |
+
+Guarded publish beta.115 завершился PASS (все integration shards,
+runtime-sensitive, candidate, registry consumer). CP175 checkpoint сохраняет те
+же task/source/flow inputs и пинит проверенный snapshot
+`ee206821619caf842a9b3c57c9b52c8919ca423bf3fd9fbc383a511efc41d940`.
+Оставшиеся действия: провести по отдельности preflight, собственный baseline
+и полный E2E для AGY и Luna.
+Продолжать ZCode CP174 до terminal candidate/Judge. Для всех новых cell
+проверить MERGE target gate, terminal boundary capture, process settlement и
+Final Judge. Любой новый blocker расследовать read-only, не чинить старый RUN
+вручную и не останавливать здоровые соседние cell.
