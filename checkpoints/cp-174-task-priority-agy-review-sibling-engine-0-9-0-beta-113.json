@@ -1,0 +1,21 @@
+{
+  "id": "cp-174-task-priority-agy-review-sibling-engine-0-9-0-beta-113",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e",
+    "tag": "eval/cp-172-source-baseline-setup"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "b0b124f3816bf3604161398d2cb0c7d7b287f462",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "97203d7f7def0313962f58ed3476cde9d9f57a74",
+      "version": "0.9.0-beta.113",
+      "artifact_sha256": "1d830367131bafa3f20e0e824ece89fd953100fb54e3c8664926af111d7f4187"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
