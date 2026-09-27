@@ -720,3 +720,24 @@ runtime-sensitive, candidate, registry consumer). CP175 checkpoint сохран�
 проверить MERGE target gate, terminal boundary capture, process settlement и
 Final Judge. Любой новый blocker расследовать read-only, не чинить старый RUN
 вручную и не останавливать здоровые соседние cell.
+
+## CP176: фактические blockers после CP175 и подготовка новых cell
+
+Сведения ниже уточняют прежние ожидаемые итоги; они не переопределяют уже
+запущенные manifest/engine/definition. Grok CP173 остаётся полным PASS.
+
+| Cell | Подтверждённое состояние и первопричина | Системное действие |
+| --- | --- | --- |
+| ZCode CP174 `EVAL-20260927170147-b5668788` | RUN дошёл до CODE и `WRK-011`. Native child вызвал выданный `work finish` через ZCode Bash с `run_in_background=true`. CLI ожидал ACP `tool_call`, но для этого фонового вызова его нет в adapter journal; synchronous PreToolUse намеренно не создавал конкурирующую квитанцию для invocation-ID. Получен `invocation_receipt_timeout`/`effect=no_effect`; после остановки observer сообщил вторичное `recovery_observation_budget_exhausted`, EVAL `recovery_blocked`, живых владельцев нет. | dd-flow PR #39, опубликованная beta.116: native PreToolUse отклоняет только managed lifecycle Bash с `run_in_background=true` до исполнения; единая общая инструкция требует foreground во всех Stage/Work промптах. Обычный фоновый Bash не ограничен. Regression на публичную/issued команду и unrelated Bash, typecheck, lint, build и полный guarded release gate PASS. Старый EVAL не возобновлять; следующий ZCode требует отдельный pinned checkpoint и home. |
+| AGY CP175 `EVAL-20260927181605-5203d034` | Собственный baseline PASS, CODE достигнут. Native provider завершил Turn с `agy_provider_quota_exhausted` и точным сообщением об individual quota; EVAL `completed_with_failures`, cleanup без ошибки. Это внешний лимит, не прежний auth/cwd дефект. | Не повторять старый Turn или EVAL. Новый запуск допустим лишь после восстановления quota и собственной preflight/baseline. |
+| AGY CP176 `EVAL-20260927203052-1d2488be` | Новый home, beta.115/CP175; preflight PASS, AGY doctor auth available, hooks qualified. Собственный baseline остановился **до Subject Session**: Web unit test `App.test.tsx` с синхронной проверкой loading state превысил неявный Vitest `testTimeout=5000` на загруженном хосте (7.5 с); прочие unit tests прошли. EVAL `completed_with_failures`, живых процессов нет. | В исходной baseline-ветке продукта `fix/eval-unit-timeouts` commit `15a6a5e` задаёт bounded `testTimeout=30_000` во всех пяти Vitest-конфигах API/Web, не меняя assertions. Web 11/11, API 29/29, format/lint/typecheck PASS. Следующий source checkpoint должен пинить этот commit, а baseline выполняться без параллельных тяжёлых проверок другой cell. Старый EVAL не изменять. |
+| Luna CP175 `EVAL-20260927181921-3348d5e4` | Собственный baseline PASS, SPECIFY/HITL→PROTOCOLIZE→PLAN→PLAN-REVIEW завершены, CODE активен на момент записи. | Продолжать мониторинг actual Stage/native turns/Work graph; не вмешиваться из-за отсутствия немедленного перехода. Полный MERGE/candidate/Judge пока не доказан. |
+
+Guarded release beta.116: [workflow](https://github.com/deksden-com/dd-flow-cli/actions/runs/36347414796)
+PASS для prepare, четырёх integration shards, runtime-sensitive, candidate и
+publish/registry consumer. Следующие scored cell должны иметь новый committed
+definition/checkpoint с точными source/flow/engine pins и проверенным installed
+engine snapshot SHA, отдельные home и собственный baseline. Не считать
+исправление тестового timeout или успешный preflight доказательством полного E2E.
+До нового baseline не запускать параллельно CPU-heavy Work check другой cell;
+это scheduling gate для стабильного измерения, а не пропуск проверки.
