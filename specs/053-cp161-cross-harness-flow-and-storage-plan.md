@@ -755,3 +755,17 @@ AGY и ZCode прошли собственные preflight в новых home: �
 новый CPU-heavy baseline не совмещать с её Work checks. Общий `npm test`
 для dd-eval был прерван, когда запустил множество параллельных процессов рядом
 с Luna; целевой `engine-admission` test PASS, полный набор не заявляется.
+
+CP177 live: AGY `EVAL-20260927213303-17863f24` прошёл baseline PASS и
+создал native Session в SPECIFY, затем остановился с `interaction_fixture_gap`.
+AGY спросил о возможности менять приоритет закрытых задач, а canonical
+scripted-ответ уточнял значения/архивный проект, но не статус самой задачи.
+Judge обоснованно отметил uncovered question; EVAL terminal
+`completed_with_failures`, все процессы settled. В CP178 definition canonical
+`entry-pack-source/interactions/specify.json` теперь явно отвечает и про
+открытые/закрытые задачи. Неиспользуемые старые `interactions/specify.json` и
+Markdown-ответ удалены: загрузчик E2E читает только canonical response.
+`interactionFixtureManifest` строит новый pin, entry-pack tests 15/15 PASS.
+Старый EVAL не возобновлять; новый AGY scored E2E нужен для live проверки.
+ZCode CP177 `EVAL-20260927214029-2c96691d` запущен отдельно на beta.116;
+его baseline/Subject результат оценивать только по собственным receipts.
