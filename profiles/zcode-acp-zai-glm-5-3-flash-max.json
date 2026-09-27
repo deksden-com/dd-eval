@@ -13,7 +13,7 @@
   "runtime": {
     "zcode": "0.16.9",
     "zcode_acp": "0.46.7",
-    "zcode_acp_commit": "5a8c89ab716a4b2ccc50df81cb4d204ff5c06368",
+    "zcode_acp_commit": "91a1470650f5fd6105f9863fd31d1cad7b90a109",
     "dd_harness_contract": "dd-zcode-harness@2"
   },
   "notes": "Controlled ZCode Flash subject at the requested maximum reasoning level.",
