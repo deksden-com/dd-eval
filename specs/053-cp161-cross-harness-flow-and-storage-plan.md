@@ -1,5 +1,36 @@
 # 053 — CP-161: единый контракт флоу, рабочие каталоги и короткие SQLite-транзакции
 
+Дополнение CP-168/169 (2026-09-27): полный live acceptance всё ещё открыт.
+ZCode `EVAL-20260927053628-db4a547f` прошёл собственный baseline,
+SPECIFY/HITL, PROTOCOLIZE и PLAN, но в PLAN-REVIEW завершился
+`completed_with_failures`: два параллельных `work start` материализовали один
+и тот же committed start packet. Второй publisher получил нулевой SQL CAS
+после того, как первый поставил `published`, и ошибочно сообщил
+`work_start_projection_conflict`. Прочитанные без изменения исторического
+EVAL `prompt.md` и `context.json` побайтно совпадают с SHA-256 committed
+receipt; это ложный конфликт, не разрешение повторить Work. Исправление в
+dd-flow PR #24 принимает только идентичные binding/receipt и оба file hash
+после CAS miss; новый attempt или изменённые bytes по-прежнему блокируются.
+Детерминированный тест параллельной публикации и прежний тест смены attempt
+прошли. Исторический EVAL не resume и не исправлять вручную.
+
+Luna `EVAL-20260927050023-21aaa747` прошёл до CODE, затем Codex daemon
+не опубликовал readiness: уже подтверждённая managed lease была синхронно
+повторно heartbeat-нута до готовности, а подтверждение ownership не удалось.
+Вложенная причина этого heartbeat не сохранена, поэтому конкретный SQLite
+lock/timeout не объявляется доказанным. Beta.109 candidate в PR #24
+планирует renewal после подтверждения без redundant blocking call; поздняя
+ошибка lease по-прежнему запрещает productive dispatch. Для failed start до
+создания Session run-control теперь допускает settlement лишь при единственном
+failed `daemon.start`, отсутствии любых native/controller create, точном owner,
+мёртвых daemon/provider и терминальных записях их leases. Неоднозначность
+остаётся recovery-blocked. AGY CP166 отвергнут нативным account eligibility
+до Conversation; Grok native auth gate отверг refresh token (`invalid_grant`)
+до scored EVAL. Эти внешние prerequisites требуют восстановления доступа,
+не новых дублей. Следующий gate: полный release workflow beta.109, новый
+committed checkpoint с проверенным installed digest, свежие scored E2E и
+полный семиэтапный цикл с MERGE/Final Judge; source tests не заменяют его.
+
 Дата: 2026-09-26. Статус на 2026-09-27: engine/flow-pack исправлены и
 выпущены, **четыре новых scored E2E ещё не подтверждены**.
 
