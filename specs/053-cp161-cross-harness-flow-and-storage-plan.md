@@ -22,9 +22,12 @@ Session. Исторические EVAL не исправлять и не про�
 CLI-результата на Stage entry, HITL resume, server MERGE, external Work,
 recovery и controller continuation; hook извлекает скрытый RUN только из
 точного выданного invocation; проекция RUN резервирует writer до чтения.
-Адресные тесты пройдены. Повторный официальный release gate запущен под
-workflow `36283580180`; новая кампания разрешена лишь после его успеха,
-публикации и проверки pinned snapshot. Закрытие плана всё ещё требует четыре
+Адресные тесты пройдены. Повторный официальный release gate
+`36283580180` завершился SUCCESS, включая четыре integration shards,
+runtime-sensitive и npm publish. Новый checkpoint CP-164 закрепляет beta.106
+из `41377cb4915163be7220cc90928ea8a0f50683d0`; полный installed
+snapshot digest `cecf6b4f9e19a26ae823843179ed9e8c1f6e9f64e714f5cd326990f9ba48a683`
+проверен `verifyEngineArtifact` во всех четырёх новых homes. Закрытие плана всё ещё требует четыре
 новых scored E2E через MERGE и Final Judge, а не только unit tests.
 Продолжает [план 052](052-cp157-158-systemic-runtime-repair-plan.md), не меняя его
 исторических результатов. Исходники для аудита: dd-flow
