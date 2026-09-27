@@ -741,3 +741,17 @@ engine snapshot SHA, отдельные home и собственный baseline.
 исправление тестового timeout или успешный preflight доказательством полного E2E.
 До нового baseline не запускать параллельно CPU-heavy Work check другой cell;
 это scheduling gate для стабильного измерения, а не пропуск проверки.
+
+CP177 preparation (без scored запуска): source tag
+`eval/cp-177-source-unit-timeouts` указывает на `15a6a5e`, а отдельная
+committed definition `efacd4c` пинит этот source, прежний flow pack
+`b0b124f` и опубликованный beta.116 commit `c30f54c`. Snapshot SHA
+`ae81c33309b588a6766aea91ec55160b52cd3adb7e56cfe29e77d64597416db4`
+совпал с независимым `engineArtifactDigest`/`verifyEngineArtifact`.
+AGY и ZCode прошли собственные preflight в новых home: профиль/движок,
+квалификация AGY hooks, ZCode native lifecycle и Judge doctor — PASS;
+`baseline_admission=not_run`, provider Sessions не создавались. Это готовность
+входов, **не** доказательство рабочего полного цикла. Luna CP175 ещё в CODE;
+новый CPU-heavy baseline не совмещать с её Work checks. Общий `npm test`
+для dd-eval был прерван, когда запустил множество параллельных процессов рядом
+с Luna; целевой `engine-admission` test PASS, полный набор не заявляется.
