@@ -1,0 +1,21 @@
+{
+  "id": "cp-177-task-priority-engine-0-9-0-beta-116",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "15a6a5ec2ee6c79e587ea1737dfc2d66cb1096a8",
+    "tag": "eval/cp-177-source-unit-timeouts"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "b0b124f3816bf3604161398d2cb0c7d7b287f462",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "c30f54c04930f51d7982c49369a96bca51eabe65",
+      "version": "0.9.0-beta.116",
+      "artifact_sha256": "ae81c33309b588a6766aea91ec55160b52cd3adb7e56cfe29e77d64597416db4"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
