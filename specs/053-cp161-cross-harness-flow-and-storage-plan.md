@@ -574,3 +574,27 @@ EVAL не ремонтировать; новый повтор возможен �
 - [x] Реализация, полный release gate и новый pinned engine CP-162.
 - [ ] Четыре свежих scored E2E, семь Stage, MERGE, terminal candidate и
       завершённый Judge: приёмка ещё не доказана.
+
+## VII. CP-164: проверка beta.106 и уточнение исправлений
+
+CP-164 подтвердил baseline PASS, native Session/Turn, SPECIFY HITL и переход
+через PROTOCOLIZE и PLAN для AGY, ZCode и Luna. Все три EVAL завершились
+`completed_with_failures` в PLAN-REVIEW; старые артефакты не исправлять и не
+возобновлять. Grok scored запуск не создавался: native capacity smoke вернул
+`Authentication required` до root Session. Скопированный OIDC credential
+`~/.grok/auth.json` истёк 2026-09-25; новый smoke допустим после `grok login`,
+не после изменения flow-кода.
+
+| Cell | Подтверждённая первопричина | Исправление и проверка |
+| --- | --- | --- |
+| AGY `EVAL-20260927011156-e2543411` | Корневой PLAN-REVIEW получил исправленный `plan.json` с объектом вместо строки в `acceptance[7].fixtures[0]`. Валидатор правильно отказал, но агрегирующий `validation` потерял `phase/effect/recoverable`, поэтому controller принял поправимую ошибку за fatal. | До публикации PLAN/PLAN-REVIEW сохранять в агрегирующей ошибке доказательство `prepare/no_effect/recoverable`; выдавать один exact successor, не повторять выполненную команду. Интеграционный тест CLI проверяет отсутствие публикации и контракт ошибки. |
+| ZCode `EVAL-20260927011155-c68cfacd` | Во время последовательных `set_mode → setThoughtLevel → setModel` ZCode сообщил переходное `mode=build`; итоговый `session/read` уже показывал требуемый `yolo`. Проверка была вооружена между частями настройки и ложно объявила `profile_integrity_violation`. | Считать настройку одним непроизводительным интервалом: временно не проверять промежуточные уведомления, дождаться их обработки, сверить итоговый native readback и лишь затем вооружить контроль последующего дрейфа. Fixture воспроизводит промежуточный `build`. |
+| Luna `EVAL-20260927011155-712c0874` | Child WRK-004 указал несуществующий `run://.../03-plan/.../plan.json` вместо `.memory-bank/protocol/.../plan.json`. `work finish` отказал с `evidence_ref_missing` ещё до execution, но invocation остался `observed` и ответ не содержал `retry_command`; child остановился. | Pure input preparation должна завершать наблюдаемый отказ и выдавать successor только при доказанном `no_effect` и известном поправимом коде. Повреждённые retained runtime artifacts остаются fatal. Review packet явно называет workspace-relative PLAN path. Тесты проверяют оба исхода. |
+
+Следующий релизный gate: beta.107 из clean committed source, typecheck,
+lint, release/integration/runtime-sensitive tests, immutable package candidate
+и publish/consumer verification. Затем новый clean dd-eval definition checkpoint,
+четыре новые изолированные cell, native auth/capacity gate Grok и ровно один
+scored запуск на готовую cell. Полная приёмка остаётся прежней: семь Stage,
+MERGE, immutable candidate и Final Judge для каждой упряжки. Блокер одной
+cell не останавливает остальные, а терминальный EVAL не возобновляется.
