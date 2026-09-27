@@ -199,6 +199,10 @@ Subject starts. It establishes whether a failure already exists before the
 model's changes; it is not a test of the requested new feature. Keep this
 per-execution baseline and its receipt. Do not share a baseline PASS between
 Luna and ZCode workspaces or use an old receipt to excuse a broken environment.
+For a multi-harness campaign on one host, start the next scored E2E only after
+the preceding execution has written its own baseline receipt. Concurrent
+CPU-heavy baselines can make a timing-sensitive source test fail before any
+Subject Session exists; this scheduling rule does not reuse or waive any gate.
 
 `runner eval preflight` is light preparation: it validates the pinned baseline
 policy but does not execute its commands. Its receipt explicitly records

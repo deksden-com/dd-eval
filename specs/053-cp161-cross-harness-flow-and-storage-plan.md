@@ -3,6 +3,38 @@
 Дата: 2026-09-26. Статус на 2026-09-27: engine/flow-pack исправлены и
 выпущены, **четыре новых scored E2E ещё не подтверждены**.
 
+Дополнение CP-165/166 (2026-09-27): beta.107 закрыла прежние адресные
+regressions, но live full-cycle acceptance снова не достигнута. AGY
+`EVAL-20260927034050-413d022d` прошёл baseline, SPECIFY и PROTOCOLIZE;
+обычный PLAN `grep` был отклонён по `native_hook_timeout` до исполнения.
+Подтверждено, что CLI открывал native `event handle` через тяжёлый
+`initialize` вместо подготовленного `hook` store; время внутри отдельной
+15-секундной подфазы не журналируется, поэтому SQLite lock как точная
+причина **не доказан**. Общий ingress для AGY/Grok/ZCode/Droid/OpenCode
+теперь применяет прежние validators/parser, пропускает нерелевантный tool
+без открытия DB и открывает `hook` store лишь для участвующего вызова.
+ZCode `EVAL-20260927032726-3b21ed2d` прошёл baseline, но не создал native
+Session: ACP initialize занял 23 мс, затем daemon не опубликовал readiness
+за 15 с. Отдельный provider ledger остался `running` после неудачного старта,
+хотя физический PID завершился. Общий failed-start cleanup теперь завершает
+точно зарегистрированный provider по id/token и удержанной daemon generation;
+ZCode readiness ограничен 30 с. AGY первый запуск остановился на
+password-session test с 5-секундным scrypt timeout при одновременных baseline;
+источник получил 20 с без изменения assertions. Luna дважды остановился в
+`test:world`: `tsx/cli` был промежуточным PID, а оставшийся child сохранял
+probe databases. Источник запускает test-world напрямую через `node --import
+tsx` и утверждает совпадение наблюдаемого PID. Точный исправленный source
+commit `2070638c3811aea6572b9ab8b5ba868fdc519ccc` закреплён tag
+`eval/cp-166-source-process-identity`; beta.108 source commit
+`0df3cd1e7201f27baeeb07f1c4f2b69ed6e2399b`, release workflow
+`36294173055` — SUCCESS, включая четыре integration shards и публикацию.
+Полный installed snapshot digest `4afcf456c85ee30a71d30ab5471ee449c0a7b566167073a8cb18af5b6bb1cc09`
+проверен для четырёх CP-166 homes. Scored Grok CP-165 не
+стартовал: локальная OIDC авторизация истекла до native Session. Исторические
+EVAL не возобновлять. Следующий gate — опубликованный beta.108, новый
+committed checkpoint и четыре **новых** scored E2E с отдельными baseline,
+семью Stage, MERGE, Final Judge и сохранёнными primary errors.
+
 Дополнение CP-164 (2026-09-27): beta.105 не закрыла live acceptance.
 Luna CP-162 завершился `incomplete_subject_turn`: Codex-обёртка потеряла
 handle ещё выполнявшегося `stage resume` и приняла пустой промежуточный
