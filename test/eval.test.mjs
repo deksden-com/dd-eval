@@ -5,8 +5,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, authorizeHitl, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
-import { appendEvent, readEvents } from "../lib/runner-events.mjs";
+import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -41,6 +41,31 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.match(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, /^[a-f0-9]{64}$/);
   assert.match(loaded.value.baseline_admission.sha256, /^[a-f0-9]{64}$/);
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
+});
+
+test("HITL qualification is bound to the exact definition and Judge profile before provider startup", async () => {
+  const temporary = await mkdtemp(path.join(tmpdir(), "dd-eval-hitl-qualification-"));
+  const previous = process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME;
+  process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME = temporary;
+  try {
+    const loaded = await loadCase(caseId);
+    const runProfile = await loadRunProfile(path.join(root, "cases", caseId, "run-profiles", "e2e-inline-merge-luna-xhigh.json"));
+    const input = { loaded, runProfile, definition: { tree: "a".repeat(64) } };
+    const qualified = await hitlQualificationInputs(input);
+    assert.equal(qualified.corpus.items.length, 3);
+    await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_missing" });
+    const content = { schema_id: "dd-eval/hitl-qualification@1", key: qualified.key, status: "passed", identity: qualified.identity, results: qualified.corpus.items.map(item => ({ id: item.id, passed: true, observed: { classification: item.classification, response_ids: item.response_ids } })), cleanup: "settled" };
+    await mkdir(qualified.root, { recursive: true });
+    await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
+    assert.equal((await assertHitlQualification(input)).key, qualified.key);
+    await assert.rejects(assertHitlQualification({ ...input, definition: { tree: "b".repeat(64) } }), { code: "definition_qualification_missing" });
+    await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, status: "failed", immutable_hash: hashJson(content) }));
+    await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_invalid" });
+  } finally {
+    if (previous === undefined) delete process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME;
+    else process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME = previous;
+    await rm(temporary, { recursive: true, force: true });
+  }
 });
 
 test("source tag rejects a completed-product commit before materialization", async () => {

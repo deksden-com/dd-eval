@@ -13,7 +13,7 @@ async function fixture(t) { const root = await mkdtemp(path.join(os.tmpdir(), 'm
 test('canonical inventory carries inherited journals without adding legacy aggregates', async t => {
   const { root, journal } = await fixture(t);
   await appendFile(journal, '');
-  const observations = { schema_id: 'dd-flow/run-observations@1', home: root, sources: [{ path: 'native.jsonl', provenance: 'inherited' }], tools: { total: 7, completeness: 'complete', observed_sessions: 2, expected_sessions: 2 } };
+  const observations = { schema_id: 'dd-flow/run-observations@1', home: root, sources: [{ path: 'native.jsonl', provenance: 'inherited' }], tools: { total: 7, completeness: 'complete', outcome_completeness: 'complete', observed_sessions: 2, expected_sessions: 2 } };
   const result = await resolveEvidenceJournals({ statistics: { usage: { observations, legacy_tool_calls: { total: 99 } } } });
   assert.equal(result.tools.status, 'complete');
   assert.equal(result.tools.counters.total, 7);
@@ -22,7 +22,7 @@ test('canonical inventory carries inherited journals without adding legacy aggre
   assert.equal(result.attribution.observation_completeness, 'incomplete');
   observations.sources.push({ path: '../outside.jsonl', provenance: 'inherited' });
   const rejected = await resolveEvidenceJournals({ statistics: { usage: { observations } } });
-  assert.equal(rejected.tools.status, 'partial');
+  assert.equal(rejected.tools.status, 'complete', 'an unavailable optional locator cannot erase complete authoritative coverage');
   assert.ok(rejected.journals.some(j => j.reason === 'journal_outside_published_home'));
 });
 
@@ -87,4 +87,14 @@ test('402 transitions and return are durable before progress, replay deduplicate
   await appendFile(modelObservationFile(journal), '{"incomplete":');
   assert.equal((await readModelObservations(journal)).length, 5);
   assert.equal(modelAttribution(await readModelObservations(journal)).observation_completeness, 'incomplete');
+});
+
+test('model attribution distinguishes a missing inspection from a missing attempt', () => {
+  const base = { harness: 'grok-acp', session_id: 'child', parent_session_id: 'root', requested: { model: 'grok-4.7' } };
+  const known = { ...base, observed: { model: 'grok-4.7' }, evidence: 'configured', source: { scope: 'configured', attempt_id: 'one' } };
+  const inspect = { ...base, observed: {}, evidence: 'unavailable', source: { scope: 'configured', non_asserting: true } };
+  assert.equal(modelAttribution([known, inspect], ['child']).observation_completeness, 'available_native_sources');
+  assert.equal(modelAttribution([known, inspect], ['child', 'other']).observation_completeness, 'incomplete');
+  const next = { ...inspect, source: { scope: 'configured', attempt_id: 'two' } };
+  assert.equal(modelAttribution([known, next]).observation_completeness, 'incomplete');
 });

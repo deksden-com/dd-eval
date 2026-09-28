@@ -1,0 +1,24 @@
+{
+  "schema_id": "dd-eval/hitl-qualification-corpus@1",
+  "stage": "specify",
+  "items": [
+    {
+      "id": "closed-and-archived-task",
+      "question": "Можно ли менять приоритет уже закрытой задачи? Можно ли менять приоритет задачи в архивном проекте, если остальные поля остаются только для чтения?",
+      "classification": "covered_by_canonical_response",
+      "response_ids": ["clarification-task-priority"]
+    },
+    {
+      "id": "visual-indicators",
+      "question": "Нужны ли помимо текстовых названий уровней дополнительные цветовые метки, бейджи или иконки приоритета в интерфейсе?",
+      "classification": "covered_by_canonical_response",
+      "response_ids": ["clarification-task-priority"]
+    },
+    {
+      "id": "combined-decisions",
+      "question": "Разрешено ли менять приоритет закрытой задачи и задачи в архивном проекте? Достаточно ли текстовых обозначений или нужны цветовые метки либо другие дополнительные индикаторы?",
+      "classification": "covered_by_canonical_response",
+      "response_ids": ["clarification-task-priority"]
+    }
+  ]
+}
