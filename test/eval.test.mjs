@@ -52,7 +52,8 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     const runProfile = await loadRunProfile(path.join(root, "cases", caseId, "run-profiles", "e2e-inline-merge-luna-xhigh.json"));
     const input = { loaded, runProfile, definition: { tree: "a".repeat(64) } };
     const qualified = await hitlQualificationInputs(input);
-    assert.equal(qualified.corpus.items.length, 3);
+    assert.equal(qualified.corpus.items.length, 4);
+    assert.ok(qualified.corpus.items.some(item => item.id === "active-project-permissions"));
     await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_missing" });
     const content = { schema_id: "dd-eval/hitl-qualification@1", key: qualified.key, status: "passed", identity: qualified.identity, results: qualified.corpus.items.map(item => ({ id: item.id, passed: true, observed: { classification: item.classification, response_ids: item.response_ids } })), cleanup: "settled" };
     await mkdir(qualified.root, { recursive: true });
@@ -461,6 +462,7 @@ test("Interaction Judge accepts alternatives without dropping independent decisi
   assert.match(prompt, /independent question about delivery time remains uncovered/);
   assert.match(prompt, /Never author, paraphrase or strengthen a response/);
   assert.match(prompt, /Return matched only when every material decision is covered/);
+  assert.match(prompt, /Classification covered_by_canonical_response is valid only with status matched/);
 });
 
 test("HITL verdicts are strict, fail closed, and preserve exact response bytes", () => {
@@ -548,6 +550,8 @@ test("capacity qualification stays outside the flow runtime", async () => {
   assert.ok(helper);
   assert.doesNotMatch(helper[0], /DD_FLOW_HOME/);
   assert.doesNotMatch(helper[0], /provisionCapacityRuntime/);
+  assert.match(helper[0], /projectRoot \?\? path\.join\(attempt, "project"\)/);
+  assert.doesNotMatch(helper[0], /projectRoot = process\.cwd\(\)/);
 });
 
 test("capacity Codex home inherits CPA routing without sharing auth state or hooks", async () => {
