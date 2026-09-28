@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -52,16 +53,37 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     const runProfile = await loadRunProfile(path.join(root, "cases", caseId, "run-profiles", "e2e-inline-merge-luna-xhigh.json"));
     const input = { loaded, runProfile, definition: { tree: "a".repeat(64) } };
     const qualified = await hitlQualificationInputs(input);
-    assert.equal(qualified.corpus.items.length, 4);
+    assert.equal(qualified.corpus.items.length, 6);
     assert.ok(qualified.corpus.items.some(item => item.id === "active-project-permissions"));
+    assert.ok(qualified.corpus.items.some(item => item.stage === "plan"));
+    assert.match(qualified.identity.fixture_sha256.plan, /^[a-f0-9]{64}$/);
     await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_missing" });
-    const content = { schema_id: "dd-eval/hitl-qualification@1", key: qualified.key, status: "passed", identity: qualified.identity, results: qualified.corpus.items.map(item => ({ id: item.id, passed: true, observed: { classification: item.classification, response_ids: item.response_ids } })), cleanup: "settled" };
+    const content = { schema_id: "dd-eval/hitl-qualification@1", key: qualified.key, status: "passed", identity: qualified.identity, results: qualified.corpus.items.map(item => ({ id: item.id, stage: item.stage ?? qualified.corpus.stage, passed: true, observed: { classification: item.classification, response_ids: item.response_ids } })), cleanup: "settled" };
     await mkdir(qualified.root, { recursive: true });
     await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
     assert.equal((await assertHitlQualification(input)).key, qualified.key);
+    const wrongStage = { ...content, results: content.results.map((result, index) => index === content.results.length - 1 ? { ...result, stage: "specify" } : result) };
+    await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...wrongStage, immutable_hash: hashJson(wrongStage) }));
+    await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_invalid" });
+    await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
     await assert.rejects(assertHitlQualification({ ...input, definition: { tree: "b".repeat(64) } }), { code: "definition_qualification_missing" });
     await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, status: "failed", immutable_hash: hashJson(content) }));
     await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_invalid" });
+
+    const legacyRoot = path.join(temporary, "legacy-case");
+    const interactions = path.join(legacyRoot, "entry-pack-source", "interactions");
+    await mkdir(interactions, { recursive: true });
+    await writeFile(path.join(interactions, "specify.json"), await readFile(path.join(loaded.root, "entry-pack-source", "interactions", "specify.json")));
+    const legacyCorpus = JSON.stringify({ schema_id: "dd-eval/hitl-qualification-corpus@1", stage: "specify", items: [{ id: "legacy", question: "Какие уровни приоритета?", classification: "covered_by_canonical_response", response_ids: ["clarification-task-priority"] }] });
+    await writeFile(path.join(interactions, "qualification.json"), legacyCorpus);
+    const legacyLoaded = { ...loaded, root: legacyRoot, value: { ...loaded.value, hitl_qualification: { file: "entry-pack-source/interactions/qualification.json", sha256: createHash("sha256").update(legacyCorpus).digest("hex") } } };
+    const legacyInput = { ...input, loaded: legacyLoaded };
+    const legacy = await hitlQualificationInputs(legacyInput);
+    assert.equal(typeof legacy.identity.fixture_sha256, "string");
+    const legacyContent = { schema_id: "dd-eval/hitl-qualification@1", key: legacy.key, status: "passed", identity: legacy.identity, results: [{ id: "legacy", passed: true, observed: { classification: "covered_by_canonical_response", response_ids: ["clarification-task-priority"] } }], cleanup: "settled" };
+    await mkdir(legacy.root, { recursive: true });
+    await writeFile(path.join(legacy.root, "receipt.json"), JSON.stringify({ ...legacyContent, immutable_hash: hashJson(legacyContent) }));
+    assert.equal((await assertHitlQualification(legacyInput)).key, legacy.key);
   } finally {
     if (previous === undefined) delete process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME;
     else process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME = previous;
