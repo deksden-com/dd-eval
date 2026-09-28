@@ -483,6 +483,7 @@ test("Interaction Judge accepts alternatives without dropping independent decisi
   assert.match(prompt, /Do not require it to affirm a proposed option's assumptions or consequences/);
   assert.match(prompt, /independent question about delivery time remains uncovered/);
   assert.match(prompt, /smallest sufficient set of response IDs/);
+  assert.match(prompt, /Include every required key, especially "schema_id":"dd-eval\/hitl-match@1"/);
   assert.match(prompt, /Never author, paraphrase or strengthen a response/);
   assert.match(prompt, /Return matched only when every material decision is covered/);
   assert.match(prompt, /Classification covered_by_canonical_response is valid only with status matched/);
