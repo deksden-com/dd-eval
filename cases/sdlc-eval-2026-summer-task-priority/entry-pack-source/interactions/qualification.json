@@ -3,6 +3,12 @@
   "stage": "specify",
   "items": [
     {
+      "id": "active-project-permissions",
+      "question": "Могут ли owner и member активного проекта выбрать приоритет при создании задачи, а затем менять его? Где оба видят понятную подпись?",
+      "classification": "covered_by_canonical_response",
+      "response_ids": ["clarification-task-priority"]
+    },
+    {
       "id": "closed-and-archived-task",
       "question": "Можно ли менять приоритет уже закрытой задачи? Можно ли менять приоритет задачи в архивном проекте, если остальные поля остаются только для чтения?",
       "classification": "covered_by_canonical_response",

@@ -17,7 +17,7 @@
   "entry_pack": null,
   "hitl_qualification": {
     "file": "entry-pack-source/interactions/qualification.json",
-    "sha256": "76c067fc161fda4a0600a90ddaec73ddda15022223e10b2b5cdead425915cac2"
+    "sha256": "4cdd4e2e57ecc0e79300d539a23b50750e1eea9bcc6752d1ae670cab09727823"
   },
   "case_acceptance": {
     "checker": "task-priority@1",

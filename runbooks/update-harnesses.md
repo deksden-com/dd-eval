@@ -51,6 +51,10 @@ artifacts rather than copying a version from prose documentation.
    blocks a new tuple, collect controlled diagnostic evidence first, then make
    a reviewed adapter admission change and release it. Never mark an untested
    tuple qualified just to pass preflight.
+   The technical capacity probe uses its own empty qualification workspace by
+   default. Pass `--project-root` only when project-specific behavior is the
+   subject of the probe; otherwise native service files such as `.zcode/`
+   would contaminate a committed eval definition checkout.
 5. Pin the candidate profile and checkpoint to the verified artifacts. Compute
    checkpoint hashes mechanically. Update case references and relevant contract
    checks. Commit the definition and qualification receipt references.
