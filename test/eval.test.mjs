@@ -6,9 +6,10 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
+import { errorRecord, terminalCodexOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -343,6 +344,63 @@ test("interruption attribution preserves structured lifecycle and storage errors
   assert.deepEqual(classifyInterruption({ code: "agy_provider_rate_limited", message: "request failed" }).category, "provider_rate_limit");
 });
 
+test("only exact terminal native overload authorizes Codex continuation", () => {
+  const native = { code: "turn_interrupted", details: { provider_session_id: "thread-1", turn_id: "turn-2", native_turn_id: "turn-2", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" } } };
+  assert.equal(terminalCodexOverload(native, "thread-1")?.turn_id, "turn-2");
+  assert.equal(terminalCodexOverload(native, "thread-other"), null);
+  assert.equal(terminalCodexOverload({ ...native, details: { ...native.details, terminal_status: "running" } }, "thread-1"), null);
+  assert.equal(terminalCodexOverload({ code: "driver_failed", message: "serverOverloaded", details: { error: { codexErrorInfo: "serverOverloaded" } } }, "thread-1"), null);
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: native } }).category, "provider_overloaded");
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: { ...native, details: { ...native.details, provider_error: { codexErrorInfo: "usageLimitExceeded" } } } } }).category, "provider_quota");
+  assert.equal(classifyInterruption({ code: "agy_provider_quota_exhausted" }).retryable, false);
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: { code: "agy_provider_quota_exhausted" } } }).category, "provider_quota");
+  assert.equal(classifyInterruption({ code: "driver_failed", message: "HTTP 429" }).category, "provider_limit_unknown");
+  assert.equal(classifyInterruption({ code: "agy_provider_limit_unknown" }).category, "provider_limit_unknown");
+  assert.equal(classifyInterruption({ code: "retry_after_exceeds_budget", details: native.details }).category, "provider_overloaded");
+  assert.equal(isInfrastructureFailure({ ...native, message: "capacity" }), true);
+  assert.equal(failureAttribution({ ...native, message: "capacity" }), "evaluation_infrastructure");
+});
+
+test("serialized operation error retains cleanup as secondary evidence", () => {
+  const error = Object.assign(new Error("primary overload"), { code: "turn_interrupted", cleanup_error: { code: "daemon_stop_failed", message: "cleanup failed" } });
+  assert.deepEqual(errorRecord(error).cleanup_error, { code: "daemon_stop_failed", message: "cleanup failed" });
+  assert.equal(errorRecord(error).code, "turn_interrupted");
+});
+
+test("quota reset comes from the matching structured native error, not Retry-After", () => {
+  const observed_at = "2026-09-28T15:00:00.000Z";
+  const reset = "2026-09-29T15:00:00.000Z";
+  const native = { code: "turn_interrupted", details: { observed_at, provider_session_id: "codex-root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "usageLimitExceeded", resets_at: Math.floor(Date.parse(reset) / 1000), retryAfter: 30 } } };
+  assert.deepEqual(providerLimitMetadata(native), { category: "provider_quota", observed_at, provider_session_id: "codex-root", reset_at: reset, reset_source: "codex.turn.error.resets_at", retry_after_at: "2026-09-28T15:00:30.000Z" });
+  native.details.provider_error.resets_at = Date.parse(reset);
+  assert.equal(providerLimitMetadata(native).reset_at, reset);
+  native.details.provider_error.resets_at = Math.floor(Date.parse("2026-09-27T15:00:00.000Z") / 1000);
+  assert.equal(providerLimitMetadata(native).reset_at, null);
+  native.details.provider_error.codexErrorInfo = "rateLimitExceeded";
+  native.details.provider_error.resets_at = Math.floor(Date.parse(reset) / 1000);
+  assert.equal(providerLimitMetadata(native).reset_at, null);
+  native.details.provider_error.retryAfter = undefined;
+  native.details.provider_error.headers = { "Retry-After": "Tue, 29 Sep 2026 15:00:00 GMT" };
+  assert.equal(providerLimitMetadata(native).retry_after_at, reset);
+  assert.equal(providerLimitMetadata({ code: "driver_failed", message: "quota resets tomorrow" }), null);
+});
+
+test("capacity continuation keeps one native tree and refuses sequential child waves", async () => {
+  const overload = { code: "turn_interrupted", details: { provider_session_id: "root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" } } };
+  let dispatched = 0; const waits = [];
+  const base = { sessionId: "root", inspect: async () => ({ provider_session_id: "root", settled: true, settlement: { state: "settled" } }), pause: async ms => { waits.push(ms); } };
+  const result = await boundedCapacityContinuation({ ...base, children: async () => [], attempt: async () => { if (++dispatched === 1) throw overload; return { ok: true }; } });
+  assert.deepEqual(result, { ok: true });
+  assert.equal(dispatched, 2);
+  assert.deepEqual(waits, [5_000]);
+  dispatched = 0;
+  await assert.rejects(boundedCapacityContinuation({ ...base, children: async () => [{ session_id: "child" }], attempt: async () => { dispatched++; throw overload; } }), error => error === overload);
+  assert.equal(dispatched, 1);
+  dispatched = 0;
+  await assert.rejects(boundedCapacityContinuation({ ...base, inspect: async () => ({ provider_session_id: "root", settled: false }), children: async () => [], attempt: async () => { dispatched++; throw overload; } }), error => error === overload);
+  assert.equal(dispatched, 1);
+});
+
 test("a terminal incomplete execution keeps an immutable evidence candidate for Judge", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /schema_id: "dd-eval\/run-candidate@2"/);
@@ -460,6 +518,10 @@ test("failure reconciliation ignores volatile controller snapshots but records r
   assert.equal(failureEvidenceRevision({ ...failure, lifecycle: { status: { observed_at: "later" } }, statistics: { sampled_at: "later" } }), first);
   assert.notEqual(failureEvidenceRevision({ ...failure, recovery: { recovery_id: "RCV-001", control_id: "CTL-001", generation: 1 } }), first);
   assert.notEqual(failureEvidenceRevision({ ...failure, recovery: { unavailable: true, capture_error: { code: "recovery_capture_pending", message: "writer still active" } } }), first);
+  const quota = { ...failure, code: "turn_interrupted", details: { observed_at: "2026-09-28T15:00:00.000Z", provider_session_id: "codex-root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "usageLimitExceeded", resets_at: 1790694000 } } };
+  assert.notEqual(failureEvidenceRevision(quota), failureEvidenceRevision({ ...quota, details: { ...quota.details, provider_error: { ...quota.details.provider_error, resets_at: 1790780400 } } }));
+  assert.equal(executionEvidence(quota).failure.category, "provider_quota");
+  assert.equal(executionEvidence(quota).failure.provider_limit?.category, "provider_quota");
 });
 
 test("productive fan-out no longer creates an isolated worker root", async () => {

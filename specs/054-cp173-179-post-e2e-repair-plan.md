@@ -216,3 +216,14 @@ SPECIFY и PLAN теперь объясняют default `open`, явное за�
 Qualification corpus покрывает оба Stage и пинит checksum каждой fixture;
 одностадийные старые corpus/receipt остаются читаемыми. После commit нужен
 новый live Judge qualification, затем четыре preflight и scored E2E.
+
+## 10. CP-184: перегрузка Codex и квота
+
+Детальный системный аудит и план same-Session продолжения для `serverOverloaded`,
+а также fail-fast обработки hard quota записаны в [055](055-provider-capacity-same-session-plan.md).
+Это новая работа, не включённая в beta.119: реализация и её проверка ведутся по 055, прежние terminal EVAL остаются frozen;
+никакой общий повтор provider request или lifecycle-команды до проверки native
+outcome и RUN/Work состояния не разрешён.
+Ревизия R2 плана 055 дополнительно фиксирует failed-turn budget settlement,
+HITL successor admission, продолжение native children через родителя,
+turn-scoped topology, crash/idempotency и обязательную deterministic native пробу.
