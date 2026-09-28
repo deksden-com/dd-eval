@@ -187,6 +187,18 @@ bridge или definition требует новой qualification и нового
 | Luna `EVAL-20260928104527-a222abc0` | На PLAN возник материалный вопрос: AC-003 требует закрытые задачи, но исходный продукт не имеет статуса задач и product spec исключает status workflow. Fixture запрещала PLAN HITL, поэтому runner правильно остановился. | До изменения fixture требуется явное решение пользователя: минимальный open/closed статус или отказ от closed-task AC. Затем canonical PLAN answer и corpus qualification, новый definition commit/home/EVAL. Не считать вопрос модельной ошибкой и не добавлять ответ по догадке. |
 | Grok `EVAL-20260928103425-a7fa80f4` | После принятого PLAN-REVIEW пятый daemon отправил ACP `initialize` примерно через 30 секунд после запуска, но не получил response до старых 30-секундных RPC/daemon-ready пределов; native log дошёл до выбора auth-метода, явного auth refusal нет. Точный внутренний шаг задержки Grok не доказан. | dd-flow beta.119 даёт Grok 60 секунд на ACP initialize и 120 секунд на весь daemon startup, оставляя ZCode 30 секунд и fail-closed. Не маскировать native `rpc_timeout`: daemon сохраняет startup_error, controller получает его identity. После release — focused readiness probe, новая qualification и scored E2E; повторный timeout требует native Grok investigation, не следующего слепого повышения лимита. |
 
+Контроль после release: beta.119 опубликована; в изолированной non-scored пробе
+Grok daemon вернул `ready=true`, `auth_status=copied`, `recovery_status=clean_start`
+и затем штатно остановился с `clean=true` (2026-09-28 13:34 UTC). Это закрывает
+только startup gate, не доказывает полный Grok E2E. Для ZCode отдельный home
+уже содержит опубликованную beta.119 и exact bridge commit `636b141`; native
+capacity check завершился `started=15`, `completed=15`, `failed=0`, `clean=true`
+(2026-09-28 13:45 UTC). Отдельные homes Grok, Luna, ZCode и AGY содержат
+beta.119 snapshot с checksum `08946e1ea52345691dd6dedee58047a5c784396f0d77dfba03ec302dddc5b220`;
+AGY doctor наблюдает `1.2.12`/`dd-agy-harness@1`, Luna/Codex doctor —
+`0.157.0`/`dd-codex-harness@1`. Эти проверки не заменяют definition
+qualification, preflight и scored запуск; они остаются за явным PLAN-решением.
+
 Общий gate остаётся прежним: один и тот же committed case/checkpoint, точные
 runtime tuples и четыре свежие scored попытки. Baseline PASS, успешный старт
 Subject или промежуточный Stage — не полный E2E. Только фактические terminal
