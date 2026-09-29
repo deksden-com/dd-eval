@@ -1,0 +1,73 @@
+{
+  "record": "zcode-acp-v0.52.0-upgrade",
+  "performed_date_local": "2026-09-30",
+  "timezone": "Europe/Kaliningrad",
+  "status": "source_integrated_candidate_not_promoted",
+  "fork": {
+    "pull_request": "https://github.com/deksden-com/zcode-acp/pull/6",
+    "upstream_tag": "v0.52.0",
+    "upstream_commit": "1ca2b5503f5cff6a28bf4dc283759b4806555529",
+    "artifact_source_commit": "4621fabd3f517ecdd349dfebebae9077c01d2f2b",
+    "integration_commit": "b32500a1853a0987d73748e243d674ef702edccd",
+    "tested_and_integrated_tree": "016d62ed7199e1b75429d6abf73c951ff5c10aa2",
+    "contract": "dd-zcode-harness@2",
+    "dirty_build": false,
+    "artifact_sha256": "66d2d5bd01e411243aac2e4ec45afbaf6c6f8e63978dc1a7c4039e32202c10f0",
+    "lockfile_sha256": "ef179cf69d6dedb7c5988e4335cdb2d3e2633c3c54952c3a4284acb375fbf658",
+    "identity_note": "The package was built from clean 4621fab, not the later merge commits. Matching source trees do not make rebuilt commit identities interchangeable."
+  },
+  "toolchain": { "node": "22.23.3", "pnpm": "10.23.0", "bun": "1.4.2", "platform": "darwin-arm64" },
+  "checks": {
+    "typecheck": "passed",
+    "lint": "passed",
+    "clean_build": "passed",
+    "node_suite": { "files": 134, "tests_passed": 1918 },
+    "bun_ci_command": "bun x vitest run",
+    "bun_ci_suite": { "files": 134, "tests_passed": 1918 },
+    "bun_reexec_and_tui_initialize": "passed",
+    "github_ci": "https://github.com/deksden-com/zcode-acp/actions/runs/36641190866",
+    "github_jobs": { "Build & Test (22.x)": "passed", "Bun runtime": "passed" },
+    "merge_tree_comparison": "identical"
+  },
+  "diagnostic_native_probe": {
+    "scope": "non-scored, no-flow, fresh daemon/project/native state; only selected portable configuration bindings",
+    "home": "/Users/deksden/.dd-eval/qualification/zcode-acp-052-candidate-4621fab",
+    "native_binary": "/Applications/ZCode.app/Contents/Resources/glm/zcode.cjs",
+    "native_version": "0.16.9",
+    "native_sha256_before_and_after": "fad4c35c4c36ec210d8a06d3fa0e77de23c8545e2eb6ff90aea1eb38d1e6275f",
+    "published_adapter_version": "0.9.0-beta.121",
+    "published_adapter_commit": "2e7bef9a7813bd003855d94b394e63d8aa5f6419",
+    "doctor": { "contract_supported": true, "compatible": false, "reason": "native_event_contract_unqualified" },
+    "session_create": "passed",
+    "root_session_id": "sess_5ad2a1e9-10dc-4568-98a0-c6fafcbb874a",
+    "requested_provider": "builtin:zai-coding-plan",
+    "observed_provider": "account:zai-individual-coding-plan",
+    "provider_mapping_evidence": "Installed native provider table and upstream accountProviderIdFor/configProviderIdFor map both spellings. The adapter retains both and reports mixed; its comparison policy was not weakened.",
+    "observed_model": "GLM-5.3-Flash",
+    "observed_reasoning": "max",
+    "observed_mode": "yolo",
+    "read_tool_turn": "passed, native end_turn, measured request/cache usage",
+    "concurrent_children_observed": 2,
+    "children": ["sess_subagent_agent_0c82fd4b-a8bd-4879-9fb5-36d69569e2e3", "sess_subagent_agent_fbb896f7-42df-4a26-bfd0-e6538412750b"],
+    "child_continuation": "passed via native SendMessage and TaskOutput; same child Session, CONTINUED-1, no replacement",
+    "cleanup": "stopped=true, clean=true, physical_settlement confirmed; diagnostic daemon/bridge absent",
+    "evidence_sha256": {
+      "create-receipt.json": "fe61d242f840d8c2b917619c582697ff66eaab6acf6f587e97cb0d15d6172742",
+      "prompt-receipt.json": "29583125f53ad2ca65400ea80e0a85c2e2f8d9f225b9fd3b0cd28711b6096253",
+      "capacity-receipt.json": "0c6db2271fc173bfc07256701bcd691f604f18524c1f6e9288570b614e83a94f",
+      "continuation-receipt.json": "5ac700d82151486ccbb13f55f49e82fbb786dc9c5c92df2c4a4b74954c5a6ef4",
+      "inspect-receipt.json": "1737affb1c5e44b7a91322ecf63322e6e0de2400a7c003e09f85cfafa7fb203e",
+      "cleanup-receipt.json": "661dff053c759f3b1dc137ea00ff6ea2c9aa332b73fb0d36ab9fc286c8c5343f",
+      "journal.jsonl": "ca25e2bbc1b89d4380f6772c3cd38b7d25375b1717584854e48ed7c683fee334"
+    }
+  },
+  "promotion_gates_remaining": [
+    "Managed lifecycle invocation receipts with the candidate and published adapter",
+    "Actual required fan-out; two observed children do not qualify old capacity=15",
+    "Running-child selective cancellation, close/residency/retained reads and failure cases on the installed tuple",
+    "Reviewed exact-commit adapter admission and any necessary dd-flow release",
+    "Candidate profile/checkpoint pins, preflight and scored E2E acceptance",
+    "CP186 consumer hook/admission latency gate; this upgrade does not fix or establish its historical cause"
+  ],
+  "unchanged": ["accepted runtime/profile selections", "global bridge", "historical EVAL artifacts", "old dirty checkout", "product fixture code"]
+}

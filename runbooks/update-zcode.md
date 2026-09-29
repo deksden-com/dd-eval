@@ -74,3 +74,15 @@ EVAL, report transitions/failure/completion and avoid duplicate launches.
 Do not count compatibility or capacity PASS as completed E2E qualification.
 On failure retain the original causal evidence and use the common rejection and
 rollback procedure. Promotion requires an explicit acceptance receipt.
+
+## Recorded v0.52.0 source upgrade
+
+[The candidate receipt](receipts/zcode-acp-v0.52.0.json) records the reviewed
+upstream port, immutable artifact identity, local/GitHub checks and isolated
+native diagnostics. Fork PR #6 is merged; accepted profiles and installed bridge
+selection are unchanged. Root/tool completion, two concurrent children,
+same-child continuation and clean diagnostic shutdown passed. This does not
+qualify capacity=15 or managed lifecycle forwarding. Complete the remaining
+promotion gates before admitting the commit or launching a scored E2E. Keep the
+artifact's actual source identity distinct from later merge commits, even when
+their source trees match.
