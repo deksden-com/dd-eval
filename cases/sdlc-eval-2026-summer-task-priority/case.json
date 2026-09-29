@@ -11,16 +11,16 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-180-task-priority-merge-engine-0-9-0-beta-117",
-    "sha256": "96f42b15c9b3310a86378d1a46320454d22e09379b28b4b8e1497dfded0cb5b6"
+    "id": "cp-186-task-priority-merge-engine-0-9-0-beta-121",
+    "sha256": "bf8e4b8a01224792a0960e0a2eb48f4fe586f34457e48ba7642d3d300d8f397b"
   },
   "entry_pack": null,
   "hitl_qualification": {
     "file": "entry-pack-source/interactions/qualification.json",
-    "sha256": "4cdd4e2e57ecc0e79300d539a23b50750e1eea9bcc6752d1ae670cab09727823"
+    "sha256": "b2b7993fd3d4c90f7173ff3f046998872abdf90173143a5083f4c39c54d79ec3"
   },
   "case_acceptance": {
-    "checker": "task-priority@1",
+    "checker": "task-priority@2",
     "case_id": "sdlc-eval-2026-summer-task-priority"
   },
   "profiles": {

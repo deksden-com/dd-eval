@@ -25,6 +25,19 @@
       "question": "Разрешено ли менять приоритет закрытой задачи и задачи в архивном проекте? Достаточно ли текстовых обозначений или нужны цветовые метки либо другие дополнительные индикаторы?",
       "classification": "covered_by_canonical_response",
       "response_ids": ["clarification-task-priority"]
+    },
+    {
+      "id": "status-semantics-at-specify",
+      "question": "Если у задачи пока нет состояния, как выполнить требование менять приоритет открытой и закрытой задачи? Кто сможет закрывать и открывать задачу, нужен ли отдельный workflow?",
+      "classification": "covered_by_canonical_response",
+      "response_ids": ["clarification-minimal-task-state"]
+    },
+    {
+      "id": "minimal-task-state-at-plan",
+      "stage": "plan",
+      "question": "AC-003 требует изменение приоритета закрытой задачи, но у задачи сейчас нет состояния. Добавить минимальное состояние open/closed и переходы или убрать закрытые задачи из критерия? Нужно ли делать отдельный workflow?",
+      "classification": "covered_by_canonical_response",
+      "response_ids": ["clarification-minimal-task-state"]
     }
   ]
 }

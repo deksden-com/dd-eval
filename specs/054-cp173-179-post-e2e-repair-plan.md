@@ -174,3 +174,56 @@ Grok `EVAL-20260928092401-1866ba37` прошёл baseline и вошёл в SPECI
 Luna `EVAL-20260928093002-e8f0d9b1` встретила тот же непокрытый Q-002, но Judge вернул внутренне противоречивую пару `status=unmatched` и `classification=covered_by_canonical_response`; строгий validator правильно завершил EVAL с `judge_result_invalid`, не доставив ответ. Помимо уточнения fixture, prompt Judge явно связывает `covered_by_canonical_response` только с `matched` и перечисляет допустимые unmatched-классы. Validator остаётся fail-closed и не исправляет модельный ответ за неё. Новая qualification обязана проверить обновлённый prompt и все четыре corpus-сценария.
 
 Техническая native-capacity проба ZCode также создала `.zcode/acp/sandbox.json` в cwd репозитория определения и сделала его dirty до следующего preflight. Сам probe прошёл 15/15; файл сохранён в qualification home, не удалён. Системный fix — отдельный пустой workspace пробы по умолчанию; `--project-root` остаётся явным opt-in для проектно-специфической квалификации. `--write-profile false` обязателен, если квалификация не должна менять committed experiment profile. Проверить, что ни один provider service file не появляется в definition checkout при default probe.
+
+## 8. R5: блокеры фактических CP-180/181/182 запусков
+
+Ни один terminal EVAL не возобновлять и не править; любое изменение engine,
+bridge или definition требует новой qualification и нового scored EVAL.
+
+| Harness / EVAL | Установленная причина | Исправление и следующий gate |
+| --- | --- | --- |
+| ZCode `EVAL-20260928094156-f407ca85` | Bridge `0.46.7` после замершего event watermark выдал `inferred` completion при всё ещё активном native Turn; dd-flow правильно отверг неизвестный outcome. | `zcode-acp` commit `636b141` удерживает managed Turn до native terminal/ограниченного caller timeout (PR #5, CI PASS). Exact clean tarball SHA-256 `c562bcd000bbb1d5f60e21d028f67c51d7b12ee1f900b3dfd2a795e4d4da04c7`; dd-flow beta.118 квалифицирует только этот commit/contract. Новый home, doctor и focused native capacity probe перед scored E2E; старый bridge остаётся неизменным. |
+| AGY `EVAL-20260928110341-8ad5af29`, `EVAL-20260928113657-9f9d3cb9` | Первая попытка упала на baseline integration test: 5167 мс при Vitest 5000 мс; вторая baseline PASS 4/4, затем `daemon.start` остановился на `agy --version timed out` с 10-секундным лимитом до создания Session. | Не ослаблять baseline и не делать бесконечные reroll. В dd-flow beta.118 общий 30-секундный предел version check в doctor/startup; отдельный новый home, preflight и scored E2E. Если тестовый timeout повторится без общей нагрузки, исследовать сам тест/изолированный DB world. |
+| Luna `EVAL-20260928104527-a222abc0` | На PLAN возник материалный вопрос: AC-003 требует закрытые задачи, но исходный продукт не имеет статуса задач и product spec исключает status workflow. Fixture запрещала PLAN HITL, поэтому runner правильно остановился. | До изменения fixture требуется явное решение пользователя: минимальный open/closed статус или отказ от closed-task AC. Затем canonical PLAN answer и corpus qualification, новый definition commit/home/EVAL. Не считать вопрос модельной ошибкой и не добавлять ответ по догадке. |
+| Grok `EVAL-20260928103425-a7fa80f4` | После принятого PLAN-REVIEW пятый daemon отправил ACP `initialize` примерно через 30 секунд после запуска, но не получил response до старых 30-секундных RPC/daemon-ready пределов; native log дошёл до выбора auth-метода, явного auth refusal нет. Точный внутренний шаг задержки Grok не доказан. | dd-flow beta.119 даёт Grok 60 секунд на ACP initialize и 120 секунд на весь daemon startup, оставляя ZCode 30 секунд и fail-closed. Не маскировать native `rpc_timeout`: daemon сохраняет startup_error, controller получает его identity. После release — focused readiness probe, новая qualification и scored E2E; повторный timeout требует native Grok investigation, не следующего слепого повышения лимита. |
+
+Контроль после release: beta.119 опубликована; в изолированной non-scored пробе
+Grok daemon вернул `ready=true`, `auth_status=copied`, `recovery_status=clean_start`
+и затем штатно остановился с `clean=true` (2026-09-28 13:34 UTC). Это закрывает
+только startup gate, не доказывает полный Grok E2E. Для ZCode отдельный home
+уже содержит опубликованную beta.119 и exact bridge commit `636b141`; native
+capacity check завершился `started=15`, `completed=15`, `failed=0`, `clean=true`
+(2026-09-28 13:45 UTC). Отдельные homes Grok, Luna, ZCode и AGY содержат
+beta.119 snapshot с checksum `08946e1ea52345691dd6dedee58047a5c784396f0d77dfba03ec302dddc5b220`;
+AGY doctor наблюдает `1.2.12`/`dd-agy-harness@1`, Luna/Codex doctor —
+`0.157.0`/`dd-codex-harness@1`. Эти проверки не заменяют definition
+qualification, preflight и scored запуск; они остаются за явным PLAN-решением.
+
+Общий gate остаётся прежним: один и тот же committed case/checkpoint, точные
+runtime tuples и четыре свежие scored попытки. Baseline PASS, успешный старт
+Subject или промежуточный Stage — не полный E2E. Только фактические terminal
+результаты с Final Judge, case acceptance, clean settlement и evidence coverage
+закрывают план. Heartbeat не включать без нового запроса пользователя.
+
+## 9. CP-185: решение по состоянию задачи
+
+Пользователь выбрал минимальное состояние задачи `open`/`closed`, сохранив
+принятый критерий изменения приоритета закрытой задачи. Canonical ответы
+SPECIFY и PLAN теперь объясняют default `open`, явное закрытие/повторное
+открытие в активном проекте, неизменность приоритета при переходе и узкое
+архивное исключение только для приоритета. Отдельный workflow, история,
+сортировка/фильтрация по состоянию и дополнительные индикаторы не требуются.
+Qualification corpus покрывает оба Stage и пинит checksum каждой fixture;
+одностадийные старые corpus/receipt остаются читаемыми. После commit нужен
+новый live Judge qualification, затем четыре preflight и scored E2E.
+
+## 10. CP-184: перегрузка Codex и квота
+
+Детальный системный аудит и план same-Session продолжения для `serverOverloaded`,
+а также fail-fast обработки hard quota записаны в [055](055-provider-capacity-same-session-plan.md).
+Это новая работа, не включённая в beta.119: реализация и её проверка ведутся по 055, прежние terminal EVAL остаются frozen;
+никакой общий повтор provider request или lifecycle-команды до проверки native
+outcome и RUN/Work состояния не разрешён.
+Ревизия R2 плана 055 дополнительно фиксирует failed-turn budget settlement,
+HITL successor admission, продолжение native children через родителя,
+turn-scoped topology, crash/idempotency и обязательную deterministic native пробу.

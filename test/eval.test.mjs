@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
+import { errorRecord, terminalCodexOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -52,16 +54,37 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     const runProfile = await loadRunProfile(path.join(root, "cases", caseId, "run-profiles", "e2e-inline-merge-luna-xhigh.json"));
     const input = { loaded, runProfile, definition: { tree: "a".repeat(64) } };
     const qualified = await hitlQualificationInputs(input);
-    assert.equal(qualified.corpus.items.length, 4);
+    assert.equal(qualified.corpus.items.length, 6);
     assert.ok(qualified.corpus.items.some(item => item.id === "active-project-permissions"));
+    assert.ok(qualified.corpus.items.some(item => item.stage === "plan"));
+    assert.match(qualified.identity.fixture_sha256.plan, /^[a-f0-9]{64}$/);
     await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_missing" });
-    const content = { schema_id: "dd-eval/hitl-qualification@1", key: qualified.key, status: "passed", identity: qualified.identity, results: qualified.corpus.items.map(item => ({ id: item.id, passed: true, observed: { classification: item.classification, response_ids: item.response_ids } })), cleanup: "settled" };
+    const content = { schema_id: "dd-eval/hitl-qualification@1", key: qualified.key, status: "passed", identity: qualified.identity, results: qualified.corpus.items.map(item => ({ id: item.id, stage: item.stage ?? qualified.corpus.stage, passed: true, observed: { classification: item.classification, response_ids: item.response_ids } })), cleanup: "settled" };
     await mkdir(qualified.root, { recursive: true });
     await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
     assert.equal((await assertHitlQualification(input)).key, qualified.key);
+    const wrongStage = { ...content, results: content.results.map((result, index) => index === content.results.length - 1 ? { ...result, stage: "specify" } : result) };
+    await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...wrongStage, immutable_hash: hashJson(wrongStage) }));
+    await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_invalid" });
+    await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
     await assert.rejects(assertHitlQualification({ ...input, definition: { tree: "b".repeat(64) } }), { code: "definition_qualification_missing" });
     await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, status: "failed", immutable_hash: hashJson(content) }));
     await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_invalid" });
+
+    const legacyRoot = path.join(temporary, "legacy-case");
+    const interactions = path.join(legacyRoot, "entry-pack-source", "interactions");
+    await mkdir(interactions, { recursive: true });
+    await writeFile(path.join(interactions, "specify.json"), await readFile(path.join(loaded.root, "entry-pack-source", "interactions", "specify.json")));
+    const legacyCorpus = JSON.stringify({ schema_id: "dd-eval/hitl-qualification-corpus@1", stage: "specify", items: [{ id: "legacy", question: "Какие уровни приоритета?", classification: "covered_by_canonical_response", response_ids: ["clarification-task-priority"] }] });
+    await writeFile(path.join(interactions, "qualification.json"), legacyCorpus);
+    const legacyLoaded = { ...loaded, root: legacyRoot, value: { ...loaded.value, hitl_qualification: { file: "entry-pack-source/interactions/qualification.json", sha256: createHash("sha256").update(legacyCorpus).digest("hex") } } };
+    const legacyInput = { ...input, loaded: legacyLoaded };
+    const legacy = await hitlQualificationInputs(legacyInput);
+    assert.equal(typeof legacy.identity.fixture_sha256, "string");
+    const legacyContent = { schema_id: "dd-eval/hitl-qualification@1", key: legacy.key, status: "passed", identity: legacy.identity, results: [{ id: "legacy", passed: true, observed: { classification: "covered_by_canonical_response", response_ids: ["clarification-task-priority"] } }], cleanup: "settled" };
+    await mkdir(legacy.root, { recursive: true });
+    await writeFile(path.join(legacy.root, "receipt.json"), JSON.stringify({ ...legacyContent, immutable_hash: hashJson(legacyContent) }));
+    assert.equal((await assertHitlQualification(legacyInput)).key, legacy.key);
   } finally {
     if (previous === undefined) delete process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME;
     else process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME = previous;
@@ -321,6 +344,71 @@ test("interruption attribution preserves structured lifecycle and storage errors
   assert.deepEqual(classifyInterruption({ code: "agy_provider_rate_limited", message: "request failed" }).category, "provider_rate_limit");
 });
 
+test("only exact terminal native overload authorizes Codex continuation", () => {
+  const native = { code: "turn_interrupted", details: { provider_session_id: "thread-1", turn_id: "turn-2", native_turn_id: "turn-2", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" } } };
+  assert.equal(terminalCodexOverload(native, "thread-1")?.turn_id, "turn-2");
+  assert.equal(terminalCodexOverload(native, "thread-other"), null);
+  assert.equal(terminalCodexOverload({ ...native, details: { ...native.details, terminal_status: "running" } }, "thread-1"), null);
+  assert.equal(terminalCodexOverload({ code: "driver_failed", message: "serverOverloaded", details: { error: { codexErrorInfo: "serverOverloaded" } } }, "thread-1"), null);
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: native } }).category, "provider_overloaded");
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: { ...native, details: { ...native.details, provider_error: { codexErrorInfo: "usageLimitExceeded" } } } } }).category, "provider_quota");
+  assert.equal(classifyInterruption({ code: "agy_provider_quota_exhausted" }).retryable, false);
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: { code: "agy_provider_quota_exhausted" } } }).category, "provider_quota");
+  const managedQuota = { code: "harness_adapter_failed", details: { controller: { error: { code: "harness_adapter_failed", details: { cause: { code: "provider_quota_exhausted", details: { native: { http_status: 402 } } } } } } } };
+  assert.equal(classifyInterruption(managedQuota).category, "provider_quota");
+  assert.equal(providerLimitMetadata(managedQuota)?.category, "provider_quota");
+  assert.equal(executionEvidence({ state: "failed", execution: "e2e", ...managedQuota }).failure.category, "provider_quota");
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { controller: { cleanup_error: managedQuota.details.controller.error } } }).category, "execution_failure");
+  const storagePrimary = { code: "harness_adapter_failed", details: { controller: { error: { code: "storage_write_failed", details: { cause: managedQuota.details.controller.error.details.cause } } } } };
+  assert.equal(classifyInterruption(storagePrimary).category, "execution_failure");
+  assert.equal(providerLimitMetadata(storagePrimary), null);
+  assert.equal(classifyInterruption({ code: "driver_failed", message: "HTTP 429" }).category, "provider_limit_unknown");
+  assert.equal(classifyInterruption({ code: "agy_provider_limit_unknown" }).category, "provider_limit_unknown");
+  assert.equal(classifyInterruption({ code: "retry_after_exceeds_budget", details: native.details }).category, "provider_overloaded");
+  assert.equal(isInfrastructureFailure({ ...native, message: "capacity" }), true);
+  assert.equal(failureAttribution({ ...native, message: "capacity" }), "evaluation_infrastructure");
+});
+
+test("serialized operation error retains cleanup as secondary evidence", () => {
+  const error = Object.assign(new Error("primary overload"), { code: "turn_interrupted", cleanup_error: { code: "daemon_stop_failed", message: "cleanup failed" } });
+  assert.deepEqual(errorRecord(error).cleanup_error, { code: "daemon_stop_failed", message: "cleanup failed" });
+  assert.equal(errorRecord(error).code, "turn_interrupted");
+});
+
+test("quota reset comes from the matching structured native error, not Retry-After", () => {
+  const observed_at = "2026-09-28T15:00:00.000Z";
+  const reset = "2026-09-29T15:00:00.000Z";
+  const native = { code: "turn_interrupted", details: { observed_at, provider_session_id: "codex-root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "usageLimitExceeded", resets_at: Math.floor(Date.parse(reset) / 1000), retryAfter: 30 } } };
+  assert.deepEqual(providerLimitMetadata(native), { category: "provider_quota", observed_at, provider_session_id: "codex-root", reset_at: reset, reset_source: "codex.turn.error.resets_at", retry_after_at: "2026-09-28T15:00:30.000Z" });
+  native.details.provider_error.resets_at = Date.parse(reset);
+  assert.equal(providerLimitMetadata(native).reset_at, reset);
+  native.details.provider_error.resets_at = Math.floor(Date.parse("2026-09-27T15:00:00.000Z") / 1000);
+  assert.equal(providerLimitMetadata(native).reset_at, null);
+  native.details.provider_error.codexErrorInfo = "rateLimitExceeded";
+  native.details.provider_error.resets_at = Math.floor(Date.parse(reset) / 1000);
+  assert.equal(providerLimitMetadata(native).reset_at, null);
+  native.details.provider_error.retryAfter = undefined;
+  native.details.provider_error.headers = { "Retry-After": "Tue, 29 Sep 2026 15:00:00 GMT" };
+  assert.equal(providerLimitMetadata(native).retry_after_at, reset);
+  assert.equal(providerLimitMetadata({ code: "driver_failed", message: "quota resets tomorrow" }), null);
+});
+
+test("capacity continuation keeps one native tree and refuses sequential child waves", async () => {
+  const overload = { code: "turn_interrupted", details: { provider_session_id: "root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" } } };
+  let dispatched = 0; const waits = [];
+  const base = { sessionId: "root", inspect: async () => ({ provider_session_id: "root", settled: true, settlement: { state: "settled" } }), pause: async ms => { waits.push(ms); } };
+  const result = await boundedCapacityContinuation({ ...base, children: async () => [], attempt: async () => { if (++dispatched === 1) throw overload; return { ok: true }; } });
+  assert.deepEqual(result, { ok: true });
+  assert.equal(dispatched, 2);
+  assert.deepEqual(waits, [5_000]);
+  dispatched = 0;
+  await assert.rejects(boundedCapacityContinuation({ ...base, children: async () => [{ session_id: "child" }], attempt: async () => { dispatched++; throw overload; } }), error => error === overload);
+  assert.equal(dispatched, 1);
+  dispatched = 0;
+  await assert.rejects(boundedCapacityContinuation({ ...base, inspect: async () => ({ provider_session_id: "root", settled: false }), children: async () => [], attempt: async () => { dispatched++; throw overload; } }), error => error === overload);
+  assert.equal(dispatched, 1);
+});
+
 test("a terminal incomplete execution keeps an immutable evidence candidate for Judge", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /schema_id: "dd-eval\/run-candidate@2"/);
@@ -438,6 +526,10 @@ test("failure reconciliation ignores volatile controller snapshots but records r
   assert.equal(failureEvidenceRevision({ ...failure, lifecycle: { status: { observed_at: "later" } }, statistics: { sampled_at: "later" } }), first);
   assert.notEqual(failureEvidenceRevision({ ...failure, recovery: { recovery_id: "RCV-001", control_id: "CTL-001", generation: 1 } }), first);
   assert.notEqual(failureEvidenceRevision({ ...failure, recovery: { unavailable: true, capture_error: { code: "recovery_capture_pending", message: "writer still active" } } }), first);
+  const quota = { ...failure, code: "turn_interrupted", details: { observed_at: "2026-09-28T15:00:00.000Z", provider_session_id: "codex-root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "usageLimitExceeded", resets_at: 1790694000 } } };
+  assert.notEqual(failureEvidenceRevision(quota), failureEvidenceRevision({ ...quota, details: { ...quota.details, provider_error: { ...quota.details.provider_error, resets_at: 1790780400 } } }));
+  assert.equal(executionEvidence(quota).failure.category, "provider_quota");
+  assert.equal(executionEvidence(quota).failure.provider_limit?.category, "provider_quota");
 });
 
 test("productive fan-out no longer creates an isolated worker root", async () => {
@@ -460,6 +552,8 @@ test("Interaction Judge accepts alternatives without dropping independent decisi
   assert.match(prompt, /Proposed options are not exhaustive or binding/);
   assert.match(prompt, /Do not require it to affirm a proposed option's assumptions or consequences/);
   assert.match(prompt, /independent question about delivery time remains uncovered/);
+  assert.match(prompt, /smallest sufficient set of response IDs/);
+  assert.match(prompt, /Include every required key, especially "schema_id":"dd-eval\/hitl-match@1"/);
   assert.match(prompt, /Never author, paraphrase or strengthen a response/);
   assert.match(prompt, /Return matched only when every material decision is covered/);
   assert.match(prompt, /Classification covered_by_canonical_response is valid only with status matched/);
