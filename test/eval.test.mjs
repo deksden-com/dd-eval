@@ -354,6 +354,14 @@ test("only exact terminal native overload authorizes Codex continuation", () => 
   assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: { ...native, details: { ...native.details, provider_error: { codexErrorInfo: "usageLimitExceeded" } } } } }).category, "provider_quota");
   assert.equal(classifyInterruption({ code: "agy_provider_quota_exhausted" }).retryable, false);
   assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: { code: "agy_provider_quota_exhausted" } } }).category, "provider_quota");
+  const managedQuota = { code: "harness_adapter_failed", details: { controller: { error: { code: "harness_adapter_failed", details: { cause: { code: "provider_quota_exhausted", details: { native: { http_status: 402 } } } } } } } };
+  assert.equal(classifyInterruption(managedQuota).category, "provider_quota");
+  assert.equal(providerLimitMetadata(managedQuota)?.category, "provider_quota");
+  assert.equal(executionEvidence({ state: "failed", execution: "e2e", ...managedQuota }).failure.category, "provider_quota");
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { controller: { cleanup_error: managedQuota.details.controller.error } } }).category, "execution_failure");
+  const storagePrimary = { code: "harness_adapter_failed", details: { controller: { error: { code: "storage_write_failed", details: { cause: managedQuota.details.controller.error.details.cause } } } } };
+  assert.equal(classifyInterruption(storagePrimary).category, "execution_failure");
+  assert.equal(providerLimitMetadata(storagePrimary), null);
   assert.equal(classifyInterruption({ code: "driver_failed", message: "HTTP 429" }).category, "provider_limit_unknown");
   assert.equal(classifyInterruption({ code: "agy_provider_limit_unknown" }).category, "provider_limit_unknown");
   assert.equal(classifyInterruption({ code: "retry_after_exceeds_budget", details: native.details }).category, "provider_overloaded");
