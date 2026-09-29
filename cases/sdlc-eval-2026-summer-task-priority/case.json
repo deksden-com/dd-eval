@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-185-task-priority-merge-engine-0-9-0-beta-120",
-    "sha256": "745afbbb411ffd6d7ba710344ffdfc4c9ce17e36bbd021a19a34ac33a980b578"
+    "id": "cp-186-task-priority-merge-engine-0-9-0-beta-121",
+    "sha256": "bf8e4b8a01224792a0960e0a2eb48f4fe586f34457e48ba7642d3d300d8f397b"
   },
   "entry_pack": null,
   "hitl_qualification": {
@@ -20,7 +20,7 @@
     "sha256": "b2b7993fd3d4c90f7173ff3f046998872abdf90173143a5083f4c39c54d79ec3"
   },
   "case_acceptance": {
-    "checker": "task-priority@1",
+    "checker": "task-priority@2",
     "case_id": "sdlc-eval-2026-summer-task-priority"
   },
   "profiles": {
