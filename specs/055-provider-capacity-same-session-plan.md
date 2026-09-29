@@ -1,6 +1,6 @@
 # 055 — перегрузка модели: ограниченное продолжение той же Session
 
-Дата: 2026-09-28. Ревизия: **R3 — реализация и проверка в работе; release и новые E2E ещё не завершены**. Дополняет [054](054-cp173-179-post-e2e-repair-plan.md) и не меняет frozen EVAL. Область — подтверждённый Codex `serverOverloaded` (включая Codex Judge у остальных упряжек) и отдельно исчерпанная квота. Это не разрешение повторять произвольные ошибки или lifecycle-команды.
+Дата: 2026-09-28. Ревизия: **R4 — реализация, release и CP185 scored matrix выполнены; full-cycle цель матрицей не подтверждена**. Дополняет [054](054-cp173-179-post-e2e-repair-plan.md) и не меняет frozen EVAL. Область — подтверждённый Codex `serverOverloaded` (включая Codex Judge у остальных упряжек) и отдельно исчерпанная квота. Это не разрешение повторять произвольные ошибки или lifecycle-команды.
 
 R2 проверена по dd-flow `4f3a8344c56c5df5c9149b68760f6e8230b2e637` (beta.119), dd-eval `0ab3f7a30d788e6350b6fee935e2b930c94edeb5`, локальным исходникам Codex `40eac3ce8a`. Последние объясняют протокол, но не считаются доказательством совпадения с установленным бинарём. Перед реализацией сверить актуальные commits и сохранить чужие изменения.
 
@@ -162,3 +162,16 @@ npm test
 В R1 не были определены освобождение failed-turn budget, exact HITL successor, parent-mediated child continuation, turn-scoped topology, выбор Judge output и crash windows. Это были реальные препятствия реализации, а не косметические уточнения. R2 задал порядок переходов, failure policy, места изменений и regression gates. P0 подтвердил совместимость установленного binary; это не заменяет оставшиеся gates и не разрешает обход новой Session при будущей несовместимости.
 
 После R2 внесены изменения native Codex adapter, RUN/Work/MERGE/Judge owners, recovery ACK, quota adapters и EVAL-отчёта. Установленный Codex прошёл детерминированную localhost-пробу: terminal overload, затем успешный новый Turn в той же Session. Адресные dd-eval тесты и сборка dd-flow прошли. Общая regression, выпуск нового engine, qualification и четыре fresh scored E2E остаются обязательными gates; локальный широкий dd-flow прогон под высокой нагрузкой дал subprocess timeouts и пока не считается зелёным. Старые EVAL остаются frozen.
+
+## 7. R4 — фактическая поставка и CP185
+
+Плановые изменения P0–P3 поставлены в `@deksden-com/dd-flow-cli@0.9.0-beta.120`; publish CI `36492175598` прошёл, пакет и immutable snapshot сверены. Установленный Codex 0.157.0 прошёл локальную mock-пробу terminal 503 → успешный новый Turn в той же native Session. Четыре отдельных scored home были квалифицированы с pinned beta.120 и Judge `gpt-6-sol/high`; все четыре baseline прошли. Это подтверждает реализацию и запуск матрицы, **не** означает прохождение её полного цикла.
+
+| Упряжка | Scored EVAL | Наблюдаемый результат CP185 |
+| --- | --- | --- |
+| Luna | `EVAL-20260928230857-7a8aed69` | `completed_with_failures` в CODE: P1 получил browser check с обязательными screenshot artifacts, которые относятся к зависимому P2. Это противоречие ownership/check gate в сгенерированном Work batch; frozen RUN не исправлялся. |
+| AGY | `EVAL-20260928232715-7474bbe2` | MERGE product RUN и 5/5 checks завершились; EVAL `recovery_blocked` на terminal boundary capture. Старый `check:.../RCP-003` был terminal/passed в 00:42 UTC, но в 02:07 наблюдатель принял его прежний PGID за живую группу (`managed_process_running`). |
+| Grok | `EVAL-20260928233624-8d5c2012` | `recovery_blocked` на PLAN-REVIEW после native 402 `Grok Build usage balance exhausted`. Это quota, не перегрузка; `reset_at` неизвестен. |
+| ZCode | `EVAL-20260928231707-9f4c550e` | Терминальный `completed`, RUN дошёл до MERGE и интеграционного коммита `93ff7228`, финальная серия 8/8 merge checks прошла. Однако `case_acceptance=failed`: нет priority matrix row, curated evidence ref, priority plan и priority acceptance. Final Judge признал RUN valid, но нашёл материальные продуктовые дефекты: priority edit меняет порядок через `updated_at`, а priority-only PATCH в активном проекте возвращает 400; также недостаточно доказательств legacy upgrade. Предшествующие API/browser gate failures были плавающими test timeouts под нагрузкой, а не окончательным результатом MERGE. |
+
+Post-run отдельные фиксы не изменяют эти scored попытки и не входят в beta.120: dd-flow `63a608f` сохраняет точную Grok terminal failed prompt квитанцию; `18df7d6` признаёт завершённый check только по exact owner и более позднему terminal receipt, не ослабляя наблюдение живых checks. dd-eval `7797803` нормализует вложенный `provider_quota_exhausted` в runner report. Они требуют новой поставки/qualification до новых scored попыток. Luna требует отдельного plan/check-ownership validation, а ZCode — исправления доказанных продуктовых и acceptance-handoff дефектов до повторного E2E. Никакой EVAL не возобновлялся, не ремонтировался вручную и не перезапускался автоматически; heartbeat остаётся выключенным.
