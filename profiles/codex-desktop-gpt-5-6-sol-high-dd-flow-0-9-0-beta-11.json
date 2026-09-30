@@ -6,7 +6,7 @@
   "reasoning": "high",
   "notes": "Clean Judge/reference settings. The historical profile ID is stable; the committed input checkpoint alone selects the flow pack and engine version. The live CPA model is gpt-6-sol.",
   "runtime": {
-    "codex_cli": "0.157.0",
+    "codex_cli": "0.159.1",
     "dd_harness_contract": "dd-codex-harness@1"
   }
 }

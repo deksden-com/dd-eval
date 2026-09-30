@@ -1,0 +1,86 @@
+{
+  "schema_id": "dd-flow/stage-report@2",
+  "run_id": "RUN-001-tasks",
+  "stage": "plan",
+  "generated_at": "2026-09-30T02:22:42.010Z",
+  "verdict": "done",
+  "semantic": {
+    "result": "Accepted 1 executable PLAN artifact.",
+    "acceptance": [
+      "PRT-001-task-priority"
+    ],
+    "changed_files": [
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+      "run://RUN-001-tasks/03-plan/PRT-001-task-priority/aspect-map.json",
+      "run://RUN-001-tasks/03-plan/code-work-batch.json"
+    ],
+    "checks": [
+      "protocol-plan schema",
+      "aspect-map schema",
+      "cross-artifact references",
+      "generated CODE batch"
+    ],
+    "evidence": [
+      "run://RUN-001-tasks/03-plan/stage-report.json"
+    ],
+    "next_action": "start_plan_review",
+    "plans": [
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json"
+    ],
+    "aspect_maps": [
+      "run://RUN-001-tasks/03-plan/PRT-001-task-priority/aspect-map.json"
+    ],
+    "code_work_batch": "run://RUN-001-tasks/03-plan/code-work-batch.json",
+    "batch_checksum": "87e04b2d0de72ebc62c60cc3fcf258903579dc55ea1f8925affe328a03b062d9",
+    "plan_checksums": [
+      {
+        "path": ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+        "sha256": "54ab1c31ae295a032639f7764fffbf6f8ff2c7e96a87821a0c89d88bd3bb0387"
+      }
+    ],
+    "aspect_map_checksums": [
+      {
+        "path": "03-plan/PRT-001-task-priority/aspect-map.json",
+        "sha256": "706cb6004ccbe32a2b940f739aa335d2afe3dcd8dcd1c0a94af92026cf94bf25"
+      }
+    ],
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "role": "output",
+      "completeness": "declared",
+      "source_fingerprint": "ab7508c08dd7080964615fb1a66acd4f89a740366a80291ca7498ee3ffcaf3f9",
+      "json": {
+        "path": "03-plan/verification/ab7508c08dd7080964615fb1a66acd4f89a740366a80291ca7498ee3ffcaf3f9/verification-matrix.json",
+        "sha256": "74d0d6ccfafa8707a98a61ff31843a1f46786ef231f0adea5987bd0f2f535a8e"
+      },
+      "markdown": {
+        "path": "03-plan/verification/ab7508c08dd7080964615fb1a66acd4f89a740366a80291ca7498ee3ffcaf3f9/verification-matrix.md",
+        "sha256": "873788ddaeaa483a803177b6d9108e9e411d7d2b5fa65ee9b8515530da2bbeec"
+      }
+    }
+  },
+  "mechanical": {
+    "started_at": "2026-09-30T02:22:41.220Z",
+    "finished_at": "2026-09-30T02:22:42.010Z",
+    "wall_clock_ms": 790,
+    "git": {
+      "branch": "main",
+      "head": "98fa9f2918df57a0bdeece41512f6fc5979c9e8b",
+      "status": "dirty"
+    },
+    "session_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp-187-matrix-installed-proof/dd-flow-protocolize-NADP0P/home\" dd-flow stat run sessions ls --run RUN-001-tasks --project-root \"/Users/deksden/.dd-eval/qualification/cp-187-matrix-installed-proof/dd-flow-protocolize-NADP0P/project\" --json",
+    "usage_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp-187-matrix-installed-proof/dd-flow-protocolize-NADP0P/home\" dd-flow stat usage --run RUN-001-tasks --project-root \"/Users/deksden/.dd-eval/qualification/cp-187-matrix-installed-proof/dd-flow-protocolize-NADP0P/project\" --json",
+    "next_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp-187-matrix-installed-proof/dd-flow-protocolize-NADP0P/home\" dd-flow stage start RUN-001-tasks --stage plan-review --project-root \"/Users/deksden/.dd-eval/qualification/cp-187-matrix-installed-proof/dd-flow-protocolize-NADP0P/project\" --json"
+  },
+  "artifacts": {
+    "json": "stage-report.json",
+    "markdown": "stage-report.md",
+    "html": "stage-report.html"
+  },
+  "validation": {
+    "permission_scope": "known_targets_only",
+    "memory_bank_scope": "changed_files_and_links_only",
+    "status": "passed"
+  },
+  "summary": "Accepted 1 executable PLAN artifact."
+}

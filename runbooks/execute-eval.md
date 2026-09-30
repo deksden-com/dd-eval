@@ -420,6 +420,14 @@ engines, logs or daemons from the source home. A missing or invalid harness
 configuration is a setup blocker; do not work around it with PATH discovery or
 ad-hoc adapter environment variables.
 
+The configured `<runtime>/harness-runtime` path is a relative alias to the
+selected immutable engine's `dist/harness-runtime`, not a detached adapter copy.
+Node must resolve that engine's complete production dependency closure. Fresh
+provision, fork and Stage restore install this alias after materializing the
+engine; a frozen snapshot alone is not an executable engine installation.
+Do not install missing dependencies or rewrite an alias inside a failed or
+historical execution. Correct provisioning for a new attempt instead.
+
 An eval profile in `profiles/` is not an installed Flow agent profile. Every
 profile referenced by execution routing must also exist in the configuration
 home's `agent-profiles/<id>.json` using `dd-flow/agent-profile@1`. Match its

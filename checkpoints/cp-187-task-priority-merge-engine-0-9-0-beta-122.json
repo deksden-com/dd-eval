@@ -1,0 +1,27 @@
+{
+  "id": "cp-187-task-priority-merge-engine-0-9-0-beta-122",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e",
+    "tag": "eval/cp-172-source-baseline-setup"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "d1b8d9eb44cffbeff8734a8eff5793db6c342f4e",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-187-verification-matrix-qualification.json",
+      "sha256": "e734591ff00d45a18d11957c6b683891d203a593405bd5c6180a61418ab4e544",
+      "canon_commit": "0cf38231406614cfeb0a96001ba0201de2316e47"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "b03c699ac77fa596e684408c8e46e8710edbe9f6",
+      "version": "0.9.0-beta.122",
+      "artifact_sha256": "7c3ce2e8407319d931f5e0598662c0ab322f2ef89aa2c8b28d49f77c0b1c4d19"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
