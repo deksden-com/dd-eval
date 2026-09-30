@@ -1,6 +1,6 @@
 # 059 — CP188: достоверный shutdown и независимый учёт Judge verdict / cleanup
 
-Дата: 2026-09-30. Статус: обязательный repair реализован; результаты проверок и ограничения — в `059-cp188-implementation-report.md`. Проверен по ponytail full.
+Дата: 2026-09-30. Статус: source repair и дополнительные review fixes реализованы; full integration acceptance пока не подтверждён. Результаты проверок и ограничения — в `059-cp188-implementation-report.md`. Проверен по ponytail full.
 
 Readiness review: 2026-09-30. После повторного чтения handlers, ledger, registry, baseline и Judge/control readers уточнены failure boundaries, companion receipt, recovery policy и команды проверки (§12–16). Реализация не означает публикацию engine либо подтверждение live цикла; Q1 остаётся deferred.
 

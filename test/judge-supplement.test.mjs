@@ -60,7 +60,7 @@ fs.appendFileSync(c.calls,JSON.stringify({native:a,operation_id:id})+'\\n');
 const state=get('--state-dir'), session='judge-session'; let result={ready:true};
 const write=(name,value)=>{fs.mkdirSync(path.dirname(name),{recursive:true});fs.writeFileSync(name,JSON.stringify(value));};
 if(a[0]==='daemon' && a[1]==='start') write(state+'/daemon.json',{daemon_id:'fixture-daemon',pid:2147483647,config:{cwd:get('--cwd')},shutdown_state:'running',active_tree:false});
-if(a[0]==='daemon' && a[1]==='stop') {const s=JSON.parse(fs.readFileSync(state+'/daemon.json'));write(state+'/daemon.json',{...s,shutdown_state:'clean',active_tree:false,shutdown:{schema_id:'dd-flow/daemon-shutdown@1',daemon_id:s.daemon_id,phases:{tree:true,daemon_resource:true}}});result={stopped:true,clean:true,shutdown_contract:'dd-flow/daemon-shutdown@1'};const o=path.join(state,'operations',createHash('sha256').update(id).digest('hex'));write(o+'/requested.json',{operation_id:id,operation:'daemon.stop',daemon_id:s.daemon_id});write(o+'/result.json',{state:'completed',result});}
+if(a[0]==='daemon' && a[1]==='stop') {const s=JSON.parse(fs.readFileSync(state+'/daemon.json'));write(state+'/daemon.json',{...s,shutdown_state:'clean',active_tree:false,shutdown:{schema_id:'dd-flow/daemon-shutdown@1',daemon_id:s.daemon_id,result:{clean:true},required_phases:['tree','provider_close','daemon_resource'],phases:{tree:true,provider_close:true,daemon_resource:true}}});result={stopped:true,clean:true,shutdown_contract:'dd-flow/daemon-shutdown@1'};const o=path.join(state,'operations',createHash('sha256').update(id).digest('hex'));write(o+'/requested.json',{operation_id:id,operation:'daemon.stop',daemon_id:s.daemon_id});write(o+'/result.json',{state:'completed',result});}
 if(a[0]==='session') {
  result={provider_session_id:session};
  if(a[1]==='prompt') {
@@ -139,6 +139,23 @@ test('supplemental Judge reattaches to a confirmed native reply without a second
   const records = (await readFile(f.calls, 'utf8')).trim().split('\n').map(JSON.parse);
   for (const command of ['create', 'prompt']) assert.equal(records.filter(row => row.native?.[0] === 'session' && row.native[1] === command).length, 1);
   assert.equal(snapshotTreeHash(f.root), before);
+});
+
+test('supplemental publication rechecks physical cleanup and retains the verdict when it becomes unconfirmed', async t => {
+  const f = await runtimeFixture(t), result = await f.invoke();
+  const calls = await readFile(f.calls, 'utf8'), originalKill = process.kill;
+  let observations = 0;
+  const probe = t.mock.method(process, 'kill', (pid, signal) => {
+    if (pid !== 2147483647 || signal !== 0) return originalKill(pid, signal);
+    throw Object.assign(new Error('offline physical observation'), { code: ++observations === 2 ? 'EPERM' : 'ESRCH' });
+  });
+  await assert.rejects(f.invoke(), { code: 'judge_cleanup_unconfirmed' });
+  probe.mock.restore();
+  const report = JSON.parse(await readFile(path.join(result.root, 'report.json')));
+  assert.equal(report.judge_status, 'failed'); assert.equal(report.cleanup, 'unconfirmed');
+  assert.equal(report.judge_cleanup.status, 'unknown');
+  assert.deepEqual(report.supplemental, result.receipt);
+  assert.equal(await readFile(f.calls, 'utf8'), calls);
 });
 
 test('supplemental evidence drift during setup prevents native Session creation', async t => {

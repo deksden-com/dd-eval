@@ -21,6 +21,22 @@ publishing a successful durable stop reply; listener retirement follows the
 receipt and precedes ACK. Clients confirm retained daemon PID exit as well as
 endpoint disappearance. Socket disappearance alone is insufficient.
 
+For a retained Final Judge (including the current candidate revision), explicit
+`runner cleanup --eval <absolute-eval-root> --request-id <new-id>` may retry only
+the owned stop. It validates the pinned runtime, profile and canonical paths;
+missing/legacy ownership remains blocked. It does not start a daemon, Session
+or prompt. If the previous stop is durably completed and physical shutdown is
+freshly confirmed, only the failed companion is reconciled, without a new RPC
+to a dead bridge. Read-only status and cached Judge reuse never perform repair.
+Interaction/qualification/supplemental Judge directories have separate owners;
+this EVAL cleanup command does not discover or stop those scopes.
+
+HITL admission checks actual item verdicts and packets against their Judge,
+fixture and corpus question; an aggregate `passed` alone is insufficient.
+Reports recheck verdict bytes, all shutdown phases and daemon exit immediately
+before publication. Unconfirmed cleanup preserves semantic evidence but fails
+Judge lifecycle completion.
+
 Start with `node bin/dd-eval.mjs runner status --eval <absolute-eval-root>` from the dd-eval checkout.
 For direct controller diagnostics use the execution's pinned wrapper with
 `DD_FLOW_HOME=<runtime-root> <runtime-root>/bin/dd-flow run drive status --run <RUN-ID> --project-root <project-root> --after <cursor> --json`.

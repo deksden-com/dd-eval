@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, readFile, open, utimes, readdir, rm, chmod } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, writeFile, readFile, open, utimes, readdir, rename, rm, chmod, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -35,7 +35,9 @@ test("public cleanup retry retains an exhausted attempt and a new identity runs 
 import { commandJson } from "../lib/process-json.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
-import { migrateLegacyCanonicalResumeLock, runnerCheckpoints, runnerResume, runnerCleanup, runnerControlStatus } from "../lib/runner.mjs";
+import { evalJudge, frozenCandidate, loadRunProfile, migrateLegacyCanonicalResumeLock, runnerCheckpoints, runnerResume, runnerCleanup, runnerControlStatus } from "../lib/runner.mjs";
+import { engineArtifactDigest } from '../lib/engine-admission.mjs';
+import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { processSnapshot } from "../lib/process-snapshot.mjs";
 import { recoveryObservationBudget, withRecoveryObservation } from "../lib/recovery-observation-budget.mjs";
 import { assertExecutionDispatch, executionState } from "../lib/execution-state.mjs";
@@ -135,6 +137,109 @@ test("cleanup worker persists final observation without starting productive work
     assert.equal(saved.final_observation.observation_complete, false);
     assert.equal((await readEvents(path.join(root, "events.jsonl"))).filter(event => event.type === "dev.dd.eval.operation.started").length, 0);
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('explicit Judge reuse refuses missing or failed cleanup without another paid turn', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-cached-judge-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const caseId = 'sdlc-eval-2026-summer-task-priority';
+  const profile = await loadRunProfile(path.resolve('cases', caseId, 'run-profiles/e2e-inline-merge-luna-xhigh.json'));
+  const profileId = profile.value.interaction_judge.profile_id;
+  const manifest = { run_id: 'EVAL-cached-judge', case_id: caseId, executions: [{ id: 'e', stage: 'specify', terminal_stage: 'merge', mode: 'e2e' }], subject_profile: {}, profile: { judge: { enabled: true, profile_id: profileId } } };
+  await writeJsonAtomic(path.join(root, 'manifest.json'), manifest);
+  for (const type of ['started', 'failed']) await appendEvent(path.join(root, 'events.jsonl'), { source: 'test', runId: manifest.run_id, executionId: 'e', type: `dev.dd.eval.operation.${type}`, data: { operation_id: `${manifest.run_id}:e:launch`, error: { code: 'preflight_failed', message: 'before session' } } });
+  const first = await runnerResume({ evalRoot: root });
+  const judgeRoot = path.join(root, 'judge');
+  const receipt = { schema_id: 'dd-eval/final-judge-receipt@1', profile_id: profileId, session_id: 'offline', candidate_sha256: first.candidate.immutable_hash, result: { conclusion: 'retained semantics' } };
+  await writeJsonAtomic(path.join(judgeRoot, 'candidate.json'), first.candidate);
+  await settledJudge(judgeRoot, receipt);
+  assert.deepEqual((await evalJudge({ evalRoot: root })).receipt, receipt);
+  const cleanupFile = path.join(judgeRoot, 'cleanup.json'), cleanup = JSON.parse(await readFile(cleanupFile));
+  const verdictBytes = await readFile(path.join(judgeRoot, 'result.json'));
+  const operationCount = (await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.operation.started').length;
+  for (const status of ['missing', 'failed']) {
+    if (status === 'missing') await rm(cleanupFile);
+    else await writeJsonAtomic(cleanupFile, { ...cleanup, status, error: { code: 'EPERM', message: 'offline cleanup failure' } });
+    await assert.rejects(evalJudge({ evalRoot: root }), { code: 'judge_cleanup_unconfirmed' });
+    const report = JSON.parse(await readFile(path.join(root, 'reports/report.json')));
+    assert.equal(report.judge_status, 'failed');
+    assert.deepEqual(report.judge, receipt);
+    assert.deepEqual(await readFile(path.join(judgeRoot, 'result.json')), verdictBytes);
+    assert.equal((await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.operation.started').length, operationCount);
+  }
+  await writeJsonAtomic(cleanupFile, cleanup);
+  let observations = 0;
+  const originalKill = process.kill;
+  const probe = t.mock.method(process, 'kill', (pid, signal) => {
+    if (pid !== 2147483647 || signal !== 0) return originalKill(pid, signal);
+    // Full receipt check and completion-event check succeed; report recheck fails.
+    throw Object.assign(new Error('offline physical observation'), { code: ++observations === 3 ? 'EPERM' : 'ESRCH' });
+  });
+  const publication = await runnerResume({ evalRoot: root });
+  probe.mock.restore();
+  assert.equal(publication.judge_status, 'failed');
+  const report = JSON.parse(await readFile(path.join(root, 'reports/report.json')));
+  assert.equal(report.judge_status, 'failed');
+  assert.deepEqual(report.judge, receipt);
+});
+
+for (const revision of [false, true]) test(`explicit cleanup retries only the retained Final Judge stop (revision: ${revision})`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-judge-stop-retry-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const home = path.join(root, 'executions/e/dd-flow-home'), engineRoot = path.join(home, 'engines/fixture/1'), calls = path.join(root, 'calls');
+  const adapterSource = `import fs from 'node:fs';import path from 'node:path';import {createHash} from 'node:crypto';
+const a=process.argv.slice(2),id=process.env.DD_EVAL_OPERATION_ID,state=a[a.indexOf('--state-dir')+1];
+if(a[0]!=='daemon'||a[1]!=='stop'||!a.includes('--cancel-tree'))throw Error('productive action forbidden');
+fs.appendFileSync(${JSON.stringify(calls)},id+'\\n');
+const put=(file,value)=>{fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,JSON.stringify(value));};
+const s=JSON.parse(fs.readFileSync(state+'/daemon.json'));put(state+'/daemon.json',{...s,shutdown_state:'clean',active_tree:false,shutdown:{schema_id:'dd-flow/daemon-shutdown@1',daemon_id:s.daemon_id,result:{clean:true},required_phases:['tree','provider_close','daemon_resource'],phases:{tree:true,provider_close:true,daemon_resource:true}}});
+const result={stopped:true,clean:true,shutdown_contract:'dd-flow/daemon-shutdown@1'},o=path.join(state,'operations',createHash('sha256').update(id).digest('hex'));
+put(o+'/requested.json',{operation_id:id,operation:'daemon.stop',daemon_id:s.daemon_id});put(o+'/result.json',{state:'completed',result});console.log(JSON.stringify(result));`;
+  await writeJsonAtomic(path.join(engineRoot, 'marker.json'), { fixture: true });
+  const sourceAdapter = path.join(engineRoot, 'dist/harness-runtime/bin/dd-codex.mjs');
+  await mkdir(path.dirname(sourceAdapter), { recursive: true }); await writeFile(sourceAdapter, adapterSource);
+  const checksum = await engineArtifactDigest(engineRoot), engine = { schema_id: 'dd-flow/engine-manifest@1', package_name: 'fixture', package_version: '1', engine_version: '1', integrity: { checksum }, snapshot_root: engineRoot };
+  await writeJsonAtomic(path.join(engineRoot, 'engine.json'), engine);
+  await cp(path.join(engineRoot, 'dist/harness-runtime'), path.join(home, 'harness-runtime'), { recursive: true });
+  const profileFile = path.join(root, 'profile.json'), profile = { id: 'offline-judge', harness: 'codex-desktop', model: 'offline', reasoning: 'high' };
+  await writeJsonAtomic(profileFile, profile);
+  const manifest = { run_id: 'EVAL-judge-only-cleanup', executions: [{ id: 'e', stage: 'specify' }], profile: { judge: { enabled: true, profile_id: profileFile } }, runtime_resource_home: path.join(root, 'resources') };
+  const result = { execution: 'e', state: 'candidate_ready', stage: 'specify', attempt: path.join(root, 'executions/e'), runtime_engine: { package_name: 'fixture', package_version: '1', engine_version: '1', integrity_checksum: checksum } };
+  const eventsFile = path.join(root, 'events.jsonl'), operationId = `${manifest.run_id}:e:launch`;
+  await writeJsonAtomic(path.join(root, 'manifest.json'), manifest);
+  for (const type of ['requested', 'started', 'completed']) await appendEvent(eventsFile, { source: 'fixture', runId: manifest.run_id, executionId: 'e', type: `dev.dd.eval.operation.${type}`, data: { operation_id: operationId, operation: 'execution.e.launch', ...(type === 'completed' ? { result } : {}) } });
+  let candidate = (await frozenCandidate({ root, manifest, results: [result] })).candidate;
+  if (revision) { candidate = { ...candidate, file: path.join(root, 'candidate-revisions', `${candidate.immutable_hash}.json`) }; await writeJsonAtomic(candidate.file, candidate); }
+  const judgeRoot = revision ? path.join(root, 'judge/revisions', candidate.immutable_hash) : path.join(root, 'judge'), stateDir = path.join(judgeRoot, 'daemon');
+  const receipt = { schema_id: 'dd-eval/final-judge-receipt@1', profile_id: profile.id, session_id: 'retained-judge-session', candidate_sha256: candidate.immutable_hash, result: { conclusion: 'retained verdict' } };
+  await writeJsonAtomic(path.join(judgeRoot, 'result.json'), receipt);
+  await writeJsonAtomic(path.join(root, 'reports/report.json'), { run_id: manifest.run_id, candidate, judge: receipt, judge_status: 'failed', judge_error: { code: 'judge_cleanup_failed' } });
+  const owner = { schema_id: 'dd-flow/runtime-owner@1', role: 'judge', owner_id: `judge:${sha256(stateDir)}`, state_dir: stateDir, dd_flow_home: home, dd_flow_bin: path.join(home, 'bin/dd-flow'), adapter_executable: path.join(home, 'harness-runtime/bin/dd-codex.mjs'), resource_home: manifest.runtime_resource_home, budget: { scope_id: manifest.run_id } };
+  const stateFile = path.join(stateDir, 'daemon.json'), state = { daemon_id: 'owned-judge', pid: 2147483647, config: { cwd: judgeRoot, runtime_owner: owner }, shutdown_state: 'cleanup_failed', active_tree: false };
+  await writeJsonAtomic(stateFile, { ...state, config: { ...state.config, runtime_owner: { ...owner, state_dir: root } } });
+  await assert.rejects(runnerCleanup({ evalRoot: root, requestId: 'foreign' }), { code: 'judge_cleanup_ownership_unknown' });
+  await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  await writeJsonAtomic(stateFile, state);
+  const foreignRoot = await mkdtemp(path.join(os.tmpdir(), 'eval-foreign-judge-'));
+  t.after(() => rm(foreignRoot, { recursive: true, force: true }));
+  const foreignState = path.join(foreignRoot, 'daemon');
+  await rename(stateDir, foreignState); await symlink(foreignState, stateDir);
+  await assert.rejects(runnerCleanup({ evalRoot: root, requestId: 'redirected-state' }), { code: 'judge_cleanup_ownership_unknown' });
+  await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  await rm(stateDir); await rename(foreignState, stateDir);
+  const foreignStateFile = path.join(foreignRoot, 'daemon.json');
+  await rename(stateFile, foreignStateFile); await symlink(foreignStateFile, stateFile);
+  await assert.rejects(runnerCleanup({ evalRoot: root, requestId: 'foreign-state-file' }), { code: 'judge_cleanup_ownership_unknown' });
+  await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  await rm(stateFile); await rename(foreignStateFile, stateFile);
+  const verdictBytes = await readFile(path.join(judgeRoot, 'result.json'));
+  assert.equal((await runnerCleanup({ evalRoot: root, requestId: 'retry' })).judge_status, 'completed');
+  const stopCalls = await readFile(calls, 'utf8'); assert.match(stopCalls, /^judge-cleanup:/); assert.equal(stopCalls.trim().split('\n').length, 1);
+  assert.equal((await runnerCleanup({ evalRoot: root, requestId: 'retry' })).judge_status, 'completed');
+  assert.equal(await readFile(calls, 'utf8'), stopCalls);
+  assert.deepEqual(await readFile(path.join(judgeRoot, 'result.json')), verdictBytes);
+  assert.equal(JSON.parse(await readFile(path.join(root, 'reports/report.json'))).judge_error, undefined);
+  assert.equal((await readEvents(eventsFile)).filter(event => event.type === 'dev.dd.eval.operation.started').length, 1);
 });
 
 for (const enabled of [false, true]) test(`resume finalizes a pre-session failure without replay (Judge enabled: ${enabled})`, async () => {
