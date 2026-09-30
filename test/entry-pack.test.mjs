@@ -33,6 +33,30 @@ test("stage context has path-independent semantic identity and path-bearing mate
   assert.notEqual(materialized.sha256, materialized.semantic_package_sha256);
 });
 
+test("optional missing stage source is retained without hiding a missing required source", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-entry-optional-"));
+  const source = { role: "prior", root: "project", path: "prior.json", reason: "If present." };
+  const output = path.join(root, "runner", "specify.json");
+  const optional = validateStageBlueprint({ schema_id: "dd-eval/stage-context-blueprint@1", stages: { specify: { ...slice, sources: [{ ...source, required: false }] } } });
+  const rendered = await materializeStageSlice({ blueprint: optional, stage: "specify", roots: { project: root }, output });
+  assert.equal(JSON.parse(await readFile(rendered.path, "utf8")).sources[0].required, false);
+  const required = validateStageBlueprint({ schema_id: "dd-eval/stage-context-blueprint@1", stages: { specify: { ...slice, sources: [{ ...source, required: true }] } } });
+  await assert.rejects(materializeStageSlice({ blueprint: required, stage: "specify", roots: { project: root }, output }), /required stage source is missing for prior/);
+});
+
+test("task-priority PLAN declares the accepted SPECIFY decision as an authoritative source", async () => {
+  const caseRoot = path.resolve("cases/sdlc-eval-2026-summer-task-priority");
+  const blueprint = validateStageBlueprint(JSON.parse(await readFile(path.join(caseRoot, "entry-pack-source/stage-context.json"), "utf8")));
+  assert.deepEqual(blueprint.stages.plan.sources.filter(source => source.role === "accepted_specify"), [{
+    role: "accepted_specify", root: "run", path: "01-specify/specify.json", required: true,
+    reason: "Принятые пользовательские решения имеют приоритет над прежними общими правилами только в явно согласованных границах."
+  }]);
+  const answer = JSON.parse(await readFile(path.join(caseRoot, "entry-pack-source/interactions/specify.json"), "utf8"))
+    .responses.find(response => response.id === "clarification-task-priority")?.answer;
+  assert.match(answer, /участник workspace может изменить приоритет задачи/);
+  assert.match(answer, /Смешанное изменение приоритета и других полей отклоняется целиком/);
+});
+
 test("entry validation distinguishes bootstrap from a restored stage without requiring an engine", () => {
   const engine = { schema_id: "dd-eval/engine-snapshot@1", locator: "canonical/case/engine", package_name: "@scope/flow", package_version: "1.0.0", engine_version: "1.0.0", integrity_checksum: "d".repeat(64) };
   const base = { schema_id: "dd-eval/stage-entry@1", case_id: "case", revision: "REV-001", checkpoint_id: "STG-001", stage: "specify", snapshot: { kind: "bootstrap", locator: "canonical/case/bootstrap", manifest_sha256: "a".repeat(64), run_id: null }, engine, semantic_package_sha256: "b".repeat(64), context_slice_sha256: "c".repeat(64) };

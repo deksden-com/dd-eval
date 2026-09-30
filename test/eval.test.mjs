@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, authorizeHitl, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, authorizeHitl, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 
@@ -33,9 +33,9 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
   assert.match(loaded.inputCheckpoint.value.id, /^cp-\d+-task-priority-.+-engine-0-9-0-beta-\d+(?:-.+)?$/);
-  assert.equal(loaded.inputCheckpoint.value.source.commit, "924ef61752b642f06c2c326b444ed7a3239f20ff");
-  assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-074-source-final");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "53d4b76943900f122957c78cc0fefa2051bd7b1a");
+  assert.equal(loaded.inputCheckpoint.value.source.commit, "2070638c3811aea6572b9ab8b5ba868fdc519ccc");
+  assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-166-source-process-identity");
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "b0b124f3816bf3604161398d2cb0c7d7b287f462");
   assert.match(loaded.inputCheckpoint.value.flow_pack.engine.version, /^0\.9\.0-beta\.\d+$/);
   assert.match(loaded.inputCheckpoint.value.flow_pack.engine.commit, /^[a-f0-9]{40}$/);
   assert.match(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, /^[a-f0-9]{64}$/);
@@ -284,6 +284,17 @@ test("provider interruption consumes the CLI-owned sealed recovery capture", asy
   assert.match(source, /candidate-revisions/);
 });
 
+test("interruption attribution preserves structured lifecycle and storage errors", () => {
+  for (const code of ["invocation_receipt_timeout", "storage_write_failed"]) {
+    assert.deepEqual(classifyInterruption({ code, message: "timeout waiting for writer" }).category, "execution_failure");
+  }
+  assert.deepEqual(classifyInterruption({ code: "provider_timeout", message: "provider timed out" }).category, "provider_unavailable");
+  assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "connection timeout" }).category, "provider_unavailable");
+  assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "timeout while saving lifecycle result", details: { primary_error: { code: "storage_write_failed" } } }).category, "execution_failure");
+  assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "operation timed out", details: { cause: { code: "invocation_receipt_timeout" } } }).category, "execution_failure");
+  assert.deepEqual(classifyInterruption({ code: "agy_provider_rate_limited", message: "request failed" }).category, "provider_rate_limit");
+});
+
 test("a terminal incomplete execution keeps an immutable evidence candidate for Judge", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /schema_id: "dd-eval\/run-candidate@2"/);
@@ -502,6 +513,8 @@ test("capacity qualification counts only authoritative direct native children", 
     directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-ended", status: "success" }] } } } }, "root"),
     [{ session_id: "zcode-ended", parent_session_id: "root", status: "completed", source: "zcode/session/subagents" }]
   );
+  assert.equal(directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-lost", status: "lost" }] } } } }, "root")[0].status, "unknown");
+  assert.equal(directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-unproven" }] } } } }, "root")[0].status, "unknown");
 });
 
 test("capacity qualification stays outside the flow runtime", async () => {

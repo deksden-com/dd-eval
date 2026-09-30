@@ -79,6 +79,11 @@ path or workspace changes. The AGY launcher supplies `DD_AGY_HOOK_NODE`,
 `DD_AGY_HOOK_ENTRY`, `DD_AGY_STATE_DIR` and `DD_AGY_DAEMON_ID` to that launch and
 its children; the daemon validates the binding. Never substitute a global
 "last daemon" pointer or take a routing path from an untrusted native event.
+For tool admission the daemon also attaches its launch-bound cwd. Native
+`workspacePaths` enumerates available roots; its first element is not the
+selected execution directory. Multi-root qualification must show the launch
+cwd, native Session identity and matching Work/Stage route separately. A
+prompted `cd` is not native cwd proof.
 Qualification must prove native root-to-child environment inheritance, a second
 independent launch, relocated engine/workspace, stale/foreign binding rejection
 and preservation of user handlers. A technical `noFlow` probe does not by

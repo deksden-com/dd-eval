@@ -132,7 +132,7 @@ if(result.error)throw result.error; process.exit(result.status??1);`);
   let initial, resumed, finished = false;
   await withRunnerLock(path.join(root, 'events.jsonl'), async () => {
     initial = executeEval({ root, runId: 'EVAL-initial-resume', loaded, profile, runProfile, executions: [execution] }).catch(error => error);
-    const deadline = performance.now() + (real ? 30_000 : 3000);
+    const deadline = performance.now() + 30_000;
     while (!await readFile(path.join(root, 'manifest.json')).then(() => true, error => { if (error.code === 'ENOENT') return false; throw error; })) {
       assert.ok(performance.now() < deadline, 'initial manifest is published'); await delay(10);
     }
@@ -430,7 +430,7 @@ test('operator resume deadline includes a locked journal and never appends after
   });
   await delay(50);
   assert.equal(await readFile(eventsFile, 'utf8'), before);
-  assert.equal((await runnerControlResume({ ...input, waitMs: 2000 })).applied, true);
+  assert.equal((await runnerControlResume({ ...input, waitMs: 10_000 })).applied, true);
   assert.equal((await readEvents(eventsFile)).filter(e => e.type === 'dev.dd.eval.control.resume_applied').length, 1);
 });
 

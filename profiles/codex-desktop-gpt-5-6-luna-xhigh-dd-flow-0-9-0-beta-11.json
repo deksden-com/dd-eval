@@ -6,8 +6,8 @@
   "reasoning": "xhigh",
   "notes": "Luna Subject settings. The historical profile ID is stable; the committed input checkpoint alone selects the flow pack and engine version. The live CPA model is gpt-6-luna.",
   "runtime": {
-    "codex_cli": "0.156.1",
+    "codex_cli": "0.157.0",
     "dd_harness_contract": "dd-codex-harness@1"
   },
-  "subagent_capacity": 3
+  "subagent_capacity": 4
 }

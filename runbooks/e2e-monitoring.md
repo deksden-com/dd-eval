@@ -39,6 +39,12 @@ composition; it is not missing delivery. `invocation_receipt_missing` is reserve
 native evidence. `invocation_assignment_missing` means native delivery succeeded but argv
 did not match an issued assignment. Preserve the original code/reason in the report instead of
 replacing it with a later `execution_ended_without_work_result` or cleanup error.
+For a safe correction, inspect the exact runtime-issued `retry_command` and
+`effect=no_effect`; `recoverable=true` by itself is not retry authority.
+`publication_pending` means the SQL transition committed but its RUN/Work
+projection still needs reconciliation. Never replay a Stage, Work, check or
+provider Turn to recreate that file. A fresh Session after a cwd-changing Stage
+boundary is expected even if the harness and model profile are unchanged.
 
 For a CODE/CODE-REVIEW aggregate failure, distinguish the check result from its continuation.
 `code_gate_failed`/`code_review_gate_failed` with a durable `repair_required` binding is not

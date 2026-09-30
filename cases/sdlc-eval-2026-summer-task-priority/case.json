@@ -7,12 +7,12 @@
     {
       "role": "initial_user_request",
       "source": "entry-pack-source/task-priority.md",
-      "sha256": "af92baafdebc3ef4663e1049216a338f20b0948ae8310be7a9bf4f47d7fd694e"
+      "sha256": "6a675112a9269f8bd61d41833ab9f1804be10300b82557b2d788e8fba932d9ba"
     }
   ],
   "input_checkpoint": {
-    "id": "cp-158-task-priority-plan051-flow-4-1-1-engine-0-9-0-beta-103-zcode-0467-dd2",
-    "sha256": "9f323ad042c9cfbe7287dcd501ee20bf9f13ae5d05bf4f53f2342418fa7b6391"
+    "id": "cp-169-task-priority-cross-harness-flow-4-1-1-engine-0-9-0-beta-109",
+    "sha256": "f7601b982d1573a5d4e14d6f150e038b01bef5a71778d0b555b377daa3d8d63f"
   },
   "entry_pack": null,
   "profiles": {

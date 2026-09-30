@@ -199,6 +199,10 @@ Subject starts. It establishes whether a failure already exists before the
 model's changes; it is not a test of the requested new feature. Keep this
 per-execution baseline and its receipt. Do not share a baseline PASS between
 Luna and ZCode workspaces or use an old receipt to excuse a broken environment.
+For a multi-harness campaign on one host, start the next scored E2E only after
+the preceding execution has written its own baseline receipt. Concurrent
+CPU-heavy baselines can make a timing-sensitive source test fail before any
+Subject Session exists; this scheduling rule does not reuse or waive any gate.
 
 `runner eval preflight` is light preparation: it validates the pinned baseline
 policy but does not execute its commands. Its receipt explicitly records
@@ -241,6 +245,24 @@ Session is started.
 E2E uses the input checkpoint, never a canonical stage-entry pack. Updating the
 engine requires a new checkpoint pointing to its committed project flow pack;
 changing a global CLI alone does not update the pinned experiment.
+
+For the cross-harness full-cycle campaign, pin `stage_session_mode=new_session`
+and `merge_mode=server` in the committed project flow pack, not just in the
+run-profile. SPECIFY and PROTOCOLIZE execute from the stable project checkout;
+PLAN through CODE-REVIEW execute from the provisioned feature checkout; server
+MERGE executes from its integration target. The PROTOCOLIZE transition Work
+keeps the cwd of the Session that entered that Stage even after the CLI creates
+the feature worktree. A changed physical cwd requires a fresh Session unless a
+separate native rebind qualification exists. The hook's observed cwd, launch
+cwd, project identity and model prompt are distinct evidence; a prompt saying
+`cd` does not establish Session binding.
+
+Runtime retry instructions are shared across harnesses. Follow only an exact
+`retry_command` issued for a proven no-effect correction. A committed effect,
+registered repair, pending check, or unknown outcome must be reconciled through
+its retained receipt, not re-executed because a Turn ended or a file projection
+is temporarily absent. A `publication_pending` error means SQL authority
+committed and its artifact needs materialization; it is not a no-effect result.
 
 Keep the product baseline separate from the flow-pack revision. Resolve
 `source.tag` and `source.commit` from the hash-pinned input checkpoint referenced

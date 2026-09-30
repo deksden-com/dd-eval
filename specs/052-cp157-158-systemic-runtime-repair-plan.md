@@ -1045,7 +1045,7 @@ trees и не означают новый E2E PASS. Старые EVAL не во�
 | A3 | Реализован purpose-based stage-entry/candidate/incomplete selector: исключает лишь provider root из проверенного `dd-grok/daemon-state@1`, сохраняет соседние daemon/operation evidence и одноимённые чужие каталоги; recovery сохраняет прежний полный payload. Новые manifests несут `flow-evidence@1`; неизвестная policy отклоняется. Capture regression с provider churn прошла. Portable same-Session recovery по-прежнему **не заявлена**: native import/load не доказывает полноту assets и `native_session_portability: requires_adapter_verification` сохранён. |
 | A7 | Реализована semantic projection только для `managed_processes.lease_expires_at`/`updated_at` в source proof resource DB; sealed DB payload hash не ослаблен. Heartbeat во время capture и реальные owner/data изменения проверены регрессиями. |
 | H7/R6/R7/C1–C5 | Код и регрессии реализованы: bounded hook stdin, terminal reviewer guard, единая выбранная source/copy/Git revision без credential paths, register/confirm provider перед initialize, physical cleanup без ложного native settlement, повторный reconcile retained worker при EVAL cancel. Адресные тесты и typecheck/lint проходят; общий integration gate ещё выполняется. CP-153/CP-152 служат evidence, но не изменяются. |
-| P5/P6 | `pnpm test:runtime-sensitive` 30/30 и dd-eval `npm test` 321 PASS/8 SKIP. `typecheck`, `lint`, адресные tests проходят; общий integration gate, финальный build/release gate, публикация, новый checkpoint и четыре новых scored E2E **ещё открыты**. Внешняя AGY eligibility должна проверяться заново: предыдущая проба `agy 1.2.11` вернула location restriction. Исторический PASS не заменяет свежий preflight. |
+| P5/P6 | Guarded workflow [36132712351](https://github.com/deksden-com/dd-flow-cli/actions/runs/36132712351) прошёл typecheck/lint/release, все 4 integration shard-а, runtime-sensitive, isolated candidate и registry consumer. Опубликован `0.9.0-beta.103` от `26ffa3e3ac8382c8a83bae2593a91a3e922f10a9`, artifact SHA-256 `3eed2390a37f0d1d9e28c4cd62e4ee501eadb8ac5b070206cb2540dc09f6a702`, engine snapshot `5ace75d1e48ec03485f42b95c10c11db626c214c021a11d72a0a13c0c6876184`. Глобальный Codex hook binary обновлён и обе конфигурации указывают на него. Новый CP-159 и четыре isolated homes подготовлены; профиль AGY 1.2.11 обновлён после `doctor compatible:true`. Свежие preflight, productive eligibility и новые scored E2E **ещё открыты**; исторический PASS их не заменяет. |
 
 Проверенные команды этого этапа: `pnpm typecheck`, `pnpm build`,
 `pnpm test:release`, целевые `vitest` для review-copy/stage-consistency/
@@ -1065,6 +1065,127 @@ external-review-lifecycle (3/3) и реальный review recovery (1/1). По�
 полные
 `test:integration`/`test:runtime-sensitive` не объявлены пройденными.
 
-Перед **release** обновить эту таблицу результатами общего integration gate и
-новым candidate commit SHA. Нельзя считать план полностью выполненным, пока
-P5/P6 остаются открытыми.
+Нельзя считать план полностью выполненным, пока свежая квалификация P5 и
+controlled live verification P6 остаются открытыми.
+
+### CP-159: результат свежей проверки и новые блокеры
+
+Четыре изолированных preflight прошли на опубликованном beta.103; полный
+`npm test` dd-eval: 321 passed, 8 skipped, 0 failed. Запущены четыре новые
+scored E2E. Это проверка P6, а не продолжение старых EVAL. Ни один из четырёх
+пока не даёт полного E2E PASS:
+
+| Harness / EVAL | Проверенная граница | Терминальная причина либо блокер |
+| --- | --- | --- |
+| AGY `EVAL-20260925125216-0082ce39` | baseline PASS, SPECIFY и PROTOCOLIZE завершены, PLAN начат | `incomplete_subject_turn` после `ambiguous_lifecycle_receipt`: два корректируемых `stage finish` PLAN завершились `no_effect` на подготовке входа, но их native hook events остались `observed` без outcome; третий вызов нашёл несколько живых receipts. Не provider auth. |
+| Grok `EVAL-20260925125602-b7ee4573` | baseline PASS; `daemon.start ready=true`, native Session создана; SPECIFY, PROTOCOLIZE и PLAN завершены | перед PLAN-REVIEW `session.prompt` отклонён `process_ownership_unknown` для provider process. |
+| Luna `EVAL-20260925130209-2e6a645c` | baseline PASS; native Subject вошёл в SPECIFY и создал ожидаемый HITL | отдельный Codex Interaction Judge turn завершился `serverOverloaded` / `Selected model is at capacity`; EVAL корректно зафиксировал `turn_interrupted`. Это подтверждённая внешняя ёмкость, а не ошибка HITL-артефакта. |
+| ZCode `EVAL-20260925130644-5725b26d` | baseline PASS; SPECIFY-HITL отвечен, SPECIFY завершён | перед PROTOCOLIZE `session.prompt` отклонён `process_ownership_unknown` для provider process. |
+
+**P7a — AGY / ранний correctable hook outcome.** Подготовка CLI-входа
+происходит до claim. Диагностическая корреляция точного argv не узнавала
+составной native shell (`python ... && dd-flow stage finish`), хотя hook уже
+имел точный lifecycle `match_key`. При `phase=prepare`, `effect=no_effect` и
+существующем runtime DB разрешить поиск только единственного свежего hook по
+штатному match key и сохранить `correctable` outcome до следующей попытки.
+Несколько подходящих событий остаются неоднозначностью; ownership/claim не
+ослабляются. Адресная регрессия compound shell → no-effect → fresh retry
+прошла; существующий простой AGY stage-finish тест также прошёл. Совместный
+`stage-lifecycle-ownership`/`run-cli-admission` набор: 167/167 PASS. Нужны
+полный release gate, выпуск нового pinned engine и новый AGY E2E; старый не
+ремонтировать.
+
+**P7b — transient renewal и причина Grok/ZCode.** Оба падения вышли из
+`heartbeatDaemonProcess`: он сохранял любой разовый сбой heartbeat в
+`lease.error`, а следующий `assertDaemonOwnership` немедленно отказывал.
+Первоначальный `cause` не попал в наружный error receipt; поэтому конкретную
+историческую причину сбоя CLI/БД/timeout **установить по этим EVAL невозможно**.
+Исправление не признаёт старый lease достаточным: перед продуктивной операцией
+повторно подтверждает именно этот lease, а при повторном отказе, утрате либо
+истечении запрещает dispatch. Проверка ограничена lease текущего `stateDir`,
+а structured cause сохраняется. Синтетический первый отказ/успешный повтор
+прошёл; hook/runtime-scope набор: 12/12 PASS. `pnpm typecheck`, `pnpm lint` и
+`pnpm test:release` после кода — PASS. Нужны full gate и новые Grok/ZCode E2E
+с сохранённым cause при отказе.
+
+**P7c — Luna provider capacity.** `serverOverloaded` получен от отдельного
+Interaction Judge turn; runtime сохранил конкретный provider error и безопасно
+остановил EVAL. Не объявлять это дефектом схемы или автоматически менять модель:
+профиль Judge остаётся `gpt-6-sol high`. Повторная квалификация/E2E возможна
+только как новый run после доступности провайдера, с новым preflight; текущий
+failed EVAL не возобновлять. Если перегрузка воспроизводится, отдельно
+спроектировать ограниченный retry *до* irreversible HITL answer, с durable
+identity и без дубля взаимодействия; не добавлять его по одному внешнему сбою.
+
+P6 остаётся **не завершён**. Дальнейшая последовательность: закончить P7a/P7b
+адресными и полными тестами → отдельный выпуск/pin новой версии → preflight
+четырёх свежих homes → новые scored E2E по одному на harness. При новом
+blocker — read-only расследование и остановка, без правки runtime-состояния,
+resume или автоматического дублирования EVAL.
+
+**Выпуск P7a/P7b.** Изолированный workflow
+[36142771929](https://github.com/deksden-com/dd-flow-cli/actions/runs/36142771929)
+завершился success: prepare, runtime-sensitive, все четыре integration shard-а,
+candidate acceptance, публикация и registry-consumer smoke. Опубликован
+`0.9.0-beta.104` от `d8b1b96db830c5e56e8409dfc94837fb73638673`;
+выборка registry и аннотированный tag подтвердили версию/commit. Установленный
+в новом изолированном home snapshot проверен штатным `verifyEngineArtifact`:
+`990d2dc9b4e318d88219bd4cbc65ca16349a92deff9e5d95ab86701ae5e79459`.
+CP-160 сохраняет те же source и flow-pack commits; меняется только этот
+проверенный engine pin. Квалификация и новые E2E CP-160 ещё не заявлены PASS.
+
+### CP-160: наблюдение свежих E2E и новый semantic blocker
+
+Четыре изолированных preflight на beta.104 прошли. Первый Luna preflight
+временно вернул `process_group_ownership_unknown` при завершении leader с ещё
+не доказанным состоянием process group; после read-only проверки процесса
+повторный preflight прошёл. Не ослаблять общий guard: fixture AGY доказывает,
+что у такого group может остаться живой helper. Отдельно проверить, является ли
+это только коротким окном естественного завершения или повторяемым дефектом
+`doctor` cleanup; регрессия должна различать оба случая без сигнала чужой группе.
+
+AGY `EVAL-20260925142233-54c96f08`: baseline PASS, native Session создана,
+SPECIFY завершён штатным `stage finish`, но EVAL терминален с
+`required_hitl_missing` (`required HITL did not occur at specify`). В native
+событиях есть `stage start`, запись результата и `stage finish`, но нет
+`stage pause`; это не сбой авторизации, hook или transport. Сам результат
+выбрал `Low/Medium/High`, создание с выбранным `High` и редактирование,
+тогда как скрытый canonical answer задаёт `no_priority` по умолчанию,
+запрет выбора при создании, одинаковые UI/API правила и особое поведение
+архивных проектов. Следовательно, эти решения нельзя считать выведенными из
+пользовательской фразы. Текущий SPECIFY template предлагает `safe
+solution-space default` и `reversible assumption` перед вопросом; модель
+применила этот путь к существенному продуктовому контракту.
+
+**P8 — надёжность обязательного HITL fixture без лишней строгости.**
+Scored сценарий проверяет pause/resume, но исходное пользовательское задание
+не говорило, что выбор продуктовых правил остаётся за человеком. Исправить
+минимально сам вход: явно назвать нерешённые классы решений и попросить
+спросить пользователя до протокола, не раскрывая canonical ответ. Проверить
+SHA входа, E2E materialization и matched HITL на новом EVAL. Это не требует
+нового lifecycle framework и не превращает каждый SPECIFY в обязательный
+вопрос. Отдельно оценить качество AGY SPECIFY как semantic miss: выбранные им
+правила не следовали из запроса. Общий flow-pack template менять только при
+повторяемом промахе с явным запросом вопроса либо самостоятельном доказанном
+дефекте; один stochastic turn не обосновывает глобальную строгость.
+До нового E2E не считать AGY beta.104 квалифицированным и не править старый EVAL.
+
+Grok `EVAL-20260925142631-067b67a8`: baseline PASS,
+`daemon.start.ready=true`, native Session
+`01a0d8f7-f6aa-7ef2-ba98-85515425bae1` создана, RUN вошёл в SPECIFY;
+затем зафиксированы `stage_waiting_for_user`, ответ и resume той же Session.
+SPECIFY и PROTOCOLIZE завершены; последняя проверенная Stage — PLAN.
+EVAL ещё активен, итог не заявлен.
+После AGY blocker новые ZCode/Luna scored E2E не запускаются до разрешения
+P8; ранее пройденные preflight не являются E2E результатом.
+
+**P8 implementation, CP-161 preparation.** В отдельной ветке
+`eval/cp161-hitl-contract` входное задание прямо оставляет существенные
+правила на согласование и просит сначала задать вопрос. Значения скрытого
+ответа не раскрыты. Обновлены оба SHA pin: в `case.json` и blueprint
+`stage-context.json`; исторические stage-entry snapshots не изменены.
+Отдельный checkout сохраняет CP-160 Grok definition без дрейфа.
+`npm test -- --test-concurrency=2`: 321 passed, 8 skipped, 0 failed.
+Новый scored AGY на изменённом входе **не запускался**: сначала нужен новый
+isolated preflight, затем E2E только после разбора текущего blocker/решения
+продолжить кампанию. Полный P6 по четырём harness остаётся открытым.
