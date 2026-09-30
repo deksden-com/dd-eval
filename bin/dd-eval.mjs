@@ -27,7 +27,7 @@ Usage:
   dd-eval runner canonical qualification recover --build <path> --receipt <qualification-receipt.json>
   dd-eval runner canonical accept --build <path> --entry <stage> --review <file>
   dd-eval runner eval run --profile <run-profile.json>
-  dd-eval runner eval judge --eval <path> [--profile <judge-profile-id>]
+  dd-eval runner eval judge --eval <path> [--profile <judge-profile-id>] [--supplement <file> --output <new-assessment-root>]
   dd-eval runner status --eval <path>
   dd-eval runner control status --eval <path> [--execution <id>]
   dd-eval runner control pause|stop --eval <path> --request-id <id>
@@ -100,7 +100,7 @@ try {
   }
   else if (family === "runner" && command === "canonical" && action === "accept") result = await canonicalAccept({ buildRoot: required(options, "build"), entry: required(options, "entry"), reviewFile: required(options, "review") });
   else if (family === "runner" && command === "eval" && action === "run") result = await requestEvalRun({ profileFile: required(options, "profile") });
-  else if (family === "runner" && command === "eval" && action === "judge") result = await evalJudge({ evalRoot: required(options, "eval"), ...(options.profile ? { profileId: options.profile } : {}) });
+  else if (family === "runner" && command === "eval" && action === "judge") result = await evalJudge({ evalRoot: required(options, "eval"), ...(options.profile ? { profileId: options.profile } : {}), supplementFile: options.supplement ?? null, outputRoot: options.output ?? null });
   else if (family === "runner" && command === "status") result = await runnerStatus({ evalRoot: required(options, "eval") });
   else if (family === "runner" && command === "control" && action === "status") {
     if (positional.length !== 3 || Object.keys(options).some(key => !["eval", "execution"].includes(key))) throw new Error("Use runner control status --eval <path> [--execution <id>]");

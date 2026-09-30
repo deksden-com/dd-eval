@@ -1,5 +1,7 @@
 # 057 — Детерминированная verification matrix и исправление admission AGY и ZCode
 
+Уточнение CP187, 2026-09-30: оба завершённых E2E обнаружили несовпадение source catalog producer/acceptance; дополнительный аудит выявил пробелы qualification и portable publication после restore. Доработки — [058](058-cp187-systemic-continuation-evidence-review-plan.md), P2/P3. Историческая поставка P1–P6 ниже не подтверждает полноту этих контрактов.
+
 Дата: 2026-09-29. Статус на 2026-09-30: P1–P6 реализованы, exact source beta.122 опубликован после успешного полного CI; installed/native qualification и новые E2E P7 выполняются. Историческая причина ZCode >15 s остаётся unknown; новый measured reliability envelope проверяется отдельно. Проверен по `$ponytail` (full) и `prompting`. Продолжает [056](056-cp185-three-harness-flow-repair-plan.md). P1–P4 закрывают evidence/матрицу; P5–P7 закрывают AGY shell/cwd, ZCode admission/диагностику и передачу причины отказа в controller/EVAL. Основание — [отчёт CP186](../runbooks/cp-186-three-harness-beta121.md), read-only исследование exact beta.121 и исходников. Timeout не является доказательством SQLite lock. Условия готовности — разделы 12 и 16; source tests не заменяют release/native gates.
 
 ## 1. Цель и установленная причина

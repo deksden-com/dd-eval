@@ -1,5 +1,5 @@
-import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile, realpath, lstat } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
+import { mkdir, readFile, writeFile, realpath, lstat, open, link, unlink } from "node:fs/promises";
 import path from "node:path";
 import { verifyEngineArtifact, assertVerificationMatrixQualification } from "../lib/engine-admission.mjs";
 import { validateVerificationMatrix } from "../lib/case-acceptance.mjs";
@@ -22,10 +22,15 @@ const read = async (relative, owner = runHome) => {
   return await readFile(file);
 };
 const runBytes = await read("run.json"), run = JSON.parse(runBytes);
+const bindingBytes = await read("engine-binding.json"), binding = JSON.parse(bindingBytes);
+if (binding.schema_id !== "dd-flow/run-engine-binding@1" || binding.run_id !== run.run_id || binding.engine?.integrity_checksum !== engineDigest
+  || binding.engine?.package_name !== engine.package_name || binding.engine?.package_version !== engine.package_version || binding.engine?.engine_version !== engine.engine_version) throw new Error("Evidence RUN belongs to a different selected engine");
 if (run.verification_matrix_contract !== "dd-flow/verification-matrix@1") throw new Error("RUN has no retained matrix contract");
 const stages = { plan: "03-plan", "plan-review": "04-plan-review", code: "05-code", "code-review": "06-code-review", merge: "07-merge" };
 const packets = [], retained = [];
 const sha = bytes => createHash("sha256").update(bytes).digest("hex");
+const bindingRelative = `${path.basename(output)}.packets/engine-binding.json`;
+retained.push({ file: path.join(path.dirname(output), bindingRelative), bytes: bindingBytes });
 for (const [stage, directory] of Object.entries(stages)) {
   let reportBytes;
   try { reportBytes = await read(`${directory}/stage-report.json`); } catch (error) { if (error.code === "ENOENT") continue; throw error; }
@@ -44,7 +49,7 @@ for (const [stage, directory] of Object.entries(stages)) {
     retained.push({ file: path.join(path.dirname(output), relative), bytes });
   }
   packet.sources = [];
-  if (stage === "merge") for (const [index, source] of matrix.sources.entries()) {
+  for (const [index, source] of matrix.sources.entries()) {
     const projectAt = args.indexOf("--project-root");
     const owner = source.root === "run" ? runHome : await realpath(projectAt >= 0 ? args[projectAt + 1] : run.workspace?.workspace_path ?? "");
     const bytes = await read(source.path, owner);
@@ -59,7 +64,19 @@ if (!packets.length) throw new Error("No real owning Stage report published a ma
 // Never manufacture/overwrite qualification from schema existence alone.
 for (const item of retained) { await mkdir(path.dirname(item.file), { recursive: true }); await writeFile(item.file, item.bytes, { flag: "wx" }); }
 const skipped = ["plan-review", "code-review"].filter(stage => run.settings?.[stage.replace("-", "_")]?.mode === "off" && run.settings[stage.replace("-", "_")].reason?.trim());
-const receipt = { schema_id: "dd-eval/verification-matrix-qualification@1", contract: run.verification_matrix_contract, status: "passed", engine_artifact_sha256: engineDigest, flow_commit: flowCommit, built_with_canon: { version: canon.version, commit: canon.commit }, skipped_stages: skipped, packets };
-await writeFile(output, JSON.stringify(receipt, null, 2) + "\n", { flag: "wx" });
-await assertVerificationMatrixQualification({ file: path.join(path.dirname(output), "checkpoint.json"), value: { flow_pack: { commit: flowCommit, memory_bank_version: canon.version, verification_matrix: { contract: receipt.contract, file: path.basename(output), sha256: sha(await readFile(output)), canon_commit: canon.commit } } } }, engine, { checker: "task-priority@3" });
+const receipt = { schema_id: "dd-eval/verification-matrix-qualification@2", contract: run.verification_matrix_contract, status: "passed", engine_artifact_sha256: engineDigest, engine_binding: { path: bindingRelative, sha256: sha(bindingBytes) }, flow_commit: flowCommit, built_with_canon: { version: canon.version, commit: canon.commit }, skipped_stages: skipped, packets };
+const receiptBytes = Buffer.from(JSON.stringify(receipt, null, 2) + "\n");
+await assertVerificationMatrixQualification({ file: path.join(path.dirname(output), "checkpoint.json"), value: { flow_pack: { commit: flowCommit, memory_bank_version: canon.version, verification_matrix: { contract: receipt.contract, file: path.basename(output), sha256: sha(receiptBytes), canon_commit: canon.commit } } } }, engine, { checker: "task-priority@3" }, receiptBytes);
+// A crash during writing must never expose a partial receipt labelled passed.
+// Hard-link publication is atomic and, unlike rename, cannot overwrite a pin.
+const temporary = `${output}.${randomUUID()}.tmp`;
+let handle;
+try {
+  handle = await open(temporary, "wx");
+  await handle.writeFile(receiptBytes); await handle.sync(); await handle.close(); handle = null;
+  await link(temporary, output);
+} finally {
+  await handle?.close();
+  await unlink(temporary).catch(error => { if (error.code !== "ENOENT") throw error; });
+}
 process.stdout.write(JSON.stringify({ file: output, sha256: sha(await readFile(output)), published_stages: packets.length }) + "\n");

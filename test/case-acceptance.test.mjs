@@ -79,6 +79,7 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
   const v2 = { ...policy, checker: "task-priority@2" };
   const protocol = "PRT-007-task-priority-e2e";
   const candidatePlan = { plan_id: "PLAN-007", protocol_id: protocol, revision: 2,
+    checks: [{ id: "CHK-LOCAL", run_at: "merge" }], items: [],
     acceptance: [{ criterion_id: "AC-001", check_refs: ["CHK-LOCAL"], expected_evidence: ["local check"], proof_limits: ["local only"] }] };
   const planBytes = JSON.stringify(candidatePlan);
   const receiptId = "WRK-001-merge/RCP-002";
@@ -120,6 +121,10 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
       ...["01-specify/specify.json", "02-protocolize/protocolize-result.json", "02-protocolize/stage-report.json", "03-plan/code-work-batch.json", "07-merge/merge-gate.json"].map(path => ({ role: path, root: "run", path })),
       { role: `receipt:${binding}`, root: "run", path: "07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json" }
     ];
+    const retainedBatchBytes = await readFile(path.join(f.runtime, "03-plan/code-work-batch.json"));
+    const retainedBatchPath = `07-merge/verification/sources/${sha(retainedBatchBytes)}/code-work-batch.json`;
+    await put(f.runtime, retainedBatchPath, retainedBatchBytes);
+    sourceNames.push({ role: "code_work_batch", root: "run", path: retainedBatchPath });
     await put(f.runtime, sourceNames[0].path, planBytes);
     const sources = await Promise.all(sourceNames.map(async source => ({ ...source, sha256: sha(await readFile(path.join(source.root === "run" ? f.runtime : f.workspace, source.path))) })));
     sources.sort((a, b) => `${a.role}:${a.root}:${a.path}` < `${b.role}:${b.root}:${b.path}` ? -1 : 1);

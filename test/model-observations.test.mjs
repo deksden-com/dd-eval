@@ -7,6 +7,7 @@ import { checkObservedProfile, readModelObservations, modelAttribution, modelObs
 import { resolveEvidenceJournals } from '../lib/runner.mjs';
 import { modelProgressPump } from '../lib/model-progress.mjs';
 import { readEvents } from '../lib/runner-events.mjs';
+import { pathToFileURL } from 'node:url';
 
 async function fixture(t) { const root = await mkdtemp(path.join(os.tmpdir(), 'model-observations-')); t.after(() => rm(root, { recursive: true, force: true })); return { root, journal: path.join(root, 'native.jsonl') }; }
 
@@ -97,4 +98,32 @@ test('model attribution distinguishes a missing inspection from a missing attemp
   assert.equal(modelAttribution([known, inspect], ['child', 'other']).observation_completeness, 'incomplete');
   const next = { ...inspect, source: { scope: 'configured', attempt_id: 'two' } };
   assert.equal(modelAttribution([known, next]).observation_completeness, 'incomplete');
+});
+
+test('typed model evidence preserves response gaps, optional omissions and account routing', () => {
+  const known = { harness: 'antigravity-cli', session_id: 'root', observed: { provider: 'account-a', model: 'same' }, evidence: 'configured', source: { scope: 'configured', turn_id: 'one' } };
+  const omitted = { ...known, observed: {}, evidence: 'unavailable', source: { channel: 'native.hook', scope: 'configured', non_asserting: true } };
+  assert.equal(modelAttribution([known, omitted]).observation_completeness, 'available_native_sources');
+  const responseUnknown = { ...omitted, source: { scope: 'response', turn_id: 'one' } };
+  assert.equal(modelAttribution([known, responseUnknown]).observation_completeness, 'incomplete');
+  const configuredMalformed = { ...known, observed: {}, kind: 'model_observation_unavailable' };
+  assert.equal(modelAttribution([known, configuredMalformed]).observation_completeness, 'incomplete');
+  const responseMalformed = { ...configuredMalformed, evidence: 'response', source: { scope: 'response', turn_id: 'one' } };
+  assert.equal(modelAttribution([known, responseMalformed]).observation_completeness, 'incomplete');
+  const routed = { ...known, observed: { provider: 'account-b', model: 'same' }, kind: 'model_changed' };
+  const result = modelAttribution([known, routed]);
+  assert.equal(result.mixed, true); assert.equal(result.transitions.length, 1);
+  assert.deepEqual(result.providers, ['account-a', 'account-b']);
+});
+
+test('dd-eval model projection matches the selected dd-flow source across typed evidence corpus', { skip: !process.env.DD_FLOW_SOURCE_ROOT && 'set DD_FLOW_SOURCE_ROOT for cross-repository parity' }, async () => {
+  const native = await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'src/harness-runtime/lib/model-observations.mjs')).href);
+  const root = { harness: 'zcode-acp', session_id: 'root', requested: { model: 'same' }, observed: { provider: 'a', model: 'same' }, kind: 'model_observed', evidence: 'configured', source: { channel: 'native', scope: 'configured', attempt_id: 'one', turn_id: 'one' } };
+  const corpus = [[], [root], [root, { ...root, observed: { model: 'same', provider: 'b' }, kind: 'model_changed' }],
+    [root, { ...root, observed: {}, kind: 'model_observation_unavailable' }],
+    [root, { ...root, observed: {}, evidence: 'response', source: { scope: 'response', turn_id: 'one' } }],
+    [root, { ...root, observed: {}, evidence: 'unavailable', source: { channel: 'native.hook', scope: 'configured', non_asserting: true } }],
+    [root, { ...root, observed: {}, evidence: 'unavailable', source: { scope: 'response', turn_id: 'two' } }],
+    [root, { ...root, session_id: 'child', parent_session_id: 'root', observed: {}, evidence: 'unavailable' }]];
+  for (const events of corpus) assert.deepEqual(modelAttribution(events, ['root', 'child']), native.modelAttribution(events, ['root', 'child']));
 });

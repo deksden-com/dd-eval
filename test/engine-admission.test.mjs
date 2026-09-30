@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, writeFile, rm, readdir, access } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import os from "node:os";
 import path from "node:path";
 import { assertCheckpointEngine, assertVerificationMatrixQualification, engineArtifactDigest, verifyEngineArtifact } from "../lib/engine-admission.mjs";
@@ -36,39 +38,119 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
     await mkdir(path.join(root, "dist"));
     await put("dist/build-info.json", { built_with_canon: canon });
     const matrix = { schema_id: "dd-flow/verification-matrix@1", header: { project_id: "PRJ-1", run_id: "RUN-1", stage: "plan", stage_attempt: "try-001", role: "output", completeness: "declared", source_fingerprint: "1".repeat(64) }, sources: [], requirements: [], criteria: [], policy_checks: [] };
+    const plan = { protocol_id: "PRT-001", plan_id: "PLAN-001", revision: 1, items: [], checks: [], acceptance: [] }, planHash = hash(JSON.stringify(plan));
+    const batch = { sources: [{ protocol_id: plan.protocol_id, plan_id: plan.plan_id, revision: 1, sha256: planHash }] }, batchHash = hash(JSON.stringify(batch));
+    const baseProofs = [];
+    for (const [source_path, value, role] of [
+      ["01-specify/specify.json", { requirements: [], acceptance_criteria: [] }, "specify"],
+      ["02-protocolize/protocolize-result.json", { delivery: { members: [{ key: "main" }] }, obligation_ownership: [] }, "protocolize"],
+      ["02-protocolize/stage-report.json", { semantic: { acceptance: ["PRT-001"] } }, "protocolize_report"],
+      [`03-plan/verification/sources/${planHash}/plan.json`, plan, "plan:PRT-001"],
+      [`03-plan/verification/sources/${batchHash}/code-work-batch.json`, batch, "code_work_batch"]
+    ]) baseProofs.push({ ...await put(`base-${baseProofs.length}.json`, value), root: "run", source_path, role });
+    matrix.sources = baseProofs.map(ref => ({ role: ref.role, root: ref.root, path: ref.source_path, sha256: ref.sha256 }));
     matrix.header.source_fingerprint = verificationMatrixFingerprint(matrix);
     const json = await put("matrix.json", matrix), markdown = await put("matrix.md", "Generated view\n");
-    const runValue = { project: { id: "PRJ-1" }, run_id: "RUN-1", verification_matrix_contract: matrix.schema_id, stage_runs: ["plan", "plan-review", "code", "code-review", "merge"].map(stage => ({ stage, attempt: "try-001" })) };
+    const runValue = { project: { id: "PRJ-1" }, run_id: "RUN-1", verification_matrix_contract: matrix.schema_id, stage_runs: ["plan", "plan-review", "code", "code-review", "merge"].map(stage => ({ stage, attempt: "try-001", status: "done" })) };
     const run = await put("run.json", runValue);
-    const report = await put("report.json", { run_id: "RUN-1", stage: "plan", semantic: { verification_matrix: { contract: matrix.schema_id, role: "output", completeness: "declared", source_fingerprint: matrix.header.source_fingerprint, json, markdown } } });
-    const receipt = { schema_id: "dd-eval/verification-matrix-qualification@1", status: "passed", contract: matrix.schema_id, engine_artifact_sha256: "a".repeat(64), flow_commit: "b".repeat(40), built_with_canon: canon, packets: [{ run, report, json, markdown }] };
+    const report = await put("report.json", { run_id: "RUN-1", stage: "plan", semantic: { batch_checksum: batchHash, verification_matrix: { contract: matrix.schema_id, role: "output", completeness: "declared", source_fingerprint: matrix.header.source_fingerprint, json, markdown } } });
+    const engineBinding = await put("engine-binding.json", { schema_id: "dd-flow/run-engine-binding@1", run_id: "RUN-1", engine: { package_name: "dd-flow", package_version: "test", engine_version: "test", integrity_checksum: "a".repeat(64) } });
+    const receipt = { schema_id: "dd-eval/verification-matrix-qualification@2", status: "passed", contract: matrix.schema_id, engine_artifact_sha256: "a".repeat(64), engine_binding: engineBinding, flow_commit: "b".repeat(40), built_with_canon: canon, packets: [{ run, report, json, markdown, sources: baseProofs }] };
     const qualification = await put("qualification.json", receipt);
     const checkpoint = { file: path.join(root, "checkpoint.json"), value: { flow_pack: { commit: receipt.flow_commit, memory_bank_version: canon.version, verification_matrix: { contract: matrix.schema_id, file: qualification.path, sha256: qualification.sha256, canon_commit: canon.commit } } } };
-    const engine = { snapshot_root: root, integrity: { checksum: receipt.engine_artifact_sha256 } };
+    const engine = { package_name: "dd-flow", package_version: "test", engine_version: "test", snapshot_root: root, integrity: { checksum: receipt.engine_artifact_sha256 } };
     await assert.rejects(assertVerificationMatrixQualification(checkpoint, engine, policy), { code: "verification_matrix_qualification_invalid" }, "one PLAN output cannot qualify the full promised cycle");
     const gate = { schema_id: "dd-flow/merge-gate@2", run_id: "RUN-1", checks: [{ id: "CHK-1" }], acceptance_refs: [], profile_hash: null };
     gate.gate_hash = hash(JSON.stringify({ checks: gate.checks, acceptance_refs: [] }));
     const native = { id: "WRK-1/RCP-1", scope: "aggregate", status: "passed", input_hash: "target-input", verification_epoch: "epoch", check_refs: ["CHK-1"] };
     const accepted = { schema_id: "dd-flow/merge-gate-acceptance@2", run_id: "RUN-1", accepted_tree: "tree", work_id: "WRK-1", merge_request_id: "MRG-1", profile_hash: null, gate_hash: gate.gate_hash, receipts: [{ id: native.id, input_hash: native.input_hash, execution_refs: native.check_refs, binding_refs: native.check_refs }] };
     const refs = [];
-    for (const [source_path, value] of [["07-merge/merge-gate.json", gate], ["07-merge/merge-gate-acceptance.json", accepted], ["07-merge/checks/RCP-1/receipt.json", native], ["01-specify/specify.json", { requirements: [] }]]) {
+    for (const [source_path, value] of [["07-merge/merge-gate.json", gate], ["07-merge/merge-gate-acceptance.json", accepted], ["07-merge/checks/RCP-1/receipt.json", native], ["03-plan/code-work-batch.json", batch]]) {
       const ref = await put(`proof-${refs.length}.json`, value); refs.push({ ...ref, root: "run", source_path });
     }
+    refs.push(...baseProofs);
     for (const stage of ["plan-review", "code", "code-review", "merge"]) {
-      const value = { ...matrix, header: { ...matrix.header, stage, completeness: stage === "merge" ? "final" : "execution" }, sources: [] };
+      const value = { ...matrix, header: { ...matrix.header, stage, completeness: stage === "merge" ? "final" : "execution" }, sources: matrix.sources };
       if (stage === "merge") {
         value.header.merge = { merge_request_id: accepted.merge_request_id, work_id: accepted.work_id, gate_hash: gate.gate_hash, profile_hash: null, accepted_tree: "tree", acceptance_ref: { root: "run", path: "07-merge/merge-gate-acceptance.json", sha256: refs[1].sha256 } };
-        value.sources = refs.map(ref => ({ role: ref.source_path, root: "run", path: ref.source_path, sha256: ref.sha256 }));
+        value.sources = refs.map(ref => ({ role: ref.role ?? ref.source_path, root: "run", path: ref.source_path, sha256: ref.sha256 }));
         value.policy_checks = [{ id: "CHK-1", canonical_ref: "CHK-1", declaration: gate.checks[0], result: native, disposition: "retained" }];
       }
       value.header.source_fingerprint = verificationMatrixFingerprint(value);
       const json = await put(`${stage}.json`, value), markdown = await put(`${stage}.md`, "Generated\n");
-      const report = await put(`${stage}-report.json`, { run_id: "RUN-1", stage, semantic: { verification_matrix: { contract: matrix.schema_id, role: "output", completeness: value.header.completeness, source_fingerprint: value.header.source_fingerprint, json, markdown } } });
-      receipt.packets.push({ run, report, json, markdown, ...(stage === "merge" ? { sources: refs } : {}) });
+      const report = await put(`${stage}-report.json`, { run_id: "RUN-1", stage, semantic: { ...(stage === "plan-review" ? { plan_review: { final_batch_checksum: batchHash } } : {}), verification_matrix: { contract: matrix.schema_id, role: "output", completeness: value.header.completeness, source_fingerprint: value.header.source_fingerprint, json, markdown } } });
+      receipt.packets.push({ run, report, json, markdown, sources: stage === "merge" ? refs : baseProofs });
     }
-    const reseal = async () => { checkpoint.value.flow_pack.verification_matrix.sha256 = (await put("qualification.json", receipt)).sha256; };
+    const reseal = async () => {
+      for (const packet of receipt.packets) { const report = JSON.parse(await readFile(path.join(root, packet.report.path))); runValue.stage_runs.find(item => item.stage === report.stage).data_sha256 = packet.report.sha256; }
+      const boundRun = await put("run.json", runValue); for (const packet of receipt.packets) packet.run = boundRun;
+      checkpoint.value.flow_pack.verification_matrix.sha256 = (await put("qualification.json", receipt)).sha256;
+    };
     await reseal();
     await assertVerificationMatrixQualification(checkpoint, engine, policy);
+    for (const change of [{ data_sha256: "f".repeat(64) }, { status: "running" }]) {
+      const unacceptedRun = structuredClone(runValue); Object.assign(unacceptedRun.stage_runs[0], change);
+      const ref = await put("run.json", unacceptedRun); for (const packet of receipt.packets) packet.run = ref;
+      checkpoint.value.flow_pack.verification_matrix.sha256 = (await put("qualification.json", receipt)).sha256;
+      await assert.rejects(assertVerificationMatrixQualification(checkpoint, engine, policy), { code: "verification_matrix_qualification_invalid" }, "self-consistent matrix/report must still belong to an accepted Stage publication");
+      await reseal();
+    }
+    // Exercise the actual producer CLI publication boundary without a provider.
+    const producerEngine = path.join(root, "producer-engine"), producerRun = path.join(root, "producer-run");
+    await mkdir(path.join(producerEngine, "dist"), { recursive: true }); await mkdir(producerRun);
+    await writeFile(path.join(producerEngine, "dist/build-info.json"), JSON.stringify({ built_with_canon: canon }));
+    const selected = { ...engine, snapshot_root: producerEngine, integrity: { checksum: await engineArtifactDigest(producerEngine) } };
+    const engineFile = path.join(producerEngine, "engine.json"); await writeFile(engineFile, JSON.stringify(selected));
+    await writeFile(path.join(producerRun, "run.json"), JSON.stringify(runValue));
+    await writeFile(path.join(producerRun, "engine-binding.json"), JSON.stringify({ schema_id: "dd-flow/run-engine-binding@1", run_id: runValue.run_id, engine: { ...selected, integrity_checksum: selected.integrity.checksum } }));
+    const directories = { plan: "03-plan", "plan-review": "04-plan-review", code: "05-code", "code-review": "06-code-review", merge: "07-merge" };
+    for (const packet of receipt.packets) {
+      const reportValue = JSON.parse(await readFile(path.join(root, packet.report.path)));
+      await mkdir(path.join(producerRun, directories[reportValue.stage]), { recursive: true });
+      await writeFile(path.join(producerRun, directories[reportValue.stage], "stage-report.json"), JSON.stringify(reportValue));
+      for (const kind of ["json", "markdown"]) await writeFile(path.join(producerRun, packet[kind].path), await readFile(path.join(root, packet[kind].path)));
+      for (const source of packet.sources) { const file = path.join(producerRun, source.source_path); await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, await readFile(path.join(root, source.path))); }
+    }
+    const qualify = output => promisify(execFile)(process.execPath, [path.resolve("bin/qualify-verification-matrix.mjs"), "--run-home", producerRun, "--engine-json", engineFile, "--flow-commit", receipt.flow_commit, "--output", output]);
+    const output = path.join(root, "atomic-qualification.json"); await qualify(output);
+    assert.equal(JSON.parse(await readFile(output)).schema_id, "dd-eval/verification-matrix-qualification@2");
+    const blocked = path.join(root, "atomic-blocked.json"); await writeFile(blocked, "existing pin\n");
+    await assert.rejects(qualify(blocked), error => error.stderr.includes("EEXIST"));
+    assert.equal(await readFile(blocked, "utf8"), "existing pin\n");
+    assert.equal((await readdir(root)).some(file => file.startsWith("atomic-blocked.json.") && file.endsWith(".tmp")), false);
+    const missingMatrix = structuredClone(matrix); missingMatrix.sources = missingMatrix.sources.filter(source => source.role !== "code_work_batch");
+    missingMatrix.header.source_fingerprint = verificationMatrixFingerprint(missingMatrix);
+    const matrixBytes = Buffer.from(JSON.stringify(missingMatrix)); await writeFile(path.join(producerRun, json.path), matrixBytes);
+    const missingReport = JSON.parse(await readFile(path.join(root, report.path))); missingReport.semantic.verification_matrix.source_fingerprint = missingMatrix.header.source_fingerprint; missingReport.semantic.verification_matrix.json.sha256 = hash(matrixBytes);
+    await writeFile(path.join(producerRun, "03-plan/stage-report.json"), JSON.stringify(missingReport));
+    const invalidOutput = path.join(root, "invalid-qualification.json"); await assert.rejects(qualify(invalidOutput));
+    await assert.rejects(access(invalidOutput), { code: "ENOENT" }, "invalid authority cannot publish a passed qualification");
+    const originalSchema = receipt.schema_id;
+    receipt.schema_id = "dd-eval/verification-matrix-qualification@1"; await reseal();
+    await assert.rejects(assertVerificationMatrixQualification(checkpoint, engine, policy), { code: "verification_matrix_qualification_invalid" }, "old self-consistency checkpoint cannot admit the stronger contract");
+    receipt.schema_id = originalSchema; await reseal();
+    const boundEngine = JSON.parse(await readFile(path.join(root, engineBinding.path), "utf8"));
+    receipt.engine_binding = await put(engineBinding.path, { ...boundEngine, engine: { ...boundEngine.engine, integrity_checksum: "f".repeat(64) } }); await reseal();
+    await assert.rejects(assertVerificationMatrixQualification(checkpoint, engine, policy), { code: "verification_matrix_qualification_invalid" }, "supplied engine cannot hide a foreign RUN engine binding");
+    receipt.engine_binding = await put(engineBinding.path, boundEngine); await reseal();
+    const planPacket = receipt.packets[0], originalPlanMatrix = JSON.parse(await readFile(path.join(root, planPacket.json.path), "utf8")), originalPlanReport = JSON.parse(await readFile(path.join(root, planPacket.report.path), "utf8"));
+    for (const source of originalPlanMatrix.sources) {
+      const changed = structuredClone(originalPlanMatrix); changed.sources = changed.sources.filter(item => item.path !== source.path);
+      changed.header.source_fingerprint = verificationMatrixFingerprint(changed);
+      planPacket.json = await put(planPacket.json.path, changed);
+      const changedReport = structuredClone(originalPlanReport); changedReport.semantic.verification_matrix.json = planPacket.json; changedReport.semantic.verification_matrix.source_fingerprint = changed.header.source_fingerprint;
+      planPacket.report = await put(planPacket.report.path, changedReport);
+      planPacket.sources = baseProofs.filter(item => item.source_path !== source.path); await reseal();
+      await assert.rejects(assertVerificationMatrixQualification(checkpoint, engine, policy), { code: "verification_matrix_qualification_invalid" }, "missing mandatory source cannot pass with rehashed consistent catalog and existing physical bytes");
+    }
+    const forgedProjection = structuredClone(originalPlanMatrix);
+    forgedProjection.requirements = [{ protocol_id: "PRT-001", id: "R-FAKE", statement: "invented", plan_items: [] }];
+    forgedProjection.header.source_fingerprint = verificationMatrixFingerprint(forgedProjection);
+    planPacket.json = await put(planPacket.json.path, forgedProjection); planPacket.sources = baseProofs;
+    const forgedReport = structuredClone(originalPlanReport); forgedReport.semantic.verification_matrix.json = planPacket.json; forgedReport.semantic.verification_matrix.source_fingerprint = forgedProjection.header.source_fingerprint;
+    planPacket.report = await put(planPacket.report.path, forgedReport); await reseal();
+    await assert.rejects(assertVerificationMatrixQualification(checkpoint, engine, policy), { code: "verification_matrix_qualification_invalid" }, "whole intact source catalog cannot excuse forged projection");
+    planPacket.json = await put(planPacket.json.path, originalPlanMatrix); planPacket.report = await put(planPacket.report.path, originalPlanReport); await reseal();
     checkpoint.value.flow_pack.verification_matrix.canon_commit = "d".repeat(40);
     await assert.rejects(assertVerificationMatrixQualification(checkpoint, engine, policy), { code: "verification_matrix_qualification_invalid" }, "canon identity is independent of synced flow pack identity");
     checkpoint.value.flow_pack.verification_matrix.canon_commit = canon.commit;
@@ -83,6 +165,8 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
     };
     await mutateReport(receipt.packets[0], value => { value.semantic.verification_matrix.role = "input"; return value; });
     await mutateReport(receipt.packets[0], value => { value.run_id = "RUN-foreign"; return value; });
+    await mutateReport(receipt.packets[0], value => { delete value.semantic.batch_checksum; return value; });
+    await mutateReport(receipt.packets[1], value => { delete value.semantic.plan_review.final_batch_checksum; return value; });
     const mergePacket = receipt.packets.at(-1);
     const mergeValue = JSON.parse(await readFile(path.join(root, mergePacket.json.path), "utf8"));
     const withoutBindings = { ...mergeValue, policy_checks: [] };
@@ -110,6 +194,9 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
     for (const changed of [{ root: "workspace" }, { path: "foreign-acceptance.json" }, { sha256: "f".repeat(64) }]) {
       await mutateMerge(value => { Object.assign(value.header.merge.acceptance_ref, changed); return value; });
     }
+    await mutateMerge(value => value, false);
+    await mutateMerge(value => { value.policy_checks[0].declaration = { ...value.policy_checks[0].declaration, purpose: "forged declaration outside accepted gate" }; return value; });
+    await mutateMerge(value => { value.policy_checks.push({ ...value.policy_checks[0], id: "CHK-EXTRA", canonical_ref: "CHK-EXTRA" }); return value; });
     await mutateMerge(value => value, false);
     const originalSources = mergePacket.sources;
     for (const altered of [originalSources.slice(0, -1), [...originalSources, originalSources[0]], [...originalSources.slice(0, -1), { ...originalSources.at(-1), source_path: "foreign-source.json" }]]) {

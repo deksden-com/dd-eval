@@ -37,7 +37,9 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.match(loaded.inputCheckpoint.value.id, /^cp-\d+-task-priority-.+-engine-0-9-0-beta-\d+(?:-.+)?$/);
   assert.equal(loaded.inputCheckpoint.value.source.commit, "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e");
   assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-172-source-baseline-setup");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "b0b124f3816bf3604161398d2cb0c7d7b287f462");
+  const pinnedCheckpoint = JSON.parse(await readFile(path.join(root, 'checkpoints', `${loaded.value.input_checkpoint.id}.json`), 'utf8'));
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, pinnedCheckpoint.flow_pack.commit);
+  assert.match(loaded.inputCheckpoint.value.flow_pack.commit, /^[a-f0-9]{40}$/);
   assert.match(loaded.inputCheckpoint.value.flow_pack.engine.version, /^0\.9\.0-beta\.\d+$/);
   assert.match(loaded.inputCheckpoint.value.flow_pack.engine.commit, /^[a-f0-9]{40}$/);
   assert.match(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, /^[a-f0-9]{64}$/);
@@ -395,18 +397,35 @@ test("quota reset comes from the matching structured native error, not Retry-Aft
 
 test("capacity continuation keeps one native tree and refuses sequential child waves", async () => {
   const overload = { code: "turn_interrupted", details: { provider_session_id: "root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" } } };
-  let dispatched = 0; const waits = [];
-  const base = { sessionId: "root", inspect: async () => ({ provider_session_id: "root", settled: true, settlement: { state: "settled" } }), pause: async ms => { waits.push(ms); } };
-  const result = await boundedCapacityContinuation({ ...base, children: async () => [], attempt: async () => { if (++dispatched === 1) throw overload; return { ok: true }; } });
+  let dispatched = 0, time = 0; const waits = [];
+  const base = { sessionId: "root", clock: () => time, inspect: async () => ({ provider_session_id: "root", settled: true, settlement: { state: "settled" } }), pause: async ms => { waits.push(ms); time += ms; } };
+  const result = await boundedCapacityContinuation({ ...base, children: async () => [], attempt: async (_ordinal, _capacity, authorizeDispatch) => { await authorizeDispatch(); if (++dispatched === 1) throw overload; return { ok: true }; } });
   assert.deepEqual(result, { ok: true });
   assert.equal(dispatched, 2);
-  assert.deepEqual(waits, [5_000]);
+  assert.equal(waits.reduce((sum, ms) => sum + ms, 0), 5_000);
   dispatched = 0;
-  await assert.rejects(boundedCapacityContinuation({ ...base, children: async () => [{ session_id: "child" }], attempt: async () => { dispatched++; throw overload; } }), error => error === overload);
+  await assert.rejects(boundedCapacityContinuation({ ...base, children: async () => [{ session_id: "child" }], attempt: async (_ordinal, _capacity, authorizeDispatch) => { await authorizeDispatch(); dispatched++; throw overload; } }), error => error === overload);
   assert.equal(dispatched, 1);
   dispatched = 0;
-  await assert.rejects(boundedCapacityContinuation({ ...base, inspect: async () => ({ provider_session_id: "root", settled: false }), children: async () => [], attempt: async () => { dispatched++; throw overload; } }), error => error === overload);
+  await assert.rejects(boundedCapacityContinuation({ ...base, inspect: async () => ({ provider_session_id: "root", settled: false }), children: async () => [], attempt: async (_ordinal, _capacity, authorizeDispatch) => { await authorizeDispatch(); dispatched++; throw overload; } }), error => error === overload);
   assert.equal(dispatched, 1);
+});
+
+test("capacity native children appearing after backoff or permit prevent another wave", async () => {
+  for (const during of ['backoff', 'permit']) {
+    let time = 0, calls = 0, appeared = false;
+    const error = { code: 'turn_interrupted', details: { provider_session_id: 'root', turn_id: 't1', terminal_status: 'failed', provider_error: { codexErrorInfo: 'serverOverloaded' } } };
+    await assert.rejects(boundedCapacityContinuation({ sessionId: 'root', clock: () => time,
+      pause: async ms => { time += ms; if (during === 'backoff') appeared = true; },
+      inspect: async () => ({ provider_session_id: 'root', settled: true }), children: async () => appeared ? [{ session_id: 'child' }] : [],
+      attempt: async (ordinal, _capacity, beforeDispatch) => {
+        if (ordinal && during === 'permit') appeared = true;
+        await beforeDispatch();
+        calls++; if (!ordinal) throw error; return {};
+      }
+    }), failure => failure === error);
+    assert.equal(calls, 1);
+  }
 });
 
 test("a terminal incomplete execution keeps an immutable evidence candidate for Judge", async () => {
