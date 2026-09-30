@@ -14,7 +14,8 @@ const plan = ".memory-bank/protocol/PRT-007-task-priority-levels/plan.json";
 const evidence = ".memory-bank/protocol/PRT-007-task-priority-levels/evidence/local-proof.md";
 test("case acceptance policy rejects a typo before runner admission", () => {
   assert.doesNotThrow(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@2" }));
-  assert.throws(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@3" }), /unsupported case acceptance policy/);
+  assert.doesNotThrow(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@3" }));
+  assert.throws(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@4" }), /unsupported case acceptance policy/);
 });
 async function put(root, name, value) { const file = path.join(root, name); await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, value); return file; }
 
@@ -95,7 +96,7 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
       "| --- | --- | --- | --- | --- | --- |",
       `| \`${protocol}\`: priority | \`SCN-002-workspace-task-core\` | local | pass | accepted_local_fixed | \`${evidence}\` |`
     ].join("\n"));
-    await put(f.runtime, "01-specify/specify.json", JSON.stringify({ acceptance_criteria: [{ id: "AC-001" }] }));
+    await put(f.runtime, "01-specify/specify.json", JSON.stringify({ acceptance_criteria: [{ id: "AC-001", statement: "local behavior" }] }));
     await put(f.runtime, "02-protocolize/protocolize-result.json", JSON.stringify({ schema_id: "dd-flow/vnext-protocolize-result@3", delivery: { members: [{ key: "primary" }] }, obligation_ownership: [{ obligation_id: "AC-001", member_keys: ["primary"] }] }));
     await put(f.runtime, "02-protocolize/stage-report.json", JSON.stringify({ semantic: { acceptance: [protocol] } }));
     await put(f.runtime, "03-plan/code-work-batch.json", JSON.stringify({ sources: [{ plan_id: "PLAN-007", protocol_id: protocol, revision: 2, sha256: sha(planBytes) }] }));
@@ -108,6 +109,84 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     const passed = await read();
     assert.equal(passed.status, "passed", JSON.stringify(passed.evidence_error ?? passed.gaps));
     assert.equal(passed.facts.criteria[0].checks[0].receipt_id, receiptId);
+    // V3 uses generated facts, not a second manually copied Markdown passport.
+    const v3 = { ...v2, checker: "task-priority@3" };
+    const matrixPath = "07-merge/verification/final/verification-matrix.json";
+    const mdPath = "07-merge/verification/final/verification-matrix.md";
+    const nativeReceipt = JSON.parse(await readFile(path.join(f.runtime, "07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json"), "utf8"));
+    const sourceNames = [
+      { role: `plan:${protocol}`, root: "run", path: `07-merge/verification/sources/${sha(planBytes)}/plan.json` },
+      { role: "merge_acceptance", root: "run", path: "07-merge/merge-gate-acceptance.json" },
+      ...["01-specify/specify.json", "02-protocolize/protocolize-result.json", "02-protocolize/stage-report.json", "03-plan/code-work-batch.json", "07-merge/merge-gate.json"].map(path => ({ role: path, root: "run", path })),
+      { role: `receipt:${binding}`, root: "run", path: "07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json" }
+    ];
+    await put(f.runtime, sourceNames[0].path, planBytes);
+    const sources = await Promise.all(sourceNames.map(async source => ({ ...source, sha256: sha(await readFile(path.join(source.root === "run" ? f.runtime : f.workspace, source.path))) })));
+    sources.sort((a, b) => `${a.role}:${a.root}:${a.path}` < `${b.role}:${b.root}:${b.path}` ? -1 : 1);
+    const fact = { id: "CHK-LOCAL", canonical_ref: binding, declaration: check, result: nativeReceipt, disposition: "retained" };
+    const header = { project_id: "PRJ-001", run_id: "RUN-001", stage: "merge", stage_attempt: "try-001", role: "output", completeness: "final",
+      merge: { merge_request_id: accepted.merge_request_id, work_id: accepted.work_id, gate_hash: accepted.gate_hash, profile_hash: null, accepted_tree: accepted.accepted_tree, acceptance_ref: { root: "run", path: sources.find(item => item.role === "merge_acceptance").path, sha256: sources.find(item => item.role === "merge_acceptance").sha256 } } };
+    const canonical = value => JSON.stringify(value, function(key, item) { return item && !Array.isArray(item) && typeof item === "object" ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]])) : item; }, 2) + "\n";
+    const projection = { schema_id: "dd-flow/verification-matrix@1", header: { ...header, source_fingerprint: sha(canonical({ header, sources, facts: [fact] })) }, sources, requirements: [],
+      criteria: [{ protocol_id: protocol, criterion_id: "AC-001", statement: "local behavior", gate: null, check_refs: ["CHK-LOCAL"], declaration: candidatePlan.acceptance[0], checks: [fact] }], policy_checks: [] };
+    const matrixBinding = { contract: projection.schema_id, role: "output", completeness: "final", source_fingerprint: projection.header.source_fingerprint, json: { path: matrixPath, sha256: null }, markdown: { path: mdPath, sha256: sha("Generated matrix\n") } };
+    const publish = async () => {
+      for (const source of sources) source.sha256 = sha(await readFile(path.join(source.root === "run" ? f.runtime : f.workspace, source.path)));
+      const { source_fingerprint, ...owning } = projection.header;
+      projection.header.source_fingerprint = sha(canonical({ header: owning, sources, facts: [fact] }));
+      matrixBinding.source_fingerprint = projection.header.source_fingerprint;
+      const bytes = canonical(projection);
+      matrixBinding.json.sha256 = sha(bytes);
+      await put(f.runtime, matrixPath, bytes);
+      await put(f.runtime, mdPath, "Generated matrix\n");
+      await put(f.runtime, "run.json", JSON.stringify({ verification_matrix_contract: projection.schema_id, stage_runs: [{ stage: "merge", attempt: "try-001" }] }));
+      await put(f.runtime, "07-merge/stage-report.json", JSON.stringify({ semantic: { merge: { merge_request_id: "MRG-001", work_id: "WRK-001-merge", accepted_tree: "tree-one", protocols: [protocol] }, verification_matrix: matrixBinding } }));
+      await seal(f);
+    };
+    await rm(path.join(f.workspace, matrix));
+    await rm(path.join(f.workspace, evidence));
+    await publish();
+    const generatedRead = () => checkCaseAcceptance({ evalRoot: f.root, execution: "e2e", result: f.result, policy: v3 });
+    const generated = await generatedRead();
+    assert.equal(generated.status, "passed", JSON.stringify(generated.evidence_error));
+    assert.deepEqual(await generatedRead(), generated, "same frozen proof produces identical acceptance receipt");
+    await rm(path.join(f.workspace, `.memory-bank/protocol/${protocol}/plan.json`));
+    await publish();
+    assert.equal((await generatedRead()).status, "passed", "retained PLAN proof survives legitimate workspace cleanup");
+    const protocolizeValue = JSON.parse(await readFile(path.join(f.runtime, "02-protocolize/protocolize-result.json"), "utf8"));
+    protocolizeValue.obligation_amendments = [{ target_id: "AC-001", replacement: "accepted amended behavior" }];
+    await put(f.runtime, "02-protocolize/protocolize-result.json", JSON.stringify(protocolizeValue));
+    await publish();
+    assert.equal((await generatedRead()).status, "unavailable", "original SPECIFY wording cannot replace an accepted amendment");
+    projection.criteria[0].statement = "accepted amended behavior";
+    await publish();
+    assert.equal((await generatedRead()).status, "passed", "matrix uses effective accepted obligation wording");
+    nativeReceipt.status = "failed";
+    await put(f.runtime, sourceNames.find(item => item.role === `receipt:${binding}`).path, JSON.stringify(nativeReceipt));
+    await publish();
+    const negative = await generatedRead();
+    assert.equal(negative.status, "failed", JSON.stringify(negative.evidence_error));
+    assert.ok(negative.gaps.includes(`final_check_failed:${receiptId}`));
+    nativeReceipt.status = "passed";
+    await put(f.runtime, sourceNames.find(item => item.role === `receipt:${binding}`).path, JSON.stringify(nativeReceipt));
+    fact.result = { ...nativeReceipt, input_hash: "forged" };
+    await publish();
+    assert.equal((await generatedRead()).status, "unavailable", "forged passed matrix cannot prove native execution");
+    fact.result = nativeReceipt;
+    projection.header.merge.accepted_tree = "foreign-tree";
+    await publish();
+    assert.equal((await generatedRead()).status, "unavailable");
+    projection.header.merge.accepted_tree = "tree-one";
+    projection.header.stage_attempt = "try-old";
+    await publish();
+    assert.equal((await generatedRead()).status, "unavailable", "stale owning attempt cannot pass");
+    projection.header.stage_attempt = "try-001";
+    await publish();
+    await rm(path.join(f.runtime, mdPath));
+    await seal(f);
+    assert.equal((await generatedRead()).status, "unavailable", "both generated packets are required");
+    await put(f.workspace, `.memory-bank/protocol/${protocol}/plan.json`, planBytes);
+    await put(f.workspace, evidence, "Restored legacy curated evidence\n");
     accepted.receipts.push({ ...accepted.receipts[0] });
     await put(f.runtime, "07-merge/merge-gate-acceptance.json", JSON.stringify(accepted));
     await seal(f);

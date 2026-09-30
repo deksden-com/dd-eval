@@ -28,3 +28,17 @@ test("actual candidate, report and Judge evidence producers satisfy their schema
     assert.equal("case_acceptance" in evidence.executions[0], enabled);
   }
 });
+
+test("V3 Judge receives exact frozen matrix and source paths without deriving a live home", async () => {
+  const hash = "a".repeat(64), snapshot = "/eval/executions/e2e/boundaries/frozen";
+  const json = "runtime/projects/PRJ-1/runs/RUN-1/07-merge/verification/final/verification-matrix.json";
+  const markdown = json.replace(/\.json$/, ".md");
+  const result = { execution: "e2e", state: "candidate_ready", stage: "merge", run_id: "RUN-1", candidate: { manifest: `${snapshot}/snapshot.json`, manifest_sha256: hash },
+    case_acceptance: { file: "/eval/acceptance.json", sha256: hash, receipt: { schema_id: "dd-eval/case-acceptance@1", checker: "task-priority@3", status: "passed", immutable_hash: hash, facts: { consumed_sha256: { [json]: hash, [markdown]: hash, "workspace/.memory-bank/protocol/PRT-1-plan/plan.json": hash } } } } };
+  const manifest = { run_id: "EVAL-test", executions: [{ id: "e2e" }] };
+  const candidate = await buildRunCandidate({ runId: manifest.run_id, manifest, results: [result] });
+  const packet = buildEvidencePacket({ manifest, candidate, results: [result] });
+  assert.deepEqual(packet.executions[0].verification_matrix_sources.map(source => source.path), [path.join(snapshot, json), path.join(snapshot, markdown), path.join(snapshot, "workspace/.memory-bank/protocol/PRT-1-plan/plan.json")]);
+  const check = await validator("evaluator-evidence.v1.schema.json");
+  assert.equal(check(packet), true, JSON.stringify(check.errors));
+});
