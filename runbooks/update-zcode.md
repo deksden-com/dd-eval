@@ -63,6 +63,20 @@ request to replay productive work. Preserve these cases when upgrading upstream.
    retain the engine checkpoint and record the changed harness profile/tuple.
    Preflight and launch use the exact candidate homes and published engine.
 
+For a qualification that claims a **fresh native data store**, bind all three
+native routing paths explicitly (absolute paths): `ZCODE_HOME=<fresh>/.zcode`,
+`ZCODE_STORAGE_DIR=<fresh>/.zcode`, and
+`ZCODE_SESSION_DB_PATH=<fresh>/.zcode/cli/db/db.sqlite`. `ZCODE_HOME` alone selects
+bridge configuration/account data; its `ZCODE_DATA_BASE_DIR` translation does
+not select native CLI artifact storage or the SQLite Session store. Check the
+actual paths for the exact newly created root/child identities, not just paths
+rendered in model output. Copy portable configuration only, never historical
+Sessions or SQLite databases. Keep credentials outside qualification receipts
+and runtime snapshots. Do not override `HOME` or scan/freeze the whole native
+home. Normal EVALs may use explicitly reported harness-owned ambient storage;
+that is distinct from a fresh-store qualification claim. The daemon retains
+explicit routing paths and rejects changed routes on retained restart.
+
 For the current Task Priority scenario the run profile is
 `cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-zcode-glm-5-3-flash-max.json`.
 Read its subject profile reference instead of assuming every ZCode profile uses

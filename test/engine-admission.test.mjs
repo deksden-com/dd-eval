@@ -51,7 +51,7 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
     const native = { id: "WRK-1/RCP-1", scope: "aggregate", status: "passed", input_hash: "target-input", verification_epoch: "epoch", check_refs: ["CHK-1"] };
     const accepted = { schema_id: "dd-flow/merge-gate-acceptance@2", run_id: "RUN-1", accepted_tree: "tree", work_id: "WRK-1", merge_request_id: "MRG-1", profile_hash: null, gate_hash: gate.gate_hash, receipts: [{ id: native.id, input_hash: native.input_hash, execution_refs: native.check_refs, binding_refs: native.check_refs }] };
     const refs = [];
-    for (const [source_path, value] of [["07-merge/merge-gate.json", gate], ["07-merge/merge-gate-acceptance.json", accepted], ["07-merge/checks/RCP-1/receipt.json", native]]) {
+    for (const [source_path, value] of [["07-merge/merge-gate.json", gate], ["07-merge/merge-gate-acceptance.json", accepted], ["07-merge/checks/RCP-1/receipt.json", native], ["01-specify/specify.json", { requirements: [] }]]) {
       const ref = await put(`proof-${refs.length}.json`, value); refs.push({ ...ref, root: "run", source_path });
     }
     for (const stage of ["plan-review", "code", "code-review", "merge"]) {
@@ -97,6 +97,31 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
     mergeReport.semantic.verification_matrix.json.sha256 = mergePacket.json.sha256;
     mergeReport.semantic.verification_matrix.source_fingerprint = mergeValue.header.source_fingerprint;
     mergePacket.report = await put(mergePacket.report.path, mergeReport); await reseal();
+    const mutateMerge = async (change, rejects = true) => {
+      const value = change(structuredClone(mergeValue));
+      value.header.source_fingerprint = verificationMatrixFingerprint(value);
+      mergePacket.json = await put(mergePacket.json.path, value);
+      mergeReport.semantic.verification_matrix.json.sha256 = mergePacket.json.sha256;
+      mergeReport.semantic.verification_matrix.source_fingerprint = value.header.source_fingerprint;
+      mergePacket.report = await put(mergePacket.report.path, mergeReport); await reseal();
+      if (rejects) await assert.rejects(assertVerificationMatrixQualification(checkpoint, engine, policy), { code: "verification_matrix_qualification_invalid" });
+      else await assertVerificationMatrixQualification(checkpoint, engine, policy);
+    };
+    for (const changed of [{ root: "workspace" }, { path: "foreign-acceptance.json" }, { sha256: "f".repeat(64) }]) {
+      await mutateMerge(value => { Object.assign(value.header.merge.acceptance_ref, changed); return value; });
+    }
+    await mutateMerge(value => value, false);
+    const originalSources = mergePacket.sources;
+    for (const altered of [originalSources.slice(0, -1), [...originalSources, originalSources[0]], [...originalSources.slice(0, -1), { ...originalSources.at(-1), source_path: "foreign-source.json" }]]) {
+      mergePacket.sources = altered; await reseal();
+      await assert.rejects(assertVerificationMatrixQualification(checkpoint, engine, policy), { code: "verification_matrix_qualification_invalid" }, "missing, extra or foreign source evidence cannot qualify");
+    }
+    // One native receipt may legitimately prove several canonical refs.
+    mergePacket.sources = [...originalSources, originalSources[2]];
+    await mutateMerge(value => { value.sources.push({ ...value.sources[2], role: "receipt:another-canonical-ref" }); return value; }, false);
+    await mutateMerge(value => { value.sources.push({ ...value.sources[2] }); return value; });
+    mergePacket.sources = originalSources;
+    await mutateMerge(value => value, false);
     const codeReview = receipt.packets.splice(receipt.packets.findIndex(packet => packet.json.path === "code-review.json"), 1)[0];
     receipt.skipped_stages = ["code-review"]; await reseal();
     await assert.rejects(assertVerificationMatrixQualification(checkpoint, engine, policy), { code: "verification_matrix_qualification_invalid" }, "coverage skip needs a retained execution setting");

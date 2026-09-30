@@ -74,6 +74,12 @@ homes, then run one normal dd-flow command to complete the hook-store migration
 before starting a native Codex session. Do not replace an engine or hook under
 an active EVAL home; candidate EVAL homes must use their own published engine.
 
+For CPA campaigns set `CODEX_HOME=/Users/deksden/.codex-cpa` on the runner's
+qualification and launch commands as well. A technical capacity probe copies
+portable native configuration into its own home before invoking `cx`; the
+wrapper's default alone does not select that copy's source. This keeps both
+Subject and Judge on the qualified CPA route without copying Session storage.
+
 ### AGY qualified hooks and per-launch binding
 
 Install and verify the owned `.agents/hooks.json` handlers before accepting the
