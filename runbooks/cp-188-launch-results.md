@@ -59,3 +59,18 @@ After access is restored, qualify the current native tuple and capacity,
 commit its profile in a separate definition, qualify that definition's HITL,
 run preflight, then create a fresh scored AGY E2E. Do not modify the running
 Luna/ZCode definition or their runtime artifacts.
+
+## AGY access restored — preparation after explicit operator authorization
+
+On September 30 the operator restored access and authorized a fresh launch.
+Compatibility qualification of native AGY 1.2.14 passed:
+`/Users/deksden/.dd-eval/qualification/cp-188-agy/conformance/harness-compatibility/20260930130303096/antigravity-cli-google-gemini-3-1-pro-high/receipt.json`.
+Capacity qualification passed with four native direct children:
+`/Users/deksden/.dd-eval/qualification/cp-188-agy/conformance/native-subagents/20260930130534021/antigravity-cli-google-gemini-3-1-pro-high/capacity.json`.
+All four are `settled_by_root`; this proves capacity, not four successful Works.
+Cleanup is clean and settled. Native per-child model attribution is unavailable
+and retained as an explicit observation gap. Model selection remains
+`gemini-3.1-pro-high/high`; both Judges remain `gpt-6-sol/high`.
+Only this separate definition's AGY profile changed; Luna/ZCode inputs remain frozen.
+Next gates are this committed definition's HITL qualification, preflight and
+the new scored attempt's own baseline. Earlier access-failure evidence remains unchanged.
