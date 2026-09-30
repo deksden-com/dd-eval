@@ -5,19 +5,33 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawn, spawnSync } from 'node:child_process';
-import { quote, parse } from '../../dd-flow-cli/node_modules/shell-quote/index.js';
-import { createContext } from '../../dd-flow-cli/dist/runtime/context.js';
-import { registerProject } from '../../dd-flow-cli/dist/services/projects.js';
-import { issueLifecycleInvocation, awaitLifecycleInvocation, settleLifecycleInvocation, assertLifecycleInvocationCurrent } from '../../dd-flow-cli/dist/services/lifecycle-invocations.js';
-import { callDaemon, stopDaemon } from '../../dd-flow-cli/dist/harness-runtime/lib/dd-codex-daemon.mjs';
 
 const source = fileURLToPath(import.meta.url);
 const cli = fileURLToPath(new URL('../../dd-flow-cli/dist/cli.js', import.meta.url));
 const adapter = fileURLToPath(new URL('../../dd-flow-cli/dist/harness-runtime/bin/dd-codex.mjs', import.meta.url));
 
+// A display summary is not a replay payload. Bind this manual negative probe
+// to the settled invocation and its full retained native call, without proof tokens.
+export function manualHookEnvelope({ row, nativeCalls, command, project, rootId, daemonId }) {
+  const identity = JSON.parse(row.identity_json);
+  assert.equal(row.status, 'settled'); assert.equal(row.provider_session_id, rootId);
+  assert.equal(identity[0], daemonId); assert.equal(identity[1], rootId); assert.equal(identity[2], rootId); assert.equal(identity[3], null);
+  assert.ok(typeof identity[4] === 'string' && identity[4]);
+  assert.ok(typeof row.transcript_path === 'string' && path.isAbsolute(row.transcript_path));
+  const matches = nativeCalls.filter(call => call.call_id === identity[4]);
+  assert.equal(matches.length, 1, 'Manual probe needs one exact retained native call');
+  const input = JSON.parse(matches[0].arguments);
+  assert.equal(input.command ?? input.cmd, command, 'Retained native command differs from issued probe');
+  return { hook_event_name: 'PreToolUse', session_id: rootId, transcript_path: row.transcript_path,
+    cwd: project, tool_name: matches[0].name, tool_use_id: identity[4], tool_input: { ...input, command } };
+}
+
 // The probe substitutes only the business mutation with a harmless retained marker.
 // Issuance, native hook, proof RPC, storage and CLI admission are production code.
 export async function marker() {
+  const { quote } = await import('../../dd-flow-cli/node_modules/shell-quote/index.js');
+  const { createContext } = await import('../../dd-flow-cli/dist/runtime/context.js');
+  const { awaitLifecycleInvocation, settleLifecycleInvocation, assertLifecycleInvocationCurrent } = await import('../../dd-flow-cli/dist/services/lifecycle-invocations.js');
   const context = createContext(process.env);
   try {
     const args = process.argv.slice(2), id = args[args.indexOf('--invocation-id') + 1];
@@ -45,6 +59,11 @@ async function bounded(action, ms) {
 }
 
 async function main() {
+  const { quote, parse } = await import('../../dd-flow-cli/node_modules/shell-quote/index.js');
+  const { createContext } = await import('../../dd-flow-cli/dist/runtime/context.js');
+  const { registerProject } = await import('../../dd-flow-cli/dist/services/projects.js');
+  const { issueLifecycleInvocation } = await import('../../dd-flow-cli/dist/services/lifecycle-invocations.js');
+  const { callDaemon, stopDaemon } = await import('../../dd-flow-cli/dist/harness-runtime/lib/dd-codex-daemon.mjs');
   const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'dd-codex-admission-')));
   const project = path.join(root, 'project'), home = path.join(root, 'home'), nativeHome = path.join(root, 'codex-home');
   const stateDir = path.join(root, 'daemon'), bin = path.join(root, 'bin'), journal = path.join(root, 'adapter.events.jsonl');
@@ -78,7 +97,7 @@ async function main() {
     await fs.writeFile(path.join(root, 'prompt.txt'), prompt);
     const response = await bounded(callDaemon(stateDir, 'session.prompt', { sessionId: rootId, cwd: project, model, reasoning: 'low', prompt, timeoutMs: 300000 }), 330000);
     await fs.writeFile(path.join(root, 'response.json'), JSON.stringify(response, null, 2));
-    const rows = context.db.all('SELECT i.id,i.status,i.identity_json,i.event_key,i.outcome_json,h.provider_session_id,h.parent_session_id,h.transcript_path,h.sanitized_summary FROM lifecycle_invocations i LEFT JOIN hook_events h ON h.event_key=i.event_key ORDER BY i.rowid');
+    const rows = context.db.all('SELECT i.id,i.status,i.identity_json,i.event_key,i.outcome_json,h.provider_session_id,h.parent_session_id,h.transcript_path FROM lifecycle_invocations i LEFT JOIN hook_events h ON h.event_key=i.event_key ORDER BY i.rowid');
     evidence.rows = rows;
     for (const attempt of [direct, nested, ...children]) {
       const row = rows.find(row => row.id === attempt.id);
@@ -89,13 +108,16 @@ async function main() {
     const childRows = children.map(child => rows.find(row => row.id === child.id));
     assert.equal(new Set(childRows.map(row => row.provider_session_id)).size, 6);
     assert.ok(childRows.every(row => row.provider_session_id !== rootId));
-    const manual = await command([cli, 'codex', 'hook', 'handle', '--event', 'PreToolUse', '--json'], { ...env, DD_FLOW_CODEX_STATE_DIR: stateDir, DD_FLOW_DAEMON_ID: daemon.daemon_id }, rows[0].sanitized_summary);
+    const directRow = rows.find(row => row.id === direct.id);
+    evidence.root_native_calls = (await fs.readFile(directRow.transcript_path, 'utf8')).split('\n').filter(Boolean).map(line => JSON.parse(line))
+      .filter(row => row.type === 'response_item' && ['function_call', 'custom_tool_call'].includes(row.payload?.type))
+      .map(row => ({ name: row.payload.name, call_id: row.payload.call_id, arguments: row.payload.arguments ?? row.payload.input }));
+    const envelope = manualHookEnvelope({ row: directRow, nativeCalls: evidence.root_native_calls, command: direct.command, project, rootId, daemonId: daemon.daemon_id });
+    await fs.writeFile(path.join(root, 'manual-hook-envelope.json'), JSON.stringify(envelope, null, 2));
+    const manual = await command([cli, 'codex', 'hook', 'handle', '--event', 'PreToolUse', '--json'], { ...env, DD_FLOW_CODEX_STATE_DIR: stateDir, DD_FLOW_DAEMON_ID: daemon.daemon_id }, JSON.stringify(envelope));
     assert.notEqual(manual.code, 0); assert.match(manual.stderr, /native_hook_unproven/);
     const replay = await command(parse(direct.command), env);
     assert.equal(replay.code, 0, replay.stderr); assert.equal(JSON.parse(replay.stdout).replay, true);
-    evidence.root_native_calls = (await fs.readFile(rows[0].transcript_path, 'utf8')).split('\n').filter(Boolean).map(line => JSON.parse(line))
-      .filter(row => row.type === 'response_item' && ['function_call', 'custom_tool_call'].includes(row.payload?.type))
-      .map(row => ({ name: row.payload.name, call_id: row.payload.call_id, arguments: row.payload.arguments ?? row.payload.input }));
     evidence.manual_repair = manual; evidence.replay_probe = replay;
     assert.ok(evidence.root_native_calls.some(call => call.name === 'exec' && call.arguments?.includes(nested.command)), 'Native code-mode did not execute the nested command');
     const nativeEvents = (await fs.readFile(journal, 'utf8')).split('\n').filter(Boolean).map(JSON.parse);
