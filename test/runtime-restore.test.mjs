@@ -1,10 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, writeFile, readFile, readdir, rm } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, writeFile, readFile, readlink, readdir, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { restoreStageSnapshot, provisionRuntimeEngine, driverAdapterInvocation } from "../lib/runner.mjs";
+import { commandJson } from "../lib/process-json.mjs";
 
 const fixture = `import fs from 'node:fs';
 import path from 'node:path';
@@ -17,7 +18,11 @@ if(args[0]==='engine' && args[1]==='install') {
   fs.mkdirSync(path.join(root,'dist','harness-runtime'),{recursive:true});
   fs.writeFileSync(path.join(root,'dist','harness-runtime','selected-adapter.mjs'),'export const selected = true;');
   fs.mkdirSync(path.join(root,'dist','harness-runtime','bin'),{recursive:true});
-  fs.writeFileSync(path.join(root,'dist','harness-runtime','bin','dd-codex.mjs'),'export const selected = true;');
+  fs.writeFileSync(path.join(root,'dist','harness-runtime','bin','dd-codex.mjs'),"import { selected } from 'fixture-adapter-dependency'; console.log(JSON.stringify({selected}));");
+  const dependency = path.join(root,'node_modules','fixture-adapter-dependency');
+  fs.mkdirSync(dependency,{recursive:true});
+  fs.writeFileSync(path.join(dependency,'package.json'),JSON.stringify({name:'fixture-adapter-dependency',type:'module',exports:'./index.mjs'}));
+  fs.writeFileSync(path.join(dependency,'index.mjs'),'export const selected = true;');
   fs.copyFileSync(fileURLToPath(import.meta.url),path.join(root,'cli.mjs'));
   fs.writeFileSync(path.join(root,'engine.json'),JSON.stringify(manifest));
   console.log(JSON.stringify({ok:true}));
@@ -53,11 +58,22 @@ test('qualification provisions an isolated selected runtime without starting a p
     assert.deepEqual(copied.harnesses['codex-desktop'], { ...JSON.parse(settings).harnesses['codex-desktop'], adapter_command: adapter.prefix[0] });
     assert.equal(await readFile(path.join(config, 'harnesses.json'), 'utf8'), settings);
     assert.equal(await readFile(path.join(runtime, 'harness-runtime/selected-adapter.mjs'), 'utf8'), 'export const selected = true;');
+    assert.deepEqual(await commandJson(adapter.executable, adapter.prefix), { selected: true });
+    const alias = await readlink(path.join(runtime, 'harness-runtime'));
+    assert.equal(path.isAbsolute(alias), false);
+    assert.equal(path.resolve(runtime, alias), path.join(selected.snapshot_root, 'dist/harness-runtime'));
     assert.match(await readFile(path.join(runtime, 'bin/dd-flow'), 'utf8'), /DD_FLOW_BIN=/);
     const calls = (await readFile(log, 'utf8')).trim().split('\n').map(JSON.parse);
     assert.deepEqual(calls.map(call => call.args.slice(0, 2)), [['engine', 'install'], ['engine', 'resolve']]);
     assert.ok(calls.every(call => call.home === runtime));
     assert.deepEqual(await readdir(config), ['harnesses.json']);
+    // Snapshot/fork copies retain relative aliases. Remove the original so a
+    // passing adapter cannot accidentally resolve its old engine dependency.
+    const relocated = path.join(root, 'relocated-runtime');
+    await cp(runtime, relocated, { recursive: true, verbatimSymlinks: true });
+    await rm(runtime, { recursive: true, force: true });
+    const relocatedAdapter = await driverAdapterInvocation({ harness: 'codex-desktop' }, { env: { DD_FLOW_HOME: relocated } });
+    assert.deepEqual(await commandJson(relocatedAdapter.executable, relocatedAdapter.prefix), { selected: true });
   } finally {
     for (const [key, value] of Object.entries(prior)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
     await rm(root, { recursive: true, force: true });
@@ -84,6 +100,8 @@ for (const mismatch of [false, true]) test(`stage restore uses an external impor
       const result = await restoreStageSnapshot(input);
       assert.equal(result.engine.snapshot_root.startsWith(runtimeRoot + path.sep), true);
       assert.equal(await readFile(path.join(result.run_home, "retained.txt"), "utf8"), "restored history");
+      const adapter = await driverAdapterInvocation({ harness: 'codex-desktop' }, { env: { DD_FLOW_HOME: runtimeRoot } });
+      assert.deepEqual(await commandJson(adapter.executable, adapter.prefix), { selected: true });
     }
     const calls = (await readFile(log, "utf8")).trim().split("\n").map(JSON.parse);
     const restore = calls.findIndex(call => call.args[0] === "run");
