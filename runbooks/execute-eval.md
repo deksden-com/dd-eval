@@ -211,6 +211,16 @@ and non-generative doctors remain. Report success as "inputs/environment ready;
 baseline pending actual run", never as baseline PASS. The actual execution
 still runs baseline before Subject dispatch. No cross-workspace cache is used.
 Do not repeat preflight for unchanged inputs or documentation-only edits.
+A case declaring `hitl_qualification` needs one explicit
+`dd-eval runner definition qualify --profile <run-profile.json>` before
+preflight or scored run. This operation uses the existing Interaction Judge on
+the pinned corpus and stores a shared, checksum-bound receipt under
+`DD_EVAL_DEFINITION_QUALIFICATION_HOME` (default
+`~/.dd-eval/definition-qualifications`). It creates Judge Sessions only, never
+a Subject Session or a scored EVAL. The exact committed definition tree,
+fixture, corpus, Judge profile and prompt contract must match; a changed
+input requires a new qualification. Preflight merely checks this receipt and
+still records `provider_sessions_created: 0`; direct `eval run` checks it too.
 A request to prepare only never authorizes `eval run` or a live compatibility/
 capacity experiment.
 

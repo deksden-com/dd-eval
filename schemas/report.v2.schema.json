@@ -2,13 +2,35 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "dd-eval/report@2",
   "type": "object",
-  "required": ["schema_id", "run_id", "case_id", "methodology", "executions"],
+  "required": ["schema_id", "run_id", "state", "execution_state", "cleanup_state", "run_validity", "executions"],
   "properties": {
     "schema_id": {"const": "dd-eval/report@2"},
     "run_id": {"type": "string"},
     "case_id": {"type": "string"},
     "methodology": {"type": "object"},
-    "executions": {"type": "array"}
+    "state": {"type": "string"},
+    "execution_state": {"type": "string"},
+    "cleanup_state": {"type": "string"},
+    "run_validity": {"type": "string"},
+    "reliability": {"type": "string"},
+    "recovery_count": {"type": "integer", "minimum": 0},
+    "execution_history": {"type": "array"},
+    "recoveries": {"type": "array"},
+    "manifest": {"type": "string"},
+    "executions": {"type": "array", "items": {"type": "object"}},
+    "observability": {"type": "object"},
+    "judge_status": {"type": "string"},
+    "judge_error": {"type": "object"},
+    "candidate": {"type": "object"},
+    "judge": {"type": "object"},
+    "case_acceptance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "executions"],
+      "properties": {
+        "status": {"enum": ["passed", "failed", "not_applicable", "unavailable"]},
+        "executions": {"type": "array", "items": {"type": "object", "required": ["execution", "status", "receipt_file"], "properties": {"execution": {"type": "string"}, "status": {"enum": ["passed", "failed", "not_applicable", "unavailable"]}, "receipt_file": {"type": ["string", "null"]}}, "additionalProperties": false}}
+      }
+    }
   },
   "additionalProperties": false
 }

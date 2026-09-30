@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/evaluator-evidence@1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "run_id", "definition", "candidate_sha256", "executions"],
+  "properties": {
+    "schema_id": {"const": "dd-eval/evaluator-evidence@1"},
+    "run_id": {"type": "string", "minLength": 1},
+    "definition": {"type": ["object", "null"]},
+    "candidate_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "executions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["execution", "state", "candidate"],
+        "properties": {
+          "execution": {"type": "string"},
+          "state": {"type": "string"},
+          "candidate": {"type": ["object", "null"]},
+          "case_acceptance": {
+            "type": "object",
+            "required": ["file", "sha256", "receipt"],
+            "properties": {
+              "file": {"type": "string"},
+              "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+              "receipt": {"type": "object", "required": ["schema_id", "status", "immutable_hash"], "properties": {"schema_id": {"const": "dd-eval/case-acceptance@1"}, "status": {"enum": ["passed", "failed", "not_applicable", "unavailable"]}, "immutable_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}}
+            }
+          }
+        }
+      }
+    }
+  }
+}
