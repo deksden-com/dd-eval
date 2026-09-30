@@ -74,3 +74,19 @@ and retained as an explicit observation gap. Model selection remains
 Only this separate definition's AGY profile changed; Luna/ZCode inputs remain frozen.
 Next gates are this committed definition's HITL qualification, preflight and
 the new scored attempt's own baseline. Earlier access-failure evidence remains unchanged.
+
+The new HITL qualification failed during Codex Judge cleanup, not AGY access:
+key `54f03f578f7dbceec8afc6a687cd85d1f65b9c6f7408fe608facd948f3a0ce37`,
+operation `operation-7ab8ebee-19ee-410f-aa01-8c24db36ff1a`.
+The third Judge produced its native answer; daemon.stop operation
+`5611e084-0736-40cf-9322-c4bef897cef8` persisted a clean ACK before bridge closure.
+Subsequent bridge closure raised `kill EPERM`, persisted `cleanup_failed`, and
+left the daemon listening. The client surfaced `daemon_stop_incomplete` after
+30 seconds. A later read-only signal-zero probe found the provider process group
+already absent (`ESRCH`). Normal daemon stop then rejected with
+`bridge_pipe_broken` because the provider stdin was closed. The exact surviving
+qualification-daemon PID 49336 was verified and terminated with SIGTERM;
+no other daemon, EVAL or runtime database was touched.
+No passed qualification receipt was fabricated and no scored AGY EVAL was created.
+The remaining blocker is Codex daemon shutdown/ack ordering and idempotent stop
+after provider closure, not the now-qualified AGY account/runtime.
