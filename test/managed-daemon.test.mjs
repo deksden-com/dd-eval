@@ -8,6 +8,28 @@ import test from "node:test";
 import { stopProcessGroup } from "../lib/managed-daemon.mjs";
 
 
+test('shared stop policy settles ESRCH races and preserves permission failure through observation', async t => {
+  for (const signal of ['SIGTERM', 'SIGKILL']) {
+    const mocked = t.mock.method(process, 'kill', (_pid, name) => {
+      if (name === signal) throw Object.assign(new Error('gone'), { code: 'ESRCH' });
+      return true;
+    });
+    try { await stopProcessGroup({ pid: 424242 }, 0); } finally { mocked.mock.restore(); }
+  }
+  let signalled = false;
+  const mocked = t.mock.method(process, 'kill', (_pid, signal) => {
+    if (signal !== 0) { signalled = true; throw Object.assign(new Error('denied'), { code: 'EPERM' }); }
+    if (signalled) throw Object.assign(new Error('gone'), { code: 'ESRCH' });
+    return true;
+  });
+  try { await stopProcessGroup({ pid: 424242 }, 0); } finally { mocked.mock.restore(); }
+  t.mock.method(process, 'kill', (_pid, signal) => {
+    if (signal === 0) return true;
+    throw Object.assign(new Error('denied'), { code: 'EPERM' });
+  });
+  await assert.rejects(stopProcessGroup({ pid: 424242 }, 0), error => error.code === 'EPERM' && error.details.signal === 'SIGTERM' && error.details.pid === 424242);
+});
+
 test("managed daemon cleanup terminates a detached child tree", async () => {
   const child = spawn(process.execPath, ["-e", `
     const { spawn } = require('node:child_process');

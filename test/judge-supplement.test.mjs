@@ -59,6 +59,8 @@ const a=process.argv.slice(2),get=k=>a[a.indexOf(k)+1],c=JSON.parse(fs.readFileS
 fs.appendFileSync(c.calls,JSON.stringify({native:a,operation_id:id})+'\\n');
 const state=get('--state-dir'), session='judge-session'; let result={ready:true};
 const write=(name,value)=>{fs.mkdirSync(path.dirname(name),{recursive:true});fs.writeFileSync(name,JSON.stringify(value));};
+if(a[0]==='daemon' && a[1]==='start') write(state+'/daemon.json',{daemon_id:'fixture-daemon',pid:2147483647,config:{cwd:get('--cwd')},shutdown_state:'running',active_tree:false});
+if(a[0]==='daemon' && a[1]==='stop') {const s=JSON.parse(fs.readFileSync(state+'/daemon.json'));write(state+'/daemon.json',{...s,shutdown_state:'clean',active_tree:false,shutdown:{schema_id:'dd-flow/daemon-shutdown@1',daemon_id:s.daemon_id,phases:{tree:true,daemon_resource:true}}});result={stopped:true,clean:true,shutdown_contract:'dd-flow/daemon-shutdown@1'};const o=path.join(state,'operations',createHash('sha256').update(id).digest('hex'));write(o+'/requested.json',{operation_id:id,operation:'daemon.stop',daemon_id:s.daemon_id});write(o+'/result.json',{state:'completed',result});}
 if(a[0]==='session') {
  result={provider_session_id:session};
  if(a[1]==='prompt') {

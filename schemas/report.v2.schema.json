@@ -21,6 +21,7 @@
     "observability": {"type": "object"},
     "judge_status": {"type": "string"},
     "judge_error": {"type": "object"},
+    "judge_cleanup": {"type": "object", "required": ["status"], "properties": {"status": {"enum": ["settled", "failed", "unknown"]}}},
     "candidate": {"type": "object"},
     "judge": {"type": "object"},
     "case_acceptance": {

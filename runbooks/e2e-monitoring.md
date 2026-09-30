@@ -1,5 +1,26 @@
 # E2E monitoring
 
+## Judge verdict versus shutdown (plan 059)
+
+`judge/result.json` is immutable semantic evidence, not proof of clean runtime
+completion. New Judge attempts retain a separate `judge/cleanup.json`
+(`dd-eval/judge-cleanup@1`), bound to verdict hash, native Session, daemon
+incarnation and durable stop operation. Reports expose `judge_cleanup` separately
+from the verdict. `result_ready` alone cannot complete Judge or qualification.
+
+If cleanup fails, report the retained verdict and the typed cleanup cause
+separately. A fresh owned **control** operation may finish remaining cleanup in
+the same fenced incarnation; it must not create a Session, resend a Judge prompt
+or inspect an already closed provider pipe. A failed stop ID stays failed.
+Missing proof means unknown, not clean. Do not edit historical receipts, delete
+sockets manually, mutate runtime databases or restart a provider to manufacture
+cleanup evidence. Whole-tree settlement is distinct from Work success.
+
+Adapter stop now completes physical provider/drain/resource/auth cleanup before
+publishing a successful durable stop reply; listener retirement follows the
+receipt and precedes ACK. Clients confirm retained daemon PID exit as well as
+endpoint disappearance. Socket disappearance alone is insufficient.
+
 Start with `node bin/dd-eval.mjs runner status --eval <absolute-eval-root>` from the dd-eval checkout.
 For direct controller diagnostics use the execution's pinned wrapper with
 `DD_FLOW_HOME=<runtime-root> <runtime-root>/bin/dd-flow run drive status --run <RUN-ID> --project-root <project-root> --after <cursor> --json`.

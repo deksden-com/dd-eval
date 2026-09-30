@@ -12,6 +12,7 @@ import { commandJson, commandText } from '../lib/process-json.mjs';
 import { withRunnerLock } from '../lib/runner-lock.mjs';
 import { evalResumeWorkerFile, requestEvalResume } from '../lib/eval-resume-worker.mjs';
 import { processSnapshot } from '../lib/process-snapshot.mjs';
+import { settledJudge } from './fixtures/judge-cleanup.mjs';
 
 function initialRunProfile(caseId) {
   return { value: { schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: caseId, subject: { profile_id: 'fixture' },
@@ -338,6 +339,9 @@ test('operator reconciliation retains an accepted Judge result without another J
     await append('operation.observation_lost', { operation_id: id, operation: 'final_judge', error: { code: 'transport_lost' } });
   }
   const receipt = { schema_id: 'dd-eval/final-judge-receipt@1', profile_id: 'retained-profile', session_id: 'same-session', candidate_sha256: 'a'.repeat(64), result: { conclusion: 'accepted result' } };
+  await mkdir(path.join(root, 'judge'), { recursive: true });
+  await writeFile(path.join(root, 'judge/candidate.json'), JSON.stringify({ immutable_hash: receipt.candidate_sha256 }));
+  await settledJudge(path.join(root, 'judge'), receipt);
   await append('final_judge.result_ready', { operation_id: operationId, result: receipt });
   await append('control.requested', { mode: 'stop', request_id: 'stop' });
   const result = JSON.parse(await commandText(process.execPath, ['bin/dd-eval.mjs', 'runner', 'control', 'reconcile', '--eval', root, '--from', 'stop']));

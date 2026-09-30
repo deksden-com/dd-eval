@@ -10,6 +10,7 @@ import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertPr
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 import { errorRecord, terminalCodexOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
+import { settledJudge } from './fixtures/judge-cleanup.mjs';
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -61,7 +62,13 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     assert.ok(qualified.corpus.items.some(item => item.stage === "plan"));
     assert.match(qualified.identity.fixture_sha256.plan, /^[a-f0-9]{64}$/);
     await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_missing" });
-    const content = { schema_id: "dd-eval/hitl-qualification@1", key: qualified.key, status: "passed", identity: qualified.identity, results: qualified.corpus.items.map(item => ({ id: item.id, stage: item.stage ?? qualified.corpus.stage, passed: true, observed: { classification: item.classification, response_ids: item.response_ids } })), cleanup: "settled" };
+    const results = [];
+    for (const item of qualified.corpus.items) {
+      const judgeRoot = path.join(temporary, 'judges', item.id), verdict = { profile_id: 'fixture', session_id: item.id };
+      const cleanup = await settledJudge(judgeRoot, verdict);
+      results.push({ id: item.id, stage: item.stage ?? qualified.corpus.stage, passed: true, observed: { classification: item.classification, response_ids: item.response_ids }, receipt_file: path.join(judgeRoot, 'result.json'), cleanup });
+    }
+    const content = { schema_id: "dd-eval/hitl-qualification@2", key: qualified.key, status: "passed", identity: qualified.identity, results, cleanup: "settled" };
     await mkdir(qualified.root, { recursive: true });
     await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
     assert.equal((await assertHitlQualification(input)).key, qualified.key);
@@ -83,7 +90,9 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     const legacyInput = { ...input, loaded: legacyLoaded };
     const legacy = await hitlQualificationInputs(legacyInput);
     assert.equal(typeof legacy.identity.fixture_sha256, "string");
-    const legacyContent = { schema_id: "dd-eval/hitl-qualification@1", key: legacy.key, status: "passed", identity: legacy.identity, results: [{ id: "legacy", passed: true, observed: { classification: "covered_by_canonical_response", response_ids: ["clarification-task-priority"] } }], cleanup: "settled" };
+    const legacyJudge = path.join(temporary, 'legacy-judge'), legacyVerdict = { profile_id: 'fixture', session_id: 'legacy' };
+    const legacyCleanup = await settledJudge(legacyJudge, legacyVerdict);
+    const legacyContent = { schema_id: "dd-eval/hitl-qualification@2", key: legacy.key, status: "passed", identity: legacy.identity, results: [{ id: "legacy", passed: true, observed: { classification: "covered_by_canonical_response", response_ids: ["clarification-task-priority"] }, receipt_file: path.join(legacyJudge, 'result.json'), cleanup: legacyCleanup }], cleanup: "settled" };
     await mkdir(legacy.root, { recursive: true });
     await writeFile(path.join(legacy.root, "receipt.json"), JSON.stringify({ ...legacyContent, immutable_hash: hashJson(legacyContent) }));
     assert.equal((await assertHitlQualification(legacyInput)).key, legacy.key);
