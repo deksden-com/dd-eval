@@ -3,6 +3,12 @@
 Date: 2026-10-01. Scope: FLOW, EVAL and canonical review contracts only.
 No product changes, historical EVAL repair, publication, hook installation or paid provider/E2E calls.
 
+This report records initial implementation acceptance. Subsequent independent
+review found and corrected material gaps; current source identities and the
+separate review-tree verification are in [review report](060-cp188-review-report.md).
+The original full-suite counts below are retained as historical evidence, not
+relabelled as tests of the later corrections.
+
 ## Implemented contracts
 
 | Plan | Implementation and regression evidence |

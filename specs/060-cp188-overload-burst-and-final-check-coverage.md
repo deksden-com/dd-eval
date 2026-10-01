@@ -2,6 +2,8 @@
 
 Дата: 2026-09-30; системный аудит, детализация, реализация и приёмка: 2026-10-01. Статус: source implementation A–H, включая §11, завершена; полные offline gates PASS. Результаты и точные commits — [implementation report](060-cp188-implementation-report.md). Ниже сохранены исходные решения и evidence планирования. Publication/hooks/new E2E не выполнялись; delivery остаётся отдельной задачей.
 
+Последующее ревью выявило и исправило существенные gaps в capacity recovery, обязательных CODE fixes и frozen check evidence. Текущие source commits и отдельные проверки исправлений — [review report](060-cp188-review-report.md). Полные первоначальные gates в implementation report относятся к исходной приёмке, не к последующему review-tree.
+
 ## 1. Границы и проверенные inputs
 
 - dd-flow: `fix/cp187-matrix-admission`, `6f441c26f9b75253e541be084abfb187667cb745`.
