@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-6-1-sol-high",
+  "harness": "codex-desktop",
+  "model": "gpt-6.1-sol",
+  "reasoning": "high",
+  "notes": "Operator-selected common Final/Interaction Judge for every harness; uses CPA through cx. Historical Judge profiles remain unchanged.",
+  "runtime": {
+    "codex_cli": "0.159.1",
+    "dd_harness_contract": "dd-codex-harness@1"
+  }
+}
