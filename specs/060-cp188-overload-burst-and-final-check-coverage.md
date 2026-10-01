@@ -1,6 +1,6 @@
 # 060 — CP188: оставшиеся дефекты и системные исправления
 
-Дата: 2026-09-30; системный аудит, детализация и проверка готовности: 2026-10-01. Статус: готов к source implementation с обязательными уточнениями §11, проверен по Ponytail full; реализация 060 не выполнена. План 059 не переоткрывается: его source fixes существуют, но delivery/full acceptance ещё не закрыты.
+Дата: 2026-09-30; системный аудит, детализация, реализация и приёмка: 2026-10-01. Статус: source implementation A–H, включая §11, завершена; полные offline gates PASS. Результаты и точные commits — [implementation report](060-cp188-implementation-report.md). Ниже сохранены исходные решения и evidence планирования. Publication/hooks/new E2E не выполнялись; delivery остаётся отдельной задачей.
 
 ## 1. Границы и проверенные inputs
 
@@ -168,7 +168,7 @@ Q1 (whole-definition qualification key causing unrelated requalification) ост
 
 ## 8. Исполнимый план: пакеты изменений и критерии завершения
 
-Все пункты ниже — TODO. «План готов» не означает «реализация/qualification PASS». Пути относительны к repo из §1. Implementation order: A → B/C; D независим; E → F; G независим от capacity, но использует исправленный frozen authority из F; H после всех source gates. Уточнения §11 входят в A–H, не отдельный факультативный этап. Не публиковать промежуточный engine с новыми ordinals и старыми admission guards.
+Все пункты ниже были исходным implementation scope; выполнение и проверки зафиксированы в implementation report. «План готов» само по себе не означает «реализация/qualification PASS». Пути относительны к repo из §1. Implementation order: A → B/C; D независим; E → F; G независим от capacity, но использует исправленный frozen authority из F; H после всех source gates. Уточнения §11 входят в A–H, не отдельный факультативный этап. Не публиковать промежуточный engine с новыми ordinals и старыми admission guards.
 
 ### A. Один pure capacity contract и диагностика
 
@@ -297,7 +297,7 @@ npm test
 
 Сканирование выполнялось `rg` по обоим repos, затем прослеживались callers и контракты от producer до settlement/consumer; два read-only subagent audit перепроверены main agent по source и offline calls. **Это системный аудит перечисленных типов, не построчное чтение каждого файла и не обещание найти любые дефекты проекта.** Grok/ZCode provider исходники не меняются: новых вопросов к их native поведению, требующих ещё одного upstream patch, эти воспроизведения не установили. Historical runs/frozen engine отделены от текущего source; ничего не считать live-fixed только потому, что код существует.
 
-Live evidence, direct read-only reproductions и latent sibling paths разделены. Сейчас изменён только этот документ; runtime/продукт/new E2E не изменялись. Plan completion: A–H с уточнениями §11 имеют source targets, regression и delivery boundary; known EPERM root/Q1/late replan остаются явно ограниченными, не молчаливыми TODO внутри обещания «всё устранено».
+Live evidence, direct read-only reproductions и latent sibling paths разделены. На этапе планирования был изменён только этот документ; runtime/продукт/new E2E не изменялись. Plan completion: A–H с уточнениями §11 имеют source targets, regression и delivery boundary; known EPERM root/Q1/late replan остаются явно ограниченными, не молчаливыми TODO внутри обещания «всё устранено».
 
 ## 10. Проверки этого расследования
 
@@ -398,4 +398,4 @@ DoD A–H требует не только unit pure policy: real daemon fixture
 
 Начать с red negatives и reproduce details, затем исправление, затем зелёные targeted/full suites; известные 059 timeouts исследовать по своим fixture/events. Expected skips перечислить по имени и причине, tests новых путей не могут быть skipped. Выходной implementation report: commit SHA каждого repo, tested engine/canon/runtime identity, таблица A–H→regressions/results, все оставшиеся blockers. Полный source completion не обещает successful live provider/model outcome; publication/preflight/scored E2E — отдельная авторизуемая delivery, historical failures не переписываются.
 
-**Итог готовности:** существенных неопределённых проектных решений в source scope больше не оставлено. Concrete protocol/capability/coverage/version/boundary rules изложены выше; мелкие имена exports/расположение unit tests определяются implementation без изменения контракта. EPERM первоначального OS offender, Q1 optimization, поздний semantic replan и live provider доступность остаются явно вне обещания source fix. Реализация ещё не начата; этот turn меняет только план.
+**Итог готовности на этапе планирования:** существенных неопределённых проектных решений в source scope больше не оставлено. Concrete protocol/capability/coverage/version/boundary rules изложены выше; мелкие имена exports/расположение unit tests определяются implementation без изменения контракта. EPERM первоначального OS offender, Q1 optimization, поздний semantic replan и live provider доступность остаются явно вне обещания source fix. Последующее выполнение и source acceptance описаны в implementation report.
