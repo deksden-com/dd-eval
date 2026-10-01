@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-188-task-priority-merge-engine-0-9-0-beta-123",
-    "sha256": "d1f6c583335565393d3266b7673ddca40ac35a67e2404de7d83d322f2f1b81ef"
+    "id": "cp-189-task-priority-merge-engine-0-9-0-beta-124",
+    "sha256": "38f1c28fb912309022719f11c1e3e1ef2f8fc62891f57c3e167dec36c1f3973e"
   },
   "entry_pack": null,
   "hitl_qualification": {
@@ -29,6 +29,7 @@
       "codex-desktop-gpt-5-6-terra-high-dd-flow-0-9-0-beta-11",
       "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-11",
       "antigravity-cli-google-gemini-3-1-pro-high",
+      "antigravity-cli-google-gemini-3-8-flash-high",
       "grok-acp-xai-grok-4-6-high",
       "grok-acp-xai-grok-4-7-high",
       "zcode-acp-zai-glm-5-3-high",
@@ -37,7 +38,8 @@
       "droid-cli-openai-gpt-5-6-sol-high"
     ],
     "judge": [
-      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-11"
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-11",
+      "codex-desktop-gpt-6-1-sol-high"
     ]
   },
   "flow": {

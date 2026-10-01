@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "antigravity-cli-google-gemini-3-8-flash-high",
+  "harness": "antigravity-cli",
+  "runtime_family": "antigravity",
+  "driver": "dd-agy",
+  "control_lifetime": "execution_daemon",
+  "delegated_background": true,
+  "provider": "google",
+  "model": "gemini-3.8-flash-high",
+  "reasoning": "high",
+  "mode": "accept-edits",
+  "runtime": {
+    "agy": "1.2.14",
+    "dd_harness_contract": "dd-agy-harness@1"
+  },
+  "notes": "CP189 operator-selected Gemini 3.8 Flash. Native compatibility and child capacity must be qualified independently of the historical Pro profile.",
+  "subagent_capacity": 4
+}
