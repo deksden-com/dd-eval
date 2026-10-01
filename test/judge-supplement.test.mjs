@@ -10,6 +10,7 @@ import { prepareSupplementalJudge, assertSupplementalEvidence, validateJudgeSupp
 import { parse, validateCommand } from '../lib/cli-input.mjs';
 import { evalJudge, installRuntimeShim } from '../lib/runner.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
+import { successfulPolicyFixture } from './fixtures/capacity-policy.mjs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -74,6 +75,7 @@ if(a[0]==='session') {
  }
 }
 console.log(JSON.stringify(result));`);
+  await put(engineRoot, 'dist/harness-runtime/lib/codex-capacity-policy.mjs', successfulPolicyFixture);
   const engine = { schema_id: 'dd-flow/engine-manifest@1', package_name: 'fixture', package_version: '1', engine_version: '1', snapshot_root: engineRoot,
     package_root: engineRoot, entrypoint: 'cli.cjs', integrity: { checksum: await engineArtifactDigest(engineRoot) } };
   if (fault === 'escaped-engine-version') engine.package_version = engine.engine_version = '../../../../historical';

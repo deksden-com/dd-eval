@@ -125,6 +125,11 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     const retainedBatchPath = `07-merge/verification/sources/${sha(retainedBatchBytes)}/code-work-batch.json`;
     await put(f.runtime, retainedBatchPath, retainedBatchBytes);
     sourceNames.push({ role: "code_work_batch", root: "run", path: retainedBatchPath });
+    for (const role of ["baseline", "source", "target"]) {
+      const relative = `07-merge/check-profile-${role}.json`;
+      await put(f.runtime, relative, JSON.stringify({ schema_id: "dd-flow/retained-check-profile@1", profile: null, profile_sha256: null, profile_bytes: null }));
+      sourceNames.push({ role: `check_profile_${role}`, root: "run", path: relative });
+    }
     await put(f.runtime, sourceNames[0].path, planBytes);
     const sources = await Promise.all(sourceNames.map(async source => ({ ...source, sha256: sha(await readFile(path.join(source.root === "run" ? f.runtime : f.workspace, source.path))) })));
     sources.sort((a, b) => `${a.role}:${a.root}:${a.path}` < `${b.role}:${b.root}:${b.path}` ? -1 : 1);
@@ -136,6 +141,7 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
       criteria: [{ protocol_id: protocol, criterion_id: "AC-001", statement: "local behavior", gate: null, check_refs: ["CHK-LOCAL"], declaration: candidatePlan.acceptance[0], checks: [fact] }], policy_checks: [] };
     const matrixBinding = { contract: projection.schema_id, role: "output", completeness: "final", source_fingerprint: projection.header.source_fingerprint, json: { path: matrixPath, sha256: null }, markdown: { path: mdPath, sha256: sha("Generated matrix\n") } };
     const publish = async () => {
+      matrixBinding.coverage_contract = "dd-flow/final-check-coverage@1";
       for (const source of sources) source.sha256 = sha(await readFile(path.join(source.root === "run" ? f.runtime : f.workspace, source.path)));
       const { source_fingerprint, ...owning } = projection.header;
       projection.header.source_fingerprint = sha(canonical({ header: owning, sources, facts: [fact] }));
@@ -144,7 +150,7 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
       matrixBinding.json.sha256 = sha(bytes);
       await put(f.runtime, matrixPath, bytes);
       await put(f.runtime, mdPath, "Generated matrix\n");
-      await put(f.runtime, "run.json", JSON.stringify({ verification_matrix_contract: projection.schema_id, stage_runs: [{ stage: "merge", attempt: "try-001" }] }));
+      await put(f.runtime, "run.json", JSON.stringify({ verification_matrix_contract: projection.schema_id, final_check_coverage_contract: "dd-flow/final-check-coverage@1", stage_runs: [{ stage: "merge", attempt: "try-001" }] }));
       await put(f.runtime, "07-merge/stage-report.json", JSON.stringify({ semantic: { merge: { merge_request_id: "MRG-001", work_id: "WRK-001-merge", accepted_tree: "tree-one", protocols: [protocol] }, verification_matrix: matrixBinding } }));
       await seal(f);
     };
@@ -167,12 +173,17 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     await publish();
     assert.equal((await generatedRead()).status, "passed", "matrix uses effective accepted obligation wording");
     nativeReceipt.status = "failed";
+    nativeReceipt.required_artifacts = ["expected-but-not-produced.json"];
     await put(f.runtime, sourceNames.find(item => item.role === `receipt:${binding}`).path, JSON.stringify(nativeReceipt));
     await publish();
     const negative = await generatedRead();
-    assert.equal(negative.status, "failed", JSON.stringify(negative.evidence_error));
-    assert.ok(negative.gaps.includes(`final_check_failed:${receiptId}`));
+    assert.equal(negative.status, "unavailable", "a successful MERGE acceptance cannot bind failed execution");
+    nativeReceipt.status = "aborted";
+    await put(f.runtime, sourceNames.find(item => item.role === `receipt:${binding}`).path, JSON.stringify(nativeReceipt));
+    await publish();
+    assert.equal((await generatedRead()).status, "unavailable", "an aborted execution cannot prove successful final acceptance");
     nativeReceipt.status = "passed";
+    nativeReceipt.required_artifacts = [];
     await put(f.runtime, sourceNames.find(item => item.role === `receipt:${binding}`).path, JSON.stringify(nativeReceipt));
     fact.result = { ...nativeReceipt, input_hash: "forged" };
     await publish();
@@ -226,5 +237,27 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     await seal(f);
     assert.ok((await read()).gaps.includes(`criterion_final_binding_missing:${protocol}:AC-001:CHK-LOCAL`));
     await assert.rejects(() => checkCaseAcceptance({ evalRoot: f.root, execution: "e2e", result: f.result, policy: { ...v2, checker: "typo" } }), /unsupported case acceptance policy/);
+  } finally { await rm(f.root, { recursive: true, force: true }); }
+});
+
+test("reached failed check distinguishes missing expected output from corrupt claimed evidence without final acceptance", async () => {
+  const f = await fixture();
+  try {
+    const receipt = { id: "RCP-001", declaration_id: "CHK-LOCAL", scope: "aggregate", status: "failed", exit_code: 2, input_hash: "failed-input", verification_epoch: "failed-epoch", finished_at: "2026-10-01T00:00:00Z", artifacts: [], required_artifacts: ["expected.json"] };
+    await put(f.runtime, "05-code/checks/RCP-001/receipt.json", JSON.stringify(receipt));
+    const failed = { state: "failed", stage: "code", run_id: "RUN-001", code: "code_gate_failed", details: { failures: [receipt] }, recovery: { recovery_id: "REC-001", manifest: path.join(f.snapshot, "snapshot.json") } };
+    const capture = async () => {
+      const bytes = JSON.stringify({ schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", stage_entry: null, recovery_id: "REC-001", consistency: "sealed_writer_barrier_required", run_id: "RUN-001", project_id: "PRJ-001", workspace: { sha256: snapshotTreeHash(f.workspace) }, runtime_sha256: snapshotTreeHash(path.join(f.snapshot, "runtime")) });
+      await put(f.snapshot, "snapshot.json", bytes); failed.recovery.manifest_sha256 = sha(bytes);
+    };
+    await capture();
+    const read = () => checkCaseAcceptance({ evalRoot: f.root, execution: "e2e", result: failed, policy: { ...policy, checker: "task-priority@3" } });
+    const known = await read();
+    assert.equal(known.status, "failed", JSON.stringify(known.evidence_error));
+    assert.ok(known.gaps.includes("check_expected_output_missing:RCP-001:expected.json"));
+    assert.equal(known.facts.failed_checks[0].attribution, "undetermined");
+    receipt.artifacts = [{ path: "claimed.json", sha256: sha("claimed") }];
+    await put(f.runtime, "05-code/checks/RCP-001/receipt.json", JSON.stringify(receipt)); await capture();
+    assert.equal((await read()).status, "unavailable", "claimed artifact bytes remain mandatory even for a failed execution");
   } finally { await rm(f.root, { recursive: true, force: true }); }
 });

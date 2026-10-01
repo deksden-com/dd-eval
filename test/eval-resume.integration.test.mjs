@@ -59,8 +59,17 @@ test('public background EVAL resume continues a real retained RUN through its ne
     await write(path.join(caseRoot, 'entry-pack-source/stage-context.json'), blueprint);
     const fixture = stage => ({ schema_id: 'dd-eval/canonical-responses@1', stage, mode: 'forbidden', max_rounds: 0, responses: [] });
     for (const stage of ['specify', 'protocolize']) await write(path.join(caseRoot, `entry-pack-source/interactions/${stage}.json`), fixture(stage));
+    const definitionGit = args => commandText('git', args, { cwd: definition });
+    await definitionGit(['init', '--quiet', '-b', 'main']);
+    await definitionGit(['add', '.']);
+    await definitionGit(['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.test', 'commit', '--quiet', '-m', 'retained eval definition']);
     const execution = { id: 'stages', stage: 'specify', terminal_stage: 'protocolize', mode: 'e2e' };
     const manifest = { schema_id: 'dd-eval/runner-manifest@1', run_id: evalId, case_id: 'fixture', runtime_control_bin: cli, runtime_resource_home: resources, executions: [execution], input_checkpoint: { id: checkpoint.id, sha256: cpHash }, interaction_fixtures: Object.fromEntries(['specify', 'protocolize'].map(stage => [stage, { interaction_fixture_sha256: hashJson(fixture(stage)) }])), subject_profile: { id: 'first', harness: 'codex-desktop', model: 'model-first', reasoning: 'low' }, profile: { concurrency: { global: 1, per_harness: {} }, judge: { enabled: false } } };
+    manifest.definition = { commit: await definitionGit(['rev-parse', 'HEAD']) };
+    manifest.profile = { schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: 'fixture', subject: { profile_id: 'first' },
+      selection: { focused_stages: [], segment: null, e2e: true, repetitions: 1 }, concurrency: { global: 1, per_harness: {} },
+      judge: { enabled: false }, interaction_judge: { profile_id: 'fixture' },
+      failure_policy: { stop_execution_on_unexpected_hitl: true, stop_execution_on_unmatched_hitl: true } };
     await write(path.join(evalRoot, 'manifest.json'), manifest);
     await write(path.join(attempt, 'managed-runtime.json'), { schema_id: 'dd-eval/managed-runtime@1', run_id: runId, project_root: project, runtime_root: home, runtime_budget: budget });
     const admission = await write(path.join(attempt, 'baseline.json'), { status: 'passed', checkpoint_sha256: cpHash, checkpoint_id: checkpoint.id, source_commit: checkpoint.source.commit, policy_sha256: 'd'.repeat(64), checks: [{ exit_code: 0 }] });

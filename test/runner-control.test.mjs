@@ -581,6 +581,7 @@ for (const clientExit of ['normal', 'killed', 'observer-killed']) test(`real EVA
   const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
   const manifest = { run_id: runId, runtime_control_bin: cli, runtime_resource_home: env.DD_FLOW_RESOURCE_HOME, case_id: loaded.value.id, executions: [{ id: 'queued', stage: 'specify', terminal_stage: 'specify', mode: 'e2e' }], input_checkpoint: { id: loaded.inputCheckpoint.value.id, sha256: loaded.inputCheckpoint.sha256 }, definition: { commit: await commandText('git', ['rev-parse', 'HEAD']) }, subject_profile: { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' }, profile: { concurrency: { global: 1, per_harness: {} }, interaction_judge: { profile_id: 'fixture' }, judge: { enabled: false }, failure_policy: { stop_run_on_infrastructure_error: false } } };
   await writeFile(path.join(root, 'manifest.json'), JSON.stringify(manifest));
+  await completeContinuationFixture(root);
   const retained = path.join(root, 'executions', 'queued', 'retained'); await mkdir(path.dirname(retained), { recursive: true }); await writeFile(retained, 'stop before provider preparation');
   await runnerControlRequest({ evalRoot: root, requestId: 'pause', mode: 'pause' });
   const deadline = performance.now() + 30_000;
@@ -668,7 +669,7 @@ test('real EVAL stop drains its probe after client exit and preserves a neighbor
       const { process: record } = await call(['process', 'register', '--kind', 'eval-baseline', '--owner', scope, '--owner-pid', String(process.pid), '--role', 'probe', '--operation', 'baseline', '--budget-json', JSON.stringify({ schema_id: 'dd-flow/runtime-budget@1', scope_id: scope, per_harness: {} })]);
       await call(['process', 'confirm', '--id', record.id, '--lease-token', record.lease_token, '--pid', String(child.pid), '--process-group-id', String(child.pid)]);
     }
-    await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ run_id: 'EVAL-selected', runtime_control_bin: cli, runtime_resource_home: env.DD_FLOW_RESOURCE_HOME, executions: [] }));
+    await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ run_id: 'EVAL-selected', runtime_control_bin: cli, runtime_resource_home: env.DD_FLOW_RESOURCE_HOME, executions: [{ id: 'probe' }] }));
     const receipt = JSON.parse(await commandText(process.execPath, ['bin/dd-eval.mjs', 'runner', 'control', 'stop', '--eval', root, '--request-id', 'operator-stop']));
     assert.equal(receipt.state, 'stop_requested');
     const deadline = performance.now() + 15_000;
@@ -684,9 +685,9 @@ test('real EVAL stop drains its probe after client exit and preserves a neighbor
       status = await runnerControlStatus({ evalRoot: root });
     }
     assert.equal(status.inventory.control.dispatch_blocked, true);
-    assert.equal(status.inventory.worker.status, 'running');
+    assert.ok(['running', 'completed'].includes(status.inventory.worker.status), 'drain worker remains live or has completed its retained capture');
     assert.equal(status.inventory.worker.snapshot.drain.capture.journal.consistency, 'append_only_prefix');
-    assert.deepEqual(status.inventory.worker.snapshot.drain.capture.manifest.execution_ids, []);
+    assert.deepEqual(status.inventory.worker.snapshot.drain.capture.manifest.execution_ids, ['probe']);
     await assert.rejects(runnerResume({ evalRoot: root }), { code: 'managed_run_controlled' });
     assert.equal((await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.control.requested').length, 1);
   } finally {

@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import test from "node:test";
 import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
@@ -11,6 +12,7 @@ import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 import { errorRecord, terminalCodexOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
+const capacityPolicy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'src/harness-runtime/lib/codex-capacity-policy.mjs')).href) : null;
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -377,12 +379,12 @@ test("interruption attribution preserves structured lifecycle and storage errors
   assert.deepEqual(classifyInterruption({ code: "agy_provider_rate_limited", message: "request failed" }).category, "provider_rate_limit");
 });
 
-test("only exact terminal native overload authorizes Codex continuation", () => {
+test("only exact terminal native overload authorizes Codex continuation", { skip: !capacityPolicy && 'set DD_FLOW_SOURCE_ROOT for pinned policy' }, () => {
   const native = { code: "turn_interrupted", details: { provider_session_id: "thread-1", turn_id: "turn-2", native_turn_id: "turn-2", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" } } };
-  assert.equal(terminalCodexOverload(native, "thread-1")?.turn_id, "turn-2");
-  assert.equal(terminalCodexOverload(native, "thread-other"), null);
-  assert.equal(terminalCodexOverload({ ...native, details: { ...native.details, terminal_status: "running" } }, "thread-1"), null);
-  assert.equal(terminalCodexOverload({ code: "driver_failed", message: "serverOverloaded", details: { error: { codexErrorInfo: "serverOverloaded" } } }, "thread-1"), null);
+  assert.equal(terminalCodexOverload(native, "thread-1", capacityPolicy)?.turn_id, "turn-2");
+  assert.equal(terminalCodexOverload(native, "thread-other", capacityPolicy), null);
+  assert.equal(terminalCodexOverload({ ...native, details: { ...native.details, terminal_status: "running" } }, "thread-1", capacityPolicy), null);
+  assert.equal(terminalCodexOverload({ code: "driver_failed", message: "serverOverloaded", details: { error: { codexErrorInfo: "serverOverloaded" } } }, "thread-1", capacityPolicy), null);
   assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: native } }).category, "provider_overloaded");
   assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: { ...native, details: { ...native.details, provider_error: { codexErrorInfo: "usageLimitExceeded" } } } } }).category, "provider_quota");
   assert.equal(classifyInterruption({ code: "agy_provider_quota_exhausted" }).retryable, false);
@@ -426,10 +428,10 @@ test("quota reset comes from the matching structured native error, not Retry-Aft
   assert.equal(providerLimitMetadata({ code: "driver_failed", message: "quota resets tomorrow" }), null);
 });
 
-test("capacity continuation keeps one native tree and refuses sequential child waves", async () => {
-  const overload = { code: "turn_interrupted", details: { provider_session_id: "root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" } } };
+test("capacity continuation keeps one native tree and refuses sequential child waves", { skip: !capacityPolicy && 'set DD_FLOW_SOURCE_ROOT for pinned policy' }, async () => {
+  const overload = { code: "turn_interrupted", details: { provider_session_id: "root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" }, native_turn_items: { observed: true, possible_effects: false, pending: false } } };
   let dispatched = 0, time = 0; const waits = [];
-  const base = { sessionId: "root", clock: () => time, inspect: async () => ({ provider_session_id: "root", settled: true, settlement: { state: "settled" } }), pause: async ms => { waits.push(ms); time += ms; } };
+  const base = { policy: capacityPolicy, originalPrompt: 'actual probe', continuationPrompt: 'continue actual probe', sessionId: "root", clock: () => time, inspect: async () => ({ provider_session_id: "root", settled: true, settlement: { state: "settled" } }), pause: async ms => { waits.push(ms); time += ms; } };
   const result = await boundedCapacityContinuation({ ...base, children: async () => [], attempt: async (_ordinal, _capacity, authorizeDispatch) => { await authorizeDispatch(); if (++dispatched === 1) throw overload; return { ok: true }; } });
   assert.deepEqual(result, { ok: true });
   assert.equal(dispatched, 2);
@@ -442,11 +444,11 @@ test("capacity continuation keeps one native tree and refuses sequential child w
   assert.equal(dispatched, 1);
 });
 
-test("capacity native children appearing after backoff or permit prevent another wave", async () => {
+test("capacity native children appearing after backoff or permit prevent another wave", { skip: !capacityPolicy && 'set DD_FLOW_SOURCE_ROOT for pinned policy' }, async () => {
   for (const during of ['backoff', 'permit']) {
     let time = 0, calls = 0, appeared = false;
-    const error = { code: 'turn_interrupted', details: { provider_session_id: 'root', turn_id: 't1', terminal_status: 'failed', provider_error: { codexErrorInfo: 'serverOverloaded' } } };
-    await assert.rejects(boundedCapacityContinuation({ sessionId: 'root', clock: () => time,
+    const error = { code: 'turn_interrupted', details: { provider_session_id: 'root', turn_id: 't1', native_turn_id: 't1', terminal_status: 'failed', provider_error: { codexErrorInfo: 'serverOverloaded' }, native_turn_items: { observed: true, possible_effects: false, pending: false } } };
+    await assert.rejects(boundedCapacityContinuation({ policy: capacityPolicy, originalPrompt: 'actual probe', continuationPrompt: 'continue actual probe', sessionId: 'root', clock: () => time,
       pause: async ms => { time += ms; if (during === 'backoff') appeared = true; },
       inspect: async () => ({ provider_session_id: 'root', settled: true }), children: async () => appeared ? [{ session_id: 'child' }] : [],
       attempt: async (ordinal, _capacity, beforeDispatch) => {

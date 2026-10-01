@@ -26,6 +26,7 @@ const bindingBytes = await read("engine-binding.json"), binding = JSON.parse(bin
 if (binding.schema_id !== "dd-flow/run-engine-binding@1" || binding.run_id !== run.run_id || binding.engine?.integrity_checksum !== engineDigest
   || binding.engine?.package_name !== engine.package_name || binding.engine?.package_version !== engine.package_version || binding.engine?.engine_version !== engine.engine_version) throw new Error("Evidence RUN belongs to a different selected engine");
 if (run.verification_matrix_contract !== "dd-flow/verification-matrix@1") throw new Error("RUN has no retained matrix contract");
+if (run.final_check_coverage_contract !== "dd-flow/final-check-coverage@1") throw new Error("RUN has no final check coverage contract");
 const stages = { plan: "03-plan", "plan-review": "04-plan-review", code: "05-code", "code-review": "06-code-review", merge: "07-merge" };
 const packets = [], retained = [];
 const sha = bytes => createHash("sha256").update(bytes).digest("hex");
@@ -64,7 +65,7 @@ if (!packets.length) throw new Error("No real owning Stage report published a ma
 // Never manufacture/overwrite qualification from schema existence alone.
 for (const item of retained) { await mkdir(path.dirname(item.file), { recursive: true }); await writeFile(item.file, item.bytes, { flag: "wx" }); }
 const skipped = ["plan-review", "code-review"].filter(stage => run.settings?.[stage.replace("-", "_")]?.mode === "off" && run.settings[stage.replace("-", "_")].reason?.trim());
-const receipt = { schema_id: "dd-eval/verification-matrix-qualification@2", contract: run.verification_matrix_contract, status: "passed", engine_artifact_sha256: engineDigest, engine_binding: { path: bindingRelative, sha256: sha(bindingBytes) }, flow_commit: flowCommit, built_with_canon: { version: canon.version, commit: canon.commit }, skipped_stages: skipped, packets };
+const receipt = { schema_id: "dd-eval/verification-matrix-qualification@3", contract: run.verification_matrix_contract, coverage_contract: run.final_check_coverage_contract, status: "passed", engine_artifact_sha256: engineDigest, engine_binding: { path: bindingRelative, sha256: sha(bindingBytes) }, flow_commit: flowCommit, built_with_canon: { version: canon.version, commit: canon.commit }, skipped_stages: skipped, packets };
 const receiptBytes = Buffer.from(JSON.stringify(receipt, null, 2) + "\n");
 await assertVerificationMatrixQualification({ file: path.join(path.dirname(output), "checkpoint.json"), value: { flow_pack: { commit: flowCommit, memory_bank_version: canon.version, verification_matrix: { contract: receipt.contract, file: path.basename(output), sha256: sha(receiptBytes), canon_commit: canon.commit } } } }, engine, { checker: "task-priority@3" }, receiptBytes);
 // A crash during writing must never expose a partial receipt labelled passed.

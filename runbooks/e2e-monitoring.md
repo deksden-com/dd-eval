@@ -1,5 +1,27 @@
 # E2E monitoring
 
+## Confirmed Codex overload (plan 060)
+
+Only an exact terminal native `serverOverloaded` permits continuation of the
+same Session and task. The first refusal is not counted. Two distinct consecutive
+continuation Turns refused within 120 seconds terminate as `provider_overload_burst`;
+slower instability has no lifetime attempt cap. Backoff is 5 seconds, then 15
+seconds, extended by proven Retry-After and bounded by the original owner deadline.
+Quota/auth failures do not continue; report a reset time only when native metadata
+proves it. Completed Work/Stage or accepted HITL wins over another dispatch.
+
+The selected, integrity-verified engine owns `codex-overload-burst@1`.
+Judge/probe history uses `dd-eval/capacity-chain@2`; legacy @1 is readable evidence,
+not permission to send or silently start another chain. An unknown dispatch is
+observed by its retained operation ID, never replaced. Do not manually resume,
+restart or repair a historical EVAL to obtain a successful result.
+
+New final-check coverage uses `dd-flow/final-check-coverage@1` and qualification
+@3. Successful MERGE acceptance requires passed native checks. Reached failed
+execution evidence is separately bound to its sealed recovery snapshot: an
+expected output not produced is a failure/gap, while lost claimed bytes are
+unavailable evidence. Neither establishes product cause without Judge assessment.
+
 ## Judge verdict versus shutdown (plan 059)
 
 `judge/result.json` is immutable semantic evidence, not proof of clean runtime
