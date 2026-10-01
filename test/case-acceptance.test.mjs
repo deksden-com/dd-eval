@@ -79,12 +79,12 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
   const v2 = { ...policy, checker: "task-priority@2" };
   const protocol = "PRT-007-task-priority-e2e";
   const candidatePlan = { plan_id: "PLAN-007", protocol_id: protocol, revision: 2,
-    checks: [{ id: "CHK-LOCAL", run_at: "merge" }], items: [],
+    checks: [{ id: "CHK-LOCAL", command: "true", run_at: "merge" }], items: [],
     acceptance: [{ criterion_id: "AC-001", check_refs: ["CHK-LOCAL"], expected_evidence: ["local check"], proof_limits: ["local only"] }] };
   const planBytes = JSON.stringify(candidatePlan);
   const receiptId = "WRK-001-merge/RCP-002";
   const binding = `${protocol}/CHK-LOCAL`;
-  const check = { id: "CHK-LOCAL", canonical_ref: binding, run_at: "merge" };
+  const check = { id: "CHK-LOCAL", command: "true", canonical_ref: binding, run_at: "merge" };
   const gate = { schema_id: "dd-flow/merge-gate@2", run_id: "RUN-001", protocols: [protocol], checks: [check], acceptance_refs: [], profile_hash: null };
   gate.gate_hash = sha(JSON.stringify({ checks: gate.checks, acceptance_refs: [] }));
   const accepted = { schema_id: "dd-flow/merge-gate-acceptance@2", merge_request_id: "MRG-001", run_id: "RUN-001",
@@ -104,7 +104,11 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     await put(f.runtime, "07-merge/stage-report.json", JSON.stringify({ semantic: { merge: { merge_request_id: "MRG-001", work_id: "WRK-001-merge", accepted_tree: "tree-one", protocols: [protocol] } } }));
     await put(f.runtime, "07-merge/merge-gate.json", JSON.stringify(gate));
     await put(f.runtime, "07-merge/merge-gate-acceptance.json", JSON.stringify(accepted));
-    await put(f.runtime, "07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json", JSON.stringify({ id: receiptId, status: "passed", scope: "aggregate", input_hash: "hash-one", verification_epoch: "epoch-one", check_refs: [binding], artifacts: [], required_artifacts: [] }));
+    const fingerprint = "e".repeat(64), completedAt = "2026-10-01T00:00:00Z";
+    const artifactBytes = "native binary proof\u0000\u0001", artifactRelative = "07-merge/works/WRK-001-merge/checks/RCP-002/artifacts/proof.bin";
+    await put(f.runtime, artifactRelative, artifactBytes);
+    await put(f.runtime, "07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json", JSON.stringify({ id: receiptId, status: "passed", scope: "aggregate", exit_code: 0, profile_hash: null, gate: "merge", command: "true", before_fingerprint: fingerprint, after_fingerprint: fingerprint, mutation_paths: [], inputs: [], resources: { ports: {} }, finished_at: completedAt, input_hash: "hash-one", verification_epoch: sha(`merge\0${fingerprint}`), check_refs: [binding], artifacts: [{ path: "proof.bin", sha256: sha(artifactBytes) }], required_artifacts: [] }));
+    await put(f.runtime, "07-merge/works/WRK-001-merge/checks/RCP-002/completion.json", JSON.stringify({ exit_code: 0, finished_at: completedAt }));
     await seal(f);
     const read = () => checkCaseAcceptance({ evalRoot: f.root, execution: "e2e", result: f.result, policy: v2 });
     const passed = await read();
@@ -119,7 +123,9 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
       { role: `plan:${protocol}`, root: "run", path: `07-merge/verification/sources/${sha(planBytes)}/plan.json` },
       { role: "merge_acceptance", root: "run", path: "07-merge/merge-gate-acceptance.json" },
       ...["01-specify/specify.json", "02-protocolize/protocolize-result.json", "02-protocolize/stage-report.json", "03-plan/code-work-batch.json", "07-merge/merge-gate.json"].map(path => ({ role: path, root: "run", path })),
-      { role: `receipt:${binding}`, root: "run", path: "07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json" }
+      { role: `receipt:${binding}`, root: "run", path: "07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json" },
+      { role: `completion:${binding}`, root: "run", path: "07-merge/works/WRK-001-merge/checks/RCP-002/completion.json" },
+      { role: `artifact:${binding}:proof.bin`, root: "run", path: artifactRelative }
     ];
     const retainedBatchBytes = await readFile(path.join(f.runtime, "03-plan/code-work-batch.json"));
     const retainedBatchPath = `07-merge/verification/sources/${sha(retainedBatchBytes)}/code-work-batch.json`;
@@ -160,6 +166,23 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     const generatedRead = () => checkCaseAcceptance({ evalRoot: f.root, execution: "e2e", result: f.result, policy: v3 });
     const generated = await generatedRead();
     assert.equal(generated.status, "passed", JSON.stringify(generated.evidence_error));
+    await rm(path.join(f.runtime, artifactRelative)); await seal(f);
+    assert.equal((await generatedRead()).status, "unavailable", "missing claimed binary bytes are unavailable authority");
+    await put(f.runtime, artifactRelative, "corrupt claimed binary"); await publish();
+    assert.equal((await generatedRead()).status, "unavailable", "coordinated source hashes cannot excuse a corrupt native artifact");
+    await put(f.runtime, artifactRelative, artifactBytes); await publish();
+    const originalNative = { ...nativeReceipt };
+    for (const change of [{ exit_code: 99 }, { profile_hash: "foreign-profile" }, { command: "false" }, { after_fingerprint: "f".repeat(64) }, { verification_epoch: "foreign-epoch" }, { inputs: ["foreign-input"] }, { resources: { ports: { api: 1234 } } }, { mutation_paths: ["changed"] }]) {
+      Object.assign(nativeReceipt, change);
+      await put(f.runtime, sourceNames.find(item => item.role === `receipt:${binding}`).path, JSON.stringify(nativeReceipt)); await publish();
+      assert.equal((await generatedRead()).status, "unavailable", `native contradiction ${JSON.stringify(change)}`);
+      Object.assign(nativeReceipt, originalNative);
+      await put(f.runtime, sourceNames.find(item => item.role === `receipt:${binding}`).path, JSON.stringify(nativeReceipt)); await publish();
+    }
+    const completionRelative = sourceNames.find(item => item.role === `completion:${binding}`).path;
+    await put(f.runtime, completionRelative, JSON.stringify({ exit_code: 1, finished_at: completedAt })); await publish();
+    assert.equal((await generatedRead()).status, "unavailable", "terminal completion must match the native passed receipt");
+    await put(f.runtime, completionRelative, JSON.stringify({ exit_code: 0, finished_at: completedAt })); await publish();
     assert.deepEqual(await generatedRead(), generated, "same frozen proof produces identical acceptance receipt");
     await rm(path.join(f.workspace, `.memory-bank/protocol/${protocol}/plan.json`));
     await publish();
@@ -245,6 +268,7 @@ test("reached failed check distinguishes missing expected output from corrupt cl
   try {
     const receipt = { id: "RCP-001", declaration_id: "CHK-LOCAL", scope: "aggregate", status: "failed", exit_code: 2, input_hash: "failed-input", verification_epoch: "failed-epoch", finished_at: "2026-10-01T00:00:00Z", artifacts: [], required_artifacts: ["expected.json"] };
     await put(f.runtime, "05-code/checks/RCP-001/receipt.json", JSON.stringify(receipt));
+    await put(f.runtime, "05-code/checks/RCP-001/completion.json", JSON.stringify({ exit_code: receipt.exit_code, finished_at: receipt.finished_at }));
     const failed = { state: "failed", stage: "code", run_id: "RUN-001", code: "code_gate_failed", details: { failures: [receipt] }, recovery: { recovery_id: "REC-001", manifest: path.join(f.snapshot, "snapshot.json") } };
     const capture = async () => {
       const bytes = JSON.stringify({ schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", stage_entry: null, recovery_id: "REC-001", consistency: "sealed_writer_barrier_required", run_id: "RUN-001", project_id: "PRJ-001", workspace: { sha256: snapshotTreeHash(f.workspace) }, runtime_sha256: snapshotTreeHash(path.join(f.snapshot, "runtime")) });
@@ -256,6 +280,20 @@ test("reached failed check distinguishes missing expected output from corrupt cl
     assert.equal(known.status, "failed", JSON.stringify(known.evidence_error));
     assert.ok(known.gaps.includes("check_expected_output_missing:RCP-001:expected.json"));
     assert.equal(known.facts.failed_checks[0].attribution, "undetermined");
+    receipt.exit_code = 0;
+    const retainFailure = async () => {
+      await put(f.runtime, "05-code/checks/RCP-001/receipt.json", JSON.stringify(receipt));
+      await put(f.runtime, "05-code/checks/RCP-001/completion.json", JSON.stringify({ exit_code: receipt.exit_code, finished_at: receipt.finished_at })); await capture();
+    };
+    await retainFailure();
+    assert.equal((await read()).status, "failed", "zero exit with absent expected output is a proven check-contract failure");
+    receipt.required_artifacts = [];
+    await retainFailure(); assert.equal((await read()).status, "unavailable", "zero exit alone does not prove a failed check");
+    Object.assign(receipt, { mutation_paths: ["src/changed"], before_fingerprint: "e".repeat(64), after_fingerprint: "f".repeat(64) });
+    await retainFailure(); assert.equal((await read()).status, "failed", "proven workspace mutation is a check-contract failure");
+    await put(f.runtime, "05-code/checks/RCP-001/completion.json", JSON.stringify({ exit_code: null, finished_at: receipt.finished_at })); await capture();
+    assert.equal((await read()).status, "unavailable", "nonterminal completion is not proven failure");
+    receipt.required_artifacts = ["expected.json"]; await retainFailure();
     receipt.artifacts = [{ path: "claimed.json", sha256: sha("claimed") }];
     await put(f.runtime, "05-code/checks/RCP-001/receipt.json", JSON.stringify(receipt)); await capture();
     assert.equal((await read()).status, "unavailable", "claimed artifact bytes remain mandatory even for a failed execution");

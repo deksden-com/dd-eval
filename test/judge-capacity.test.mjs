@@ -313,3 +313,117 @@ test('overflow Retry-After metadata cannot dispatch a successor', async () => {
   await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'capacity_retry_metadata_invalid' });
   assert.equal(fixture.calls.length, 1);
 });
+
+test('exact native inspection overrides cached items, including with custom validation', async () => {
+  for (const custom of [false, true]) for (const observation of [
+    { terminal_turn_id: 'turn-1', terminal_status: 'failed', native_turn_items: { observed: true, possible_effects: true, pending: true } },
+    { terminal_turn_id: 'turn-1', terminal_status: 'failed', native_turn_items: { observed: false } },
+    { terminal_turn_id: 'turn-1', terminal_status: 'failed' },
+    { terminal_turn_id: 'foreign-turn', terminal_status: 'failed' },
+    { terminal_turn_id: 'turn-1', terminal_status: 'completed' }
+  ]) {
+    const fixture = harness({ outcomes: ['overload', {}], inspect: call => ({ provider_session_id: 'session-1', settled: true,
+      settlement: { state: 'settled', operation_ids: [call.capacity.operation_id] }, ...observation }) });
+    if (custom) fixture.input.validateInspection = async () => true;
+    await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'judge_capacity_settlement_unproven' });
+    assert.equal(fixture.calls.length, 1);
+  }
+  const error = overload('unused'); delete error.details.operation_id; delete error.details.native_turn_items;
+  const fixture = harness({ outcomes: [error, {}], inspect: call => ({ provider_session_id: 'session-1', settled: true,
+    settlement: { state: 'settled', operation_ids: [call.capacity.operation_id] }, terminal_turn_id: 'turn-1', terminal_status: 'failed',
+    native_turn_items: { observed: true, possible_effects: true, pending: false } }) });
+  assert.deepEqual(await promptJudgeWithCapacity(fixture.input), {});
+  assert.equal(fixture.calls.length, 2);
+});
+
+test('compact inspection without Turn fields requires proven immutable terminal items', async () => {
+  for (const items of [undefined, { observed: false }, { observed: true, possible_effects: true, pending: true }]) {
+    const error = overload('unused'); delete error.details.operation_id;
+    error.details.native_turn_items = items;
+    const fixture = harness({ outcomes: [error, {}] });
+    await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'judge_capacity_settlement_unproven' });
+    assert.equal(fixture.calls.length, 1);
+  }
+  const fixture = harness({ outcomes: ['overload', {}] });
+  assert.deepEqual(await promptJudgeWithCapacity(fixture.input), {});
+  assert.equal(fixture.calls.length, 2);
+});
+
+test('recovered native receipt preserves its failure time and cannot bypass the burst', async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'judge-capacity-recovered-time-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const fixture = harness({ outcomes: ['overload', 'overload', {}] });
+  fixture.input.stateFile = path.join(directory, 'chain.json');
+  let recoveredError;
+  const dispatch = fixture.input.dispatch;
+  fixture.input.dispatch = async (text, capacity, authorize) => {
+    if (capacity.ordinal === 2) {
+      await authorize(); fixture.calls.push({ prompt: text, capacity });
+      recoveredError = overload(capacity.operation_id, 'turn-3');
+      recoveredError.details.observed_at = new Date(fixture.time()).toISOString();
+      throw Object.assign(new Error('lost observer'), { code: 'operation_observation_lost' });
+    }
+    try { return await dispatch(text, capacity, authorize); }
+    catch (error) { error.details.observed_at = new Date(fixture.time()).toISOString(); throw error; }
+  };
+  await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'operation_observation_lost' });
+  assert.equal(fixture.time(), 20000);
+  fixture.input.clock = () => 200000;
+  fixture.input.recover = async operationId => { assert.equal(operationId, recoveredError.details.operation_id); throw recoveredError; };
+  await assert.rejects(promptJudgeWithCapacity(fixture.input), error => error.code === 'provider_overload_burst' && error.details.capacity_continuation.elapsed_ms === 15000);
+  const retained = JSON.parse(await readFile(fixture.input.stateFile, 'utf8'));
+  assert.equal(retained.turns[2].refusal.first_observed_at, '1970-01-01T00:00:20.000Z');
+  assert.deepEqual(fixture.calls.map(call => call.capacity.ordinal), [0, 1, 2]);
+});
+
+test('recovered missing, invalid or reversed refusal timestamps cannot authorize a successor', async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'judge-capacity-invalid-time-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  for (const [index, timestamp] of [undefined, 'invalid', -1, 'native-only'].entries()) {
+    const fixture = harness({ outcomes: ['overload', {}] });
+    fixture.input.stateFile = path.join(directory, `chain-${index}.json`);
+    let recoveredError;
+    const dispatch = fixture.input.dispatch;
+    fixture.input.dispatch = async (text, capacity, authorize) => {
+      if (!capacity.ordinal) return dispatch(text, capacity, authorize);
+      await authorize(); fixture.calls.push({ prompt: text, capacity });
+      recoveredError = overload(capacity.operation_id, 'turn-2');
+      if (timestamp === 'native-only') Object.assign(recoveredError.details, { terminal_at: new Date(1000).toISOString(), terminal_basis: 'native' });
+      else if (timestamp !== undefined) recoveredError.details.observed_at = typeof timestamp === 'number' ? new Date(timestamp).toISOString() : timestamp;
+      throw Object.assign(new Error('lost observer'), { code: 'operation_observation_lost' });
+    };
+    await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'operation_observation_lost' });
+    fixture.input.clock = () => 200000;
+    fixture.input.recover = async () => { throw recoveredError; };
+    await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'capacity_chain_conflict' });
+    assert.equal(fixture.calls.length, 2);
+    const retained = JSON.parse(await readFile(fixture.input.stateFile, 'utf8'));
+    assert.equal(retained.turns[1].state, 'dispatched');
+    assert.equal(retained.turns[1].refusal, undefined);
+  }
+});
+
+test('retained refusal policy, timestamps and duplicate Turn identities are rejected before sending', async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'judge-capacity-malformed-refusal-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const fixture = harness({ outcomes: ['overload', 'overload', 'overload'] });
+  fixture.input.stateFile = path.join(directory, 'chain.json');
+  await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'provider_overload_burst' });
+  const valid = JSON.parse(await readFile(fixture.input.stateFile, 'utf8'));
+  for (const corrupt of [
+    chain => { chain.turns[0].refusal.policy = 'foreign-policy'; },
+    chain => { chain.turns[0].refusal.first_observed_at = 0; },
+    chain => { chain.turns[0].error.details.observed_at = 'invalid'; },
+    chain => { chain.turns[0].error.details.observed_at = new Date(1).toISOString(); },
+    chain => { chain.turns[1].refusal.first_observed_at = new Date(-1).toISOString(); },
+    chain => { chain.turns[0].refusal.native_terminal_at = 'invalid'; chain.turns[0].refusal.native_terminal_basis = 'native'; },
+    chain => { chain.turns[0].refusal.native_terminal_at = new Date(1000).toISOString(); chain.turns[0].refusal.native_terminal_basis = 'invented-native'; },
+    chain => { chain.turns[1].error.details.turn_id = chain.turns[1].error.details.native_turn_id = chain.turns[0].refusal.turn_id;
+      chain.turns[1].refusal.turn_id = chain.turns[2].predecessor_turn_id = chain.turns[0].refusal.turn_id; }
+  ]) {
+    const chain = structuredClone(valid); corrupt(chain);
+    await writeFile(fixture.input.stateFile, JSON.stringify(chain));
+    await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'capacity_chain_conflict' });
+    assert.equal(fixture.calls.length, 3);
+  }
+});
