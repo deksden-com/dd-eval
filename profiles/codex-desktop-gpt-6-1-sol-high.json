@@ -6,7 +6,7 @@
   "reasoning": "high",
   "notes": "Operator-selected common Final/Interaction Judge for every harness; uses CPA through cx. Historical Judge profiles remain unchanged.",
   "runtime": {
-    "codex_cli": "0.159.1",
+    "codex_cli": "0.160.0",
     "dd_harness_contract": "dd-codex-harness@1"
   }
 }
