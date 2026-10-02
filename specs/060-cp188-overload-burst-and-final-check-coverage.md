@@ -4,6 +4,8 @@
 
 Последующее ревью выявило и исправило существенные gaps в capacity recovery, обязательных CODE fixes и frozen check evidence. Текущие source commits и отдельные проверки исправлений — [review report](060-cp188-review-report.md). Полные первоначальные gates в implementation report относятся к исходной приёмке, не к последующему review-tree.
 
+CP189 выявил дополнительные native continuation/lifecycle/diagnostic gaps, не закрытые этой приёмкой. Новый подробный план, включая исправление тестовых контрактов, — [061](061-cp189-native-continuation-and-lifecycle-repair-plan.md); его реализация пока не начата.
+
 ## 1. Границы и проверенные inputs
 
 - dd-flow: `fix/cp187-matrix-admission`, `6f441c26f9b75253e541be084abfb187667cb745`.
