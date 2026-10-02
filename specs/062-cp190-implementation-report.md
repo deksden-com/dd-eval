@@ -31,6 +31,8 @@
 - Native ZCode requested Session IDs are provider IDs; ACP pending requests use adapter IDs. This distinction was checked in the production code rather than homogenized in fixtures.
 - Invalid/unbound native receipt data is diagnostic, not fabricated execution authority or primary cause.
 - First diagnostic integration failure exposed an unsafe `json_extract` in the new SQL-only owner snapshot: unrelated historical/default Work/MERGE receipt bytes can be non-JSON. Both extractions now use `CASE WHEN json_valid(...)`; targeted Grok/AGY regressions with malformed foreign historical rows pass (2/2). This was an implementation defect, not a timing failure.
+- Final independent review found that fingerprint projection could discard an explicitly supplied foreign RUN before CLI argument restoration. A shared target guard now checks hook admission, shell correction, explicit assignment validation and CLI restoration. Omitted public targets and the correct short alias remain valid; a foreign full/short target is rejected before a receipt or effect. Explicit-ID reuse also validates the private Stage-start contract. Targeted regression set: 8/8 PASS.
+- The initial-manifest test now surfaces a settled provisioning error immediately instead of masking it behind its manifest deadline. Its deadline is unchanged. The isolated real-CLI rerun still missed that deadline without a settled provisioning error; the fake-CLI variant passed in 25.5 seconds.
 
 ## Compatibility / risk-only review
 
@@ -38,17 +40,16 @@ AGY and Droid retain their native correlated transports; only typed error preser
 
 ## Verification ledger
 
-- Typecheck: PASS after removing redundant narrowed comparison.
-- Lint: PASS.
-- Strict canon build: PASS; final rebuild required after last native diagnostic patch.
-- Release gate: 2 Node tests + 8 Vitest tests PASS before final native patch; final rerun pending.
-- Integration gate: first consolidated run accumulated failure markers under heavy host load and was stopped (exit 143) to obtain a diagnostic first-failure report; NOT PASS. Final complete rerun pending.
-- Runtime-sensitive gate: pending.
-- EVAL full offline gate with built FLOW and fixture adapter: pending.
+- Typecheck, lint, strict canon build and release gate (2 Node + 8 Vitest tests, no skips): PASS on final FLOW implementation commit `65de0f7`, after the additional RUN-target guard.
+- Integration gate: NOT PASS. The initial complete attempt was stopped (exit 143) to obtain first-failure details. The final attempt was stopped (exit 143) after independent review found the additional RUN-target guard defect; it had also reported two controller-fixture startup/time-window failures. Neither stopped attempt is acceptance.
+- Runtime-sensitive gate on `0a6aad0`: 27 PASS / 3 FAIL. The Droid child suite reported four passing checks but exceeded its unchanged aggregate 30s limit; two control-worker fixtures missed their unchanged observed-state deadline. An earlier full run had 28 PASS / 2 FAIL; those two cases passed individually at unchanged limits. These isolated results do not replace the full gate.
+- EVAL full offline gate on clean committed `090a490`, with built FLOW and fixture adapter: 416 tests, 409 PASS / 3 FAIL / 4 cancelled / 0 skipped. Failures/cancellations concern real-CLI startup/observer time windows and the bounded-wait fixture's assumption that admission completed inside its 1.5s total budget. New contextual HITL, source-integrity, schema and attribution checks passed. The full gate is NOT PASS.
 
 Diagnostic reruns: first-failure integration found the SQL defect above (61 PASS / 1 FAIL before bail). After its fix, another first-failure run reached 53 PASS then timed out in the unchanged duplicate-protocol CLI test. An isolated rerun of that test passed at the unchanged 120s limit (119.456s). Its 21 manual CLI calls do not enter managed admission/receipt waiting. These diagnostic runs are not a full integration PASS.
 
 Earlier targeted agent runs are diagnostic only, not final acceptance. Initial runs under heavy host load included timeout failures and obsolete assertions; assertions were corrected only where the new proven-scope contract changed the expected error. Test timeouts and mandatory suite selection were not relaxed.
+
+No functional root cause has been established for the remaining time-window failures. Host slowness is evidence, not a substitute for a green gate: final plan acceptance remains incomplete and must be repeated on the final commits under usable host conditions. No timeout increase, test exclusion or automatic runtime repair was used to obtain an artificial PASS.
 
 ## Delivery boundary
 

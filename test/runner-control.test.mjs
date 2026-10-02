@@ -130,11 +130,12 @@ if(result.error)throw result.error; process.exit(result.status??1);`);
   const runProfile = initialRunProfile(loaded.value.id);
   const retained = path.join(root, 'executions', execution.id, 'retained');
   await mkdir(path.dirname(retained), { recursive: true }); await writeFile(retained, 'block before provider preparation');
-  let initial, resumed, finished = false;
+  let initial, initialFailure, resumed, finished = false;
   await withRunnerLock(path.join(root, 'events.jsonl'), async () => {
-    initial = executeEval({ root, runId: 'EVAL-initial-resume', loaded, profile, runProfile, executions: [execution] }).catch(error => error);
+    initial = executeEval({ root, runId: 'EVAL-initial-resume', loaded, profile, runProfile, executions: [execution] }).catch(error => { initialFailure = error; return error; });
     const deadline = performance.now() + 30_000;
     while (!await readFile(path.join(root, 'manifest.json')).then(() => true, error => { if (error.code === 'ENOENT') return false; throw error; })) {
+      if (initialFailure) throw initialFailure;
       assert.ok(performance.now() < deadline, 'initial manifest is published'); await delay(10);
     }
     resumed = runnerResume({ evalRoot: root }).then(value => { finished = true; return value; }, error => { finished = true; return error; });
