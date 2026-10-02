@@ -56,6 +56,24 @@ test("leader exit allows helpers to finish naturally without signaling an unowne
   assert.throws(() => process.kill(-child.pid, 0), { code: "ESRCH" });
 });
 
+test('a naturally retiring helper gets a settlement budget, not the signal grace', { skip: process.platform === 'win32' }, async () => {
+  const helper = `setTimeout(()=>{},3000);process.send('ready');`;
+  const script = `const {spawn}=require('node:child_process');const h=spawn(process.execPath,['-e',${JSON.stringify(helper)}],{stdio:['ignore','ignore','ignore','ipc']});h.once('message',()=>process.exit(0));`;
+  const child = spawn(process.execPath, ['-e', script], { detached: true, stdio: 'ignore' });
+  await once(child, 'exit');
+  assert.equal(child.exitCode, 0);
+  assert.doesNotThrow(() => process.kill(-child.pid, 0));
+  await stopProcessGroup(child, 20);
+  assert.throws(() => process.kill(-child.pid, 0), { code: 'ESRCH' });
+});
+
+test('leaderless settlement still fails at its deadline without sending signals', async t => {
+  const calls = [];
+  t.mock.method(process, 'kill', (_pid, signal) => { calls.push(signal); return true; });
+  await assert.rejects(stopProcessGroup({ pid: 424242, exitCode: 0 }, 20, { settlementMs: 1000 }), error => error.code === 'process_group_ownership_unknown' && error.details.settlement_ms === 1000);
+  assert.ok(calls.every(signal => signal === 0));
+});
+
 test("owned cleanup escalates when its live provider ignores SIGTERM", async () => {
   const child = spawn(process.execPath, ["-e", 'process.on("SIGTERM", () => {}); process.stdout.write("ready"); setInterval(() => {}, 1000)'], { detached: true, stdio: ["ignore", "pipe", "ignore"] });
   await new Promise(resolve => child.stdout.once("data", resolve));
