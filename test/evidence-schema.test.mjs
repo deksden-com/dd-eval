@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import Ajv2020 from "ajv/dist/2020.js";
 import { buildEvidencePacket, buildReport, buildRunCandidate, validateHitlMatch, resolveHitlJudgment, isInfrastructureFailure, failureAttribution, failureDiagnostic, failureEvidenceRevision } from "../lib/runner.mjs";
+import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
 
 const schemaRoot = path.resolve(import.meta.dirname, "..", "schemas");
 async function validator(file) {
@@ -17,7 +18,13 @@ test("partial HITL is schema-valid evidence, never a deliverable answer", async 
   const verdict = { schema_id: "dd-eval/hitl-match@1", status: "unmatched", classification: "fixture_gap", response_ids: ["priority"], covered_questions: ["values"], uncovered_questions: ["independent decision"], rationale: "values covered; independent decision missing" };
   assert.equal(validate(verdict), true, JSON.stringify(validate.errors));
   assert.equal(validateHitlMatch(verdict, fixture), verdict);
-  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict }, question: "compound", stage: "specify" }), { code: "interaction_fixture_gap" });
+  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict }, question: "compound", stage: "specify" }), { code: "judge_result_invalid" }, 'historical verdict cannot authorize new issuance');
+  const packet = await buildHitlPacket({ stage: 'specify', question: 'values; independent decision', responses: fixture.responses });
+  const grounded = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@2', atoms: [
+    { source_quote: 'values', decision: 'values', classification: 'covered_by_canonical_response', reference_bindings: [], answer_evidence: [{ response_id: 'priority', answer_quote: 'canonical' }], rationale: 'covered' },
+    { source_quote: 'independent decision', decision: 'independent decision', classification: 'fixture_gap', reference_bindings: [], answer_evidence: [], rationale: 'missing' }
+  ] }, packet);
+  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict: grounded, packet }, question: packet.question, stage: packet.stage }), { code: 'interaction_fixture_gap' });
   for (const invalid of [{ ...verdict, covered_questions: [] }, { ...verdict, covered_questions: [""] }, { ...verdict, response_ids: ["priority", "priority"] }, { ...verdict, status: "matched" }]) {
     assert.equal(validate(invalid), false);
     assert.throws(() => validateHitlMatch(invalid, fixture), { code: "judge_result_invalid" });

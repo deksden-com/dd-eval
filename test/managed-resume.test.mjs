@@ -7,6 +7,7 @@ import os from 'node:os';
 import { recoverExecution, captureRecoveryEvidence } from '../lib/runner.mjs';
 import { appendEvent, readEvents, hashJson, recordOperation } from '../lib/runner-events.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
+import { settledJudge } from './fixtures/judge-cleanup.mjs';
 
 test('unmanaged recovery and reconciliation require migration before creating runtime or provider state', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'legacy-recovery-'));
@@ -45,9 +46,11 @@ for (const waiting of [false, true]) test(`managed recovery retains capture, con
     const baseline = await write('baseline.json', { status: 'passed', checkpoint_sha256: checkpoint.sha256, checkpoint_id: checkpoint.value.id, source_commit: checkpoint.value.source.commit, policy_sha256: definition.sha256, checks: [{ exit_code: 0 }] });
     const contextFile = await write('context.json', { stage: 'specify', retained: true });
     const answerFile = await write('answer.md', 'unchanged answer\n');
-    const receiptFile = await write('judge/receipt.json', { verdict: 'matched', session_id: 'judge-existing', profile_id: 'judge', interaction_fixture_sha256: 'f'.repeat(64) });
-    await write('judge/packet.json', { question: 'A required question?' });
     const fixture = { schema_id: 'dd-eval/canonical-responses@1', stage: 'specify', mode: 'required', max_rounds: 1, responses: [{ id: 'answer', topic: 'scope', applicability: 'always', answer: 'unchanged answer\n' }] };
+    const packet = { schema_id: 'dd-eval/interaction-judge-packet@1', stage: 'specify', question: 'A required question?', responses: fixture.responses };
+    await write('judge/packet.json', packet);
+    await settledJudge(path.join(root, 'judge'), { schema_id: 'dd-eval/interaction-judge-receipt@1', stage: 'specify', profile_id: 'judge', session_id: 'judge-existing', interaction_fixture_sha256: hashJson(fixture), packet_sha256: hashJson(packet), verdict: { schema_id: 'dd-eval/hitl-match@1', status: 'matched', classification: 'covered_by_canonical_response', response_ids: ['answer'], covered_questions: [packet.question], uncovered_questions: [], rationale: 'Canonical answer' } });
+    const receiptFile = path.join(root, 'judge/result.json');
     await write('case/entry-pack-source/interactions/specify.json', fixture);
     const manifest = { run_id: 'EVAL-test', runtime_resource_home: path.join(root, 'resources'), profile: { concurrency: { global: 1, per_harness: {} } }, interaction_fixtures: { specify: { interaction_fixture_sha256: hashJson(fixture) } } };
     const opId = `${manifest.run_id}:${execution.id}:launch`;

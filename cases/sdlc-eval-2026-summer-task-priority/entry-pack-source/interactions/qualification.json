@@ -149,6 +149,15 @@
       "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
       "decision_tags": [
         "ambiguous"
+      ],
+      "expected_atoms": [
+        {
+          "source_quotes": [
+            "Уточните обязательное поведение этого значения в том случае, о котором мы говорили: какой именно вариант нужен?"
+          ],
+          "classification": "ambiguous",
+          "response_ids": []
+        }
       ]
     },
     {
@@ -163,6 +172,25 @@
       "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
       "decision_tags": [
         "partial-covered"
+      ],
+      "expected_atoms": [
+        {
+          "source_quotes": [
+            "Какие уровни и подписи приоритета?"
+          ],
+          "classification": "covered_by_canonical_response",
+          "response_ids": [
+            "clarification-task-priority"
+          ]
+        },
+        {
+          "source_quotes": [
+            "И нужно ли добавить SMS-уведомления?",
+            "нужно ли добавить SMS-уведомления?"
+          ],
+          "classification": "out_of_scope",
+          "response_ids": []
+        }
       ]
     },
     {
@@ -175,6 +203,77 @@
       "context_sha256": "47b1e143a38da31f781da9d56233e8dc3dfa16137335991c7e8ffceefb17b99a",
       "decision_tags": [
         "mixed-gap-extra"
+      ],
+      "expected_atoms": [
+        {
+          "source_quotes": [
+            "Какое значение сохраняется при двух одновременно успешных изменениях приоритета?"
+          ],
+          "classification": "fixture_gap",
+          "response_ids": []
+        },
+        {
+          "source_quotes": [
+            "И добавим ли новый календарь?",
+            "добавим ли новый календарь?"
+          ],
+          "classification": "out_of_scope",
+          "response_ids": []
+        }
+      ]
+    },
+    {
+      "id": "resolved-reference",
+      "question": "Уточните обязательное поведение этого значения в том случае, о котором мы говорили: какой именно вариант нужен?",
+      "status": "matched",
+      "classification": "covered_by_canonical_response",
+      "response_ids": [
+        "clarification-task-priority"
+      ],
+      "context_file": "entry-pack-source/interactions/qualification-resolved.json",
+      "context_sha256": "f992d72c6f8d8d8ad6f52666bdba3df9d1de47560eaf24a556a2946579113205",
+      "decision_tags": [
+        "resolved-reference"
+      ],
+      "expected_atoms": [
+        {
+          "source_quotes": [
+            "Уточните обязательное поведение этого значения в том случае, о котором мы говорили: какой именно вариант нужен?"
+          ],
+          "classification": "covered_by_canonical_response",
+          "response_ids": [
+            "clarification-task-priority"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "covered-and-ambiguous",
+      "question": "Какие уровни и подписи приоритета? Какой именно вариант того случая нужен?",
+      "status": "unmatched",
+      "classification": "ambiguous",
+      "response_ids": [
+        "clarification-task-priority"
+      ],
+      "context_file": "entry-pack-source/interactions/qualification-specify.json",
+      "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
+      "expected_atoms": [
+        {
+          "source_quotes": [
+            "Какие уровни и подписи приоритета?"
+          ],
+          "classification": "covered_by_canonical_response",
+          "response_ids": [
+            "clarification-task-priority"
+          ]
+        },
+        {
+          "source_quotes": [
+            "Какой именно вариант того случая нужен?"
+          ],
+          "classification": "ambiguous",
+          "response_ids": []
+        }
       ]
     }
   ],

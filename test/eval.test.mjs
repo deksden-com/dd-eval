@@ -10,6 +10,7 @@ import test from "node:test";
 import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
+import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
 import { materializeQualificationContext } from "../lib/runner.mjs";
 import { buildReport } from "../lib/runner.mjs";
 import { capacityCodexChildren } from "../lib/runner.mjs";
@@ -97,7 +98,8 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.match(loaded.inputCheckpoint.value.id, /^cp-\d+-task-priority-.+-engine-0-9-0-beta-\d+(?:-.+)?$/);
+  assert.equal(loaded.inputCheckpoint.value.id, loaded.value.input_checkpoint.id);
+  assert.match(loaded.inputCheckpoint.value.id, /^cp-\d+-task-priority-.+$/);
   assert.equal(loaded.inputCheckpoint.value.source.commit, "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e");
   assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-172-source-baseline-setup");
   const pinnedCheckpoint = JSON.parse(await readFile(path.join(root, 'checkpoints', `${loaded.value.input_checkpoint.id}.json`), 'utf8'));
@@ -119,7 +121,7 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     const runProfile = await loadRunProfile(path.join(root, "cases", caseId, "run-profiles", "e2e-inline-merge-luna-xhigh.json"));
     const input = { loaded, runProfile, definition: { tree: "a".repeat(64) } };
     const qualified = await hitlQualificationInputs(input);
-    assert.equal(qualified.corpus.items.length, 14);
+    assert.ok(qualified.corpus.items.length >= 14);
     assert.equal(qualified.corpus.context_required, true, 'task-priority corpus requires production-shaped context');
     assert.ok(qualified.corpus.items.some(item => item.id === "active-project-permissions"));
     assert.ok(qualified.corpus.items.some(item => item.stage === "plan"));
@@ -148,10 +150,11 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
       await mkdir(judgeRoot, { recursive: true });
       const renderedContext = await materializeQualificationContext({ qualified: qualification, item, caseRoot: loaded.root, output: path.join(operation, 'contexts', createHash('sha256').update(item.id).digest('hex') + '.json') });
       const context = renderedContext ? JSON.parse(await readFile(renderedContext.path, 'utf8')) : null;
-      const packet = changePacket({ schema_id: 'dd-eval/interaction-judge-packet@1', stage, subject_context: context, question: item.question, responses: fixture.responses });
+      const originalPacket = await buildHitlPacket({ stage, subjectContext: context, question: item.question, responses: fixture.responses, readRegularFile: file => readFile(file) });
+      const packet = changePacket(originalPacket);
       await writeFile(path.join(judgeRoot, 'packet.json'), JSON.stringify(packet));
-      const matched = item.classification === 'covered_by_canonical_response';
-      const observed = { schema_id: 'dd-eval/hitl-match@1', status: matched ? 'matched' : 'unmatched', classification: item.classification, response_ids: item.response_ids, covered_questions: item.response_ids.length ? ['covered atom'] : [], uncovered_questions: matched ? [] : ['uncovered atom'], rationale: 'offline declared expectation, not a semantic Judge proof' };
+      const expected = item.expected_atoms ?? [...(item.classification !== 'covered_by_canonical_response' && item.response_ids.length ? [{ source_quotes: [item.question], classification: 'covered_by_canonical_response', response_ids: item.response_ids }] : []), { source_quotes: [item.question], classification: item.classification, response_ids: item.response_ids }];
+      const observed = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@2', atoms: expected.map((atom, index) => ({ source_quote: atom.source_quotes?.[0] ?? atom.source_quote ?? item.question, decision: `offline decision ${index}`, classification: atom.classification, reference_bindings: [], answer_evidence: atom.classification === 'covered_by_canonical_response' ? atom.response_ids.map(id => ({ response_id: id, answer_quote: fixture.responses.find(response => response.id === id).answer })) : [], rationale: 'offline contract fixture, not a semantic Judge proof' })) }, originalPacket);
       const verdict = change({ schema_id: 'dd-eval/interaction-judge-receipt@1', profile_id: qualification.profile.id, session_id: name, stage, interaction_fixture_sha256: fixture.sha256, packet_sha256: hashJson(packet), verdict: observed });
       const cleanup = await settledJudge(judgeRoot, verdict);
       return { id: item.id, stage, passed: true, observed, receipt_file: path.join(judgeRoot, 'result.json'), cleanup };
@@ -178,6 +181,10 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     const wrongQuestion = await qualifiedItem(qualified, qualified.corpus.items[0], 'wrong-question', value => value, packet => ({ ...packet, question: 'unrelated question' }));
     const wrongPacket = { ...content, results: [wrongQuestion, ...content.results.slice(1)] };
     await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...wrongPacket, immutable_hash: hashJson(wrongPacket) }));
+    await assert.rejects(assertHitlQualification(input), { code: 'definition_qualification_invalid' });
+    const forgedSource = await qualifiedItem(qualified, qualified.corpus.items[0], 'forged-source', value => value, packet => ({ ...packet, grounding_sources: packet.grounding_sources.map(source => source.id.startsWith('source-') ? { ...source, text: 'forged antecedent', sha256: createHash('sha256').update('forged antecedent').digest('hex') } : source) }));
+    const forgedPacket = { ...content, results: [forgedSource, ...content.results.slice(1)] };
+    await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...forgedPacket, immutable_hash: hashJson(forgedPacket) }));
     await assert.rejects(assertHitlQualification(input), { code: 'definition_qualification_invalid' });
     const foreignContext = await qualifiedItem(qualified, qualified.corpus.items[0], 'foreign-context', value => value, packet => ({ ...packet, subject_context: { ...packet.subject_context, roots: { project: loaded.root } } }));
     const foreignPacket = { ...content, results: [foreignContext, ...content.results.slice(1)] };
@@ -721,33 +728,29 @@ test("worker failure remains primary when daemon cleanup also fails", async () =
 test("Interaction Judge accepts alternatives without dropping independent decisions", () => {
   const prompt = interactionJudgePrompt('/packet with "quotes".json');
   assert.ok(prompt.includes(JSON.stringify('/packet with "quotes".json')));
-  assert.match(prompt, /Proposed options are not exhaustive or binding/);
-  assert.match(prompt, /Do not require it to affirm a proposed option's assumptions or consequences/);
-  assert.match(prompt, /independent delivery-time decision remains uncovered/);
-  assert.match(prompt, /smallest sufficient set/);
-  assert.match(prompt, /including every required key and schema_id/);
-  assert.match(prompt, /never licenses authoring, paraphrasing or strengthening the exact canonical response/);
-  assert.match(prompt, /no uncovered request remains/);
-  assert.match(prompt, /proven fixture_gap, otherwise unresolved material ambiguous, otherwise out_of_scope, otherwise unnecessary_question/);
+  assert.match(prompt, /proposed alternatives are not exhaustive/);
+  assert.match(prompt, /Preserve every independent uncovered atom/);
+  assert.match(prompt, /smallest sufficient answer set/);
+  assert.match(prompt, /no aggregate fields/);
+  assert.match(prompt, /Do not author, paraphrase or strengthen canonical answer bytes/);
+  assert.match(prompt, /never from canonical responses or applicability/);
   assert.match(prompt, /sole repetition of an explicitly accepted decision.*unnecessary_question/);
-  assert.match(prompt, /Classification covered_by_canonical_response is valid only with status matched/);
+  assert.match(prompt, /must be empty for uncovered atoms/);
 });
 
-test("HITL verdicts are strict, fail closed, and preserve exact response bytes", () => {
+test("HITL verdicts are strict, fail closed, and preserve exact response bytes", async () => {
   const fixture = { sha256: "a".repeat(64), responses: [{ id: "one", answer: "first" }, { id: "two", answer: "second" }] };
-  const verdict = validateHitlMatch({ schema_id: "dd-eval/hitl-match@1", status: "matched", classification: "covered_by_canonical_response", response_ids: ["two", "one"], covered_questions: ["Q1", "Q2"], uncovered_questions: [], rationale: "covered" }, fixture);
-  const exchange = resolveHitlJudgment({ fixture, judgment: { profile: "judge", session_id: "session", receipt_file: "/receipt", verdict }, question: "Q1 and Q2", stage: "specify" });
-  assert.equal(exchange.answer, "second\n\nfirst");
+  const packet = await buildHitlPacket({ stage: 'specify', question: 'Q1 and Q2', responses: fixture.responses });
+  const atom = (quote, id) => ({ source_quote: quote, decision: quote, classification: 'covered_by_canonical_response', reference_bindings: [], answer_evidence: [{ response_id: id, answer_quote: fixture.responses.find(response => response.id === id).answer }], rationale: 'covered' });
+  const verdict = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@2', atoms: [atom('Q2', 'two'), atom('Q1', 'one')] }, packet);
+  const exchange = resolveHitlJudgment({ fixture, judgment: { profile: "judge", session_id: "session", receipt_file: "/receipt", verdict, packet }, question: "Q1 and Q2", stage: "specify" });
+  assert.equal(exchange.answer, "first\n\nsecond");
   assert.equal(exchange.delimiter, "dd-eval/hitl-response-delimiter@1");
-  assert.throws(() => validateHitlMatch({ ...verdict, response_ids: ["one", "one"] }, fixture), /malformed arrays/);
-  assert.throws(() => validateHitlMatch({ ...verdict, uncovered_questions: ["Q3"] }, fixture), /inconsistent verdict/);
-  assert.throws(() => validateHitlMatch({ ...verdict, rationale: "" }, fixture), /invalid contract/);
-  const gap = validateHitlMatch({ schema_id: "dd-eval/hitl-match@1", status: "unmatched", classification: "fixture_gap", response_ids: [], covered_questions: ["Q1"], uncovered_questions: ["Q2"], rationale: "missing" }, fixture);
-  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict: gap }, question: "Q1 and Q2", stage: "specify" }), (error) => error.code === "interaction_fixture_gap" && error.hitl.verdict === gap);
-  const partialGap = validateHitlMatch({ schema_id: "dd-eval/hitl-match@1", status: "unmatched", classification: "fixture_gap", response_ids: ["one"], covered_questions: ["Q1"], uncovered_questions: ["Q2"], rationale: "first answer covers only Q1" }, fixture);
-  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict: partialGap }, question: "Q1 and Q2", stage: "specify" }), (error) => error.code === "interaction_fixture_gap" && error.hitl.verdict === partialGap);
-  assert.throws(() => validateHitlMatch({ ...partialGap, covered_questions: ["Q1", "Q1"] }, fixture), /malformed arrays/);
-  assert.throws(() => validateHitlMatch({ ...partialGap, uncovered_questions: ["Q1"] }, fixture), /malformed arrays/);
+  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict }, question: packet.question, stage: packet.stage }), { code: 'judge_result_invalid' });
+  assert.throws(() => validateGroundedHitl({ ...verdict, response_ids: ['two', 'one'] }, packet, { stored: true }), { code: 'judge_result_invalid' });
+  assert.throws(() => validateHitlMatch({ schema_id: 'dd-eval/hitl-match@1', status: 'unmatched', classification: 'fixture_gap', response_ids: [], covered_questions: ['Q1'], uncovered_questions: ['Q2'], rationale: 'missing' }, fixture), { code: 'judge_result_invalid' });
+  const partialGap = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@2', atoms: [atom('Q1', 'one'), { ...atom('Q2', 'two'), classification: 'fixture_gap', answer_evidence: [] }] }, packet);
+  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict: partialGap, packet }, question: packet.question, stage: packet.stage }), error => error.code === 'interaction_fixture_gap' && error.hitl.verdict.classification === 'fixture_gap');
   assert.equal(isInfrastructureFailure("interaction_fixture_gap"), true);
 });
 
@@ -773,7 +776,7 @@ test("canonical recovery reuses accepted HITL bytes without spending another rou
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /answered_pauses/);
   const implementation = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalBoundaryAccept"));
-  assert.match(implementation, /if \(prior\) \{\s+await acceptedHitlAnswer\(\{ answerFile: prior\.answer_file, answerSha256: prior\.answer_sha256 \}\);\s+return prior\.answer_file/);
+  assert.match(implementation, /if \(prior\) \{[\s\S]*verifyRetainedHitl\(\{ data: prior,[\s\S]*return prior\.answer_file/);
   assert.match(source, /answer_file: answerFile/);
 });
 

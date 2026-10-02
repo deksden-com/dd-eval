@@ -1,0 +1,30 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { interactionJudge } from '../lib/runner.mjs';
+import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
+import { hashJson } from '../lib/runner-events.mjs';
+import { settledJudge } from './fixtures/judge-cleanup.mjs';
+
+test('retained pause reuses settled verdict without runtime/provider access; unknown outcome never retries', async t => {
+  const attempt = await mkdtemp(path.join(os.tmpdir(), 'hitl-issuance-'));
+  t.after(() => rm(attempt, { recursive: true, force: true }));
+  const profile = 'offline-judge';
+  const profileFile = path.join(attempt, 'profile.json');
+  await writeFile(profileFile, JSON.stringify({ id: profile, harness: 'codex-desktop', model: 'test', reasoning: 'high' }));
+  const binding = { stage: 'specify', round: 1, pause_id: 'pause', scope_id: 'e2e' };
+  const fixture = { sha256: 'a'.repeat(64), responses: [{ id: 'answer', answer: 'Canonical' }] };
+  const packet = await buildHitlPacket({ stage: binding.stage, question: 'Required default?', responses: fixture.responses });
+  packet.hitl_binding = binding;
+  const root = path.join(attempt, 'interaction-judge', `${binding.stage}-${hashJson(binding).slice(0, 20)}`);
+  await mkdir(root, { recursive: true });
+  await writeFile(path.join(root, 'packet.json'), JSON.stringify(packet));
+  const args = { attempt, fixture, question: packet.question, stage: binding.stage, hitlBinding: binding, runProfile: { value: { interaction_judge: { profile_id: profileFile } } }, runtimeRoot: '/nonexistent-no-runtime-access', projectRoot: '/nonexistent-no-project-access' };
+  await assert.rejects(interactionJudge(args), { code: 'judge_outcome_unknown' });
+  const verdict = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@2', atoms: [{ source_quote: packet.question, decision: 'Required default', classification: 'covered_by_canonical_response', reference_bindings: [], answer_evidence: [{ response_id: 'answer', answer_quote: 'Canonical' }], rationale: 'Covered' }] }, packet);
+  await settledJudge(root, { schema_id: 'dd-eval/interaction-judge-receipt@1', stage: binding.stage, profile_id: profile, session_id: 'session', interaction_fixture_sha256: fixture.sha256, packet_sha256: hashJson(packet), verdict });
+  assert.equal((await interactionJudge(args)).reused, true);
+  await assert.rejects(interactionJudge({ ...args, question: 'Changed default?' }), { code: 'judge_evidence_mismatch' });
+});

@@ -224,6 +224,18 @@ still records `provider_sessions_created: 0`; direct `eval run` checks it too.
 A request to prepare only never authorizes `eval run` or a live compatibility/
 capacity experiment.
 
+New HITL decisions use `dd-eval/hitl-match@2`: the Judge cites exact question
+atoms, frozen context evidence and canonical answer quotes; the runner derives
+the overall result. Historical v1 evidence remains read-only, not new admission.
+Targeted corpus `expected_atoms` compare finite authored quote alternatives,
+classification and response IDs one-to-one; expected fields never reach Judge.
+After offline checks and committed definition qualification, run the bounded
+reference pair (three fresh Sessions per question; retain every result):
+`node tools/native-interaction-judge-smoke.mjs --pair <unresolved-packet.json> <resolved-packet.json> <judge-profile> <runtime-root> <project-root>`.
+Packets contain `question`, `subject_context`, `responses` and `stage`; resolved
+context explicitly identifies the antecedent. A semantic failure is retained,
+never retried until PASS. This smoke does not create a scored EVAL.
+
 Requalify a harness only when its native runtime, adapter or relevant contract
 changes (or qualification is absent). Broader stop/recovery and all-harness
 matrices are separate acceptance work, not hidden readiness prerequisites.

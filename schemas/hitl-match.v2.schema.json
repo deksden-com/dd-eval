@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/hitl-match@2",
+  "$ref": "#/$defs/raw",
+  "$defs": {
+    "text": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "classification": {"enum": ["covered_by_canonical_response", "fixture_gap", "ambiguous", "out_of_scope", "unnecessary_question"]},
+    "reference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reference_quote", "source_id", "evidence_quote"],
+      "properties": {"reference_quote": {"$ref": "#/$defs/text"}, "source_id": {"$ref": "#/$defs/text"}, "evidence_quote": {"$ref": "#/$defs/text"}}
+    },
+    "answer": {
+      "type": "object", "additionalProperties": false,
+      "required": ["response_id", "answer_quote"],
+      "properties": {"response_id": {"$ref": "#/$defs/text"}, "answer_quote": {"$ref": "#/$defs/text"}}
+    },
+    "atom": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_quote", "decision", "classification", "reference_bindings", "answer_evidence", "rationale"],
+      "properties": {
+        "source_quote": {"$ref": "#/$defs/text"}, "decision": {"$ref": "#/$defs/text"},
+        "classification": {"$ref": "#/$defs/classification"},
+        "reference_bindings": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/reference"}},
+        "answer_evidence": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/answer"}},
+        "rationale": {"$ref": "#/$defs/text"}
+      },
+      "allOf": [{"if": {"properties": {"classification": {"const": "covered_by_canonical_response"}}}, "then": {"properties": {"answer_evidence": {"minItems": 1}}}, "else": {"properties": {"answer_evidence": {"maxItems": 0}}}}]
+    },
+    "raw": {
+      "type": "object", "additionalProperties": false, "required": ["schema_id", "atoms"],
+      "properties": {"schema_id": {"const": "dd-eval/hitl-match@2"}, "atoms": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/atom"}}}
+    },
+    "stored": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_id", "atoms", "status", "classification", "response_ids", "covered_questions", "uncovered_questions", "rationale"],
+      "properties": {
+        "schema_id": {"const": "dd-eval/hitl-match@2"}, "atoms": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/atom"}},
+        "status": {"enum": ["matched", "unmatched"]}, "classification": {"$ref": "#/$defs/classification"},
+        "response_ids": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/text"}},
+        "covered_questions": {"type": "array", "items": {"$ref": "#/$defs/text"}},
+        "uncovered_questions": {"type": "array", "items": {"$ref": "#/$defs/text"}}, "rationale": {"$ref": "#/$defs/text"}
+      }
+    }
+  }
+}
