@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtemp, mkdir, realpath, writeFile, readFile, readdir, rm, unlink, symlink } from 'node:fs/promises';
+import { cp, mkdtemp, mkdir, realpath, writeFile, readFile, readdir, rm, unlink, symlink } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { hashJson } from '../lib/runner-events.mjs';
@@ -51,6 +51,8 @@ async function runtimeFixture(t, fault = null) {
   const calls = path.join(f.directory, 'calls.jsonl'), settings = path.join(f.directory, 'settings.json');
   await put(f.directory, 'settings.json', { calls, fault, output: f.input.outputRoot });
   const engineRoot = path.join(runtimeRoot, 'engines/fixture/1');
+  assert.ok(process.env.DD_FLOW_SOURCE_ROOT, 'set DD_FLOW_SOURCE_ROOT for exact built native contract fixtures');
+  await cp(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'dist/harness-runtime'), path.join(engineRoot, 'dist/harness-runtime'), { recursive: true });
   await put(engineRoot, 'cli.cjs', `const fs=require('node:fs'); const a=process.argv.slice(2), c=JSON.parse(fs.readFileSync(${JSON.stringify(settings)}));
 fs.appendFileSync(c.calls,JSON.stringify({flow:a})+'\\n');
 if(a[0]==='codex' && c.fault==='changed-during-setup') fs.appendFileSync(c.output+'/assessment.json',' ');

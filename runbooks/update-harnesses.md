@@ -4,6 +4,18 @@ Use this procedure for a native harness, transport bridge or adapter update.
 Provider-specific details live in [update-zcode.md](update-zcode.md).
 Git integration and release rules live in [git-workflow.md](git-workflow.md).
 
+New productive owners require the integrity-verified engine's bundled
+`native-children@1` normalization and `operation-errors@1` observation contracts,
+for every harness, not only Codex. Qualification caches bind to the exact package
+checksum; changing source or an ambient launcher does not update retained engines.
+Verify exports and copied bytes from an installed snapshot before qualification.
+Legacy raw evidence remains readable but cannot supply missing dispatch authority.
+
+At the subsequent engine delivery, refresh installed hook targets in both Codex
+homes (`~/.codex` and `~/.codex-cpa`) and each qualified harness, then verify they
+resolve to the intended runtime. Source implementation alone does not deploy hooks
+or publish an engine; historical EVAL runtimes stay unchanged.
+
 Provider service output is not a product change. Qualification/materialization
 must establish its service-file policy before the productive baseline, without
 hiding tracked user files. AGY hooks can contain both owned dd-flow handlers and user

@@ -21,6 +21,12 @@
     "observability": {"type": "object"},
     "judge_status": {"type": "string"},
     "judge_error": {"type": "object"},
+    "judge_provider_limit": {"type": ["object", "null"], "additionalProperties": false, "required": ["category", "observed_at", "provider_session_id", "reset_at", "reset_source", "retry_after_at"], "properties": {
+      "category": {"enum": ["provider_quota", "provider_rate_limit", "provider_limit_unknown"]},
+      "observed_at": {"type": ["string", "null"]}, "provider_session_id": {"type": ["string", "null"]},
+      "reset_at": {"type": ["string", "null"]}, "reset_source": {"type": ["string", "null"]},
+      "retry_after_at": {"type": ["string", "null"]}, "reset_estimated": {"type": "boolean"}, "reset_basis": {"type": ["string", "null"]}
+    }},
     "judge_cleanup": {"type": "object", "required": ["status"], "properties": {"status": {"enum": ["settled", "failed", "unknown"]}}},
     "candidate": {"type": "object"},
     "judge": {"type": "object"},

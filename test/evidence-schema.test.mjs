@@ -11,6 +11,17 @@ async function validator(file) {
   return new Ajv2020({ allErrors: true }).compile(schema);
 }
 
+test("actual Judge error report validates strict quota projection and infrastructure validity", async () => {
+  const validate = await validator("report.v2.schema.json");
+  const manifest = { run_id: "EVAL-error", executions: [{ id: "e2e" }] };
+  const result = { execution: "e2e", state: "failed", code: "native_outcome_observation_failed", error: "observation failed", details: { native_outcome: { status: "completed" } } };
+  const report = buildReport({ root: "/owned", manifest, state: "completed_with_failures", executionState: "failed", cleanupState: "settled", results: [result], judgeError: { code: "agy_provider_quota_exhausted", message: "Individual quota reached. Resets in 3h12m12s", details: { observed_at: "2026-10-01T16:18:41.330Z", provider_session_id: "judge" } } });
+  assert.equal(validate(report), true, JSON.stringify(validate.errors));
+  assert.equal(report.run_validity, "invalid_infrastructure_flow");
+  assert.equal(report.judge_provider_limit.reset_estimated, true);
+  assert.equal(validate({ ...report, unexpected: true }), false);
+});
+
 test("actual candidate, report and Judge evidence producers satisfy their schemas with and without case acceptance", async () => {
   const validators = await Promise.all(["run-candidate.v2.schema.json", "report.v2.schema.json", "evaluator-evidence.v1.schema.json"].map(validator));
   const manifest = { run_id: "EVAL-test", case_id: "sdlc-eval-2026-summer-task-priority", executions: [{ id: "e2e" }], case_acceptance: { checker: "task-priority@1" } };

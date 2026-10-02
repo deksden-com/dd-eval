@@ -10,6 +10,7 @@ import test from "node:test";
 import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
+import { capacityCodexChildren } from "../lib/runner.mjs";
 import { errorRecord, terminalCodexOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 const capacityPolicy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'src/harness-runtime/lib/codex-capacity-policy.mjs')).href) : null;
@@ -19,6 +20,51 @@ const root = path.resolve(import.meta.dirname, "..");
 const buildProfile = path.join(root, "cases", caseId, "run-profiles", "build-entry-pack-reference-sol-high.json");
 const qualificationProfile = path.join(root, "cases", caseId, "run-profiles", "qualify-entry-pack-terra-high.json");
 const run = promisify(execFile);
+
+test("mandatory post-native observation failure is infrastructure, retains stable diagnostic revision", () => {
+  const result = { execution: "e2e", state: "failed", code: "native_outcome_observation_failed", error: "observer failed", details: { native_outcome: { status: "completed" }, observation_error: { code: "lifecycle_shell_syntax_invalid", details: { reason: "dynamic_executable" } }, journal_locator: "/owned/native.jsonl" } };
+  assert.equal(isInfrastructureFailure(result), true);
+  assert.equal(failureAttribution(result), "evaluation_infrastructure");
+  assert.equal(executionEvidence(result).failure.diagnostic.details.native_outcome.status, "completed");
+  assert.notEqual(failureEvidenceRevision(result), failureEvidenceRevision({ ...result, details: { ...result.details, observation_error: { code: "profile_mismatch" } } }));
+  assert.equal(failureEvidenceRevision(result), failureEvidenceRevision({ ...result, sampled_at: "later" }));
+  assert.equal(isInfrastructureFailure("product_check_failed"), false);
+  const unsafe = { ...result, details: { ...result.details, violations: [{ code: "drift", field: "model", authorization: "secret-token", env: { API_KEY: "secret-key" }, transcript: "private transcript" }] } };
+  const projection = JSON.stringify(executionEvidence(unsafe).failure);
+  assert.match(projection, /drift/); assert.doesNotMatch(projection, /secret-token|secret-key|private transcript|API_KEY/);
+  assert.equal(providerLimitMetadata({ ...result, cause: { code: "agy_provider_quota_exhausted", message: "quota" } }), null);
+  assert.equal(classifyInterruption({ ...result, cause: { code: "agy_provider_quota_exhausted", message: "quota" } }).category, "execution_failure");
+});
+
+test("raw report errors remain bounded and JSON safe for evidence and revision", () => {
+  const raw = { state: "failed", code: "native_outcome_observation_failed", error: "x".repeat(32000), details: { provider_session_id: "owned" } };
+  assert.equal(executionEvidence(raw).failure.message.length, 16000);
+  raw.error = raw; raw.details.cycle = raw.details;
+  assert.doesNotThrow(() => JSON.stringify(executionEvidence(raw)));
+  assert.doesNotThrow(() => failureEvidenceRevision(raw));
+  assert.equal(executionEvidence(raw).failure.diagnostic.details.provider_session_id, "owned");
+  raw.code = { invalid: true }; raw.error = 42;
+  assert.equal(executionEvidence(raw).failure.code, "operation_failed");
+  assert.equal(typeof executionEvidence(raw).failure.message, "string");
+});
+
+test("AGY relative reset is estimated from frozen native terminal time, never from polling", () => {
+  const error = { code: "agy_provider_quota_exhausted", details: { provider_session_id: "conversation", observed_at: "2026-10-01T16:18:41.330Z", provider_result: { error: "Individual quota reached. Resets in 3h12m12s" } } };
+  const metadata = providerLimitMetadata(error);
+  assert.equal(metadata.reset_at, "2026-10-01T19:30:53.330Z");
+  assert.equal(metadata.reset_estimated, true);
+  assert.equal(metadata.reset_basis, error.details.observed_at);
+  assert.deepEqual(providerLimitMetadata(structuredClone(error)), metadata);
+  assert.equal(providerLimitMetadata({ ...error, details: { ...error.details, observed_at: undefined } }).reset_at, null);
+  for (const invalid of ["Resets in -3h", "Resets in 1h61m", "Resets in 2m90s", "Resets in 999999999999999999999h", "Resets in 3h 12m", "Resets in 3h12m 12s", "Resets in 3hms", "Resets in 3h+12m", "Resets in 3h 12 minutes"]) assert.equal(providerLimitMetadata({ ...error, details: { ...error.details, provider_result: { error: invalid } } }).reset_at, null);
+});
+
+test("bootstrap native normalization never upgrades idle or hides a foreign parent", () => {
+  const children = directNativeChildren({ descendants: [{ session_id: "child", parent_session_id: "foreign", status: "idle" }] }, "root");
+  assert.equal(children[0].status, "unknown");
+  assert.equal(children[0].provenance, "parent_mismatch");
+  assert.throws(() => directNativeChildren({ descendants: [{ session_id: "child", parent_session_id: "root", status: "completed" }, { session_id: "child", parent_session_id: "root", status: "failed" }] }, "root"), { code: "native_child_outcome_conflict" });
+});
 
 test("eval CLI rejects ambiguous mutations and treats help as a non-mutating command", async () => {
   const cli = path.join(root, "bin", "dd-eval.mjs");
@@ -414,7 +460,7 @@ test("quota reset comes from the matching structured native error, not Retry-Aft
   const observed_at = "2026-09-28T15:00:00.000Z";
   const reset = "2026-09-29T15:00:00.000Z";
   const native = { code: "turn_interrupted", details: { observed_at, provider_session_id: "codex-root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "usageLimitExceeded", resets_at: Math.floor(Date.parse(reset) / 1000), retryAfter: 30 } } };
-  assert.deepEqual(providerLimitMetadata(native), { category: "provider_quota", observed_at, provider_session_id: "codex-root", reset_at: reset, reset_source: "codex.turn.error.resets_at", retry_after_at: "2026-09-28T15:00:30.000Z" });
+  assert.deepEqual(providerLimitMetadata(native), { category: "provider_quota", observed_at, provider_session_id: "codex-root", reset_at: reset, reset_source: "codex.turn.error.resets_at", reset_estimated: false, reset_basis: null, retry_after_at: "2026-09-28T15:00:30.000Z" });
   native.details.provider_error.resets_at = Date.parse(reset);
   assert.equal(providerLimitMetadata(native).reset_at, reset);
   native.details.provider_error.resets_at = Math.floor(Date.parse("2026-09-27T15:00:00.000Z") / 1000);
@@ -679,7 +725,8 @@ test("capacity qualification counts only authoritative direct native children", 
     { provider_session_id: "child-settled-by-root", parent_provider_session_id: "root", status: "settled_by_root" },
     { provider_session_id: "grandchild", parent_provider_session_id: "child-completed", status: "completed" }
   ] }, "root");
-  assert.deepEqual(children.map((child) => child.session_id), ["child-completed", "child-failed", "child-settled-by-root"]);
+  assert.deepEqual(children.filter(child => child.parent_session_id === "root").map((child) => child.session_id), ["child-completed", "child-failed", "child-settled-by-root"]);
+  assert.equal(children.find(child => child.session_id === "grandchild").provenance, "parent_mismatch");
   assert.equal(children[1].status, "failed");
   assert.equal(children[2].status, "settled_by_root");
   assert.deepEqual(
@@ -712,13 +759,19 @@ test("capacity Codex home inherits CPA routing without sharing auth state or hoo
   assert.doesNotMatch(helper[0], /sessions/);
 });
 
-test("capacity reads Codex native child metadata rather than model text", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  const helper = source.match(/async function capacityCodexChildren[\s\S]*?\n}/);
-  assert.ok(helper);
-  assert.match(helper[0], /parent_thread_id === rootSessionId/);
-  assert.doesNotMatch(helper[0], /SubAgentActivity/);
-  assert.doesNotMatch(helper[0], /assistant_text/);
+test("capacity reads Codex native child metadata rather than model text", async t => {
+  assert.ok(process.env.DD_FLOW_SOURCE_ROOT, "set DD_FLOW_SOURCE_ROOT for bound native child contract");
+  const contracts = await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, "dist/harness-runtime/lib/native-children.mjs")).href);
+  const home = await mkdtemp(path.join(tmpdir(), "eval-capacity-parent-")); t.after(() => rm(home, { recursive: true, force: true }));
+  const sessions = path.join(home, "sessions"); await mkdir(sessions);
+  for (const [id, parent] of [["owned-child", "root"], ["foreign-child", "other-root"]]) {
+    await writeFile(path.join(sessions, `${id}.jsonl`), [{ type: "session_meta", payload: { id, parent_thread_id: parent } }, { type: "event_msg", payload: { type: "task_complete", turn_id: `${id}-turn` } }].map(JSON.stringify).join("\n"));
+  }
+  await writeFile(path.join(sessions, "model-text.jsonl"), JSON.stringify({ assistant_text: "child completed", payload: { item: { type: "SubAgentActivity", kind: "completed", agent_thread_id: "invented-child" } } }));
+  const children = await capacityCodexChildren(home, "root", contracts);
+  assert.deepEqual(children.filter(child => child.parent_session_id === "root").map(child => child.session_id), ["owned-child"]);
+  assert.equal(children.find(child => child.session_id === "foreign-child").provenance, "parent_mismatch");
+  assert.equal(children.some(child => child.session_id === "invented-child"), false);
 });
 
 test("reference native-child recovery delegates to its retained CLI owner", async () => {

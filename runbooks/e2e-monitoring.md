@@ -1,5 +1,23 @@
 # E2E monitoring
 
+## Native outcomes and owned child waits
+
+An exact failed overload Turn with proven live owned children is normal waiting,
+not evidence that the controller should cancel healthy children. Record the retained
+operation, continuation intent and frozen refusal time; inspect the same owner until
+fresh whole-tree settlement. Unknown tools, conflicting parentage and observation
+loss are blocked evidence, not permission to resend or create a child wave.
+
+A completed native Turn followed by mandatory observer/profile/storage failure
+remains a tooling failure (`native_outcome_observation_failed`). Retain both the
+native outcome and the primary observation reason; do not report business success
+or replay that Turn. Cleanup errors are secondary.
+
+AGY quota resets expressed as a relative duration are estimates anchored to the
+frozen native terminal observation, labelled `reset_estimated` with `reset_basis`.
+Repeated polling or reading retained evidence must not move that estimate. A reset
+estimate is not access verification and does not authorize automatic quota retry.
+
 ## Confirmed Codex overload (plan 060)
 
 Only an exact terminal native `serverOverloaded` permits continuation of the

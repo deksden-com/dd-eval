@@ -1,11 +1,40 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, readFile, symlink, rm } from 'node:fs/promises';
+import { cp, mkdtemp, mkdir, writeFile, readFile, symlink, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import { loadCapacityPolicy } from '../lib/capacity-policy.mjs';
+import { loadCapacityPolicy, loadNativeContracts } from '../lib/capacity-policy.mjs';
+import { isObservationLoss } from '../lib/operation-errors.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { successfulPolicyFixture } from './fixtures/capacity-policy.mjs';
+import { directNativeChildren } from '../lib/runner.mjs';
+
+test('all-harness native contracts execute from exact installed bytes with conservative bootstrap parity', { skip: !process.env.DD_FLOW_SOURCE_ROOT && 'set DD_FLOW_SOURCE_ROOT for built runtime proof' }, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-built-native-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const engine = path.join(root, 'engines/selected');
+  await mkdir(engine, { recursive: true });
+  await cp(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'dist/harness-runtime'), path.join(engine, 'dist/harness-runtime'), { recursive: true });
+  await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
+  await symlink('engines/selected/dist/harness-runtime', path.join(root, 'harness-runtime'));
+  const contracts = await loadNativeContracts(root);
+  const preinitFailure = contracts.agyTerminalFailure({ status: 'ERROR', error: 'Individual quota reached' }, { provider_session_id: null, observed_at: '2026-10-01T16:18:41.330Z' });
+  assert.deepEqual(directNativeChildren(null, null, contracts), []);
+  assert.equal(preinitFailure.code, 'agy_provider_quota_exhausted');
+  assert.equal(preinitFailure.details.provider_session_id, null);
+  for (const code of ['rpc_timeout', 'native_timeout', 'native_outcome_unknown', 'native_backend_dead', 'native_backend_pipe_broken', 'bridge_exited', 'bridge_pipe_broken', 'daemon_timeout', 'turn_timeout', 'operation_observation_lost', 'daemon_connection_closed', 'native_outcome_observation_failed', 'unknown']) assert.equal(contracts.isObservationLoss({ code }), isObservationLoss({ code }), code);
+  assert.equal(contracts.normalizeNativeChildren({ descendants: [{ session_id: 'child', parent_session_id: 'root', status: 'idle' }] }, 'root')[0].status, 'unknown');
+  assert.equal(contracts.agyTerminalFailure({ status: 'ERROR', error: 'Individual quota reached' }).code, 'agy_provider_quota_exhausted');
+  await writeFile(path.join(root, 'harness-runtime/lib/native-children.mjs'), '// tampered');
+  await assert.rejects(loadNativeContracts(root), { code: 'native_contract_unsupported' });
+  await writeFile(path.join(root, 'harness-runtime/lib/native-children.mjs'), "export const NATIVE_CHILD_CONTRACT_VERSION='native-children@0'; export function normalizeNativeChildren(){return []}");
+  await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
+  await assert.rejects(loadNativeContracts(root), { code: 'native_contract_unsupported' });
+  await writeFile(path.join(root, 'harness-runtime/lib/native-children.mjs'), "export const NATIVE_CHILD_CONTRACT_VERSION='native-children@1';");
+  await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
+  await assert.rejects(loadNativeContracts(root), { code: 'native_contract_unsupported' });
+  await assert.rejects(loadNativeContracts(path.join(root, 'missing')), { code: 'native_contract_unsupported' });
+});
 
 test('capacity policy is per-owner, verified from the pinned engine, with no ambient fallback', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-policy-'));
