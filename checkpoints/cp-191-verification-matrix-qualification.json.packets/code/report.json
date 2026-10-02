@@ -1,0 +1,146 @@
+{
+  "schema_id": "dd-flow/stage-report@2",
+  "run_id": "RUN-001-tasks",
+  "stage": "code",
+  "generated_at": "2026-10-02T16:30:10.531Z",
+  "verdict": "done",
+  "verification": {
+    "checks": [
+      {
+        "id": "CHK-P1-TEST",
+        "run_at": "work",
+        "status": "passed",
+        "receipt_ref": "/Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json"
+      },
+      {
+        "id": "CHK-READY",
+        "run_at": "readiness",
+        "status": "passed",
+        "receipt_ref": "/Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json"
+      },
+      {
+        "id": "CHK-NEW",
+        "run_at": "work",
+        "status": "passed",
+        "receipt_ref": "/Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json"
+      }
+    ],
+    "acceptance": [
+      {
+        "criterion_id": "AC-001",
+        "gate": "work",
+        "status": "confirmed",
+        "check_refs": [
+          "CHK-P1-TEST",
+          "CHK-READY"
+        ],
+        "evidence_refs": [
+          ".memory-bank/spec/engineering/code-check-profile.json",
+          ".memory-bank/scenarios/SCN-002.md",
+          "run://RUN-001-tasks/05-code/checks/RCP-002/receipt.json"
+        ]
+      }
+    ]
+  },
+  "semantic": {
+    "result": "Completed 1 CODE Work item; 1 current final check receipt passed.",
+    "acceptance": [
+      "R-001",
+      "AC-001"
+    ],
+    "changed_files": [
+      ".memory-bank/dd-flow/mb-sdlc/plan-aspects/aspects/contract-review.md",
+      ".memory-bank/dd-flow/project-execution.json",
+      ".memory-bank/epics/EP-001-tasks/features/FT-001-task-priority/index.md",
+      ".memory-bank/epics/EP-001-tasks/index.md",
+      ".memory-bank/protocol/PRT-001-historical/summary.md",
+      ".memory-bank/protocol/PRT-001-task-priority/index.md",
+      ".memory-bank/protocol/PRT-001-task-priority/intake/user-input.md",
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+      ".memory-bank/protocol/PRT-001-task-priority/summary.md",
+      ".memory-bank/protocol/index.md",
+      ".memory-bank/scenarios/SCN-002.md",
+      ".memory-bank/spec/engineering/code-check-profile.json",
+      ".tasks/dd-flow-dashboard.md",
+      "apps/api/test/priority.test.ts"
+    ],
+    "checks": [
+      "test -f apps/api/src/core/service.ts"
+    ],
+    "evidence": [
+      "/Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json"
+    ],
+    "next_action": "start_merge",
+    "code": {
+      "work_ids": [
+        "WRK-005-prt-001-task-priority-p1"
+      ],
+      "requirement_coverage": [
+        "AC-001",
+        "R-001"
+      ],
+      "repairs": [],
+      "verification": {
+        "schema_id": "dd-flow/code-verification@2",
+        "verdict": "passed",
+        "summary": "The accepted Work materialized its code and durable scenario.",
+        "unresolved": [],
+        "deviations": []
+      }
+    },
+    "plan_conformance": {
+      "schema_id": "dd-flow/code-verification@2",
+      "verdict": "passed",
+      "summary": "The accepted Work materialized its code and durable scenario.",
+      "unresolved": [],
+      "deviations": []
+    },
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "role": "output",
+      "completeness": "execution",
+      "source_fingerprint": "3be48186c618404b9dd793bcf363c9dd94c36a109af7de36000c00d08afee60d",
+      "json": {
+        "path": "05-code/verification/3be48186c618404b9dd793bcf363c9dd94c36a109af7de36000c00d08afee60d/verification-matrix.json",
+        "sha256": "73fce9e016bcf487d5b8e03d38998622a6610b6560eac99335218cfa2fca5196"
+      },
+      "markdown": {
+        "path": "05-code/verification/3be48186c618404b9dd793bcf363c9dd94c36a109af7de36000c00d08afee60d/verification-matrix.md",
+        "sha256": "c623526941de6d8288289dac3e398d9fc85bd744749c3026428f5dfc7a40f45f"
+      },
+      "coverage_contract": "dd-flow/final-check-coverage@1"
+    }
+  },
+  "mechanical": {
+    "started_at": "2026-10-02T16:30:06.433Z",
+    "finished_at": "2026-10-02T16:30:10.531Z",
+    "wall_clock_ms": 4098,
+    "git": {
+      "branch": "main",
+      "head": "399a317185cf5e1085dbbeb83fff45921e9f4a0d",
+      "status": "dirty"
+    },
+    "graph": {
+      "total": 1,
+      "created": 0,
+      "running": 0,
+      "completed": 1,
+      "failed": 0,
+      "ready": [],
+      "blocked": []
+    },
+    "session_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/home\" \"/Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/home/bin/dd-flow\" stat run sessions ls --run RUN-001-tasks --project-root /Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/project --json",
+    "usage_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/home\" \"/Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/home/bin/dd-flow\" stat usage --run RUN-001-tasks --project-root /Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/project --json"
+  },
+  "artifacts": {
+    "json": "stage-report.json",
+    "markdown": "stage-report.md",
+    "html": "stage-report.html"
+  },
+  "validation": {
+    "permission_scope": "known_targets_only",
+    "memory_bank_scope": "changed_files_and_links_only",
+    "status": "passed"
+  },
+  "summary": "Completed 1 CODE Work item; 1 current final check receipt passed."
+}

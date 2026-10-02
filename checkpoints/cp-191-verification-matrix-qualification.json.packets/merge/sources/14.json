@@ -1,0 +1,35 @@
+{
+  "id": "WRK-006-merge/RCP-004",
+  "local_id": "RCP-004",
+  "declaration_id": "CHK-MERGE",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-MERGE"
+  ],
+  "gate": "merge",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "true",
+  "input_hash": "0f4b3fee9b8af4f1e42ab5b5ec743d555e6b0ab2c01d13cd3cc24bc85b26551c",
+  "verification_epoch": "e66489906a4caa4cd2a63c72d9bafec9e022c797291c6a6d1ae89dc941814ea6",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-191-matrix-installed-proof/dd-flow-protocolize-4xpIdX/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "4410b719f6e3642ae3a290824441220f5b8bd5264058f56e525b044db5a18b70",
+  "before_fingerprint": "4410b719f6e3642ae3a290824441220f5b8bd5264058f56e525b044db5a18b70",
+  "after_fingerprint": "4410b719f6e3642ae3a290824441220f5b8bd5264058f56e525b044db5a18b70",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-02T16:30:13.948Z",
+  "finished_at": "2026-10-02T16:30:14.018Z"
+}
