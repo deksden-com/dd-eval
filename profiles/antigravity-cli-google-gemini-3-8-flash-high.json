@@ -11,7 +11,7 @@
   "reasoning": "high",
   "mode": "accept-edits",
   "runtime": {
-    "agy": "1.2.14",
+    "agy": "1.2.15",
     "dd_harness_contract": "dd-agy-harness@1"
   },
   "notes": "CP189 operator-selected Gemini 3.8 Flash. Native compatibility and child capacity must be qualified independently of the historical Pro profile.",
