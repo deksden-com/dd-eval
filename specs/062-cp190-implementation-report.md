@@ -1,6 +1,6 @@
 # Plan 062 — implementation and verification
 
-2026-10-02. Implementation is under final verification; this report is not a claim of completion or scored E2E success.
+2026-10-02. Implementation changes are committed and pushed; full plan acceptance is incomplete. This report is not a claim of green mandatory gates or scored E2E success.
 
 ## Defect mapping
 
@@ -33,6 +33,7 @@
 - First diagnostic integration failure exposed an unsafe `json_extract` in the new SQL-only owner snapshot: unrelated historical/default Work/MERGE receipt bytes can be non-JSON. Both extractions now use `CASE WHEN json_valid(...)`; targeted Grok/AGY regressions with malformed foreign historical rows pass (2/2). This was an implementation defect, not a timing failure.
 - Final independent review found that fingerprint projection could discard an explicitly supplied foreign RUN before CLI argument restoration. A shared target guard now checks hook admission, shell correction, explicit assignment validation and CLI restoration. Omitted public targets and the correct short alias remain valid; a foreign full/short target is rejected before a receipt or effect. Explicit-ID reuse also validates the private Stage-start contract. Targeted regression set: 8/8 PASS.
 - The initial-manifest test now surfaces a settled provisioning error immediately instead of masking it behind its manifest deadline. Its deadline is unchanged. The isolated real-CLI rerun still missed that deadline without a settled provisioning error; the fake-CLI variant passed in 25.5 seconds.
+- Full integration exposed an additional D04 fixture defect: the shared controller adapter registered ZCode as `codex-daemon`, then emitted ZCode hooks. Production correctly registers `zcode-daemon`; its owner proof correctly rejected the fixture. The fixture mapping is fixed without weakening admission. The previously failing ZCode SPECIFY HITL / same-Session retry / PROTOCOLIZE cell passes (27.46s at its unchanged limit).
 
 ## Compatibility / risk-only review
 
@@ -40,8 +41,9 @@ AGY and Droid retain their native correlated transports; only typed error preser
 
 ## Verification ledger
 
-- Typecheck, lint, strict canon build and release gate (2 Node + 8 Vitest tests, no skips): PASS on final FLOW implementation commit `65de0f7`, after the additional RUN-target guard.
-- Integration gate: NOT PASS. The initial complete attempt was stopped (exit 143) to obtain first-failure details. The final attempt was stopped (exit 143) after independent review found the additional RUN-target guard defect; it had also reported two controller-fixture startup/time-window failures. Neither stopped attempt is acceptance.
+- Typecheck and lint: PASS after the additional RUN-target guard (`65de0f7`). The subsequent FLOW commit `01eaba9` changes only the one-line native-kind fixture mapping; strict canon build passes on that final commit.
+- Release gate: 2 Node + 8 Vitest tests, no skips, PASS on final `01eaba9` (also passed on `65de0f7`).
+- Integration gate: NOT PASS. Diagnostic attempts were stopped (exit 143) for the SQL defect, additional RUN-target guard and fixture defect described above. On final `01eaba9`, the previously unstable duplicate-protocol test passed in 45.93s, as did CLI alias/Session linkage, PROTOCOLIZE/PLAN/CODE/MERGE transitions and pinned-engine checks. The unchanged legacy usage/statistics CLI test then exceeded its 120s limit (136.38s), and this root-owned test run was stopped (exit 143). No stopped attempt counts as complete acceptance.
 - Runtime-sensitive gate on `0a6aad0`: 27 PASS / 3 FAIL. The Droid child suite reported four passing checks but exceeded its unchanged aggregate 30s limit; two control-worker fixtures missed their unchanged observed-state deadline. An earlier full run had 28 PASS / 2 FAIL; those two cases passed individually at unchanged limits. These isolated results do not replace the full gate.
 - EVAL full offline gate on clean committed `090a490`, with built FLOW and fixture adapter: 416 tests, 409 PASS / 3 FAIL / 4 cancelled / 0 skipped. Failures/cancellations concern real-CLI startup/observer time windows and the bounded-wait fixture's assumption that admission completed inside its 1.5s total budget. New contextual HITL, source-integrity, schema and attribution checks passed. The full gate is NOT PASS.
 
@@ -49,7 +51,13 @@ Diagnostic reruns: first-failure integration found the SQL defect above (61 PASS
 
 Earlier targeted agent runs are diagnostic only, not final acceptance. Initial runs under heavy host load included timeout failures and obsolete assertions; assertions were corrected only where the new proven-scope contract changed the expected error. Test timeouts and mandatory suite selection were not relaxed.
 
-No functional root cause has been established for the remaining time-window failures. Host slowness is evidence, not a substitute for a green gate: final plan acceptance remains incomplete and must be repeated on the final commits under usable host conditions. No timeout increase, test exclusion or automatic runtime repair was used to obtain an artificial PASS.
+No functional root cause has been established for the remaining time-window failures. Host slowness is evidence, not a substitute for a green gate: final plan acceptance remains incomplete and must be repeated on the final commits under usable host conditions. Runtime-sensitive and EVAL complete gates also need final-commit reruns; their earlier failing summaries are retained above, not relabelled PASS. No timeout increase, test exclusion or automatic runtime repair was used to obtain an artificial PASS.
+
+## Commits / remote delivery
+
+- FLOW `fix/cp187-matrix-admission`: `0a6aad0` (implementation), `65de0f7` (supplied RUN guard), `01eaba9` (production-shaped ZCode fixture).
+- EVAL `eval/cp190-three-e2e`: `84627e8` (finalized plan only).
+- EVAL `fix/plan062-scoped-hitl`: `090a490` (implementation), `2b0405e` (manifest diagnostic and verification ledger), followed by this final report update.
 
 ## Delivery boundary
 
