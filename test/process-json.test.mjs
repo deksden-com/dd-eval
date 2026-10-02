@@ -29,6 +29,34 @@ test("bounded diagnostic serializer handles cycles without losing primary native
   assert.equal(errorRecord(failure).details.throwing, "[unreadable]");
 });
 
+test("diagnostic serialization cannot replace the primary with unreadable error fields", () => {
+  assert.doesNotThrow(() => errorRecord(Object.create(null)));
+  const failure = { code: "primary", message: "failed", retryable: false };
+  for (const field of ["details", "cause", "cleanup_error"]) Object.defineProperty(failure, field, { get() { throw new Error("unavailable"); } });
+  assert.deepEqual(errorRecord(failure), { code: "primary", message: "failed", retryable: false, details: "[unreadable]" });
+  const errors = Array.from({ length: 5 }, (_, index) => ({ code: `primary_${index}`, message: "failed", cause: { code: "typed_cause", message: "cause" } }));
+  assert.deepEqual(errors.map(errorRecord), errors.map(error => errorRecord(error)));
+});
+
+test("the whole diagnostic tree is bounded, including primitive arrays and causes", () => {
+  const numbers = Array.from({ length: 20 }, () => Array.from({ length: 20 }, () => Array.from({ length: 20 }, () => Array(20).fill(1))));
+  const strings = Array.from({ length: 20 }, () => Array(20).fill("x".repeat(16000)));
+  const branch = { code: "primary", message: "failed", retryable: false, details: strings };
+  for (const details of [numbers, strings]) {
+    const record = errorRecord({ ...branch, details, cause: branch, cleanup_error: branch });
+    const serialized = JSON.stringify(record);
+    assert.ok(serialized.length < 150000, `diagnostic size: ${serialized.length}`);
+    assert.match(serialized, /\[truncated\]/);
+    assert.equal(record.code, "primary"); assert.equal(record.retryable, false);
+    assert.equal(record.cause.code, "primary"); assert.equal(record.cleanup_error.code, "primary");
+  }
+  const tree = depth => ({ code: `typed_${depth}`, message: "x".repeat(32000), ...(depth ? { cause: tree(depth - 1), cleanup_error: tree(depth - 1) } : {}) });
+  const record = errorRecord(tree(3));
+  const check = (value, depth) => { assert.equal(value.code, `typed_${depth}`); if (depth) { check(value.cause, depth - 1); check(value.cleanup_error, depth - 1); } };
+  check(record, 3);
+  assert.ok(JSON.stringify(record).length < 150000);
+});
+
 test("driver retains native receipt when client ledger publication or identity validation fails", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-driver-ledger-")); t.after(() => rm(root, { recursive: true, force: true }));
   const directory = path.join(root, "harness-runtime/bin"); await mkdir(directory, { recursive: true });

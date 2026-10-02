@@ -59,6 +59,18 @@ test("AGY relative reset is estimated from frozen native terminal time, never fr
   for (const invalid of ["Resets in -3h", "Resets in 1h61m", "Resets in 2m90s", "Resets in 999999999999999999999h", "Resets in 3h 12m", "Resets in 3h12m 12s", "Resets in 3hms", "Resets in 3h+12m", "Resets in 3h 12 minutes"]) assert.equal(providerLimitMetadata({ ...error, details: { ...error.details, provider_result: { error: invalid } } }).reset_at, null);
 });
 
+test("execution evidence classifies the retained primary cause, not only wrapper fields", () => {
+  const result = { execution: "e2e", state: "failed", code: "driver_failed", error: "driver failed", cause: {
+    code: "agy_provider_quota_exhausted", message: "Individual quota reached", details: { observed_at: "2026-10-01T16:18:41.330Z", provider_session_id: "owned",
+      provider_result: { error: "Individual quota reached. Resets in 3h12m12s" } }
+  } };
+  const failure = executionEvidence(result).failure;
+  assert.equal(failure.category, classifyInterruption(result).category);
+  assert.equal(failure.category, "provider_quota");
+  assert.equal(failure.provider_limit.category, failure.category);
+  assert.equal(failure.diagnostic.cause.code, result.cause.code);
+});
+
 test("bootstrap native normalization never upgrades idle or hides a foreign parent", () => {
   const children = directNativeChildren({ descendants: [{ session_id: "child", parent_session_id: "foreign", status: "idle" }] }, "root");
   assert.equal(children[0].status, "unknown");

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, readFile, writeFile, rm, readdir, access } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, writeFile, rm, readdir, access, symlink } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import os from "node:os";
@@ -52,6 +52,25 @@ test("checkpoint admission verifies bytes, rejects same-version substitutions an
     delete checkpoint.value.flow_pack.engine.artifact_sha256;
     await assert.rejects(assertCheckpointEngine(checkpoint, substituted), { code: "input_checkpoint_engine_pin_missing" });
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("engine digest rejects symlink files and directories instead of omitting their executable bytes", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "engine-symlink-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const engine = path.join(root, "engine"); await mkdir(engine);
+  await writeFile(path.join(engine, "cli.js"), "original artifact");
+  const checksum = await engineArtifactDigest(engine);
+  // The runtime-home alias is outside the snapshot content and remains valid.
+  const alias = path.join(root, "engine-alias"); await symlink(engine, alias);
+  assert.equal(await engineArtifactDigest(alias), checksum);
+  const external = path.join(root, "foreign.mjs"); await writeFile(external, "unhashed executable");
+  for (const [target, type] of [[external, "file"], [path.join(engine, "cli.js"), "file"], [root, "dir"], [engine, "dir"]]) {
+    const link = path.join(engine, "unhashed"); await symlink(target, link, type);
+    await assert.rejects(engineArtifactDigest(engine), { code: "engine_artifact_symlink" });
+    await assert.rejects(verifyEngineArtifact({ integrity: { checksum } }, engine), { code: "engine_artifact_symlink" });
+    await rm(link);
+    assert.equal(await engineArtifactDigest(engine), checksum);
+  }
 });
 
 test("V3 exact qualification validates owning packet bytes and cannot be bypassed by direct admission", async () => {
