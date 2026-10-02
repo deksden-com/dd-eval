@@ -11,6 +11,7 @@ import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertPr
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 import { materializeQualificationContext } from "../lib/runner.mjs";
+import { buildReport } from "../lib/runner.mjs";
 import { capacityCodexChildren } from "../lib/runner.mjs";
 import { errorRecord, terminalCodexOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
@@ -655,6 +656,23 @@ test("reconciliation failures retain undetermined attribution for the Judge", ()
   }
   const prompt = finalJudgePrompt({ assessmentFile: "/assessment", candidateFile: "/candidate", evidenceFile: "/evidence", scope: "e2e", assessment: { scopes: { e2e: { outcome: [{ id: "outcome" }], flow: [{ id: "flow" }] } } } });
   assert.match(prompt, /stop for runner dispatch/);
+});
+
+test("owned admission attribution uses the actual lifecycle RUN in production failures", () => {
+  const failure = { execution: "e2e", state: "failed", lifecycle: { run_id: "RUN-current" }, code: "invocation_ambiguous",
+    details: { lifecycle_assignment: { issuer: "dd-flow", scope: { projectRoot: "/owned/project", daemonId: "daemon", rootSessionId: "root", runId: "RUN-current", generation: 2 } } } };
+  const foreign = { ...failure, details: { lifecycle_assignment: { ...failure.details.lifecycle_assignment, scope: { ...failure.details.lifecycle_assignment.scope, runId: "RUN-other" } } } };
+  assert.equal(isInfrastructureFailure(failure), true);
+  assert.equal(isInfrastructureFailure(foreign), false);
+  assert.equal(isInfrastructureFailure({ code: "wrapper", lifecycle: failure.lifecycle, cause: foreign }), false);
+  assert.equal(isInfrastructureFailure({ code: "wrapper", lifecycle: failure.lifecycle, cause: failure }), true);
+  assert.equal(isInfrastructureFailure({ ...failure, run_id: "RUN-other" }), false, "contradictory actual RUN evidence fails closed");
+  assert.equal(isInfrastructureFailure({ code: "wrapper", lifecycle: { run_id: "RUN-other" }, cause: failure }), false, "inner RUN does not replace outer ownership");
+  const report = result => buildReport({ root: "/eval", manifest: { run_id: "EVAL-not-a-flow-RUN", case_id: "case", executions: [] }, state: "completed_with_failures", results: [result] });
+  assert.equal(report(failure).run_validity, "invalid_infrastructure_flow");
+  assert.equal(report(foreign).run_validity, "valid");
+  assert.equal(report(foreign).executions[0].failure.attribution, "undetermined");
+  assert.equal(report(failure).executions[0].run_id, "RUN-current");
 });
 
 test("failure evidence preserves reached boundaries, HITL, launcher, and observations", () => {
