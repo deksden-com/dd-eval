@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { chmod, cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -10,6 +10,7 @@ import test from "node:test";
 import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
+import { materializeQualificationContext } from "../lib/runner.mjs";
 import { capacityCodexChildren } from "../lib/runner.mjs";
 import { errorRecord, terminalCodexOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
@@ -117,18 +118,39 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     const runProfile = await loadRunProfile(path.join(root, "cases", caseId, "run-profiles", "e2e-inline-merge-luna-xhigh.json"));
     const input = { loaded, runProfile, definition: { tree: "a".repeat(64) } };
     const qualified = await hitlQualificationInputs(input);
-    assert.equal(qualified.corpus.items.length, 6);
+    assert.equal(qualified.corpus.items.length, 14);
+    assert.equal(qualified.corpus.context_required, true, 'task-priority corpus requires production-shaped context');
     assert.ok(qualified.corpus.items.some(item => item.id === "active-project-permissions"));
     assert.ok(qualified.corpus.items.some(item => item.stage === "plan"));
+    const requiredIds = ['luna-cp190-exact', 'values-labels-no-order', 'material-gap', 'extra-scope', 'accepted-repeat', 'ambiguous-reference', 'partial-covered', 'gap-and-extra'];
+    assert.ok(requiredIds.every(id => qualified.corpus.items.some(item => item.id === id)));
+    assert.deepEqual(new Set(qualified.corpus.items.map(item => item.classification)), new Set(['covered_by_canonical_response', 'fixture_gap', 'unnecessary_question', 'out_of_scope', 'ambiguous']));
+    const moved = path.join(temporary, 'moved-case');
+    await cp(path.join(loaded.root, 'entry-pack-source'), path.join(moved, 'entry-pack-source'), { recursive: true });
+    const relocatedInput = { ...input, loaded: { ...loaded, root: moved } };
+    const relocated = await hitlQualificationInputs(relocatedInput);
+    assert.equal(relocated.key, qualified.key, 'case absolute root is not stable qualification identity');
+    const rendered = await materializeQualificationContext({ qualified: relocated, item: relocated.corpus.items[0], caseRoot: moved, output: path.join(temporary, 'rendered.json') });
+    const snapshotContext = JSON.parse(await readFile(rendered.path, 'utf8'));
+    assert.equal(snapshotContext.sources[0].path, path.join(snapshotContext.roots.project, 'entry-pack-source/task-priority.md'));
+    assert.notEqual(snapshotContext.roots.project, moved, 'Judge reads retained source snapshot, not mutable case checkout');
+    await writeFile(path.join(moved, 'entry-pack-source/task-priority.md'), 'changed source bytes');
+    const changed = await hitlQualificationInputs(relocatedInput);
+    assert.notEqual(changed.key, qualified.key, 'source bytes under same path invalidate identity');
+    await assert.rejects(materializeQualificationContext({ qualified: relocated, item: relocated.corpus.items[0], caseRoot: moved, output: path.join(temporary, 'stale.json') }), { code: 'definition_qualification_invalid' });
     assert.match(qualified.identity.fixture_sha256.plan, /^[a-f0-9]{64}$/);
     await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_missing" });
     const qualifiedItem = async (qualification, item, name = item.id, change = value => value, changePacket = value => value) => {
       const stage = item.stage ?? qualification.corpus.stage, fixture = qualification.fixtures[stage];
-      const judgeRoot = path.join(temporary, 'judges', name);
+      const operation = path.join(qualification.root, 'operation-offline');
+      const judgeRoot = path.join(operation, 'interaction-judge', name);
       await mkdir(judgeRoot, { recursive: true });
-      const packet = changePacket({ schema_id: 'dd-eval/interaction-judge-packet@1', stage, question: item.question, responses: fixture.responses });
+      const renderedContext = await materializeQualificationContext({ qualified: qualification, item, caseRoot: loaded.root, output: path.join(operation, 'contexts', createHash('sha256').update(item.id).digest('hex') + '.json') });
+      const context = renderedContext ? JSON.parse(await readFile(renderedContext.path, 'utf8')) : null;
+      const packet = changePacket({ schema_id: 'dd-eval/interaction-judge-packet@1', stage, subject_context: context, question: item.question, responses: fixture.responses });
       await writeFile(path.join(judgeRoot, 'packet.json'), JSON.stringify(packet));
-      const observed = { schema_id: 'dd-eval/hitl-match@1', status: 'matched', classification: item.classification, response_ids: item.response_ids, covered_questions: [item.question], uncovered_questions: [], rationale: 'offline corpus match' };
+      const matched = item.classification === 'covered_by_canonical_response';
+      const observed = { schema_id: 'dd-eval/hitl-match@1', status: matched ? 'matched' : 'unmatched', classification: item.classification, response_ids: item.response_ids, covered_questions: item.response_ids.length ? ['covered atom'] : [], uncovered_questions: matched ? [] : ['uncovered atom'], rationale: 'offline declared expectation, not a semantic Judge proof' };
       const verdict = change({ schema_id: 'dd-eval/interaction-judge-receipt@1', profile_id: qualification.profile.id, session_id: name, stage, interaction_fixture_sha256: fixture.sha256, packet_sha256: hashJson(packet), verdict: observed });
       const cleanup = await settledJudge(judgeRoot, verdict);
       return { id: item.id, stage, passed: true, observed, receipt_file: path.join(judgeRoot, 'result.json'), cleanup };
@@ -137,7 +159,7 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     for (const item of qualified.corpus.items) {
       results.push(await qualifiedItem(qualified, item));
     }
-    const content = { schema_id: "dd-eval/hitl-qualification@2", key: qualified.key, status: "passed", identity: qualified.identity, results, cleanup: "settled" };
+    const content = { schema_id: "dd-eval/hitl-qualification@2", key: qualified.key, status: "passed", identity: qualified.identity, operation: path.join(qualified.root, 'operation-offline'), results, cleanup: "settled" };
     await mkdir(qualified.root, { recursive: true });
     await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
     assert.equal((await assertHitlQualification(input)).key, qualified.key);
@@ -156,7 +178,22 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     const wrongPacket = { ...content, results: [wrongQuestion, ...content.results.slice(1)] };
     await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...wrongPacket, immutable_hash: hashJson(wrongPacket) }));
     await assert.rejects(assertHitlQualification(input), { code: 'definition_qualification_invalid' });
-    const wrongStage = { ...content, results: content.results.map((result, index) => index === content.results.length - 1 ? { ...result, stage: "specify" } : result) };
+    const foreignContext = await qualifiedItem(qualified, qualified.corpus.items[0], 'foreign-context', value => value, packet => ({ ...packet, subject_context: { ...packet.subject_context, roots: { project: loaded.root } } }));
+    const foreignPacket = { ...content, results: [foreignContext, ...content.results.slice(1)] };
+    await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...foreignPacket, immutable_hash: hashJson(foreignPacket) }));
+    await assert.rejects(assertHitlQualification(input), { code: 'definition_qualification_invalid' });
+    await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
+    const sourcePacket = JSON.parse(await readFile(path.join(path.dirname(results[0].receipt_file), 'packet.json'), 'utf8'));
+    const frozenSource = sourcePacket.subject_context.sources[0].path;
+    const sourceBytes = await readFile(frozenSource);
+    await chmod(frozenSource, 0o644); await writeFile(frozenSource, 'tampered retained bytes');
+    await assert.rejects(assertHitlQualification(input), { code: 'definition_qualification_invalid' });
+    await writeFile(frozenSource, sourceBytes); await chmod(frozenSource, 0o444);
+    const missingContext = await qualifiedItem(qualified, qualified.corpus.items[0], 'missing-context', value => value, packet => ({ ...packet, subject_context: null }));
+    const missingPacket = { ...content, results: [missingContext, ...content.results.slice(1)] };
+    await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...missingPacket, immutable_hash: hashJson(missingPacket) }));
+    await assert.rejects(assertHitlQualification(input), { code: 'definition_qualification_invalid' });
+    const wrongStage = { ...content, results: content.results.map(result => result.stage === 'plan' ? { ...result, stage: "specify" } : result) };
     await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...wrongStage, immutable_hash: hashJson(wrongStage) }));
     await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_invalid" });
     await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
@@ -170,7 +207,7 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     await writeFile(path.join(interactions, "specify.json"), await readFile(path.join(loaded.root, "entry-pack-source", "interactions", "specify.json")));
     const legacyCorpus = JSON.stringify({ schema_id: "dd-eval/hitl-qualification-corpus@1", stage: "specify", items: [{ id: "legacy", question: "Какие уровни приоритета?", classification: "covered_by_canonical_response", response_ids: ["clarification-task-priority"] }] });
     await writeFile(path.join(interactions, "qualification.json"), legacyCorpus);
-    const legacyLoaded = { ...loaded, root: legacyRoot, value: { ...loaded.value, hitl_qualification: { file: "entry-pack-source/interactions/qualification.json", sha256: createHash("sha256").update(legacyCorpus).digest("hex") } } };
+    const legacyLoaded = { ...loaded, root: legacyRoot, value: { ...loaded.value, id: 'legacy-contextless', hitl_qualification: { file: "entry-pack-source/interactions/qualification.json", sha256: createHash("sha256").update(legacyCorpus).digest("hex") } } };
     const legacyInput = { ...input, loaded: legacyLoaded };
     const legacy = await hitlQualificationInputs(legacyInput);
     assert.equal(typeof legacy.identity.fixture_sha256, "string");
@@ -306,8 +343,15 @@ test("Codex default and mixed E2E differ only in explicit reviewer routing", asy
   assert.equal(mixed.subject.execution.agent_profile_id, baseline.subject.profile_id);
   assert.deepEqual(Object.keys(mixed.subject.execution.stage_overrides).sort(), ["code-review", "plan-review"]);
   for (const override of Object.values(mixed.subject.execution.stage_overrides)) {
-    assert.deepEqual(override, { delegation: { mode: "external", agent_profile_id: mixed.judge.profile_id, max_parallel: 1 } });
+    assert.deepEqual(Object.keys(override), ['delegation']);
+    assert.equal(override.delegation.mode, 'external');
+    assert.equal(override.delegation.max_parallel, 1);
+    const reviewer = JSON.parse(await readFile(path.join(root, 'profiles', override.delegation.agent_profile_id + '.json'), 'utf8'));
+    assert.equal(reviewer.harness, 'codex-desktop');
+    assert.match(reviewer.model, /-sol$/);
+    assert.equal(reviewer.reasoning, 'high');
   }
+  assert.equal(mixed.subject.execution.stage_overrides['code-review'].delegation.agent_profile_id, mixed.subject.execution.stage_overrides['plan-review'].delegation.agent_profile_id, 'mixed review routes share their declared Sol profile, independently of Judge profile');
 });
 
 test("run profiles are explicit experiments rather than harness defaults", async () => {
@@ -605,7 +649,7 @@ test("reconciliation failures retain undetermined attribution for the Judge", ()
   assert.equal(failureAttribution("lifecycle_contract_invalid"), "evaluation_infrastructure");
   assert.equal(failureAttribution("future_unclassified_failure"), "undetermined");
   assert.equal(failureAttribution({ code: "wrapper", cause: { code: "storage_write_failed" } }), "evaluation_infrastructure");
-  assert.equal(failureAttribution({ code: "usage", details: { lifecycle_outcome: { disposition: "fatal" } } }), "evaluation_infrastructure");
+  assert.equal(failureAttribution({ code: "usage", details: { lifecycle_outcome: { disposition: "fatal" } } }), "undetermined", "fatal disposition without owned issuance proof is not attribution");
   for (const code of ["lifecycle_outcome_unknown", "work_start_publication_failed"]) {
     assert.equal(failureAttribution(code), "evaluation_infrastructure");
   }
@@ -661,11 +705,13 @@ test("Interaction Judge accepts alternatives without dropping independent decisi
   assert.ok(prompt.includes(JSON.stringify('/packet with "quotes".json')));
   assert.match(prompt, /Proposed options are not exhaustive or binding/);
   assert.match(prompt, /Do not require it to affirm a proposed option's assumptions or consequences/);
-  assert.match(prompt, /independent question about delivery time remains uncovered/);
-  assert.match(prompt, /smallest sufficient set of response IDs/);
-  assert.match(prompt, /Include every required key, especially "schema_id":"dd-eval\/hitl-match@1"/);
-  assert.match(prompt, /Never author, paraphrase or strengthen a response/);
-  assert.match(prompt, /Return matched only when every material decision is covered/);
+  assert.match(prompt, /independent delivery-time decision remains uncovered/);
+  assert.match(prompt, /smallest sufficient set/);
+  assert.match(prompt, /including every required key and schema_id/);
+  assert.match(prompt, /never licenses authoring, paraphrasing or strengthening the exact canonical response/);
+  assert.match(prompt, /no uncovered request remains/);
+  assert.match(prompt, /proven fixture_gap, otherwise unresolved material ambiguous, otherwise out_of_scope, otherwise unnecessary_question/);
+  assert.match(prompt, /sole repetition of an explicitly accepted decision.*unnecessary_question/);
   assert.match(prompt, /Classification covered_by_canonical_response is valid only with status matched/);
 });
 

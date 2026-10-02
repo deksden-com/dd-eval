@@ -1,0 +1,11 @@
+{
+  "schema_id": "dd-eval/stage-context@1",
+  "stage": "specify",
+  "objective": "Подготовить требования приоритета задач.",
+  "task_input": [],
+  "sources": [],
+  "accepted_decisions": [
+    "Явно согласовано: значения no_priority/low/medium/high; default no_priority; дополнительной сортировки по приоритету не требуется."
+  ],
+  "dynamic_roles": []
+}

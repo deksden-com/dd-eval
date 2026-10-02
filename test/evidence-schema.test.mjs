@@ -3,13 +3,48 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import Ajv2020 from "ajv/dist/2020.js";
-import { buildEvidencePacket, buildReport, buildRunCandidate } from "../lib/runner.mjs";
+import { buildEvidencePacket, buildReport, buildRunCandidate, validateHitlMatch, resolveHitlJudgment, isInfrastructureFailure, failureAttribution, failureDiagnostic, failureEvidenceRevision } from "../lib/runner.mjs";
 
 const schemaRoot = path.resolve(import.meta.dirname, "..", "schemas");
 async function validator(file) {
   const schema = JSON.parse(await readFile(path.join(schemaRoot, file), "utf8"));
   return new Ajv2020({ allErrors: true }).compile(schema);
 }
+
+test("partial HITL is schema-valid evidence, never a deliverable answer", async () => {
+  const validate = await validator("hitl-match.v1.schema.json");
+  const fixture = { responses: [{ id: "priority", answer: "canonical" }], sha256: "a".repeat(64) };
+  const verdict = { schema_id: "dd-eval/hitl-match@1", status: "unmatched", classification: "fixture_gap", response_ids: ["priority"], covered_questions: ["values"], uncovered_questions: ["independent decision"], rationale: "values covered; independent decision missing" };
+  assert.equal(validate(verdict), true, JSON.stringify(validate.errors));
+  assert.equal(validateHitlMatch(verdict, fixture), verdict);
+  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict }, question: "compound", stage: "specify" }), { code: "interaction_fixture_gap" });
+  for (const invalid of [{ ...verdict, covered_questions: [] }, { ...verdict, covered_questions: [""] }, { ...verdict, response_ids: ["priority", "priority"] }, { ...verdict, status: "matched" }]) {
+    assert.equal(validate(invalid), false);
+    assert.throws(() => validateHitlMatch(invalid, fixture), { code: "judge_result_invalid" });
+  }
+  assert.throws(() => validateHitlMatch({ ...verdict, uncovered_questions: ["values"] }, fixture), { code: "judge_result_invalid" }, "cross-array disjointness is enforced by runtime");
+});
+
+test("owned runtime ambiguity retains attribution through raw, wrapped and diagnostic evidence", () => {
+  const issued = { code: "invocation_ambiguous", message: "two exact scoped runtime assignments", details: { lifecycle_assignment: { issuer: "dd-flow", scope: { projectRoot: "/owned/project", daemonId: "daemon", rootSessionId: "root", runId: "RUN", generation: 2 } } } };
+  assert.equal(isInfrastructureFailure("invocation_ambiguous"), false);
+  assert.equal(isInfrastructureFailure({ code: "invocation_ambiguous", details: { lifecycle_outcome: { disposition: "fatal" } } }), false);
+  assert.equal(isInfrastructureFailure({ code: 'invocation_ambiguous', details: { source: { kind: 'dd-flow', path: '/claimed/runtime' } } }), false, 'source-shaped claim is not issued scope');
+  assert.equal(isInfrastructureFailure({ ...issued, details: { lifecycle_assignment: { issuer: 'dd-flow', scope: { daemonId: 'claimed' } } } }), false, 'partial claimed scope is not proof');
+  assert.equal(isInfrastructureFailure({ ...issued, details: { ...issued.details, native_hook_binding: { schema_id: 'dd-flow/hook-request@1', request_id: 'request', operation_id: 'operation', daemon_id: 'foreign', root_provider_session_id: 'root', tool_call_id: 'tool', turn_generation: 2 } } }), false, 'contradicting native receipt does not bind issuer');
+  for (const error of [issued, { code: "wrapper", cause: issued }, failureDiagnostic(issued)]) assert.equal(failureAttribution(error), "evaluation_infrastructure");
+  assert.equal(isInfrastructureFailure({ ...issued, run_id: "foreign" }), false);
+  assert.equal(isInfrastructureFailure({ code: 'wrapper', run_id: 'foreign', cause: issued }), false, 'wrapped foreign RUN proof cannot acquire attribution');
+  const mismatch = { ...issued, code: 'invocation_argument_mismatch', details: { invocation_id: 'issued', lifecycle_assignment: { ...issued.details.lifecycle_assignment, phase: 'issuance' } } };
+  assert.equal(failureAttribution(failureDiagnostic(mismatch)), 'evaluation_infrastructure');
+  assert.equal(failureAttribution({ ...mismatch, details: { ...mismatch.details, lifecycle_assignment: { ...mismatch.details.lifecycle_assignment, phase: 'model-input' } } }), 'undetermined');
+  const result = { ...issued, execution: "e2e", state: "failed", run_id: "RUN" };
+  const noProof = { ...result, details: {} };
+  assert.notEqual(failureEvidenceRevision(result), failureEvidenceRevision(noProof));
+  const report = buildReport({ root: "/eval", manifest: { run_id: "EVAL", executions: [{ id: "e2e" }] }, state: "completed_with_failures", results: [result] });
+  assert.equal(report.run_validity, "invalid_infrastructure_flow");
+  assert.equal(report.executions[0].failure.diagnostic.details.lifecycle_assignment.issuer, "dd-flow");
+});
 
 test("actual Judge error report validates strict quota projection and infrastructure validity", async () => {
   const validate = await validator("report.v2.schema.json");

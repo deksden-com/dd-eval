@@ -9,12 +9,13 @@
     "status": {"enum": ["matched", "unmatched"]},
     "classification": {"enum": ["covered_by_canonical_response", "fixture_gap", "unnecessary_question", "out_of_scope", "ambiguous"]},
     "response_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
-    "covered_questions": {"type": "array", "items": {"type": "string"}},
-    "uncovered_questions": {"type": "array", "items": {"type": "string"}},
+    "covered_questions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "uncovered_questions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
     "rationale": {"type": "string", "minLength": 1}
   },
   "allOf": [
-    {"if": {"properties": {"status": {"const": "matched"}}}, "then": {"properties": {"classification": {"const": "covered_by_canonical_response"}, "response_ids": {"minItems": 1}, "covered_questions": {"minItems": 1}, "uncovered_questions": {"maxItems": 0}}}},
-    {"if": {"properties": {"status": {"const": "unmatched"}}}, "then": {"properties": {"classification": {"enum": ["fixture_gap", "unnecessary_question", "out_of_scope", "ambiguous"]}, "response_ids": {"maxItems": 0}, "uncovered_questions": {"minItems": 1}}}}
+    {"if": {"properties": {"status": {"const": "matched"}}}, "then": {"properties": {"classification": {"const": "covered_by_canonical_response"}, "response_ids": {"type": "array", "minItems": 1}, "covered_questions": {"type": "array", "minItems": 1}, "uncovered_questions": {"type": "array", "maxItems": 0}}}},
+    {"if": {"properties": {"status": {"const": "unmatched"}}}, "then": {"properties": {"classification": {"enum": ["fixture_gap", "unnecessary_question", "out_of_scope", "ambiguous"]}, "uncovered_questions": {"type": "array", "minItems": 1}}}},
+    {"if": {"properties": {"response_ids": {"type": "array", "minItems": 1}}}, "then": {"properties": {"covered_questions": {"type": "array", "minItems": 1}}}}
   ]
 }
