@@ -50,8 +50,19 @@ The system now supports finite complete `expected_atomizations` alternatives. Bo
 - Missing `result.json`: reconcile the original capacity/native operation, validate original Session/Turn and grounded verdict, then publish the receipt. The observation-only path cannot dispatch, inspect for continuation or back off into a new Turn. Unknown, prepared or failed original outcomes remain blocked. An expired retry deadline does not discard a completed result.
 - Cleanup after lost publication: reuse the same physically settled daemon and durable stop proof, binding its formerly verdict-less cleanup to the recovered receipt. No repeated stop RPC to a dead daemon.
 - Retained proof: require v2 durable profile/Session anchors, reject event/receipt contract downgrade and duplicate legacy response IDs, check scope/round and cached receipt stage before answer issuance.
-- Inputs: malformed context/source produce typed diagnostics; invalid UTF-8 cannot silently change source text. Provenance and schema namespace checks agree. Shared regular-file readers now cover runner, retained HITL, cleanup and native-operation ledger, including synchronous publication checks; FIFO/special files cannot block verification.
+- Inputs: malformed context/source produce typed diagnostics; invalid UTF-8 cannot silently change source text. Provenance and schema namespace checks agree. Shared regular-file readers now cover runner, retained HITL, capacity chains, cleanup and native-operation ledger, including synchronous publication checks; FIFO/special files cannot block these verification reads.
 - Regression completeness: add portable original CP193 bad-verdict fixture, quoted-instruction-as-data corpus case (17 cases), and one-to-one whole-atomization regression tests. Native pair smoke also rejects a partial selected answer for the unresolved question.
 - Attribution: Judge cleanup/Turn/chain proof failures are infrastructure failures, not product/Subject violations. CLI diagnostics include all authored oracle alternatives.
 
 No product, canonical answer, harness binary, historical EVAL or historical verdict changed. No new paid native Session/E2E was launched during review. Final offline verification is recorded after the committed-tree suite below; full new-definition live qualification and 3+3 pair acceptance remain unconfirmed.
+
+### Final review verification
+
+Committed implementation `3ad3274`, tested with
+`DD_FLOW_SOURCE_ROOT=/Users/deksden/Documents/_Projects/_worktrees/dd-flow-051-implementation npm test`:
+**434 pass, 0 fail, 8 conditional skips** (442 total). `git diff --check` passed.
+
+Read-only replay of the original retained `partial-covered` verdict: old bundled-only oracle rejects, revised authored whole-atomization oracle accepts, and three negative variants (missing SMS, missing covered decisions, extra atom) reject.
+Original `failure.json` SHA256 before and after replay:
+`c3eb0d2c8e3818b80bc486a86ee6325d505bf7f4cd09e02101a0642a7abfeaf9`.
+This verifies the oracle correction, not a fresh native semantic qualification.
