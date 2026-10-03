@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-194-task-priority-plan064-finalized",
-    "sha256": "dc5a5e143ff5b087d841d585fdf5fd4ea61fa220938268659de09ef2cb5861f4"
+    "id": "cp-194-task-priority-plan064-bounded",
+    "sha256": "b8236956eef01db7acdfba2f383ba0d9570949ea0c6d5468958cc2bc872c9722"
   },
   "entry_pack": null,
   "hitl_qualification": {

@@ -1,0 +1,19 @@
+{
+  "schema_id": "dd-flow/run-engine-binding@1",
+  "run_id": "RUN-001-tasks",
+  "project_root": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/bounded-matrix-fixture/evidence/dd-flow-protocolize-4AFkIE/project",
+  "bound_at": "2026-10-03T23:04:29.814Z",
+  "source": "run_creation",
+  "reason": "RUN created by the selected execution engine.",
+  "engine": {
+    "package_name": "@deksden-com/dd-flow-cli",
+    "package_version": "0.9.0-beta.125",
+    "engine_version": "0.9.0-beta.125",
+    "integrity_checksum": "d1abcb464f19117adb752ccf7271029186da2bf4df5f0fb2f15653107a76fe9a",
+    "snapshot_root": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/bounded-matrix-fixture/evidence/dd-flow-protocolize-4AFkIE/home/engines/@deksden-com_dd-flow-cli/0.9.0-beta.125"
+  },
+  "probe": {
+    "status": "not_required",
+    "command": null
+  }
+}

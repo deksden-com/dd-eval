@@ -1,4 +1,7 @@
-# CP194 — finalized Luna launch candidate
+# CP194 — finalized Luna launch candidate (superseded before launch)
+
+The additional bounded-registration fix and selected package are recorded in
+[the bounded CP194 preparation](cp-194-luna-plan064-bounded.md).
 
 2026-10-04. Supersedes the unlaunched preparation in
 [the initial CP194 runbook](cp-194-luna-plan064-reviewed.md). No historical EVAL,
