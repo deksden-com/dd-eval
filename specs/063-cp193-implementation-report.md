@@ -33,3 +33,25 @@ Full semantic acceptance is **not passed**. Per plan6.5 the live gate stopped at
 Exact quote/hash validation establishes evidence consistency, not deterministic semantic correctness. The native Judge remains probabilistic; qualification and the bounded pair trials must pass separately. Unknown original Judge outcomes require retained-operation reconciliation, never a blind paid retry. Historical EVALs/receipts are not rewritten.
 
 Ponytail full: one shared boundary fix, standard-library containment/hash checks, existing native execution/cleanup, no NLP parser, second Judge or service.
+
+## Implementation review — 2026-10-03
+
+The earlier claim of complete implementation was too broad: native verdict publication recovery was missing, and the targeted oracle imposed an unjustified single decomposition. Three independent reviews plus parent verification covered contract/source/schema, corpus/oracle and retained proof, and all runner callers.
+
+### Root cause of `partial-covered`
+
+Input: «Какие уровни и подписи приоритета? И нужно ли добавить SMS-уведомления?»
+The authored oracle demanded exactly two atoms: levels-and-labels covered together, and SMS out-of-scope. Judge emitted three valid independent decisions: levels covered, labels covered, SMS out-of-scope. Both covered atoms selected the same unchanged canonical response, with exact evidence. Status/classification/selected IDs were correct. The old `observed.length !== expected_atoms.length` guard rejected 3 versus 2 before one-to-one matching. This was a regression oracle false negative, not a Subject/Grok/Judge failure.
+
+The system now supports finite complete `expected_atomizations` alternatives. Both bundled and split forms are explicitly authored for the affected mixed questions; each retains the independent uncovered decision. It does not accept arbitrary counts, aggregate-only equivalence or model-authored oracle changes. Replay of the original retained live verdict passes the new oracle; removing SMS/all covered decisions or adding an extra atom fails. The original failure file's hash is unchanged. This offline replay is not a new live qualification PASS.
+
+### Substantial corrections
+
+- Missing `result.json`: reconcile the original capacity/native operation, validate original Session/Turn and grounded verdict, then publish the receipt. The observation-only path cannot dispatch, inspect for continuation or back off into a new Turn. Unknown, prepared or failed original outcomes remain blocked. An expired retry deadline does not discard a completed result.
+- Cleanup after lost publication: reuse the same physically settled daemon and durable stop proof, binding its formerly verdict-less cleanup to the recovered receipt. No repeated stop RPC to a dead daemon.
+- Retained proof: require v2 durable profile/Session anchors, reject event/receipt contract downgrade and duplicate legacy response IDs, check scope/round and cached receipt stage before answer issuance.
+- Inputs: malformed context/source produce typed diagnostics; invalid UTF-8 cannot silently change source text. Provenance and schema namespace checks agree. Shared regular-file readers now cover runner, retained HITL, cleanup and native-operation ledger, including synchronous publication checks; FIFO/special files cannot block verification.
+- Regression completeness: add portable original CP193 bad-verdict fixture, quoted-instruction-as-data corpus case (17 cases), and one-to-one whole-atomization regression tests. Native pair smoke also rejects a partial selected answer for the unresolved question.
+- Attribution: Judge cleanup/Turn/chain proof failures are infrastructure failures, not product/Subject violations. CLI diagnostics include all authored oracle alternatives.
+
+No product, canonical answer, harness binary, historical EVAL or historical verdict changed. No new paid native Session/E2E was launched during review. Final offline verification is recorded after the committed-tree suite below; full new-definition live qualification and 3+3 pair acceptance remain unconfirmed.

@@ -45,4 +45,10 @@ for (const [label, input, expected] of trials) {
   await writeFile(path.join(attempt, 'results.json'), JSON.stringify(results, null, 2));
   console.log(JSON.stringify(results.at(-1)));
 }
-for (const result of results) assert.equal(result.verdict.classification, result.expected, result.label);
+for (const result of results) {
+  assert.equal(result.verdict.classification, result.expected, result.label);
+  if (pair && result.expected === 'ambiguous') {
+    assert.equal(result.verdict.status, 'unmatched', result.label);
+    assert.deepEqual(result.verdict.response_ids, [], `${result.label}: unresolved references cannot select an answer`);
+  } else if (result.expected === 'covered_by_canonical_response') assert.equal(result.verdict.status, 'matched', result.label);
+}

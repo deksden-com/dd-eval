@@ -229,6 +229,12 @@ atoms, frozen context evidence and canonical answer quotes; the runner derives
 the overall result. Historical v1 evidence remains read-only, not new admission.
 Targeted corpus `expected_atoms` compare finite authored quote alternatives,
 classification and response IDs one-to-one; expected fields never reach Judge.
+Where decomposition has more than one valid form, `expected_atomizations` lists
+complete authored alternatives. Each alternative still requires every independent
+uncovered decision; extra/missing atoms do not pass by aggregate class alone.
+Lost verdict publication reconciles the original capacity/native operation only,
+then binds confirmed cleanup to the recovered receipt. An unknown outcome never
+authorizes another Judge Turn.
 After offline checks and committed definition qualification, run the bounded
 reference pair (three fresh Sessions per question; retain every result):
 `node tools/native-interaction-judge-smoke.mjs --pair <unresolved-packet.json> <resolved-packet.json> <judge-profile> <runtime-root> <project-root>`.

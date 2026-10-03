@@ -1,6 +1,6 @@
 # 063 — Grounded Interaction Judge: план исправлений CP193
 
-Статус: готов к реализации после readiness review; реализация не начата. Дата: 2026-10-02.
+Статус: реализация и review fixes внесены; полная live semantic acceptance не подтверждена. Первоначальный план: 2026-10-02; review: 2026-10-03.
 Цель: один общий контракт HITL для всех упряжек, который сохраняет исходный
 вопрос, разрешает его ссылки до сопоставления и не принимает недоказанное покрытие.
 Не менять продукт, canonical answer semantics, исторические EVAL или их verdict.
@@ -389,3 +389,28 @@ plan062, execute-eval runbook и native smoke usage там, где описан 
 Новая зависимость, dd-flow release или adapter change по этому readiness audit
 не требуется. Семантическая ошибка модели остаётся возможной: gate предотвращает
 допуск известного дефекта, но не доказывает безошибочность всех future questions.
+
+## 7. Уточнения по implementation review 2026-10-03
+
+Live FAIL `partial-covered` был false negative oracle: «уровни и подписи»
+допускает объединённое и разделённое представления. `expected_atomizations`
+задаёт конечные полные альтернативы к `expected_atoms`, каждая сравнивается
+one-to-one. Это не разрешение игнорировать независимый SMS/ambiguous атом или
+лишние решения; original first FAIL сохраняется. Corpus дополнен quoted-injection
+case и переносимой отрицательной CP193 регрессией.
+
+Публикация verdict восстанавливается из сохранённого capacity/native operation
+без dispatch/continuation. Дедлайн повтора не уничтожает уже завершённый результат.
+Если cleanup был подтверждён до публикации verdict, он привязывается к восстановленной
+receipt по тому же durable stop proof — без нового stop на мёртвом daemon.
+Неизвестный исход и неподтверждённый proof остаются блокером.
+
+V2 требует durable profile/Session anchors и исключает downgrade через legacy flag.
+Все HITL/cleanup/native-ledger входы читаются через regular-file descriptor,
+чтобы FIFO/спецфайл не подвешивал read-only verification. Исторический v1
+не получает новых обязательных полей, но duplicate selected IDs отвергаются.
+
+Мalformed context/source и invalid UTF-8 отклоняются до native dispatch с
+context diagnostic; stored provenance и schema namespaces согласованы.
+Live gate/pair trials требуют отдельного выполнения на окончательной definition;
+offline replay первого отказа не объявляется новым semantic PASS.

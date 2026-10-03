@@ -44,6 +44,19 @@ test("resolved references use exact supplied context, never answer namespace", a
   assert.throws(() => validateGroundedHitl(raw([a]), p), { code: "judge_result_invalid" });
 });
 
+test("malformed context/source and undecodable bytes fail with retained context identity", async () => {
+  const build = subjectContext => buildHitlPacket({ stage: "code", question: "Which default?", responses, subjectContext, readRegularFile: readFile });
+  for (const context of ["bad", [], { roots: [] }, { sources: "bad" }, { sources: [null] }, { task_input: [1] }, { roots: { secret: "/" }, sources: [{ root: "secret", path: "x" }] }]) await assert.rejects(build(context), { code: "judge_context_invalid" });
+  const root = await mkdtemp(path.join(os.tmpdir(), "hitl-utf8-"));
+  try {
+    await writeFile(path.join(root, "input"), Buffer.from([0xc3, 0x28]));
+    await assert.rejects(build({ roots: { project: root }, sources: [{ path: "input" }] }), { code: "judge_context_invalid" });
+    await writeFile(path.join(root, "input"), "\ufeffПривет\r\n👋");
+    const result = await build({ roots: { project: root }, sources: [{ path: "input" }] });
+    assert.equal(result.grounding_sources[2].text, "\ufeffПривет\r\n👋");
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
 test("source allowlist freezes bytes, verifies digest/containment and deduplicates physical sources", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "hitl-ground-"));
   const outside = await mkdtemp(path.join(os.tmpdir(), "hitl-outside-"));
@@ -57,6 +70,8 @@ test("source allowlist freezes bytes, verifies digest/containment and deduplicat
     assert.equal(p.grounding_sources.length, 3);
     assert.deepEqual(p.grounding_sources[2].origin.roles, ["source", "task_input"]);
     assert.equal(p.grounding_sources[1].text.includes(root), false);
+    const forged = structuredClone(p); forged.grounding_sources[2].origin.path = "undeclared";
+    assert.throws(() => validateGroundedHitl(raw([atom("What about that behavior?", "ambiguous")]), forged), { code: "judge_result_invalid" });
     await writeFile(path.join(root, "source.txt"), "Changed later");
     const a = atom("What about that behavior?", "ambiguous", { reference_bindings: [{ reference_quote: "that behavior", source_id: "source-0", evidence_quote: "Accepted closed task behavior." }] });
     assert.equal(validateGroundedHitl(raw([a]), p).classification, "ambiguous");

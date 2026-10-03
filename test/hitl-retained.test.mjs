@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, writeFile, readFile, rm, mkdir } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { hashJson, sha256 } from '../lib/runner-events.mjs';
@@ -59,9 +59,28 @@ test('v2 proof requires event anchors and exact scope/round binding', async t =>
   await writeFile(path.join(root, 'packet.json'), JSON.stringify(packet));
   await rm(path.join(root, 'cleanup.json'));
   await settledJudge(root, { schema_id: 'dd-eval/interaction-judge-receipt@2', stage: data.stage, profile_id: 'judge', session_id: 'session', packet_sha256: hashJson(packet), verdict });
-  const anchored = { ...data, scope_id: 'e2e', receipt_sha256: sha256(await readFile(data.receipt_file)), packet_sha256: hashJson(packet), verdict_contract: verdict.schema_id };
+  const anchored = { ...data, judge_profile: 'judge', scope_id: 'e2e', receipt_sha256: sha256(await readFile(data.receipt_file)), packet_sha256: hashJson(packet), verdict_contract: verdict.schema_id };
   assert.equal((await verifyRetainedHitl({ data: anchored, expectedScope: 'e2e' })).verdict.schema_id, verdict.schema_id);
-  for (const changed of [{ receipt_sha256: null }, { packet_sha256: 'changed' }, { round: 2 }, { scope_id: 'other' }, { verdict_contract: 'dd-eval/hitl-match@1' }]) {
+  for (const changed of [{ receipt_sha256: null }, { packet_sha256: 'changed' }, { round: 2 }, { scope_id: 'other' }, { judge_profile: undefined }, { judge_session_id: undefined }, { verdict_contract: 'dd-eval/hitl-match@1' }]) {
     await assert.rejects(verifyRetainedHitl({ data: { ...anchored, ...changed } }), { code: 'judge_evidence_mismatch' });
   }
+});
+
+test('retained reads reject nonregular files and legacy cannot downgrade an anchored contract', async t => {
+  const { root, data } = await retained(t);
+  await assert.rejects(verifyRetainedHitl({ data: { ...data, verdict_contract: 'dd-eval/hitl-match@2' }, legacy: true }), { code: 'judge_evidence_mismatch' });
+  const directory = path.join(root, 'directory');
+  await mkdir(directory);
+  for (const key of ['answer_file', 'receipt_file']) {
+    await assert.rejects(verifyRetainedHitl({ data: { ...data, [key]: directory }, legacy: true }), { code: 'judge_evidence_mismatch' });
+  }
+});
+
+test('historical duplicated response IDs cannot repeat canonical answer bytes', async t => {
+  const { root, data, receipt } = await retained(t);
+  await rm(path.join(root, 'cleanup.json'));
+  await settledJudge(root, { ...receipt, verdict: { ...receipt.verdict, response_ids: ['default', 'default'] } });
+  const answer = 'Normal\r\nunchanged\n\nNormal\r\nunchanged';
+  await writeFile(data.answer_file, answer);
+  await assert.rejects(verifyRetainedHitl({ data: { ...data, response_ids: ['default', 'default'], answer_sha256: sha256(answer) }, legacy: true }), { code: 'judge_evidence_mismatch' });
 });

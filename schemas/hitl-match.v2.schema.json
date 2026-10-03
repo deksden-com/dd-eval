@@ -8,7 +8,7 @@
     "reference": {
       "type": "object", "additionalProperties": false,
       "required": ["reference_quote", "source_id", "evidence_quote"],
-      "properties": {"reference_quote": {"$ref": "#/$defs/text"}, "source_id": {"$ref": "#/$defs/text"}, "evidence_quote": {"$ref": "#/$defs/text"}}
+      "properties": {"reference_quote": {"$ref": "#/$defs/text"}, "source_id": {"type": "string", "pattern": "^(question|context|source-[0-9]+)$"}, "evidence_quote": {"$ref": "#/$defs/text"}}
     },
     "answer": {
       "type": "object", "additionalProperties": false,

@@ -9,6 +9,31 @@ import { judgeTurnText } from "../lib/runner.mjs";
 const policy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, "src/harness-runtime/lib/codex-capacity-policy.mjs")).href) : null;
 const test = (name, run) => nodeTest(name, { skip: !policy && "set DD_FLOW_SOURCE_ROOT to test the selected engine policy" }, run);
 
+nodeTest('publication recovery observes only: no fresh dispatch, inspection or backoff, even after deadline', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'judge-read-only-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  let dispatches = 0, inspections = 0, clock = 0;
+  const stateFile = path.join(root, 'chain.json');
+  const input = { codex: false, sessionId: 'same', originalPrompt: 'task', stateFile, deadline: 1000, clock: () => clock,
+    inspect: () => { inspections++; throw Error('no inspection'); },
+    dispatch: async (_text, _capacity, before) => { dispatches++; await before(); throw Object.assign(new Error('unknown reply'), { code: 'operation_observation_lost' }); } };
+  await assert.rejects(promptJudgeWithCapacity(input), { code: 'operation_observation_lost' });
+  clock = 2000;
+  await assert.rejects(promptJudgeWithCapacity({ ...input, recoverOnly: true, recover: async () => { throw Object.assign(new Error('still unknown'), { code: 'operation_observation_lost' }); } }), { code: 'operation_observation_lost' });
+  assert.equal(JSON.parse(await readFile(stateFile)).turns[0].state, 'dispatched');
+  const completed = { assistant_text: 'confirmed original result' };
+  assert.deepEqual(await promptJudgeWithCapacity({ ...input, recoverOnly: true, recover: async () => completed }), completed);
+  assert.deepEqual(await promptJudgeWithCapacity({ ...input, recoverOnly: true }), completed);
+  assert.equal(dispatches, 1); assert.equal(inspections, 0);
+  for (const state of ['prepared', 'failed']) {
+    const chain = JSON.parse(await readFile(stateFile)); chain.turns[0].state = state;
+    if (state === 'failed') chain.turns[0].error = { message: 'quota' };
+    await writeFile(stateFile, JSON.stringify(chain));
+    await assert.rejects(promptJudgeWithCapacity({ ...input, recoverOnly: true }), { code: 'judge_outcome_unknown' });
+  }
+  assert.equal(dispatches, 1); assert.equal(inspections, 0);
+});
+
 function overload(operationId, turnId = "turn-1", sessionId = "session-1", providerError = { codexErrorInfo: "serverOverloaded" }) {
   return Object.assign(new Error("Codex overloaded"), { code: "turn_interrupted", details: {
     operation_id: operationId, provider_session_id: sessionId, turn_id: turnId, native_turn_id: turnId, terminal_status: "failed", provider_error: providerError, native_turn_items: { observed: true, possible_effects: false, pending: false }
