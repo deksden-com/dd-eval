@@ -1,0 +1,27 @@
+{
+  "id": "cp-194-task-priority-plan064-reviewed",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e",
+    "tag": "eval/cp-172-source-baseline-setup"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "2777773781b69dfd2ccaed55bbec245a88344655",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-194-verification-matrix-qualification.json",
+      "sha256": "94ad70b2818dcbe998d09a1083127a64180832b95b8dff60c95abd2f7b1617d4",
+      "canon_commit": "2e57b987ec91b7c3b0fa97f6169047802a1233fb"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "c41f5c32cddc328ae9c3a2af93c56a87e1670363",
+      "version": "0.9.0-beta.125",
+      "artifact_sha256": "f0634e829a3539b78e25904833dae199b6b791b7dea388325bf8f9e7352a9a02"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}

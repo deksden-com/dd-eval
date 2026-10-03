@@ -1,0 +1,87 @@
+{
+  "schema_id": "dd-flow/stage-report@2",
+  "run_id": "RUN-001-tasks",
+  "stage": "plan",
+  "generated_at": "2026-10-03T21:29:16.282Z",
+  "verdict": "done",
+  "semantic": {
+    "result": "Accepted 1 executable PLAN artifact.",
+    "acceptance": [
+      "PRT-001-task-priority"
+    ],
+    "changed_files": [
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+      "run://RUN-001-tasks/03-plan/PRT-001-task-priority/aspect-map.json",
+      "run://RUN-001-tasks/03-plan/code-work-batch.json"
+    ],
+    "checks": [
+      "protocol-plan schema",
+      "aspect-map schema",
+      "cross-artifact references",
+      "generated CODE batch"
+    ],
+    "evidence": [
+      "run://RUN-001-tasks/03-plan/stage-report.json"
+    ],
+    "next_action": "start_plan_review",
+    "plans": [
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json"
+    ],
+    "aspect_maps": [
+      "run://RUN-001-tasks/03-plan/PRT-001-task-priority/aspect-map.json"
+    ],
+    "code_work_batch": "run://RUN-001-tasks/03-plan/code-work-batch.json",
+    "batch_checksum": "87e04b2d0de72ebc62c60cc3fcf258903579dc55ea1f8925affe328a03b062d9",
+    "plan_checksums": [
+      {
+        "path": ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+        "sha256": "54ab1c31ae295a032639f7764fffbf6f8ff2c7e96a87821a0c89d88bd3bb0387"
+      }
+    ],
+    "aspect_map_checksums": [
+      {
+        "path": "03-plan/PRT-001-task-priority/aspect-map.json",
+        "sha256": "706cb6004ccbe32a2b940f739aa335d2afe3dcd8dcd1c0a94af92026cf94bf25"
+      }
+    ],
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "role": "output",
+      "completeness": "declared",
+      "source_fingerprint": "c428969e981437bc162c1792b5178833afddcb4485b74fa32744c20a134cad51",
+      "json": {
+        "path": "03-plan/verification/c428969e981437bc162c1792b5178833afddcb4485b74fa32744c20a134cad51/verification-matrix.json",
+        "sha256": "3eae4beb924d2377b9d62d95ad3d33ecd64fe65be2a854c2bf36b1297c0e2745"
+      },
+      "markdown": {
+        "path": "03-plan/verification/c428969e981437bc162c1792b5178833afddcb4485b74fa32744c20a134cad51/verification-matrix.md",
+        "sha256": "552b02086329c89567b3e9be470183b8c7284c3aac0a4056f0c2849ce830732d"
+      },
+      "coverage_contract": "dd-flow/final-check-coverage@1"
+    }
+  },
+  "mechanical": {
+    "started_at": "2026-10-03T21:29:10.996Z",
+    "finished_at": "2026-10-03T21:29:16.282Z",
+    "wall_clock_ms": 5286,
+    "git": {
+      "branch": "main",
+      "head": "b3bfd16f724a74f1108591054d73e675fccc2e18",
+      "status": "dirty"
+    },
+    "session_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp-194-candidate/installed-matrix-fixture/evidence-configured/dd-flow-protocolize-aFKaO3/home\" dd-flow stat run sessions ls --run RUN-001-tasks --project-root \"/Users/deksden/.dd-eval/qualification/cp-194-candidate/installed-matrix-fixture/evidence-configured/dd-flow-protocolize-aFKaO3/project\" --json",
+    "usage_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp-194-candidate/installed-matrix-fixture/evidence-configured/dd-flow-protocolize-aFKaO3/home\" dd-flow stat usage --run RUN-001-tasks --project-root \"/Users/deksden/.dd-eval/qualification/cp-194-candidate/installed-matrix-fixture/evidence-configured/dd-flow-protocolize-aFKaO3/project\" --json",
+    "next_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp-194-candidate/installed-matrix-fixture/evidence-configured/dd-flow-protocolize-aFKaO3/home\" dd-flow stage start RUN-001-tasks --stage plan-review --project-root \"/Users/deksden/.dd-eval/qualification/cp-194-candidate/installed-matrix-fixture/evidence-configured/dd-flow-protocolize-aFKaO3/project\" --json"
+  },
+  "artifacts": {
+    "json": "stage-report.json",
+    "markdown": "stage-report.md",
+    "html": "stage-report.html"
+  },
+  "validation": {
+    "permission_scope": "known_targets_only",
+    "memory_bank_scope": "changed_files_and_links_only",
+    "status": "passed"
+  },
+  "summary": "Accepted 1 executable PLAN artifact."
+}
