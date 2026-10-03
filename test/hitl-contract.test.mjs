@@ -16,6 +16,8 @@ test("shared Judge policy retains rejected-option conditions and independent gap
   assert.match(prompt, /Do not turn each proposed option or its dependent details into unconditional decisions/);
   assert.match(prompt, /explicit refusal of separate control ordering/);
   assert.match(prompt, /independently requested delivery time remains a gap/);
+  assert.match(prompt, /one contiguous substring/);
+  assert.match(prompt, /question\.includes\(source_quote\)/);
   const corpus = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/entry-pack-source/interactions/qualification.json", import.meta.url)));
   const fixtures = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/entry-pack-source/interactions/specify.json", import.meta.url)));
   const item = corpus.items.find(item => item.id === "luna-cp190-exact");
@@ -24,6 +26,17 @@ test("shared Judge policy retains rejected-option conditions and independent gap
   const quote = "Перечень кодов и подписей — фиксированный словарь, а не требование нового порядка задач или отдельного порядка UI-контрола.";
   assert.ok(answer.includes(quote));
   assert.equal(validateGroundedHitl(raw([atom("порядок от low к urgent", undefined, { decision: "Need an additional order?", answer_evidence: [{ response_id: "clarification-task-priority", answer_quote: quote }] })]), p).status, "matched");
+});
+
+test("nonadjacent canonical evidence is separate quotes, never a stitched quotation", async () => {
+  const question = "Кто сможет закрывать и открывать задачу, нужен ли отдельный workflow?";
+  const answer = "Owner и member могут закрыть задачу. Приоритет сохраняется. Отдельный workflow не нужен.";
+  const p = await buildHitlPacket({ stage: "specify", question, responses: [{ id: "state", answer }] });
+  const value = atom("Кто сможет закрывать и открывать задачу", undefined, { answer_evidence: [{ response_id: "state", answer_quote: "Owner и member могут закрыть задачу." }, { response_id: "state", answer_quote: "Отдельный workflow не нужен." }] });
+  assert.equal(validateGroundedHitl(raw([value]), p).status, "matched");
+  const stitched = structuredClone(value); stitched.answer_evidence = [{ response_id: "state", answer_quote: "Owner и member могут закрыть задачу. Отдельный workflow не нужен." }];
+  assert.throws(() => validateGroundedHitl(raw([stitched]), p), { code: "judge_result_invalid" });
+  assert.throws(() => validateGroundedHitl(raw([{ ...value, source_quote: value.source_quote + "?" }]), p), { code: "judge_result_invalid" });
 });
 
 test("derived projections retain shared quotes, precedence and fixture order", async () => {
