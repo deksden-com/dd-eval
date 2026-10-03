@@ -9,7 +9,7 @@ const policy = {
   renewalFailure: () => 1, renewalDelay: () => 1,
   maintenanceRetryable: error => error.code === "SQLITE_BUSY"
 };
-const receipt = { ok: true, process_id: "observer", lease_expires_at: new Date(Date.now() + 900000).toISOString(), registration_sha256: "a".repeat(64) };
+const receipt = { ok: true, admitted: true, process_id: "observer", lease_expires_at: new Date(Date.now() + 900000).toISOString(), registration_sha256: "a".repeat(64) };
 test("observer renews during a long await without overlapping physical requests", async () => {
   let active = 0, max = 0, count = 0;
   const lease = observeRuntimeLease({ policy, async call() { max = Math.max(max, ++active); count++; await delay(15); active--; return receipt; } }, { id: "observer", lease_token: "secret" }, { intervalMs: 2 });
@@ -21,7 +21,7 @@ test("observer renews during a long await without overlapping physical requests"
 });
 test("failed maintenance is retried but invalid receipts stay fatal", async () => {
   let calls = 0;
-  const lease = observeRuntimeLease({ policy, async call(action) { if (++calls === 1) throw Object.assign(new Error("busy"), { code: "SQLITE_BUSY" }); return action === "heartbeat" ? receipt : {}; } }, { id: "observer", lease_token: "secret" });
+  const lease = observeRuntimeLease({ policy, async call() { if (++calls === 1) throw Object.assign(new Error("busy"), { code: "SQLITE_BUSY" }); return receipt; } }, { id: "observer", lease_token: "secret" });
   await lease.admission(); await lease.close(); assert.equal(calls, 3);
   const invalid = observeRuntimeLease({ policy, async call() { return {}; } }, { id: "observer", lease_token: "secret" });
   await assert.rejects(invalid.admission(), { code: "process_maintenance_receipt_invalid" }); await invalid.close();
@@ -39,6 +39,30 @@ test("closing cancels deferred observer renewal without a late maintenance reque
   await retry; await lease.close(); await admitted;
   assert.equal(calls, 1);
   await assert.rejects(lease.admission(), { code: "process_lease_closing" });
+});
+test("admission rejects malformed bindings and cannot complete after closing", async () => {
+  for (const invalid of [{}, { ...receipt, process_id: "foreign" }, { ...receipt, admitted: false }]) {
+    const lease = observeRuntimeLease({ policy, async call(action) { return action === "heartbeat" ? receipt : invalid; } }, { id: "observer", lease_token: "secret" });
+    await assert.rejects(lease.admission(), { code: "process_maintenance_receipt_invalid" }); await lease.close();
+  }
+  let started, resolve;
+  const waiting = new Promise(done => { started = done; });
+  const lease = observeRuntimeLease({ policy, async call(action) {
+    if (action === "heartbeat") return receipt;
+    started(); return await new Promise(done => { resolve = done; });
+  } }, { id: "observer", lease_token: "secret" });
+  const admitted = assert.rejects(lease.admission(), { code: "process_lease_closing" });
+  await waiting; const closed = lease.close(); resolve(receipt); await closed; await admitted;
+});
+test("a late successful receipt cannot reset an elapsed uncertainty episode", async () => {
+  let remaining = 30000, resets = 0, calls = 0;
+  const lease = observeRuntimeLease({ policy: { ...policy, renewalRemaining: () => remaining, renewalConfirmed: () => { resets++; return true; } }, async call() {
+    if (++calls === 1) throw Object.assign(new Error("busy"), { code: "SQLITE_BUSY" });
+    remaining = 0; return receipt;
+  } }, { id: "observer", lease_token: "secret" });
+  await assert.rejects(lease.admission(), { code: "process_ownership_unconfirmed" });
+  await assert.rejects(lease.admission(), { code: "process_ownership_unconfirmed" });
+  await lease.close(); assert.equal(resets, 0); assert.equal(calls, 2);
 });
 test("observer never accepts changed binding or a late success after exhaustion", async () => {
   let calls = 0;
