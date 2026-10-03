@@ -29,6 +29,17 @@ test("failed maintenance is retried but invalid receipts stay fatal", async () =
 test("missing pinned runtime helper never falls back to another installation", async () => {
   await assert.rejects(runtimeMaintenance({ ddFlowHome: "/not-a-runtime", ddFlowBin: "/not-a-runtime/bin/dd-flow" }), { code: "runtime_contract_incompatible" });
 });
+test("closing cancels deferred observer renewal without a late maintenance request", async () => {
+  let calls = 0, retrying;
+  const retry = new Promise(resolve => { retrying = resolve; });
+  const lease = observeRuntimeLease({ policy: { ...policy, renewalDelay: () => { retrying(); return 30_000; } }, async call() {
+    calls++; throw Object.assign(new Error("busy"), { code: "SQLITE_BUSY" });
+  } }, { id: "observer", lease_token: "secret" });
+  const admitted = assert.rejects(lease.admission(), { name: "AbortError" });
+  await retry; await lease.close(); await admitted;
+  assert.equal(calls, 1);
+  await assert.rejects(lease.admission(), { code: "process_lease_closing" });
+});
 test("observer never accepts changed binding or a late success after exhaustion", async () => {
   let calls = 0;
   const changed = observeRuntimeLease({ policy, async call() { return { ...receipt, registration_sha256: ++calls === 1 ? "a".repeat(64) : "b".repeat(64) }; } }, { id: "observer", lease_token: "secret" });
