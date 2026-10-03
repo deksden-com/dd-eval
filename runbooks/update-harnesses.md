@@ -168,3 +168,10 @@ record rejection. Do not silently resume/retry or substitute another provider.
 Rollback means selecting the previous verified tuple for a fresh run; it never
 means replacing binaries or state beneath an active run. Retain old artifacts
 until their dependent runs and retention requirements are finished.
+# Managed-maintenance candidate check
+
+When updating dd-flow, verify the exact new candidate includes the shared lease
+renewal helper and run cold maintenance regression against its installed CLI in
+isolated homes. Existing EVAL runtimes stay pinned and unchanged. New observer
+runtime shims must retain their selected engine's `harness-runtime` alias; missing
+helper assets are an incompatible runtime, not a reason for global fallback.

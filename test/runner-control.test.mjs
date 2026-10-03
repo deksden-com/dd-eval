@@ -13,6 +13,7 @@ import { withRunnerLock } from '../lib/runner-lock.mjs';
 import { evalResumeWorkerFile, requestEvalResume } from '../lib/eval-resume-worker.mjs';
 import { processSnapshot } from '../lib/process-snapshot.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
+import { installMaintenanceFixture } from './fixtures/maintenance-runtime.mjs';
 
 function initialRunProfile(caseId) {
   return { value: { schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: caseId, subject: { profile_id: 'fixture' },
@@ -380,12 +381,13 @@ else console.log(JSON.stringify(history.includes('resume') ? prepared : { ...pre
   await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ run_id: runId, runtime_control_bin: cli, runtime_resource_home: path.join(root, 'resources'), executions: [] }));
   await appendEvent(eventsFile, { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
   const before = await readFile(eventsFile, 'utf8'), started = performance.now();
-  const result = { ok: true, ...await runnerControlResume({ evalRoot: root, fromRequestId: 'stop', requestId: 'resume', waitMs: mode === 'release' ? 5000 : 1500 }) };
+  const waitMs = mode === 'release' ? 15_000 : 1500;
+  const result = { ok: true, ...await runnerControlResume({ evalRoot: root, fromRequestId: 'stop', requestId: 'resume', waitMs }) };
   assert.equal(result.ok, mode !== 'unknown');
   assert.equal(result.request_id, 'resume');
   assert.equal(result.source_request_id, 'stop');
   assert.equal(result.pending, mode !== 'release');
-  assert.ok(performance.now() - started < 7000, 'CLI wait stays bounded');
+  assert.ok(performance.now() - started < waitMs + 2000, 'CLI wait stays bounded');
   assert.equal((await readFile(calls, 'utf8')).trim().split('\n').filter(x => x === 'resume').length, mode === 'unknown' ? 0 : 1);
   if (mode === 'release') {
     assert.equal(result.applied, true);
@@ -471,10 +473,11 @@ test('background resume admission respects the caller deadline without a late qu
   await assert.rejects(readFile(file), { code: 'ENOENT' });
 });
 
-test('background continuation never finalizes a foreign registration returned by its CLI', { timeout: 10_000 }, async t => {
+test('background continuation never finalizes a foreign registration returned by its CLI', { timeout: 30_000 }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-worker-foreign-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const runId = 'EVAL-foreign', cli = path.join(root, 'flow.mjs'), calls = path.join(root, 'calls');
+  await installMaintenanceFixture(root);
   const release = { scope_id: runId, source_request_id: 'stop', request_id: 'resume', generation: 1, capture_key: 'a'.repeat(64), journal_sha256: 'b'.repeat(64), current: true };
   const status = { scope_id: runId, control: null, fence: null, dispatch_blocked: false, release, resume: { status: 'released', request_id: 'resume', generation: 1, capture_key: release.capture_key, current: true } };
   await writeFile(cli, `import fs from 'node:fs'; const args=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(calls)},args.slice(0,3).join(' ')+'\\n');
@@ -485,7 +488,7 @@ else throw Error('foreign registration must not be used');`);
   await appendEvent(path.join(root, 'events.jsonl'), { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
   await completeContinuationFixture(root);
   const receipt = await requestEvalResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop' });
-  const deadline = performance.now() + 5000; let saved;
+  const deadline = performance.now() + 20_000; let saved;
   for (;;) {
     saved = JSON.parse(await readFile(receipt.continuation.file, 'utf8'));
     if (saved.status === 'failed') break;
@@ -500,6 +503,7 @@ else throw Error('foreign registration must not be used');`);
 for (const outcome of ['invalid-engine', 'new-stop']) test(`background observer reattaches after managed observation loss and respects ${outcome}`, { timeout: 45_000 }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-worker-reattach-'));
   const runId = 'EVAL-reattach', cli = path.join(root, 'flow.mjs'), calls = path.join(root, 'calls.jsonl');
+  await installMaintenanceFixture(root);
   const workerFile = evalResumeWorkerFile(root, 'resume'), registered = path.join(root, 'registered.json');
   t.after(async () => {
     const record = await readFile(registered, 'utf8').then(JSON.parse).catch(() => null);
@@ -527,7 +531,8 @@ else if(args[1]==='process'&&args[2]==='register') {
   const pid=Number(value('--pid')), physical=(await processSnapshot()).find(item=>item.pid===pid);
   const record={id:'observer',lease_token:'owned',kind:'eval-observer',owner_id:${JSON.stringify(runId)},operation_id:value('--operation'),state:'running',pid,pid_started_at:physical.started,metadata_json:JSON.stringify({role:'observer',dd_flow_home:process.env.DD_FLOW_HOME,process_group_id:pid,budget:JSON.parse(value('--budget-json'))})};
   fs.writeFileSync(${JSON.stringify(registered)},JSON.stringify(record)); result={process:record};
-} else if(args[1]==='process'&&['check-admission','finish'].includes(args[2])) result={ok:true};
+} else if(args[1]==='process'&&args[2]==='heartbeat') result={ok:true,process_id:'observer',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)};
+else if(args[1]==='process'&&['check-admission','finish'].includes(args[2])) result={ok:true};
 else throw Error('unexpected command');
 console.log(JSON.stringify(result));`);
   const engineCli = path.join(runtime, 'bin', 'dd-flow');
@@ -545,7 +550,7 @@ console.log(JSON.stringify({ok:false,error:{code:fs.existsSync(${JSON.stringify(
   await requestEvalResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop' });
   // This is a real detached-process integration, including several CLI starts
   // and the observer's one-second retry delay. Bound the protocol, not host speed.
-  const deadline = performance.now() + 30_000;
+  const deadline = performance.now() + 40_000;
   const readCalls = async () => (await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse);
   let saved;
   for (;;) {

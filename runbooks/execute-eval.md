@@ -775,3 +775,13 @@ package omitted a fact/path/command it was responsible for providing.
 Do not use historical `prepare`, `starter`, `checkpoint`, `continuation`,
 manual Session fork or hand-written `DD_FLOW_HOME` workflows. They belong to
 the retired pre-runner procedure and are not accepted eval evidence.
+# Managed maintenance contract
+
+For new runs, qualify the selected engine's prepared RUN/resource stores and its
+bundled `harness-runtime/lib/lease-renewal.mjs` before launch. Observer and baseline
+maintenance must use this pinned bundle and explicit runtime/resource homes.
+Do not borrow helpers from an installed global CLI. Cold installed-tarball tests
+must cover renewal receipts, writer contention, timeout cleanup and finish replay.
+An expired lease is not proof of a dead owner; bounded reconfirmation precedes
+productive admission. Unconfirmed physical cleanup is a recovery blocker, never
+permission to repeat a native request or repair a historical EVAL manually.

@@ -164,6 +164,15 @@ observe them. A pending model request is not proof of a deadlock. Stop only on a
 operator request, a confirmed fatal execution error or an expired configured execution deadline.
 Retain the source evidence and exact reason before issuing the standard control command.
 
+Managed owners use committed renewal receipts from the selected runtime. A transient
+maintenance lock/timeout permits bounded reconfirmation (30 seconds, physical single-flight
+attempts of at most 5 seconds), not a native Turn replay. Expiry alone does not prove owner
+death. An unconfirmed CLI cleanup blocks further mutable maintenance; retain recovery evidence
+and do not restart the EVAL. The observer renews while awaiting Subject or Judge work.
+These helpers must come from the pinned runtime's `harness-runtime` bundle, never a global
+installation or another source checkout. Qualify a new candidate with cold installed-CLI
+maintenance tests before preparing later E2Es; do not mutate existing runtime homes.
+
 Lease heartbeats and polling timestamps are infrastructure evidence, not model progress. Report
 the latest durable native content/tool event separately; if it is absent or unreadable, label it
 unknown rather than calling the flow healthy or hung.

@@ -11,6 +11,7 @@ import { assertRetainedRunDefinition, loadCase, runnerResume, interactionFixture
 import { workerLiveness, evalRunnerAttemptsStatus, requestRunnerContinuation, requestEvalResume } from '../lib/eval-resume-worker.mjs';
 import { commandText } from '../lib/process-json.mjs';
 import { withRunnerLock } from '../lib/runner-lock.mjs';
+import { installMaintenanceFixture } from './fixtures/maintenance-runtime.mjs';
 
 async function fixture(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-reliability-'));
@@ -110,8 +111,9 @@ test('lock can reclaim a reused PID but never a live matching owner', async t =>
   assert.equal(acquired, true);
 });
 
-test('ordinary resume survives caller exit and persists an admission failure with process identity and logs', { timeout: 15_000 }, async t => {
+test('ordinary resume survives caller exit and persists an admission failure with process identity and logs', { timeout: 30_000 }, async t => {
   const root = await fixture(t), cli = path.join(root, 'control.mjs');
+  await installMaintenanceFixture(root);
   const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
   const executions = [{ id: 'e2e', mode: 'e2e', stage: 'merge', terminal_stage: 'merge' }];
   await writeFile(cli, `await new Promise(resolve => setTimeout(resolve, 300)); console.log(JSON.stringify({process:{id:'foreign'}}));`);
@@ -126,8 +128,8 @@ test('ordinary resume survives caller exit and persists an admission failure wit
       failure_policy: { stop_execution_on_unexpected_hitl: true, stop_execution_on_unmatched_hitl: true } }
   }));
   const source = `import { requestRunnerContinuation } from ${JSON.stringify(new URL('../lib/eval-resume-worker.mjs', import.meta.url).href)}; console.log(JSON.stringify(await requestRunnerContinuation({evalRoot:${JSON.stringify(root)}})));`;
-  const { stdout } = await promisify(execFile)(process.execPath, ['--input-type=module', '--eval', source], { timeout: 5000 });
-  const receipt = JSON.parse(stdout), deadline = Date.now() + 8000;
+  const { stdout } = await promisify(execFile)(process.execPath, ['--input-type=module', '--eval', source], { timeout: 15000 });
+  const receipt = JSON.parse(stdout), deadline = Date.now() + 15000;
   let status;
   for (;;) {
     status = (await evalRunnerAttemptsStatus(root))[0];

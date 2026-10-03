@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, rm, symlink } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { commandText, commandJson } from "../lib/process-json.mjs";
@@ -47,6 +47,8 @@ test("baseline admission is pinned, records failure and rejects source mutations
     if (process.env.DD_EVAL_TEST_FLOW_CLI) {
       const scope = { bin: path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI), home: path.join(root, "runtime"), resourceHome: path.join(root, "resources"), budget: { schema_id: "dd-flow/runtime-budget@1", scope_id: "EVAL-baseline", per_harness: {} }, operationId: "baseline-check" };
       assert.equal((await run('console.log("owned baseline")', undefined, scope)).status, "passed");
+      await mkdir(scope.home, { recursive: true });
+      await symlink(path.join(path.dirname(scope.bin), "harness-runtime"), path.join(scope.home, "harness-runtime"));
       // Admission may take longer than the command's timeout, but must not
       // kill the blocked gate before its live ownership can be confirmed.
       const delayedCli = path.join(root, "delayed-flow.mjs");
