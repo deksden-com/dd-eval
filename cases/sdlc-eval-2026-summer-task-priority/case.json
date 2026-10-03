@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-194-task-priority-plan064-reviewed",
-    "sha256": "5fde89c509348ec369257bd1d8b12d5f46458f7cac382b7a4595469b16315aca"
+    "id": "cp-194-task-priority-plan064-finalized",
+    "sha256": "dc5a5e143ff5b087d841d585fdf5fd4ea61fa220938268659de09ef2cb5861f4"
   },
   "entry_pack": null,
   "hitl_qualification": {

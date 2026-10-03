@@ -2,6 +2,9 @@
 
 2026-10-03. The failed CP191 Luna EVAL and every historical runtime remain unchanged.
 
+This preparation was not launched and was superseded by
+[the finalized CP194 candidate](cp-194-luna-plan064-finalized.md).
+
 ## Frozen inputs
 
 - Flow source `c41f5c32cddc328ae9c3a2af93c56a87e1670363`, beta.125 candidate.

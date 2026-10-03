@@ -1,0 +1,37 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "fb2001966328e204480879ae3d00a89acf7b5e7f5385aa0a4ef632fe41760f9f",
+  "verification_epoch": "7d7fc52fa630676b333165ba91c3637006db35dec905ff340afb76396be4e148",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/finalized-matrix-fixture/evidence/dd-flow-protocolize-rNDfbN/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/finalized-matrix-fixture/evidence/dd-flow-protocolize-rNDfbN/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/finalized-matrix-fixture/evidence/dd-flow-protocolize-rNDfbN/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/finalized-matrix-fixture/evidence/dd-flow-protocolize-rNDfbN/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "3bfd50e183f473be2d54a5230bf4401adf47375f4108d7ef4a22b1000a6593cf",
+  "before_fingerprint": "3bfd50e183f473be2d54a5230bf4401adf47375f4108d7ef4a22b1000a6593cf",
+  "after_fingerprint": "3bfd50e183f473be2d54a5230bf4401adf47375f4108d7ef4a22b1000a6593cf",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-03T22:17:38.590Z",
+  "finished_at": "2026-10-03T22:17:39.215Z"
+}
