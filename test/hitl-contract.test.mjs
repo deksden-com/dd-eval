@@ -11,6 +11,21 @@ const atom = (source_quote, classification = "covered_by_canonical_response", ex
 const raw = atoms => ({ schema_id: hitlMatchContract, atoms });
 const packet = question => buildHitlPacket({ stage: "specify", question, responses });
 
+test("shared Judge policy retains rejected-option conditions and independent gaps", async () => {
+  const prompt = interactionGroundedPrompt("packet.json");
+  assert.match(prompt, /Do not turn each proposed option or its dependent details into unconditional decisions/);
+  assert.match(prompt, /explicit refusal of separate control ordering/);
+  assert.match(prompt, /independently requested delivery time remains a gap/);
+  const corpus = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/entry-pack-source/interactions/qualification.json", import.meta.url)));
+  const fixtures = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/entry-pack-source/interactions/specify.json", import.meta.url)));
+  const item = corpus.items.find(item => item.id === "luna-cp190-exact");
+  const p = await buildHitlPacket({ stage: "specify", question: item.question, responses: fixtures.responses });
+  const answer = p.responses.find(response => response.id === "clarification-task-priority").answer;
+  const quote = "Перечень кодов и подписей — фиксированный словарь, а не требование нового порядка задач или отдельного порядка UI-контрола.";
+  assert.ok(answer.includes(quote));
+  assert.equal(validateGroundedHitl(raw([atom("порядок от low к urgent", undefined, { decision: "Need an additional order?", answer_evidence: [{ response_id: "clarification-task-priority", answer_quote: quote }] })]), p).status, "matched");
+});
+
 test("derived projections retain shared quotes, precedence and fixture order", async () => {
   const p = await packet("Can closed tasks change priority and what is default? What about that case?");
   const quote = "Can closed tasks change priority and what is default?";
