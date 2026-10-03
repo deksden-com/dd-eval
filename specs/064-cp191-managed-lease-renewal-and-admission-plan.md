@@ -1,7 +1,8 @@
 # 064 — Managed lease renewal, admission и устойчивость к contention
 
-Дата: 2026-10-03. Статус: **implemented; verification ledger below**.
+Дата: 2026-10-03. Статус: **implemented, reviewed and corrected; release acceptance incomplete**.
 Readiness review: 2026-10-03; уточнены API/commit acknowledgements, crash/retry boundaries, budget/closing и compatibility. Реализация и результаты проверок зафиксированы в [064-implementation-report.md](064-implementation-report.md); исходные расследовательские ссылки ниже сохраняют исторический контекст.
+Implementation review: 2026-10-03; найденные пропуски W2–W6 и родственные ownership/receipt/diagnostics дефекты исправлены. Подробности и новые regression receipts — в разделе «Implementation review» отчёта. Прежние broad-suite receipts не переносятся на исправленный source/candidate; новый пакет не считается accepted без полного required suite set.
 
 Исследованный dd-flow: `fix/051-snapshot-worker-provenance`, `96a34d22ba37b9b22ee48e9cb01553e5e5af66b1` (candidate beta.124).
 Исследованный dd-eval: `eval/cp193-grok`, `b96c2c0`.
