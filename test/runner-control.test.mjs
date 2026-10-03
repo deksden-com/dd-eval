@@ -473,6 +473,41 @@ test('background resume admission respects the caller deadline without a late qu
   await assert.rejects(readFile(file), { code: 'ENOENT' });
 });
 
+test('background observer does not adopt a committed registration while its maintenance child cleanup is unconfirmed', { timeout: 30_000 }, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-worker-unsettled-register-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const runId = 'EVAL-unsettled-register', cli = path.join(root, 'flow.mjs'), calls = path.join(root, 'calls');
+  await installMaintenanceFixture(root);
+  const release = { scope_id: runId, source_request_id: 'stop', request_id: 'resume', generation: 1, capture_key: 'a'.repeat(64), journal_sha256: 'b'.repeat(64), current: true };
+  const status = { scope_id: runId, control: null, fence: null, dispatch_blocked: false, release, resume: { status: 'released', request_id: 'resume', generation: 1, capture_key: release.capture_key, current: true } };
+  await writeFile(cli, `import fs from 'node:fs'; import {execFileSync} from 'node:child_process'; const args=process.argv.slice(2), value=name=>args[args.indexOf('--'+name)+1], file=${JSON.stringify(path.join(root, 'registration.json'))};
+fs.appendFileSync(${JSON.stringify(calls)},args.slice(0,3).join(' ')+'\\n');let result;
+if(args[1]==='scope'&&args[2]==='status') result=${JSON.stringify(status)};
+else if(args[1]==='process'&&args[2]==='register') {
+  const pid=Number(value('pid')), record={id:'observer',lease_token:'owned',kind:'eval-observer',owner_id:value('owner'),operation_id:value('operation'),state:'running',pid,pid_started_at:execFileSync('ps',['-o','lstart=','-p',String(pid)],{encoding:'utf8'}).trim(),metadata_json:JSON.stringify({role:'observer',dd_flow_home:process.env.DD_FLOW_HOME,process_group_id:pid,budget:JSON.parse(value('budget-json'))})};
+  fs.writeFileSync(file,JSON.stringify(record));result={ok:false,error:{code:'process_maintenance_timeout',message:'registration committed but maintenance child has no exit proof',details:{cleanup_unconfirmed:true}}};
+} else if(args[1]==='process'&&args[2]==='status') result={processes:[JSON.parse(fs.readFileSync(file))]};
+else if(args[1]==='process'&&args[2]==='heartbeat') result={ok:true,process_id:'observer',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)};
+else if(args[1]==='process'&&args[2]==='check-admission') result={ok:true,admitted:true,process_id:'observer'};
+else if(args[1]==='process'&&args[2]==='finish') result={ok:true};else throw Error('unexpected follow-up');
+console.log(JSON.stringify(result));`);
+  await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ run_id: runId, runtime_control_bin: cli, runtime_resource_home: path.join(root, 'resources'), executions: [] }));
+  await appendEvent(path.join(root, 'events.jsonl'), { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
+  await completeContinuationFixture(root);
+  const receipt = await requestEvalResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop' });
+  const deadline = performance.now() + 20_000; let saved;
+  for (;;) {
+    saved = JSON.parse(await readFile(receipt.continuation.file, 'utf8'));
+    if (['failed', 'recovery_blocked', 'completed'].includes(saved.status)) break;
+    assert.ok(performance.now() < deadline, 'unconfirmed registration cleanup is retained'); await delay(25);
+  }
+  while ((await processSnapshot()).some(item => item.pid === saved.owner_pid)) { assert.ok(performance.now() < deadline); await delay(25); }
+  assert.equal(saved.status, 'recovery_blocked');
+  assert.equal(saved.error.code, 'process_maintenance_timeout');
+  assert.equal(saved.error.details.cleanup_unconfirmed, true);
+  assert.deepEqual((await readFile(calls, 'utf8')).trim().split('\n').filter(line => line.startsWith('runtime process')), ['runtime process register']);
+});
+
 test('background continuation never finalizes a foreign registration returned by its CLI', { timeout: 30_000 }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-worker-foreign-'));
   t.after(() => rm(root, { recursive: true, force: true }));

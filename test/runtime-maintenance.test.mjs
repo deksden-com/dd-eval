@@ -1,7 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { setTimeout as delay } from "node:timers/promises";
+import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import path from "node:path";
+import os from "node:os";
 import { observeRuntimeLease, runtimeMaintenance } from "../lib/runtime-maintenance.mjs";
+import { installMaintenanceFixture } from "./fixtures/maintenance-runtime.mjs";
 
 const policy = {
   RENEWAL_POLICY: { attemptMs: 5000 }, createRenewalState: () => ({}),
@@ -28,6 +32,20 @@ test("failed maintenance is retried but invalid receipts stay fatal", async () =
 });
 test("missing pinned runtime helper never falls back to another installation", async () => {
   await assert.rejects(runtimeMaintenance({ ddFlowHome: "/not-a-runtime", ddFlowBin: "/not-a-runtime/bin/dd-flow" }), { code: "runtime_contract_incompatible" });
+});
+test("pinned maintenance never turns a rejected or missing finish acknowledgement into clean settlement", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "maintenance-finish-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const cli = path.join(root, "flow.mjs");
+  await installMaintenanceFixture(root);
+  await writeFile(cli, "console.log(JSON.stringify({ok:true}));");
+  const client = await runtimeMaintenance({ ddFlowHome: root, ddFlowBin: cli, resourceHome: path.join(root, "resources") });
+  for (const receipt of [{ ok: false }, {}, { ok: "true" }]) {
+    await writeFile(cli, `console.log(JSON.stringify(${JSON.stringify(receipt)}));`);
+    await assert.rejects(client.call("finish", { id: "owned", "lease-token": "retained" }), { code: "process_settlement_unconfirmed" });
+  }
+  await writeFile(cli, "console.log(JSON.stringify({ok:true}));");
+  assert.deepEqual(await client.call("finish", { id: "owned", "lease-token": "retained" }), { ok: true });
 });
 test("closing cancels deferred observer renewal without a late maintenance request", async () => {
   let calls = 0, retrying;
