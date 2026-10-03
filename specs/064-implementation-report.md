@@ -50,6 +50,73 @@ full native flow from offline tests.
 
 ## Verification status
 
-Final source, installed-tarball and broad-suite receipts will be recorded here
-after the consistent candidate build. Partial or load-timed-out runs are not PASS.
-No package publication or new scored E2E is included in this implementation task.
+Final runtime source: `ce67caeac22e92fa11cb802bc7f695c2e3c58f27`, branch
+`fix/064-managed-lease-renewal`, version `0.9.0-beta.125`.
+EVAL implementation: `7ccc82f`, branch `fix/064-managed-lease-eval`.
+Both implementation branches are pushed; the report is committed separately.
+
+Final candidate lives at `/tmp/dd-flow-plan064-release.X1n4Iv` and is installed
+only in that directory's `consumer` prefix. No global installation is changed.
+The source tuple is frozen while its required suites run. Final receipts below
+are updated only after their complete runs; earlier interrupted, superseded or
+load-timed-out runs are not PASS.
+Tarball SHA-256: `cb8ffb1afc6a6f6ac9e5ff60d7a1901370795dd2f22b528b70a020a5a4d6020d`.
+
+## Additional defects caught during implementation verification
+
+1. Stable registration IDs were accepted by the service but omitted from the
+   public CLI inventory. The common inventory now exposes optional `--id`;
+   a real cold CLI regression verifies exact registration and duplicate rejection
+   without replacing another token.
+2. In-process heartbeat timers sampled once rather than retrying during a long
+   native await. All four owner consumers now join one bounded background retry;
+   closing cancels the deferred retry without aborting admitted native work.
+3. Callback failures could disappear after background renewal. They are retained
+   and fence later productive work. The controller's idempotent MERGE keepalive
+   runs after the resource COMMIT, under the same attempt deadline, and acquires
+   no RUN writer when no dispatch claim needs renewal.
+4. The new ordinary mutation guard rejected an already accepted sealed recovery.
+   Lease boundaries reuse the recovery-aware launch guard, checking exact owner,
+   generation and control/recovery identity. Normal productive guards remain
+   unchanged. Installed-runtime EVAL recovery reproduced the failure before the
+   fix and continued to the next stage after it.
+5. A late committed success could reset an elapsed uncertainty episode unless
+   its caller first queried remaining time. The shared policy now checks expiry
+   before every reset; deterministic-clock regression covers this directly.
+6. EVAL closing could leave a deferred retry alive or admit a response arriving
+   after closing. Delay cancellation, pre/post-RPC closing and budget gates now
+   prevent both. Admission requires `ok`, `admitted` and the exact process ID;
+   altered/malformed receipts are fatal, not retryable.
+7. Positive readiness fixtures mixed protocol assertions with short wall-clock
+   deadlines. FIFO/cancel fixtures now wait for an observable queue barrier;
+   two-home preparation has its own bounded readiness budget. Short timeout,
+   persisted expiry and negative writer-boundary tests retain their budgets.
+   Synthetic runtime fixtures now carry the authoritative receipt ABI rather
+   than generic `{ok:true}` responses.
+
+## Acceptance receipts
+
+- Typecheck and canonical build: PASS.
+- Complete EVAL suite using a real installed runtime: 452/452 PASS, no skips.
+- Final installed cold-maintenance target: 7/7 PASS.
+- Release contracts: 2 Node tests and 8 Vitest tests PASS on the final source.
+- Integration shard 1/4: 804/804 PASS on the final source.
+- Integration shard 2/4: NOT PASS. CLI and runtime-cutover cases progressed
+  successfully, but recovery fixtures exceeded their 45/90/120-second readiness
+  limits and cleanup hooks. The failed run was stopped; shards 3/4 and 4/4 were
+  consequently not executed. No incomplete shard is a release receipt.
+- Isolated recovery recheck: exact accepted-recovery guard PASS (24.5 seconds),
+  two-home preparation again exceeded 90 seconds. Read-only inspection showed
+  no controller operations yet during preparation, before the tested admission
+  boundary. Host load averages were approximately 61–66; even diagnostic commands
+  suffered multi-second scheduling delays. This does not prove an additional
+  runtime defect, nor does it establish complete acceptance. Production budgets
+  were not enlarged to hide this result.
+- Final runtime-sensitive recheck: NOT PASS; Droid daemon wrapper exceeded its
+  30-second subprocess budget after three successful internal cases. The run was
+  stopped after the failure. Earlier direct Droid fixture was 6/6 PASS, but that
+  does not substitute for the required complete suite.
+- Candidate acceptance remains BLOCKED on complete integration/runtime-sensitive
+  suites on a suitably available host. `candidate.json` remains `built`, not
+  `accepted`; no fabricated release receipts or publication occurred.
+- Live scored E2E, publication and global installation: NOT RUN, outside scope.
