@@ -94,6 +94,18 @@ test("commandJson preserves a structured CLI failure code", async () => {
   await assert.rejects(commandJson(executable, [], { cwd: root }), (error) => error.code === "stage_pause_required" && error.message === "pause first");
 });
 
+test("commandJson preserves a pretty failure with leading and trailing maintenance phases", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-process-json-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const executable = path.join(root, "phase-error.mjs");
+  const record = { code: "runtime_scope_stopped", message: "stopped", retryable: false, details: { scope_id: "EVAL-test" }, cause: { code: "primary", message: "cause" }, cleanup_error: { code: "cleanup", message: "secondary" } };
+  await writeFile(executable, `console.error(JSON.stringify({kind:'process_maintenance_phase',phase:'request'}));console.error(${JSON.stringify(JSON.stringify({ok:false,error:record}, null, 2))});console.error(JSON.stringify({kind:'native_hook_phase',phase:'failed'}));process.exitCode=1;`);
+  await assert.rejects(commandJson(executable, []), error => {
+    assert.deepEqual(errorRecord(error), record);
+    return true;
+  });
+});
+
 test("commandJson accepts a JavaScript CLI entrypoint without executable mode", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-process-json-")); const executable = path.join(root, "cli.mjs");
   await writeFile(executable, "process.stdout.write(JSON.stringify({ ok: true }) + '\\n');\n");
