@@ -532,7 +532,8 @@ else if(args[1]==='process'&&args[2]==='register') {
   const record={id:'observer',lease_token:'owned',kind:'eval-observer',owner_id:${JSON.stringify(runId)},operation_id:value('--operation'),state:'running',pid,pid_started_at:physical.started,metadata_json:JSON.stringify({role:'observer',dd_flow_home:process.env.DD_FLOW_HOME,process_group_id:pid,budget:JSON.parse(value('--budget-json'))})};
   fs.writeFileSync(${JSON.stringify(registered)},JSON.stringify(record)); result={process:record};
 } else if(args[1]==='process'&&args[2]==='heartbeat') result={ok:true,process_id:'observer',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)};
-else if(args[1]==='process'&&['check-admission','finish'].includes(args[2])) result={ok:true};
+else if(args[1]==='process'&&args[2]==='check-admission') result={ok:true,admitted:true,process_id:'observer'};
+else if(args[1]==='process'&&args[2]==='finish') result={ok:true};
 else throw Error('unexpected command');
 console.log(JSON.stringify(result));`);
   const engineCli = path.join(runtime, 'bin', 'dd-flow');
