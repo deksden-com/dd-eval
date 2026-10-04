@@ -65,3 +65,45 @@ Node compile cache `/tmp/dd-flow-cp194-node-cache.Tg7VgB` is compilation-only,
 outside source and immutable snapshots. Do not stop foreign processes, extend
 production deadlines, fix the product, resume historical EVALs, repair runtime
 artifacts manually or create an automatic heartbeat.
+
+## Full-gate outcome and retained registration evidence
+
+The exact installed candidate passed EVAL's full suite: 458/458, zero skips,
+including both actual offline CLI integration tests. Log:
+`/tmp/dd-eval-cp194-recovery-readiness-full-tests.log`.
+Release contracts passed. Integration shard 4 passed 296/296, including all
+four seven-stage controller cycles, ordinary HITL, overload continuation and
+both review-off variants. Log:
+`/tmp/dd-flow-cp194-recovery-readiness-integration-4.log`.
+
+The serial full-gate attempt then stopped in shard 2: 224 passed, one failed,
+with the remaining files not run. Its `claimed-owner` recovery scenario passed;
+`stop-before-ack` instead observed generation 1/sealed rather than generation
+2/draining. That first failure did not retain sufficient underlying diagnostics
+to establish its precise cause. It remains FAIL, not an acceptance receipt.
+Log `/tmp/dd-flow-cp194-recovery-readiness-integration-2.log`.
+
+A separate diagnostic selection ran all three stop/reply scenarios. Before-ACK
+and lost-reply passed; after-ACK failed before the native Session/ACK/stop:
+daemon registration and its registry reconciliation exhausted the existing
+maintenance budget. Native calls contain only daemon start and its observation,
+not Session resume/prompt. The terminal error is `process_maintenance_timeout`
+at an exhausted prelaunch budget. This does not establish a stop-generation bug
+or a particular SQLite writer/OS wait. Log:
+`/tmp/dd-flow-cp194-stop-recovery-diagnostics.log`.
+
+The recovery test now retains its existing controller/operation/native/log
+diagnostics when the generation assertion fails, before fixture cleanup.
+Shared startup reconciliation also retains `registration_error` instead of
+discarding the failed register's cause/phases when status fails. Reconciliation's
+fatal classification, native dispatch fence and production time budgets are
+unchanged. The regression failed before the fix (missing SQLITE_BUSY cause),
+then the complete managed-daemon selection passed 24/24; typecheck/lint passed.
+Flow commit `c678a89` contains this additional diagnostic fix and is not the
+already frozen/installed `3d55ff5` candidate. Do not silently treat old package
+bytes or partial suite results as acceptance of the successor.
+
+No candidate acceptance, live definition qualification, new preflight or scored
+CP194 EVAL was performed while this full-gate failure remains unresolved. User
+declined changing host load; foreign processes remain untouched. Investigation
+uses only fresh offline fixtures, never historical EVAL repair/resume.
