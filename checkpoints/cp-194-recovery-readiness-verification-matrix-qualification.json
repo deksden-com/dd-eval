@@ -1,0 +1,359 @@
+{
+  "schema_id": "dd-eval/verification-matrix-qualification@3",
+  "contract": "dd-flow/verification-matrix@1",
+  "coverage_contract": "dd-flow/final-check-coverage@1",
+  "status": "passed",
+  "engine_artifact_sha256": "42b9d5954bd0cea7079cb587092d0b8b792c63fcb1f8fd47a07a339ea2b6a3db",
+  "engine_binding": {
+    "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/engine-binding.json",
+    "sha256": "761bfee13a586a6a6173dd0810d4603af26f12a0cc96113aa27e61198ebb79a6"
+  },
+  "flow_commit": "2777773781b69dfd2ccaed55bbec245a88344655",
+  "built_with_canon": {
+    "version": "4.1.2",
+    "commit": "2e57b987ec91b7c3b0fa97f6169047802a1233fb"
+  },
+  "skipped_stages": [
+    "code-review"
+  ],
+  "packets": [
+    {
+      "run": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan/run.json",
+        "sha256": "e17f0e48e12af488a22931263f0f827a4c8c12b6a48a69e0494f89247be98a88"
+      },
+      "report": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan/report.json",
+        "sha256": "46bb3ca695372de981a5e0c24f173f33c1d76907fa4bc39a2a03aa9dfeef8919"
+      },
+      "json": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan/json.json",
+        "sha256": "61141a6d80fbac723722565cafef56e234950ce40dc732469741d8fce90ee5f3"
+      },
+      "markdown": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan/matrix.md",
+        "sha256": "3c97cdaff8b8dc0cc5dd67afdd3261a66d0bffc2e7536b5cfa2078b4753984a4"
+      },
+      "sources": [
+        {
+          "root": "run",
+          "source_path": "03-plan/verification/sources/87e04b2d0de72ebc62c60cc3fcf258903579dc55ea1f8925affe328a03b062d9/code-work-batch.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan/sources/0.json",
+          "sha256": "87e04b2d0de72ebc62c60cc3fcf258903579dc55ea1f8925affe328a03b062d9"
+        },
+        {
+          "root": "run",
+          "source_path": "03-plan/verification/sources/54ab1c31ae295a032639f7764fffbf6f8ff2c7e96a87821a0c89d88bd3bb0387/plan.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan/sources/1.json",
+          "sha256": "54ab1c31ae295a032639f7764fffbf6f8ff2c7e96a87821a0c89d88bd3bb0387"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/protocolize-result.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan/sources/2.json",
+          "sha256": "e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/stage-report.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan/sources/3.json",
+          "sha256": "80dddd812981503b61ea4d6523bcb2705d41275c93d36dfde4913ee58b65d8c1"
+        },
+        {
+          "root": "run",
+          "source_path": "01-specify/specify.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan/sources/4.json",
+          "sha256": "00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa"
+        }
+      ]
+    },
+    {
+      "run": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan-review/run.json",
+        "sha256": "e17f0e48e12af488a22931263f0f827a4c8c12b6a48a69e0494f89247be98a88"
+      },
+      "report": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan-review/report.json",
+        "sha256": "21048cb485e9073cbfacfdcecf2021e43a55f97fe3ff8689f1e3c546eb904f24"
+      },
+      "json": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan-review/json.json",
+        "sha256": "7e199d34f157040cf4b714c2e0b53bb88dc6f2c82193a16661d6348574a1d7e8"
+      },
+      "markdown": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan-review/matrix.md",
+        "sha256": "116d7356db6a2f54ee5c9145a96466c9a4d0adfca859a033a448c6dfb1a2f3bc"
+      },
+      "sources": [
+        {
+          "root": "run",
+          "source_path": "04-plan-review/verification/sources/77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da/code-work-batch.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan-review/sources/0.json",
+          "sha256": "77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da"
+        },
+        {
+          "root": "run",
+          "source_path": "04-plan-review/verification/sources/aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7/plan.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan-review/sources/1.json",
+          "sha256": "aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/protocolize-result.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan-review/sources/2.json",
+          "sha256": "e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/stage-report.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan-review/sources/3.json",
+          "sha256": "80dddd812981503b61ea4d6523bcb2705d41275c93d36dfde4913ee58b65d8c1"
+        },
+        {
+          "root": "run",
+          "source_path": "04-plan-review/decision.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan-review/sources/4.json",
+          "sha256": "492846573f426109bdb030918167f4435992308fed97b2aa06021c338d83d321"
+        },
+        {
+          "root": "run",
+          "source_path": "01-specify/specify.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/plan-review/sources/5.json",
+          "sha256": "00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa"
+        }
+      ]
+    },
+    {
+      "run": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/run.json",
+        "sha256": "e17f0e48e12af488a22931263f0f827a4c8c12b6a48a69e0494f89247be98a88"
+      },
+      "report": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/report.json",
+        "sha256": "1076016d5afb3c2e3efdbfb763c395066de4a705b59f45676e41fecbd1fb8fbd"
+      },
+      "json": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/json.json",
+        "sha256": "b92c7f2fab186e569661e1570c02f853e1d9fc43c5cbadf159fcb81a7f706b3b"
+      },
+      "markdown": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/matrix.md",
+        "sha256": "f6488be8de58364978d56e50363528f59abcace125d42567cbd8fdd629206c5d"
+      },
+      "sources": [
+        {
+          "root": "run",
+          "source_path": "05-code/verification/sources/77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da/code-work-batch.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/sources/0.json",
+          "sha256": "77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/checks/RCP-002/completion.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/sources/1.json",
+          "sha256": "6e0c0b158925937a45149599e7e0fe35524e1d402a6e8a312beba37bbe23f44c"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/checks/RCP-002/completion.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/sources/2.json",
+          "sha256": "6e0c0b158925937a45149599e7e0fe35524e1d402a6e8a312beba37bbe23f44c"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/checks/RCP-002/completion.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/sources/3.json",
+          "sha256": "6e0c0b158925937a45149599e7e0fe35524e1d402a6e8a312beba37bbe23f44c"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/verification/sources/aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7/plan.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/sources/4.json",
+          "sha256": "aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/protocolize-result.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/sources/5.json",
+          "sha256": "e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/stage-report.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/sources/6.json",
+          "sha256": "80dddd812981503b61ea4d6523bcb2705d41275c93d36dfde4913ee58b65d8c1"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/checks/RCP-002/receipt.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/sources/7.json",
+          "sha256": "876ded219d039e7161e5bae572619840258beb6a209ea66990d39e58fcd3402d"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/checks/RCP-002/receipt.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/sources/8.json",
+          "sha256": "876ded219d039e7161e5bae572619840258beb6a209ea66990d39e58fcd3402d"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/checks/RCP-002/receipt.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/sources/9.json",
+          "sha256": "876ded219d039e7161e5bae572619840258beb6a209ea66990d39e58fcd3402d"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/code-verification.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/sources/10.json",
+          "sha256": "f06a8edc39c7a72e8a2e779f267c306d5da53a18bd3c23c16d8bc90281788c1a"
+        },
+        {
+          "root": "run",
+          "source_path": "01-specify/specify.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/code/sources/11.json",
+          "sha256": "00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa"
+        }
+      ]
+    },
+    {
+      "run": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/run.json",
+        "sha256": "e17f0e48e12af488a22931263f0f827a4c8c12b6a48a69e0494f89247be98a88"
+      },
+      "report": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/report.json",
+        "sha256": "df7886e337fdac9fa6f7ce336524ea097c0dc1067602052862e791fd815f1ae4"
+      },
+      "json": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/json.json",
+        "sha256": "4e3b60be5fce5801d321e94a1119ee1de3b0135f6dbb79f4eee044d2ecea0aac"
+      },
+      "markdown": {
+        "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/matrix.md",
+        "sha256": "2b6b5a9aa66f88caaedbf44cc1802b6ea4330e41b10868523e50d87f57353283"
+      },
+      "sources": [
+        {
+          "root": "run",
+          "source_path": "07-merge/check-profile-baseline.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/0.json",
+          "sha256": "1c0ff3551f961e377f66732b45807b9b85dee91a7c596fc9e30eab3744dfac35"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/check-profile-source.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/1.json",
+          "sha256": "1c0ff3551f961e377f66732b45807b9b85dee91a7c596fc9e30eab3744dfac35"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/check-profile-target.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/2.json",
+          "sha256": "1c0ff3551f961e377f66732b45807b9b85dee91a7c596fc9e30eab3744dfac35"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/verification/sources/77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da/code-work-batch.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/3.json",
+          "sha256": "77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da"
+        },
+        {
+          "root": "run",
+          "source_path": "03-plan/code-work-batch.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/4.json",
+          "sha256": "77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-004/completion.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/5.json",
+          "sha256": "f371588c4a4f458d390002b4f922d6697dc9aedfa03b20306dee81ddcb6a1ec4"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/6.json",
+          "sha256": "f371588c4a4f458d390002b4f922d6697dc9aedfa03b20306dee81ddcb6a1ec4"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/7.json",
+          "sha256": "f371588c4a4f458d390002b4f922d6697dc9aedfa03b20306dee81ddcb6a1ec4"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/8.json",
+          "sha256": "f371588c4a4f458d390002b4f922d6697dc9aedfa03b20306dee81ddcb6a1ec4"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/merge-gate-acceptance.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/9.json",
+          "sha256": "0a853de241241c398b8c563b97293e89f08de34e81e5e53384f5153b09b389c9"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/merge-gate.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/10.json",
+          "sha256": "6f65542a3492b808ba7e5c74f816b591bfe9f3c4b8c313a9a48d7a792a2c6654"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/verification/sources/aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7/plan.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/11.json",
+          "sha256": "aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/protocolize-result.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/12.json",
+          "sha256": "e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/stage-report.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/13.json",
+          "sha256": "80dddd812981503b61ea4d6523bcb2705d41275c93d36dfde4913ee58b65d8c1"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/14.json",
+          "sha256": "0960b619dd5d0a72760d2ad23084c62eac49cfe38d184620163f0d5fd1321fda"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/15.json",
+          "sha256": "00f6721d4db480c82635d909032a3117d6d4f9d1eaf99dda37b6764994d18575"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/16.json",
+          "sha256": "00f6721d4db480c82635d909032a3117d6d4f9d1eaf99dda37b6764994d18575"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/17.json",
+          "sha256": "00f6721d4db480c82635d909032a3117d6d4f9d1eaf99dda37b6764994d18575"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/result.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/18.json",
+          "sha256": "ff9c50911b3e9db3ab9b10bd03f9c5066362d5b0e23b25a9e039e9325d181f91"
+        },
+        {
+          "root": "run",
+          "source_path": "01-specify/specify.json",
+          "path": "cp-194-recovery-readiness-verification-matrix-qualification.json.packets/merge/sources/19.json",
+          "sha256": "00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa"
+        }
+      ]
+    }
+  ]
+}

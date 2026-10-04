@@ -1,5 +1,9 @@
 # CP194 — bounded maintenance rejection before Luna launch
 
+Superseded before launch by [recovery readiness](cp-194-luna-plan064-recovery-readiness.md).
+This candidate's failed full-suite checks remain failures and are not acceptance
+for the successor.
+
 2026-10-04. No scored CP194 EVAL has started. Supersedes the unlaunched
 [HITL-phase candidate](cp-194-luna-plan064-hitl-phase.md); retain all older
 candidates, suite logs and live Judge attempts without rebinding their results.

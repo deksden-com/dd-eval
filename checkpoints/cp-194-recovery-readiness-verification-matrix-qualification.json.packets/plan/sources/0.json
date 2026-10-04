@@ -1,0 +1,133 @@
+{
+  "schema_id": "dd-flow/code-work-batch@5",
+  "sources": [
+    {
+      "plan_id": "PLAN-001-task-priority",
+      "protocol_id": "PRT-001-task-priority",
+      "revision": 1,
+      "sha256": "54ab1c31ae295a032639f7764fffbf6f8ff2c7e96a87821a0c89d88bd3bb0387"
+    }
+  ],
+  "works": [
+    {
+      "schema_id": "dd-flow/code-work-packet@5",
+      "key": "PRT-001-task-priority:P1",
+      "launch_policy": "fresh_agent_required",
+      "source": {
+        "plan_id": "PLAN-001-task-priority",
+        "protocol_id": "PRT-001-task-priority",
+        "plan_item_id": "P1",
+        "revision": 1,
+        "sha256": "54ab1c31ae295a032639f7764fffbf6f8ff2c7e96a87821a0c89d88bd3bb0387"
+      },
+      "task": "Implement priority\n\nAdd priority behavior to the task service.\n\nImplement the accepted priority behavior and its focused test.\n\nPreserve: Existing task behavior.\n\nWork checks: CHK-P1-TEST:test -f apps/api/src/core/service.ts; CHK-NEW:@check/priority-contract\n\nLater aggregate checks (CODE/MERGE; do not run in this Work): CHK-READY:test -f apps/api/src/core/service.ts\n\nStop: Stop if accepted scope conflicts with project truth.",
+      "semantic_spine": {
+        "user_outcome": "A member can set priority.",
+        "component_responsibility": "The task service persists priority.",
+        "must_preserve": [
+          "Existing task behavior."
+        ],
+        "non_goals": [
+          "No filtering."
+        ],
+        "acceptance_contribution": "Makes AC-001 observable."
+      },
+      "requirements": [
+        {
+          "id": "R-001",
+          "statement": "Priority field."
+        },
+        {
+          "id": "AC-001",
+          "statement": "A member changes a task priority."
+        }
+      ],
+      "acceptance": [
+        {
+          "criterion_id": "AC-001",
+          "path": "Set priority through the task service.",
+          "environment": "Local tests.",
+          "fixtures": [],
+          "cleanup": "No persistent fixture.",
+          "check_refs": [
+            "CHK-P1-TEST",
+            "CHK-READY"
+          ],
+          "expected_evidence": [
+            "Focused test passes."
+          ],
+          "proof_limits": [
+            "No production claim."
+          ],
+          "gate": "work"
+        }
+      ],
+      "document_updates": [
+        {
+          "path": ".memory-bank/scenarios/SCN-002.md",
+          "action": "create",
+          "owner": "P1",
+          "reason": "Record the accepted priority scenario.",
+          "baseline_sha256": null
+        }
+      ],
+      "required_read": [
+        ".memory-bank/index.md",
+        ".memory-bank/spec/engineering/index.md",
+        ".memory-bank/spec/engineering/coding-standards.md",
+        ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+        "apps/api/src/core/service.ts",
+        ".memory-bank/spec/engineering/code-check-profile.json"
+      ],
+      "discovery_boundary": [
+        "Related task tests."
+      ],
+      "planned_write_areas": [
+        "apps/api/src/",
+        ".memory-bank/spec/engineering/code-check-profile.json",
+        ".memory-bank/scenarios/SCN-002.md"
+      ],
+      "checks": [
+        {
+          "id": "CHK-P1-TEST",
+          "command": "test -f apps/api/src/core/service.ts",
+          "purpose": "Proves the changed task service exists.",
+          "run_at": "work",
+          "availability": "available"
+        },
+        {
+          "id": "CHK-READY",
+          "command": "test -f apps/api/src/core/service.ts",
+          "purpose": "Confirms the prepared workspace contains the service.",
+          "run_at": "readiness",
+          "availability": "available"
+        },
+        {
+          "id": "CHK-NEW",
+          "command": "@check/priority-contract",
+          "purpose": "Will prove the new priority contract.",
+          "run_at": "work",
+          "availability": "planned",
+          "provided_by": "P1",
+          "definition": "test -f apps/api/src/core/service.ts"
+        }
+      ],
+      "provides_checks": [
+        {
+          "id": "CHK-NEW",
+          "command": "@check/priority-contract",
+          "purpose": "Will prove the new priority contract.",
+          "run_at": "work",
+          "availability": "planned",
+          "provided_by": "P1",
+          "definition": "test -f apps/api/src/core/service.ts"
+        }
+      ],
+      "stop_conditions": [
+        "Stop if accepted scope conflicts with project truth."
+      ],
+      "depends_on": [],
+      "result_schema": "dd-flow/code-work-result@3"
+    }
+  ]
+}
