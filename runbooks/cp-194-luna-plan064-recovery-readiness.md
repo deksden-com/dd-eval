@@ -252,3 +252,38 @@ during these operations, manufacture results or retry a semantic rejection
 until PASS. Baseline PASS must come from the actual scored execution, followed
 by its native Subject Session and actual SPECIFY timeline evidence. No automatic
 heartbeat, historical resume or manual artifact repair is authorized.
+
+## First lightweight-ingress live qualification: active output interrupted
+
+Definition commit `10f4baa` qualified seven corpus items with settled cleanup.
+The eighth (`luna-cp190-exact`, the retained 3037-character historical question)
+failed with `definition_qualification_timeout`; no scored EVAL or preflight
+was started. Attempt
+`/Users/deksden/.dd-eval/definition-qualifications/eeaef21bc31bdd87fc44975ce2f7aaef6152b7dc7ada85cd9253e73c88e979be/operation-da44ccd0-3bad-4d4f-8f4c-425b71233639`;
+log `/tmp/dd-eval-cp194-light-ingress-definition-qualification.log`.
+
+This is not a maintenance/startup failure or a proven semantic rejection.
+Native Turn started at 08:08:03.112 UTC, executed a quotation-check command
+successfully at 08:16:06.299, and began its final answer at 08:17:05.466.
+The caller's ten-minute whole-operation budget expired while the answer was
+streaming: 3748 characters, incomplete JSON. Cleanup interrupted the Turn at
+08:17:35.103 and retained a settled cleanup receipt at 08:17:36.017. There is
+no valid verdict to adopt, manufacture or replay from this interrupted output.
+
+The successor gives definition qualification a single 15-minute budget for
+setup, reasoning, output and any capacity continuation. The absolute deadline
+and remaining-budget propagation are unchanged; attempts do not reset it.
+The longer budget is confined to explicit non-scored qualification, justified
+by the observed active final-output interruption. It changes neither productive
+RUN/Judge deadlines nor 5 s maintenance attempts, 30 s ownership uncertainty,
+cleanup policy, corpus/answers, semantic expectations or native replay fences.
+Retain this failure unchanged, commit the successor, and run one fresh exact-
+definition qualification. A further timeout requires investigation rather than
+another blind increase; a semantic rejection must not be retried until PASS.
+
+The successor passed EVAL's complete serial suite against the same accepted
+installed CLI: 458/458, zero skips, 426.04 s. This includes the existing
+whole-operation qualification deadline/continuation regression and real offline
+CLI integrations. Log `/tmp/dd-eval-cp194-qualification-budget-full-tests.log`.
+FLOW bytes, their six-suite acceptance and both snapshot/matrix checksums remain
+unchanged. No new preflight or scored EVAL has been created at this point.
