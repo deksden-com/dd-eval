@@ -107,3 +107,96 @@ No candidate acceptance, live definition qualification, new preflight or scored
 CP194 EVAL was performed while this full-gate failure remains unresolved. User
 declined changing host load; foreign processes remain untouched. Investigation
 uses only fresh offline fixtures, never historical EVAL repair/resume.
+
+## Successor test diagnostics and aggregate budgets
+
+The `c678a89` full-gate attempt passed release contracts, then stopped in shard 2:
+69 tests passed and the protocol/RUN mismatch test failed with an empty Stage
+chain. That test had discarded the attach/complete setup results; the original
+setup cause cannot be reconstructed. Commit `2b06ef5` asserts both responses
+with their full diagnostics. The exact test and the entire CLI file then passed
+(127/127, zero skips); typecheck/lint and strict-canon build passed. These are
+targeted evidence, not acceptance of the complete suite set.
+
+The next full-gate attempt passed release contracts and that mismatch scenario,
+then stopped after 70 passed tests: the guidance scenario timed out at 120 s.
+Its fixture removal also failed with ENOTEMPTY while the timed-out test's
+operation was still active. Log:
+`/tmp/dd-flow-cp194-setup-gate-integration-2.log`.
+The unchanged isolated guidance scenario passed in 87.84 s. It contains 21
+sequential CLI calls and does not assert a latency SLA. Commit `e0cfd47` budgets
+this composed test at 240 s, without altering assertions or any production
+command, maintenance, or retry deadline. Typecheck/lint and strict-canon build
+passed; the user declined host-load changes and no foreign process was stopped.
+
+A fresh serial complete suite set ran for `e0cfd47`: release contracts and all
+127 CLI tests passed, then snapshot/fork exceeded its own 60 s override
+(77.888 s), leaving 128 passed tests and one failure. Log:
+`/tmp/dd-flow-cp194-guidance-gate-integration-2.log`.
+The unchanged isolated snapshot/fork test passed in 36.24 s. It composes real
+snapshot copy/verification, successful replay and negative corrupt-source,
+request and path-conflict cases, not a latency SLA. Commit `63113cb` removes
+its separate 60 s override and uses the existing suite budget of 120 s;
+assertions and production deadlines are unchanged. Focused lint passed.
+
+No successor is accepted or installed as the CP194 launch candidate yet. All preceding FAIL
+receipts remain FAIL. No new definition qualification, preflight, or EVAL has
+been launched during these checks.
+
+## Controller-cell composed readiness
+
+For `63113cb`, release contracts and integration parts 2/4 (526 tests), 1/4
+(815 tests) and 3/4 (395 tests) all passed. Part 4/4 stopped after five passed
+tests: the Grok routing-only cell exhausted its hardcoded 30 s Stage-prompt
+wait while the controller was running with no last error. Its original
+diagnostic lacks the operation/native call sequence; the exact delayed phase
+is therefore unknown. The remaining files and runtime-sensitive suite were
+not run. This remains a failed complete-gate attempt, not acceptance.
+Logs `/tmp/dd-flow-cp194-snapshot-budget-gate-*.log`.
+
+Code tracing established a related fixture budget defect: daemon register and
+confirm, followed by create and prompt with renewal before/admission/after,
+compose eight maintenance episodes, each using `RENEWAL_POLICY.budgetMs`.
+The shared four-harness fixture now imports that policy for Stage readiness
+(eight episodes plus 25 s overhead) and composes its short-scenario outer
+budget from client calls and two Stage boundaries. It does not extend any
+production request, uncertainty or retry deadline. Routing checks fail
+immediately on a retained controller error, and timeout diagnostics retain
+controller operations, native calls and physical liveness before cleanup,
+without logging lease tokens. Assertions about Session count, profile,
+fences, Work and no replay are unchanged. Typecheck/lint passed.
+
+## Business-router import exceeds maintenance transport
+
+The exact `d988ac0` complete-gate attempt passed release contracts, then stopped
+in integration 4/4 after two passing tests and one failure. This was not the
+fixture Stage-readiness timer: registration exceeded its 5 s production
+transport (5313 ms), then read-only status reconciliation exhausted the 30 s
+uncertainty budget. The preserved `registration_error` is working. No native
+Session dispatch began, and no child maintenance phase was emitted. Remaining
+suites were not run. Log `/tmp/dd-flow-cp194-stage-readiness-gate-integration-4.log`.
+
+A read-only import probe, without CLI dispatch or SQL, took 10094 ms just to
+import `dist/cli/run-cli.js`, longer than the transport contract. Log
+`/tmp/dd-flow-cp194-cold-router-probe.log`. This reproduces the architectural
+startup bottleneck under current host load; it does not establish the exact
+duration of that historical child's import or an unrelated SQLite writer.
+
+The successor introduces a short ingress only for bounded JSON maintenance
+inside an already-selected engine. Syntax inventory, input preparation,
+registration/renewal/admission/finish dispatch and recovery fences are shared
+with the ordinary CLI. Operator routing, help and rich output retain the full
+router. Compatibility and import/writer guards are not waived. Reconciliation
+`status` also carries its absolute deadline and request-local phase evidence,
+using a read-only resource store. Diagnostics start before service imports.
+Production 5 s attempts, 30 s uncertainty and physical ownership fences are
+unchanged; no foreign process was stopped.
+
+The initial focused selection passed 27/27, including syntax/lease/ownership
+parity and a subprocess that rejects any business-router import. Import probe
+observed 32 ms for ingress and 319 ms through maintenance services. Logs
+`/tmp/dd-flow-cp194-light-maintenance-focused-built.log` and
+`/tmp/dd-flow-cp194-light-maintenance-import-probe.log`. These are targeted
+evidence, not complete release acceptance. The subsequent light recovery-guard
+dependency extraction must also be checked by the exact-source complete gate.
+No CP194 EVAL, preflight or new live definition qualification has started.
