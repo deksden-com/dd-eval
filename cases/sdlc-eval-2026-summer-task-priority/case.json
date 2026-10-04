@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-194-task-priority-plan064-hitl-phase",
-    "sha256": "52ff61fa7b4d265db8259e33c74cc13fae6ed3134784bdb10edf3f1108478124"
+    "id": "cp-194-task-priority-plan064-maintenance-rejection",
+    "sha256": "d8dd908397770c8746f4f523da172fc1c85bd3ba2e14ac299212325baba5f0de"
   },
   "entry_pack": null,
   "hitl_qualification": {

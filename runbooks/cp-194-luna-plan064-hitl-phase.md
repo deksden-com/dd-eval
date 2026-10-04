@@ -1,6 +1,7 @@
 # CP194 — HITL dispatch identity correction
 
 2026-10-04. No scored CP194 EVAL has been started at publication of this runbook.
+Superseded before launch by [the maintenance-rejection candidate](cp-194-luna-plan064-maintenance-rejection.md).
 Supersedes the unlaunched [recovery preparation](cp-194-luna-plan064-recovery.md).
 Retain old candidates, failed suites and Judge attempts; never rebind their results.
 

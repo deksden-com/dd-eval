@@ -1,0 +1,27 @@
+{
+  "id": "cp-194-task-priority-plan064-maintenance-rejection",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e",
+    "tag": "eval/cp-172-source-baseline-setup"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "2777773781b69dfd2ccaed55bbec245a88344655",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-194-maintenance-rejection-verification-matrix-qualification.json",
+      "sha256": "ab1c08b88191a712a8267edb5b5fefd4526ec79c1875084b20c17ed6db318c8d",
+      "canon_commit": "2e57b987ec91b7c3b0fa97f6169047802a1233fb"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "c8267845f5ee9858b1a839bf5bceca82bdcc6fb2",
+      "version": "0.9.0-beta.125",
+      "artifact_sha256": "a3c935f2f9b5fd1ed60ce222b8a0bdfbc4b920bc3d05e5ebaeee8d65bb0e9e02"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
