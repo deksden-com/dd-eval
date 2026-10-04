@@ -93,14 +93,18 @@ test('public background EVAL resume continues a real retained RUN through its ne
     const firstCapture = await readFile(held.boundary.manifest);
     await invoke(['control', 'pause', '--eval', evalRoot, '--request-id', 'pause']);
     const scope = args => commandJson(cli, ['runtime', 'scope', ...args], { cwd: root, env: { ...env, DD_FLOW_HOME: path.join(evalRoot, 'control-runtime') } });
-    const deadline = performance.now() + 100_000;
+    // TEST anti-wedge envelopes belong to each distinct phase. Capture work
+    // must not silently consume the successor's CI wait; these do not set any
+    // production RUN/provider inactivity policy.
+    const captureDeadline = performance.now() + 100_000;
     for (;;) {
       const status = await scope(['status', '--scope-id', evalId]);
       if (status.drain?.capture?.journal?.event_count === (await readEvents(eventsFile)).length) break;
-      assert.ok(performance.now() < deadline, JSON.stringify(status)); await delay(100);
+      assert.ok(performance.now() < captureDeadline, JSON.stringify(status)); await delay(100);
     }
     const accepted = JSON.parse(await invoke(['control', 'resume', '--eval', evalRoot, '--from', 'pause', '--request-id', 'resume']));
     assert.equal(accepted.accepted, true); workerExited = false;
+    const resumeDeadline = performance.now() + 100_000;
     const workerFile = evalResumeWorkerFile(evalRoot, 'resume');
     let worker;
     for (;;) {
@@ -108,7 +112,7 @@ test('public background EVAL resume continues a real retained RUN through its ne
       assert.notEqual(worker.status, 'failed', JSON.stringify(worker));
       assert.notEqual(worker.status, 'superseded', JSON.stringify(worker));
       if (worker.status === 'completed' && !(await processSnapshot()).some(item => item.pid === worker.owner_pid)) { workerExited = true; break; }
-      assert.ok(performance.now() < deadline, JSON.stringify(worker)); await delay(100);
+      assert.ok(performance.now() < resumeDeadline, JSON.stringify(worker)); await delay(100);
     }
     assert.equal(worker.result.state, 'completed');
     assert.equal(worker.result.executions[0].run_id, runId);

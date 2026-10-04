@@ -110,7 +110,7 @@ else if(a[0]==='run' && a[1]==='fork') {
 } else if(a[0]==='run' && a[1]==='control') {
   if(a[2]==='stop') fs.writeFileSync(c.output+'/stopped','yes');
   const settled=c.fault!=='unsettled';const capture=c.output+'/recovery';write(capture+'/snapshot.json',{consistency:'sealed_writer_barrier_required'});
-  out({settled,control:{current:true,control_id:'CTL-fake',recovery_id:'REC-fake',admission:'sealed',capture_path:capture,generation:1,settlement:{settled}}});
+  out({scope:{run_id:'RUN-fake'},settled,control:{current:true,control_id:'CTL-fake',recovery_id:'REC-fake',admission:'sealed',capture_path:capture,generation:1,settlement:{settled}}});
 } else if(a[0]==='run' && a[1]==='list') out({runs:[{id:'RUN-fake'}]});
 else if(a[0]==='run' && a[1]==='status') out({run:{workspace_root:project,run_root:runHome},index:{stage_runs:[{stage:'plan-review',status:'done'},{stage:'code',status:fs.existsSync(c.output+'/code')?'done':'pending'}]}});
 else if(a[0]==='stat') out({});

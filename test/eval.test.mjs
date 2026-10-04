@@ -285,7 +285,7 @@ test("AGY prompt liveness is bounded by native activity, not runner heartbeat", 
 });
 
 test("owned cleanup uses tree evidence independently of failure attribution", async () => {
-  for (const code of ["agy_provider_failed", "subject_liveness_timeout", "new_provider_failure"]) {
+  for (const code of ["agy_provider_failed", "new_provider_failure"]) {
     const calls = [];
     const result = await settleExecutionDaemon(async cancel => {
       calls.push(cancel);
@@ -298,6 +298,9 @@ test("owned cleanup uses tree evidence independently of failure attribution", as
   for (const [failure, cleanupCode] of [
     [undefined, "tree_not_settled"],
     [{ code: "operation_observation_lost" }, "tree_not_settled"],
+    [{ code: "subject_liveness_timeout" }, "tree_not_settled"],
+    [{ code: "command_observation_lost" }, "tree_not_settled"],
+    [{ code: "operation_output_limit" }, "tree_not_settled"],
     [{ code: "agy_provider_failed" }, "daemon_connection_closed"],
     [{ code: "agy_provider_failed" }, "permission_denied"],
   ]) {

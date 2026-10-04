@@ -261,3 +261,31 @@ test("real maintenance phase advancement renews once, replayed phases do not", a
   await writeFile(cli, "setInterval(()=>console.error(JSON.stringify({kind:'process_maintenance_phase',operation_id:'owned',phase:'same'})),50);");
   await assert.rejects(commandJson(cli, [], { timeoutMs: 1500 }), { code: "operation_observation_lost" });
 });
+
+test("text command diagnostics distinguish productive work from keepalive, replay and elapsed", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-text-diagnostics-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const cli = path.join(root, "cli.mjs");
+  for (const value of [
+    { kind: "process_maintenance_phase", action: "heartbeat", phase: "request" },
+    { kind: "process_maintenance_phase", operation_id: "owned", phase: "same" },
+    { kind: "native_hook_phase", operation_id: "owned", phase: "elapsed" },
+  ]) {
+    await writeFile(cli, `setInterval(()=>console.error(JSON.stringify(${JSON.stringify(value)})),50);`);
+    await assert.rejects(commandText(cli, [], { timeoutMs: 1500 }), { code: "operation_observation_lost" });
+  }
+  await writeFile(cli, "let n=0;const t=setInterval(()=>{console.error('compiled file '+n++);if(n===5){clearInterval(t);console.log('done')}},500);");
+  assert.equal(await commandText(cli, [], { timeoutMs: 1500 }), "done");
+});
+
+test("a typed stderr primary survives bounded diagnostic tail eviction but not a successful result", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-primary-summary-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const cli = path.join(root, "cli.mjs");
+  const primary = { code: "synthetic_native_failure", message: "native primary", retryable: false, details: { operation_id: "owned", turn_id: "turn" }, cause: { code: "native_cause", message: "cause" }, cleanup_error: { code: "cleanup_secondary", message: "cleanup" } };
+  for (const status of [1, 0]) {
+    await writeFile(cli, `console.error(${JSON.stringify(JSON.stringify({ok:false,error:primary}, null, 2))});await new Promise(r=>setTimeout(r,20));for(let n=0;n<100;n++)console.error('diagnostic '+n+'x'.repeat(1080));console.log('{}');process.exitCode=${status};`);
+    if (status) await assert.rejects(commandJson(cli, []), error => error.code === primary.code && error.details.operation_id === "owned" && error.cause.code === "native_cause" && error.cleanup_error.code === "cleanup_secondary");
+    else assert.deepEqual(await commandJson(cli, []), {});
+  }
+  await writeFile(cli, `process.stderr.write(${JSON.stringify(JSON.stringify({ok:false,error:primary}, null, 2) + '\n' + 'diagnostic chatter\n'.repeat(8000))});process.exitCode=1;`);
+  await assert.rejects(commandJson(cli, []), error => error.code === primary.code && error.details.turn_id === "turn");
+});
