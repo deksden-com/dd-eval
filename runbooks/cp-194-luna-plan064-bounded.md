@@ -1,4 +1,7 @@
-# CP194 — bounded registration Luna candidate
+# CP194 — bounded registration Luna candidate (superseded before launch)
+
+The test-only recovery follow-up and replacement frozen package are recorded in
+[the recovery-tested CP194 preparation](cp-194-luna-plan064-recovery.md).
 
 2026-10-04. Supersedes the unlaunched finalized candidate. Historical EVALs,
 product and prior package/qualification evidence remain unchanged.
