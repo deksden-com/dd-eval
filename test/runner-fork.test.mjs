@@ -64,7 +64,7 @@ async function setup(t, fault = null) {
   const commit = await commandText('git', ['rev-parse', 'HEAD'], { cwd: definition });
   const sourceRoot = path.join(temp, 'home/runs/source'), output = path.join(temp, 'home/forks/derived');
   const source = { schema_id: 'dd-eval/runner-manifest@1', kind: 'scored', run_id: 'EVAL-source', case_id: 'fixture', definition: { commit }, input_checkpoint: { id: checkpoint.id, sha256: checkpointHash }, executions: [execution], interaction_fixtures: Object.fromEntries(stages.map(stage => [stage, { interaction_fixture_sha256: hashJson(policy(stage)) }])), runtime_resource_home: path.join(temp, 'resources'), profile: { subject: {}, concurrency: { global: 1 }, judge: { enabled: false }, failure_policy: { stop_run_on_infrastructure_error: true } }, subject_profile: { id: 'fake', harness: 'zcode-acp', model: 'fake', reasoning: 'low', subagent_capacity: 5 } };
-  const baselineFile = await write(path.join(sourceRoot, 'executions/e2e/baseline-admission/receipt.json'), { status: 'passed', checkpoint_id: checkpoint.id, checkpoint_sha256: checkpointHash, source_commit: checkpoint.source.commit, policy_sha256: 'e'.repeat(64), checks: [{ exit_code: 0 }] });
+  const baselineFile = await write(path.join(sourceRoot, 'executions/e2e/baseline-admission/receipt.json'), { schema_id: 'dd-eval/baseline-admission@1', status: 'passed', checkpoint_id: checkpoint.id, checkpoint_sha256: checkpointHash, source_commit: checkpoint.source.commit, policy_sha256: 'e'.repeat(64), checks: [{ exit_code: 0 }] });
   Object.assign(source.profile, {
     schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: 'fixture', subject: { profile_id: 'fake' },
     selection: { focused_stages: [], segment: null, e2e: true, repetitions: 1 },

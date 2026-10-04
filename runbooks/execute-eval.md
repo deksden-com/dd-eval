@@ -22,9 +22,10 @@ and [plan 023](../specs/023-suspend-aware-execution-and-repair-contracts.md).
 The shipped runtime rule is deliberately narrow: an observed host/event-loop
 gap is an **unknown provider outcome**, never proof of model inactivity;
 `running` alone is not progress. Preserve the late provider result and the
-original error, then reconcile that same operation. A confirmed
-`subject_liveness_timeout` is different: the runner requests a verified
-tree-wide cancellation and records the cleanup result.
+original error, then reconcile that same operation. A local
+`subject_liveness_timeout` is also an unknown native outcome, not a provider
+terminal. Reconcile the exact retained operation before any new prompt;
+authorized owned cleanup must separately prove whole-tree settlement.
 Do not work around a recovery error by editing runtime SQLite, accepted results
 or MERGE freeze files. In particular, an RPC/daemon/Turn timeout normally
 means that the client did not observe an outcome; reconcile the existing
@@ -32,6 +33,29 @@ operation before any new prompt, cancellation or retry. Only a native adapter
 may emit `subject_liveness_timeout`, after its own activity evidence has been
 absent for its configured window. Runner heartbeats and a `running` status
 never extend that window.
+
+### Progress policy (plan 065)
+
+New Judge qualification and productive prompt callers have no total-work cap.
+Their selected native adapter owns the inactivity window. Reasoning, text,
+tools, advancing usage and validated current children can renew it; replayed
+events, observer polling, lease renewal and model selection cannot. Never
+increase a wall cap or edit old capacity chains to obtain qualification PASS.
+Unknown dispatch remains fenced until exact native terminal/settlement.
+
+New baseline policy@2 uses `inactivity_timeout_ms` and receipt@2. Its admitted
+command renews from actual output, while the selected maintenance helper
+independently renews its lease. Closing drains renewal before process finish.
+Legacy policy@1 retains its absolute `timeout_ms`; historical receipts and
+checkpoints are not upgraded in place. Preparation/verification/fork use the
+exact pinned policy/hash; product source bytes stay unchanged.
+
+Operational CLI observers have phase-specific quiet guards (control/status
+30 seconds; clone/install/build/snapshot 30 minutes), not model deadlines.
+Their expiry stops only the owned observer and reports observation loss;
+it neither cancels a detached RUN nor proves a provider failure. Large stderr
+uses a diagnostic tail, while an oversized final reply is rejected whole,
+never truncated into a successful JSON receipt.
 
 ## Before launch
 

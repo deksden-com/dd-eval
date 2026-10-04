@@ -34,6 +34,15 @@ nodeTest('publication recovery observes only: no fresh dispatch, inspection or b
   assert.equal(dispatches, 1); assert.equal(inspections, 0);
 });
 
+nodeTest('new Judge chains have no lifetime cap and late completion remains publishable', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'judge-no-work-cap-')); t.after(() => rm(root, { recursive: true, force: true }));
+  const stateFile = path.join(root, 'chain.json'); let time = 0;
+  const result = await promptJudgeWithCapacity({ codex: false, sessionId: 'same', originalPrompt: 'task', stateFile, clock: () => time,
+    dispatch: async (_text, _capacity, before) => { await before(); time = 46 * 60_000; return { assistant_text: 'completed after old cap' }; } });
+  assert.equal(result.assistant_text, 'completed after old cap');
+  const chain = JSON.parse(await readFile(stateFile)); assert.equal(chain.deadline, null); assert.equal(chain.turns[0].state, 'completed');
+});
+
 function overload(operationId, turnId = "turn-1", sessionId = "session-1", providerError = { codexErrorInfo: "serverOverloaded" }) {
   return Object.assign(new Error("Codex overloaded"), { code: "turn_interrupted", details: {
     operation_id: operationId, provider_session_id: sessionId, turn_id: turnId, native_turn_id: turnId, terminal_status: "failed", provider_error: providerError, native_turn_items: { observed: true, possible_effects: false, pending: false }

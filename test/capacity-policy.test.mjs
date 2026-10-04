@@ -17,7 +17,12 @@ test('all-harness native contracts execute from exact installed bytes with conse
   await cp(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'dist/harness-runtime'), path.join(engine, 'dist/harness-runtime'), { recursive: true });
   await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
   await symlink('engines/selected/dist/harness-runtime', path.join(root, 'harness-runtime'));
-  const contracts = await loadNativeContracts(root);
+  const contracts = await loadNativeContracts(root, { requireProgress: true });
+  assert.equal(contracts.native_wait_contract, 'native-operation-wait@1');
+  assert.equal(contracts.nativeOperationWait('droid-cli', 'session.start'), 'native-work');
+  assert.equal(contracts.nativeOperationWait('codex-desktop', 'session.start'), 'control');
+  assert.equal(contracts.progress_contract, 'operation-progress@1');
+  assert.equal(contracts.operation_error_contract, 'operation-errors@2');
   const preinitFailure = contracts.agyTerminalFailure({ status: 'ERROR', error: 'Individual quota reached' }, { provider_session_id: null, observed_at: '2026-10-01T16:18:41.330Z' });
   assert.deepEqual(directNativeChildren(null, null, contracts), []);
   assert.equal(preinitFailure.code, 'agy_provider_quota_exhausted');

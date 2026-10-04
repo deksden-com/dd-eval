@@ -5,11 +5,16 @@ Provider-specific details live in [update-zcode.md](update-zcode.md).
 Git integration and release rules live in [git-workflow.md](git-workflow.md).
 
 New productive owners require the integrity-verified engine's bundled
-`native-children@1` normalization and `operation-errors@1` observation contracts,
+`native-children@1` normalization, `operation-progress@1` clock and
+`operation-errors@2` observation and `native-operation-wait@1` phase contracts,
 for every harness, not only Codex. Qualification caches bind to the exact package
 checksum; changing source or an ambient launcher does not update retained engines.
 Verify exports and copied bytes from an installed snapshot before qualification.
 Legacy raw evidence remains readable but cannot supply missing dispatch authority.
+Legacy error@1 receipts remain readable for exact original-operation recovery;
+they do not qualify a newly dispatched Judge. The semantic corpus receipt and
+installed runtime-progress acceptance are distinct proofs; neither source
+checkout changes nor a prior cached semantic PASS replaces selected-byte tests.
 
 At the subsequent engine delivery, refresh installed hook targets in both Codex
 homes (`~/.codex` and `~/.codex-cpa`) and each qualified harness, then verify they

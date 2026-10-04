@@ -24,7 +24,9 @@ Only an exact terminal native `serverOverloaded` permits continuation of the
 same Session and task. The first refusal is not counted. Two distinct consecutive
 continuation Turns refused within 120 seconds terminate as `provider_overload_burst`;
 slower instability has no lifetime attempt cap. Backoff is 5 seconds, then 15
-seconds, extended by proven Retry-After and bounded by the original owner deadline.
+seconds, extended by proven Retry-After. New productive chains have no elapsed
+work deadline; ownership/admission fences remain. Legacy retained deadlines
+stay under their original contract and are never reset by a monitor.
 Quota/auth failures do not continue; report a reset time only when native metadata
 proves it. Completed Work/Stage or accepted HITL wins over another dispatch.
 
@@ -33,6 +35,27 @@ Judge/probe history uses `dd-eval/capacity-chain@2`; legacy @1 is readable evide
 not permission to send or silently start another chain. An unknown dispatch is
 observed by its retained operation ID, never replaced. Do not manually resume,
 restart or repair a historical EVAL to obtain a successful result.
+
+## Productive inactivity and observation loss (plan 065)
+
+Read actual current-operation native progress, terminal and child settlement
+alongside controller Stage/Work and lease proof. A quiet root with a validated
+active child is not a dead tree. Cosmetic status/heartbeat, stale Turn events
+and unchanged usage do not renew productivity. HITL/capacity waits require
+their exact accepted phase binding, not a generic `waiting` label.
+
+`subject_liveness_timeout`, transport expiry and output-limit observer failure
+do not establish native failure. Retain the exact operation, read its late
+terminal and preserve unknown state without replay. Native outcome and cleanup
+settlement are separate: a completed root with active children is not whole
+tree success. Scope observation@settlement-inactivity@1 renews only newly
+confirmed physical/native retirement/publication facts; polls and restart do
+not replenish it. Legacy cumulative recovery receipts remain legacy.
+
+Semantic qualification cache alone is not runtime progress acceptance. Verify
+the selected artifact's `operation-progress@1` and `operation-errors@2` helper
+bytes and installed acceptance; new definition commits require a fresh corpus
+qualification. Historic paid evidence remains immutable.
 
 New final-check coverage uses `dd-flow/final-check-coverage@1` and qualification
 @3. Successful MERGE acceptance requires passed native checks. Reached failed

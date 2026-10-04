@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, rm, writeFile, readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { commandJson } from "../lib/process-json.mjs";
+import { commandJson, commandText } from "../lib/process-json.mjs";
 import { callDriver } from "../lib/runner.mjs";
 import { errorRecord } from "../lib/operation-errors.mjs";
 
@@ -94,6 +94,17 @@ test("commandJson preserves a structured CLI failure code", async () => {
   await assert.rejects(commandJson(executable, [], { cwd: root }), (error) => error.code === "stage_pause_required" && error.message === "pause first");
 });
 
+test("a closed stdin cannot hide the provider's typed failure or crash the observer", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-stdin-close-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const executable = path.join(root, "failure.mjs");
+  for (const status of [0, 2]) {
+    await writeFile(executable, `process.stdin.destroy();console.log(JSON.stringify({ok:false,error:{code:'provider_rejected',message:'native primary',retryable:false}}));process.exit(${status});`);
+    await assert.rejects(commandJson(executable, [], { input: "x".repeat(16 * 1024 * 1024) }), error => error.code === "provider_rejected" && error.retryable === false);
+  }
+  await writeFile(executable, "process.stdin.destroy();console.log('{}');process.exit(0);");
+  await assert.rejects(commandJson(executable, [], { input: "x".repeat(16 * 1024 * 1024) }), { code: "EPIPE" });
+});
+
 test("commandJson preserves a pretty failure with leading and trailing maintenance phases", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-process-json-"));
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -144,4 +155,90 @@ test("commandJson rejects an expired deadline before starting a CLI", async () =
   const reason = new Error("observation deadline expired");
   controller.abort(reason);
   await assert.rejects(commandJson("missing-cli", [], { signal: controller.signal }), (error) => error === reason);
+});
+
+test("operational helpers renew quiet windows from output, not total elapsed work", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-operation-progress-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const cli = path.join(root, "cli.mjs");
+  await writeFile(cli, "let n=0;console.error('started');const timer=setInterval(()=>{console.error('progress');if(++n===5){clearInterval(timer);console.log('{}');}},500);");
+  assert.deepEqual(await commandJson(cli, [], { timeoutMs: 1500 }), {});
+  assert.equal(await commandText(cli, [], { timeoutMs: 1500 }), "{}");
+  await writeFile(cli, "console.error('started');setInterval(()=>{},1000);");
+  await assert.rejects(commandJson(cli, [], { timeoutMs: 1500 }), { code: "operation_observation_lost" });
+  await writeFile(cli, "setInterval(()=>console.error(JSON.stringify({kind:'heartbeat'})),50);");
+  await assert.rejects(commandJson(cli, [], { timeoutMs: 1500 }), { code: "operation_observation_lost" });
+});
+
+test("long diagnostic streams keep bounded tails without rejecting a valid final reply", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-large-diagnostics-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const cli = path.join(root, "cli.mjs");
+  await writeFile(cli, "for(let n=0;n<300;n++) process.stderr.write('x'.repeat(65536)+'\\n');console.log('{}');");
+  assert.deepEqual(await commandJson(cli, []), {});
+  assert.equal(await commandText(cli, []), "{}");
+  await writeFile(cli, "process.stdout.write('x'.repeat(9*1024*1024));");
+  await assert.rejects(commandJson(cli, []), { code: "operation_output_limit" });
+});
+
+test("bad phase durations are rejected before spawning", async () => {
+  for (const timeoutMs of [null, 0, -1, Infinity, NaN, "100", 2 ** 31]) {
+    await assert.rejects(commandJson("missing-cli", [], { timeoutMs }), RangeError);
+    await assert.rejects(commandText("missing-cli", [], { timeoutMs }), RangeError);
+  }
+});
+
+test("Judge prompt has native inactivity ownership, not a competing caller work cap", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-native-work-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const directory = path.join(root, "harness-runtime/bin"); await mkdir(directory, { recursive: true });
+  await writeFile(path.join(directory, "dd-droid.mjs"), "await new Promise(resolve=>setTimeout(resolve,100));console.log(JSON.stringify({provider_session_id:'owned',status:'completed'}));");
+  const result = await callDriver({ harness: "droid-cli" }, ["session", "prompt", "--session-id", "owned", "--state-dir", path.join(root, "state")], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, timeoutMs: 10 });
+  assert.equal(result.status, "completed");
+});
+
+test("selected native wait contract controls productive start versus bounded acceptance", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-start-wait-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const directory = path.join(root, "harness-runtime/bin"); await mkdir(directory, { recursive: true });
+  await writeFile(path.join(directory, "dd-droid.mjs"), "await new Promise(resolve=>setTimeout(resolve,150));console.log(JSON.stringify({status:'completed'}));");
+  for (const phase of ["native-work", "control"]) {
+    const nativeContracts = { nativeOperationWait(harness, operation) {
+      assert.equal(harness, "droid-cli"); assert.equal(operation, "session.start"); return phase;
+    } };
+    const invocation = callDriver({ harness: "droid-cli" }, ["session", "start"], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, nativeContracts, timeoutMs: 10 });
+    if (phase === "native-work") assert.equal((await invocation).status, "completed");
+    else await assert.rejects(invocation, { code: "operation_observation_lost" });
+  }
+});
+
+test("invalid native transport JSON reconciles the exact completed ledger without another dispatch", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-native-json-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const directory = path.join(root, "harness-runtime/bin"); await mkdir(directory, { recursive: true });
+  const state = path.join(root, "state"), calls = path.join(root, "calls");
+  await writeFile(path.join(directory, "dd-droid.mjs"), `import {mkdir,writeFile,appendFile} from 'node:fs/promises';import {createHash} from 'node:crypto';import path from 'node:path';
+const id=process.env.DD_EVAL_OPERATION_ID, directory=path.join(${JSON.stringify(state)},'operations',createHash('sha256').update(id).digest('hex'));
+await mkdir(directory,{recursive:true});await appendFile(${JSON.stringify(calls)},id+'\\n');
+await writeFile(path.join(directory,'requested.json'),JSON.stringify({operation_id:id,daemon_id:'original'}));
+await writeFile(path.join(directory,'result.json'),JSON.stringify({state:'completed',result:{provider_session_id:'owned',status:'completed'}}));console.log('invalid transport JSON');`);
+  const result = await callDriver({ harness: "droid-cli" }, ["session", "prompt", "--session-id", "owned", "--state-dir", state], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: "exact-native-operation" });
+  assert.equal(result.status, "completed");
+  assert.equal(await readFile(calls, "utf8"), "exact-native-operation\n");
+});
+
+test("owned helper cancellation retires its child group but not a detached native owner", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-helper-tree-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const cli = path.join(root, "cli.mjs");
+  await writeFile(cli, "import {spawn} from 'node:child_process';const script='setInterval(()=>{},1000)';const owned=spawn(process.execPath,['-e',script],{stdio:'inherit'});const native=spawn(process.execPath,['-e',script],{detached:true,stdio:'ignore'});native.unref();process.stderr.write(JSON.stringify({owned:owned.pid,native:native.pid})+'\\n');setInterval(()=>{},1000);");
+  const controller = new AbortController(); let pids;
+  await assert.rejects(commandJson(cli, [], { signal: controller.signal, onProgress: event => { pids = event; controller.abort(); } }), { name: "AbortError" });
+  assert.ok(pids?.owned && pids?.native);
+  t.after(() => { try { process.kill(-pids.native, "SIGTERM"); } catch {} });
+  assert.throws(() => process.kill(pids.owned, 0), { code: "ESRCH" });
+  assert.doesNotThrow(() => process.kill(pids.native, 0));
+});
+
+test("real maintenance phase advancement renews once, replayed phases do not", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-phase-advancement-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const cli = path.join(root, "cli.mjs");
+  await writeFile(cli, "let n=0;const t=setInterval(()=>{console.error(JSON.stringify({kind:'process_maintenance_phase',operation_id:'owned',phase:'step-'+n++}));if(n===5){clearInterval(t);console.log('{}')}},500);");
+  assert.deepEqual(await commandJson(cli, [], { timeoutMs: 1500 }), {});
+  await writeFile(cli, "setInterval(()=>console.error(JSON.stringify({kind:'process_maintenance_phase',operation_id:'owned',phase:'same'})),50);");
+  await assert.rejects(commandJson(cli, [], { timeoutMs: 1500 }), { code: "operation_observation_lost" });
 });

@@ -5,7 +5,7 @@ import { mkdtemp, mkdir, writeFile, readFile, rm, symlink } from "node:fs/promis
 import path from "node:path";
 import os from "node:os";
 import { commandText, commandJson } from "../lib/process-json.mjs";
-import { readBaselineAdmissionPolicy, runBaselineAdmission } from "../lib/baseline-admission.mjs";
+import { readBaselineAdmissionPolicy, runBaselineAdmission, verifyBaselineAdmission } from "../lib/baseline-admission.mjs";
 import { installMaintenanceFixture } from "./fixtures/maintenance-runtime.mjs";
 
 test("light preparation validates the baseline policy without executing its command", async () => {
@@ -20,6 +20,31 @@ test("light preparation validates the baseline policy without executing its comm
     await assert.rejects(readFile(marker), { code: "ENOENT" });
     await assert.rejects(readBaselineAdmissionPolicy({ caseRoot: root, definition: { ...definition, sha256: "0".repeat(64) } }), { code: "baseline_admission_definition_mismatch" });
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("baseline policy@2 is sliding and rejects mixed legacy policy fields", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "baseline-sliding-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const projectRoot = path.join(root, "project"); await mkdir(projectRoot);
+  await commandText("git", ["init", "-q"], { cwd: projectRoot });
+  await commandText("git", ["-c", "user.name=test", "-c", "user.email=test@localhost", "commit", "--allow-empty", "-qm", "baseline"], { cwd: projectRoot });
+  const checkpoint = { sha256: "a".repeat(64), value: { id: "cp-test", source: { commit: await commandText("git", ["rev-parse", "HEAD"], { cwd: projectRoot }) } } };
+  const policy = { schema_id: "dd-eval/baseline-admission-policy@2", commands: [{ id: "check", command: process.execPath, args: ["-e", "console.log('started');let n=0;const t=setInterval(()=>{console.log('progress');if(++n===5)clearInterval(t)},500)"], inactivity_timeout_ms: 1500 }] };
+  const write = async () => { const bytes = JSON.stringify(policy); await writeFile(path.join(root, "policy.json"), bytes); return { file: "policy.json", sha256: createHash("sha256").update(bytes).digest("hex") }; };
+  let definition = await write();
+  assert.equal((await runBaselineAdmission({ caseRoot: root, definition, projectRoot, outputRoot: path.join(root, "evidence"), checkpoint })).status, "passed");
+  const receipt = JSON.parse(await readFile(path.join(root, "evidence/receipt.json")));
+  assert.equal(receipt.schema_id, "dd-eval/baseline-admission@2"); assert.equal(receipt.checks[0].timeout_kind, "inactivity"); assert.equal(receipt.checks[0].cleanup, "settled");
+  const reference = { file: path.join(root, "evidence/receipt.json"), sha256: createHash("sha256").update(await readFile(path.join(root, "evidence/receipt.json"))).digest("hex") };
+  await verifyBaselineAdmission({ reference, definition, checkpoint, caseRoot: root });
+  for (const corrupt of [value => value.checks.pop(), value => { value.checks[0].id = "foreign"; }, value => { value.checks[0].inactivity_timeout_ms = 1499; }, value => { value.schema_id = "dd-eval/baseline-admission@1"; }]) {
+    const changed = structuredClone(receipt); corrupt(changed); const bytes = JSON.stringify(changed); await writeFile(reference.file, bytes);
+    await assert.rejects(verifyBaselineAdmission({ reference: { ...reference, sha256: createHash("sha256").update(bytes).digest("hex") }, definition, checkpoint, caseRoot: root }), { code: "baseline_admission_unconfirmed" });
+  }
+  policy.commands[0].args[1] = "console.log('started');setInterval(()=>{},1000)";
+  definition = await write();
+  await assert.rejects(runBaselineAdmission({ caseRoot: root, definition, projectRoot, outputRoot: path.join(root, "evidence"), checkpoint }), { code: "baseline_admission_failed" });
+  policy.commands[0].timeout_ms = 1000;
+  await assert.rejects(readBaselineAdmissionPolicy({ caseRoot: root, definition: await write() }), { code: "baseline_admission_invalid" });
 });
 
 test("baseline rejects unbound registration, confirmation and admission before executing its command", async t => {
@@ -66,8 +91,8 @@ test("baseline admission is pinned, records failure and rejects source mutations
     await commandText("git", ["add", "."], { cwd: projectRoot });
     await commandText("git", ["-c", "user.name=test", "-c", "user.email=test@localhost", "commit", "-qm", "baseline"], { cwd: projectRoot });
     const checkpoint = { sha256: "a".repeat(64), value: { id: "cp-test", source: { commit: await commandText("git", ["rev-parse", "HEAD"], { cwd: projectRoot }) } } };
-    async function run(script, beforeCommand, runtimeScope, timeoutMs = 10000) {
-      const bytes = JSON.stringify({ schema_id: "dd-eval/baseline-admission-policy@1", commands: [{ id: "check", command: process.execPath, args: ["-e", script], timeout_ms: timeoutMs }] });
+    async function run(script, beforeCommand, runtimeScope, timeoutMs = 10000, sliding = false) {
+      const bytes = JSON.stringify({ schema_id: `dd-eval/baseline-admission-policy@${sliding ? 2 : 1}`, commands: [{ id: "check", command: process.execPath, args: ["-e", script], [sliding ? "inactivity_timeout_ms" : "timeout_ms"]: timeoutMs }] });
       await writeFile(path.join(root, "policy.json"), bytes);
       const definition = { file: "policy.json", sha256: createHash("sha256").update(bytes).digest("hex") };
       return runBaselineAdmission({ caseRoot: root, definition, projectRoot, outputRoot: path.join(root, "evidence"), checkpoint, beforeCommand, runtimeScope });
@@ -89,6 +114,7 @@ test("baseline admission is pinned, records failure and rejects source mutations
     if (process.env.DD_EVAL_TEST_FLOW_CLI) {
       const scope = { bin: path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI), home: path.join(root, "runtime"), resourceHome: path.join(root, "resources"), budget: { schema_id: "dd-flow/runtime-budget@1", scope_id: "EVAL-baseline", per_harness: {} }, operationId: "baseline-check" };
       assert.equal((await run('console.log("owned baseline")', undefined, scope)).status, "passed");
+      assert.equal((await run('console.log("started");let n=0;const t=setInterval(()=>{console.log("progress");if(++n===5)clearInterval(t)},500)', undefined, { ...scope, operationId: "baseline-sliding-owned" }, 1500, true)).status, "passed");
       await mkdir(scope.home, { recursive: true });
       await symlink(path.join(path.dirname(scope.bin), "harness-runtime"), path.join(scope.home, "harness-runtime"));
       // Admission may take longer than the command's timeout, but must not

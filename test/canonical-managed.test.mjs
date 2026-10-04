@@ -32,7 +32,7 @@ test('public canonical resume and review retain one managed owner in a committed
     await write(path.join(build, 'stage-context.json'), blueprint);
     await mkdir(project, { recursive: true });
     await commandText('git', ['init', '--quiet', '-b', 'main'], { cwd: project });
-    const admission = await write(path.join(build, 'baseline.json'), { status: 'passed', checkpoint_sha256: cpHash, checkpoint_id: checkpoint.id, source_commit: checkpoint.source.commit, policy_sha256: 'd'.repeat(64), checks: [{ exit_code: 0 }] });
+    const admission = await write(path.join(build, 'baseline.json'), { schema_id: 'dd-eval/baseline-admission@1', status: 'passed', checkpoint_sha256: cpHash, checkpoint_id: checkpoint.id, source_commit: checkpoint.source.commit, policy_sha256: 'd'.repeat(64), checks: [{ exit_code: 0 }] });
     await write(path.join(build, 'entries', 'specify.json'), { schema_id: 'dd-eval/stage-entry@1', case_id: 'fixture', revision: 'REV-001', checkpoint_id: 'fixture', stage: 'specify', snapshot: { kind: 'bootstrap', locator: 'bootstrap', manifest_sha256: 'e'.repeat(64), run_id: null }, semantic_package_sha256: 'f'.repeat(64), context_slice_sha256: 'f'.repeat(64) });
     const cli = `#!${process.execPath}
 import fs from 'node:fs'; import path from 'node:path'; import {createHash} from 'node:crypto';

@@ -72,7 +72,7 @@ test('public background EVAL resume continues a real retained RUN through its ne
       failure_policy: { stop_execution_on_unexpected_hitl: true, stop_execution_on_unmatched_hitl: true } };
     await write(path.join(evalRoot, 'manifest.json'), manifest);
     await write(path.join(attempt, 'managed-runtime.json'), { schema_id: 'dd-eval/managed-runtime@1', run_id: runId, project_root: project, runtime_root: home, runtime_budget: budget });
-    const admission = await write(path.join(attempt, 'baseline.json'), { status: 'passed', checkpoint_sha256: cpHash, checkpoint_id: checkpoint.id, source_commit: checkpoint.source.commit, policy_sha256: 'd'.repeat(64), checks: [{ exit_code: 0 }] });
+    const admission = await write(path.join(attempt, 'baseline.json'), { schema_id: 'dd-eval/baseline-admission@1', status: 'passed', checkpoint_sha256: cpHash, checkpoint_id: checkpoint.id, source_commit: checkpoint.source.commit, policy_sha256: 'd'.repeat(64), checks: [{ exit_code: 0 }] });
     const intake = await write(path.join(root, 'task.md'), 'Add task priority so members can order existing tasks.\n');
     const eventsFile = path.join(evalRoot, 'events.jsonl'), references = {};
     for (const stage of ['specify', 'protocolize']) {

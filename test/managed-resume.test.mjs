@@ -43,7 +43,7 @@ for (const waiting of [false, true]) test(`managed recovery retains capture, con
     const engine = { snapshot_root: path.join(root, 'engine'), package_name: 'fixture', package_version: '1', engine_version: '1', integrity_checksum: await engineArtifactDigest(path.join(root, 'engine')) };
     const checkpoint = { sha256: 'c'.repeat(64), value: { id: 'cp-test', source: { commit: 'd'.repeat(40) }, flow_pack: { engine: { version: '1', artifact_sha256: engine.integrity_checksum } } } };
     const definition = { sha256: 'b'.repeat(64) };
-    const baseline = await write('baseline.json', { status: 'passed', checkpoint_sha256: checkpoint.sha256, checkpoint_id: checkpoint.value.id, source_commit: checkpoint.value.source.commit, policy_sha256: definition.sha256, checks: [{ exit_code: 0 }] });
+    const baseline = await write('baseline.json', { schema_id: 'dd-eval/baseline-admission@1', status: 'passed', checkpoint_sha256: checkpoint.sha256, checkpoint_id: checkpoint.value.id, source_commit: checkpoint.value.source.commit, policy_sha256: definition.sha256, checks: [{ exit_code: 0 }] });
     const contextFile = await write('context.json', { stage: 'specify', retained: true });
     const answerFile = await write('answer.md', 'unchanged answer\n');
     const fixture = { schema_id: 'dd-eval/canonical-responses@1', stage: 'specify', mode: 'required', max_rounds: 1, responses: [{ id: 'answer', topic: 'scope', applicability: 'always', answer: 'unchanged answer\n' }] };

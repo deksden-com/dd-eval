@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { callDriver } from "../lib/runner.mjs";
 import { modelAttribution, readModelObservations } from "../lib/model-observations.mjs";
 import { writeJsonAtomic } from "../lib/runner-events.mjs";
+import { waitForNativeDispatch } from "../lib/driver-recovery.mjs";
 
 const repo = fileURLToPath(new URL("../", import.meta.url));
 const profiles = process.argv.slice(2);
@@ -39,8 +40,9 @@ for (const id of profiles) {
     receipt.native_read_verified = JSON.stringify(response).includes(marker);
     if (!receipt.native_read_verified) throw new Error("Native response did not include the unread marker");
     receipt.model_attribution = modelAttribution(await readModelObservations(journal));
-    pending = callDriver(profile, ["session", "prompt", ...flags, "--session-id", session, "--prompt", "This is a cancellation test. Run the single shell command sleep 20, then reply done. Do not write files or delegate."], options).then(result => ({ result }), error => ({ error: { code: error.code, message: error.message } }));
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    const operationId = randomUUID(); let promptSettled = false;
+    pending = callDriver(profile, ["session", "prompt", ...flags, "--session-id", session, "--prompt", "This is a cancellation test. Run the single shell command sleep 20, then reply done. Do not write files or delegate."], { ...options, operationId }).then(result => ({ result }), error => ({ error: { code: error.code, message: error.message } })).finally(() => { promptSettled = true; });
+    receipt.native_dispatch = await waitForNativeDispatch({ journal, operationId, sessionId: session, settled: () => promptSettled });
     receipt.cancel = await callDriver(profile, ["daemon", "stop", "--state-dir", state, "--cancel-tree"], options);
     receipt.pending_result = await pending;
     receipt.status = receipt.cancel.clean === true || receipt.cancel.settled === true ? "passed" : "cleanup_unconfirmed";

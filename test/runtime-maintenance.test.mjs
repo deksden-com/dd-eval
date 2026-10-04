@@ -23,6 +23,14 @@ test("observer renews during a long await without overlapping physical requests"
   assert.equal(max, 1); assert.ok(count >= 3);
   const stopped = count; await delay(10); assert.equal(count, stopped);
 });
+
+test("background ownership failure reaches its owner exactly once and closing stops callbacks", async () => {
+  let notify;
+  const failed = new Promise(resolve => { notify = resolve; }); let calls = 0;
+  const lease = observeRuntimeLease({ policy, async call() { throw Object.assign(new Error("lost"), { code: "process_lease_lost" }); } }, { id: "observer", lease_token: "secret" }, { intervalMs: 2, onFailure: error => { calls++; notify(error); } });
+  assert.equal((await failed).code, "process_lease_lost"); await lease.close();
+  await delay(10); assert.equal(calls, 1);
+});
 test("failed maintenance is retried but invalid receipts stay fatal", async () => {
   let calls = 0;
   const lease = observeRuntimeLease({ policy, async call() { if (++calls === 1) throw Object.assign(new Error("busy"), { code: "SQLITE_BUSY" }); return receipt; } }, { id: "observer", lease_token: "secret" });

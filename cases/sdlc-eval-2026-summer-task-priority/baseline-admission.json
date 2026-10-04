@@ -1,5 +1,5 @@
 {
-  "schema_id": "dd-eval/baseline-admission-policy@1",
+  "schema_id": "dd-eval/baseline-admission-policy@2",
   "commands": [
     {
       "id": "install",
@@ -8,7 +8,7 @@
         "install",
         "--frozen-lockfile"
       ],
-      "timeout_ms": 600000
+      "inactivity_timeout_ms": 600000
     },
     {
       "id": "quality",
@@ -16,7 +16,7 @@
       "args": [
         "quality"
       ],
-      "timeout_ms": 600000
+      "inactivity_timeout_ms": 600000
     },
     {
       "id": "browser",
@@ -24,7 +24,7 @@
       "args": [
         "test:browser"
       ],
-      "timeout_ms": 600000
+      "inactivity_timeout_ms": 600000
     },
     {
       "id": "isolation",
@@ -32,7 +32,7 @@
       "args": [
         "test:world"
       ],
-      "timeout_ms": 600000
+      "inactivity_timeout_ms": 600000
     }
   ]
 }

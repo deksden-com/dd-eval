@@ -40,6 +40,7 @@ import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { processSnapshot } from "../lib/process-snapshot.mjs";
 import { recoveryObservationBudget, withRecoveryObservation } from "../lib/recovery-observation-budget.mjs";
+import { ObservationClock } from "../lib/observation-clock.mjs";
 import { assertExecutionDispatch, executionState } from "../lib/execution-state.mjs";
 
 test("fork checkpoint listing advertises only sealed stage-entry snapshots", async t => {
@@ -360,6 +361,35 @@ test("productive evaluation time does not spend the cleanup observation budget",
   budget.exhausted();
   assert.equal(budget.state().remaining_ms, 90_000);
 });
+
+test("settlement inactivity renews only new physical proof and preserves legacy policy", () => {
+  let time = 0;
+  const budget = recoveryObservationBudget(null, () => time);
+  time = 60000; budget.observe({ operation_id: "owned", targets: [{ process_id: "p1", physical_settled: true }] });
+  assert.equal(budget.state().remaining_ms, 120000);
+  time += 60000; budget.observe({ operation_id: "owned", targets: [{ process_id: "p1", physical_settled: true }], observed_at: "new metadata" });
+  assert.equal(budget.state().remaining_ms, 60000);
+  time += 10000; budget.observe({ operation_id: "owned", targets: [{ process_id: "p1", physical_settled: true }, { process_id: "p2", native_settled: true }] });
+  assert.equal(budget.state().remaining_ms, 120000);
+  const restored = recoveryObservationBudget({ recovery_observation: budget.state() }, () => time);
+  time += 60000; restored.observe({ operation_id: "owned", targets: [{ process_id: "p2", native_settled: true }, { process_id: "p1", physical_settled: true }] });
+  assert.equal(restored.state().remaining_ms, 60000);
+  const legacy = recoveryObservationBudget({ recovery_observation: { remaining_ms: 1000 } }, () => time);
+  legacy.observe({ physical_settled: true }); assert.equal(legacy.state().remaining_ms, 1000);
+  assert.throws(() => recoveryObservationBudget({ recovery_observation: { policy_id: "unknown", remaining_ms: 1000 } }), { code: "recovery_observation_invalid" });
+  time += 61000; assert.equal(restored.exhausted(), true); // reconstruction + gap is a repeated unknown episode
+  time += 61000; assert.equal(restored.exhausted(), true);
+});
+
+test("automatic reconstruction cannot replenish uncertainty or resurrect exhausted recovery", () => {
+  const first = recoveryObservationBudget(null, () => 0);
+  const replacement = recoveryObservationBudget({ recovery_observation: first.state() }, () => 0);
+  assert.equal(replacement.state().remaining_ms, 120000);
+  const repeated = recoveryObservationBudget({ recovery_observation: replacement.state() }, () => 0);
+  assert.equal(repeated.exhausted(), true);
+  repeated.observe({ operation_id: "owned", physical_settled: true });
+  assert.equal(repeated.state().remaining_ms, 0);
+});
 import { appendRunEventOnce, runResultRevision, recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoverySourceFromEvents, recoveryOperationId, recoveryPrompt, prepareRecoveryDelivery, isInfrastructureFailure } from "../lib/runner.mjs";
 
 test("identical failures in successive recovery generations each finalize exactly once", async () => {
@@ -564,6 +594,27 @@ test("unknown dispatch remains blocked after a runner crash", async t => {
   await assert.rejects(recoverDriverReply(root, "unknown", { timeoutMs: 5, pollMs: 1 }), { code: "operation_observation_lost" });
 });
 
+test("driver reconciliation persists uncertainty across restart but accepts an exact late terminal", async t => {
+  const root = await temporary(t), id = "original-dispatch";
+  const file = path.join(root, "client-operations", `${sha256(id)}.json`);
+  const first = new ObservationClock({ timeoutMs: 5 });
+  const restored = new ObservationClock({ timeoutMs: 5, saved: first.state() });
+  await writeJsonAtomic(file, { operation_id: id, state: "requested", recovery_observation_clock: restored.state() });
+  await assert.rejects(recoverDriverReply(root, id, { timeoutMs: 5, pollMs: 1 }), { code: "operation_observation_lost" });
+  const retained = JSON.parse(await readFile(file, "utf8"));
+  assert.equal(retained.state, "requested");
+  assert.equal(retained.recovery_observation_clock.observation_lost, true);
+  assert.equal(retained.recovery_observation_clock.gaps, 2);
+  await assert.rejects(recoverDriverReply(root, id, { timeoutMs: 5, pollMs: 1 }), { code: "operation_observation_lost" });
+  assert.equal(JSON.parse(await readFile(file, "utf8")).recovery_observation_clock.gaps, 3);
+  const operation = path.join(root, "operations", sha256(id));
+  await writeJsonAtomic(path.join(operation, "requested.json"), { operation_id: id, daemon_id: "original-daemon" });
+  await writeJsonAtomic(path.join(operation, "result.json"), { state: "completed", result: { answer: "late exact reply" } });
+  assert.deepEqual(await recoverDriverReply(root, id, { timeoutMs: 5, pollMs: 1 }), { answer: "late exact reply" });
+  await reconcileDriverReplies(root);
+  assert.equal(JSON.parse(await readFile(file, "utf8")).state, "completed");
+});
+
 test("a live original daemon cannot be replaced merely because its socket failed", async t => {
   const root = await temporary(t);
   await writeFile(path.join(root, "daemon.json"), JSON.stringify({ pid: process.pid }));
@@ -604,7 +655,7 @@ test("a proven dead lock owner can be reclaimed without time-based eviction", as
   assert.equal(await withRunnerLock(file, () => "recovered"), "recovered");
 });
 
-for (const code of ["operation_observation_lost", "daemon_connection_closed", "rpc_timeout", "daemon_timeout", "turn_timeout"]) {
+for (const code of ["operation_observation_lost", "daemon_connection_closed", "rpc_timeout", "daemon_timeout", "turn_timeout", "subject_liveness_timeout", "operation_output_limit"]) {
   test(`${code} preserves an uncertain operation and accepts its late result exactly once`, async t => {
     const eventsFile = path.join(await temporary(t), "events.jsonl");
     const input = { eventsFile, source: "test", runId: "EVAL-test", executionId: "e2e", traceId: "test", operationId: "prompt", operation: "driver.prompt" };

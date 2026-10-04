@@ -115,6 +115,21 @@ test('missing authorized HITL answer preserves the pause without sending a turn 
   assert.ok(calls.every(args => args[1] === 'status' || (args[1] === 'drive' && args[2] === 'status')));
 });
 
+test('accepted controller HITL can outlive model quiet windows without a native prompt', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-hitl-clock-')); t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'); await writeFile(bin, fixture);
+  const original = Date.now; let advance = 0;
+  Date.now = () => original() + advance;
+  t.after(() => { Date.now = original; });
+  const result = await observeManagedRun({ bin, env: { TEST_MANAGED_ROOT: root, TEST_MANAGED_ANSWER_RACE: 'paused', TEST_MANAGED_ACCEPTED: '0' },
+    projectRoot: root, runId: 'RUN-fixture', controllerId: 'DRV-fixture', requestId: 'reattach', pollMs: 25,
+    answerFor: async () => { advance = 8 * 60 * 60_000; await new Promise(resolve => setTimeout(resolve, 150)); return null; },
+    beforeDispatch: () => assert.fail('no operator answer was accepted') });
+  assert.equal(result.controller.status, 'waiting_for_user');
+  const calls = (await readFile(path.join(root, 'calls.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
+  assert.ok(calls.every(args => args[0] === 'run' && (args[1] === 'status' || args[2] === 'status')));
+});
+
 for (const stageStatus of ['running', 'done', 'paused', 'failed']) {
   for (const accepted of [true, false]) test(`HITL observation reconciles accepted answer: ${stageStatus}, accepted=${accepted}`, async t => {
     const root = await mkdtemp(path.join(os.tmpdir(), 'managed-answer-race-'));
