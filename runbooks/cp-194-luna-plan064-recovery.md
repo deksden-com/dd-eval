@@ -32,6 +32,16 @@ suite logs use `/tmp/dd-flow-cp194-recovery-verified-*`. Only their actual compl
 success and ordinary consumer acceptance may mark this package `accepted`.
 An installed matrix attempt exceeded its unchanged 120-second fixture deadline;
 retain it as failed evidence, never publish a fabricated qualification from it.
+Standalone installed-consumer qualification uses an explicit four-Stage budget
+of `4 * 60_000` through Vitest's existing `--testTimeout=240000` option. This
+accounts for full snapshot verification throughout PLAN/PLAN-REVIEW/CODE/MERGE;
+it does not change the standard suite's 120-second timeout, production request
+limits, assertions, or the mechanical proof validator. Retain new publications
+under `recovery-matrix-fixture/qualification-evidence`, not the failed attempt.
+That new installed cycle passed in 46.34 seconds, and the normal qualification
+validator accepted four owning Stage publications. Its receipt SHA-256 is
+`d6ed314c7c3ec9ff572cf55df0b26e89f1c7ebfdcc5a25159c7bf3e63d684687`.
+The exact installed baseline/admission/maintenance checks passed all 29 cases.
 
 ## HITL Judge fixes
 
