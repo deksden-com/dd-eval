@@ -11,7 +11,11 @@ import { observeManagedRun } from '../lib/managed-flow-client.mjs';
 import { evalResumeWorkerFile } from '../lib/eval-resume-worker.mjs';
 import { processSnapshot } from '../lib/process-snapshot.mjs';
 
-test('public background EVAL resume continues a real retained RUN through its next stage', { skip: !process.env.DD_EVAL_TEST_FLOW_CLI || !process.env.DD_EVAL_TEST_FLOW_ADAPTER, timeout: 180_000 }, async t => {
+const phaseWaitMs = 100_000;
+// CI anti-wedge only: prepare/initial RUN, capture, resumed RUN and physical
+// cleanup have separate envelopes. The total guard must not be shorter than
+// the two explicitly allowed capture/resume waits alone.
+test('public background EVAL resume continues a real retained RUN through its next stage', { skip: !process.env.DD_EVAL_TEST_FLOW_CLI || !process.env.DD_EVAL_TEST_FLOW_ADAPTER, timeout: 4 * phaseWaitMs }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-managed-resume-'));
   const definition = path.join(root, 'definition'), evalRoot = path.join(root, 'eval'), attempt = path.join(evalRoot, 'executions', 'stages');
   const project = path.join(attempt, 'project'), home = path.join(attempt, 'dd-flow-home'), cli = path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI);
@@ -96,7 +100,7 @@ test('public background EVAL resume continues a real retained RUN through its ne
     // TEST anti-wedge envelopes belong to each distinct phase. Capture work
     // must not silently consume the successor's CI wait; these do not set any
     // production RUN/provider inactivity policy.
-    const captureDeadline = performance.now() + 100_000;
+    const captureDeadline = performance.now() + phaseWaitMs;
     for (;;) {
       const status = await scope(['status', '--scope-id', evalId]);
       if (status.drain?.capture?.journal?.event_count === (await readEvents(eventsFile)).length) break;
@@ -104,7 +108,7 @@ test('public background EVAL resume continues a real retained RUN through its ne
     }
     const accepted = JSON.parse(await invoke(['control', 'resume', '--eval', evalRoot, '--from', 'pause', '--request-id', 'resume']));
     assert.equal(accepted.accepted, true); workerExited = false;
-    const resumeDeadline = performance.now() + 100_000;
+    const resumeDeadline = performance.now() + phaseWaitMs;
     const workerFile = evalResumeWorkerFile(evalRoot, 'resume');
     let worker;
     for (;;) {
