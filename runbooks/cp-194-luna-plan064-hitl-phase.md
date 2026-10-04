@@ -39,6 +39,11 @@ records a terminal failed receipt with the retained primary/cleanup error;
 it still propagates the original failure and never grants baseline admission.
 The existing negative registration/confirmation/admission tests and cancelled
 pre-command test now assert the terminal receipt. All three offline tests passed.
+Follow-up review found that redacting serialized JSON could consume closing
+quotes after a connection URL. Redact string values through the JSON replacer
+instead; the URL/API-key regression asserts valid terminal evidence and preserves
+the original rejection code. The follow-up qualification must bind this committed
+definition, not the intentionally stopped earlier partial attempt.
 
 Typecheck, lint, strict package build and release contracts passed. The actual
 installed PLAN/PLAN-REVIEW/CODE/MERGE matrix cycle passed in 31.43 seconds; normal
@@ -47,6 +52,13 @@ qualification accepted four owning Stage publications, receipt SHA-256
 Required complete suite logs use `/tmp/dd-flow-cp194-hitl-phase-verified-*`;
 only their actual successful completion may authorize candidate acceptance.
 New source cannot inherit old source's successful or failed suite results.
+For this loaded local host, an optional standard Node compile cache is retained
+outside source and immutable engine snapshots at `/tmp/dd-flow-cp194-node-cache.Tg7VgB`.
+`NODE_COMPILE_CACHE` points there and `NODE_COMPILE_CACHE_PORTABLE=1` enables Node's
+native portable-cache behavior. It caches compilation only, not admission, baseline
+or test results. Warm imports measured 387–398 ms. Keep failed uncached logs;
+cached full-suite logs use `/tmp/dd-flow-cp194-hitl-phase-cached-*`. All assertions
+and production/test budgets remain unchanged; no coverage collection is enabled.
 
 ## Launch procedure
 

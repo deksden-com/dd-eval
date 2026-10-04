@@ -77,12 +77,13 @@ test("baseline admission is pinned, records failure and rejects source mutations
     assert.deepEqual(JSON.parse(await readFile(path.join(root, "evidence/receipt.json"))).checks.map(({ exit_code, timed_out }) => ({ exit_code, timed_out })), [{ exit_code: 124, timed_out: true }]);
     await assert.rejects(run('require("node:fs").writeFileSync("source.txt", "must not execute")', async id => {
       assert.equal(id, "check");
-      throw Object.assign(new Error("EVAL cancelled"), { code: "runtime_scope_stopped" });
+      throw Object.assign(new Error("EVAL cancelled postgresql://user:secret@localhost/db api_key=private"), { code: "runtime_scope_stopped" });
     }), { code: "runtime_scope_stopped" });
     const interrupted = JSON.parse(await readFile(path.join(root, "evidence/receipt.json")));
     assert.equal(interrupted.status, "failed");
     assert.ok(interrupted.finished_at);
     assert.equal(interrupted.error.code, "runtime_scope_stopped");
+    assert.equal(interrupted.error.message, "EVAL cancelled postgresql://[redacted] api_key=[redacted]");
     assert.deepEqual(interrupted.checks, []);
     assert.equal(await readFile(path.join(projectRoot, "source.txt"), "utf8"), "baseline");
     if (process.env.DD_EVAL_TEST_FLOW_CLI) {
