@@ -350,21 +350,27 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-test("recovery-blocked is not cleanup-settled and cannot freeze a candidate", async () => {
+for (const [blocked, worker] of [
+  [true, { status: "recovery_blocked", error: { code: "recovery_observation_budget_exhausted" } }],
+  [true, { status: "failed", error: { code: "snapshot_capture_failed", message: "retained primary capture error" }, snapshot: { status: "recovery_blocked", settled: false, error: { code: "recovery_observation_budget_exhausted" }, recovery_observation: { remaining_ms: 0 } } }],
+  ...["starting", "running"].map(status => [false, { status, error: null, snapshot: { status: "recovery_blocked", settled: false, recovery_observation: { remaining_ms: 120_000, observer_started: false, reconciliation_ids: ["fresh"] } } }])
+]) test(`retained recovery blocker respects the owner phase and cannot freeze a candidate (${worker.status})`, async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-recovery-blocked-"));
   try {
     const attempt = path.join(root, "executions/e"), runtime = path.join(attempt, "dd-flow-home"), project = path.join(attempt, "project");
     await mkdir(path.join(runtime, "bin"), { recursive: true }); await mkdir(project);
     const statusFile = path.join(root, "control.json"), bin = path.join(runtime, "bin/dd-flow");
     await writeFile(bin, `#!/usr/bin/env node\nconsole.log(require('node:fs').readFileSync(${JSON.stringify(statusFile)},'utf8'))\n`); await chmod(bin, 0o700);
-    await writeJsonAtomic(statusFile, { ok: true, settled: true, worker: { status: "recovery_blocked", error: { code: "recovery_observation_budget_exhausted" } } });
+    await writeJsonAtomic(statusFile, { ok: true, settled: true, worker });
     await writeJsonAtomic(path.join(attempt, "managed-runtime.json"), { schema_id: "dd-eval/managed-runtime@1", project_root: project, runtime_root: runtime, run_id: "RUN-test" });
     const manifest = { run_id: "EVAL-test", runtime_resource_home: path.join(root, "resources"), case_id: "sdlc-eval-2026-summer-task-priority", executions: [{ id: "e", stage: "specify", terminal_stage: "merge", mode: "e2e" }], subject_profile: {}, profile: { judge: { enabled: false } } };
     await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
     for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "provider_failed", message: "subject failed" } } });
     const result = await runnerResume({ evalRoot: root });
-    assert.equal(result.state, "recovery_blocked");
-    assert.equal(result.cleanup_state, "blocked");
+    assert.equal(result.state, blocked ? "recovery_blocked" : "awaiting_provider");
+    assert.equal(result.cleanup_state, blocked ? "blocked" : "pending");
+    assert.equal(result.executions[0].code, "provider_failed");
+    assert.equal(result.executions[0].recovery.capture_error.code, blocked ? "recovery_blocked" : "recovery_capture_pending");
     assert.equal(result.candidate, undefined);
     assert.equal((await readEvents(path.join(root, "events.jsonl"))).some(event => event.type === "dev.dd.eval.candidate.frozen"), false);
   } finally { await rm(root, { recursive: true, force: true }); }
