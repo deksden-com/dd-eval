@@ -287,3 +287,43 @@ whole-operation qualification deadline/continuation regression and real offline
 CLI integrations. Log `/tmp/dd-eval-cp194-qualification-budget-full-tests.log`.
 FLOW bytes, their six-suite acceptance and both snapshot/matrix checksums remain
 unchanged. No new preflight or scored EVAL has been created at this point.
+
+## Fifteen-minute qualification result: still blocked, no third retry
+
+Definition commit `3b62b32` again qualified seven items with settled cleanup.
+Its exact-definition attempt is
+`/Users/deksden/.dd-eval/definition-qualifications/f6d8b4f096946e2de31440f6c2603ebbd5a15fc0930f360510c248da2de8f53a/operation-fdd7db06-adc5-416b-b9af-355efa8b38ed`;
+log `/tmp/dd-eval-cp194-qualification-budget-definition-qualification.log`.
+`luna-cp190-exact` again reached the whole-operation deadline without a published
+verdict. The fifteen-minute adjustment is therefore not a sufficient systemic
+solution and must not be described as successful live acceptance.
+
+Native evidence rules out a startup/maintenance failure or a dead Judge: it
+continued reasoning and completed successful quotation-check commands at
+09:13:04.605, 09:14:45.658 and 09:16:37.670 UTC. The caller then timed out,
+and its required cancel-tree cleanup interrupted the Turn at 09:16:45.277.
+Cleanup is retained as settled at 09:16:46.367. Tool-generated draft JSON is
+not an authoritative final verdict; it was not adopted or used to fabricate
+qualification. No semantic rejection, auth refusal or provider overload is
+established by this timeout.
+
+The remaining causal problem is the explicit qualification caller's fixed
+whole-operation wall limit: unlike productive Judge dispatch, it interrupts a
+physically owned, still-progressing Turn, then reports an uncertain native
+outcome. Another scalar increase has no evidence-based guarantee of fixing
+that policy mismatch. No third qualification, preflight, reference-pair smoke
+or scored CP194 EVAL was started. The FLOW candidate remains accepted with
+all six suites and its real matrix evidence; full E2E launch admission remains
+blocked by the missing complete definition qualification.
+
+Proposed next systemic change, requiring an explicit policy decision: use the
+shared productive Judge lifecycle for active qualification Turns, retain
+bounded setup/ownership reconciliation and cleanup, and bound genuine native
+inactivity/provider continuation failures rather than all elapsed active
+work. Only native activity counts as progress, not runner polling, heartbeat
+renewal or diagnostic output. Preserve packet/Session/operation identity,
+remaining-budget rules for bounded phases, native refusal circuit breaker,
+and no replay of unknown paid operations. Retain both failures; do not waive
+the 18-item corpus, lower Judge reasoning, manufacture PASS or change product
+inputs as a launch workaround. A fresh qualification needs the new committed
+policy and runnable liveness/timeout/no-replay regression evidence first.
