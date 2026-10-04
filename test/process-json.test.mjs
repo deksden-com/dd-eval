@@ -208,6 +208,13 @@ test("selected native wait contract controls productive start versus bounded acc
   }
 });
 
+test("fragmented oversized structured keepalive cannot renew the quiet window", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-large-heartbeat-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const executable = path.join(root, "heartbeat.mjs");
+  await writeFile(executable, "process.stdout.write(' ');process.stderr.write('{\"kind\":\"heartbeat\",\"padding\":\"');setInterval(()=>process.stderr.write('x'.repeat(8192)),10);");
+  await assert.rejects(commandJson(executable, [], { timeoutMs: 1500 }), { code: "operation_observation_lost" });
+});
+
 test("invalid native transport JSON reconciles the exact completed ledger without another dispatch", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-native-json-")); t.after(() => rm(root, { recursive: true, force: true }));
   const directory = path.join(root, "harness-runtime/bin"); await mkdir(directory, { recursive: true });
@@ -220,6 +227,18 @@ await writeFile(path.join(directory,'result.json'),JSON.stringify({state:'comple
   const result = await callDriver({ harness: "droid-cli" }, ["session", "prompt", "--session-id", "owned", "--state-dir", state], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: "exact-native-operation" });
   assert.equal(result.status, "completed");
   assert.equal(await readFile(calls, "utf8"), "exact-native-operation\n");
+});
+
+test("unknown reconciliation retains the original observer and cleanup errors", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-observer-primary-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const directory = path.join(root, "harness-runtime/bin"); await mkdir(directory, { recursive: true });
+  const state = path.join(root, "state");
+  await writeFile(path.join(directory, "dd-droid.mjs"), `import {readFile,writeFile} from 'node:fs/promises';import {createHash} from 'node:crypto';import path from 'node:path';
+const id=process.env.DD_EVAL_OPERATION_ID,file=path.join(${JSON.stringify(state)},'client-operations',createHash('sha256').update(id).digest('hex')+'.json'),client=JSON.parse(await readFile(file));
+client.recovery_observation_clock={policy:'operation-progress@1',timeout_ms:30000,started_at:Date.now(),observed_at:null,elapsed_ms:0,uncertainty_elapsed_ms:120000,gaps:2,observation_lost:true};await writeFile(file,JSON.stringify(client));
+console.log(JSON.stringify({ok:false,error:{code:'operation_output_limit',message:'observer primary',cleanup_error:{code:'retirement_uncertain',message:'secondary'}}}));`);
+  await assert.rejects(callDriver({ harness: "droid-cli" }, ["session", "prompt", "--session-id", "owned", "--state-dir", state], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: "original" }), error => error.code === "operation_observation_lost"
+    && error.cause?.code === "operation_output_limit" && error.details.observation_error.cleanup_error.code === "retirement_uncertain");
 });
 
 test("owned helper cancellation retires its child group but not a detached native owner", async t => {

@@ -7,7 +7,7 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { setTimeout as delay } from 'node:timers/promises';
 import { executeEval, runnerControlReconcile, runnerControlRequest, runnerControlResume, runnerControlStatus, runnerResume, launchEvalExecution, loadCase, assertEvalExecutionDispatch, interactionFixtureManifest } from '../lib/runner.mjs';
-import { appendEvent, controlOperationInventory, readEvents, recordOperation, reduceEvents } from '../lib/runner-events.mjs';
+import { appendEvent, controlOperationInventory, readEvents, recordOperation, reduceEvents, sha256, writeJsonAtomic } from '../lib/runner-events.mjs';
 import { commandJson, commandText } from '../lib/process-json.mjs';
 import { withRunnerLock } from '../lib/runner-lock.mjs';
 import { evalResumeWorkerFile, requestEvalResume } from '../lib/eval-resume-worker.mjs';
@@ -255,7 +255,7 @@ test('operator resume applies one exact runtime release and cannot clear a newer
   const release = { scope_id: runId, source_request_id: 'stop', request_id: 'resume', generation: 1, capture_key: 'a'.repeat(64), journal_sha256: 'b'.repeat(64), current: true };
   const status = { scope_id: runId, control: null, fence: null, dispatch_blocked: false, release, resume: { status: 'released', request_id: 'resume', generation: 1, capture_key: release.capture_key, current: true } };
   const input = { evalRoot: root, requestId: 'resume', fromRequestId: 'stop' }, before = await readFile(eventsFile, 'utf8');
-  for (const changed of [{ current: false }, { request_id: 'foreign' }, { source_request_id: 'foreign' }, { capture_key: 'wrong' }]) {
+  for (const changed of [{ current: false }, { request_id: 'foreign' }, { source_request_id: 'foreign' }, { capture_key: 'wrong' }, { generation: 2 }]) {
     await writeFile(statusFile, JSON.stringify({ ...status, release: { ...release, ...changed } }));
     await assert.rejects(runnerControlResume(input), { code: 'runtime_scope_release_unproven' });
     assert.equal(await readFile(eventsFile, 'utf8'), before);
@@ -269,13 +269,43 @@ test('operator resume applies one exact runtime release and cannot clear a newer
   assert.throws(() => reduceEvents([requested, { ...applied[1], data: { ...applied[1].data, release: { ...release, current: false } } }]), { code: 'journal_conflict' });
   assert.equal(reduceEvents([requested, { type: 'dev.dd.eval.cancel_requested', data: { state: 'cancelling', sequence: 2 } }, applied[1]]).control.request_id, 'stop');
   assert.equal((await runnerControlResume(input)).reused, true);
+  // Final observation of an exhausted worker can only project this release;
+  // the fixture CLI rejects every native command except read-only status.
+  assert.equal((await runnerControlResume({ ...input, waitMs: 1000, observeOnlyRuntime: true })).reused, true);
   assert.equal((await readEvents(eventsFile)).length, 2);
   await appendEvent(eventsFile, { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'new-stop' } });
   const stopped = await readEvents(eventsFile);
   assert.equal(reduceEvents([...stopped, applied[1]]).control.request_id, 'new-stop');
   await assert.rejects(runnerControlResume(input), { code: 'control_request_stale' });
   assert.equal((await readEvents(eventsFile)).length, 3);
-  assert.equal((await readFile(calls, 'utf8')).trim().split('\n').length, 6);
+  assert.equal((await readFile(calls, 'utf8')).trim().split('\n').length, 8);
+});
+
+for (const valid of [true, false]) test(`exhausted scope worker observes only its existing matching release (generation valid: ${valid})`, { timeout: 15000 }, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-spent-scope-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const runId = 'EVAL-spent-scope', cli = path.join(root, 'flow'), eventsFile = path.join(root, 'events.jsonl'), calls = path.join(root, 'calls');
+  const release = { scope_id: runId, source_request_id: 'stop', request_id: 'resume', generation: valid ? 1 : 2, capture_key: 'a'.repeat(64), journal_sha256: 'b'.repeat(64), current: true };
+  const status = { scope_id: runId, control: null, fence: null, dispatch_blocked: false, release, resume: { status: 'released', request_id: 'resume', generation: 1, capture_key: release.capture_key, current: true }, processes: [] };
+  await writeFile(cli, `#!/bin/sh\ncommand="$1 $2 $3"\nprintf '%s\\n' "$command" >> '${calls}'\n[ "$command" = 'runtime scope status' ] || exit 1\nprintf '%s\\n' '${JSON.stringify(status)}'\n`); await chmod(cli, 0o700);
+  await writeJsonAtomic(path.join(root, 'manifest.json'), { run_id: runId, runtime_control_bin: cli, runtime_resource_home: path.join(root, 'resources'), executions: [] });
+  const requested = await appendEvent(eventsFile, { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
+  const file = evalResumeWorkerFile(root, 'resume');
+  await writeJsonAtomic(file, { schema_id: 'dd-eval/resume-worker@1', intent: { eval_root: root, run_id: runId, request_id: 'resume', source_request_id: 'stop', request_sequence: requested.data.sequence, manifest_sha256: sha256(await readFile(path.join(root, 'manifest.json'))) }, status: 'observing', recovery_observation: { policy_id: 'settlement-inactivity@1', remaining_ms: 0, observer_started: true, observation_gaps: 1, progress_markers: [] } });
+  await requestEvalResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop' });
+  let saved;
+  const deadline = performance.now() + 10000;
+  do {
+    saved = JSON.parse(await readFile(file));
+    assert.ok(performance.now() < deadline, 'spent scope observer did not exit');
+    await delay(25);
+  } while (!['failed', 'recovery_blocked'].includes(saved.status) || (await processSnapshot()).some(item => item.pid === saved.owner_pid && !item.zombie));
+  // There is intentionally no maintenance ABI: after projecting a valid release
+  // this fixture stops before productive work, independently of its spent budget.
+  assert.equal(saved.scope_result?.pending === false, valid);
+  assert.equal(saved.recovery_observation.remaining_ms, 0);
+  assert.equal((await readEvents(eventsFile)).filter(event => event.type === 'dev.dd.eval.control.resume_applied').length, valid ? 1 : 0);
+  assert.ok((await readFile(calls, 'utf8')).trim().split('\n').every(action => action === 'runtime scope status'));
 });
 
 test('control reconciliation reuses only confirmed outcomes and retains lost or suspended operations', () => {

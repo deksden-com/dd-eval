@@ -82,6 +82,35 @@ console.log(JSON.stringify(result));`);
   }
 });
 
+test("baseline owner loss exits despite continuing output and failed physical cleanup", { timeout: 15000 }, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "baseline-owner-loss-"));
+  const projectRoot = path.join(root, "project"), cli = path.join(root, "flow.mjs"), marker = path.join(root, "active"), calls = path.join(root, "calls"), binding = path.join(root, "binding.json");
+  const originalInterval = globalThis.setInterval, originalKill = process.kill;
+  t.after(async () => {
+    globalThis.setInterval = originalInterval; process.kill = originalKill;
+    const record = JSON.parse(await readFile(binding, "utf8").catch(() => "null"));
+    if (record?.pid) { try { originalKill(-record.pid, "SIGKILL"); } catch (error) { if (error.code !== "ESRCH") throw error; } }
+    await new Promise(resolve => setTimeout(resolve, 100));
+    await rm(root, { recursive: true, force: true });
+  });
+  await mkdir(projectRoot); await installMaintenanceFixture(root);
+  await commandText("git", ["init", "-q"], { cwd: projectRoot });
+  await commandText("git", ["-c", "user.name=test", "-c", "user.email=test@localhost", "commit", "--allow-empty", "-qm", "baseline"], { cwd: projectRoot });
+  const checkpoint = { sha256: "a".repeat(64), value: { id: "cp-test", source: { commit: await commandText("git", ["rev-parse", "HEAD"], { cwd: projectRoot }) } } };
+  const bytes = JSON.stringify({ schema_id: "dd-eval/baseline-admission-policy@2", commands: [{ id: "check", command: process.execPath, args: ["-e", `require('node:fs').writeFileSync(${JSON.stringify(marker)},'active');setInterval(()=>console.log('productive'),10)`], inactivity_timeout_ms: 2000 }] });
+  await writeFile(path.join(root, "policy.json"), bytes);
+  await writeFile(cli, `import fs from 'node:fs';const a=process.argv.slice(2),action=a[2],v=n=>a[a.indexOf('--'+n)+1],file=${JSON.stringify(binding)},marker=${JSON.stringify(marker)};fs.appendFileSync(${JSON.stringify(calls)},action+'\\n');let r;
+if(action==='register')r={id:v('id'),lease_token:'lease',kind:'eval-baseline',owner_id:v('owner'),operation_id:v('operation'),state:'starting',metadata_json:JSON.stringify({dd_flow_home:process.env.DD_FLOW_HOME,role:'probe',owner_pid:Number(v('owner-pid')),budget:JSON.parse(v('budget-json'))})};else r=JSON.parse(fs.readFileSync(file));
+if(action==='confirm')Object.assign(r,{pid:Number(v('pid')),state:'running',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)});
+let result={ok:true,process:r};if(action==='heartbeat'){r.heartbeats=(r.heartbeats??0)+1;if(r.heartbeats>1){while(!fs.existsSync(marker))await new Promise(resolve=>setTimeout(resolve,10));result={ok:false};}else result={ok:true,process_id:r.id,lease_expires_at:r.lease_expires_at,registration_sha256:r.registration_sha256};}if(action==='check-admission')result={ok:true,admitted:true,process_id:r.id};fs.writeFileSync(file,JSON.stringify(r));console.log(JSON.stringify(result));`);
+  globalThis.setInterval = (callback, milliseconds, ...args) => originalInterval(callback, milliseconds === 30000 ? 100 : milliseconds, ...args);
+  process.kill = (pid, signal) => { if (pid < 0 && signal !== 0) throw Object.assign(new Error("denied owned retirement"), { code: "EPERM" }); return originalKill(pid, signal); };
+  await assert.rejects(runBaselineAdmission({ caseRoot: root, definition: { file: "policy.json", sha256: createHash("sha256").update(bytes).digest("hex") }, projectRoot, outputRoot: path.join(root, "evidence"), checkpoint,
+    runtimeScope: { bin: cli, home: root, resourceHome: path.join(root, "resources"), budget: { scope_id: "EVAL-loss", per_harness: {} }, operationId: "baseline-loss" } }), error => error.code === "process_lease_lost" && error.cleanup_error?.code === "EPERM");
+  assert.equal(await readFile(marker, "utf8"), "active");
+  assert.ok(!(await readFile(calls, "utf8")).includes("finish\n"));
+});
+
 test("baseline admission is pinned, records failure and rejects source mutations", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "baseline-admission-"));
   const projectRoot = path.join(root, "project"); await mkdir(projectRoot);
