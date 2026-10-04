@@ -48,6 +48,10 @@ console.log(JSON.stringify(result));`);
     await assert.rejects(runBaselineAdmission({ caseRoot: root, definition, projectRoot, outputRoot: path.join(root, "evidence"), checkpoint,
       runtimeScope: { bin: cli, home: root, resourceHome: path.join(root, "resources"), budget: { schema_id: "dd-flow/runtime-budget@1", scope_id: "EVAL-baseline", per_harness: {} }, operationId: `baseline-${fault}` } }), { code: ["registration-malformed-reconciliation", "registration-reconciliation-budget"].includes(fault) ? "process_maintenance_timeout" : "process_maintenance_receipt_invalid" }, fault);
     await assert.rejects(readFile(marker), { code: "ENOENT" }, fault);
+    const receipt = JSON.parse(await readFile(path.join(root, "evidence/receipt.json")));
+    assert.equal(receipt.status, "failed", fault);
+    assert.ok(receipt.finished_at, fault);
+    assert.equal(receipt.error.code, ["registration-malformed-reconciliation", "registration-reconciliation-budget"].includes(fault) ? "process_maintenance_timeout" : "process_maintenance_receipt_invalid", fault);
     const expectedCalls = fault.startsWith("confirmation-") ? ["register", "confirm", "finish"] : fault.startsWith("admission-") ? ["register", "confirm", "check-admission", "finish"] : fault.includes("reconciliation") ? ["register", "status"] : ["register"];
     assert.deepEqual((await readFile(calls, "utf8")).trim().split("\n"), expectedCalls, fault);
   }
@@ -75,6 +79,11 @@ test("baseline admission is pinned, records failure and rejects source mutations
       assert.equal(id, "check");
       throw Object.assign(new Error("EVAL cancelled"), { code: "runtime_scope_stopped" });
     }), { code: "runtime_scope_stopped" });
+    const interrupted = JSON.parse(await readFile(path.join(root, "evidence/receipt.json")));
+    assert.equal(interrupted.status, "failed");
+    assert.ok(interrupted.finished_at);
+    assert.equal(interrupted.error.code, "runtime_scope_stopped");
+    assert.deepEqual(interrupted.checks, []);
     assert.equal(await readFile(path.join(projectRoot, "source.txt"), "utf8"), "baseline");
     if (process.env.DD_EVAL_TEST_FLOW_CLI) {
       const scope = { bin: path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI), home: path.join(root, "runtime"), resourceHome: path.join(root, "resources"), budget: { schema_id: "dd-flow/runtime-budget@1", scope_id: "EVAL-baseline", per_harness: {} }, operationId: "baseline-check" };
