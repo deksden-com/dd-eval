@@ -273,7 +273,7 @@ test("text command diagnostics distinguish productive work from keepalive, repla
     await writeFile(cli, `setInterval(()=>console.error(JSON.stringify(${JSON.stringify(value)})),50);`);
     await assert.rejects(commandText(cli, [], { timeoutMs: 1500 }), { code: "operation_observation_lost" });
   }
-  await writeFile(cli, "let n=0;const t=setInterval(()=>{console.error('compiled file '+n++);if(n===5){clearInterval(t);console.log('done')}},500);");
+  await writeFile(cli, "let n=0;const t=setInterval(()=>{process.stderr.write('compiled file '+n+++'\\r');if(n===5){clearInterval(t);console.log('done')}},500);");
   assert.equal(await commandText(cli, [], { timeoutMs: 1500 }), "done");
 });
 
