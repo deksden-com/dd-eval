@@ -5,7 +5,7 @@
 Preserve older candidates, failures and qualification attempts; never rebind
 their results to this candidate.
 
-## Frozen candidate
+## Earlier frozen candidate (not the launch candidate)
 
 - Engine beta.125 / `3d55ff54a1975f396c787b20867d9b79d28f0830`.
 - Canon 4.1.2 / `2e57b987ec91b7c3b0fa97f6169047802a1233fb`.
@@ -200,3 +200,55 @@ observed 32 ms for ingress and 319 ms through maintenance services. Logs
 evidence, not complete release acceptance. The subsequent light recovery-guard
 dependency extraction must also be checked by the exact-source complete gate.
 No CP194 EVAL, preflight or new live definition qualification has started.
+
+## Accepted lightweight-maintenance launch candidate
+
+The exact `776112522e59fab5c977d43b0c0c1cd5b54940eb` source passed the complete
+serial FLOW gate without source edits or waived tests: release contracts,
+integration 4/4 (296), 2/4 (533), 1/4 (828), 3/4 (378), and runtime-sensitive
+(32). Logs `/tmp/dd-flow-cp194-light-ingress-gate-*.log`. Typecheck and lint had
+also passed for this source. All earlier failed attempts remain failed.
+
+The fresh candidate is
+`/Users/deksden/.dd-eval/qualification/cp-194-candidate/light-maintenance-ingress-7761125`.
+The normal release tool accepted it after a fresh consumer installation and
+engine/compatibility checks; log
+`/tmp/dd-flow-cp194-light-ingress-candidate-accept.log`.
+Tarball SHA-256 `96540a51cdd8ddaafed3dee5d74ed7e5c203994f9a012658ae1bcd52b113d1d8`.
+Installed CLI for all remaining CP194 commands is
+`/Users/deksden/.dd-eval/qualification/cp-194-candidate/installed-light-maintenance-ingress-7761125/node_modules/@deksden-com/dd-flow-cli/dist/cli.js`.
+Its full-content engine snapshot SHA-256 is
+`8f77983cdb70218e26c0df17089307ae4335d67ea1c55a71e9db59248ad06b2d`.
+
+The installed-package PLAN/CODE/MERGE lifecycle fixture passed in 47.22 s;
+only this selected fixture was run, not the other tests in that copied file.
+All 16 production imports use the new installed package, with unchanged test
+assertions. Retained fixture:
+`/Users/deksden/.dd-eval/qualification/cp-194-candidate/light-maintenance-matrix-fixture-7761125/qualification-evidence/fixture.json`.
+Normal matrix qualification accepted four owning Stage publications and the
+final MERGE authority. Receipt
+`checkpoints/cp-194-light-maintenance-verification-matrix-qualification.json`,
+SHA-256 `9c68275e908c858b4a985270fd754386cb2aa44ebe9317faf6b5683a59b3bede`.
+Code-review is explicitly skipped by this fixture's existing review-off policy,
+not advertised as a matrix publication. The fresh consumer and fixture engine
+snapshot checksums match.
+
+EVAL's full suite also passed against the newly installed CLI, with the real
+offline adapter enabled: 458/458, zero skips, serial execution, 310.01 s.
+Log `/tmp/dd-eval-cp194-light-ingress-full-tests.log`.
+The unlaunched CP194 checkpoint and case hash now bind this exact engine and
+new qualification packets; product baseline, flow-pack and canon pins remain
+unchanged. The pending home uses the new installed adapter and `cx`.
+The focused `fixtures validate` command without `--revision` correctly refused
+this case, which has no accepted focused entry pack; log
+`/tmp/dd-eval-cp194-light-ingress-fixtures-validate.log`. It is not a passed gate
+or an E2E blocker: this launch uses the checkpoint and normal qualification/
+preflight, not a manufactured focused revision.
+
+Commit this definition before the fresh 18-item live Judge qualification;
+then run one light preflight, the bounded six-Session reference pair, and one
+scored Luna E2E only if those gates pass. Do not change the committed definition
+during these operations, manufacture results or retry a semantic rejection
+until PASS. Baseline PASS must come from the actual scored execution, followed
+by its native Subject Session and actual SPECIFY timeline evidence. No automatic
+heartbeat, historical resume or manual artifact repair is authorized.

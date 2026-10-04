@@ -12,15 +12,15 @@
     "memory_bank_version": "4.1.2",
     "verification_matrix": {
       "contract": "dd-flow/verification-matrix@1",
-      "file": "cp-194-recovery-readiness-verification-matrix-qualification.json",
-      "sha256": "a6458d83aba23b06cf9fbc1c0ed208861dd666bfae40f72ab0d6cda3cb02b82d",
+      "file": "cp-194-light-maintenance-verification-matrix-qualification.json",
+      "sha256": "9c68275e908c858b4a985270fd754386cb2aa44ebe9317faf6b5683a59b3bede",
       "canon_commit": "2e57b987ec91b7c3b0fa97f6169047802a1233fb"
     },
     "engine": {
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
-      "commit": "3d55ff54a1975f396c787b20867d9b79d28f0830",
+      "commit": "776112522e59fab5c977d43b0c0c1cd5b54940eb",
       "version": "0.9.0-beta.125",
-      "artifact_sha256": "42b9d5954bd0cea7079cb587092d0b8b792c63fcb1f8fd47a07a339ea2b6a3db"
+      "artifact_sha256": "8f77983cdb70218e26c0df17089307ae4335d67ea1c55a71e9db59248ad06b2d"
     }
   },
   "state": "candidate_pending_preflight"
