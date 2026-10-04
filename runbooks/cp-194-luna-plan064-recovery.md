@@ -1,4 +1,7 @@
-# CP194 — recovery-tested Luna candidate
+# CP194 — recovery-tested Luna candidate (superseded before launch)
+
+The complete suite found the shared HITL dispatch hash defect. Its replacement
+package and launch procedure are recorded in [HITL phase preparation](cp-194-luna-plan064-hitl-phase.md).
 
 2026-10-04. Preparation only; no scored CP194 EVAL has been started.
 Supersedes the unlaunched bounded candidate after test-only recovery fixes.

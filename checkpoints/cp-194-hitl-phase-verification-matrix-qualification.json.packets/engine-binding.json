@@ -1,0 +1,19 @@
+{
+  "schema_id": "dd-flow/run-engine-binding@1",
+  "run_id": "RUN-001-tasks",
+  "project_root": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/hitl-phase-matrix-fixture/qualification-evidence/dd-flow-protocolize-mpTgt6/project",
+  "bound_at": "2026-10-04T01:04:42.154Z",
+  "source": "run_creation",
+  "reason": "RUN created by the selected execution engine.",
+  "engine": {
+    "package_name": "@deksden-com/dd-flow-cli",
+    "package_version": "0.9.0-beta.125",
+    "engine_version": "0.9.0-beta.125",
+    "integrity_checksum": "b73613e6fe6978ccee4daf727b2eaa02cc25b6321477b818193a02f43c8fb7a3",
+    "snapshot_root": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/hitl-phase-matrix-fixture/qualification-evidence/dd-flow-protocolize-mpTgt6/home/engines/@deksden-com_dd-flow-cli/0.9.0-beta.125"
+  },
+  "probe": {
+    "status": "not_required",
+    "command": null
+  }
+}

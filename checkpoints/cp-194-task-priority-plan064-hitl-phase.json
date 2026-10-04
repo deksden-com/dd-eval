@@ -1,0 +1,27 @@
+{
+  "id": "cp-194-task-priority-plan064-hitl-phase",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e",
+    "tag": "eval/cp-172-source-baseline-setup"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "2777773781b69dfd2ccaed55bbec245a88344655",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-194-hitl-phase-verification-matrix-qualification.json",
+      "sha256": "b2874327412d63316cc85ef5972f7d16acca08ff596238a9226a35125122e717",
+      "canon_commit": "2e57b987ec91b7c3b0fa97f6169047802a1233fb"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "e0cb030696ca426bfad0bc8f04be968276d5d629",
+      "version": "0.9.0-beta.125",
+      "artifact_sha256": "b73613e6fe6978ccee4daf727b2eaa02cc25b6321477b818193a02f43c8fb7a3"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
