@@ -68,6 +68,11 @@ snapshot and checkpoint. Do not copy engine directories between isolated homes.
 
 ## Promotion
 
+Before promotion, complete the [offline FLOW/EVAL verification](flow-test-suite-verification.md)
+against one frozen build. Installed candidate acceptance is a separate gate;
+scored live E2E requires separate authorization. Grouped development tests or
+mocked controller cycles do not replace any of these gates.
+
 Promote only the cumulative, accepted beta delta: reconcile its flow semantics
 into `dd-memorybank`, transfer functional engine commits to the release branch,
 release the engine and canon, update the project flow pack, then run the
