@@ -6,6 +6,8 @@ import { mock } from "node:test";
 import * as events from "../../lib/runner-events.mjs";
 import { executionState } from "../../lib/execution-state.mjs";
 
+// The wrapper starts this fixture with module-mocks enabled. Keep it outside
+// test/ so ordinary Node discovery never executes it without that flag.
 // Only replace the paid action. Exercise the actual operation ledger and runner catch.
 let nativeError, dispatches = 0;
 mock.module(new URL("../../lib/runner-events.mjs", import.meta.url).href, {
