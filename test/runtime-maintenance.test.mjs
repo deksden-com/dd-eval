@@ -6,6 +6,7 @@ import path from "node:path";
 import os from "node:os";
 import { observeRuntimeLease, runtimeMaintenance } from "../lib/runtime-maintenance.mjs";
 import { installMaintenanceFixture } from "./fixtures/maintenance-runtime.mjs";
+import * as committedPolicy from "./fixtures/maintenance-lease-renewal.mjs";
 
 const policy = {
   RENEWAL_POLICY: { attemptMs: 5000 }, createRenewalState: () => ({}),
@@ -101,3 +102,47 @@ test("observer never accepts changed binding or a late success after exhaustion"
   await assert.rejects(exhausted.admission(), { code: "process_ownership_unconfirmed" });
   await exhausted.close();
 });
+
+for (const action of ["heartbeat", "check-admission"]) {
+  for (const elapsed of [29999, 30000, 30001]) test(`first successful ${action} ACK at ${elapsed} cannot extend its uncertainty episode`, async t => {
+    let now = 0, grants = 0;
+    const calls = [];
+    t.mock.method(performance, "now", () => now);
+    const lease = observeRuntimeLease({ policy: committedPolicy, async call(observed) {
+      calls.push(observed);
+      if (observed === action) now = elapsed;
+      return receipt;
+    } }, { id: "observer", lease_token: "secret" });
+    t.after(() => lease.close());
+    const dispatch = async () => { await lease.admission(); grants++; };
+    if (elapsed < 30000) await dispatch();
+    else {
+      let failure;
+      await assert.rejects(dispatch(), error => { failure = error; return error.code === "process_ownership_unconfirmed"; });
+      await assert.rejects(dispatch(), error => error === failure);
+    }
+    assert.equal(grants, elapsed < 30000 ? 1 : 0);
+    assert.deepEqual(calls, action === "heartbeat" && elapsed >= 30000 ? ["heartbeat"] : ["heartbeat", "check-admission"]);
+  });
+
+  test(`expiry between final remaining-time check and real confirmation rejects ${action}`, async t => {
+    let now = 0, grants = 0;
+    const calls = [];
+    t.mock.method(performance, "now", () => now);
+    const confirmationPolicy = { ...committedPolicy, renewalConfirmed(state) {
+      if (now === 29999) now = 30000;
+      return committedPolicy.renewalConfirmed(state);
+    } };
+    const lease = observeRuntimeLease({ policy: confirmationPolicy, async call(observed) {
+      calls.push(observed);
+      if (observed === action) now = 29999;
+      return receipt;
+    } }, { id: "observer", lease_token: "secret" });
+    t.after(() => lease.close());
+    await assert.rejects((async () => { await lease.admission(); grants++; })(), error =>
+      error.code === "process_ownership_unconfirmed" && error.cause?.code === "process_maintenance_timeout");
+    assert.equal(now, 30000);
+    assert.equal(grants, 0);
+    assert.deepEqual(calls, action === "heartbeat" ? ["heartbeat"] : ["heartbeat", "check-admission"]);
+  });
+}

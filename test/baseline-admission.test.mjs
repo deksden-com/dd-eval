@@ -67,6 +67,7 @@ let record, result; const fault=${JSON.stringify(fault)}, budget=a.includes('--b
 if(action==='register') { record={id:value('id'),lease_token:'lease',kind:'eval-baseline',owner_id:value('owner'),operation_id:value('operation'),state:'starting',metadata_json:fault==='registration-malformed-reconciliation'?'{':JSON.stringify({dd_flow_home:fault==='registration-home'?'/foreign':process.env.DD_FLOW_HOME,role:fault==='registration-role'?'subject':'probe',owner_pid:Number(value('owner-pid')),budget:['registration-budget','registration-reconciliation-budget'].includes(fault)?{...budget,scope_id:'foreign'}:budget})};fs.writeFileSync(file,JSON.stringify(record));result=['registration-malformed-reconciliation','registration-reconciliation-budget'].includes(fault)?{ok:false,error:{code:'process_maintenance_timeout',message:'original register timeout'}}:{ok:fault!=='registration-false',process:{...record,...(fault==='registration-id'?{id:'foreign'}:{})}}; }
 else if(action==='status') result={processes:[JSON.parse(fs.readFileSync(file))]};
 else if(action==='confirm') { record=JSON.parse(fs.readFileSync(file));const metadata=JSON.parse(record.metadata_json);result={ok:fault!=='confirmation-false',process:{...record,metadata_json:JSON.stringify({...metadata,...(fault==='confirmation-home'?{dd_flow_home:'/foreign'}:fault==='confirmation-budget'?{budget:{...metadata.budget,scope_id:'foreign'}}:{})}),state:'running',pid:Number(value('pid')),lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64),...(fault==='confirmation-id'?{id:'foreign'}:fault==='confirmation-pid'?{pid:1}:fault==='confirmation-expiry'?{lease_expires_at:'invalid'}:{})}}; }
+else if(action==='heartbeat') result={ok:true,process_id:value('id'),lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)};
 else if(action==='check-admission') result=fault==='admission-missing'?{}:{ok:true,admitted:fault!=='admission-false',process_id:fault==='admission-id'?'foreign':value('id')};
 else if(action==='finish') result={ok:true};else throw Error('unexpected '+action);
 console.log(JSON.stringify(result));`);
@@ -77,7 +78,7 @@ console.log(JSON.stringify(result));`);
     assert.equal(receipt.status, "failed", fault);
     assert.ok(receipt.finished_at, fault);
     assert.equal(receipt.error.code, ["registration-malformed-reconciliation", "registration-reconciliation-budget"].includes(fault) ? "process_maintenance_timeout" : "process_maintenance_receipt_invalid", fault);
-    const expectedCalls = fault.startsWith("confirmation-") ? ["register", "confirm", "finish"] : fault.startsWith("admission-") ? ["register", "confirm", "check-admission", "finish"] : fault.includes("reconciliation") ? ["register", "status"] : ["register"];
+    const expectedCalls = fault.startsWith("confirmation-") ? ["register", "confirm", "finish"] : fault.startsWith("admission-") ? ["register", "confirm", "heartbeat", "check-admission", "finish"] : fault.includes("reconciliation") ? ["register", "status"] : ["register"];
     assert.deepEqual((await readFile(calls, "utf8")).trim().split("\n"), expectedCalls, fault);
   }
 });
@@ -175,4 +176,35 @@ test("baseline admission is pinned, records failure and rejects source mutations
     assert.equal(JSON.parse(await readFile(path.join(root, "evidence/receipt.json"))).status, "source_changed");
     await assert.rejects(runBaselineAdmission({ caseRoot: root, definition: { file: "policy.json", sha256: "0".repeat(64) }, projectRoot, outputRoot: root, checkpoint }), { code: "baseline_admission_definition_mismatch" });
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+for (const version of [1, 2]) test(`baseline custody@${version} uses one monitored grant before its command`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "baseline-custody-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const projectRoot = path.join(root, "project"), cli = path.join(root, "flow.mjs"), calls = path.join(root, "calls"), binding = path.join(root, "binding.json");
+  await mkdir(projectRoot);
+  await installMaintenanceFixture(root);
+  await commandText("git", ["init", "-q"], { cwd: projectRoot });
+  await commandText("git", ["-c", "user.name=test", "-c", "user.email=test@localhost", "commit", "--allow-empty", "-qm", "baseline"], { cwd: projectRoot });
+  const checkpoint = { sha256: "a".repeat(64), value: { id: "cp-test", source: { commit: await commandText("git", ["rev-parse", "HEAD"], { cwd: projectRoot }) } } };
+  const policy = { schema_id: `dd-eval/baseline-admission-policy@${version}`, commands: [{
+    id: "check", command: process.execPath, args: ["-e", `require('node:fs').appendFileSync(${JSON.stringify(calls)},'command\\n')`],
+    [version === 2 ? "inactivity_timeout_ms" : "timeout_ms"]: 10_000
+  }] };
+  const bytes = JSON.stringify(policy); await writeFile(path.join(root, "policy.json"), bytes);
+  await writeFile(cli, `import fs from 'node:fs';const a=process.argv.slice(2),action=a[2],v=n=>a[a.indexOf('--'+n)+1],file=${JSON.stringify(binding)},calls=${JSON.stringify(calls)};
+fs.appendFileSync(calls,action+'\\n');let r,result;
+if(action==='register')r={id:v('id'),lease_token:'lease',kind:'eval-baseline',owner_id:v('owner'),operation_id:v('operation'),state:'starting',metadata_json:JSON.stringify({dd_flow_home:process.env.DD_FLOW_HOME,role:'probe',owner_pid:Number(v('owner-pid')),budget:JSON.parse(v('budget-json'))})};else r=JSON.parse(fs.readFileSync(file));
+if(action==='confirm')Object.assign(r,{pid:Number(v('pid')),state:'running',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)});
+result={ok:true,process:r};
+if(action==='heartbeat')result={ok:true,process_id:r.id,lease_expires_at:r.lease_expires_at,registration_sha256:r.registration_sha256};
+if(action==='check-admission'){r.admissions=(r.admissions??0)+1;result={ok:true,admitted:r.admissions===1,process_id:r.id};}
+fs.writeFileSync(file,JSON.stringify(r));console.log(JSON.stringify(result));`);
+  const reference = await runBaselineAdmission({ caseRoot: root, definition: { file: "policy.json", sha256: createHash("sha256").update(bytes).digest("hex") }, projectRoot, outputRoot: path.join(root, "evidence"), checkpoint,
+    runtimeScope: { bin: cli, home: root, resourceHome: path.join(root, "resources"), budget: { schema_id: "dd-flow/runtime-budget@1", scope_id: "EVAL-custody", per_harness: {} }, operationId: "baseline-custody" } });
+  assert.equal(reference.status, "passed");
+  assert.deepEqual((await readFile(calls, "utf8")).trim().split("\n"), ["register", "confirm", "heartbeat", "check-admission", "command", "finish"]);
+  const receipt = JSON.parse(await readFile(reference.file, "utf8"));
+  assert.equal(receipt.schema_id, `dd-eval/baseline-admission@${version}`);
+  assert.equal(receipt.checks[0].timeout_kind, version === 2 ? "inactivity" : undefined);
 });
