@@ -62,7 +62,9 @@ const a=process.argv.slice(2),get=k=>a[a.indexOf(k)+1],c=JSON.parse(fs.readFileS
 fs.appendFileSync(c.calls,JSON.stringify({native:a,operation_id:id})+'\\n');
 const state=get('--state-dir'), session='judge-session'; let result={ready:true};
 const write=(name,value)=>{fs.mkdirSync(path.dirname(name),{recursive:true});fs.writeFileSync(name,JSON.stringify(value));};
+const unknown=['subject_liveness_timeout','operation_output_limit'].includes(c.fault);
 if(a[0]==='daemon' && a[1]==='start') write(state+'/daemon.json',{daemon_id:'fixture-daemon',pid:2147483647,config:{cwd:get('--cwd')},shutdown_state:'running',active_tree:false});
+if(a[0]==='daemon' && a[1]==='stop' && unknown && !a.includes('--cancel-tree')) {console.log(JSON.stringify({ok:false,error:{code:'tree_not_settled',message:'original Judge Turn remains unknown'}}));process.exit(0);}
 if(a[0]==='daemon' && a[1]==='stop') {const s=JSON.parse(fs.readFileSync(state+'/daemon.json'));write(state+'/daemon.json',{...s,shutdown_state:'clean',active_tree:false,shutdown:{schema_id:'dd-flow/daemon-shutdown@1',daemon_id:s.daemon_id,result:{clean:true},required_phases:['tree','provider_close','daemon_resource'],phases:{tree:true,provider_close:true,daemon_resource:true}}});result={stopped:true,clean:true,shutdown_contract:'dd-flow/daemon-shutdown@1'};const o=path.join(state,'operations',createHash('sha256').update(id).digest('hex'));write(o+'/requested.json',{operation_id:id,operation:'daemon.stop',daemon_id:s.daemon_id});write(o+'/result.json',{state:'completed',result});}
 if(a[0]==='session') {
  result={provider_session_id:session};
@@ -72,7 +74,13 @@ if(a[0]==='session') {
  }
  if(['create','prompt'].includes(a[1])) {
   const root=path.join(state,'operations',createHash('sha256').update(id).digest('hex'));
-  write(root+'/requested.json',{operation_id:id,operation:'session.'+a[1],session_id:session});write(root+'/result.json',{state:'completed',result});
+  write(root+'/requested.json',{operation_id:id,operation:'session.'+a[1],session_id:session});
+  if(a[1]==='prompt' && unknown) {
+   const client=path.join(state,'client-operations',createHash('sha256').update(id).digest('hex')+'.json'),saved=JSON.parse(fs.readFileSync(client));
+   write(client,{...saved,recovery_observation_clock:{policy:'operation-progress@1',timeout_ms:30000,started_at:Date.now(),cursor:0,observed_at:null,elapsed_ms:0,uncertainty_elapsed_ms:120000,gaps:1,observation_lost:true}});
+   console.log(JSON.stringify({ok:false,error:{code:c.fault,message:'offline observer loss'}}));process.exit(0);
+  }
+  write(root+'/result.json',{state:'completed',result});
   if(a[1]==='prompt' && c.fault==='lost-reply') {console.error(JSON.stringify({error:{code:'operation_observation_lost',message:'lost native reply'}}));process.exit(1);}
  }
 }
@@ -142,6 +150,22 @@ test('supplemental Judge reattaches to a confirmed native reply without a second
   const resumed = await f.invoke(); assert.equal(resumed.receipt.session_id, 'judge-session');
   const records = (await readFile(f.calls, 'utf8')).trim().split('\n').map(JSON.parse);
   for (const command of ['create', 'prompt']) assert.equal(records.filter(row => row.native?.[0] === 'session' && row.native[1] === command).length, 1);
+  assert.equal(snapshotTreeHash(f.root), before);
+});
+
+for (const code of ['subject_liveness_timeout', 'operation_output_limit']) test(`supplemental Judge ${code} cannot authorize Turn cancellation`, async t => {
+  const f = await runtimeFixture(t, code), before = snapshotTreeHash(f.root);
+  let primary;
+  await assert.rejects(f.invoke, error => { primary = error; return error.code === 'operation_observation_lost'; });
+  const records = (await readFile(f.calls, 'utf8')).trim().split('\n').map(JSON.parse);
+  const stops = records.filter(row => row.native?.[0] === 'daemon' && row.native[1] === 'stop');
+  assert.equal(stops.length, 1); assert.equal(stops[0].native.includes('--cancel-tree'), false);
+  assert.equal(primary.cleanup_error.code, 'tree_not_settled');
+  assert.equal(primary.details.observation_error.code, code);
+  for (const command of ['create', 'prompt']) assert.equal(records.filter(row => row.native?.[0] === 'session' && row.native[1] === command).length, 1);
+  const cleanup = JSON.parse(await readFile(path.join(f.input.outputRoot, 'cleanup.json')));
+  assert.equal(cleanup.status, 'failed');
+  await assert.rejects(readFile(path.join(f.input.outputRoot, 'result.json')), { code: 'ENOENT' });
   assert.equal(snapshotTreeHash(f.root), before);
 });
 
