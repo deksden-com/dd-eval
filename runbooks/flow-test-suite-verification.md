@@ -49,10 +49,20 @@ node scripts/verify-test-inventory.mjs "$REPORT_ROOT/native/discovery.json" "$RE
 
 The wrapper removes inherited `VITEST_MAX_WORKERS`, keeps verbose logs, JSON
 results, actual exit status and elapsed time. It rejects test filters/retries.
+Receipt elapsed time includes discovery; Vitest's own duration remains in JSON.
+Receipts must be outside the source checkout. The wrapper freezes source/build
+identity before discovery, then rejects any discovery or test mutation. The
+checker compares every receipt with the current source revision, source/dist
+hashes, build-info and runner selection; verifying historical reports requires
+their exact frozen checkout/build, not a newer checkout with the same test names.
 `DD_FLOW_TEST_REPORT_DIR` activates built-in Node TAP destinations for all
 nested native fixtures, avoiding an unbounded stdout buffer. Report-write or
 collection failures fail acceptance. JSON `success` alone is insufficient:
 Vitest can report it while also returning nonzero for unhandled errors.
+The native event reporter additionally rejects empty fixtures, TODO and
+unexpected nested skips after native teardown finishes. Only the exact existing
+Windows-specific skip identities in that reporter are permitted; outer Vitest
+PASS cannot hide missing native assertions.
 
 Full acceptance forbids `.only`, changed/file/name filters, retries, bail,
 snapshot updates, `passWithNoTests` and ignored unhandled errors. Missing
@@ -116,6 +126,9 @@ Policy-only timeout assertions can use instance-local ObservationClock inputs
 after real admission closure and physical child settlement. Never use global
 fake time or synthetic progress as lease authority or absence proof. Real
 signal, native lifecycle, ownership and physical joins keep their real clocks.
+Test framework cleanup guards must cover the sum of sequential handoff and
+physical-drain envelopes, including clock-gap recovery; a framework timeout
+must not cut off the inner cleanup proof. Failed handoff retains the root.
 
 ## CI shards and failures
 
@@ -125,7 +138,10 @@ and exit code through the chosen artifact/cache transport even on failure.
 Candidate acceptance compares their actual union against fresh unsharded
 discovery: every file exactly once, no foreign project, no empty or partial
 report. `vitest list --filesOnly --shard` does not prove a partition. Preserve
-the fixed release required-suite set and the separate native job. Actual GitHub
+the source/build provenance of the four distinct shard identities. Before
+accepting, the candidate job restores the same immutable dist and verifies both
+integration and native receipts against it, through the selected transport.
+Keep the fixed release required-suite set and the separate native job. Actual GitHub
 execution is reported separately from local workflow contract checks.
 
 On failure let the suite finish its remaining cases and owned teardown. Do not

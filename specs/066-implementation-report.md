@@ -185,3 +185,65 @@ Ponytail review retained installed Vitest and Node standard library, with no
 new dependency or scheduler. No live E2E, release, global hook installation or
 runtime policy change was performed. Runtime observations outside test-fixture
 ownership are recorded above, not claimed fixed by this test-only work.
+
+## Implementation review
+
+The review checked plan items P01–P08, exact transferred case bodies, cleanup
+authority, actual Node reporter behavior and candidate acceptance paths. Seven
+full-cycle bodies match the baseline byte-for-byte; fast cases and runtime
+source remain unchanged. Two workers remain rejected, not silently promoted.
+
+Three substantive defects were corrected in FLOW `04cfea8`:
+
+1. The shard checker read discovery/results/exit only. A complete report from
+   another candidate could authorize the current candidate. A shared stdlib
+   identity helper now binds revision, source/dist hashes, build-info and
+   Node/platform to the current frozen checkout/build. Command selector,
+   distinct shard identities, options and unsignalled completion are mandatory.
+   The wrapper freezes before discovery, retains failure on discovery mutation,
+   and rejects report roots inside source before writing. CI restores candidate
+   dist and verifies both integration and native receipts before acceptance.
+2. Native child exit zero and nonempty TAP did not reject nested skips/TODO.
+   Node also represents an empty file as one passed placeholder. A reporter
+   using standard Node events and TAP rejects missing/partial/empty evidence,
+   cancellation, TODO and unexpected skips after native teardown completes.
+   Only six exact existing Windows-specific skips are permitted.
+3. The stage cleanup hook allowed one readiness envelope for two sequential
+   phases: fatal handoff followed by physical drain. Its guard now composes
+   two existing envelopes, including observation-gap recovery. Inner phase and
+   production budgets remain unchanged. Unproved handoff retains diagnostics
+   and does not kill a creator inside the unsafe intent-to-launch gap.
+
+Focused regressions, typecheck, lint and workflow semantic contracts PASS.
+A real disposable discovery-mutation check returns failure before launching
+tests. Historical candidate receipts reject against changed source and remain
+untouched. Real Node pass/skip/TODO/empty cases exercise reporter behavior;
+Windows exception identities are checked without claiming a Windows execution.
+
+Review acceptance reports:
+`/Users/deksden/Documents/_Projects/_worktrees/dd-plan066-review.DYAimc`.
+Final review source: `04cfea823f38c677e9de02b82b675a0957ec0bd2`, clean tree.
+Typecheck, lint and strict canon build PASS, then the complete default serial
+chain and all three receipt checks PASS:
+
+- Release: 2/2 Node + 8/8 Vitest, zero skips.
+- Integration: 128 files / 2211/2211, zero skips, Vitest duration 1982.32 s.
+- Runtime-sensitive: 2 files / 43/43, zero skips, Vitest duration 129.31 s.
+- Nested native: 18 retained TAP reports / 241/241 cases, zero skip/TODO/failure.
+- All three receipts have the same source/build tuple; runner exits are zero.
+- Source SHA256: `0a6a40b7735d44cd665b832a1ff52956eaa6c486252ce46f8702280f4f88b216`.
+- Dist SHA256: `4c90c656de0442720fe37d72ba1343bd4e8f2e972d376e3b300389ace0eb3167`.
+- Canon remains clean at `2e57b987ec91b7c3b0fa97f6169047802a1233fb`.
+
+The exact integration case multiset loses none of the previous 2209 identities;
+the only additions are cleanup-envelope and receipt-provenance regressions.
+Native adds its reporter regression without dropping any of the 241 underlying
+cases. No matching task-owned suite/runner remains after acceptance.
+
+These timings are an acceptance receipt on an externally loaded machine, not a
+controlled performance comparison. Two-worker promotion remains rejected.
+GitHub execution, a new four-shard run and paired EVAL rerun were not performed
+in this review: partition/group membership, runtime source and EVAL code did
+not change. The four-receipt contracts and workflow semantics were rechecked;
+the earlier actual shard and paired-EVAL results remain historical evidence for
+their stated tuples, not acceptance of changed source. No new E2E or release.
