@@ -1,9 +1,10 @@
 # 065 — Продвижение операций и скользящие окна неактивности
 
-Дата: 2026-10-04. Статус: **план; реализация и live acceptance не выполнены**.
-Readiness после аудита и повторной проверки: **готов к реализации на указанных
-revisions**; контрактные решения и обязательные gates уточнены в §11.
-Это не receipt успешной реализации/живой приёмки.
+Дата плана: 2026-10-04. Реализация завершена: 2026-10-05.
+Статус: **T01–T33 реализованы; offline G1–G5 PASS; live acceptance NOT RUN**.
+Исторические readiness/audit решения сохранены ниже, итог реализации — §12 и
+[implementation report](065-implementation-report.md). Это не receipt живой
+qualification или полного provider E2E.
 
 Исходные revisions: dd-flow `776112522e59fab5c977d43b0c0c1cd5b54940eb`,
 ветка `fix/064-managed-lease-renewal`, beta.125; dd-eval
@@ -707,3 +708,60 @@ classifiers и принятие clock numeric-string/overflow duration. Source r
 подтвердил exclusive failed write и разные output capture ограничения.
 Plan structure: T01–T33 unique; whitespace check без findings. Полные suites,
 будущие regression cases и paid live acceptance здесь не запускались.
+
+## 12. Реализация и offline приёмка — 2026-10-05
+
+W1–W5/T01–T33 закрыты shared fixes, runnable regressions и normal full suites.
+Frozen code acceptance tuple: FLOW
+`855576800c5b08bfd2135ad62459c234543c0558`, EVAL
+`01f76509114208bdc98367950efc1036a984658c`, canon
+`2e57b987ec91b7c3b0fa97f6169047802a1233fb`.
+Third-round evidence:
+`/Users/deksden/Documents/_Projects/_worktrees/dd-plan065-round3.aJpW4t`.
+Все десять gates PASS, verifier exit0 и owned children закрыты до обновления
+документации. Canon не менялся. Итоговая docs-only revision не подменяет
+протестированный code tuple; новый EVAL definition требует fresh qualification.
+
+Результаты: typecheck/lint/strict build PASS; release 10/10 PASS;
+runtime-sensitive 42/42 PASS; integration 2203/2203 PASS; EVAL 542/542 PASS,
+0 skipped. Local pack/real installed checks PASS:61 runtime files совпадают
+с source, шесть entrypoints и три progress/error/wait contracts проверены;
+18 installed late-ACK/queue checks PASS. Provider calls0. Старые failed/
+interrupted rounds не выданы за эту приёмку; receipts и причины описаны в отчёте.
+
+Дополнительно исправлено по результатам реализации/full-suite ревью:
+
+- Первый успешный authority ACK и late confirmation теперь ограничены исходным
+  uncertainty episode; будущий lease expiry не даёт новый grant. Baseline обеих
+  policy versions использует один monitored admission, renewal closing/drain.
+- Maintenance проверяет actual executing engine, а не installed inventory;
+  native shell AST загружается только для shell parse. Snapshot integrity и
+  routing validation сохранены; все 5-секундные failures не приписаны loader.
+- Pending process intent не считается physical stop authority. Confirmation
+  требует fresh target/owner legacy+UTC identity до write. Точный typed pre-write
+  no-effect отказ допускает retry с прежним ID/token; ambiguous COMMIT, stored
+  incomplete running identity и ownership/cleanup fences не replay.
+- EVAL observer registration и direct baseline confirmation включены в эту
+  selected policy. Late ACK/budget exhaustion не обходятся через status adoption;
+  command не запускается без confirmed ownership.
+- Early maintenance queue timer проверяет исходный monotonic deadline и rearm
+  только остаток окна; invalid budget возвращает no-effect и bounded diagnostics
+  через общий handler, сохраняя predecessor physical-flight fence.
+- Unknown Judge observation сохраняет original native fence во всех Judge
+  cleanup paths. Typed primary остаётся после diagnostic-tail eviction; env
+  tombstones доходят до subprocess. Dead control-owner blocker не маскирует
+  fresh owner и публикуется только по exact death/CAS.
+- Fixture cleanup сохраняет неизвестный custody, drain/join выполняется для
+  всех owned children. Orphan regression использует реального живого launcher
+  до confirmation. Module-mocked EVAL helper вынесен из Node auto-discovery;
+  обычный regression wrapper по-прежнему выполняет все три outcome cases.
+
+Отдельная разрешённая задача: установленный Codex hook восстановлен в обоих
+homes (`~/.codex`, `~/.codex-cpa`); PATH/default store и symlink проверены,
+runbook обновлён. Установленная beta.124 не заменялась candidate beta.125.
+
+Ponytail full: reuse existing clocks, journals, retry policy и ownership guards;
+без нового scheduler/retry framework/dependencies. Lease/native/cleanup/SLA
+constraints не ослаблены. Product, historical EVALs и frozen native artifacts
+не исправлялись. Новые E2E/paid qualification не запускались: задача остановлена
+на завершённой реализации, коммитах и push, как запрошено.
