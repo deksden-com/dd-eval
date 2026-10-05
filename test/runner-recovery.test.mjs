@@ -136,8 +136,17 @@ test("terminal cleanup receipt rejects unsettled or foreign-scope cancelled nati
 });
 
 test("cleanup RPC is bounded while productive calls do not inherit its timeout", async () => {
-  const budget = recoveryObservationBudget({ recovery_observation: { remaining_ms: 30 } });
+  const budget = recoveryObservationBudget({ recovery_observation: { remaining_ms: 30 } }, () => 0);
   await assert.rejects(withRecoveryObservation(budget, () => commandJson(process.execPath, ["-e", "setTimeout(()=>{}, 10000)", "--"])), { name: "AbortError" });
+  let now = 0;
+  const expired = recoveryObservationBudget({ recovery_observation: { remaining_ms: 30 } }, () => now);
+  now = 30;
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-expired-rpc-"));
+  try {
+    const marker = path.join(root, "late-dispatch");
+    await assert.rejects(withRecoveryObservation(expired, () => commandJson(process.execPath, ["-e", `require('node:fs').writeFileSync(${JSON.stringify(marker)},'dispatched')`, "--"])), { code: "recovery_observation_budget_exhausted" });
+    await assert.rejects(readFile(marker), { code: "ENOENT" });
+  } finally { await rm(root, { recursive: true, force: true }); }
   assert.deepEqual(await commandJson(process.execPath, ["-e", "console.log('{}')", "--"]), {});
   const backoff = recoveryObservationBudget(null);
   assert.deepEqual([backoff.nextDelay(),backoff.nextDelay(),backoff.nextDelay(),backoff.nextDelay()], [1000,2000,5000,10000]);

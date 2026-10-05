@@ -7,6 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { commandJson, commandText } from "../lib/process-json.mjs";
 import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
+import { errorRecord } from "../lib/operation-errors.mjs";
 
 test("eval client drives two real CLI lifecycle stages and retains controller-owned captures", { skip: !process.env.DD_EVAL_TEST_FLOW_CLI || !process.env.DD_EVAL_TEST_FLOW_ADAPTER, timeout: 120_000 }, async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-managed-flow-"));
@@ -14,7 +15,7 @@ test("eval client drives two real CLI lifecycle stages and retains controller-ow
   const env = { DD_FLOW_HOME: home, DD_FLOW_RESOURCE_HOME: home, DD_FLOW_ENGINE_MODE: "1", CODEX_HOME: path.join(root, "codex-home"), DD_FLOW_TEST_ROOT: root, DD_FLOW_TEST_UNCLEAN_STOP: "0", DD_FLOW_TEST_CAPTURE_FAILURE: "0" };
   const hash = value => createHash("sha256").update(value).digest("hex");
   const write = async (relative, value) => { const file = path.join(root, relative); await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === "string" ? value : JSON.stringify(value)); return file; };
-  let runId, settled = false;
+  let runId, settled = false, primary;
   try {
     for (const name of ["index", "spec/engineering/index", "epics/index", "epics/EP-001-tasks/index", "protocol/index"]) await write(`project/.memory-bank/${name}.md`, "# Fixture\n");
     await write("project/.memory-bank/dd-flow/project-workspace.json", { schema_id: "dd-flow/project-workspace@1", workspace: { route: "integration_branch_direct", integration_branch: "main", feature_branch_template: null, provision_stage: "protocolize_start" } });
@@ -74,12 +75,26 @@ test("eval client drives two real CLI lifecycle stages and retains controller-ow
     assert.equal(repeated.controller.controller_id, controllerId);
     assert.deepEqual(repeated.controller.sessions, result.controller.sessions);
     assert.deepEqual(repeated.boundary, result.boundary);
-  } finally {
-    if (runId && !settled) {
-      const receipt = await commandJson(cli, ["run", "control", "stop", "--run", runId, "--project-root", project, "--request-id", "test-cleanup", "--force", "--wait-ms", "10000"], { cwd: project, env });
-      settled = receipt.settled === true;
+  } catch (error) { primary = error; error.retained_root = root; throw error; }
+  finally {
+    try {
+      if (runId && !settled) {
+        const receipt = await commandJson(cli, ["run", "control", "stop", "--run", runId, "--project-root", project, "--request-id", "test-cleanup", "--force", "--wait-ms", "10000"], { cwd: project, env });
+        settled = receipt.settled === true;
+      }
+      let ownerUnknown = false;
+      for (let cause of [primary && errorRecord(primary), primary?.actual instanceof Error ? errorRecord(primary.actual) : null]) {
+        for (let depth = 0; cause && depth < 4; depth++) {
+          ownerUnknown ||= Boolean(cause.cleanup_error || cause.details?.cleanup_unconfirmed);
+          cause = cause.cause ?? cause.details?.cause;
+        }
+      }
+      if ((!runId || settled) && !ownerUnknown) await rm(root, { recursive: true, force: true });
+      else throw new Error(`Owned fixture did not settle; retained ${root}`);
+    } catch (error) {
+      error.retained_root = root;
+      if (primary) primary.cleanup_error = error;
+      else throw error;
     }
-    if (!runId || settled) await rm(root, { recursive: true, force: true });
-    else throw new Error(`Owned fixture did not settle; retained ${root}`);
   }
 });
