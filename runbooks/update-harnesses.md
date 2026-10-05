@@ -84,12 +84,30 @@ artifacts rather than copying a version from prose documentation.
 When the candidate engine is published, refresh the installed Codex hook
 runtime before qualification. Update both Codex homes (`~/.codex` and
 `~/.codex-cpa`); `cx` must continue to select `CODEX_HOME=~/.codex-cpa`.
-The active hook command must call the absolute installed binary
+Resolve each `hooks.json` to its real target first: the two homes may share it
+by symlink. Preserve that topology, unrelated handlers and the explicit
+`DD_FLOW_BIN` selection. The fallback must call the absolute installed binary
 `/Users/deksden/Library/pnpm/dd-flow`, not an older copied `dist/cli.js` or a
-PATH-dependent command. Verify the binary version and hook target in both
-homes, then run one normal dd-flow command to complete the hook-store migration
-before starting a native Codex session. Do not replace an engine or hook under
-an active EVAL home; candidate EVAL homes must use their own published engine.
+PATH-dependent command. Export the interpreter PATH before both pinned and
+fallback branches: an absolute pnpm shim still needs `node` on PATH. A missing
+explicit pin must fail, never silently switch engines.
+
+Verify the installed version, generated hook bytes and selected runtime in both
+homes. Prepare the default store explicitly outside provider callbacks after an
+upgrade; PreToolUse is check-only and must not migrate it. Retain a SQLite-aware
+backup (including committed WAL data) and follow the store writer/drain contract.
+For this workstation, use the installed CLI with a clean environment:
+
+```sh
+/usr/bin/env -i HOME=/Users/deksden PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin DD_FLOW_HOME=/Users/deksden/.dd-flow /Users/deksden/Library/pnpm/dd-flow codex hook handle --event SessionStart --json </dev/null
+```
+
+Expected: exit 0 and `{}` without provider RPC or lifecycle receipt. This is an
+explicit preparation command, not an automatic SessionStart migration hook.
+Verify both configured hook commands with harmless nonparticipating payloads
+under `PATH=/usr/bin:/bin`, plus missing-pin failure. Source changes do not update
+the installed package or existing hook configuration. Do not replace an engine
+or hook under an active EVAL home; candidate homes use their published engine.
 
 For CPA campaigns set `CODEX_HOME=/Users/deksden/.codex-cpa` on the runner's
 qualification and launch commands as well. A technical capacity probe copies
