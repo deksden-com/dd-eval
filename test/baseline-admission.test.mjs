@@ -59,7 +59,7 @@ test("baseline rejects unbound registration, confirmation and admission before e
   const bytes = JSON.stringify({ schema_id: "dd-eval/baseline-admission-policy@1", commands: [{ id: "check", command: process.execPath, args: ["-e", `require('node:fs').writeFileSync(${JSON.stringify(marker)},'executed')`], timeout_ms: 1000 }] });
   await writeFile(path.join(root, "policy.json"), bytes);
   const definition = { file: "policy.json", sha256: createHash("sha256").update(bytes).digest("hex") };
-  for (const fault of ["registration-id", "registration-false", "registration-home", "registration-role", "registration-budget", "registration-malformed-reconciliation", "registration-reconciliation-budget", "confirmation-id", "confirmation-false", "confirmation-pid", "confirmation-expiry", "confirmation-home", "confirmation-budget", "admission-missing", "admission-false", "admission-id"]) {
+  for (const fault of ["registration-id", "registration-false", "registration-home", "registration-role", "registration-budget", "registration-malformed-reconciliation", "registration-reconciliation-budget", "registration-ownership-budget", "confirmation-ownership-budget", "confirmation-id", "confirmation-false", "confirmation-pid", "confirmation-expiry", "confirmation-home", "confirmation-budget", "admission-missing", "admission-false", "admission-id"]) {
     await writeFile(calls, "");
     await writeFile(cli, `import fs from 'node:fs'; const a=process.argv.slice(2), action=a[2], value=name=>a[a.indexOf('--'+name)+1], file=${JSON.stringify(path.join(root, "process.json"))};
 fs.appendFileSync(${JSON.stringify(calls)},action+'\\n');
@@ -69,15 +69,16 @@ else if(action==='status') result={processes:[JSON.parse(fs.readFileSync(file))]
 else if(action==='confirm') { record=JSON.parse(fs.readFileSync(file));const metadata=JSON.parse(record.metadata_json);result={ok:fault!=='confirmation-false',process:{...record,metadata_json:JSON.stringify({...metadata,...(fault==='confirmation-home'?{dd_flow_home:'/foreign'}:fault==='confirmation-budget'?{budget:{...metadata.budget,scope_id:'foreign'}}:{})}),state:'running',pid:Number(value('pid')),lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64),...(fault==='confirmation-id'?{id:'foreign'}:fault==='confirmation-pid'?{pid:1}:fault==='confirmation-expiry'?{lease_expires_at:'invalid'}:{})}}; }
 else if(action==='heartbeat') result={ok:true,process_id:value('id'),lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)};
 else if(action==='check-admission') result=fault==='admission-missing'?{}:{ok:true,admitted:fault!=='admission-false',process_id:fault==='admission-id'?'foreign':value('id')};
-else if(action==='finish') result={ok:true};else throw Error('unexpected '+action);
+else if(action==='finish') { if(fault==='confirmation-ownership-budget'){ const retained=JSON.parse(fs.readFileSync(file));try { process.kill(retained.pid,0);throw Error('owned baseline gate must exit before finish'); } catch(error) { if(error.code!=='ESRCH')throw error; }}result={ok:true}; }else throw Error('unexpected '+action);
+if(fault==='registration-ownership-budget'&&action==='register'||fault==='confirmation-ownership-budget'&&action==='confirm') { if(action==='confirm')fs.writeFileSync(file,JSON.stringify({...record,pid:Number(value('pid'))}));result={ok:false,error:{code:'process_ownership_unconfirmed',message:'ownership episode exhausted after late ACK'}}; }
 console.log(JSON.stringify(result));`);
     await assert.rejects(runBaselineAdmission({ caseRoot: root, definition, projectRoot, outputRoot: path.join(root, "evidence"), checkpoint,
-      runtimeScope: { bin: cli, home: root, resourceHome: path.join(root, "resources"), budget: { schema_id: "dd-flow/runtime-budget@1", scope_id: "EVAL-baseline", per_harness: {} }, operationId: `baseline-${fault}` } }), { code: ["registration-malformed-reconciliation", "registration-reconciliation-budget"].includes(fault) ? "process_maintenance_timeout" : "process_maintenance_receipt_invalid" }, fault);
+      runtimeScope: { bin: cli, home: root, resourceHome: path.join(root, "resources"), budget: { schema_id: "dd-flow/runtime-budget@1", scope_id: "EVAL-baseline", per_harness: {} }, operationId: `baseline-${fault}` } }), { code: fault.endsWith("ownership-budget") ? "process_ownership_unconfirmed" : ["registration-malformed-reconciliation", "registration-reconciliation-budget"].includes(fault) ? "process_maintenance_timeout" : "process_maintenance_receipt_invalid" }, fault);
     await assert.rejects(readFile(marker), { code: "ENOENT" }, fault);
     const receipt = JSON.parse(await readFile(path.join(root, "evidence/receipt.json")));
     assert.equal(receipt.status, "failed", fault);
     assert.ok(receipt.finished_at, fault);
-    assert.equal(receipt.error.code, ["registration-malformed-reconciliation", "registration-reconciliation-budget"].includes(fault) ? "process_maintenance_timeout" : "process_maintenance_receipt_invalid", fault);
+    assert.equal(receipt.error.code, fault.endsWith("ownership-budget") ? "process_ownership_unconfirmed" : ["registration-malformed-reconciliation", "registration-reconciliation-budget"].includes(fault) ? "process_maintenance_timeout" : "process_maintenance_receipt_invalid", fault);
     const expectedCalls = fault.startsWith("confirmation-") ? ["register", "confirm", "finish"] : fault.startsWith("admission-") ? ["register", "confirm", "heartbeat", "check-admission", "finish"] : fault.includes("reconciliation") ? ["register", "status"] : ["register"];
     assert.deepEqual((await readFile(calls, "utf8")).trim().split("\n"), expectedCalls, fault);
   }

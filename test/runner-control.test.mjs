@@ -546,7 +546,7 @@ test('background resume admission respects the caller deadline without a late qu
   await assert.rejects(readFile(file), { code: 'ENOENT' });
 });
 
-test('background observer does not adopt a committed registration while its maintenance child cleanup is unconfirmed', { timeout: 30_000 }, async t => {
+for (const outcome of ['cleanup-unconfirmed', 'ownership-budget-exhausted']) test(`background observer does not adopt a committed registration after ${outcome}`, { timeout: 30_000 }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-worker-unsettled-register-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const runId = 'EVAL-unsettled-register', cli = path.join(root, 'flow.mjs'), calls = path.join(root, 'calls');
@@ -557,8 +557,8 @@ test('background observer does not adopt a committed registration while its main
 fs.appendFileSync(${JSON.stringify(calls)},args.slice(0,3).join(' ')+'\\n');let result;
 if(args[1]==='scope'&&args[2]==='status') result=${JSON.stringify(status)};
 else if(args[1]==='process'&&args[2]==='register') {
-  const pid=Number(value('pid')), record={id:'observer',lease_token:'owned',kind:'eval-observer',owner_id:value('owner'),operation_id:value('operation'),state:'running',pid,pid_started_at:execFileSync('ps',['-o','lstart=','-p',String(pid)],{encoding:'utf8'}).trim(),metadata_json:JSON.stringify({role:'observer',dd_flow_home:process.env.DD_FLOW_HOME,process_group_id:pid,budget:JSON.parse(value('budget-json'))})};
-  fs.writeFileSync(file,JSON.stringify(record));result={ok:false,error:{code:'process_maintenance_timeout',message:'registration committed but maintenance child has no exit proof',details:{cleanup_unconfirmed:true}}};
+  const pid=Number(value('pid')), record={id:value('id'),lease_token:'owned',kind:'eval-observer',owner_id:value('owner'),operation_id:value('operation'),state:'running',pid,pid_started_at:execFileSync('ps',['-o','lstart=','-p',String(pid)],{encoding:'utf8'}).trim(),metadata_json:JSON.stringify({role:'observer',dd_flow_home:process.env.DD_FLOW_HOME,process_group_id:pid,budget:JSON.parse(value('budget-json'))})};
+  fs.writeFileSync(file,JSON.stringify(record));result=${JSON.stringify({ ok: false, error: outcome === 'cleanup-unconfirmed' ? { code: 'process_maintenance_timeout', message: 'registration committed but maintenance child has no exit proof', details: { cleanup_unconfirmed: true } } : { code: 'process_ownership_unconfirmed', message: 'late committed registration cannot extend ownership episode' } })};
 } else if(args[1]==='process'&&args[2]==='status') result={processes:[JSON.parse(fs.readFileSync(file))]};
 else if(args[1]==='process'&&args[2]==='heartbeat') result={ok:true,process_id:'observer',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)};
 else if(args[1]==='process'&&args[2]==='check-admission') result={ok:true,admitted:true,process_id:'observer'};
@@ -576,8 +576,9 @@ console.log(JSON.stringify(result));`);
   }
   while ((await processSnapshot()).some(item => item.pid === saved.owner_pid)) { assert.ok(performance.now() < deadline); await delay(25); }
   assert.equal(saved.status, 'recovery_blocked');
-  assert.equal(saved.error.code, 'process_maintenance_timeout');
-  assert.equal(saved.error.details.cleanup_unconfirmed, true);
+  assert.equal(saved.error.code, outcome === 'cleanup-unconfirmed' ? 'process_maintenance_timeout' : 'process_ownership_unconfirmed');
+  if (outcome === 'cleanup-unconfirmed') assert.equal(saved.error.details.cleanup_unconfirmed, true);
+  assert.match(JSON.parse(await readFile(path.join(root, 'registration.json'), 'utf8')).id, /^PROC-[a-f0-9-]+$/);
   assert.deepEqual((await readFile(calls, 'utf8')).trim().split('\n').filter(line => line.startsWith('runtime process')), ['runtime process register']);
 });
 

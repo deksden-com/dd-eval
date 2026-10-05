@@ -146,3 +146,111 @@ for (const action of ["heartbeat", "check-admission"]) {
     assert.deepEqual(calls, action === "heartbeat" ? ["heartbeat"] : ["heartbeat", "check-admission"]);
   });
 }
+
+async function selectedClient(t, request) {
+  const root = await mkdtemp(path.join(os.tmpdir(), "maintenance-identity-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await installMaintenanceFixture(root);
+  await writeFile(path.join(root, "flow.mjs"), "// selected test runtime\n");
+  await writeFile(path.join(root, "harness-runtime", "lib", "managed-daemon.mjs"), "export const runtimeProcess = (config, action, options, transport) => config.request(action, options, transport);\n");
+  return runtimeMaintenance({ ddFlowHome: root, ddFlowBin: path.join(root, "flow.mjs"), request });
+}
+const identityRefusal = (id, phase) => Object.assign(new Error("physical identity unavailable before write"), {
+  code: "process_ownership_unknown", details: { process_id: id, reason: "physical_identity_unavailable", phase, effect: "no_effect", native_dispatch_started: false }
+});
+
+for (const [action, phase, options] of [
+  ["register", "observer_registration", { id: "observer", kind: "eval-observer", pid: "123", "process-group-id": "123", operation: "retained-operation" }],
+  ["confirm", "process_confirmation", { id: "baseline", "lease-token": "retained", pid: "456", "process-group-id": "456" }]
+]) {
+  test(`selected ${action} retries only the exact pre-write identity refusal with unchanged options`, async t => {
+    const calls = [];
+    const client = await selectedClient(t, async (observed, actual, transport) => {
+      calls.push({ observed, actual, transport });
+      if (calls.length === 1) throw identityRefusal(options.id, phase);
+      return { ok: true, process: { id: options.id } };
+    });
+    assert.deepEqual(await client.call(action, options), { ok: true, process: { id: options.id } });
+    assert.equal(calls.length, 2);
+    for (const call of calls) { assert.equal(call.observed, action); assert.equal(call.actual, options); assert.equal(call.transport.timeoutMs, 5000); }
+  });
+
+  for (const retried of [false, true]) for (const elapsed of [29999, 30000, 30001]) test(`${action} ${retried ? "retried" : "first"} ACK at ${elapsed} cannot reopen its ownership episode`, async t => {
+    let now = 0, calls = 0;
+    t.mock.method(performance, "now", () => now);
+    const client = await selectedClient(t, async () => {
+      calls++;
+      if (retried && calls === 1) throw identityRefusal(options.id, phase);
+      now = elapsed;
+      return { ok: true, process: { id: options.id } };
+    });
+    if (elapsed < 30000) await client.call(action, options);
+    else await assert.rejects(client.call(action, options), error => {
+      assert.equal(error.code, "process_ownership_unconfirmed");
+      assert.deepEqual(error.details, { action, process_id: options.id, phase, effect: "committed", native_dispatch_started: false });
+      assert.ok(!JSON.stringify(error).includes("lease-token"));
+      assert.ok(!JSON.stringify(error).includes('"retained"'));
+      return true;
+    });
+    assert.equal(calls, retried ? 2 : 1);
+  });
+
+  test(`${action} refuses unsafe, unknown, foreign and fenced errors without replay`, async t => {
+    let failure, calls = 0;
+    const client = await selectedClient(t, async () => { calls++; throw failure; });
+    const refusals = [
+      Object.assign(new Error("unknown ACK"), { code: "process_maintenance_timeout", details: { effect: "unknown" } }),
+      Object.assign(new Error("busy"), { code: "SQLITE_BUSY" }),
+      ...[
+        { process_id: "foreign" }, { phase: "unrelated" }, { reason: "other" }, { effect: "committed" },
+        { native_dispatch_started: true }, { cleanup_unconfirmed: true }
+      ].map(change => { const error = identityRefusal(options.id, phase); Object.assign(error.details, change); return error; }),
+      ...["process_lease_lost", "controller_lease_lost", "process_maintenance_receipt_invalid", "runtime_owner_mismatch"].map(code => Object.assign(identityRefusal(options.id, phase), { cause: Object.assign(new Error("fenced"), { code }) }))
+    ];
+    for (const refusal of refusals) {
+      failure = refusal;
+      const before = calls;
+      await assert.rejects(client.call(action, options), error => error === failure);
+      assert.equal(calls, before + 1);
+    }
+    for (const unsafeOptions of [
+      { ...options, id: undefined },
+      action === "register" ? { ...options, kind: "eval-baseline" } : { ...options, "lease-token": undefined }
+    ]) {
+      failure = identityRefusal(options.id, phase);
+      const before = calls;
+      await assert.rejects(client.call(action, unsafeOptions), error => error === failure);
+      assert.equal(calls, before + 1);
+    }
+  });
+
+  test(`${action} late missing or rejected ACK records unknown effect, never committed`, async t => {
+    let now = 0, acknowledgement;
+    t.mock.method(performance, "now", () => now);
+    const client = await selectedClient(t, async () => { now = 30000; return acknowledgement; });
+    for (const invalid of [null, { ok: false }, { ok: "true" }]) {
+      now = 0; acknowledgement = invalid;
+      await assert.rejects(client.call(action, options), error => {
+        assert.equal(error.code, "process_ownership_unconfirmed");
+        assert.deepEqual(error.details, { action, process_id: options.id, phase, effect: "unknown", native_dispatch_started: false });
+        return true;
+      });
+    }
+  });
+
+  test(`${action} retry exhaustion keeps the original typed refusal and respects a shorter transport bound`, async t => {
+    let now = 0, calls = 0;
+    t.mock.method(performance, "now", () => now);
+    const failure = identityRefusal(options.id, phase);
+    const client = await selectedClient(t, async (_action, _options, transport) => {
+      calls++; assert.equal(transport.timeoutMs, 1000);
+      now = 30000; throw failure;
+    });
+    await assert.rejects(client.call(action, options, { timeoutMs: 1000 }), error => {
+      assert.equal(error.code, "process_ownership_unconfirmed"); assert.equal(error.cause, failure);
+      assert.deepEqual(error.details, { action, process_id: options.id, phase, effect: "no_effect", native_dispatch_started: false });
+      return true;
+    });
+    assert.equal(calls, 1);
+  });
+}
