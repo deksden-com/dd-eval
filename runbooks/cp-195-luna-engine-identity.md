@@ -57,9 +57,43 @@ qualification. Candidate acceptance is not scored E2E success.
 - Standard profile `cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-luna-xhigh.json`;
   fresh Session per Stage, server MERGE as declared by the pinned flow pack.
 
-After clean committed definition checks, run one fresh 18-item qualification,
+After clean committed definition checks, run one fresh exact-corpus qualification,
 the reference-pair smoke, light preflight and one scored E2E with the same tuple.
 Stop on a conclusive blocker; never resume/repair old evidence or retry semantic
 rejection until PASS. Preflight baseline `not_run` is not PASS. Report startup
 only after this execution's baseline PASS, native Session and actual SPECIFY
 controller/timeline evidence. No implicit heartbeat or global CLI switch.
+
+## Actual launch preparation outcome
+
+The new committed definition `6f26d0c` passed the complete paired EVAL suite:
+542/542, zero fail/cancel/skip/todo. Non-generative installed Codex doctor confirmed
+0.160.0 and `dd-codex-harness@1` through `cx`; the existing project PostgreSQL
+service accepted connections. Preserve the user PATH (including `.local/bin`)
+for `cx`; an artificially reduced PATH produced a retained preparation error,
+not an auth failure. Existing Codex homes/hooks were not changed.
+
+The hash-pinned corpus actually has **17** items; the historical runbooks' "18"
+count is stale. The ordinary runner consumes every declared item dynamically;
+no item was removed or added and no expected classification was changed.
+
+Fresh qualification key
+`9ba40a03b0d5bb4770d80d3fcc5c7b1ee439c03548cc148b58da5169b88b0564`
+stopped conclusively with `definition_qualification_gap` at item 8,
+`luna-cp190-exact`: seven items passed, the eighth failed, and nine were NOT RUN.
+This is not an engine identity or timeout failure. The Judge classified
+"их порядок" as a separate `fixture_gap`, with rationale that the fixed vocabulary
+does not define order of the levels. The corpus expects canonical coverage.
+The retained answer explicitly rejects additional comparisons/ranking/sorting
+and says the code/label vocabulary is not a new task or separate UI-control order.
+Thus the new blocker is a semantic Judge/oracle disagreement over a claimed
+independent ordering requirement, not a missing engine checksum. No deterministic
+override, broadened canonical answer or repeated Judge prompt was used to pass it.
+
+Evidence remains under
+`/Users/deksden/.dd-eval/definition-qualifications/9ba40a03b0d5bb4770d80d3fcc5c7b1ee439c03548cc148b58da5169b88b0564/operation-24b36837-3659-438c-bc88-d539043050e4/`:
+`failure.json` and `interaction-judge/specify-e16c8108/{packet,result,cleanup}.json`.
+The final native Turn completed and its cleanup is `settled`; the qualification
+command exited 1. These failures stay immutable. No reference-pair smoke, light
+preflight, scored EVAL, native Subject Session or product baseline was started.
+This appended operational report does not relabel the failed definition receipt.
