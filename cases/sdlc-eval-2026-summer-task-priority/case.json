@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-194-task-priority-plan064-recovery-readiness",
-    "sha256": "7ad138bbb559c338c72569ed6d8b61d0ab2e1d65248b2b3007f0778a658f211b"
+    "id": "cp-195-task-priority-engine-identity",
+    "sha256": "89793e7ead6f81c8c4fd9be673632152b2b6e164226eeda3b3bbf27c7af034de"
   },
   "entry_pack": null,
   "hitl_qualification": {
