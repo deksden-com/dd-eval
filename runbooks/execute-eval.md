@@ -284,6 +284,13 @@ CP196's actual eight-atom verdict proves default filling and archive visibility
 this way. Test removal of the proof, not removal of one redundant atom while
 another still proves the decision. Keep the historical native bytes unchanged.
 These guards remain oracle-only; they do not enter the Judge packet/prompt.
+Audit every authored alternative, not only a previously observed quote. The
+CP190 create/default and archive-boundary options have joint witnesses; archive
+rights, visibility and UI/API equality additionally require their own literal
+canonical proof. Native eight-, nine- and thirteen-atom finals and all three
+whole archive alternatives are regressions, with omission checks on the actual
+proof or all its matching witnesses. Option conditions are not extra accepted
+requirements, and a canonical replacement/refusal can resolve them unchanged.
 The oracle treats authored quotes as content anchors: a longer native atom may
 cover several anchors, and terminal sentence punctuation may be omitted. Each
 atom still quotes the question verbatim; internal whitespace, Unicode, words,

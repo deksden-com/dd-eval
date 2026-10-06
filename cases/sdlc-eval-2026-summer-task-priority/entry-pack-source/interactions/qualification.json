@@ -686,6 +686,7 @@
             "witness_ids": [
               "q2-default",
               "q2-optional",
+              "q2-create-default",
               "q2-bundle"
             ],
             "answer_evidence": [
@@ -715,6 +716,7 @@
             "witness_ids": [
               "q2-create",
               "q2-operations",
+              "q2-create-default",
               "q2-bundle"
             ]
           },
@@ -738,7 +740,15 @@
             ],
             "witness_ids": [
               "q3-archive",
+              "q3-option-boundary",
+              "q3-read-only",
               "q3-bundle"
+            ],
+            "answer_evidence": [
+              {
+                "response_id": "clarification-task-priority",
+                "answer_quote": "участник workspace может изменить приоритет задачи"
+              }
             ]
           },
           {
@@ -750,6 +760,7 @@
             "witness_ids": [
               "q3-visibility",
               "q3-archive",
+              "q3-read-only",
               "q3-bundle"
             ],
             "answer_evidence": [
@@ -767,6 +778,7 @@
             ],
             "witness_ids": [
               "q3-operation-boundary",
+              "q3-option-boundary",
               "q3-surfaces",
               "q3-bundle"
             ]
@@ -779,8 +791,15 @@
             ],
             "witness_ids": [
               "q3-ui-api",
+              "q3-archive",
               "q3-surfaces",
               "q3-bundle"
+            ],
+            "answer_evidence": [
+              {
+                "response_id": "clarification-task-priority",
+                "answer_quote": "одинаковы для UI и API"
+              }
             ]
           }
         ],
@@ -788,7 +807,11 @@
           {
             "id": "q1-values",
             "source_quotes": [
-              "допустимые значения"
+              "допустимые значения",
+              "Четыре уровня",
+              "Три уровня",
+              "Свой набор уровней",
+              "`low`, `medium`, `high`"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -798,7 +821,10 @@
           {
             "id": "q1-labels",
             "source_quotes": [
-              "понятные тексты"
+              "понятные тексты",
+              "показывать русские тексты",
+              "показывать «Низкий», «Средний», «Высокий»",
+              "точные значения и подписи"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -822,6 +848,7 @@
             "source_quotes": [
               "Для существующих и новых задач",
               "для существующих задач выполнить такое же заполнение",
+              "существующие задачи получают явно выбранный уровень",
               "Значение по умолчанию",
               "Значение по умолчанию `medium`"
             ],
@@ -835,7 +862,8 @@
             "source_quotes": [
               "заполнение обязательного поля",
               "Приоритет обязателен уже при создании",
-              "Приоритет необязателен"
+              "Приоритет необязателен",
+              "отсутствие означает «Без приоритета»"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -846,8 +874,7 @@
             "id": "q2-create",
             "source_quotes": [
               "допустимые операции создания",
-              "изменение при создании",
-              "При создании без приоритета использовать `medium`"
+              "изменение при создании"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -858,8 +885,7 @@
             "id": "q2-update",
             "source_quotes": [
               "редактирования",
-              "при редактировании его можно менять на любое значение из Q-001",
-              "при создании/редактировании разрешить отсутствие и значения из Q-001"
+              "при редактировании его можно менять на любое значение из Q-001"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -870,6 +896,8 @@
             "id": "q3-archive",
             "source_quotes": [
               "как это правило сочетается с приоритетом",
+              "В архивном проекте",
+              "Сохранить существующий read-only gate",
               "Разрешить task create/update в архивном проекте по тем же правилам, что и в активном"
             ],
             "classification": "covered_by_canonical_response",
@@ -880,7 +908,8 @@
           {
             "id": "q3-visibility",
             "source_quotes": [
-              "приоритет виден в чтении списка/деталей"
+              "приоритет виден в чтении списка/деталей",
+              "видимость приоритета в архивном списке"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -890,7 +919,8 @@
           {
             "id": "q3-operation-boundary",
             "source_quotes": [
-              "отрицательные проверки отсутствия частичной записи при отклонённой мутации"
+              "отрицательные проверки отсутствия частичной записи при отклонённой мутации",
+              "все task mutations запрещены"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -901,6 +931,7 @@
             "id": "q3-ui-api",
             "source_quotes": [
               "API и UI",
+              "и в UI, и в API",
               "UI и API поддерживают одинаковые операции"
             ],
             "classification": "covered_by_canonical_response",
@@ -922,7 +953,9 @@
           {
             "id": "q2-operations",
             "source_quotes": [
-              "допустимые операции создания/редактирования"
+              "допустимые операции создания/редактирования",
+              "при создании и редактировании принимать только значения из Q-001",
+              "при создании/редактировании разрешить отсутствие и значения из Q-001"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -934,6 +967,38 @@
             "source_quotes": [
               "Значение по умолчанию и изменение при создании",
               "Для существующих и новых задач нужно определить заполнение обязательного поля и допустимые операции создания/редактирования."
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q2-create-default",
+            "source_quotes": [
+              "При создании без приоритета использовать `medium`"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q3-option-boundary",
+            "source_quotes": [
+              "создание и изменение задач (включая приоритет) запрещены",
+              "создание/прочие изменения запрещёнными",
+              "task create/update в архивном проекте по тем же правилам, что и в активном"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q3-read-only",
+            "source_quotes": [
+              "в архиве только чтение приоритета"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
