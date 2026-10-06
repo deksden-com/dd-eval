@@ -1,5 +1,5 @@
 {
-  "schema_id": "dd-eval/hitl-qualification-corpus@1",
+  "schema_id": "dd-eval/hitl-qualification-corpus@2",
   "stage": "specify",
   "items": [
     {
@@ -11,7 +11,121 @@
       ],
       "context_file": "entry-pack-source/interactions/qualification-specify.json",
       "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
-      "status": "matched"
+      "status": "matched",
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "create",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "create",
+              "create-edit",
+              "all"
+            ]
+          },
+          {
+            "id": "edit",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "edit",
+              "create-edit",
+              "all"
+            ]
+          },
+          {
+            "id": "permissions",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "permissions",
+              "create-edit",
+              "all"
+            ]
+          },
+          {
+            "id": "labels",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "labels",
+              "all"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "create",
+            "source_quotes": [
+              "выбрать приоритет при создании задачи"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "edit",
+            "source_quotes": [
+              "а затем менять его?",
+              "менять его?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "permissions",
+            "source_quotes": [
+              "owner и member активного проекта"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "labels",
+            "source_quotes": [
+              "Где оба видят понятную подпись?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "create-edit",
+            "source_quotes": [
+              "Могут ли owner и member активного проекта выбрать приоритет при создании задачи, а затем менять его?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "all",
+            "source_quotes": [
+              "Могут ли owner и member активного проекта выбрать приоритет при создании задачи, а затем менять его? Где оба видят понятную подпись?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "closed-and-archived-task",
@@ -22,7 +136,65 @@
       ],
       "context_file": "entry-pack-source/interactions/qualification-specify.json",
       "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
-      "status": "matched"
+      "status": "matched",
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "closed",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "closed",
+              "all"
+            ]
+          },
+          {
+            "id": "archived",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "archived",
+              "all"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "closed",
+            "source_quotes": [
+              "Можно ли менять приоритет уже закрытой задачи?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "archived",
+            "source_quotes": [
+              "Можно ли менять приоритет задачи в архивном проекте, если остальные поля остаются только для чтения?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "all",
+            "source_quotes": [
+              "Можно ли менять приоритет уже закрытой задачи? Можно ли менять приоритет задачи в архивном проекте, если остальные поля остаются только для чтения?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "visual-indicators",
@@ -33,7 +205,34 @@
       ],
       "context_file": "entry-pack-source/interactions/qualification-specify.json",
       "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
-      "status": "matched"
+      "status": "matched",
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "indicators",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "indicators"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "indicators",
+            "source_quotes": [
+              "Нужны ли помимо текстовых названий уровней дополнительные цветовые метки, бейджи или иконки приоритета в интерфейсе?",
+              "дополнительные цветовые метки, бейджи или иконки приоритета в интерфейсе?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "combined-decisions",
@@ -44,7 +243,98 @@
       ],
       "context_file": "entry-pack-source/interactions/qualification-specify.json",
       "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
-      "status": "matched"
+      "status": "matched",
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "closed",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "closed",
+              "task-states",
+              "all"
+            ]
+          },
+          {
+            "id": "archive",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "archive",
+              "task-states",
+              "all"
+            ]
+          },
+          {
+            "id": "indicators",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "indicators",
+              "all"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "closed",
+            "source_quotes": [
+              "закрытой задачи"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "archive",
+            "source_quotes": [
+              "задачи в архивном проекте?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "indicators",
+            "source_quotes": [
+              "Достаточно ли текстовых обозначений или нужны цветовые метки либо другие дополнительные индикаторы?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "task-states",
+            "source_quotes": [
+              "Разрешено ли менять приоритет закрытой задачи и задачи в архивном проекте?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "all",
+            "source_quotes": [
+              "Разрешено ли менять приоритет закрытой задачи и задачи в архивном проекте? Достаточно ли текстовых обозначений или нужны цветовые метки либо другие дополнительные индикаторы?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "status-semantics-at-specify",
@@ -55,7 +345,86 @@
       ],
       "context_file": "entry-pack-source/interactions/qualification-specify.json",
       "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
-      "status": "matched"
+      "status": "matched",
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "minimal-state",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-minimal-task-state"
+            ],
+            "witness_ids": [
+              "minimal-state",
+              "all"
+            ]
+          },
+          {
+            "id": "permissions",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-minimal-task-state"
+            ],
+            "witness_ids": [
+              "permissions",
+              "all"
+            ]
+          },
+          {
+            "id": "workflow",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-minimal-task-state"
+            ],
+            "witness_ids": [
+              "workflow",
+              "all"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "minimal-state",
+            "source_quotes": [
+              "Если у задачи пока нет состояния, как выполнить требование менять приоритет открытой и закрытой задачи?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-minimal-task-state"
+            ]
+          },
+          {
+            "id": "permissions",
+            "source_quotes": [
+              "Кто сможет закрывать и открывать задачу"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-minimal-task-state"
+            ]
+          },
+          {
+            "id": "workflow",
+            "source_quotes": [
+              "нужен ли отдельный workflow?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-minimal-task-state"
+            ]
+          },
+          {
+            "id": "all",
+            "source_quotes": [
+              "Если у задачи пока нет состояния, как выполнить требование менять приоритет открытой и закрытой задачи? Кто сможет закрывать и открывать задачу, нужен ли отдельный workflow?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-minimal-task-state"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "minimal-task-state-at-plan",
@@ -67,7 +436,65 @@
       ],
       "context_file": "entry-pack-source/interactions/qualification-plan.json",
       "context_sha256": "ec929d1e2ab6202fc6014a2d74f640a3a39ed812b747687db899d915346f1a5d",
-      "status": "matched"
+      "status": "matched",
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "minimal-state",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-minimal-task-state"
+            ],
+            "witness_ids": [
+              "minimal-state",
+              "all"
+            ]
+          },
+          {
+            "id": "workflow",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-minimal-task-state"
+            ],
+            "witness_ids": [
+              "workflow",
+              "all"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "minimal-state",
+            "source_quotes": [
+              "Добавить минимальное состояние open/closed и переходы или убрать закрытые задачи из критерия?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-minimal-task-state"
+            ]
+          },
+          {
+            "id": "workflow",
+            "source_quotes": [
+              "Нужно ли делать отдельный workflow?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-minimal-task-state"
+            ]
+          },
+          {
+            "id": "all",
+            "source_quotes": [
+              "AC-003 требует изменение приоритета закрытой задачи, но у задачи сейчас нет состояния. Добавить минимальное состояние open/closed и переходы или убрать закрытые задачи из критерия? Нужно ли делать отдельный workflow?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-minimal-task-state"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "values-labels-no-order",
@@ -83,7 +510,98 @@
         "vocabulary",
         "labels",
         "no-sorting"
-      ]
+      ],
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "values",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "values",
+              "values-labels",
+              "all"
+            ]
+          },
+          {
+            "id": "labels",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "labels",
+              "values-labels",
+              "all"
+            ]
+          },
+          {
+            "id": "ordering",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "ordering",
+              "all"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "values",
+            "source_quotes": [
+              "значения"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "labels",
+            "source_quotes": [
+              "подписи приоритета используются?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "ordering",
+            "source_quotes": [
+              "Надо ли добавлять ранжирование и менять порядок списка задач?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "values-labels",
+            "source_quotes": [
+              "Какие значения и подписи приоритета используются?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "all",
+            "source_quotes": [
+              "Какие значения и подписи приоритета используются? Надо ли добавлять ранжирование и менять порядок списка задач?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "luna-cp190-exact",
@@ -101,7 +619,299 @@
         "create-update",
         "archive",
         "ui-api"
-      ]
+      ],
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "q1-values",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "q1-values",
+              "q1-bundle"
+            ]
+          },
+          {
+            "id": "q1-labels",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "q1-labels",
+              "q1-bundle"
+            ]
+          },
+          {
+            "id": "q1-order-refusal",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "q1-order-refusal",
+              "q1-bundle"
+            ]
+          },
+          {
+            "id": "q2-default",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "q2-default",
+              "q2-bundle"
+            ]
+          },
+          {
+            "id": "q2-optional",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "q2-optional",
+              "q2-bundle"
+            ]
+          },
+          {
+            "id": "q2-create",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "q2-create",
+              "q2-operations",
+              "q2-bundle"
+            ]
+          },
+          {
+            "id": "q2-update",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "q2-update",
+              "q2-operations",
+              "q2-bundle"
+            ]
+          },
+          {
+            "id": "q3-archive",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "q3-archive",
+              "q3-bundle"
+            ]
+          },
+          {
+            "id": "q3-visibility",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "q3-visibility",
+              "q3-bundle"
+            ]
+          },
+          {
+            "id": "q3-operation-boundary",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "q3-operation-boundary",
+              "q3-bundle"
+            ]
+          },
+          {
+            "id": "q3-ui-api",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "q3-ui-api",
+              "q3-bundle"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "q1-values",
+            "source_quotes": [
+              "допустимые значения"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q1-labels",
+            "source_quotes": [
+              "понятные тексты"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q1-order-refusal",
+            "source_quotes": [
+              "их порядок",
+              "порядок от low к urgent",
+              "порядок от low к high"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q2-default",
+            "source_quotes": [
+              "Для существующих и новых задач",
+              "Значение по умолчанию",
+              "Значение по умолчанию `medium`"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q2-optional",
+            "source_quotes": [
+              "заполнение обязательного поля",
+              "Приоритет обязателен уже при создании",
+              "Приоритет необязателен"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q2-create",
+            "source_quotes": [
+              "изменение при создании",
+              "При создании без приоритета использовать `medium`"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q2-update",
+            "source_quotes": [
+              "при редактировании его можно менять на любое значение из Q-001",
+              "при создании/редактировании разрешить отсутствие и значения из Q-001"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q3-archive",
+            "source_quotes": [
+              "как это правило сочетается с приоритетом",
+              "Разрешить task create/update в архивном проекте по тем же правилам, что и в активном"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q3-visibility",
+            "source_quotes": [
+              "приоритет виден в чтении списка/деталей"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q3-operation-boundary",
+            "source_quotes": [
+              "где разрешены операции",
+              "отрицательные проверки отсутствия частичной записи при отклонённой мутации"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q3-ui-api",
+            "source_quotes": [
+              "API и UI",
+              "UI и API поддерживают одинаковые операции"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q1-bundle",
+            "source_quotes": [
+              "Уровни и порядок приоритета",
+              "Нужно зафиксировать допустимые значения, их порядок и понятные тексты"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q2-operations",
+            "source_quotes": [
+              "допустимые операции создания/редактирования"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q2-bundle",
+            "source_quotes": [
+              "Значение по умолчанию и изменение при создании",
+              "Для существующих и новых задач нужно определить заполнение обязательного поля и допустимые операции создания/редактирования."
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q3-bundle",
+            "source_quotes": [
+              "Архивные проекты и границы UI/API"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "material-gap",
@@ -113,7 +923,29 @@
       "context_sha256": "47b1e143a38da31f781da9d56233e8dc3dfa16137335991c7e8ffceefb17b99a",
       "decision_tags": [
         "material-gap"
-      ]
+      ],
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "decision",
+            "classification": "fixture_gap",
+            "response_ids": [],
+            "witness_ids": [
+              "decision"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "decision",
+            "source_quotes": [
+              "Какое значение сохраняется при двух одновременно успешных изменениях приоритета?"
+            ],
+            "classification": "fixture_gap",
+            "response_ids": []
+          }
+        ]
+      }
     },
     {
       "id": "extra-scope",
@@ -125,7 +957,29 @@
       "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
       "decision_tags": [
         "out-of-scope"
-      ]
+      ],
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "decision",
+            "classification": "out_of_scope",
+            "response_ids": [],
+            "witness_ids": [
+              "decision"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "decision",
+            "source_quotes": [
+              "Добавить ли SMS-уведомления и новый экран календаря по изменению приоритета?"
+            ],
+            "classification": "out_of_scope",
+            "response_ids": []
+          }
+        ]
+      }
     },
     {
       "id": "accepted-repeat",
@@ -137,7 +991,29 @@
       "context_sha256": "33fd607b4c632c5d8028f920c0be4c6b42bc4dc5b806ec58d16e0ac157482b37",
       "decision_tags": [
         "accepted-repeat"
-      ]
+      ],
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "decision",
+            "classification": "unnecessary_question",
+            "response_ids": [],
+            "witness_ids": [
+              "decision"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "decision",
+            "source_quotes": [
+              "Подтвердите ещё раз принятые значения no_priority/low/medium/high и default no_priority."
+            ],
+            "classification": "unnecessary_question",
+            "response_ids": []
+          }
+        ]
+      }
     },
     {
       "id": "ambiguous-reference",
@@ -150,15 +1026,28 @@
       "decision_tags": [
         "ambiguous"
       ],
-      "expected_atoms": [
-        {
-          "source_quotes": [
-            "Уточните обязательное поведение этого значения в том случае, о котором мы говорили: какой именно вариант нужен?"
-          ],
-          "classification": "ambiguous",
-          "response_ids": []
-        }
-      ]
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "decision",
+            "classification": "ambiguous",
+            "response_ids": [],
+            "witness_ids": [
+              "decision"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "decision",
+            "source_quotes": [
+              "Уточните обязательное поведение этого значения в том случае, о котором мы говорили: какой именно вариант нужен?"
+            ],
+            "classification": "ambiguous",
+            "response_ids": []
+          }
+        ]
+      }
     },
     {
       "id": "partial-covered",
@@ -173,30 +1062,44 @@
       "decision_tags": [
         "partial-covered"
       ],
-      "expected_atoms": [
-        {
-          "source_quotes": [
-            "Какие уровни и подписи приоритета?"
-          ],
-          "classification": "covered_by_canonical_response",
-          "response_ids": [
-            "clarification-task-priority"
-          ]
-        },
-        {
-          "source_quotes": [
-            "И нужно ли добавить SMS-уведомления?",
-            "нужно ли добавить SMS-уведомления?"
-          ],
-          "classification": "out_of_scope",
-          "response_ids": []
-        }
-      ],
-      "expected_atomizations": [
-        [
+      "expected_coverage": {
+        "obligations": [
           {
+            "id": "levels",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "levels",
+              "levels-labels"
+            ]
+          },
+          {
+            "id": "labels",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "labels",
+              "levels-labels"
+            ]
+          },
+          {
+            "id": "independent",
+            "classification": "out_of_scope",
+            "response_ids": [],
+            "witness_ids": [
+              "independent"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "levels",
             "source_quotes": [
-              "Какие уровни и подписи приоритета?"
+              "уровни"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -204,8 +1107,9 @@
             ]
           },
           {
+            "id": "labels",
             "source_quotes": [
-              "Какие уровни и подписи приоритета?"
+              "подписи приоритета?"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -213,15 +1117,26 @@
             ]
           },
           {
+            "id": "independent",
             "source_quotes": [
               "И нужно ли добавить SMS-уведомления?",
               "нужно ли добавить SMS-уведомления?"
             ],
             "classification": "out_of_scope",
             "response_ids": []
+          },
+          {
+            "id": "levels-labels",
+            "source_quotes": [
+              "Какие уровни и подписи приоритета?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
           }
         ]
-      ]
+      }
     },
     {
       "id": "gap-and-extra",
@@ -234,23 +1149,45 @@
       "decision_tags": [
         "mixed-gap-extra"
       ],
-      "expected_atoms": [
-        {
-          "source_quotes": [
-            "Какое значение сохраняется при двух одновременно успешных изменениях приоритета?"
-          ],
-          "classification": "fixture_gap",
-          "response_ids": []
-        },
-        {
-          "source_quotes": [
-            "И добавим ли новый календарь?",
-            "добавим ли новый календарь?"
-          ],
-          "classification": "out_of_scope",
-          "response_ids": []
-        }
-      ]
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "gap",
+            "classification": "fixture_gap",
+            "response_ids": [],
+            "witness_ids": [
+              "gap"
+            ]
+          },
+          {
+            "id": "extra",
+            "classification": "out_of_scope",
+            "response_ids": [],
+            "witness_ids": [
+              "extra"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "gap",
+            "source_quotes": [
+              "Какое значение сохраняется при двух одновременно успешных изменениях приоритета?"
+            ],
+            "classification": "fixture_gap",
+            "response_ids": []
+          },
+          {
+            "id": "extra",
+            "source_quotes": [
+              "И добавим ли новый календарь?",
+              "добавим ли новый календарь?"
+            ],
+            "classification": "out_of_scope",
+            "response_ids": []
+          }
+        ]
+      }
     },
     {
       "id": "resolved-reference",
@@ -265,17 +1202,32 @@
       "decision_tags": [
         "resolved-reference"
       ],
-      "expected_atoms": [
-        {
-          "source_quotes": [
-            "Уточните обязательное поведение этого значения в том случае, о котором мы говорили: какой именно вариант нужен?"
-          ],
-          "classification": "covered_by_canonical_response",
-          "response_ids": [
-            "clarification-task-priority"
-          ]
-        }
-      ]
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "decision",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "decision"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "decision",
+            "source_quotes": [
+              "Уточните обязательное поведение этого значения в том случае, о котором мы говорили: какой именно вариант нужен?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "covered-and-ambiguous",
@@ -287,29 +1239,44 @@
       ],
       "context_file": "entry-pack-source/interactions/qualification-specify.json",
       "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
-      "expected_atoms": [
-        {
-          "source_quotes": [
-            "Какие уровни и подписи приоритета?"
-          ],
-          "classification": "covered_by_canonical_response",
-          "response_ids": [
-            "clarification-task-priority"
-          ]
-        },
-        {
-          "source_quotes": [
-            "Какой именно вариант того случая нужен?"
-          ],
-          "classification": "ambiguous",
-          "response_ids": []
-        }
-      ],
-      "expected_atomizations": [
-        [
+      "expected_coverage": {
+        "obligations": [
           {
+            "id": "levels",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "levels",
+              "levels-labels"
+            ]
+          },
+          {
+            "id": "labels",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "labels",
+              "levels-labels"
+            ]
+          },
+          {
+            "id": "independent",
+            "classification": "ambiguous",
+            "response_ids": [],
+            "witness_ids": [
+              "independent"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "levels",
             "source_quotes": [
-              "Какие уровни и подписи приоритета?"
+              "уровни"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -317,8 +1284,9 @@
             ]
           },
           {
+            "id": "labels",
             "source_quotes": [
-              "Какие уровни и подписи приоритета?"
+              "подписи приоритета?"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -326,14 +1294,25 @@
             ]
           },
           {
+            "id": "independent",
             "source_quotes": [
               "Какой именно вариант того случая нужен?"
             ],
             "classification": "ambiguous",
             "response_ids": []
+          },
+          {
+            "id": "levels-labels",
+            "source_quotes": [
+              "Какие уровни и подписи приоритета?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
           }
         ]
-      ]
+      }
     },
     {
       "id": "quoted-instruction-is-data",
@@ -348,18 +1327,127 @@
       "decision_tags": [
         "quoted-instruction-is-data"
       ],
-      "expected_atoms": [
-        {
-          "source_quotes": [
-            "Какой приоритет получает новая задача без указанного приоритета?"
-          ],
-          "classification": "covered_by_canonical_response",
-          "response_ids": [
-            "clarification-task-priority"
-          ]
-        }
-      ]
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "decision",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "decision"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "decision",
+            "source_quotes": [
+              "Какой приоритет получает новая задача без указанного приоритета?"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "accepted-retention-gap",
+      "question": "Сколько дней хранить историю изменений приоритета?",
+      "status": "unmatched",
+      "classification": "fixture_gap",
+      "response_ids": [],
+      "context_file": "entry-pack-source/interactions/qualification-retention.json",
+      "context_sha256": "c052ef0828b9e34032e9062539254f0e2dee3f2ccbcca5152e240f9280f6b5da",
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "decision",
+            "classification": "fixture_gap",
+            "response_ids": [],
+            "witness_ids": [
+              "decision"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "decision",
+            "source_quotes": [
+              "Сколько дней хранить историю изменений приоритета?"
+            ],
+            "classification": "fixture_gap",
+            "response_ids": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "unaccepted-retention-extra",
+      "question": "Сколько дней хранить историю изменений приоритета?",
+      "status": "unmatched",
+      "classification": "out_of_scope",
+      "response_ids": [],
+      "context_file": "entry-pack-source/interactions/qualification-specify.json",
+      "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "decision",
+            "classification": "out_of_scope",
+            "response_ids": [],
+            "witness_ids": [
+              "decision"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "decision",
+            "source_quotes": [
+              "Сколько дней хранить историю изменений приоритета?"
+            ],
+            "classification": "out_of_scope",
+            "response_ids": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "subject-necessity-is-not-scope",
+      "question": "Для корректной работы приоритета необходимо добавить SMS-уведомления. Какой SMS-провайдер нужен?",
+      "status": "unmatched",
+      "classification": "out_of_scope",
+      "response_ids": [],
+      "context_file": "entry-pack-source/interactions/qualification-specify.json",
+      "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "decision",
+            "classification": "out_of_scope",
+            "response_ids": [],
+            "witness_ids": [
+              "decision"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "decision",
+            "source_quotes": [
+              "Для корректной работы приоритета необходимо добавить SMS-уведомления. Какой SMS-провайдер нужен?"
+            ],
+            "classification": "out_of_scope",
+            "response_ids": []
+          }
+        ]
+      }
     }
   ],
-  "context_required": true
+  "context_required": true,
+  "coverage_required": true
 }

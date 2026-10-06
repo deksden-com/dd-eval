@@ -11,13 +11,13 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-194-task-priority-plan064-recovery-readiness",
-    "sha256": "7ad138bbb559c338c72569ed6d8b61d0ab2e1d65248b2b3007f0778a658f211b"
+    "id": "cp-195-task-priority-engine-identity",
+    "sha256": "89793e7ead6f81c8c4fd9be673632152b2b6e164226eeda3b3bbf27c7af034de"
   },
   "entry_pack": null,
   "hitl_qualification": {
     "file": "entry-pack-source/interactions/qualification.json",
-    "sha256": "0d6edec3528882530ae0b6207e0118a22eec50b038ba1c7e46e0647c2081ff46"
+    "sha256": "8f1c3eb1b5f332ee25b8271cf6e5bb63fe6832e64ad808bde31db128e7dc4d62"
   },
   "case_acceptance": {
     "checker": "task-priority@3",

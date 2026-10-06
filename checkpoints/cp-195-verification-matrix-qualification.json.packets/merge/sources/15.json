@@ -1,0 +1,37 @@
+{
+  "id": "WRK-006-merge/RCP-003",
+  "local_id": "RCP-003",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-NEW",
+    "PRT-001-task-priority/CHK-P1-TEST",
+    "PRT-001-task-priority/CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "3430e9c9492dfb8486b1b347f2ba1515c84ab5cad89a75710b1b618120f0d806",
+  "verification_epoch": "fb5ab8c1bcb88eb606d40772a160dfa8628d7b956f3ca4df31f1cbd72430d436",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_worktrees/dd-cp195-engine-identity.MXZVnb/matrix-fixture/dd-flow-protocolize-ePkr9H/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_worktrees/dd-cp195-engine-identity.MXZVnb/matrix-fixture/dd-flow-protocolize-ePkr9H/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_worktrees/dd-cp195-engine-identity.MXZVnb/matrix-fixture/dd-flow-protocolize-ePkr9H/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_worktrees/dd-cp195-engine-identity.MXZVnb/matrix-fixture/dd-flow-protocolize-ePkr9H/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "c10bae197874b2ad89fe8a3af2cc44b0c71033a0cffaf07a7cedf655dfe7673d",
+  "before_fingerprint": "c10bae197874b2ad89fe8a3af2cc44b0c71033a0cffaf07a7cedf655dfe7673d",
+  "after_fingerprint": "c10bae197874b2ad89fe8a3af2cc44b0c71033a0cffaf07a7cedf655dfe7673d",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-05T16:44:50.779Z",
+  "finished_at": "2026-10-05T16:44:50.846Z"
+}
