@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cp, mkdtemp, mkdir, writeFile, readFile, chmod, rm } from 'node:fs/promises';
+import { cp, mkdtemp, mkdir, writeFile, readFile, chmod, rm, realpath } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import path from 'node:path';
@@ -17,11 +17,12 @@ const phaseWaitMs = 100_000;
 // the two explicitly allowed capture/resume waits alone.
 test('public background EVAL resume continues a real retained RUN through its next stage', { skip: !process.env.DD_EVAL_TEST_FLOW_CLI || !process.env.DD_EVAL_TEST_FLOW_ADAPTER, timeout: 4 * phaseWaitMs }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-managed-resume-'));
-  const definition = path.join(root, 'definition'), evalRoot = path.join(root, 'eval'), attempt = path.join(evalRoot, 'executions', 'stages');
+  const definition = path.join(root, 'definition'), evalRoot = path.join(root, 'eval-home', 'runs', 'EVAL-managed-resume'), attempt = path.join(evalRoot, 'executions', 'stages');
   const project = path.join(attempt, 'project'), home = path.join(attempt, 'dd-flow-home'), cli = path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI);
   const evalId = 'EVAL-managed-resume', resources = path.join(root, 'resources');
   const budget = { schema_id: 'dd-flow/runtime-budget@1', scope_id: evalId, per_harness: {} };
-  const env = { DD_FLOW_HOME: home, DD_FLOW_RESOURCE_HOME: resources, DD_FLOW_RECOVERY_HOME: path.join(root, 'recovery'), DD_FLOW_ENGINE_MODE: '1', DD_FLOW_RUNTIME_BUDGET: JSON.stringify(budget), CODEX_HOME: path.join(root, 'codex-home'), DD_FLOW_TEST_ROOT: root, DD_FLOW_TEST_UNCLEAN_STOP: '0', DD_FLOW_TEST_CAPTURE_FAILURE: '0' };
+  const registry = path.join(root, 'private-registry', 'homes.json'), ambientRegistry = path.join(root, 'ambient-registry.json');
+  const env = { DD_EVAL_REGISTRY_FILE: ambientRegistry, DD_FLOW_HOME: home, DD_FLOW_RESOURCE_HOME: resources, DD_FLOW_RECOVERY_HOME: path.join(root, 'recovery'), DD_FLOW_ENGINE_MODE: '1', DD_FLOW_RUNTIME_BUDGET: JSON.stringify(budget), CODEX_HOME: path.join(root, 'codex-home'), DD_FLOW_TEST_ROOT: root, DD_FLOW_TEST_UNCLEAN_STOP: '0', DD_FLOW_TEST_CAPTURE_FAILURE: '0' };
   const write = async (file, value) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); return file; };
   const json = async file => JSON.parse(await readFile(file, 'utf8'));
   const invoke = args => commandText(process.execPath, [path.join(definition, 'bin', 'dd-eval.mjs'), 'runner', ...args], { cwd: definition, env });
@@ -30,6 +31,7 @@ test('public background EVAL resume continues a real retained RUN through its ne
   const abort = () => { if (runId && !settled) void stopRun().catch(() => {}); };
   t.signal.addEventListener('abort', abort, { once: true });
   try {
+    await write(ambientRegistry, '{foreign registry must not be read or rewritten');
     await cp(new URL('../lib', import.meta.url), path.join(definition, 'lib'), { recursive: true });
     await cp(new URL('../bin', import.meta.url), path.join(definition, 'bin'), { recursive: true });
     for (const name of ['index', 'spec/engineering/index', 'epics/index', 'epics/EP-001-tasks/index', 'protocol/index']) await write(path.join(project, '.memory-bank', `${name}.md`), '# Fixture\n');
@@ -68,7 +70,7 @@ test('public background EVAL resume continues a real retained RUN through its ne
     await definitionGit(['add', '.']);
     await definitionGit(['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.test', 'commit', '--quiet', '-m', 'retained eval definition']);
     const execution = { id: 'stages', stage: 'specify', terminal_stage: 'protocolize', mode: 'e2e' };
-    const manifest = { schema_id: 'dd-eval/runner-manifest@1', run_id: evalId, case_id: 'fixture', runtime_control_bin: cli, runtime_resource_home: resources, executions: [execution], input_checkpoint: { id: checkpoint.id, sha256: cpHash }, interaction_fixtures: Object.fromEntries(['specify', 'protocolize'].map(stage => [stage, { interaction_fixture_sha256: hashJson(fixture(stage)) }])), subject_profile: { id: 'first', harness: 'codex-desktop', model: 'model-first', reasoning: 'low' }, profile: { concurrency: { global: 1, per_harness: {} }, judge: { enabled: false } } };
+    const manifest = { schema_id: 'dd-eval/runner-manifest@1', eval_registry_file: registry, run_id: evalId, case_id: 'fixture', runtime_control_bin: cli, runtime_resource_home: resources, executions: [execution], input_checkpoint: { id: checkpoint.id, sha256: cpHash }, interaction_fixtures: Object.fromEntries(['specify', 'protocolize'].map(stage => [stage, { interaction_fixture_sha256: hashJson(fixture(stage)) }])), subject_profile: { id: 'first', harness: 'codex-desktop', model: 'model-first', reasoning: 'low' }, profile: { concurrency: { global: 1, per_harness: {} }, judge: { enabled: false } } };
     manifest.definition = { commit: await definitionGit(['rev-parse', 'HEAD']) };
     manifest.profile = { schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: 'fixture', subject: { profile_id: 'first' },
       selection: { focused_stages: [], segment: null, e2e: true, repetitions: 1 }, concurrency: { global: 1, per_harness: {} },
@@ -119,6 +121,11 @@ test('public background EVAL resume continues a real retained RUN through its ne
       assert.ok(performance.now() < resumeDeadline, JSON.stringify(worker)); await delay(100);
     }
     assert.equal(worker.result.state, 'completed');
+    const registered = await json(registry);
+    assert.equal(registered.homes.length, 1);
+    assert.equal(registered.homes[0].root, await realpath(path.join(root, 'eval-home')));
+    assert.equal(await readFile(ambientRegistry, 'utf8'), '{foreign registry must not be read or rewritten');
+    assert.equal((await json(path.join(evalRoot, 'manifest.json'))).eval_registry_file, registry);
     assert.equal(worker.result.executions[0].run_id, runId);
     assert.equal(worker.result.executions[0].driver.controller.controller_id, controllerId);
     const status = await commandJson(cli, ['run', 'drive', 'status', '--run', runId, '--project-root', project], { cwd: project, env });
