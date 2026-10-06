@@ -267,6 +267,13 @@ boundary. Every omitted obligation must still fail its deletion regression.
 Independent conjunctions need independent obligations (for example ranking
 versus list order, SMS versus calendar, accepted values versus default).
 Alternative options within one decision do not create unconditional obligations.
+Include operative choices as well as introductory requests when they express
+the same decision (for example existing-record default filling). A single
+request can carry several independently checked properties: the CP190 request
+"где разрешены операции" asks the UI/API operation boundary within its Q3
+context. Its joint witness covers both properties; standalone witnesses still
+check separate atomizations. Keep deletion regressions for both the independent
+and the actual native bundled verdict, not a required total atom count.
 The oracle treats authored quotes as content anchors: a longer native atom may
 cover several anchors, and terminal sentence punctuation may be omitted. Each
 atom still quotes the question verbatim; internal whitespace, Unicode, words,

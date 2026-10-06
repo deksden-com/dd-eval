@@ -753,6 +753,7 @@
             ],
             "witness_ids": [
               "q3-operation-boundary",
+              "q3-surfaces",
               "q3-bundle"
             ]
           },
@@ -764,6 +765,7 @@
             ],
             "witness_ids": [
               "q3-ui-api",
+              "q3-surfaces",
               "q3-bundle"
             ]
           }
@@ -805,6 +807,7 @@
             "id": "q2-default",
             "source_quotes": [
               "Для существующих и новых задач",
+              "для существующих задач выполнить такое же заполнение",
               "Значение по умолчанию",
               "Значение по умолчанию `medium`"
             ],
@@ -873,7 +876,6 @@
           {
             "id": "q3-operation-boundary",
             "source_quotes": [
-              "где разрешены операции",
               "отрицательные проверки отсутствия частичной записи при отклонённой мутации"
             ],
             "classification": "covered_by_canonical_response",
@@ -918,6 +920,16 @@
             "source_quotes": [
               "Значение по умолчанию и изменение при создании",
               "Для существующих и новых задач нужно определить заполнение обязательного поля и допустимые операции создания/редактирования."
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "q3-surfaces",
+            "source_quotes": [
+              "где разрешены операции"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
