@@ -261,6 +261,12 @@ Historical v1/v2 evidence remains explicitly read-only; it cannot authorize a
 new answer or Judge Turn.
 Current corpus@2 requires `expected_coverage`: finite authored obligations and
 witnesses permit valid split/bundled answers while detecting independent omissions.
+Author content anchors around the independent requested decision, retaining
+material conditions/negations; do not require explanatory setup as a quote
+boundary. Every omitted obligation must still fail its deletion regression.
+Independent conjunctions need independent obligations (for example ranking
+versus list order, SMS versus calendar, accepted values versus default).
+Alternative options within one decision do not create unconditional obligations.
 The oracle treats authored quotes as content anchors: a longer native atom may
 cover several anchors, and terminal sentence punctuation may be omitted. Each
 atom still quotes the question verbatim; internal whitespace, Unicode, words,

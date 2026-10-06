@@ -110,6 +110,21 @@ test('scope contrast expectations stay on oracle side without altering canonical
   assert.ok(acceptedContext.accepted_decisions[0].includes('обязательно сохраняется'));
 });
 
+test('independent compound decisions accept native splits and bundles but never an omitted half', () => {
+  const item = itemBy('values-labels-no-order');
+  const atoms = ['Какие значения и подписи приоритета используются?', 'Надо ли добавлять ранжирование', 'менять порядок списка задач?']
+    .map(source_quote => ({ ...atom(item.expected_coverage.witnesses[0]), source_quote }));
+  assertExpectedAtoms(item, { atoms }, options);
+  for (const [index, missing] of [[1, 'ranking'], [2, 'list-order']]) {
+    assert.deepEqual(compareHitlExpectation(item, { atoms: atoms.filter((_, at) => at !== index) }, options).missing_obligation_ids, [missing]);
+  }
+  for (const id of ['values-labels-no-order', 'extra-scope', 'accepted-repeat']) {
+    const current = itemBy(id);
+    assertExpectedAtoms(current, split(current), options);
+    assertExpectedAtoms(current, { atoms: [{ ...atom(current.expected_coverage.witnesses[0]), source_quote: current.question }] }, options);
+  }
+});
+
 test('initial clarification with a canonical refusal is distinct from reconfirming an agreed decision', async () => {
   const initial = itemBy('status-semantics-at-specify'), repeat = itemBy('accepted-repeat');
   const context = JSON.parse(await readFile(new URL(initial.context_file, caseRoot)));
@@ -118,6 +133,12 @@ test('initial clarification with a canonical refusal is distinct from reconfirmi
   assert.ok(accepted.accepted_decisions.length);
   assert.equal(repeat.classification, 'unnecessary_question');
   assertExpectedAtoms(initial, split(initial), options);
+  const fullClause = split(initial);
+  fullClause.atoms[0].source_quote = initial.question.slice(0, initial.question.indexOf('?') + 1);
+  assertExpectedAtoms(initial, fullClause, options);
+  const omittedState = split(initial);
+  omittedState.atoms.shift();
+  assert.deepEqual(compareHitlExpectation(initial, omittedState, options).missing_obligation_ids, ['minimal-state']);
   const failed = split(initial);
   const workflow = failed.atoms.find(value => value.decision === 'workflow');
   workflow.classification = 'unnecessary_question'; workflow.answer_evidence = [];
