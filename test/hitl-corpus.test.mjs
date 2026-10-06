@@ -70,6 +70,35 @@ test('bundled, split, reordering and repeated allowed source quotes have no tota
   assert.equal(compareHitlExpectation(item, verdict([bundle]), options).passed, false);
 });
 
+test('native CP196 permission/create bundle and punctuation-free decisions cover every obligation', () => {
+  const item = itemBy('active-project-permissions');
+  const atoms = [
+    'Могут ли owner и member активного проекта выбрать приоритет при создании задачи',
+    'а затем менять его',
+    'Где оба видят понятную подпись'
+  ].map(source_quote => ({ ...atom(item.expected_coverage.witnesses[0]), source_quote }));
+  assertExpectedAtoms(item, { atoms }, options);
+  for (let index = 0; index < atoms.length; index++) {
+    const comparison = compareHitlExpectation(item, { atoms: atoms.filter((_, at) => at !== index) }, options);
+    assert.equal(comparison.passed, false);
+    assert.ok(comparison.missing_obligation_ids.length);
+  }
+});
+
+test('quote containment cannot hide mixed classes, forged text, partial words or response IDs', () => {
+  for (const id of ['partial-covered', 'gap-and-extra', 'covered-and-ambiguous']) {
+    const item = itemBy(id);
+    const bundled = { ...split(item).atoms[0], source_quote: item.question };
+    assert.equal(compareHitlExpectation(item, { atoms: [bundled] }, options).passed, false);
+  }
+  const item = itemBy('active-project-permissions');
+  for (const source_quote of [item.question + ' invented', 'owner и membe', 'выбрать приоритет']) {
+    assert.equal(compareHitlExpectation(item, { atoms: [{ ...split(item).atoms[0], source_quote }] }, options).passed, false);
+  }
+  const incorrect = split(item); incorrect.atoms[0].answer_evidence = [{ response_id: 'clarification-minimal-task-state' }];
+  assert.equal(compareHitlExpectation(item, incorrect, options).passed, false);
+});
+
 test('scope contrast expectations stay on oracle side without altering canonical response', async () => {
   const accepted = itemBy('accepted-retention-gap'), extra = itemBy('unaccepted-retention-extra');
   assert.equal(accepted.question, extra.question);
