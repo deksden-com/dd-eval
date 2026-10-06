@@ -274,6 +274,16 @@ request can carry several independently checked properties: the CP190 request
 context. Its joint witness covers both properties; standalone witnesses still
 check separate atomizations. Keep deletion regressions for both the independent
 and the actual native bundled verdict, not a required total atom count.
+When one operative request jointly covers properties that a short question
+quote alone cannot distinguish, link its existing witness to the relevant
+obligations and author each obligation's optional `answer_evidence` guard.
+Every guard must be a literal quote from the named canonical response; the
+same matching native atom must cite all required passages. Evidence in an
+unrelated atom cannot lend coverage, and a decision/rationale label is not proof.
+CP196's actual eight-atom verdict proves default filling and archive visibility
+this way. Test removal of the proof, not removal of one redundant atom while
+another still proves the decision. Keep the historical native bytes unchanged.
+These guards remain oracle-only; they do not enter the Judge packet/prompt.
 The oracle treats authored quotes as content anchors: a longer native atom may
 cover several anchors, and terminal sentence punctuation may be omitted. Each
 atom still quotes the question verbatim; internal whitespace, Unicode, words,

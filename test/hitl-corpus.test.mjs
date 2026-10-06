@@ -8,11 +8,15 @@ import { buildHitlPacket, validateGroundedHitl, projectHitlAtoms } from '../lib/
 const caseRoot = new URL('../cases/sdlc-eval-2026-summer-task-priority/', import.meta.url);
 const corpus = JSON.parse(await readFile(new URL('entry-pack-source/interactions/qualification.json', caseRoot), 'utf8'));
 const covered = 'covered_by_canonical_response';
-const responses = [{ id: 'clarification-task-priority' }, { id: 'clarification-minimal-task-state' }];
+const { responses } = JSON.parse(await readFile(new URL('entry-pack-source/interactions/specify.json', caseRoot)));
 const options = { responses, coverageRequired: true };
 const itemBy = id => corpus.items.find(item => item.id === id);
-const atom = witness => ({ source_quote: witness.source_quotes[0], decision: witness.id, classification: witness.classification,
-  answer_evidence: witness.response_ids.map(response_id => ({ response_id, answer_quote: 'answer' })), rationale: 'test evidence' });
+const atom = witness => {
+  const item = corpus.items.find(item => item.expected_coverage.witnesses.includes(witness));
+  const proof = item?.expected_coverage.obligations.filter(obligation => obligation.witness_ids.includes(witness.id)).flatMap(obligation => obligation.answer_evidence ?? []) ?? [];
+  return { source_quote: witness.source_quotes[0], decision: witness.id, classification: witness.classification,
+    answer_evidence: [...witness.response_ids.map(response_id => ({ response_id, answer_quote: 'answer' })), ...proof], rationale: 'test evidence' };
+};
 const verdict = witnesses => { const atoms = witnesses.map(atom); return { atoms, ...projectHitlAtoms(atoms, responses) }; };
 const split = item => verdict(item.expected_coverage.witnesses.filter(witness => item.expected_coverage.obligations.some(obligation => obligation.id === witness.id)));
 
@@ -35,7 +39,8 @@ test('each independent obligation has an omission regression even when aggregate
   for (const item of corpus.items) {
     const full = split(item);
     for (const obligation of item.expected_coverage.obligations) {
-      const atoms = full.atoms.filter(actual => actual.decision !== obligation.id);
+      const atoms = obligation.answer_evidence ? full.atoms.map(actual => ({ ...actual, answer_evidence: actual.answer_evidence.filter(evidence =>
+        !obligation.answer_evidence.some(required => evidence.response_id === required.response_id && evidence.answer_quote.includes(required.answer_quote))) })) : full.atoms.filter(actual => actual.decision !== obligation.id);
       const comparison = compareHitlExpectation(item, { atoms, ...projectHitlAtoms(atoms, responses) }, options);
       assert.equal(comparison.passed, false, item.id + '/' + obligation.id);
       assert.ok(comparison.missing_obligation_ids.includes(obligation.id));
@@ -74,7 +79,6 @@ test('immutable CP196 native operative choices cover defaults and UI/API boundar
   assert.deepEqual(validateGroundedHitl(native, packet, { stored: true }), native);
   assertExpectedAtoms(item, native, options);
   for (const [quote, missing] of [
-    ['для существующих задач выполнить такое же заполнение', ['q2-default']],
     ['допустимые операции создания/редактирования', ['q2-create', 'q2-update']],
     ['приоритет виден в чтении списка/деталей', ['q3-visibility']],
     ['как это правило сочетается с приоритетом', ['q3-archive']],
@@ -83,6 +87,11 @@ test('immutable CP196 native operative choices cover defaults and UI/API boundar
     const atoms = native.atoms.filter(atom => atom.source_quote !== quote);
     assert.deepEqual(compareHitlExpectation(item, { atoms }, options).missing_obligation_ids, missing);
   }
+  // Removing one duplicate proof is not an omitted decision.
+  assertExpectedAtoms(item, { atoms: native.atoms.filter(atom => atom.source_quote !== 'для существующих задач выполнить такое же заполнение') }, options);
+  const missingDefault = structuredClone(native);
+  for (const atom of missingDefault.atoms) atom.answer_evidence = atom.answer_evidence.filter(evidence => !evidence.answer_quote.includes('для новых и существующих задач по умолчанию'));
+  assert.deepEqual(compareHitlExpectation(item, missingDefault, options).missing_obligation_ids, ['q2-default']);
   const changed = structuredClone(native);
   changed.atoms.at(-1).source_quote = 'где разрешены операции?';
   assert.equal(compareHitlExpectation(item, changed, options).passed, false);
@@ -90,6 +99,55 @@ test('immutable CP196 native operative choices cover defaults and UI/API boundar
   changed.atoms.at(-1).answer_evidence = [{ response_id: 'clarification-minimal-task-state' }];
   assert.equal(compareHitlExpectation(item, changed, options).passed, false);
   assert.deepEqual(JSON.parse(bytes), native);
+});
+
+test('immutable CP196 bundled proof covers default and visibility without a required atom count', async () => {
+  const bytes = await readFile(new URL('./fixtures/hitl-cp196-evidence-bundle.json', import.meta.url));
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), '0c9e80f6402ad9504135f075db881597aa708462d2e42dc0266ec96993f5ffb7');
+  const native = JSON.parse(bytes), item = itemBy('luna-cp190-exact');
+  const packet = await buildHitlPacket({ stage: 'specify', question: item.question, responses });
+  assert.deepEqual(validateGroundedHitl(native, packet, { stored: true }), native);
+  assertExpectedAtoms(item, native, options);
+  for (const id of ['q2-default', 'q3-visibility']) {
+    const required = item.expected_coverage.obligations.find(obligation => obligation.id === id).answer_evidence[0];
+    const omitted = structuredClone(native);
+    const owning = omitted.atoms.find(atom => atom.answer_evidence.some(evidence => evidence.answer_quote.includes(required.answer_quote)));
+    owning.answer_evidence = owning.answer_evidence.filter(evidence => !evidence.answer_quote.includes(required.answer_quote));
+    assert.deepEqual(compareHitlExpectation(item, omitted, options).missing_obligation_ids, [id]);
+    // An unrelated atom cannot lend its canonical proof to the requested decision.
+    omitted.atoms[0].answer_evidence.push(required);
+    assert.deepEqual(compareHitlExpectation(item, omitted, options).missing_obligation_ids, [id]);
+    const forged = structuredClone(native);
+    forged.atoms.find(atom => atom.source_quote === owning.source_quote).answer_evidence.forEach(evidence => {
+      if (evidence.answer_quote.includes(required.answer_quote)) evidence.response_id = 'clarification-minimal-task-state';
+    });
+    assert.equal(compareHitlExpectation(item, forged, options).passed, false);
+    assert.throws(() => validateGroundedHitl(forged, packet, { stored: true }), { code: 'judge_result_invalid' });
+  }
+  assert.deepEqual(JSON.parse(bytes), native);
+});
+
+test('coverage evidence guards require literal canonical proof in the same matching atom', () => {
+  const item = { id: 'guard', question: 'A B', status: 'matched', classification: covered, response_ids: ['r'],
+    expected_coverage: { obligations: [{ id: 'both', classification: covered, response_ids: ['r'], witness_ids: ['both'],
+      answer_evidence: [{ response_id: 'r', answer_quote: 'proof A' }, { response_id: 'r', answer_quote: 'proof B' }] }],
+    witnesses: [{ id: 'both', source_quotes: ['A B'], classification: covered, response_ids: ['r'] }] } };
+  const options = { coverageRequired: true, responses: [{ id: 'r', answer: 'proof A; proof B' }] };
+  const actual = { ...atom(item.expected_coverage.witnesses[0]), answer_evidence: [{ response_id: 'r', answer_quote: 'proof A; proof B' }] };
+  assertExpectedAtoms(item, { atoms: [actual] }, options);
+  const halves = ['proof A', 'proof B'].map(answer_quote => ({ ...actual, answer_evidence: [{ response_id: 'r', answer_quote }] }));
+  assert.deepEqual(compareHitlExpectation(item, { atoms: halves }, options).missing_obligation_ids, ['both']);
+  for (const change of [
+    value => { value.expected_coverage.obligations[0].answer_evidence = []; },
+    value => { value.expected_coverage.obligations[0].answer_evidence[0].answer_quote = 'forged'; },
+    value => { value.expected_coverage.obligations[0].answer_evidence[0].response_id = 'unknown'; },
+    value => { value.expected_coverage.obligations[0].answer_evidence.push({ answer_quote: 'proof A', response_id: 'r' }); },
+    value => { value.expected_coverage.obligations[0].answer_evidence[0].extra = true; }
+  ]) {
+    const changed = structuredClone(item); change(changed);
+    assert.throws(() => validateExpectedAtoms(changed, options), { code: 'hitl_qualification_invalid' });
+  }
+  assert.throws(() => validateExpectedAtoms(item, { responses: [{ id: 'r' }], coverageRequired: true }), { code: 'hitl_qualification_invalid' });
 });
 
 test('bundled, split, reordering and repeated allowed source quotes have no total count requirement', () => {

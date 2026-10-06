@@ -685,7 +685,14 @@
             ],
             "witness_ids": [
               "q2-default",
+              "q2-optional",
               "q2-bundle"
+            ],
+            "answer_evidence": [
+              {
+                "response_id": "clarification-task-priority",
+                "answer_quote": "для новых и существующих задач по умолчанию — `no_priority`"
+              }
             ]
           },
           {
@@ -742,7 +749,14 @@
             ],
             "witness_ids": [
               "q3-visibility",
+              "q3-archive",
               "q3-bundle"
+            ],
+            "answer_evidence": [
+              {
+                "response_id": "clarification-task-priority",
+                "answer_quote": "задачи архивных проектов сохраняют и показывают своё значение"
+              }
             ]
           },
           {
