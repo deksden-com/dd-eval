@@ -18,16 +18,17 @@ const phaseWaitMs = 100_000;
 // the two explicitly allowed capture/resume waits alone.
 test('public background EVAL resume continues a real retained RUN through its next stage', { skip: !process.env.DD_EVAL_TEST_FLOW_CLI || !process.env.DD_EVAL_TEST_FLOW_ADAPTER, timeout: 4 * phaseWaitMs }, async t => {
   const root = await mkdtemp(path.join(process.env.DD_EVAL_TEST_FIXTURE_ROOT ?? os.tmpdir(), 'eval-managed-resume-'));
-  const definition = path.join(root, 'definition'), evalRoot = path.join(root, 'eval-home', 'runs', 'EVAL-managed-resume'), attempt = path.join(evalRoot, 'executions', 'stages');
+  const evalId = `EVAL-managed-resume-${path.basename(root).split('-').at(-1)}`;
+  const definition = path.join(root, 'definition'), evalRoot = path.join(root, 'eval-home', 'runs', evalId), attempt = path.join(evalRoot, 'executions', 'stages');
   const project = path.join(attempt, 'project'), home = path.join(attempt, 'dd-flow-home'), cli = path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI);
-  const evalId = 'EVAL-managed-resume', resources = process.env.DD_EVAL_TEST_RESOURCE_HOME ?? path.join(root, 'resources');
+  const resources = process.env.DD_EVAL_TEST_RESOURCE_HOME ?? path.join(root, 'resources');
   const budget = { schema_id: 'dd-flow/runtime-budget@1', scope_id: evalId, per_harness: {} };
   const registry = process.env.DD_EVAL_TEST_REGISTRY_FILE ?? path.join(root, 'private-registry', 'homes.json'), ambientRegistry = path.join(root, 'ambient-registry.json');
   const env = { DD_EVAL_REGISTRY_FILE: registry, DD_FLOW_HOME: home, DD_FLOW_CONFIG_HOME: home, DD_FLOW_RESOURCE_HOME: resources, DD_FLOW_RECOVERY_HOME: path.join(root, 'recovery'), DD_FLOW_ENGINE_MODE: '1', DD_FLOW_RUNTIME_BUDGET: JSON.stringify(budget), CODEX_HOME: path.join(root, 'codex-home'), DD_FLOW_TEST_ROOT: root, DD_FLOW_TEST_UNCLEAN_STOP: '0', DD_FLOW_TEST_CAPTURE_FAILURE: '0' };
   const write = async (file, value) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); return file; };
   const json = async file => JSON.parse(await readFile(file, 'utf8'));
   const invoke = args => commandText(process.execPath, [path.join(definition, 'bin', 'dd-eval.mjs'), 'runner', ...args], { cwd: definition, env: { ...env, DD_EVAL_REGISTRY_FILE: ambientRegistry } });
-  let runId, settled = false, workerExited = true;
+  let runId, settled = false, workerExited = true, primary;
   const stopRun = () => commandJson(cli, ['run', 'control', 'stop', '--run', runId, '--project-root', project, '--request-id', 'test-cleanup', '--force', '--wait-ms', '10000'], { cwd: project, env, signal: AbortSignal.timeout(20_000) });
   const abort = () => { if (runId && !settled) void stopRun().catch(() => {}); };
   t.signal.addEventListener('abort', abort, { once: true });
@@ -154,7 +155,8 @@ test('public background EVAL resume continues a real retained RUN through its ne
     assert.deepEqual(packets.map(item => item.stage), ['specify', 'protocolize']);
     assert.deepEqual(packets.map(item => item.model), ['model-first', 'model-second']);
     assert.deepEqual(calls.filter(item => item.event === 'recovery_ack').map(item => item.session_id), [packets[0].session_id]);
-  } finally {
+  } catch (error) { primary = error; throw error; }
+  finally {
     if (runId && (!settled || !workerExited)) {
       await commandJson(cli, ['runtime', 'scope', 'stop', '--scope-id', evalId, '--request-id', 'cleanup'], { cwd: root, env: { ...env, DD_FLOW_HOME: path.join(evalRoot, 'control-runtime') } });
       const receipt = await stopRun();
@@ -164,6 +166,10 @@ test('public background EVAL resume continues a real retained RUN through its ne
     }
     t.signal.removeEventListener('abort', abort);
     if ((!runId || settled) && workerExited) await rm(root, { recursive: true, force: true });
-    else throw new Error(`Owned integration did not settle; retained ${root}`);
+    else {
+      const error = new Error(`Owned integration did not settle; retained ${root}`);
+      if (primary) primary.cleanup_error = error;
+      else throw error;
+    }
   }
 });
