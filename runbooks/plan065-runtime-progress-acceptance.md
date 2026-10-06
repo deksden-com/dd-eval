@@ -2,6 +2,8 @@
 
 This is an operational checklist, not a receipt of paid qualification or E2E
 success. CP194's interrupted exact-definition attempts remain immutable.
+For the common offline commands and complete test evidence, use
+[FLOW test-suite verification](flow-test-suite-verification.md).
 
 Before authorizing a successor scored EVAL:
 
