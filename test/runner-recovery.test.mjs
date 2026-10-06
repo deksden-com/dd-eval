@@ -35,7 +35,7 @@ test("public cleanup retry retains an exhausted attempt and a new identity runs 
 import { commandJson } from "../lib/process-json.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
-import { evalJudge, frozenCandidate, loadRunProfile, migrateLegacyCanonicalResumeLock, runnerCheckpoints, runnerResume, runnerCleanup, runnerCleanupReceipt, runnerControlStatus } from "../lib/runner.mjs";
+import { evalJudge, frozenCandidate, interactionFixtureManifest, loadCase, loadRunProfile, migrateLegacyCanonicalResumeLock, runnerCheckpoints, runnerResume, runnerCleanup, runnerCleanupReceipt, runnerFinalizeSettled, runnerControlStatus } from "../lib/runner.mjs";
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { processSnapshot } from "../lib/process-snapshot.mjs";
@@ -64,6 +64,30 @@ test("a derived EVAL starts in the ordinary first execution generation", () => {
   const operationId = `${runId}:e2e:launch`;
   const state = executionState([{ executionid: "e2e", type: "dev.dd.eval.operation.requested", data: { operation_id: operationId } }], runId, execution);
   assert.doesNotThrow(() => assertExecutionDispatch(state, operationId));
+});
+
+test("scored finalization after cleanup freezes the failed candidate and attempts Judge without replay", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-scored-cleanup-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const caseId = "sdlc-eval-2026-summer-task-priority", loaded = await loadCase(caseId);
+  const commit = spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).stdout.trim();
+  const manifest = { run_id: "EVAL-scored-cleanup", case_id: caseId,
+    definition: { commit }, input_checkpoint: { sha256: loaded.inputCheckpoint.sha256 },
+    executions: [{ id: "e", stage: "specify", terminal_stage: "merge", mode: "e2e" }], subject_profile: {},
+    profile: { judge: { enabled: true, profile_id: "nonexistent-review-test-profile" } } };
+  manifest.interaction_fixtures = await interactionFixtureManifest(loaded.root, manifest.executions);
+  const manifestFile = path.join(root, "manifest.json"), eventsFile = path.join(root, "events.jsonl");
+  await writeJsonAtomic(manifestFile, manifest);
+  for (const type of ["started", "failed"]) await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: `${manifest.run_id}:e:launch`, error: { code: "preflight_failed", message: "before session" } } });
+  assert.equal((await runnerCleanup({ evalRoot: root })).judge_status, "not_run_cleanup_only");
+  const args = { evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)) };
+  const finalized = await runnerFinalizeSettled(args);
+  assert.equal(finalized.judge_status, "failed"); // Real Judge admission attempted; missing test profile, no provider call.
+  const candidate = await readFile(path.join(root, "candidate.json"));
+  assert.equal((await runnerFinalizeSettled(args)).judge_status, "failed");
+  assert.deepEqual(await readFile(path.join(root, "candidate.json")), candidate);
+  assert.equal((await readEvents(eventsFile)).filter(event => event.type === "dev.dd.eval.operation.started" && event.data.operation_id === `${manifest.run_id}:e:launch`).length, 1);
+  await assert.rejects(runnerFinalizeSettled({ ...args, expectedManifestSha256: "changed" }), { code: "runner_definition_drift" });
 });
 
 test("cleanup leaves queued executions and Judge undispatched", async () => {
