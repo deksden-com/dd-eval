@@ -241,9 +241,31 @@ preflight or scored run. This operation uses the existing Interaction Judge on
 the pinned corpus and stores a shared, checksum-bound receipt under
 `DD_EVAL_DEFINITION_QUALIFICATION_HOME` (default
 `~/.dd-eval/definition-qualifications`). It creates Judge Sessions only, never
-a Subject Session or a scored EVAL. The exact committed definition tree,
-fixture, corpus, Judge profile and prompt contract must match; a changed
-input requires a new qualification. Preflight merely checks this receipt and
+a Subject Session or a scored EVAL. Qualification@4 separates each native
+Judge task from its deterministic assessment. A task depends on the question,
+stage, semantic context and frozen source membership/bytes, **all** canonical
+answers shown, output contract, shared prompt, and Judge model/reasoning/input
+settings. Subject harness changes, transport/hook/timeout repairs, adapter
+versions, notes, documentation and unrelated repository changes do not require
+new Judge calls. Git commit/tree and runtime versions remain provenance.
+
+Oracle/structural-validator changes require deterministic regressions (including
+negative cases), then `runner definition qualify` re-evaluates retained native
+answers without paying again. Changing one question/context creates only that
+case's new task; changing shared answers affects cases receiving those answers;
+changing the shared prompt/model affects all corresponding cases. Reordering,
+removing, or adding an identical task reuses its original evidence.
+
+The qualification command imports compatible qualification@3 evidence read-only
+and checks **every** retained matching final, not only a convenient PASS. It
+checks original native Session/Turn, exact prompt and final, frozen packet/source
+bytes, hashes and physical cleanup. Checkout/packet paths are transport only;
+the original prompt hash remains bound. Corruption, unknown paid outcome or
+unconfirmed cleanup blocks reuse and never authorizes a replacement Session.
+New task intents and a shared qualification lock fence crash/concurrent replay.
+Historical receipts are never upgraded in place. This is regression evidence,
+not a certificate that Judge cannot err; real E2E decisions still pass current
+validation. Preflight merely checks the current assessment receipt and
 still records `provider_sessions_created: 0`; direct `eval run` checks it too.
 A request to prepare only never authorizes `eval run` or a live compatibility/
 capacity experiment.
@@ -422,7 +444,8 @@ where the feature is already implemented. See the [baseline audit](task-priority
    an engine version. The exact engine package, version and checksum are
    pinned by the input checkpoint and recorded in each run manifest. Update a
    harness profile only when its provider settings change; rebuild the input
-   checkpoint when a changed engine contract needs new qualification.
+   checkpoint when a changed engine contract needs new installed-runtime
+   acceptance. This is not a reason to repeat unchanged Judge tasks.
 3. For focused/segment runs, validate the accepted package:
 
    ```sh

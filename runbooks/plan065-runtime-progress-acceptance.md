@@ -15,15 +15,18 @@ Before authorizing a successor scored EVAL:
    `native-operation-wait@1`
    and all six bundled adapter entrypoints from the installed snapshot. Existing
    global hooks must point to the intended runtime; retained old homes stay pinned.
-3. Keep semantic qualification and runtime acceptance separate. A changed EVAL
-   definition tree produces a fresh semantic cache identity automatically. A
-   FLOW-only update needs new installed runtime acceptance, not deletion of the
-   semantic cache or blanket hashing of native private homes.
-4. When separately authorized, run the full fresh 18-item exact-definition
-   corpus with the selected artifact. Productive Judge reasoning/tools must
-   outlive the former 10/15-minute cap; genuine quiet or observation loss remains
-   bounded. Do not accept partial JSON or reuse seven passed historical items as
-   full corpus acceptance. Preserve every failed attempt and cleanup evidence.
+3. Keep semantic qualification and runtime acceptance separate. Qualification@4
+   keys actual per-case Judge inputs, not repository tree or harness version.
+   A FLOW-only update needs affected installed runtime acceptance, not deletion
+   of the semantic cache, new Judge calls or blanket hashing of native homes.
+4. Assess every item in the current authored corpus using compatible retained
+   native finals; only missing/changed Judge tasks need separately authorized
+   live calls. Oracle/validator changes require deterministic positive and
+   negative regressions. Runtime progress acceptance remains a separate,
+   affected-contract check: productive native reasoning/tools must outlive the
+   former cap, while genuine quiet/observation loss remains bounded. Do not
+   accept partial JSON or seven passed items as full corpus coverage. Preserve
+   every failed attempt and cleanup evidence; never replace an unknown Turn.
 5. New baseline receipt@2 must match the policy/hash, command IDs/order and
    inactivity thresholds. Observe exact lease renewal and physical cleanup;
    output is not lease authority. Baseline source mutation remains a failure.

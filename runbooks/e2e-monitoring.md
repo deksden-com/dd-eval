@@ -54,8 +54,11 @@ not replenish it. Legacy cumulative recovery receipts remain legacy.
 
 Semantic qualification cache alone is not runtime progress acceptance. Verify
 the selected artifact's `operation-progress@1` and `operation-errors@2` helper
-bytes and installed acceptance; new definition commits require a fresh corpus
-qualification. Historic paid evidence remains immutable.
+bytes and installed acceptance. Repository commits and harness repairs alone
+do not require new Judge calls. Qualification@4 keys each Judge task by its
+actual inputs and re-evaluates retained finals under the current oracle; see
+[qualification policy](execute-eval.md#before-launch). Historic paid evidence
+remains immutable.
 
 New final-check coverage uses `dd-flow/final-check-coverage@1` and qualification
 @3. Successful MERGE acceptance requires passed native checks. Reached failed
