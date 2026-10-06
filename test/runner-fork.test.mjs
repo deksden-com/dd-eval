@@ -161,6 +161,29 @@ test('fork inherits pins, crosses a boundary and finalizes through ordinary EVAL
   assert.equal((await waitForState(f.runner, f.output, ['completed'])).state, 'completed');
 });
 
+test('fork and detached continuation retain a private registry despite ambient replacement', async t => {
+  const f = await setup(t), registry = path.join(f.temp, 'private-registry', 'homes.json');
+  const before = process.env.DD_EVAL_REGISTRY_FILE;
+  t.after(() => { if (before === undefined) delete process.env.DD_EVAL_REGISTRY_FILE; else process.env.DD_EVAL_REGISTRY_FILE = before; });
+  process.env.DD_EVAL_REGISTRY_FILE = registry;
+  const ready = await f.runner.runnerFork(f.input);
+  const file = path.join(f.output, 'manifest.json'), bytes = await readFile(file, 'utf8');
+  assert.equal(JSON.parse(bytes).eval_registry_file, registry);
+  const registryBytes = await readFile(registry, 'utf8');
+  assert.equal(JSON.parse(registryBytes).homes.length, 1);
+  const working = path.join(f.temp, '.dd-eval', 'homes.json');
+  await write(working, '{working canary');
+  const ambient = path.join(f.temp, 'other-registry', 'homes.json');
+  process.env.DD_EVAL_REGISTRY_FILE = ambient;
+  const accepted = await f.runner.runnerFork({ ...f.input, start: true });
+  assert.equal(accepted.run_id, ready.run_id);
+  assert.equal((await waitForState(f.runner, f.output, ['completed'])).state, 'completed');
+  assert.equal(await readFile(working, 'utf8'), '{working canary');
+  await assert.rejects(stat(ambient), { code: 'ENOENT' });
+  assert.equal(await readFile(file, 'utf8'), bytes);
+  assert.equal(await readFile(registry, 'utf8'), registryBytes);
+});
+
 test('completed fork replay does not require its archived source checkpoint', async t => {
   const f = await setup(t);
   const ready = await f.runner.runnerFork(f.input);

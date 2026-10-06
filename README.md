@@ -531,6 +531,14 @@ historical journal only with an explicit partial-observation indication.
 ### Local Eval home registry
 
 `~/.dd-eval/homes.json` is the shared registry, independent of `DD_EVAL_HOME`.
+For isolated development, `DD_EVAL_REGISTRY_FILE` selects a separate absolute
+registry file without changing the system HOME. Empty/relative selections fail
+before registration; missing private files start empty, malformed files are
+preserved. There is no fallback from an explicit selection to the global file.
+New run and fork manifests retain `eval_registry_file`; detached continuation
+uses that path even when the invoking shell selects another registry. Historical
+manifests without the field keep the original global default. See the
+[isolated development runbook](runbooks/isolated-development.md).
 The version 1 document contains `schema_version: 1` and `homes` entries with
 `id`, canonical `root`, `label`, `created_at` and `disabled` fields.
 Creating an Eval or requesting continuation registers its home automatically.
