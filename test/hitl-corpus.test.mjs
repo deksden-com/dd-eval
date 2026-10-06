@@ -118,6 +118,12 @@ test('initial clarification with a canonical refusal is distinct from reconfirmi
   assert.ok(accepted.accepted_decisions.length);
   assert.equal(repeat.classification, 'unnecessary_question');
   assertExpectedAtoms(initial, split(initial), options);
+  const fullClause = split(initial);
+  fullClause.atoms[0].source_quote = initial.question.slice(0, initial.question.indexOf('?') + 1);
+  assertExpectedAtoms(initial, fullClause, options);
+  const omittedState = split(initial);
+  omittedState.atoms.shift();
+  assert.deepEqual(compareHitlExpectation(initial, omittedState, options).missing_obligation_ids, ['minimal-state']);
   const failed = split(initial);
   const workflow = failed.atoms.find(value => value.decision === 'workflow');
   workflow.classification = 'unnecessary_question'; workflow.answer_evidence = [];
