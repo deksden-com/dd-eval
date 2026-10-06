@@ -341,7 +341,7 @@
       "question": "Если у задачи пока нет состояния, как выполнить требование менять приоритет открытой и закрытой задачи? Кто сможет закрывать и открывать задачу, нужен ли отдельный workflow?",
       "classification": "covered_by_canonical_response",
       "response_ids": [
-        "clarification-minimal-task-state"
+        "clarification-task-priority"
       ],
       "context_file": "entry-pack-source/interactions/qualification-specify.json",
       "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
@@ -352,7 +352,7 @@
             "id": "minimal-state",
             "classification": "covered_by_canonical_response",
             "response_ids": [
-              "clarification-minimal-task-state"
+              "clarification-task-priority"
             ],
             "witness_ids": [
               "minimal-state",
@@ -363,7 +363,7 @@
             "id": "permissions",
             "classification": "covered_by_canonical_response",
             "response_ids": [
-              "clarification-minimal-task-state"
+              "clarification-task-priority"
             ],
             "witness_ids": [
               "permissions",
@@ -374,7 +374,7 @@
             "id": "workflow",
             "classification": "covered_by_canonical_response",
             "response_ids": [
-              "clarification-minimal-task-state"
+              "clarification-task-priority"
             ],
             "witness_ids": [
               "workflow",
@@ -390,7 +390,7 @@
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
-              "clarification-minimal-task-state"
+              "clarification-task-priority"
             ]
           },
           {
@@ -400,7 +400,7 @@
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
-              "clarification-minimal-task-state"
+              "clarification-task-priority"
             ]
           },
           {
@@ -410,7 +410,7 @@
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
-              "clarification-minimal-task-state"
+              "clarification-task-priority"
             ]
           },
           {
@@ -420,7 +420,7 @@
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
-              "clarification-minimal-task-state"
+              "clarification-task-priority"
             ]
           }
         ]
@@ -432,7 +432,7 @@
       "question": "AC-003 требует изменение приоритета закрытой задачи, но у задачи сейчас нет состояния. Добавить минимальное состояние open/closed и переходы или убрать закрытые задачи из критерия? Нужно ли делать отдельный workflow?",
       "classification": "covered_by_canonical_response",
       "response_ids": [
-        "clarification-minimal-task-state"
+        "clarification-task-priority"
       ],
       "context_file": "entry-pack-source/interactions/qualification-plan.json",
       "context_sha256": "ec929d1e2ab6202fc6014a2d74f640a3a39ed812b747687db899d915346f1a5d",
@@ -443,7 +443,7 @@
             "id": "minimal-state",
             "classification": "covered_by_canonical_response",
             "response_ids": [
-              "clarification-minimal-task-state"
+              "clarification-task-priority"
             ],
             "witness_ids": [
               "minimal-state",
@@ -454,7 +454,7 @@
             "id": "workflow",
             "classification": "covered_by_canonical_response",
             "response_ids": [
-              "clarification-minimal-task-state"
+              "clarification-task-priority"
             ],
             "witness_ids": [
               "workflow",
@@ -471,7 +471,7 @@
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
-              "clarification-minimal-task-state"
+              "clarification-task-priority"
             ]
           },
           {
@@ -481,7 +481,7 @@
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
-              "clarification-minimal-task-state"
+              "clarification-task-priority"
             ]
           },
           {
@@ -491,7 +491,7 @@
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
-              "clarification-minimal-task-state"
+              "clarification-task-priority"
             ]
           }
         ]

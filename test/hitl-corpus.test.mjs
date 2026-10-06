@@ -4,12 +4,31 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { validateExpectedAtoms, assertExpectedAtoms, compareHitlExpectation } from '../lib/hitl-corpus.mjs';
 import { buildHitlPacket, validateGroundedHitl, projectHitlAtoms } from '../lib/hitl-contract.mjs';
+import { resolveHitlJudgment } from '../lib/runner.mjs';
 
 const caseRoot = new URL('../cases/sdlc-eval-2026-summer-task-priority/', import.meta.url);
 const corpus = JSON.parse(await readFile(new URL('entry-pack-source/interactions/qualification.json', caseRoot), 'utf8'));
 const covered = 'covered_by_canonical_response';
 const { responses } = JSON.parse(await readFile(new URL('entry-pack-source/interactions/specify.json', caseRoot)));
 const options = { responses, coverageRequired: true };
+test('priority-only clarification delivers the complete canonical dependency package at both stages', async () => {
+  const plan = JSON.parse(await readFile(new URL('entry-pack-source/interactions/plan.json', caseRoot)));
+  assert.deepEqual(plan.responses, responses);
+  assert.equal(responses.length, 1);
+  const response = responses[0];
+  const question = 'Какие уровни приоритета использовать?';
+  const packet = await buildHitlPacket({ stage: 'specify', question, subjectContext: {}, responses });
+  const verdict = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@3', atoms: [{
+    source_quote: question, decision: 'priority levels', classification: covered,
+    reference_bindings: [], scope_evidence: [],
+    answer_evidence: [{ response_id: response.id, answer_quote: 'Используем четыре уровня' }], rationale: 'canonical levels'
+  }] }, packet);
+  const exchange = resolveHitlJudgment({ fixture: { responses }, judgment: { packet, verdict }, question, stage: 'specify' });
+  assert.equal(exchange.answer, response.answer);
+  for (const rule of ['сохраняемое состояние задачи `open`/`closed`', 'по умолчанию `open`', 'закрыть задачу или снова открыть', 'изменение состояния сохраняет приоритет', 'изменение приоритета сохраняет состояние', 'Недопустимое состояние отклоняет весь запрос', 'В архивном проекте состояние остаётся read-only']) {
+    assert.ok(exchange.answer.includes(rule), rule);
+  }
+});
 const itemBy = id => corpus.items.find(item => item.id === id);
 const atom = witness => {
   const item = corpus.items.find(item => item.expected_coverage.witnesses.includes(witness));
