@@ -1,0 +1,195 @@
+{
+  "schema_id": "dd-eval/hitl-match@3",
+  "atoms": [
+    {
+      "source_quote": "допустимые значения",
+      "decision": "Определить фиксированный набор допустимых кодов уровней приоритета.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Используем четыре уровня: `no_priority` («Без приоритета»), `low` («Низкий»), `medium` («Средний»), `high` («Высокий»);"
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "Ответ фиксирует конечный набор из четырёх кодов и их русские подписи."
+    },
+    {
+      "source_quote": "их порядок",
+      "decision": "Определить порядок или сравнительную шкалу уровней приоритета.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [
+        {
+          "reference_quote": "их",
+          "source_id": "question",
+          "evidence_quote": "допустимые значения"
+        }
+      ],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Никаких дополнительных сравнений, ранжирования, сортировки или фильтрации задач по приоритету не требуется."
+        },
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Перечень кодов и подписей — фиксированный словарь, а не требование нового порядка задач или отдельного порядка UI-контрола."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "Канонический ответ явно отказывается от сравнений, ранжирования и нового порядка, разрешая вопрос отказом от упорядоченной шкалы."
+    },
+    {
+      "source_quote": "понятные тексты",
+      "decision": "Определить понятные пользовательские тексты для уровней приоритета.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Используем четыре уровня: `no_priority` («Без приоритета»), `low` («Низкий»), `medium` («Средний»), `high` («Высокий»);"
+        },
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "В списке задач показываем эти понятные тексты и не меняем существующий порядок задач из-за приоритета."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "Ответ задаёт русские подписи и требует показывать эти тексты пользователю."
+    },
+    {
+      "source_quote": "заполнение обязательного поля",
+      "decision": "Определить значение по умолчанию и обязательность поля при создании.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "При создании задачи отсутствие поля `priority` или значение `no_priority` создаёт задачу без приоритета."
+        },
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "для новых и существующих задач по умолчанию — `no_priority`."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "Ответ задаёт значение по умолчанию и прямо разрешает отсутствие поля при создании."
+    },
+    {
+      "source_quote": "для существующих задач выполнить такое же заполнение",
+      "decision": "Определить миграционное заполнение приоритета для существующих задач.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "для новых и существующих задач по умолчанию — `no_priority`."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "Канонический ответ прямо назначает существующим задачам значение `no_priority` по умолчанию."
+    },
+    {
+      "source_quote": "допустимые операции создания/редактирования",
+      "decision": "Определить допустимые операции и значения при создании и редактировании приоритета.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Переданные `low`, `medium`, `high` и недопустимые значения отклоняются без создания задачи: приоритет меняется только после создания."
+        },
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "При обновлении отсутствие поля `priority` сохраняет текущее значение; переданное допустимое значение устанавливается, включая `no_priority`."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "Ответ определяет правила create и update, включая отклонение значений при создании и установку допустимого значения после создания."
+    },
+    {
+      "source_quote": "приоритет виден в чтении списка/деталей",
+      "decision": "Определить видимость приоритета в списке и деталях задач архивного проекта.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Приоритет обрабатывается у задач независимо от текущего статуса проекта: задачи архивных проектов сохраняют и показывают своё значение."
+        },
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Поле `priority` возвращается в ответах API как для списка задач, так и для детальной задачи; список и detail-вид показывают соответствующую понятную подпись."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "Ответ требует сохранять и показывать значение архивных задач и уточняет выдачу для списка и детального вида."
+    },
+    {
+      "source_quote": "как это правило сочетается с приоритетом",
+      "decision": "Определить, как read-only правило архивного проекта применяется к приоритету и другим изменениям задач.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [
+        {
+          "reference_quote": "это правило",
+          "source_id": "question",
+          "evidence_quote": "архивные проекты доступны для чтения, но task mutations в них запрещены"
+        }
+      ],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Из общего read-only правила архивного проекта делаем узкое исключение: участник workspace может изменить приоритет задачи, в том числе через существующий интерфейс редактирования; остальные поля остаются read-only."
+        },
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Смешанное изменение приоритета и других полей отклоняется целиком без частичной записи."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "Ответ сохраняет архивный read-only gate, разрешая только изменение приоритета и отклоняя смешанные изменения целиком."
+    },
+    {
+      "source_quote": "где разрешены операции",
+      "decision": "Определить границы операций с приоритетом в UI и API для архивных проектов.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [
+        {
+          "reference_quote": "операции",
+          "source_id": "question",
+          "evidence_quote": "создание и изменение задач (включая приоритет)"
+        }
+      ],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Правила одинаковы для UI и API."
+        },
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "участник workspace может изменить приоритет задачи, в том числе через существующий интерфейс редактирования; остальные поля остаются read-only."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "Ответ одинаково применяет разрешённые и запрещённые операции в UI и API и ограничивает архивное исключение изменением приоритета."
+    }
+  ],
+  "status": "matched",
+  "classification": "covered_by_canonical_response",
+  "response_ids": [
+    "clarification-task-priority"
+  ],
+  "covered_questions": [
+    "допустимые значения",
+    "их порядок",
+    "понятные тексты",
+    "заполнение обязательного поля",
+    "для существующих задач выполнить такое же заполнение",
+    "допустимые операции создания/редактирования",
+    "приоритет виден в чтении списка/деталей",
+    "как это правило сочетается с приоритетом",
+    "где разрешены операции"
+  ],
+  "uncovered_questions": [],
+  "rationale": "Ответ фиксирует конечный набор из четырёх кодов и их русские подписи.\nКанонический ответ явно отказывается от сравнений, ранжирования и нового порядка, разрешая вопрос отказом от упорядоченной шкалы.\nОтвет задаёт русские подписи и требует показывать эти тексты пользователю.\nОтвет задаёт значение по умолчанию и прямо разрешает отсутствие поля при создании.\nКанонический ответ прямо назначает существующим задачам значение `no_priority` по умолчанию.\nОтвет определяет правила create и update, включая отклонение значений при создании и установку допустимого значения после создания.\nОтвет требует сохранять и показывать значение архивных задач и уточняет выдачу для списка и детального вида.\nОтвет сохраняет архивный read-only gate, разрешая только изменение приоритета и отклоняя смешанные изменения целиком.\nОтвет одинаково применяет разрешённые и запрещённые операции в UI и API и ограничивает архивное исключение изменением приоритета."
+}

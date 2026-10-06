@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { validateExpectedAtoms, assertExpectedAtoms, compareHitlExpectation } from '../lib/hitl-corpus.mjs';
-import { projectHitlAtoms } from '../lib/hitl-contract.mjs';
+import { buildHitlPacket, validateGroundedHitl, projectHitlAtoms } from '../lib/hitl-contract.mjs';
 
 const caseRoot = new URL('../cases/sdlc-eval-2026-summer-task-priority/', import.meta.url);
 const corpus = JSON.parse(await readFile(new URL('entry-pack-source/interactions/qualification.json', caseRoot), 'utf8'));
@@ -63,6 +63,33 @@ test('CP190 native short create/edit requests retain two independent operation o
   for (const id of ['q2-create', 'q2-update']) {
     assert.deepEqual(compareHitlExpectation(item, { atoms: full.atoms.filter(atom => atom.decision !== id) }, options).missing_obligation_ids, [id]);
   }
+});
+
+test('immutable CP196 native operative choices cover defaults and UI/API boundary without changing verdict bytes', async () => {
+  const bytes = await readFile(new URL('./fixtures/hitl-cp196-operative-choice.json', import.meta.url));
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), '9b11b0c25d234cff8a535e4cde0fd1927d2a04f0114fda6f845474408e3e44fa');
+  const native = JSON.parse(bytes), item = itemBy('luna-cp190-exact');
+  const fixture = JSON.parse(await readFile(new URL('entry-pack-source/interactions/specify.json', caseRoot)));
+  const packet = await buildHitlPacket({ stage: 'specify', question: item.question, responses: fixture.responses });
+  assert.deepEqual(validateGroundedHitl(native, packet, { stored: true }), native);
+  assertExpectedAtoms(item, native, options);
+  for (const [quote, missing] of [
+    ['для существующих задач выполнить такое же заполнение', ['q2-default']],
+    ['допустимые операции создания/редактирования', ['q2-create', 'q2-update']],
+    ['приоритет виден в чтении списка/деталей', ['q3-visibility']],
+    ['как это правило сочетается с приоритетом', ['q3-archive']],
+    ['где разрешены операции', ['q3-operation-boundary', 'q3-ui-api']]
+  ]) {
+    const atoms = native.atoms.filter(atom => atom.source_quote !== quote);
+    assert.deepEqual(compareHitlExpectation(item, { atoms }, options).missing_obligation_ids, missing);
+  }
+  const changed = structuredClone(native);
+  changed.atoms.at(-1).source_quote = 'где разрешены операции?';
+  assert.equal(compareHitlExpectation(item, changed, options).passed, false);
+  changed.atoms.at(-1).source_quote = 'где разрешены операции';
+  changed.atoms.at(-1).answer_evidence = [{ response_id: 'clarification-minimal-task-state' }];
+  assert.equal(compareHitlExpectation(item, changed, options).passed, false);
+  assert.deepEqual(JSON.parse(bytes), native);
 });
 
 test('bundled, split, reordering and repeated allowed source quotes have no total count requirement', () => {
