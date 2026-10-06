@@ -7,6 +7,7 @@ import os from "node:os";
 import { commandText, commandJson } from "../lib/process-json.mjs";
 import { readBaselineAdmissionPolicy, runBaselineAdmission, verifyBaselineAdmission } from "../lib/baseline-admission.mjs";
 import { installMaintenanceFixture } from "./fixtures/maintenance-runtime.mjs";
+import { installRuntimeShim } from "../lib/runner.mjs";
 
 test("light preparation validates the baseline policy without executing its command", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "baseline-policy-"));
@@ -144,14 +145,16 @@ test("baseline admission is pinned, records failure and rejects source mutations
     assert.equal(await readFile(path.join(projectRoot, "source.txt"), "utf8"), "baseline");
     if (process.env.DD_EVAL_TEST_FLOW_CLI) {
       const scope = { bin: path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI), home: path.join(root, "runtime"), resourceHome: path.join(root, "resources"), budget: { schema_id: "dd-flow/runtime-budget@1", scope_id: "EVAL-baseline", per_harness: {} }, operationId: "baseline-check" };
+      const selected = { snapshot_root: path.dirname(path.dirname(scope.bin)), entrypoint: path.join('dist', path.basename(scope.bin)) };
+      const controlBin = await installRuntimeShim(path.join(root, 'control-runtime'), selected);
+      scope.bin = await installRuntimeShim(scope.home, selected);
+      await assert.rejects(run('throw Error("wrong-home command must not execute")', undefined, { ...scope, bin: controlBin, budget: { ...scope.budget, scope_id: 'EVAL-wrong-home' }, operationId: 'baseline-wrong-home' }), { code: 'process_maintenance_receipt_invalid' });
       assert.equal((await run('console.log("owned baseline")', undefined, scope)).status, "passed");
       assert.equal((await run('console.log("started");let n=0;const t=setInterval(()=>{console.log("progress");if(++n===5)clearInterval(t)},500)', undefined, { ...scope, operationId: "baseline-sliding-owned" }, 1500, true)).status, "passed");
-      await mkdir(scope.home, { recursive: true });
-      await symlink(path.join(path.dirname(scope.bin), "harness-runtime"), path.join(scope.home, "harness-runtime"));
       // Admission may take longer than the command's timeout, but must not
       // kill the blocked gate before its live ownership can be confirmed.
       const delayedCli = path.join(root, "delayed-flow.mjs");
-      await writeFile(delayedCli, `import {spawn} from 'node:child_process';\nconst args=process.argv.slice(2);\nif(args[0]==='runtime' && args[1]==='process' && args[2]==='register') await new Promise(resolve=>setTimeout(resolve,1500));\nconst child=spawn(process.execPath,[${JSON.stringify(scope.bin)},...args],{stdio:'inherit'});\nchild.once('error',()=>process.exit(1));\nchild.once('exit',code=>process.exit(code??1));\n`);
+      await writeFile(delayedCli, `import {spawn} from 'node:child_process';\nconst args=process.argv.slice(2);\nif(args[0]==='runtime' && args[1]==='process' && args[2]==='register') await new Promise(resolve=>setTimeout(resolve,1500));\nconst child=spawn(${JSON.stringify(scope.bin)},args,{stdio:'inherit'});\nchild.once('error',()=>process.exit(1));\nchild.once('exit',code=>process.exit(code??1));\n`);
       assert.equal((await run('console.log("admitted before command timeout")', undefined, { ...scope, bin: delayedCli, operationId: "baseline-slow-admission" }, 1000)).status, "passed");
       await assert.rejects(run('setInterval(()=>{},1000)', undefined, { ...scope, operationId: "baseline-command-timeout" }, 100), { code: "baseline_admission_failed" });
       assert.deepEqual(JSON.parse(await readFile(path.join(root, "evidence/receipt.json"))).checks.map(({ exit_code, timed_out }) => ({ exit_code, timed_out })), [{ exit_code: 124, timed_out: true }]);

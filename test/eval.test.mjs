@@ -10,8 +10,8 @@ import test from "node:test";
 import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
-import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
-import { materializeQualificationContext } from "../lib/runner.mjs";
+import { buildHitlPacket, validateGroundedHitl, interactionGroundedPrompt } from '../lib/hitl-contract.mjs';
+import { materializeQualificationContext, reassessHitlQualification } from "../lib/runner.mjs";
 import { buildReport } from "../lib/runner.mjs";
 import { capacityCodexChildren } from "../lib/runner.mjs";
 import { errorRecord, terminalCodexOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
@@ -112,7 +112,7 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
 });
 
-test("HITL qualification is bound to the exact definition and Judge profile before provider startup", async () => {
+test("HITL qualification binds Judge task evidence, not repository tree or harness provenance", async () => {
   const temporary = await mkdtemp(path.join(tmpdir(), "dd-eval-hitl-qualification-"));
   const previous = process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME;
   process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME = temporary;
@@ -141,9 +141,9 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     const changed = await hitlQualificationInputs(relocatedInput);
     assert.notEqual(changed.key, qualified.key, 'source bytes under same path invalidate identity');
     await assert.rejects(materializeQualificationContext({ qualified: relocated, item: relocated.corpus.items[0], caseRoot: moved, output: path.join(temporary, 'stale.json') }), { code: 'definition_qualification_invalid' });
-    assert.match(qualified.identity.fixture_sha256.plan, /^[a-f0-9]{64}$/);
+    assert.match(qualified.tasks['minimal-task-state-at-plan'].key, /^[a-f0-9]{64}$/);
     await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_missing" });
-    const qualifiedItem = async (qualification, item, name = item.id, change = value => value, changePacket = value => value) => {
+    const qualifiedItem = async (qualification, item, name = item.id, change = value => value, changePacket = value => value, changeObserved = value => value, checkerFile = undefined) => {
       const stage = item.stage ?? qualification.corpus.stage, fixture = qualification.fixtures[stage];
       const operation = path.join(qualification.root, 'operation-offline');
       const judgeRoot = path.join(operation, 'interaction-judge', name);
@@ -154,16 +154,25 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
       const packet = changePacket(originalPacket);
       await writeFile(path.join(judgeRoot, 'packet.json'), JSON.stringify(packet));
       const expected = item.expected_coverage.witnesses.filter(witness => item.expected_coverage.obligations.some(obligation => obligation.witness_ids[0] === witness.id));
-      const observed = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@3', atoms: expected.map((atom, index) => ({ source_quote: atom.source_quotes?.[0] ?? atom.source_quote ?? item.question, decision: `offline decision ${index}`, classification: atom.classification, reference_bindings: [], scope_evidence: atom.classification === 'fixture_gap' ? [{ kind: 'context', field: 'objective', quote: context.objective }] : [], answer_evidence: atom.classification === 'covered_by_canonical_response' ? atom.response_ids.map(id => ({ response_id: id, answer_quote: fixture.responses.find(response => response.id === id).answer })) : [], rationale: 'offline contract fixture, not a semantic Judge proof' })) }, originalPacket);
+      const observed = changeObserved(validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@3', atoms: expected.map((atom, index) => ({ source_quote: atom.source_quotes?.[0] ?? atom.source_quote ?? item.question, decision: `offline decision ${index}`, classification: atom.classification, reference_bindings: [], scope_evidence: atom.classification === 'fixture_gap' ? [{ kind: 'context', field: 'objective', quote: context.objective }] : [], answer_evidence: atom.classification === 'covered_by_canonical_response' ? atom.response_ids.map(id => ({ response_id: id, answer_quote: fixture.responses.find(response => response.id === id).answer })) : [], rationale: 'offline contract fixture, not a semantic Judge proof' })) }, originalPacket), originalPacket);
       const verdict = change({ schema_id: 'dd-eval/interaction-judge-receipt@1', profile_id: qualification.profile.id, session_id: name, stage, interaction_fixture_sha256: fixture.sha256, packet_sha256: hashJson(packet), verdict: observed });
+      const prompt = interactionGroundedPrompt(path.join(judgeRoot, 'packet.json'), checkerFile);
+      const chain = { schema_id: 'dd-eval/capacity-chain@2', session_id: name, root_operation_id: 'offline-turn', turns: [{ ordinal: 0, operation_id: 'offline-turn', not_before: 0, state: 'completed', prompt_sha256: createHash('sha256').update(prompt).digest('hex'), result: {
+        provider_session_id: name, turn_id: 'native-turn', turn: { id: 'native-turn', status: 'completed' }, harness: qualification.profile.harness,
+        requested_profile: { harness: qualification.profile.harness, model: qualification.profile.model, reasoning: qualification.profile.reasoning },
+        observed_profile: { model: qualification.profile.model, reasoning: qualification.profile.reasoning }, assistant_text: JSON.stringify({ schema_id: observed.schema_id, atoms: observed.atoms }), thread: { preview: prompt }
+      } }] };
+      await writeFile(path.join(judgeRoot, `capacity-${hashJson([name, prompt])}.json`), JSON.stringify(chain));
       const cleanup = await settledJudge(judgeRoot, verdict);
-      return { id: item.id, stage, passed: true, observed, receipt_file: path.join(judgeRoot, 'result.json'), cleanup };
+      const sample = { id: item.id, original_item_id: item.id, operation, judge_profile: qualification.profile, fixture_sha256: fixture.sha256, observed, receipt_file: path.join(judgeRoot, 'result.json'),
+        original_prompt: prompt, receipt_sha256: createHash('sha256').update(await readFile(path.join(judgeRoot, 'result.json'))).digest('hex'), chain_sha256: hashJson(chain), cleanup };
+      return { id: item.id, stage, native_key: qualification.tasks[item.id].key, passed: true, samples: [sample] };
     };
     const results = [];
     for (const item of qualified.corpus.items) {
       results.push(await qualifiedItem(qualified, item));
     }
-    const content = { schema_id: "dd-eval/hitl-qualification@3", key: qualified.key, status: "passed", identity: qualified.identity, operation: path.join(qualified.root, 'operation-offline'), results, cleanup: "settled" };
+    const content = { schema_id: "dd-eval/hitl-qualification@4", key: qualified.key, status: "passed", identity: qualified.identity, operation: path.join(qualified.root, 'operation-offline'), results, cleanup: "settled" };
     await mkdir(qualified.root, { recursive: true });
     await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
     assert.equal((await assertHitlQualification(input)).key, qualified.key);
@@ -191,7 +200,7 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...foreignPacket, immutable_hash: hashJson(foreignPacket) }));
     await assert.rejects(assertHitlQualification(input), { code: 'definition_qualification_invalid' });
     await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
-    const sourcePacket = JSON.parse(await readFile(path.join(path.dirname(results[0].receipt_file), 'packet.json'), 'utf8'));
+    const sourcePacket = JSON.parse(await readFile(path.join(path.dirname(results[0].samples[0].receipt_file), 'packet.json'), 'utf8'));
     const frozenSource = sourcePacket.subject_context.sources[0].path;
     const sourceBytes = await readFile(frozenSource);
     await chmod(frozenSource, 0o644); await writeFile(frozenSource, 'tampered retained bytes');
@@ -205,7 +214,93 @@ test("HITL qualification is bound to the exact definition and Judge profile befo
     await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...wrongStage, immutable_hash: hashJson(wrongStage) }));
     await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_invalid" });
     await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
-    await assert.rejects(assertHitlQualification({ ...input, definition: { tree: "b".repeat(64) } }), { code: "definition_qualification_missing" });
+    assert.equal((await assertHitlQualification({ ...input, definition: { tree: "b".repeat(64) } })).key, qualified.key);
+    const reassessed = await reassessHitlQualification(qualified);
+    assert.deepEqual(reassessed.missing, []);
+    assert.ok(reassessed.results.every(result => result.passed));
+    const cacheCase = path.join(temporary, 'cache-case');
+    await cp(path.join(loaded.root, 'entry-pack-source'), path.join(cacheCase, 'entry-pack-source'), { recursive: true });
+    const corpusFile = path.join(cacheCase, loaded.value.hitl_qualification.file);
+    const withCorpus = async corpus => {
+      const bytes = JSON.stringify(corpus); await writeFile(corpusFile, bytes);
+      return hitlQualificationInputs({ ...input, loaded: { ...loaded, root: cacheCase, value: { ...loaded.value, hitl_qualification: { ...loaded.value.hitl_qualification, sha256: createHash('sha256').update(bytes).digest('hex') } } } });
+    };
+    const oracle = structuredClone(qualified.corpus);
+    const witness = oracle.items[0].expected_coverage.witnesses[0], oldId = witness.id; witness.id = 'renamed-oracle-witness';
+    for (const obligation of oracle.items[0].expected_coverage.obligations) obligation.witness_ids = obligation.witness_ids.map(id => id === oldId ? witness.id : id);
+    const rechecked = await withCorpus(oracle);
+    assert.notEqual(rechecked.key, qualified.key);
+    assert.deepEqual(rechecked.tasks, qualified.tasks, 'oracle edits never change native tasks');
+    assert.deepEqual((await reassessHitlQualification(rechecked)).missing, []);
+    const rejected = structuredClone(qualified.corpus), rejectedItem = rejected.items[0];
+    Object.assign(rejectedItem, { classification: 'out_of_scope', status: 'unmatched', response_ids: [], expected_coverage: {
+      obligations: [{ id: 'wrong-oracle', classification: 'out_of_scope', response_ids: [], witness_ids: ['wrong-oracle'] }],
+      witnesses: [{ id: 'wrong-oracle', source_quotes: [rejectedItem.question], classification: 'out_of_scope', response_ids: [] }]
+    } });
+    const negative = await reassessHitlQualification(await withCorpus(rejected));
+    assert.deepEqual(negative.missing, []); assert.equal(negative.results[0].passed, false, 'retained failure cannot be replaced by a fresh paid answer');
+    const reordered = structuredClone(qualified.corpus); reordered.items.reverse();
+    assert.deepEqual((await reassessHitlQualification(await withCorpus(reordered))).missing, []);
+    reordered.items.pop();
+    assert.deepEqual((await reassessHitlQualification(await withCorpus(reordered))).missing, []);
+    const oneQuestion = structuredClone(qualified.corpus); oneQuestion.items[0].question += '\nNew condition.';
+    assert.deepEqual((await reassessHitlQualification(await withCorpus(oneQuestion))).missing, [oneQuestion.items[0].id]);
+    const added = structuredClone(qualified.corpus); added.items.push({ ...oneQuestion.items[0], id: 'new-case' });
+    assert.deepEqual((await reassessHitlQualification(await withCorpus(added))).missing, ['new-case']);
+    const profileFile = path.join(temporary, 'judge-profile.json');
+    const profileInput = { ...input, runProfile: { value: { ...runProfile.value, interaction_judge: { profile_id: profileFile } } } };
+    await writeFile(profileFile, JSON.stringify({ ...qualified.profile, notes: 'new documentation', runtime: { adapter: 'fixed' }, subagent_capacity: 9 }));
+    assert.equal((await hitlQualificationInputs(profileInput)).key, qualified.key, 'harness changes are not Judge input changes');
+    await writeFile(profileFile, JSON.stringify({ ...qualified.profile, model: 'new-model' }));
+    assert.deepEqual((await reassessHitlQualification(await hitlQualificationInputs(profileInput))).missing, qualified.corpus.items.map(item => item.id));
+    const changedPrompt = { ...qualified, tasks: Object.fromEntries(Object.entries(qualified.tasks).map(([id, task]) => {
+      const identity = { ...task.identity, prompt_sha256: 'f'.repeat(64) }; return [id, { identity, key: hashJson(identity) }];
+    })) };
+    assert.deepEqual((await reassessHitlQualification(changedPrompt)).missing, qualified.corpus.items.map(item => item.id));
+    // A response change affects its stage, including cases which previously
+    // did not select that response: Judge sees the entire answer set.
+    await withCorpus(qualified.corpus);
+    const planFile = path.join(cacheCase, 'entry-pack-source/interactions/plan.json'), planFixture = JSON.parse(await readFile(planFile));
+    await writeFile(planFile, JSON.stringify(planFixture, null, 4));
+    assert.deepEqual((await reassessHitlQualification(await withCorpus(qualified.corpus))).missing, [], 'fixture formatting is not a Judge input');
+    planFixture.responses[0].answer += ' ';
+    await writeFile(planFile, JSON.stringify(planFixture));
+    assert.deepEqual((await reassessHitlQualification(await withCorpus(qualified.corpus))).missing, qualified.corpus.items.filter(item => item.stage === 'plan').map(item => item.id));
+    await writeFile(planFile, await readFile(path.join(loaded.root, 'entry-pack-source/interactions/plan.json')));
+    const contextItem = structuredClone(qualified.corpus), firstContext = JSON.parse(await readFile(path.join(cacheCase, contextItem.items[0].context_file)));
+    firstContext.objective += ' New accepted condition.';
+    const contextBytes = JSON.stringify(firstContext); contextItem.items[0].context_file = 'entry-pack-source/interactions/changed-context.json';
+    contextItem.items[0].context_sha256 = createHash('sha256').update(contextBytes).digest('hex');
+    await writeFile(path.join(cacheCase, contextItem.items[0].context_file), contextBytes);
+    assert.deepEqual((await reassessHitlQualification(await withCorpus(contextItem))).missing, [contextItem.items[0].id]);
+    const intentRoot = path.join(qualified.root, 'operation-unconfirmed/native-intents'); await mkdir(intentRoot, { recursive: true });
+    const first = qualified.corpus.items[0], nativeTask = qualified.tasks[first.id];
+    await writeFile(path.join(intentRoot, createHash('sha256').update(first.id).digest('hex') + '.json'), JSON.stringify({ id: first.id, native_key: nativeTask.key, identity: nativeTask.identity }));
+    await assert.rejects(reassessHitlQualification(qualified), { code: 'definition_qualification_outcome_unknown' });
+    await rm(path.dirname(intentRoot), { recursive: true });
+    const legacyIdentity = { contract: 'dd-eval/hitl-qualification@3', definition_tree: 'old-tree', prompt_sha256: nativeTask.identity.prompt_sha256,
+      judge_profile: qualified.profile, fixture_sha256: { specify: qualified.fixtures.specify.sha256, plan: qualified.fixtures.plan.sha256 },
+      contexts: Object.fromEntries(Object.entries(qualified.contexts).map(([id, value]) => [id, value?.binding])) };
+    const oldKey = hashJson(legacyIdentity), oldRoot = path.join(temporary, oldKey);
+    const legacy = await qualifiedItem({ ...qualified, root: oldRoot }, first, 'legacy-native', value => value, value => value, value => value, '/historical/checkout/bin/check-hitl-draft.mjs');
+    const oldSample = legacy.samples[0];
+    const legacyContent = { schema_id: 'dd-eval/hitl-qualification@3', key: oldKey, identity: legacyIdentity, status: 'passed', cleanup: 'settled', operation: oldSample.operation,
+      results: [{ id: first.id, stage: legacy.stage, observed: oldSample.observed, passed: true, cleanup: oldSample.cleanup, receipt_file: oldSample.receipt_file }] };
+    const legacyBytes = JSON.stringify({ ...legacyContent, immutable_hash: hashJson(legacyContent) });
+    await writeFile(path.join(oldRoot, 'receipt.json'), legacyBytes);
+    assert.equal((await reassessHitlQualification(qualified)).results[0].samples.length, 2);
+    assert.equal(await readFile(path.join(oldRoot, 'receipt.json'), 'utf8'), legacyBytes, 'migration never rewrites historical receipts');
+    // Keep a genuine completed negative native sample beside positive samples:
+    // neither aggregate PASS nor another answer may hide the omitted decision.
+    const negativeNative = await qualifiedItem({ ...qualified, root: oldRoot }, first, 'legacy-negative', value => value, value => value,
+      (value, packet) => validateGroundedHitl({ schema_id: value.schema_id, atoms: value.atoms.slice(0, -1) }, packet));
+    const failedSample = negativeNative.samples[0];
+    await writeFile(path.join(oldSample.operation, 'failure.json'), JSON.stringify({ schema_id: 'dd-eval/hitl-qualification@3', key: oldKey, status: 'failed',
+      results: [{ id: first.id, stage: legacy.stage, observed: failedSample.observed, passed: false, cleanup: failedSample.cleanup, receipt_file: failedSample.receipt_file }] }));
+    const noCherryPicking = await reassessHitlQualification(qualified);
+    assert.deepEqual(noCherryPicking.missing, []);
+    assert.equal(noCherryPicking.results[0].samples.length, 3);
+    assert.equal(noCherryPicking.results[0].passed, false);
     await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, status: "failed", immutable_hash: hashJson(content) }));
     await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_invalid" });
 
@@ -701,6 +796,7 @@ test("E2E dispatch delegates Session handoff and fan-out to the CLI controller",
   assert.doesNotMatch(source, /function (?:runServerMerge|materializeMergeAgentProfile|stageExecutor|mergeHarness)\b/);
   const execution = source.slice(source.indexOf("export async function launchEvalExecution("), source.indexOf("async function observeManagedExecution("));
   assert.match(execution, /await observeManagedExecution/);
+  assert.match(execution, /const baselineScope = \{ bin: runtimeBin\(runtimeRoot\), home: runtimeRoot,/);
   // Harness doctor is an admission preflight, not a provider turn.  Productive
   // handoff/fan-out must remain exclusively behind the CLI controller.
   assert.doesNotMatch(execution, /providerTurn\(|driveFanout\(|runServerMerge\(|captureExecutionCandidate\(/);
