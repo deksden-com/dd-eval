@@ -376,7 +376,7 @@ test('qualification PLAN directory pipeline preserves owned membership, aliases,
   const contextBytes = JSON.stringify(context), contextFile = 'entry-pack-source/qualification-plan.json';
   await writeFile(path.join(caseRoot, contextFile), contextBytes);
   const digest = value => createHash('sha256').update(value).digest('hex');
-  const id = 'clarification-minimal-task-state';
+  const id = 'clarification-task-priority';
   const corpus = { schema_id: 'dd-eval/hitl-qualification-corpus@2', stage: 'plan', coverage_required: true, context_required: true,
     items: [{ id: 'plan-directory', question: 'Accepted protocol?', classification: 'covered_by_canonical_response', status: 'matched', response_ids: [id], context_file: contextFile, context_sha256: digest(contextBytes),
       expected_coverage: { obligations: [{ id: 'protocol', classification: 'covered_by_canonical_response', response_ids: [id], witness_ids: ['protocol'] }],
