@@ -275,8 +275,16 @@ contained anchor must have the atom's class; a bundle cannot conceal an
 independently uncovered decision. Missing obligations and unrecognized quotes
 remain failures. Expected anchors never enter the Judge prompt. The shared Judge
 prompt requires source-quote extraction before interpretation and a literal
-quotation check before returning; added sentence punctuation is still rejected
-by the grounded validator, never silently repaired or retried by the runner.
+quotation check before returning. The Judge writes an operation-local draft and
+runs `node bin/check-hitl-draft.mjs <packet.json> <draft.json>` (the prompt supplies
+the absolute checker and packet paths). It reuses the final grounded validator,
+does not read the oracle, does not change files and proves only structure/exact
+citations, not semantic correctness or completeness. Corrections happen within
+the original task; the runner still validates the final native answer and never
+retries an invalid semantic verdict. Checker/validator bytes participate in the
+qualification identity; transport paths do not. A finite vocabulary does not
+imply ordinal ranking: an explicit canonical refusal resolves the proposed
+ranking unless an accepted rule actually requires comparisons.
 All oracle IDs/projections and all input packets are checked before the first
 native Session. Expected fields never reach Judge. Qualification@3 reports a neutral
 `definition_qualification_mismatch`, with expected/observed classification, response

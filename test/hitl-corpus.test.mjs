@@ -54,6 +54,17 @@ test('exact CP190 Q1-only and Q2-only mutants cannot mask independently required
   }
 });
 
+test('CP190 native short create/edit requests retain two independent operation obligations', () => {
+  const item = itemBy('luna-cp190-exact'), full = split(item);
+  for (const [id, source_quote] of [['q2-create', 'допустимые операции создания'], ['q2-update', 'редактирования']]) {
+    full.atoms.find(atom => atom.decision === id).source_quote = source_quote;
+  }
+  assertExpectedAtoms(item, full, options);
+  for (const id of ['q2-create', 'q2-update']) {
+    assert.deepEqual(compareHitlExpectation(item, { atoms: full.atoms.filter(atom => atom.decision !== id) }, options).missing_obligation_ids, [id]);
+  }
+});
+
 test('bundled, split, reordering and repeated allowed source quotes have no total count requirement', () => {
   for (const item of corpus.items) {
     const bundled = verdict(item.expected_coverage.witnesses);
