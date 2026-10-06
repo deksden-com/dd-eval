@@ -223,6 +223,64 @@ test('failed fork stays pending until cleanup is confirmed, then finalizes witho
   assert.equal(calls.filter(a => a[1] === 'drive' && a[2] === 'launch').length, 1);
 });
 
+for (const retainedFailure of [false, true]) test(`infrastructure stop durably cancels queued siblings (retained failure: ${retainedFailure})`, async t => {
+  const f = await setup(t, retainedFailure ? null : 'boundary');
+  await f.runner.runnerFork(f.input);
+  const manifestFile = path.join(f.output, 'manifest.json'), eventsFile = path.join(f.output, 'events.jsonl');
+  const manifest = JSON.parse(await readFile(manifestFile));
+  manifest.executions.push({ ...manifest.executions[0], id: 'queued' });
+  await write(manifestFile, manifest);
+  if (retainedFailure) for (const type of ['started', 'failed']) await appendEvent(eventsFile, {
+    source: 'fixture', runId: manifest.run_id, executionId: 'e2e', type: `dev.dd.eval.operation.${type}`,
+    data: { operation_id: `${manifest.run_id}:e2e:launch`, error: { code: 'driver_failed', message: 'retained infrastructure failure' } }
+  });
+  if (retainedFailure) {
+    await write(path.join(f.caseRoot, 'entry-pack-source/interactions/plan-review.json'), {});
+    const before = await readFile(eventsFile);
+    assert.equal(await f.runner.prepareRunnerContinuation(manifest, await readEvents(eventsFile)), null);
+    assert.deepEqual(await readFile(eventsFile), before); // Detached admission remains read-only.
+  }
+  const result = await f.runner.runnerResume({ evalRoot: f.output });
+  assert.equal(result.state, 'completed_with_failures');
+  assert.equal(result.cleanup_state, 'settled');
+  assert.deepEqual(result.executions.map(item => item.state), ['failed', 'cancelled']);
+  let events = await readEvents(eventsFile);
+  assert.equal(events.filter(event => event.executionid === 'queued' && event.type === 'dev.dd.eval.operation.started').length, 0);
+  const cancellation = events.filter(event => event.executionid === 'queued' && event.type === 'dev.dd.eval.execution.cancelled');
+  assert.equal(cancellation.length, 1);
+  assert.equal(cancellation[0].data.code, 'run_stopped_by_infrastructure_error');
+  const candidate = await readFile(path.join(f.output, 'candidate.json'));
+  assert.equal((await f.runner.runnerResume({ evalRoot: f.output })).state, 'completed_with_failures');
+  assert.equal((await f.runner.runnerFinalizeSettled({ evalRoot: f.output, expectedManifestSha256: hash(await readFile(manifestFile)) })).state, 'completed_with_failures');
+  assert.deepEqual(await readFile(path.join(f.output, 'candidate.json')), candidate);
+  events = await readEvents(eventsFile);
+  assert.equal(events.filter(event => event.executionid === 'queued' && event.type === 'dev.dd.eval.execution.cancelled').length, 1);
+  assert.equal(events.filter(event => event.executionid === 'queued' && event.type === 'dev.dd.eval.operation.started').length, 0);
+});
+
+test('delayed infrastructure cleanup finalizes with its durably cancelled queue', async t => {
+  const f = await setup(t, 'unsettled');
+  await f.runner.runnerFork(f.input);
+  const manifestFile = path.join(f.output, 'manifest.json');
+  const manifest = JSON.parse(await readFile(manifestFile));
+  manifest.executions.push({ ...manifest.executions[0], id: 'queued' });
+  await write(manifestFile, manifest);
+  const pending = await f.runner.runnerResume({ evalRoot: f.output });
+  assert.equal(pending.cleanup_state, 'pending');
+  assert.deepEqual(pending.executions.map(item => item.state), ['failed', 'cancelled']);
+  const config = JSON.parse(await readFile(f.configFile));
+  await write(f.configFile, { ...config, fault: null });
+  const cleaned = await f.runner.runnerCleanup({ evalRoot: f.output });
+  assert.equal(cleaned.cleanup_state, 'settled');
+  assert.equal(cleaned.judge_status, 'not_requested');
+  await assert.rejects(readFile(path.join(f.output, 'candidate.json')), { code: 'ENOENT' });
+  const finalized = await f.runner.runnerFinalizeSettled({ evalRoot: f.output, expectedManifestSha256: hash(await readFile(manifestFile)) });
+  assert.equal(finalized.state, 'completed_with_failures');
+  assert.equal(finalized.judge_status, 'not_requested');
+  assert.ok(JSON.parse(await readFile(path.join(f.output, 'reports/report.json'))).candidate.immutable_hash);
+  assert.equal((await readEvents(path.join(f.output, 'events.jsonl'))).filter(event => event.executionid === 'queued' && event.type === 'dev.dd.eval.operation.started').length, 0);
+});
+
 test('missing or changed source pins fail before fork preparation or native dispatch', async t => {
   const f = await setup(t);
   for (const pins of [{}, { ...f.source.interaction_fixtures, code: { interaction_fixture_sha256: '0'.repeat(64) } }]) {
