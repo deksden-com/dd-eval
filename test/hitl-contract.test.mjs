@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { mkdtemp, writeFile, rm, symlink, readFile, open } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import Ajv from "ajv/dist/2020.js";
 import { buildHitlPacket, validateHitlPacket, validateGroundedHitl, hitlMatchContract, interactionGroundedPrompt } from "../lib/hitl-contract.mjs";
 
@@ -21,6 +23,9 @@ test("shared Judge prompt structure preserves materiality/reference policy, not 
   assert.match(prompt, /invalid because it adds punctuation/);
   assert.match(prompt, /Before returning, verify each source_quote occurs literally in packet.question/);
   assert.doesNotMatch(prompt, /Before returning, use available local tools/);
+  assert.match(prompt, /Write your proposed raw JSON to draft.json/);
+  assert.match(prompt, /neither determines semantic classes nor proves completeness/);
+  assert.match(prompt, /finite vocabulary from an ordered scale/);
   assert.match(prompt, /Subject's assertion/);
   assert.match(prompt, /scope_evidence/);
   assert.match(prompt, /Reserve unnecessary_question for an explicit request to reconfirm an already agreed decision/);
@@ -35,6 +40,42 @@ test("shared Judge prompt structure preserves materiality/reference policy, not 
   const quote = "Перечень кодов и подписей — фиксированный словарь, а не требование нового порядка задач или отдельного порядка UI-контрола.";
   assert.ok(answer.includes(quote));
   assert.equal(validateGroundedHitl(raw([atom("порядок от low к urgent", undefined, { decision: "Need an additional order?", answer_evidence: [{ response_id: "clarification-task-priority", answer_quote: quote }] })]), p).status, "matched");
+});
+
+test("native draft checker reuses final validation, rejects changed citation bytes and never rewrites inputs", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "hitl-draft-"));
+  try {
+    const p = await buildHitlPacket({ stage: "specify", question: "Need ordered labels?", responses,
+      subjectContext: { objective: "Labels\nonly." } });
+    const packetFile = path.join(root, "packet.json"), draftFile = path.join(root, "draft.json");
+    const packetBytes = JSON.stringify(p);
+    await writeFile(packetFile, packetBytes);
+    const check = value => {
+      const bytes = JSON.stringify(value);
+      return writeFile(draftFile, bytes).then(async () => {
+        const result = spawnSync(process.execPath, [fileURLToPath(new URL("../bin/check-hitl-draft.mjs", import.meta.url)), packetFile, draftFile], { encoding: "utf8", cwd: root });
+        assert.equal(await readFile(packetFile, "utf8"), packetBytes);
+        assert.equal(await readFile(draftFile, "utf8"), bytes);
+        return result;
+      });
+    };
+    assert.equal((await check(raw([atom(p.question)]))).status, 0);
+    const gap = atom(p.question, "fixture_gap", { scope_evidence: [{ kind: "context", field: "objective", quote: "Labels\nonly." }] });
+    // Even an authored wrong semantic class passes structural validation: no expected-answer leak.
+    assert.equal((await check(raw([gap]))).status, 0);
+    gap.scope_evidence[0].quote = "Labels only.";
+    const invalid = await check(raw([gap]));
+    assert.equal(invalid.status, 1);
+    assert.match(invalid.stderr, /Invalid accepted-scope evidence/);
+    assert.equal((await check(raw([atom(p.question + "?")]))).status, 1);
+    assert.equal((await check(raw([atom(p.question, undefined, { answer_evidence: [{ response_id: "a", answer_quote: "No\ncolors." }] })]))).status, 1);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("qualification prompt template separates semantic policy from checkout locations", () => {
+  const prompt = interactionGroundedPrompt("<packet>", "<checker>");
+  assert.ok(prompt.includes('node "<checker>" "<packet>" draft.json'));
+  assert.ok(!prompt.includes(fileURLToPath(new URL("..", import.meta.url))));
 });
 
 test("nonadjacent canonical evidence is separate quotes, never a stitched quotation", async () => {
