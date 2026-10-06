@@ -444,7 +444,8 @@ where the feature is already implemented. See the [baseline audit](task-priority
    an engine version. The exact engine package, version and checksum are
    pinned by the input checkpoint and recorded in each run manifest. Update a
    harness profile only when its provider settings change; rebuild the input
-   checkpoint when a changed engine contract needs new qualification.
+   checkpoint when a changed engine contract needs new installed-runtime
+   acceptance. This is not a reason to repeat unchanged Judge tasks.
 3. For focused/segment runs, validate the accepted package:
 
    ```sh
