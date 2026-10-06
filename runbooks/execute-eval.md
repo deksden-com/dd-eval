@@ -248,23 +248,38 @@ still records `provider_sessions_created: 0`; direct `eval run` checks it too.
 A request to prepare only never authorizes `eval run` or a live compatibility/
 capacity experiment.
 
-New HITL decisions use `dd-eval/hitl-match@2`: the Judge cites exact question
-atoms, frozen context evidence and canonical answer quotes; the runner derives
-the overall result. Historical v1 evidence remains read-only, not new admission.
-Targeted corpus `expected_atoms` compare finite authored quote alternatives,
-classification and response IDs one-to-one; expected fields never reach Judge.
-Where decomposition has more than one valid form, `expected_atomizations` lists
-complete authored alternatives. Each alternative still requires every independent
-uncovered decision; extra/missing atoms do not pass by aggregate class alone.
+New HITL decisions use `dd-eval/hitl-match@3` and packet@3: the Judge cites exact
+question atoms, frozen context evidence and canonical answer quotes; the runner
+derives the overall result. A fixture gap requires typed `scope_evidence` from an
+accepted objective/decision/source/response, not just the Subject's necessity claim.
+An exact canonical refusal can cover a proposed extra option. Structural quote
+checks prove provenance, not semantic entailment. Historical v1/v2 evidence remains
+explicitly read-only; it cannot authorize a new answer or Judge Turn.
+Current corpus@2 requires `expected_coverage`: finite authored obligations and
+witnesses permit valid split/bundled answers while detecting independent omissions.
+All oracle IDs/projections and all input packets are checked before the first
+native Session. Expected fields never reach Judge. Qualification@3 reports a neutral
+`definition_qualification_mismatch`, with expected/observed classification, response
+IDs and missing obligations; it is not a proved fixture gap or Subject failure.
+Declared directory sources use bounded, sorted text manifests with checked role
+contributors and explicit binary exclusions. No provider-home/project-root scan;
+retained reads validate frozen provenance without reopening mutable RUN sources.
 Lost verdict publication reconciles the original capacity/native operation only,
 then binds confirmed cleanup to the recovered receipt. An unknown outcome never
 authorizes another Judge Turn.
-After offline checks and committed definition qualification, run the bounded
-reference pair (three fresh Sessions per question; retain every result):
-`node tools/native-interaction-judge-smoke.mjs --pair <unresolved-packet.json> <resolved-packet.json> <judge-profile> <runtime-root> <project-root>`.
-Packets contain `question`, `subject_context`, `responses` and `stage`; resolved
-context explicitly identifies the antecedent. A semantic failure is retained,
-never retried until PASS. This smoke does not create a scored EVAL.
+Native smoke is separate paid acceptance, only on explicit authorization after
+offline checks and a committed definition. Prefer fresh authored inputs:
+`node tools/native-interaction-judge-smoke.mjs --corpus <run-profile.json> <runtime-root> <project-root>`.
+It uses all current corpus items, including covered rejection, true gap, extra scope
+and resolved/unresolved references. The optional fixed reference-pair schedule is
+`node tools/native-interaction-judge-smoke.mjs --pair <unresolved-packet.json> <resolved-packet.json> <expectations.json> <judge-profile> <runtime-root> <project-root>`.
+Both packets must be complete frozen packet@3 objects. `expectations.json` contains
+`unresolved` and `resolved` authored corpus items with `expected_coverage`; their
+questions must match the corresponding packets. All inputs are checked before any
+native call; rebuilt grounding must equal each frozen packet, including at dispatch.
+The pair schedule is three fresh Sessions per question, fixed before dispatch.
+The first structural, semantic or cleanup failure stops dispatch and retains its
+result; never retry until PASS. This smoke does not create a scored EVAL.
 
 Requalify a harness only when its native runtime, adapter or relevant contract
 changes (or qualification is absent). Broader stop/recovery and all-harness

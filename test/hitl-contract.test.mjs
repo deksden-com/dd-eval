@@ -4,20 +4,22 @@ import { mkdtemp, writeFile, rm, symlink, readFile, open } from "node:fs/promise
 import os from "node:os";
 import path from "node:path";
 import Ajv from "ajv/dist/2020.js";
-import { buildHitlPacket, validateGroundedHitl, hitlMatchContract, interactionGroundedPrompt } from "../lib/hitl-contract.mjs";
+import { buildHitlPacket, validateHitlPacket, validateGroundedHitl, hitlMatchContract, interactionGroundedPrompt } from "../lib/hitl-contract.mjs";
 
 const responses = [{ id: "a", topic: "value", applicability: "value", answer: "Closed tasks may change priority. No colors." }, { id: "b", topic: "default", applicability: "default", answer: "Default is normal." }];
-const atom = (source_quote, classification = "covered_by_canonical_response", extra = {}) => ({ source_quote, decision: source_quote, classification, reference_bindings: [], answer_evidence: classification === "covered_by_canonical_response" ? [{ response_id: "a", answer_quote: "Closed tasks may change priority." }] : [], rationale: "Exact supplied evidence", ...extra });
+const atom = (source_quote, classification = "covered_by_canonical_response", extra = {}) => ({ source_quote, decision: source_quote, classification, reference_bindings: [], answer_evidence: classification === "covered_by_canonical_response" ? [{ response_id: "a", answer_quote: "Closed tasks may change priority." }] : [], scope_evidence: [], rationale: "Exact supplied evidence", ...extra });
 const raw = atoms => ({ schema_id: hitlMatchContract, atoms });
 const packet = question => buildHitlPacket({ stage: "specify", question, responses });
 
-test("shared Judge policy retains rejected-option conditions and independent gaps", async () => {
+test("shared Judge prompt structure preserves materiality/reference policy, not live semantic proof", async () => {
   const prompt = interactionGroundedPrompt("packet.json");
   assert.match(prompt, /Do not turn each proposed option or its dependent details into unconditional decisions/);
   assert.match(prompt, /explicit refusal of separate control ordering/);
   assert.match(prompt, /independently requested delivery time remains a gap/);
   assert.match(prompt, /one contiguous substring/);
-  assert.match(prompt, /question\.includes\(source_quote\)/);
+  assert.doesNotMatch(prompt, /Before returning, use available local tools/);
+  assert.match(prompt, /Subject's assertion/);
+  assert.match(prompt, /scope_evidence/);
   const corpus = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/entry-pack-source/interactions/qualification.json", import.meta.url)));
   const fixtures = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/entry-pack-source/interactions/specify.json", import.meta.url)));
   const item = corpus.items.find(item => item.id === "luna-cp190-exact");
@@ -110,11 +112,51 @@ test("source allowlist freezes bytes, verifies digest/containment and deduplicat
   } finally { await rm(root, { recursive: true, force: true }); await rm(outside, { recursive: true, force: true }); }
 });
 
-test("v2 schema distinguishes raw and stored contracts and agrees on structural rejection", async () => {
-  const schema = JSON.parse(await readFile(new URL("../schemas/hitl-match.v2.schema.json", import.meta.url), "utf8"));
+test("v3 schema distinguishes raw and stored contracts and agrees on structural rejection", async () => {
+  const schema = JSON.parse(await readFile(new URL("../schemas/hitl-match.v3.schema.json", import.meta.url), "utf8"));
   const ajv = new Ajv({ strict: false }); const check = ajv.compile(schema); const stored = ajv.compile({ ...schema, $id: "stored-test", $ref: "#/$defs/stored" });
   const p = await packet("Closed tasks?"); const value = raw([atom("Closed tasks?")]);
   assert.equal(check(value), true); assert.equal(stored(validateGroundedHitl(value, p)), true);
   for (const bad of [raw([]), raw([atom("Closed tasks?", undefined, { answer_evidence: [] })]), raw([atom("Closed tasks?", "ambiguous", { answer_evidence: [{ response_id: "a", answer_quote: "No colors." }] })]), { ...value, status: "matched" }]) { assert.equal(check(bad), false); assert.throws(() => validateGroundedHitl(bad, p)); }
-  const prompt = interactionGroundedPrompt("packet.json"); assert.match(prompt, /never from canonical responses/); assert.match(prompt, /untrusted data/); assert.match(prompt, /dd-eval\/hitl-match@2/);
+  const prompt = interactionGroundedPrompt("packet.json"); assert.match(prompt, /never from canonical responses/); assert.match(prompt, /untrusted data/); assert.match(prompt, /dd-eval\/hitl-match@3/);
+});
+
+test("v3 rejects malformed semantic fields and response identity before retaining a packet", async () => {
+  for (const context of [{ objective: [] }, { accepted_decisions: [{}] }, { accepted_decisions: [""] }, { accepted_decisions: "scope" }]) await assert.rejects(buildHitlPacket({ stage: "specify", question: "Which default?", responses, subjectContext: context }), { code: "judge_context_invalid" });
+  for (const invalid of [[responses[0], responses[0]], [{ id: "", answer: "yes" }], [{ id: "a", answer: "" }], [{ id: "a", answer: "yes", applicability: {} }]]) await assert.rejects(buildHitlPacket({ stage: "specify", question: "Which default?", responses: invalid }), { code: "judge_context_invalid" });
+  const p = await packet("Closed tasks?");
+  for (const edited of [{ ...p, schema_id: "dd-eval/interaction-judge-packet@99" }, { ...p, required_result: {} }, { ...p, responses: [...p.responses, p.responses[0]] }]) assert.throws(() => validateHitlPacket(edited), { code: "judge_context_invalid" });
+});
+
+test("scope evidence is typed exact provenance, not a deterministic entailment verdict", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "hitl-scope-"));
+  try {
+    await writeFile(path.join(root, "accepted.md"), "Accepted conflicting simultaneous updates.");
+    const p = await buildHitlPacket({ stage: "specify", question: "Which concurrent value?", responses, subjectContext: { objective: "Resolve concurrent updates.", accepted_decisions: ["Concurrent updates need a conflict rule."], roots: { project: root }, sources: [{ path: "accepted.md" }] } });
+    const schema = JSON.parse(await readFile(new URL("../schemas/hitl-match.v3.schema.json", import.meta.url), "utf8"));
+    const check = new Ajv({ strict: false }).compile(schema);
+    const variants = [{ kind: "context", field: "objective", quote: "concurrent updates" }, { kind: "context", field: "accepted_decisions", index: 0, quote: "conflict rule" }, { kind: "source", source_id: "source-0", quote: "conflicting simultaneous updates" }, { kind: "response", response_id: "a", quote: "Closed tasks may change priority." }];
+    for (const evidence of variants) {
+      const value = raw([atom(p.question, "fixture_gap", { scope_evidence: [evidence] })]);
+      assert.equal(check(value), true); assert.equal(validateGroundedHitl(value, p).classification, "fixture_gap");
+    }
+    // Valid quoted provenance alone does not prove the decision is necessary.
+    for (const evidence of [{ kind: "context", field: "objective", index: 0, quote: "concurrent" }, { kind: "context", field: "accepted_decisions", index: -1, quote: "conflict" }, { kind: "source", source_id: "question", quote: "Which" }, { kind: "context", field: "reason", quote: "concurrent" }, { kind: "response", response_id: "unknown", quote: "Closed" }, { kind: "source", source_id: "source-0", quote: "invented" }, { kind: "context", field: "accepted_decisions", index: 1, quote: "conflict" }]) assert.throws(() => validateGroundedHitl(raw([atom(p.question, "fixture_gap", { scope_evidence: [evidence] })]), p), { code: "judge_result_invalid" });
+    for (const evidence of [[], [variants[0], { quote: variants[0].quote, field: "objective", kind: "context" }]]) assert.throws(() => validateGroundedHitl(raw([atom(p.question, "fixture_gap", { scope_evidence: evidence })]), p), { code: "judge_result_invalid" });
+    assert.throws(() => validateGroundedHitl(raw([atom(p.question, "ambiguous", { scope_evidence: [variants[0]] })]), p));
+    assert.equal(check(raw([atom(p.question, "fixture_gap")])), false);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("historical v2 structural reader is explicit, never a version downgrade", async () => {
+  const current = await packet("Closed tasks?");
+  const old = { ...current, schema_id: "dd-eval/interaction-judge-packet@2" }; delete old.directory_sources;
+  const value = atom(old.question); delete value.scope_evidence;
+  const rawV2 = { schema_id: "dd-eval/hitl-match@2", atoms: [value] };
+  const v2 = new Ajv({ strict: false }).compile(JSON.parse(await readFile(new URL("../schemas/hitl-match.v2.schema.json", import.meta.url), "utf8")));
+  assert.equal(v2(rawV2), true);
+  assert.equal(validateGroundedHitl(rawV2, old, { historical: true }).status, "matched");
+  assert.throws(() => validateGroundedHitl(rawV2, old), { code: "judge_result_invalid" });
+  assert.throws(() => validateGroundedHitl(rawV2, current, { historical: true }), { code: "judge_result_invalid" });
+  assert.throws(() => validateGroundedHitl(raw([atom(current.question)]), old, { historical: true }), { code: "judge_result_invalid" });
 });

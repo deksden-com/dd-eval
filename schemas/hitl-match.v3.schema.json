@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/hitl-match@3",
+  "$ref": "#/$defs/raw",
+  "$defs": {
+    "text": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "classification": {"enum": ["covered_by_canonical_response", "fixture_gap", "ambiguous", "out_of_scope", "unnecessary_question"]},
+    "reference": {
+      "type": "object", "additionalProperties": false, "required": ["reference_quote", "source_id", "evidence_quote"],
+      "properties": {"reference_quote": {"$ref": "#/$defs/text"}, "source_id": {"type": "string", "pattern": "^(question|context|source-[0-9]+)$"}, "evidence_quote": {"$ref": "#/$defs/text"}}
+    },
+    "answer": {
+      "type": "object", "additionalProperties": false, "required": ["response_id", "answer_quote"],
+      "properties": {"response_id": {"$ref": "#/$defs/text"}, "answer_quote": {"$ref": "#/$defs/text"}}
+    },
+    "scope": {
+      "oneOf": [
+        {"type": "object", "additionalProperties": false, "required": ["kind", "field", "quote"], "properties": {"kind": {"const": "context"}, "field": {"const": "objective"}, "quote": {"$ref": "#/$defs/text"}}},
+        {"type": "object", "additionalProperties": false, "required": ["kind", "field", "index", "quote"], "properties": {"kind": {"const": "context"}, "field": {"const": "accepted_decisions"}, "index": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}, "quote": {"$ref": "#/$defs/text"}}},
+        {"type": "object", "additionalProperties": false, "required": ["kind", "source_id", "quote"], "properties": {"kind": {"const": "source"}, "source_id": {"type": "string", "pattern": "^source-[0-9]+$"}, "quote": {"$ref": "#/$defs/text"}}},
+        {"type": "object", "additionalProperties": false, "required": ["kind", "response_id", "quote"], "properties": {"kind": {"const": "response"}, "response_id": {"$ref": "#/$defs/text"}, "quote": {"$ref": "#/$defs/text"}}}
+      ]
+    },
+    "atom": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_quote", "decision", "classification", "reference_bindings", "answer_evidence", "scope_evidence", "rationale"],
+      "properties": {
+        "source_quote": {"$ref": "#/$defs/text"}, "decision": {"$ref": "#/$defs/text"}, "classification": {"$ref": "#/$defs/classification"},
+        "reference_bindings": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/reference"}},
+        "answer_evidence": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/answer"}},
+        "scope_evidence": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/scope"}}, "rationale": {"$ref": "#/$defs/text"}
+      },
+      "allOf": [
+        {"if": {"properties": {"classification": {"const": "covered_by_canonical_response"}}}, "then": {"properties": {"answer_evidence": {"minItems": 1}}}, "else": {"properties": {"answer_evidence": {"maxItems": 0}}}},
+        {"if": {"properties": {"classification": {"const": "fixture_gap"}}}, "then": {"properties": {"scope_evidence": {"minItems": 1}}}, "else": {"properties": {"scope_evidence": {"maxItems": 0}}}}
+      ]
+    },
+    "raw": {
+      "type": "object", "additionalProperties": false, "required": ["schema_id", "atoms"],
+      "properties": {"schema_id": {"const": "dd-eval/hitl-match@3"}, "atoms": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/atom"}}}
+    },
+    "stored": {
+      "type": "object", "additionalProperties": false, "required": ["schema_id", "atoms", "status", "classification", "response_ids", "covered_questions", "uncovered_questions", "rationale"],
+      "properties": {
+        "schema_id": {"const": "dd-eval/hitl-match@3"}, "atoms": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/atom"}},
+        "status": {"enum": ["matched", "unmatched"]}, "classification": {"$ref": "#/$defs/classification"},
+        "response_ids": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/text"}},
+        "covered_questions": {"type": "array", "items": {"$ref": "#/$defs/text"}}, "uncovered_questions": {"type": "array", "items": {"$ref": "#/$defs/text"}}, "rationale": {"$ref": "#/$defs/text"}
+      }
+    }
+  }
+}

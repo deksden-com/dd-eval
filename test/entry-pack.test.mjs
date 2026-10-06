@@ -40,6 +40,10 @@ test("optional missing stage source is retained without hiding a missing require
   const optional = validateStageBlueprint({ schema_id: "dd-eval/stage-context-blueprint@1", stages: { specify: { ...slice, sources: [{ ...source, required: false }] } } });
   const rendered = await materializeStageSlice({ blueprint: optional, stage: "specify", roots: { project: root }, output });
   assert.equal(JSON.parse(await readFile(rendered.path, "utf8")).sources[0].required, false);
+  const optionalFlag = validateStageBlueprint({ schema_id: "dd-eval/stage-context-blueprint@1", stages: { specify: { ...slice, sources: [{ ...source, optional: true }] } } });
+  const flagged = await materializeStageSlice({ blueprint: optionalFlag, stage: "specify", roots: { project: root }, output });
+  assert.equal(JSON.parse(await readFile(flagged.path, "utf8")).sources[0].optional, true);
+  assert.throws(() => validateStageBlueprint({ schema_id: "dd-eval/stage-context-blueprint@1", stages: { specify: { ...slice, sources: [{ ...source, optional: "yes" }] } } }), /optional must be boolean/);
   const required = validateStageBlueprint({ schema_id: "dd-eval/stage-context-blueprint@1", stages: { specify: { ...slice, sources: [{ ...source, required: true }] } } });
   await assert.rejects(materializeStageSlice({ blueprint: required, stage: "specify", roots: { project: root }, output }), /required stage source is missing for prior/);
 });

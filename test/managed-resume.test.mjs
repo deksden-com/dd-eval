@@ -8,6 +8,7 @@ import { recoverExecution, captureRecoveryEvidence } from '../lib/runner.mjs';
 import { appendEvent, readEvents, hashJson, recordOperation } from '../lib/runner-events.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
+import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
 
 test('unmanaged recovery and reconciliation require migration before creating runtime or provider state', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'legacy-recovery-'));
@@ -47,9 +48,11 @@ for (const waiting of [false, true]) test(`managed recovery retains capture, con
     const contextFile = await write('context.json', { stage: 'specify', retained: true });
     const answerFile = await write('answer.md', 'unchanged answer\n');
     const fixture = { schema_id: 'dd-eval/canonical-responses@1', stage: 'specify', mode: 'required', max_rounds: 1, responses: [{ id: 'answer', topic: 'scope', applicability: 'always', answer: 'unchanged answer\n' }] };
-    const packet = { schema_id: 'dd-eval/interaction-judge-packet@1', stage: 'specify', question: 'A required question?', responses: fixture.responses };
+    const packet = await buildHitlPacket({ stage: 'specify', question: 'A required question?', responses: fixture.responses });
+    packet.hitl_binding = { stage: 'specify', round: 1, pause_id: 'PAUSE-retained', scope_id: execution.id };
+    const verdict = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@3', atoms: [{ source_quote: packet.question, decision: 'Required canonical decision', classification: 'covered_by_canonical_response', reference_bindings: [], scope_evidence: [], answer_evidence: [{ response_id: 'answer', answer_quote: fixture.responses[0].answer }], rationale: 'Canonical answer' }] }, packet);
     await write('judge/packet.json', packet);
-    await settledJudge(path.join(root, 'judge'), { schema_id: 'dd-eval/interaction-judge-receipt@1', stage: 'specify', profile_id: 'judge', session_id: 'judge-existing', interaction_fixture_sha256: hashJson(fixture), packet_sha256: hashJson(packet), verdict: { schema_id: 'dd-eval/hitl-match@1', status: 'matched', classification: 'covered_by_canonical_response', response_ids: ['answer'], covered_questions: [packet.question], uncovered_questions: [], rationale: 'Canonical answer' } });
+    await settledJudge(path.join(root, 'judge'), { schema_id: 'dd-eval/interaction-judge-receipt@1', stage: 'specify', profile_id: 'judge', session_id: 'judge-existing', interaction_fixture_sha256: hashJson(fixture), packet_sha256: hashJson(packet), verdict });
     const receiptFile = path.join(root, 'judge/result.json');
     await write('case/entry-pack-source/interactions/specify.json', fixture);
     const manifest = { run_id: 'EVAL-test', runtime_resource_home: path.join(root, 'resources'), profile: { concurrency: { global: 1, per_harness: {} } }, interaction_fixtures: { specify: { interaction_fixture_sha256: hashJson(fixture) } } };
@@ -96,7 +99,8 @@ console.log(JSON.stringify(result));
     const eventsFile = path.join(root, 'events.jsonl');
     const event = (type, data) => appendEvent(eventsFile, { source: 'dd-eval://runner', runId: manifest.run_id, executionId: execution.id, type: `dev.dd.eval.${type}`, data });
     await event('execution.context_prepared', { stage: 'specify', attempt: null, context_file: contextFile, materialized_context_sha256: hash(await readFile(contextFile)), semantic_package_sha256: 's', context_slice_sha256: 't', baseline_admission: { file: baseline, sha256: hash(await readFile(baseline)) } });
-    await event('hitl.matched', { stage: 'specify', round: 1, pause_id: 'PAUSE-retained', answer_file: answerFile, answer_sha256: hash(await readFile(answerFile)), receipt_file: receiptFile, response_ids: ['answer'] });
+    await event('hitl.matched', { stage: 'specify', round: 1, pause_id: 'PAUSE-retained', scope_id: execution.id, judge_profile: 'judge', judge_session_id: 'judge-existing', verdict_contract: verdict.schema_id,
+      packet_sha256: hashJson(packet), receipt_sha256: hash(await readFile(receiptFile)), answer_file: answerFile, answer_sha256: hash(await readFile(answerFile)), receipt_file: receiptFile, response_ids: ['answer'] });
     const input = { root, manifest, execution, loaded: { root: path.join(root, 'case'), value: { baseline_admission: definition }, inputCheckpoint: checkpoint }, blueprint: {}, profile: {} };
     for (let iteration = 0; iteration < 2; iteration++) {
       const result = await recoverExecution({ ...input, events: await readEvents(eventsFile) });

@@ -17,19 +17,43 @@ test("partial HITL is schema-valid evidence, never a deliverable answer", async 
   const fixture = { responses: [{ id: "priority", answer: "canonical" }], sha256: "a".repeat(64) };
   const verdict = { schema_id: "dd-eval/hitl-match@1", status: "unmatched", classification: "fixture_gap", response_ids: ["priority"], covered_questions: ["values"], uncovered_questions: ["independent decision"], rationale: "values covered; independent decision missing" };
   assert.equal(validate(verdict), true, JSON.stringify(validate.errors));
-  assert.equal(validateHitlMatch(verdict, fixture), verdict);
+  assert.equal(validateHitlMatch(verdict, fixture, null, { historical: true }), verdict);
+  assert.throws(() => validateHitlMatch(verdict, fixture), { code: 'judge_result_invalid' });
   assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict }, question: "compound", stage: "specify" }), { code: "judge_result_invalid" }, 'historical verdict cannot authorize new issuance');
-  const packet = await buildHitlPacket({ stage: 'specify', question: 'values; independent decision', responses: fixture.responses });
-  const grounded = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@2', atoms: [
-    { source_quote: 'values', decision: 'values', classification: 'covered_by_canonical_response', reference_bindings: [], answer_evidence: [{ response_id: 'priority', answer_quote: 'canonical' }], rationale: 'covered' },
-    { source_quote: 'independent decision', decision: 'independent decision', classification: 'fixture_gap', reference_bindings: [], answer_evidence: [], rationale: 'missing' }
+  const packet = await buildHitlPacket({ stage: 'specify', question: 'values; independent decision', subjectContext: { objective: 'Accepted independent decision' }, responses: fixture.responses });
+  const grounded = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@3', atoms: [
+    { source_quote: 'values', decision: 'values', classification: 'covered_by_canonical_response', reference_bindings: [], scope_evidence: [], answer_evidence: [{ response_id: 'priority', answer_quote: 'canonical' }], rationale: 'covered' },
+    { source_quote: 'independent decision', decision: 'independent decision', classification: 'fixture_gap', reference_bindings: [], scope_evidence: [{ kind: 'context', field: 'objective', quote: 'Accepted independent decision' }], answer_evidence: [], rationale: 'missing' }
   ] }, packet);
   assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict: grounded, packet }, question: packet.question, stage: packet.stage }), { code: 'interaction_fixture_gap' });
   for (const invalid of [{ ...verdict, covered_questions: [] }, { ...verdict, covered_questions: [""] }, { ...verdict, response_ids: ["priority", "priority"] }, { ...verdict, status: "matched" }]) {
     assert.equal(validate(invalid), false);
-    assert.throws(() => validateHitlMatch(invalid, fixture), { code: "judge_result_invalid" });
+    assert.throws(() => validateHitlMatch(invalid, fixture, null, { historical: true }), { code: "judge_result_invalid" });
   }
-  assert.throws(() => validateHitlMatch({ ...verdict, uncovered_questions: ["values"] }, fixture), { code: "judge_result_invalid" }, "cross-array disjointness is enforced by runtime");
+  assert.throws(() => validateHitlMatch({ ...verdict, uncovered_questions: ["values"] }, fixture, null, { historical: true }), { code: "judge_result_invalid" }, "cross-array disjointness is enforced by runtime");
+});
+
+test('qualification mismatch diagnostic is neutral infrastructure and retains bounded comparison metadata', () => {
+  const error = { code: 'definition_qualification_mismatch', message: 'Judge verdict differs from authored expectation', details: {
+    item_id: 'item', stage: 'specify', qualification_key: 'a'.repeat(64), verdict_contract: 'dd-eval/hitl-match@3', receipt_file: '/owned/result.json', packet_file: '/owned/packet.json',
+    comparison: { passed: false, mismatch_kind: 'coverage', missing_obligation_ids: ['q2', 'q3'],
+      expected: { status: 'matched', classification: 'covered_by_canonical_response', response_ids: ['a'] },
+      observed: { status: 'unmatched', classification: 'fixture_gap', response_ids: ['a'] },
+      extra_atoms: [{ source_quote: 'private question', classification: 'fixture_gap' }] } } };
+  assert.equal(failureAttribution(error), 'evaluation_infrastructure');
+  const diagnostic = failureDiagnostic(error);
+  assert.equal(diagnostic.details.item_id, 'item');
+  assert.equal(diagnostic.details.comparison.mismatch_kind, 'coverage');
+  assert.deepEqual(diagnostic.details.comparison.missing_obligation_ids, ['q2', 'q3']);
+  assert.equal(diagnostic.details.comparison.extra_atom_count, 1);
+  assert.doesNotMatch(JSON.stringify(diagnostic), /private question/);
+  assert.equal(diagnostic.code, error.code, 'not mislabeled as a runtime fixture gap');
+  const cleanup = { code: 'judge_cleanup_failed', message: 'Owned stop failed', details: { semantic_mismatch: error } };
+  const retained = failureDiagnostic(cleanup);
+  assert.equal(retained.code, 'judge_cleanup_failed', 'cleanup remains primary dispatch failure');
+  assert.equal(retained.details.semantic_mismatch.code, error.code);
+  assert.deepEqual(retained.details.semantic_mismatch.details.comparison.missing_obligation_ids, ['q2', 'q3']);
+  assert.doesNotMatch(JSON.stringify(retained), /private question/);
 });
 
 test("owned runtime ambiguity retains attribution through raw, wrapped and diagnostic evidence", () => {
