@@ -555,6 +555,15 @@ engines, logs or daemons from the source home. A missing or invalid harness
 configuration is a setup blocker; do not work around it with PATH discovery or
 ad-hoc adapter environment variables.
 
+`DD_EVAL_REGISTRY_FILE` selects the development campaign's private discovery
+registry. It must be an absolute file path, not just a different `DD_EVAL_HOME`.
+The selected path is retained in new run/fork manifests and reused by detached
+continuation. The runtime shim also captures config/resource/registry roots so
+a provider's foreign shell cannot silently replace them. Console reads the same
+registry through the same environment variable. Global registration remains the
+default only for ordinary invocations without an override and historical
+manifests without a retained selection.
+
 The configured `<runtime>/harness-runtime` path is a relative alias to the
 selected immutable engine's `dist/harness-runtime`, not a detached adapter copy.
 Node must resolve that engine's complete production dependency closure. Fresh
