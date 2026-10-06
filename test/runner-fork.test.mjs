@@ -84,6 +84,7 @@ const fs = require('node:fs'), path = require('node:path'), {execFileSync} = req
 const c = JSON.parse(fs.readFileSync(${JSON.stringify(configFile)})), a = process.argv.slice(2);
 const get = flag => a[a.indexOf(flag)+1];
 fs.appendFileSync(c.calls, JSON.stringify(a)+'\\n');
+fs.appendFileSync(${JSON.stringify(path.join(temp, 'contexts.jsonl'))}, JSON.stringify({args:a,resources:process.env.DD_FLOW_RESOURCE_HOME,registry:process.env.DD_EVAL_REGISTRY_FILE})+'\\n');
 const out = value => console.log(JSON.stringify(value));
 const write = (file, value) => {fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file, JSON.stringify(value));};
 const project = path.join(c.output,'executions/e2e/project'), runHome=path.join(c.output,'executions/e2e/dd-flow-home/run');
@@ -163,18 +164,23 @@ test('fork inherits pins, crosses a boundary and finalizes through ordinary EVAL
 
 test('fork and detached continuation retain a private registry despite ambient replacement', async t => {
   const f = await setup(t), registry = path.join(f.temp, 'private-registry', 'homes.json');
+  const resourceBefore = process.env.DD_FLOW_RESOURCE_HOME, resources = path.join(f.temp, 'private-resources');
+  t.after(() => { if (resourceBefore === undefined) delete process.env.DD_FLOW_RESOURCE_HOME; else process.env.DD_FLOW_RESOURCE_HOME = resourceBefore; });
+  process.env.DD_FLOW_RESOURCE_HOME = resources;
   const before = process.env.DD_EVAL_REGISTRY_FILE;
   t.after(() => { if (before === undefined) delete process.env.DD_EVAL_REGISTRY_FILE; else process.env.DD_EVAL_REGISTRY_FILE = before; });
   process.env.DD_EVAL_REGISTRY_FILE = registry;
   const ready = await f.runner.runnerFork(f.input);
   const file = path.join(f.output, 'manifest.json'), bytes = await readFile(file, 'utf8');
   assert.equal(JSON.parse(bytes).eval_registry_file, registry);
+  assert.equal(JSON.parse(bytes).runtime_resource_home, resources);
   const registryBytes = await readFile(registry, 'utf8');
   assert.equal(JSON.parse(registryBytes).homes.length, 1);
   const working = path.join(f.temp, '.dd-eval', 'homes.json');
   await write(working, '{working canary');
   const ambient = path.join(f.temp, 'other-registry', 'homes.json');
   process.env.DD_EVAL_REGISTRY_FILE = ambient;
+  process.env.DD_FLOW_RESOURCE_HOME = '/foreign-resource-home';
   const accepted = await f.runner.runnerFork({ ...f.input, start: true });
   assert.equal(accepted.run_id, ready.run_id);
   assert.equal((await waitForState(f.runner, f.output, ['completed'])).state, 'completed');
@@ -182,6 +188,9 @@ test('fork and detached continuation retain a private registry despite ambient r
   await assert.rejects(stat(ambient), { code: 'ENOENT' });
   assert.equal(await readFile(file, 'utf8'), bytes);
   assert.equal(await readFile(registry, 'utf8'), registryBytes);
+  const contexts = (await readFile(path.join(f.temp, 'contexts.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
+  assert.ok(contexts.length > 3);
+  assert.ok(contexts.every(item => item.resources === resources && item.registry === registry));
 });
 
 test('completed fork replay does not require its archived source checkpoint', async t => {
