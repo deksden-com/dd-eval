@@ -11,6 +11,15 @@ import { interactionJudge, loadRunProfile, loadCase, committedDefinitionIdentity
 const json = async file => JSON.parse(await readFile(file, 'utf8'));
 function invalid(message) { throw Object.assign(new Error(message), { code: 'judge_context_invalid' }); }
 
+export function referencePairTrials(packets, expectations) {
+  if (!Array.isArray(packets) || packets.length !== 2) invalid('Reference pair needs two frozen packets');
+  packets.forEach(packet => validateHitlPacket(packet));
+  if (packets[0].question !== packets[1].question || packets[0].stage !== packets[1].stage ||
+      hashJson(packets[0].responses) !== hashJson(packets[1].responses)) invalid('Reference pair question/stage/canonical response identity differs');
+  if (expectations?.unresolved?.classification !== 'ambiguous' || expectations?.resolved?.classification !== 'covered_by_canonical_response') invalid('Reference pair must explicitly expect unresolved ambiguity and resolved coverage');
+  return Array.from({ length: 3 }, (_, index) => ['unresolved', 'resolved'].map((label, i) => ({ label: `${label}-${index + 1}`, packet: packets[i], expected: expectations[label] }))).flat();
+}
+
 /** All inputs, expectations and frozen source identities are checked before any native call. */
 export async function assertSmokeTrials(trials) {
   if (!Array.isArray(trials) || !trials.length) invalid('Smoke needs explicit authored trials');
@@ -87,8 +96,7 @@ export async function main(args = process.argv.slice(2)) {
   } else {
     if (args.length !== 7) invalid('Usage: --pair <unresolved-packet> <resolved-packet> <expectations.json> <judge-profile> <runtime-root> <project-root>');
     const packets = [await json(args[1]), await json(args[2])], expectations = await json(args[3]);
-    if (expectations.unresolved?.classification !== 'ambiguous' || expectations.resolved?.classification !== 'covered_by_canonical_response') invalid('Reference pair must explicitly expect unresolved ambiguity and resolved coverage');
-    trials = Array.from({ length: 3 }, (_, index) => ['unresolved', 'resolved'].map((label, i) => ({ label: `${label}-${index + 1}`, packet: packets[i], expected: expectations[label] }))).flat();
+    trials = referencePairTrials(packets, expectations);
     runProfile = { value: { interaction_judge: { profile_id: args[4] } } };
     [runtimeRoot, projectRoot] = args.slice(5);
   }

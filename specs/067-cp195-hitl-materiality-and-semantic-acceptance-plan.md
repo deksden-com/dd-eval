@@ -778,3 +778,11 @@ runner/retained suites 125/125 PASS; managed-resume 3/3 PASS, без skips.
 Полный paired suite проводится на committed definition: до commit case edits
 правильно вызывают runner_definition_drift в recovery tests. Этот guard не ослаблен.
 Результат полного suite будет добавлен после проверки committed revision.
+
+Первый полный paired suite на dae5bba: 576/576 PASS, zero fail/cancel/skip/todo,
+265652 ms. Во время final read-only review дополнительно обнаружен loophole
+reference-pair smoke: unrelated ambiguous/covered questions могли считаться
+contrast. Исправлено до native dispatch: question/stage/canonical responses
+должны совпадать; меняются только grounding/context. Добавлена offline регрессия.
+Focused smoke после дополнения: 7/7 PASS. Итоговый полный прогон повторяется
+на следующей committed source revision.

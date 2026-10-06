@@ -276,7 +276,10 @@ and resolved/unresolved references. The optional fixed reference-pair schedule i
 Both packets must be complete frozen packet@3 objects. `expectations.json` contains
 `unresolved` and `resolved` authored corpus items with `expected_coverage`; their
 questions must match the corresponding packets. All inputs are checked before any
-native call; rebuilt grounding must equal each frozen packet, including at dispatch.
+native call; the pair must have identical question, stage and canonical responses,
+so unrelated questions cannot pass as a reference-resolution contrast. Only the
+grounding/context can change between the two inputs. Rebuilt
+grounding must equal each frozen packet, including at dispatch.
 The pair schedule is three fresh Sessions per question, fixed before dispatch.
 The first structural, semantic or cleanup failure stops dispatch and retains its
 result; never retry until PASS. This smoke does not create a scored EVAL.

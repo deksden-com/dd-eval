@@ -4,7 +4,7 @@ import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { buildHitlPacket } from '../lib/hitl-contract.mjs';
-import { runSmokeTrials, main } from '../tools/native-interaction-judge-smoke.mjs';
+import { runSmokeTrials, referencePairTrials, assertSmokeTrials, main } from '../tools/native-interaction-judge-smoke.mjs';
 
 const responses = [{ id: 'R', answer: 'No extra ordering is required.' }];
 async function trial(label = 'covered') {
@@ -74,4 +74,25 @@ test('smoke retains semantic comparison and original cleanup failure without rep
 
 test('implicit audit retention is no longer an invented fixture-gap smoke', async () => {
   await assert.rejects(main(['covered-packet.json']), /Implicit audit-gap smoke is unsupported/);
+});
+
+test('reference contrast cannot substitute an unrelated question, stage or canonical answer', async () => {
+  const item = await trial();
+  const unresolved = structuredClone(item.expected);
+  unresolved.classification = 'ambiguous'; unresolved.status = 'unmatched'; unresolved.response_ids = [];
+  for (const atom of [...unresolved.expected_coverage.obligations, ...unresolved.expected_coverage.witnesses]) {
+    atom.classification = 'ambiguous'; atom.response_ids = [];
+  }
+  const expectations = { unresolved, resolved: item.expected };
+  const original = item.packet;
+  for (const changed of [
+    await buildHitlPacket({ stage: original.stage, question: 'Unrelated easy question?', responses }),
+    await buildHitlPacket({ stage: 'plan', question: original.question, responses }),
+    await buildHitlPacket({ stage: original.stage, question: original.question, responses: [{ id: 'R', answer: 'Changed canonical answer.' }] })
+  ]) assert.throws(() => referencePairTrials([original, changed], expectations), /response identity differs/);
+  const resolved = await buildHitlPacket({ stage: original.stage, question: original.question, responses,
+    subjectContext: { objective: 'Explicitly identified antecedent.' } });
+  const schedule = referencePairTrials([original, resolved], expectations);
+  assert.equal(schedule.length, 6); assert.equal(schedule[0].packet, original); assert.equal(schedule[1].packet, resolved);
+  await assertSmokeTrials(schedule);
 });
