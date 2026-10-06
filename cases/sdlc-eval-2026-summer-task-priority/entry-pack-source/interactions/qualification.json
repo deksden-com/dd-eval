@@ -166,7 +166,7 @@
           {
             "id": "closed",
             "source_quotes": [
-              "Можно ли менять приоритет уже закрытой задачи?"
+              "приоритет уже закрытой задачи"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -176,7 +176,7 @@
           {
             "id": "archived",
             "source_quotes": [
-              "Можно ли менять приоритет задачи в архивном проекте, если остальные поля остаются только для чтения?"
+              "приоритет задачи в архивном проекте"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -466,7 +466,8 @@
           {
             "id": "minimal-state",
             "source_quotes": [
-              "Добавить минимальное состояние open/closed и переходы или убрать закрытые задачи из критерия?"
+              "минимальное состояние open/closed и переходы",
+              "убрать закрытые задачи из критерия"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -538,13 +539,24 @@
             ]
           },
           {
-            "id": "ordering",
+            "id": "ranking",
             "classification": "covered_by_canonical_response",
             "response_ids": [
               "clarification-task-priority"
             ],
             "witness_ids": [
-              "ordering",
+              "ranking",
+              "all"
+            ]
+          },
+          {
+            "id": "list-order",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "list-order",
               "all"
             ]
           }
@@ -571,9 +583,19 @@
             ]
           },
           {
-            "id": "ordering",
+            "id": "ranking",
             "source_quotes": [
-              "Надо ли добавлять ранжирование и менять порядок списка задач?"
+              "ранжирование"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "list-order",
+            "source_quotes": [
+              "менять порядок списка задач"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -939,7 +961,7 @@
           {
             "id": "decision",
             "source_quotes": [
-              "Какое значение сохраняется при двух одновременно успешных изменениях приоритета?"
+              "значение сохраняется при двух одновременно успешных изменениях приоритета"
             ],
             "classification": "fixture_gap",
             "response_ids": []
@@ -961,19 +983,35 @@
       "expected_coverage": {
         "obligations": [
           {
-            "id": "decision",
+            "id": "sms",
             "classification": "out_of_scope",
             "response_ids": [],
             "witness_ids": [
-              "decision"
+              "sms"
+            ]
+          },
+          {
+            "id": "calendar",
+            "classification": "out_of_scope",
+            "response_ids": [],
+            "witness_ids": [
+              "calendar"
             ]
           }
         ],
         "witnesses": [
           {
-            "id": "decision",
+            "id": "sms",
             "source_quotes": [
-              "Добавить ли SMS-уведомления и новый экран календаря по изменению приоритета?"
+              "SMS-уведомления"
+            ],
+            "classification": "out_of_scope",
+            "response_ids": []
+          },
+          {
+            "id": "calendar",
+            "source_quotes": [
+              "новый экран календаря"
             ],
             "classification": "out_of_scope",
             "response_ids": []
@@ -995,19 +1033,35 @@
       "expected_coverage": {
         "obligations": [
           {
-            "id": "decision",
+            "id": "values",
             "classification": "unnecessary_question",
             "response_ids": [],
             "witness_ids": [
-              "decision"
+              "values"
+            ]
+          },
+          {
+            "id": "default",
+            "classification": "unnecessary_question",
+            "response_ids": [],
+            "witness_ids": [
+              "default"
             ]
           }
         ],
         "witnesses": [
           {
-            "id": "decision",
+            "id": "values",
             "source_quotes": [
-              "Подтвердите ещё раз принятые значения no_priority/low/medium/high и default no_priority."
+              "принятые значения no_priority/low/medium/high"
+            ],
+            "classification": "unnecessary_question",
+            "response_ids": []
+          },
+          {
+            "id": "default",
+            "source_quotes": [
+              "default no_priority"
             ],
             "classification": "unnecessary_question",
             "response_ids": []
@@ -1041,7 +1095,8 @@
           {
             "id": "decision",
             "source_quotes": [
-              "Уточните обязательное поведение этого значения в том случае, о котором мы говорили: какой именно вариант нужен?"
+              "обязательное поведение этого значения",
+              "какой именно вариант нужен"
             ],
             "classification": "ambiguous",
             "response_ids": []
@@ -1172,7 +1227,7 @@
           {
             "id": "gap",
             "source_quotes": [
-              "Какое значение сохраняется при двух одновременно успешных изменениях приоритета?"
+              "значение сохраняется при двух одновременно успешных изменениях приоритета"
             ],
             "classification": "fixture_gap",
             "response_ids": []
@@ -1219,7 +1274,8 @@
           {
             "id": "decision",
             "source_quotes": [
-              "Уточните обязательное поведение этого значения в том случае, о котором мы говорили: какой именно вариант нужен?"
+              "обязательное поведение этого значения",
+              "какой именно вариант нужен"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -1344,7 +1400,7 @@
           {
             "id": "decision",
             "source_quotes": [
-              "Какой приоритет получает новая задача без указанного приоритета?"
+              "приоритет получает новая задача без указанного приоритета"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -1439,7 +1495,7 @@
           {
             "id": "decision",
             "source_quotes": [
-              "Для корректной работы приоритета необходимо добавить SMS-уведомления. Какой SMS-провайдер нужен?"
+              "Какой SMS-провайдер нужен"
             ],
             "classification": "out_of_scope",
             "response_ids": []
