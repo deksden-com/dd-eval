@@ -819,7 +819,8 @@ test("Interaction Judge prompt preserves shared decision constraints (structural
   assert.match(prompt, /no aggregate fields/);
   assert.match(prompt, /Do not author, paraphrase or strengthen canonical answer bytes/);
   assert.match(prompt, /never from canonical responses or applicability/);
-  assert.match(prompt, /sole repetition of an accepted decision.*unnecessary_question/);
+  assert.match(prompt, /Reserve unnecessary_question for an explicit request to reconfirm an already agreed decision/);
+  assert.match(prompt, /established by accepted_decisions or retained conversation, without a new condition/);
   assert.match(prompt, /all uncovered atoms need answer_evidence: \[\]/);
 });
 
