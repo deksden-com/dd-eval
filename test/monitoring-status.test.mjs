@@ -58,3 +58,14 @@ test('private shim rejects invalid resource bindings before creating runtime sta
   await assert.rejects(installRuntimeShim(home, { snapshot_root: root, entrypoint: 'missing.js' }), { code: 'runtime_scope_identity_missing' });
   await assert.rejects(stat(home), { code: 'ENOENT' });
 });
+
+test('an explicit retained shim context beats ambient resource and registry paths', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-retained-shim-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const engine = path.join(root, 'engine'), home = path.join(root, 'home');
+  await mkdir(path.join(engine, 'dist/harness-runtime'), { recursive: true });
+  await writeFile(path.join(engine, 'cli.cjs'), 'console.log(JSON.stringify({resources:process.env.DD_FLOW_RESOURCE_HOME,registry:process.env.DD_EVAL_REGISTRY_FILE}))');
+  const resourceHome = path.join(root, 'retained-resources'), registryFile = path.join(root, 'retained-registry.json');
+  const shim = await installRuntimeShim(home, { snapshot_root: engine, entrypoint: 'cli.cjs' }, { resourceHome, registryFile });
+  assert.deepEqual(JSON.parse(await commandText(shim, ['version'], { env: { DD_FLOW_RESOURCE_HOME: '/foreign', DD_EVAL_REGISTRY_FILE: '/foreign' } })), { resources: resourceHome, registry: registryFile });
+});
