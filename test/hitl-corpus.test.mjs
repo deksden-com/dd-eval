@@ -89,6 +89,16 @@ test('CP190 native short create/edit requests retain two independent operation o
   }
 });
 
+test('native archive owner/member splits are legal without hiding missing independent decisions', async () => {
+  const native = JSON.parse(await readFile(new URL('./fixtures/hitl-canonical-archive-permissions.json', import.meta.url)));
+  const item = itemBy('luna-cp190-exact');
+  const packet = await buildHitlPacket({ stage: 'specify', question: item.question, responses });
+  assert.deepEqual(validateGroundedHitl(native, packet, { stored: true }), native);
+  assertExpectedAtoms(item, native, options);
+  const missing = { atoms: native.atoms.filter(atom => !atom.source_quote.includes('UI и API поддерживают одинаковые операции')) };
+  assert.ok(compareHitlExpectation(item, missing, options).missing_obligation_ids.includes('q3-ui-api'));
+});
+
 test('immutable CP196 native operative choices cover defaults and UI/API boundary without changing verdict bytes', async () => {
   const bytes = await readFile(new URL('./fixtures/hitl-cp196-operative-choice.json', import.meta.url));
   assert.equal(createHash('sha256').update(bytes).digest('hex'), '9b11b0c25d234cff8a535e4cde0fd1927d2a04f0114fda6f845474408e3e44fa');
