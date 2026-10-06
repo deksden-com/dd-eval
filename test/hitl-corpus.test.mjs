@@ -150,6 +150,37 @@ test('coverage evidence guards require literal canonical proof in the same match
   assert.throws(() => validateExpectedAtoms(item, { responses: [{ id: 'r' }], coverageRequired: true }), { code: 'hitl_qualification_invalid' });
 });
 
+test('all operative CP190 archive alternatives and the immutable native thirteen-atom final retain independent coverage', async () => {
+  const bytes = await readFile(new URL('./fixtures/hitl-cp196-archive-options.json', import.meta.url));
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), '46c7b93a91d4fe2ac5f2519d5ceb56d2e28d51880d2773474959333ddd9d4220');
+  const native = JSON.parse(bytes), item = itemBy('luna-cp190-exact');
+  const packet = await buildHitlPacket({ stage: 'specify', question: item.question, responses });
+  assert.deepEqual(validateGroundedHitl(native, packet, { stored: true }), native);
+  assertExpectedAtoms(item, native, options);
+  const question = item.question.slice(item.question.indexOf('## Q-003'));
+  const alternatives = question.split('Варианты:\n')[1].split('\n\nРекомендация:')[0].split('\n').map(line => line.slice(2));
+  assert.equal(alternatives.length, 3);
+  for (const source_quote of alternatives) {
+    const archive = { source_quote, decision: 'resolve archive choice', classification: covered, reference_bindings: [], scope_evidence: [],
+      answer_evidence: [{ response_id: responses[0].id, answer_quote: responses[0].answer }], rationale: 'canonical replacement resolves the archive choice' };
+    const normalized = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@3', atoms: [...native.atoms.slice(0, 7), archive] }, packet);
+    assertExpectedAtoms(item, normalized, options);
+  }
+  for (const id of ['q2-default', 'q3-archive', 'q3-visibility', 'q3-ui-api']) {
+    const proof = item.expected_coverage.obligations.find(obligation => obligation.id === id).answer_evidence[0];
+    const omitted = structuredClone(native);
+    for (const atom of omitted.atoms) atom.answer_evidence = atom.answer_evidence.filter(evidence => !evidence.answer_quote.includes(proof.answer_quote));
+    assert.ok(compareHitlExpectation(item, omitted, options).missing_obligation_ids.includes(id), id);
+  }
+  for (const id of ['q2-create', 'q2-update', 'q3-operation-boundary']) {
+    const obligation = item.expected_coverage.obligations.find(obligation => obligation.id === id);
+    const anchors = item.expected_coverage.witnesses.filter(witness => obligation.witness_ids.includes(witness.id)).flatMap(witness => witness.source_quotes);
+    const atoms = native.atoms.filter(atom => !anchors.some(quote => atom.source_quote.includes(quote)));
+    assert.ok(compareHitlExpectation(item, { atoms }, options).missing_obligation_ids.includes(id), id);
+  }
+  assert.deepEqual(JSON.parse(bytes), native);
+});
+
 test('bundled, split, reordering and repeated allowed source quotes have no total count requirement', () => {
   for (const item of corpus.items) {
     const bundled = verdict(item.expected_coverage.witnesses);
