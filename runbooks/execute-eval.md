@@ -253,8 +253,12 @@ question atoms, frozen context evidence and canonical answer quotes; the runner
 derives the overall result. A fixture gap requires typed `scope_evidence` from an
 accepted objective/decision/source/response, not just the Subject's necessity claim.
 An exact canonical refusal can cover a proposed extra option. Structural quote
-checks prove provenance, not semantic entailment. Historical v1/v2 evidence remains
-explicitly read-only; it cannot authorize a new answer or Judge Turn.
+checks prove provenance, not semantic entailment.
+An objective's scope restriction is not proof of a prior question/answer exchange.
+Explicit reconfirmation of an agreed decision remains unnecessary; an initial
+clarification may be covered by a canonical refusal of an extra mechanism.
+Historical v1/v2 evidence remains explicitly read-only; it cannot authorize a
+new answer or Judge Turn.
 Current corpus@2 requires `expected_coverage`: finite authored obligations and
 witnesses permit valid split/bundled answers while detecting independent omissions.
 The oracle treats authored quotes as content anchors: a longer native atom may

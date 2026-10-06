@@ -20,6 +20,10 @@ test("shared Judge prompt structure preserves materiality/reference policy, not 
   assert.doesNotMatch(prompt, /Before returning, use available local tools/);
   assert.match(prompt, /Subject's assertion/);
   assert.match(prompt, /scope_evidence/);
+  assert.match(prompt, /Reserve unnecessary_question for an explicit request to reconfirm an already agreed decision/);
+  assert.match(prompt, /scope restriction is not proof that this clarification was already asked and answered/);
+  assert.match(prompt, /Canonical responses are available answers, not evidence that the Subject already received them/);
+  assert.match(prompt, /only an extra unaccepted decision without an exact resolving answer is out_of_scope/);
   const corpus = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/entry-pack-source/interactions/qualification.json", import.meta.url)));
   const fixtures = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/entry-pack-source/interactions/specify.json", import.meta.url)));
   const item = corpus.items.find(item => item.id === "luna-cp190-exact");

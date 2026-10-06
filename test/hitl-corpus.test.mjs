@@ -110,6 +110,21 @@ test('scope contrast expectations stay on oracle side without altering canonical
   assert.ok(acceptedContext.accepted_decisions[0].includes('обязательно сохраняется'));
 });
 
+test('initial clarification with a canonical refusal is distinct from reconfirming an agreed decision', async () => {
+  const initial = itemBy('status-semantics-at-specify'), repeat = itemBy('accepted-repeat');
+  const context = JSON.parse(await readFile(new URL(initial.context_file, caseRoot)));
+  const accepted = JSON.parse(await readFile(new URL(repeat.context_file, caseRoot)));
+  assert.deepEqual(context.accepted_decisions, []);
+  assert.ok(accepted.accepted_decisions.length);
+  assert.equal(repeat.classification, 'unnecessary_question');
+  assertExpectedAtoms(initial, split(initial), options);
+  const failed = split(initial);
+  const workflow = failed.atoms.find(value => value.decision === 'workflow');
+  workflow.classification = 'unnecessary_question'; workflow.answer_evidence = [];
+  assert.equal(compareHitlExpectation(initial, failed, options).passed, false);
+  assertExpectedAtoms(repeat, split(repeat), options);
+});
+
 test('immutable actual CP195 false-gap receipt is rejected without rewriting historical bytes', async () => {
   const bytes = await readFile(new URL('./fixtures/hitl-cp195-negative.json', import.meta.url));
   assert.equal(createHash('sha256').update(bytes).digest('hex'), '6008e53e24345b255129031ca2f6cced5809d8f3ace9c60ac73bfc70561f9f9b');
