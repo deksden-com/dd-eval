@@ -1,0 +1,27 @@
+{
+  "id": "cp-197-task-priority-lifecycle-finalization",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e",
+    "tag": "eval/cp-172-source-baseline-setup"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "2777773781b69dfd2ccaed55bbec245a88344655",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-197-verification-matrix-qualification.json",
+      "sha256": "1ec9feb5d5cbea15cc70ca9bc629c677a60dc3b41e9e3586cbf25f1676a21cda",
+      "canon_commit": "2e57b987ec91b7c3b0fa97f6169047802a1233fb"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "1d439fdc1c2500ad659e58b816c5d022b3cd89b2",
+      "version": "0.9.0-beta.125",
+      "artifact_sha256": "8bf2ee67722d212ef13d36d9c4b7c32b794d0d50c01e916b1e864bb82d049f7b"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
