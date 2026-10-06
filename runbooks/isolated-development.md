@@ -66,6 +66,16 @@ Producer/console проверяются вместе с одинаковым pri
 smoke проверяет actual engine identity, dependency closure и child env, не только
 наличие launcher text.
 
+Дополнительный installed launcher gate повторяет real lifecycle/resume fixtures,
+не заменяя full paired procedure. После source freeze укажи private launcher в
+`DD_EVAL_TEST_FLOW_CLI`, installed-helper fixture в `DD_EVAL_TEST_FLOW_ADAPTER`,
+существующий owned parent в `DD_EVAL_TEST_FIXTURE_ROOT`, campaign resource home в
+`DD_EVAL_TEST_RESOURCE_HOME` и тот же private file в `DD_EVAL_TEST_REGISTRY_FILE`.
+Выполни `node --test --test-concurrency=1 test/managed-flow-client.integration.test.mjs
+test/eval-resume.integration.test.mjs`. Все эти overrides принадлежат tests,
+не являются публичными production настройками. Fixture configs и native state
+создаются внутри выбранного test parent; helper modules идут из installed engine.
+
 Canary working roots должны оставаться неизменными при negative launch,
 migration, stop/recovery и cleanup. Для настоящих active homes не сравнивай
 DB hashes: соседние legitimate writers могут менять их. Подтверждай ownership

@@ -16,16 +16,16 @@ const phaseWaitMs = 100_000;
 // cleanup have separate envelopes. The total guard must not be shorter than
 // the two explicitly allowed capture/resume waits alone.
 test('public background EVAL resume continues a real retained RUN through its next stage', { skip: !process.env.DD_EVAL_TEST_FLOW_CLI || !process.env.DD_EVAL_TEST_FLOW_ADAPTER, timeout: 4 * phaseWaitMs }, async t => {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-managed-resume-'));
+  const root = await mkdtemp(path.join(process.env.DD_EVAL_TEST_FIXTURE_ROOT ?? os.tmpdir(), 'eval-managed-resume-'));
   const definition = path.join(root, 'definition'), evalRoot = path.join(root, 'eval-home', 'runs', 'EVAL-managed-resume'), attempt = path.join(evalRoot, 'executions', 'stages');
   const project = path.join(attempt, 'project'), home = path.join(attempt, 'dd-flow-home'), cli = path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI);
-  const evalId = 'EVAL-managed-resume', resources = path.join(root, 'resources');
+  const evalId = 'EVAL-managed-resume', resources = process.env.DD_EVAL_TEST_RESOURCE_HOME ?? path.join(root, 'resources');
   const budget = { schema_id: 'dd-flow/runtime-budget@1', scope_id: evalId, per_harness: {} };
-  const registry = path.join(root, 'private-registry', 'homes.json'), ambientRegistry = path.join(root, 'ambient-registry.json');
-  const env = { DD_EVAL_REGISTRY_FILE: ambientRegistry, DD_FLOW_HOME: home, DD_FLOW_RESOURCE_HOME: resources, DD_FLOW_RECOVERY_HOME: path.join(root, 'recovery'), DD_FLOW_ENGINE_MODE: '1', DD_FLOW_RUNTIME_BUDGET: JSON.stringify(budget), CODEX_HOME: path.join(root, 'codex-home'), DD_FLOW_TEST_ROOT: root, DD_FLOW_TEST_UNCLEAN_STOP: '0', DD_FLOW_TEST_CAPTURE_FAILURE: '0' };
+  const registry = process.env.DD_EVAL_TEST_REGISTRY_FILE ?? path.join(root, 'private-registry', 'homes.json'), ambientRegistry = path.join(root, 'ambient-registry.json');
+  const env = { DD_EVAL_REGISTRY_FILE: registry, DD_FLOW_HOME: home, DD_FLOW_CONFIG_HOME: home, DD_FLOW_RESOURCE_HOME: resources, DD_FLOW_RECOVERY_HOME: path.join(root, 'recovery'), DD_FLOW_ENGINE_MODE: '1', DD_FLOW_RUNTIME_BUDGET: JSON.stringify(budget), CODEX_HOME: path.join(root, 'codex-home'), DD_FLOW_TEST_ROOT: root, DD_FLOW_TEST_UNCLEAN_STOP: '0', DD_FLOW_TEST_CAPTURE_FAILURE: '0' };
   const write = async (file, value) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); return file; };
   const json = async file => JSON.parse(await readFile(file, 'utf8'));
-  const invoke = args => commandText(process.execPath, [path.join(definition, 'bin', 'dd-eval.mjs'), 'runner', ...args], { cwd: definition, env });
+  const invoke = args => commandText(process.execPath, [path.join(definition, 'bin', 'dd-eval.mjs'), 'runner', ...args], { cwd: definition, env: { ...env, DD_EVAL_REGISTRY_FILE: ambientRegistry } });
   let runId, settled = false, workerExited = true;
   const stopRun = () => commandJson(cli, ['run', 'control', 'stop', '--run', runId, '--project-root', project, '--request-id', 'test-cleanup', '--force', '--wait-ms', '10000'], { cwd: project, env, signal: AbortSignal.timeout(20_000) });
   const abort = () => { if (runId && !settled) void stopRun().catch(() => {}); };
@@ -122,8 +122,9 @@ test('public background EVAL resume continues a real retained RUN through its ne
     }
     assert.equal(worker.result.state, 'completed');
     const registered = await json(registry);
-    assert.equal(registered.homes.length, 1);
-    assert.equal(registered.homes[0].root, await realpath(path.join(root, 'eval-home')));
+    const selectedHome = await realpath(path.join(root, 'eval-home'));
+    assert.equal(registered.homes.filter(home => home.root === selectedHome).length, 1);
+    if (!process.env.DD_EVAL_TEST_REGISTRY_FILE) assert.equal(registered.homes.length, 1);
     assert.equal(await readFile(ambientRegistry, 'utf8'), '{foreign registry must not be read or rewritten');
     assert.equal((await json(path.join(evalRoot, 'manifest.json'))).eval_registry_file, registry);
     assert.equal(worker.result.executions[0].run_id, runId);
