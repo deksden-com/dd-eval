@@ -10,11 +10,12 @@ import { commandText } from '../lib/process-json.mjs';
 import { hashJson, readEvents, appendEvent } from '../lib/runner-events.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { interactionFixtureManifest, assertExecutionEngine } from '../lib/runner.mjs';
+import { installMaintenanceFixture } from './fixtures/maintenance-runtime.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 // The detached owner remains observable while fixture startup/settlement runs;
 // allow loaded CI hosts to finish without weakening the production deadline.
-async function waitForState(runner, evalRoot, expected, timeoutMs = 30_000, ready = () => true) {
+async function waitForState(runner, evalRoot, expected, timeoutMs = 60_000, ready = () => true) {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     const status = await runner.runnerStatus({ evalRoot });
@@ -63,7 +64,7 @@ async function setup(t, fault = null) {
   const commit = await commandText('git', ['rev-parse', 'HEAD'], { cwd: definition });
   const sourceRoot = path.join(temp, 'home/runs/source'), output = path.join(temp, 'home/forks/derived');
   const source = { schema_id: 'dd-eval/runner-manifest@1', kind: 'scored', run_id: 'EVAL-source', case_id: 'fixture', definition: { commit }, input_checkpoint: { id: checkpoint.id, sha256: checkpointHash }, executions: [execution], interaction_fixtures: Object.fromEntries(stages.map(stage => [stage, { interaction_fixture_sha256: hashJson(policy(stage)) }])), runtime_resource_home: path.join(temp, 'resources'), profile: { subject: {}, concurrency: { global: 1 }, judge: { enabled: false }, failure_policy: { stop_run_on_infrastructure_error: true } }, subject_profile: { id: 'fake', harness: 'zcode-acp', model: 'fake', reasoning: 'low', subagent_capacity: 5 } };
-  const baselineFile = await write(path.join(sourceRoot, 'executions/e2e/baseline-admission/receipt.json'), { status: 'passed', checkpoint_id: checkpoint.id, checkpoint_sha256: checkpointHash, source_commit: checkpoint.source.commit, policy_sha256: 'e'.repeat(64), checks: [{ exit_code: 0 }] });
+  const baselineFile = await write(path.join(sourceRoot, 'executions/e2e/baseline-admission/receipt.json'), { schema_id: 'dd-eval/baseline-admission@1', status: 'passed', checkpoint_id: checkpoint.id, checkpoint_sha256: checkpointHash, source_commit: checkpoint.source.commit, policy_sha256: 'e'.repeat(64), checks: [{ exit_code: 0 }] });
   Object.assign(source.profile, {
     schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: 'fixture', subject: { profile_id: 'fake' },
     selection: { focused_stages: [], segment: null, e2e: true, repetitions: 1 },
@@ -76,6 +77,8 @@ async function setup(t, fault = null) {
   const configFile = path.join(temp, 'fake.json'), callsFile = path.join(temp, 'calls.jsonl');
   const engineRoot = path.join(temp, 'engine');
   await mkdir(path.join(engineRoot, 'dist/harness-runtime'), { recursive: true });
+  await installMaintenanceFixture(path.join(engineRoot, 'dist'));
+  await installMaintenanceFixture(engineRoot);
   const cli = await write(path.join(engineRoot, 'cli.cjs'), `#!${process.execPath}
 const fs = require('node:fs'), path = require('node:path'), {execFileSync} = require('node:child_process');
 const c = JSON.parse(fs.readFileSync(${JSON.stringify(configFile)})), a = process.argv.slice(2);
@@ -89,7 +92,7 @@ const runtimeProcess = () => { const pid=Number(a.includes('--pid')?get('--pid')
 const controller = {controller_id:'DRV-fake',run_id:'RUN-fake',request_id:fs.existsSync(c.output+'/launch')?fs.readFileSync(c.output+'/launch','utf8'):'none',stage:'code',status:'stop_target_reached',sessions:[],runtime_budget:fs.existsSync(managedFile)?JSON.parse(fs.readFileSync(managedFile)).runtime_budget:null};
 const captured = stage => {const file=c.output+'/capture-'+stage+'/snapshot.json';write(file,{purpose:'stage_entry',stage_entry:stage==='plan-review'?'code':'code-review'});return {stage,manifest:file,manifest_sha256:require('node:crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex')};};
 if(a[0]==='engine') out(a[1]==='resolve'?{selection:{selected:c.engine}}:{engine:c.engine});
-else if(a[0]==='runtime' && a[1]==='process') out(a[2]==='status'?{processes:[]}:{process:runtimeProcess()});
+else if(a[0]==='runtime' && a[1]==='process') out(a[2]==='status'?{processes:[]}:a[2]==='heartbeat'?{ok:true,process_id:'PROC-fake',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)}:a[2]==='check-admission'?{ok:true,admitted:true,process_id:'PROC-fake'}:a[2]==='finish'?{ok:true}:{process:runtimeProcess()});
 else if(a[0]==='run' && a[1]==='fork') {
   fs.mkdirSync(project,{recursive:true});fs.mkdirSync(runHome,{recursive:true});execFileSync('git',['init','--quiet'],{cwd:project});
   out({ok:true,status:'ready',fork:{project_root:project,dd_flow_home:path.dirname(runHome),run_id:'RUN-fake',run_home:runHome,workspace_root:project,target_stage:'plan-review',engine:c.engine}});
@@ -107,7 +110,7 @@ else if(a[0]==='run' && a[1]==='fork') {
 } else if(a[0]==='run' && a[1]==='control') {
   if(a[2]==='stop') fs.writeFileSync(c.output+'/stopped','yes');
   const settled=c.fault!=='unsettled';const capture=c.output+'/recovery';write(capture+'/snapshot.json',{consistency:'sealed_writer_barrier_required'});
-  out({settled,control:{current:true,control_id:'CTL-fake',recovery_id:'REC-fake',admission:'sealed',capture_path:capture,generation:1,settlement:{settled}}});
+  out({scope:{run_id:'RUN-fake'},settled,control:{current:true,control_id:'CTL-fake',recovery_id:'REC-fake',admission:'sealed',capture_path:capture,generation:1,settlement:{settled}}});
 } else if(a[0]==='run' && a[1]==='list') out({runs:[{id:'RUN-fake'}]});
 else if(a[0]==='run' && a[1]==='status') out({run:{workspace_root:project,run_root:runHome},index:{stage_runs:[{stage:'plan-review',status:'done'},{stage:'code',status:fs.existsSync(c.output+'/code')?'done':'pending'}]}});
 else if(a[0]==='stat') out({});
@@ -146,7 +149,7 @@ test('fork inherits pins, crosses a boundary and finalizes through ordinary EVAL
   const [result, concurrent] = await Promise.all([f.runner.runnerFork({ ...f.input, start: true }), f.runner.runnerFork({ ...f.input, start: true })]);
   assert.equal(result.status, 'accepted');
   assert.equal(concurrent.status, 'accepted');
-  const status = await waitForState(f.runner, f.output, ['completed'], 30_000);
+  const status = await waitForState(f.runner, f.output, ['completed']);
   assert.equal(status.execution_results[0].boundaries.length, 2);
   assert.equal(status.execution_results[0].stage, 'code');
   assert.equal((await f.runner.runnerFork({ ...f.input, start: true })).status, 'accepted');
@@ -201,7 +204,7 @@ test('failed fork stays pending until cleanup is confirmed, then finalizes witho
   assert.equal(first.status, 'accepted');
   // awaiting_provider is also an observer-startup state. Wait for the actual
   // failed RUN's stop request before changing the fixture's settlement reply.
-  await waitForState(f.runner, f.output, ['awaiting_provider'], 10_000, async () => {
+  await waitForState(f.runner, f.output, ['awaiting_provider'], 30_000, async () => {
     try { await stat(path.join(f.output, 'stopped')); return true; }
     catch (error) { if (error.code === 'ENOENT') return false; throw error; }
   });

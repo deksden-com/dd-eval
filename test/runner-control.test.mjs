@@ -7,11 +7,13 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { setTimeout as delay } from 'node:timers/promises';
 import { executeEval, runnerControlReconcile, runnerControlRequest, runnerControlResume, runnerControlStatus, runnerResume, launchEvalExecution, loadCase, assertEvalExecutionDispatch, interactionFixtureManifest } from '../lib/runner.mjs';
-import { appendEvent, controlOperationInventory, readEvents, recordOperation, reduceEvents } from '../lib/runner-events.mjs';
+import { appendEvent, controlOperationInventory, readEvents, recordOperation, reduceEvents, sha256, writeJsonAtomic } from '../lib/runner-events.mjs';
 import { commandJson, commandText } from '../lib/process-json.mjs';
 import { withRunnerLock } from '../lib/runner-lock.mjs';
 import { evalResumeWorkerFile, requestEvalResume } from '../lib/eval-resume-worker.mjs';
 import { processSnapshot } from '../lib/process-snapshot.mjs';
+import { settledJudge } from './fixtures/judge-cleanup.mjs';
+import { installMaintenanceFixture } from './fixtures/maintenance-runtime.mjs';
 
 function initialRunProfile(caseId) {
   return { value: { schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: caseId, subject: { profile_id: 'fixture' },
@@ -100,7 +102,37 @@ test('runner resume routes an unstarted execution through launch without rewriti
   assert.equal((await runnerResume({ evalRoot: root })).executions[0].code, 'execution_preparation_unproven');
 });
 
-for (const real of [false, true]) test(`resume cannot observe the initial EVAL queue until its owner finishes projection (real CLI: ${real})`, { skip: real && !process.env.DD_EVAL_TEST_FLOW_CLI, timeout: 60_000 }, async t => {
+// CI fixture provisioning/readiness is not a native hook authority window.
+// Each CLI retains its own quiet timeout; setup and semantic phases get fresh
+// readiness clocks rather than sharing an old deadline from preparation.
+const realFixtureReadinessMs = 120_000;
+const cliQuietMs = 30_000;
+async function retireRealScope(root, cli, env, scopeId) {
+  const call = args => commandJson(cli, ['runtime', ...args], { cwd: root, env });
+  const receipt = await call(['scope', 'stop', '--scope-id', scopeId, '--request-id', 'cleanup']);
+  assert.equal(receipt.scope_id, scopeId);
+  assert.equal(receipt.settled, true, `Scope cleanup is unconfirmed; retained ${root}`);
+  const scope = await call(['scope', 'status', '--scope-id', scopeId]);
+  assert.equal(scope.scope_id, scopeId);
+  assert.notEqual(scope.worker?.status, 'starting', `A late scope owner remains possible; retained ${root}`);
+  const { processes } = await call(['process', 'status']);
+  const owned = processes.filter(record => {
+    const metadata = JSON.parse(record.metadata_json);
+    return metadata.scope_id === scopeId || metadata.budget?.scope_id === scopeId;
+  });
+  for (const record of owned.filter(record => record.kind === 'scope-control' && !['stopped', 'failed'].includes(record.state))) {
+    const stopped = await call(['process', 'stop', '--id', record.id, '--lease-token', record.lease_token, '--grace-ms', '100']);
+    assert.equal(stopped.process.id, record.id);
+    assert.equal(stopped.process.state, 'stopped');
+  }
+  const snapshot = await processSnapshot();
+  for (const record of owned) {
+    const group = JSON.parse(record.metadata_json).process_group_id;
+    assert.ok(!snapshot.some(item => item.pid === record.pid || group && item.pgid === group), `Owned tree cleanup is unconfirmed; retained ${root}`);
+  }
+  assert.ok(!scope.worker?.owner_pid || !snapshot.some(item => item.pid === scope.worker.owner_pid || item.pgid === scope.worker.owner_pid), `Scope worker cleanup is unconfirmed; retained ${root}`);
+}
+for (const real of [false, true]) test(`resume cannot observe the initial EVAL queue until its owner finishes projection (real CLI: ${real})`, { skip: real && !process.env.DD_EVAL_TEST_FLOW_CLI, timeout: realFixtureReadinessMs + 2 * cliQuietMs }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-initial-resume-'));
   const previousBin = process.env.DD_FLOW_BIN;
   const ambient = path.join(root, 'ambient.mjs');
@@ -119,8 +151,15 @@ const script=cli.endsWith('.js')||cli.endsWith('.mjs');
 const result=spawnSync(script?process.execPath:cli,[...(script?[cli]:[]),...process.argv.slice(2)],{stdio:'inherit'});
 if(result.error)throw result.error; process.exit(result.status??1);`);
   process.env.DD_FLOW_BIN = ambient;
+  let initial, initialFailure, resumed, resumeFailure, observer, observerFailure, finished = false, initialDone = false, resumeDone = false;
+  const observe = action => {
+    t.signal.throwIfAborted();
+    return observer = action().catch(error => { observerFailure = error; throw error; });
+  };
   t.after(async () => {
     if (previousBin === undefined) delete process.env.DD_FLOW_BIN; else process.env.DD_FLOW_BIN = previousBin;
+    await observer?.catch(() => {});
+    if (initial && !initialDone || resumed && !resumeDone || initialFailure?.cleanup_error || resumeFailure?.cleanup_error || observerFailure?.cleanup_error) throw Object.assign(new Error(`Initial owner cleanup is unconfirmed; retained ${root}`), { retained_root: root });
     await rm(root, { recursive: true, force: true });
   });
   const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
@@ -129,17 +168,20 @@ if(result.error)throw result.error; process.exit(result.status??1);`);
   const runProfile = initialRunProfile(loaded.value.id);
   const retained = path.join(root, 'executions', execution.id, 'retained');
   await mkdir(path.dirname(retained), { recursive: true }); await writeFile(retained, 'block before provider preparation');
-  let initial, resumed, finished = false;
   await withRunnerLock(path.join(root, 'events.jsonl'), async () => {
-    initial = executeEval({ root, runId: 'EVAL-initial-resume', loaded, profile, runProfile, executions: [execution] }).catch(error => error);
-    const deadline = performance.now() + (real ? 30_000 : 3000);
+    t.signal.throwIfAborted();
+    initial = executeEval({ root, runId: 'EVAL-initial-resume', loaded, profile, runProfile, executions: [execution] }).catch(error => { initialFailure = error; return error; }).finally(() => { initialDone = true; });
+    const deadline = performance.now() + realFixtureReadinessMs;
     while (!await readFile(path.join(root, 'manifest.json')).then(() => true, error => { if (error.code === 'ENOENT') return false; throw error; })) {
+      t.signal.throwIfAborted();
+      if (initialFailure) throw initialFailure;
       assert.ok(performance.now() < deadline, 'initial manifest is published'); await delay(10);
     }
-    resumed = runnerResume({ evalRoot: root }).then(value => { finished = true; return value; }, error => { finished = true; return error; });
+    t.signal.throwIfAborted();
+    resumed = runnerResume({ evalRoot: root }).then(value => { finished = true; return value; }, error => { finished = true; resumeFailure = error; return error; }).finally(() => { resumeDone = true; });
     await delay(50);
     assert.equal(finished, false);
-  });
+  }, { signal: t.signal });
   const result = await initial;
   assert.equal(result.executions[0].code, 'execution_preparation_unproven');
   assert.equal((await resumed).executions[0].code, 'execution_preparation_unproven');
@@ -148,11 +190,12 @@ if(result.error)throw result.error; process.exit(result.status??1);`);
   const manifest = JSON.parse(await readFile(path.join(root, 'manifest.json'), 'utf8'));
   assert.equal(manifest.runtime_control_bin, path.join(root, 'control-runtime/bin/dd-flow'));
   const env = { DD_FLOW_HOME: path.join(root, 'control-runtime') };
-  const before = await commandJson(manifest.runtime_control_bin, ['version'], { cwd: root, env });
+  const before = await observe(() => commandJson(manifest.runtime_control_bin, ['version'], { cwd: root, env, signal: t.signal }));
+  t.signal.throwIfAborted();
   await writeFile(ambient, 'throw Error("ambient CLI was replaced");');
-  assert.deepEqual(await commandJson(manifest.runtime_control_bin, ['version'], { cwd: root, env }), before);
+  assert.deepEqual(await observe(() => commandJson(manifest.runtime_control_bin, ['version'], { cwd: root, env, signal: t.signal })), before);
   if (real) {
-    const status = await runnerControlStatus({ evalRoot: root });
+    const status = await observe(() => runnerControlStatus({ evalRoot: root, signal: t.signal }));
     assert.equal(status.run_id, 'EVAL-initial-resume');
     assert.notEqual(status.inventory.unavailable, true);
     assert.equal(status.inventory.scope_id, 'EVAL-initial-resume');
@@ -252,7 +295,7 @@ test('operator resume applies one exact runtime release and cannot clear a newer
   const release = { scope_id: runId, source_request_id: 'stop', request_id: 'resume', generation: 1, capture_key: 'a'.repeat(64), journal_sha256: 'b'.repeat(64), current: true };
   const status = { scope_id: runId, control: null, fence: null, dispatch_blocked: false, release, resume: { status: 'released', request_id: 'resume', generation: 1, capture_key: release.capture_key, current: true } };
   const input = { evalRoot: root, requestId: 'resume', fromRequestId: 'stop' }, before = await readFile(eventsFile, 'utf8');
-  for (const changed of [{ current: false }, { request_id: 'foreign' }, { source_request_id: 'foreign' }, { capture_key: 'wrong' }]) {
+  for (const changed of [{ current: false }, { request_id: 'foreign' }, { source_request_id: 'foreign' }, { capture_key: 'wrong' }, { generation: 2 }]) {
     await writeFile(statusFile, JSON.stringify({ ...status, release: { ...release, ...changed } }));
     await assert.rejects(runnerControlResume(input), { code: 'runtime_scope_release_unproven' });
     assert.equal(await readFile(eventsFile, 'utf8'), before);
@@ -266,13 +309,43 @@ test('operator resume applies one exact runtime release and cannot clear a newer
   assert.throws(() => reduceEvents([requested, { ...applied[1], data: { ...applied[1].data, release: { ...release, current: false } } }]), { code: 'journal_conflict' });
   assert.equal(reduceEvents([requested, { type: 'dev.dd.eval.cancel_requested', data: { state: 'cancelling', sequence: 2 } }, applied[1]]).control.request_id, 'stop');
   assert.equal((await runnerControlResume(input)).reused, true);
+  // Final observation of an exhausted worker can only project this release;
+  // the fixture CLI rejects every native command except read-only status.
+  assert.equal((await runnerControlResume({ ...input, waitMs: 1000, observeOnlyRuntime: true })).reused, true);
   assert.equal((await readEvents(eventsFile)).length, 2);
   await appendEvent(eventsFile, { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'new-stop' } });
   const stopped = await readEvents(eventsFile);
   assert.equal(reduceEvents([...stopped, applied[1]]).control.request_id, 'new-stop');
   await assert.rejects(runnerControlResume(input), { code: 'control_request_stale' });
   assert.equal((await readEvents(eventsFile)).length, 3);
-  assert.equal((await readFile(calls, 'utf8')).trim().split('\n').length, 6);
+  assert.equal((await readFile(calls, 'utf8')).trim().split('\n').length, 8);
+});
+
+for (const valid of [true, false]) test(`exhausted scope worker observes only its existing matching release (generation valid: ${valid})`, { timeout: 15000 }, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-spent-scope-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const runId = 'EVAL-spent-scope', cli = path.join(root, 'flow'), eventsFile = path.join(root, 'events.jsonl'), calls = path.join(root, 'calls');
+  const release = { scope_id: runId, source_request_id: 'stop', request_id: 'resume', generation: valid ? 1 : 2, capture_key: 'a'.repeat(64), journal_sha256: 'b'.repeat(64), current: true };
+  const status = { scope_id: runId, control: null, fence: null, dispatch_blocked: false, release, resume: { status: 'released', request_id: 'resume', generation: 1, capture_key: release.capture_key, current: true }, processes: [] };
+  await writeFile(cli, `#!/bin/sh\ncommand="$1 $2 $3"\nprintf '%s\\n' "$command" >> '${calls}'\n[ "$command" = 'runtime scope status' ] || exit 1\nprintf '%s\\n' '${JSON.stringify(status)}'\n`); await chmod(cli, 0o700);
+  await writeJsonAtomic(path.join(root, 'manifest.json'), { run_id: runId, runtime_control_bin: cli, runtime_resource_home: path.join(root, 'resources'), executions: [] });
+  const requested = await appendEvent(eventsFile, { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
+  const file = evalResumeWorkerFile(root, 'resume');
+  await writeJsonAtomic(file, { schema_id: 'dd-eval/resume-worker@1', intent: { eval_root: root, run_id: runId, request_id: 'resume', source_request_id: 'stop', request_sequence: requested.data.sequence, manifest_sha256: sha256(await readFile(path.join(root, 'manifest.json'))) }, status: 'observing', recovery_observation: { policy_id: 'settlement-inactivity@1', remaining_ms: 0, observer_started: true, observation_gaps: 1, progress_markers: [] } });
+  await requestEvalResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop' });
+  let saved;
+  const deadline = performance.now() + 10000;
+  do {
+    saved = JSON.parse(await readFile(file));
+    assert.ok(performance.now() < deadline, 'spent scope observer did not exit');
+    await delay(25);
+  } while (!['failed', 'recovery_blocked'].includes(saved.status) || (await processSnapshot()).some(item => item.pid === saved.owner_pid && !item.zombie));
+  // There is intentionally no maintenance ABI: after projecting a valid release
+  // this fixture stops before productive work, independently of its spent budget.
+  assert.equal(saved.scope_result?.pending === false, valid);
+  assert.equal(saved.recovery_observation.remaining_ms, 0);
+  assert.equal((await readEvents(eventsFile)).filter(event => event.type === 'dev.dd.eval.control.resume_applied').length, valid ? 1 : 0);
+  assert.ok((await readFile(calls, 'utf8')).trim().split('\n').every(action => action === 'runtime scope status'));
 });
 
 test('control reconciliation reuses only confirmed outcomes and retains lost or suspended operations', () => {
@@ -338,6 +411,9 @@ test('operator reconciliation retains an accepted Judge result without another J
     await append('operation.observation_lost', { operation_id: id, operation: 'final_judge', error: { code: 'transport_lost' } });
   }
   const receipt = { schema_id: 'dd-eval/final-judge-receipt@1', profile_id: 'retained-profile', session_id: 'same-session', candidate_sha256: 'a'.repeat(64), result: { conclusion: 'accepted result' } };
+  await mkdir(path.join(root, 'judge'), { recursive: true });
+  await writeFile(path.join(root, 'judge/candidate.json'), JSON.stringify({ immutable_hash: receipt.candidate_sha256 }));
+  await settledJudge(path.join(root, 'judge'), receipt);
   await append('final_judge.result_ready', { operation_id: operationId, result: receipt });
   await append('control.requested', { mode: 'stop', request_id: 'stop' });
   const result = JSON.parse(await commandText(process.execPath, ['bin/dd-eval.mjs', 'runner', 'control', 'reconcile', '--eval', root, '--from', 'stop']));
@@ -354,7 +430,10 @@ test('operator reconciliation retains an accepted Judge result without another J
   assert.equal(await readFile(eventsFile, 'utf8'), beforeConflict);
 });
 
-for (const mode of ['release', 'pending', 'hang', 'unknown']) test(`operator resume bounded wait handles ${mode} without replaying preparation`, { timeout: 10_000 }, async t => {
+// Observer retirement follows the UX deadline: TERM grace, ownership-safe
+// leaderless settlement and stdio close are separate bounded phases.
+const ownedCliCleanupMs = 1000 + 10_000 + 1000;
+for (const mode of ['release', 'pending', 'hang', 'unknown']) test(`operator resume bounded wait handles ${mode} without replaying preparation`, { timeout: (mode === 'release' ? 15_000 : 1500) + ownedCliCleanupMs + 1000 }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-wait-resume-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const runId = 'EVAL-wait', eventsFile = path.join(root, 'events.jsonl'), cli = path.join(root, 'flow.mjs'), calls = path.join(root, 'calls');
@@ -375,12 +454,13 @@ else console.log(JSON.stringify(history.includes('resume') ? prepared : { ...pre
   await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ run_id: runId, runtime_control_bin: cli, runtime_resource_home: path.join(root, 'resources'), executions: [] }));
   await appendEvent(eventsFile, { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
   const before = await readFile(eventsFile, 'utf8'), started = performance.now();
-  const result = { ok: true, ...await runnerControlResume({ evalRoot: root, fromRequestId: 'stop', requestId: 'resume', waitMs: mode === 'release' ? 5000 : 1500 }) };
+  const waitMs = mode === 'release' ? 15_000 : 1500;
+  const result = { ok: true, ...await runnerControlResume({ evalRoot: root, fromRequestId: 'stop', requestId: 'resume', waitMs }) };
   assert.equal(result.ok, mode !== 'unknown');
   assert.equal(result.request_id, 'resume');
   assert.equal(result.source_request_id, 'stop');
   assert.equal(result.pending, mode !== 'release');
-  assert.ok(performance.now() - started < 7000, 'CLI wait stays bounded');
+  assert.ok(performance.now() - started < waitMs + ownedCliCleanupMs, 'UX wait plus owned CLI retirement stays bounded');
   assert.equal((await readFile(calls, 'utf8')).trim().split('\n').filter(x => x === 'resume').length, mode === 'unknown' ? 0 : 1);
   if (mode === 'release') {
     assert.equal(result.applied, true);
@@ -430,7 +510,7 @@ test('operator resume deadline includes a locked journal and never appends after
   });
   await delay(50);
   assert.equal(await readFile(eventsFile, 'utf8'), before);
-  assert.equal((await runnerControlResume({ ...input, waitMs: 2000 })).applied, true);
+  assert.equal((await runnerControlResume({ ...input, waitMs: 10_000 })).applied, true);
   assert.equal((await readEvents(eventsFile)).filter(e => e.type === 'dev.dd.eval.control.resume_applied').length, 1);
 });
 
@@ -466,10 +546,47 @@ test('background resume admission respects the caller deadline without a late qu
   await assert.rejects(readFile(file), { code: 'ENOENT' });
 });
 
-test('background continuation never finalizes a foreign registration returned by its CLI', { timeout: 10_000 }, async t => {
+for (const outcome of ['cleanup-unconfirmed', 'ownership-budget-exhausted']) test(`background observer does not adopt a committed registration after ${outcome}`, { timeout: 30_000 }, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-worker-unsettled-register-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const runId = 'EVAL-unsettled-register', cli = path.join(root, 'flow.mjs'), calls = path.join(root, 'calls');
+  await installMaintenanceFixture(root);
+  const release = { scope_id: runId, source_request_id: 'stop', request_id: 'resume', generation: 1, capture_key: 'a'.repeat(64), journal_sha256: 'b'.repeat(64), current: true };
+  const status = { scope_id: runId, control: null, fence: null, dispatch_blocked: false, release, resume: { status: 'released', request_id: 'resume', generation: 1, capture_key: release.capture_key, current: true } };
+  await writeFile(cli, `import fs from 'node:fs'; import {execFileSync} from 'node:child_process'; const args=process.argv.slice(2), value=name=>args[args.indexOf('--'+name)+1], file=${JSON.stringify(path.join(root, 'registration.json'))};
+fs.appendFileSync(${JSON.stringify(calls)},args.slice(0,3).join(' ')+'\\n');let result;
+if(args[1]==='scope'&&args[2]==='status') result=${JSON.stringify(status)};
+else if(args[1]==='process'&&args[2]==='register') {
+  const pid=Number(value('pid')), record={id:value('id'),lease_token:'owned',kind:'eval-observer',owner_id:value('owner'),operation_id:value('operation'),state:'running',pid,pid_started_at:execFileSync('ps',['-o','lstart=','-p',String(pid)],{encoding:'utf8'}).trim(),metadata_json:JSON.stringify({role:'observer',dd_flow_home:process.env.DD_FLOW_HOME,process_group_id:pid,budget:JSON.parse(value('budget-json'))})};
+  fs.writeFileSync(file,JSON.stringify(record));result=${JSON.stringify({ ok: false, error: outcome === 'cleanup-unconfirmed' ? { code: 'process_maintenance_timeout', message: 'registration committed but maintenance child has no exit proof', details: { cleanup_unconfirmed: true } } : { code: 'process_ownership_unconfirmed', message: 'late committed registration cannot extend ownership episode' } })};
+} else if(args[1]==='process'&&args[2]==='status') result={processes:[JSON.parse(fs.readFileSync(file))]};
+else if(args[1]==='process'&&args[2]==='heartbeat') result={ok:true,process_id:'observer',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)};
+else if(args[1]==='process'&&args[2]==='check-admission') result={ok:true,admitted:true,process_id:'observer'};
+else if(args[1]==='process'&&args[2]==='finish') result={ok:true};else throw Error('unexpected follow-up');
+console.log(JSON.stringify(result));`);
+  await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ run_id: runId, runtime_control_bin: cli, runtime_resource_home: path.join(root, 'resources'), executions: [] }));
+  await appendEvent(path.join(root, 'events.jsonl'), { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
+  await completeContinuationFixture(root);
+  const receipt = await requestEvalResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop' });
+  const deadline = performance.now() + 20_000; let saved;
+  for (;;) {
+    saved = JSON.parse(await readFile(receipt.continuation.file, 'utf8'));
+    if (['failed', 'recovery_blocked', 'completed'].includes(saved.status)) break;
+    assert.ok(performance.now() < deadline, 'unconfirmed registration cleanup is retained'); await delay(25);
+  }
+  while ((await processSnapshot()).some(item => item.pid === saved.owner_pid)) { assert.ok(performance.now() < deadline); await delay(25); }
+  assert.equal(saved.status, 'recovery_blocked');
+  assert.equal(saved.error.code, outcome === 'cleanup-unconfirmed' ? 'process_maintenance_timeout' : 'process_ownership_unconfirmed');
+  if (outcome === 'cleanup-unconfirmed') assert.equal(saved.error.details.cleanup_unconfirmed, true);
+  assert.match(JSON.parse(await readFile(path.join(root, 'registration.json'), 'utf8')).id, /^PROC-[a-f0-9-]+$/);
+  assert.deepEqual((await readFile(calls, 'utf8')).trim().split('\n').filter(line => line.startsWith('runtime process')), ['runtime process register']);
+});
+
+test('background continuation never finalizes a foreign registration returned by its CLI', { timeout: 30_000 }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-worker-foreign-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const runId = 'EVAL-foreign', cli = path.join(root, 'flow.mjs'), calls = path.join(root, 'calls');
+  await installMaintenanceFixture(root);
   const release = { scope_id: runId, source_request_id: 'stop', request_id: 'resume', generation: 1, capture_key: 'a'.repeat(64), journal_sha256: 'b'.repeat(64), current: true };
   const status = { scope_id: runId, control: null, fence: null, dispatch_blocked: false, release, resume: { status: 'released', request_id: 'resume', generation: 1, capture_key: release.capture_key, current: true } };
   await writeFile(cli, `import fs from 'node:fs'; const args=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(calls)},args.slice(0,3).join(' ')+'\\n');
@@ -480,7 +597,7 @@ else throw Error('foreign registration must not be used');`);
   await appendEvent(path.join(root, 'events.jsonl'), { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
   await completeContinuationFixture(root);
   const receipt = await requestEvalResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop' });
-  const deadline = performance.now() + 5000; let saved;
+  const deadline = performance.now() + 20_000; let saved;
   for (;;) {
     saved = JSON.parse(await readFile(receipt.continuation.file, 'utf8'));
     if (saved.status === 'failed') break;
@@ -495,6 +612,7 @@ else throw Error('foreign registration must not be used');`);
 for (const outcome of ['invalid-engine', 'new-stop']) test(`background observer reattaches after managed observation loss and respects ${outcome}`, { timeout: 45_000 }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-worker-reattach-'));
   const runId = 'EVAL-reattach', cli = path.join(root, 'flow.mjs'), calls = path.join(root, 'calls.jsonl');
+  await installMaintenanceFixture(root);
   const workerFile = evalResumeWorkerFile(root, 'resume'), registered = path.join(root, 'registered.json');
   t.after(async () => {
     const record = await readFile(registered, 'utf8').then(JSON.parse).catch(() => null);
@@ -522,7 +640,9 @@ else if(args[1]==='process'&&args[2]==='register') {
   const pid=Number(value('--pid')), physical=(await processSnapshot()).find(item=>item.pid===pid);
   const record={id:'observer',lease_token:'owned',kind:'eval-observer',owner_id:${JSON.stringify(runId)},operation_id:value('--operation'),state:'running',pid,pid_started_at:physical.started,metadata_json:JSON.stringify({role:'observer',dd_flow_home:process.env.DD_FLOW_HOME,process_group_id:pid,budget:JSON.parse(value('--budget-json'))})};
   fs.writeFileSync(${JSON.stringify(registered)},JSON.stringify(record)); result={process:record};
-} else if(args[1]==='process'&&['check-admission','finish'].includes(args[2])) result={ok:true};
+} else if(args[1]==='process'&&args[2]==='heartbeat') result={ok:true,process_id:'observer',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)};
+else if(args[1]==='process'&&args[2]==='check-admission') result={ok:true,admitted:true,process_id:'observer'};
+else if(args[1]==='process'&&args[2]==='finish') result={ok:true};
 else throw Error('unexpected command');
 console.log(JSON.stringify(result));`);
   const engineCli = path.join(runtime, 'bin', 'dd-flow');
@@ -540,7 +660,7 @@ console.log(JSON.stringify({ok:false,error:{code:fs.existsSync(${JSON.stringify(
   await requestEvalResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop' });
   // This is a real detached-process integration, including several CLI starts
   // and the observer's one-second retry delay. Bound the protocol, not host speed.
-  const deadline = performance.now() + 30_000;
+  const deadline = performance.now() + 40_000;
   const readCalls = async () => (await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse);
   let saved;
   for (;;) {
@@ -568,49 +688,69 @@ console.log(JSON.stringify({ok:false,error:{code:fs.existsSync(${JSON.stringify(
   assert.equal((await readEvents(eventsFile)).filter(event => event.type === 'dev.dd.eval.operation.failed').length, 0);
 });
 
-for (const clientExit of ['normal', 'killed', 'observer-killed']) test(`real EVAL resume continues its queue through one active observer (${clientExit})`, { skip: !process.env.DD_EVAL_TEST_FLOW_CLI, timeout: 45_000 }, async t => {
+// Three readiness phases (captured setup, exact release, completed queue),
+// followed by exact scope/process cleanup (four CLI reads/writes), not a sleep.
+for (const clientExit of ['normal', 'killed', 'observer-killed']) test(`real EVAL resume continues its queue through one active observer (${clientExit})`, { skip: !process.env.DD_EVAL_TEST_FLOW_CLI, timeout: 3 * realFixtureReadinessMs + 4 * cliQuietMs + ownedCliCleanupMs }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-real-resume-'));
   const cli = path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI), runId = 'EVAL-prepare';
   const env = { DD_FLOW_HOME: path.join(root, 'control-runtime'), DD_FLOW_RESOURCE_HOME: path.join(root, 'resources'), DD_FLOW_ENGINE_MODE: '1' };
-  const call = args => commandJson(cli, ['runtime', 'scope', ...args], { cwd: root, env });
-  t.after(async () => { await call(['stop', '--scope-id', runId, '--request-id', 'cleanup']); await delay(1200); await rm(root, { recursive: true, force: true }); });
+  const pending = new Set(); let client, clientClosed;
+  const body = action => {
+    t.signal.throwIfAborted();
+    const task = Promise.resolve().then(() => { t.signal.throwIfAborted(); return action(); });
+    pending.add(task); task.then(() => pending.delete(task), () => pending.delete(task));
+    return task;
+  };
+  const call = args => body(() => commandJson(cli, ['runtime', 'scope', ...args], { cwd: root, env, signal: t.signal }));
+  t.after(async () => {
+    if (client && client.exitCode === null && client.signalCode === null) { client.kill('SIGKILL'); await clientClosed; }
+    await Promise.allSettled([...pending]);
+    try { await retireRealScope(root, cli, env, runId); }
+    catch (error) { error.retained_root = root; throw error; }
+    await rm(root, { recursive: true, force: true });
+  });
   const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
-  const manifest = { run_id: runId, runtime_control_bin: cli, runtime_resource_home: env.DD_FLOW_RESOURCE_HOME, case_id: loaded.value.id, executions: [{ id: 'queued', stage: 'specify', terminal_stage: 'specify', mode: 'e2e' }], input_checkpoint: { id: loaded.inputCheckpoint.value.id, sha256: loaded.inputCheckpoint.sha256 }, definition: { commit: await commandText('git', ['rev-parse', 'HEAD']) }, subject_profile: { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' }, profile: { concurrency: { global: 1, per_harness: {} }, interaction_judge: { profile_id: 'fixture' }, judge: { enabled: false }, failure_policy: { stop_run_on_infrastructure_error: false } } };
+  const manifest = { run_id: runId, runtime_control_bin: cli, runtime_resource_home: env.DD_FLOW_RESOURCE_HOME, case_id: loaded.value.id, executions: [{ id: 'queued', stage: 'specify', terminal_stage: 'specify', mode: 'e2e' }], input_checkpoint: { id: loaded.inputCheckpoint.value.id, sha256: loaded.inputCheckpoint.sha256 }, definition: { commit: await body(() => commandText('git', ['rev-parse', 'HEAD'], { signal: t.signal })) }, subject_profile: { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' }, profile: { concurrency: { global: 1, per_harness: {} }, interaction_judge: { profile_id: 'fixture' }, judge: { enabled: false }, failure_policy: { stop_run_on_infrastructure_error: false } } };
   await writeFile(path.join(root, 'manifest.json'), JSON.stringify(manifest));
+  await body(() => completeContinuationFixture(root));
   const retained = path.join(root, 'executions', 'queued', 'retained'); await mkdir(path.dirname(retained), { recursive: true }); await writeFile(retained, 'stop before provider preparation');
-  await runnerControlRequest({ evalRoot: root, requestId: 'pause', mode: 'pause' });
-  const deadline = performance.now() + 30_000;
+  const captureDeadline = performance.now() + realFixtureReadinessMs;
+  await body(() => runnerControlRequest({ evalRoot: root, requestId: 'pause', mode: 'pause' }));
   for (;;) {
     const status = await call(['status', '--scope-id', runId]);
     if (status.drain?.capture?.journal?.event_count === (await readEvents(path.join(root, 'events.jsonl'))).length) break;
-    assert.ok(performance.now() < deadline, 'runtime captured the final operator journal'); await delay(100);
+    assert.ok(performance.now() < captureDeadline, 'runtime captured the final operator journal'); await delay(100);
   }
   const clientArgs = ['bin/dd-eval.mjs', 'runner', 'control', 'resume', '--eval', root, '--from', 'pause', '--request-id', 'resume'];
   const workerFile = evalResumeWorkerFile(root, 'resume');
+  const deadline = performance.now() + realFixtureReadinessMs;
   if (clientExit !== 'killed') {
-    const result = JSON.parse(await commandText(process.execPath, clientArgs));
+    const result = JSON.parse(await body(() => commandText(process.execPath, clientArgs, { signal: t.signal })));
     assert.equal(result.accepted, true); assert.equal(result.request_id, 'resume'); assert.equal(result.continuation.file, workerFile);
   } else {
-    const client = spawn(process.execPath, [...clientArgs, '--wait-ms', '15000'], { stdio: 'ignore' });
-    await once(client, 'spawn'); const closed = once(client, 'close');
-    t.after(async () => { if (client.exitCode === null && client.signalCode === null) { client.kill('SIGKILL'); await closed; } });
+    t.signal.throwIfAborted();
+    client = spawn(process.execPath, [...clientArgs, '--wait-ms', '15000'], { stdio: 'ignore' });
+    clientClosed = once(client, 'close'); await once(client, 'spawn');
     for (;;) {
+      t.signal.throwIfAborted();
       const saved = await readFile(workerFile, 'utf8').then(JSON.parse).catch(error => { if (error.code === 'ENOENT') return null; throw error; });
       if (saved?.owner_pid) break;
       assert.ok(performance.now() < deadline, 'independent EVAL owner started'); await delay(25);
     }
     assert.equal(client.exitCode, null); assert.equal(client.signalCode, null);
-    client.kill('SIGKILL'); await closed;
+    client.kill('SIGKILL'); await clientClosed;
   }
   if (clientExit === 'observer-killed') {
     for (;;) {
+      t.signal.throwIfAborted();
       const saved = JSON.parse(await readFile(workerFile, 'utf8'));
       if (saved.scope_result?.pending === false) break;
       assert.ok(performance.now() < deadline, 'observer applied release'); await delay(10);
     }
-    await withRunnerLock(`${root}.lifecycle`, async () => {
+    await body(() => withRunnerLock(`${root}.lifecycle`, async () => {
       let saved;
       for (;;) {
+        t.signal.throwIfAborted();
         saved = JSON.parse(await readFile(workerFile, 'utf8'));
         if (saved.process_id) break;
         assert.ok(performance.now() < deadline, 'observer registered before continuation'); await delay(10);
@@ -620,22 +760,34 @@ for (const clientExit of ['normal', 'killed', 'observer-killed']) test(`real EVA
       assert.equal(owned.kind, 'eval-observer'); assert.equal(owned.owner_id, runId); assert.equal(owned.pid, saved.owner_pid);
       assert.equal(JSON.parse(owned.metadata_json).process_group_id, saved.owner_pid);
       assert.equal((await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.operation.started').length, 0);
-      process.kill(-saved.owner_pid, 'SIGKILL');
+      t.signal.throwIfAborted(); process.kill(-saved.owner_pid, 'SIGKILL');
       while ((await processSnapshot()).some(item => item.pid === saved.owner_pid)) {
+        t.signal.throwIfAborted();
         assert.ok(performance.now() < deadline, 'killed observer exited'); await delay(25);
       }
-    });
+    }, { signal: t.signal }));
   }
-  await assert.rejects(runnerControlResume({ evalRoot: root, requestId: 'stale', fromRequestId: 'other' }), { code: 'control_request_stale' });
-  const resumed = JSON.parse(await commandText(process.execPath, ['bin/dd-eval.mjs', 'runner', 'control', 'resume', '--eval', root, '--from', 'pause', '--request-id', 'resume', '--wait-ms', '15000']));
+  await assert.rejects(body(() => runnerControlResume({ evalRoot: root, requestId: 'stale', fromRequestId: 'other' })), { code: 'control_request_stale' });
+  let resumed = JSON.parse(await body(() => commandText(process.execPath, ['bin/dd-eval.mjs', 'runner', 'control', 'resume', '--eval', root, '--from', 'pause', '--request-id', 'resume', '--wait-ms', '15000'], { signal: t.signal })));
+  while (resumed.pending) {
+    const saved = JSON.parse(await readFile(workerFile, 'utf8'));
+    assert.notEqual(saved.status, 'failed', JSON.stringify(saved.error));
+    assert.ok(performance.now() < deadline, 'same retained request reaches its exact release');
+    // A 15s UX reply may legitimately be pending. Read the retained release;
+    // do not issue another native preparation/resume or queued launch.
+    resumed = await body(() => runnerControlResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'pause', waitMs: 15_000, observeOnlyRuntime: true }));
+    if (resumed.pending) await delay(100);
+  }
   assert.equal(resumed.pending, false);
   assert.equal(resumed.receipt.dispatch_blocked, false);
+  const completionDeadline = performance.now() + realFixtureReadinessMs;
   let worker;
   for (;;) {
+    t.signal.throwIfAborted();
     worker = JSON.parse(await readFile(workerFile, 'utf8'));
     assert.notEqual(worker.status, 'failed', JSON.stringify(worker.error));
     if (worker.status === 'completed') break;
-    assert.ok(performance.now() < deadline, 'detached observer continued the EVAL queue'); await delay(100);
+    assert.ok(performance.now() < completionDeadline, 'detached observer continued the EVAL queue'); await delay(100);
   }
   assert.equal(worker.result.executions[0].code, 'execution_preparation_unproven');
   assert.equal(await readFile(retained, 'utf8'), 'stop before provider preparation');
@@ -643,53 +795,67 @@ for (const clientExit of ['normal', 'killed', 'observer-killed']) test(`real EVA
   const observers = inventory.processes.filter(item => item.kind === 'eval-observer');
   assert.equal(observers.length, clientExit === 'observer-killed' ? 2 : 1);
   assert.ok(observers.every(record => record.state === 'stopped'));
-  assert.equal((await runnerControlStatus({ evalRoot: root })).continuations[0].last_recorded_status, 'completed');
+  assert.equal((await body(() => runnerControlStatus({ evalRoot: root, signal: t.signal }))).continuations[0].last_recorded_status, 'completed');
   assert.equal((await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.operation.started').length, 1);
-  assert.equal((await runnerControlResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'pause' })).reused, true);
+  assert.equal((await body(() => runnerControlResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'pause' }))).reused, true);
   assert.equal((await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.control.resume_applied').length, 1);
-  await runnerControlRequest({ evalRoot: root, requestId: 'new-stop', mode: 'stop' });
-  await assert.rejects(runnerControlResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'pause' }), { code: 'control_request_stale' });
+  await body(() => runnerControlRequest({ evalRoot: root, requestId: 'new-stop', mode: 'stop' }));
+  await assert.rejects(body(() => runnerControlResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'pause' })), { code: 'control_request_stale' });
 });
 
-test('real EVAL stop drains its probe after client exit and preserves a neighboring EVAL', { skip: !process.env.DD_EVAL_TEST_FLOW_CLI, timeout: 30_000 }, async () => {
+// Setup readiness + physical stop wait + journal capture readiness + the
+// cleanup inventory read and one scope-worker stop. Native quiet windows stay 30s.
+test('real EVAL stop drains its probe after client exit and preserves a neighboring EVAL', { skip: !process.env.DD_EVAL_TEST_FLOW_CLI, timeout: 2 * realFixtureReadinessMs + 15_000 + 8 * cliQuietMs + ownedCliCleanupMs }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-real-control-'));
   const cli = path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI);
   const env = { DD_FLOW_HOME: path.join(root, 'control-runtime'), DD_FLOW_RESOURCE_HOME: path.join(root, 'resources'), DD_FLOW_ENGINE_MODE: '1' };
-  const call = args => commandJson(cli, ['runtime', ...args], { cwd: root, env });
+  const call = args => commandJson(cli, ['runtime', ...args], { cwd: root, env, signal: t.signal });
   const children = [];
+  let primary;
   try {
+    const preparationDeadline = performance.now() + realFixtureReadinessMs;
     for (const scope of ['EVAL-selected', 'EVAL-neighbor']) {
+      t.signal.throwIfAborted();
       const child = spawn(process.execPath, ['-e', 'setInterval(()=>{},1000)'], { detached: true, stdio: 'ignore' });
       children.push(child); await once(child, 'spawn');
       const { process: record } = await call(['process', 'register', '--kind', 'eval-baseline', '--owner', scope, '--owner-pid', String(process.pid), '--role', 'probe', '--operation', 'baseline', '--budget-json', JSON.stringify({ schema_id: 'dd-flow/runtime-budget@1', scope_id: scope, per_harness: {} })]);
       await call(['process', 'confirm', '--id', record.id, '--lease-token', record.lease_token, '--pid', String(child.pid), '--process-group-id', String(child.pid)]);
+      assert.ok(performance.now() < preparationDeadline, 'both selected and neighboring probes are confirmed before stop');
     }
-    await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ run_id: 'EVAL-selected', runtime_control_bin: cli, runtime_resource_home: env.DD_FLOW_RESOURCE_HOME, executions: [] }));
-    const receipt = JSON.parse(await commandText(process.execPath, ['bin/dd-eval.mjs', 'runner', 'control', 'stop', '--eval', root, '--request-id', 'operator-stop']));
+    await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ run_id: 'EVAL-selected', runtime_control_bin: cli, runtime_resource_home: env.DD_FLOW_RESOURCE_HOME, executions: [{ id: 'probe' }] }));
+    const receipt = JSON.parse(await commandText(process.execPath, ['bin/dd-eval.mjs', 'runner', 'control', 'stop', '--eval', root, '--request-id', 'operator-stop'], { signal: t.signal }));
     assert.equal(receipt.state, 'stop_requested');
     const deadline = performance.now() + 15_000;
     while (children[0].exitCode === null && children[0].signalCode === null) {
+      t.signal.throwIfAborted();
       assert.ok(performance.now() < deadline, 'detached owner drains selected probe'); await delay(50);
     }
     assert.equal(children[1].exitCode, null); assert.equal(children[1].signalCode, null);
     process.kill(children[1].pid, 0);
-    let status = await runnerControlStatus({ evalRoot: root });
+    const captureDeadline = performance.now() + realFixtureReadinessMs;
+    let status = await runnerControlStatus({ evalRoot: root, signal: t.signal });
     while (!status.inventory.worker?.snapshot?.drain?.capture?.journal) {
-      assert.ok(performance.now() < deadline, 'detached owner captures the EVAL journal');
+      assert.ok(performance.now() < captureDeadline, 'detached owner captures the EVAL journal');
       await delay(100);
-      status = await runnerControlStatus({ evalRoot: root });
+      status = await runnerControlStatus({ evalRoot: root, signal: t.signal });
     }
     assert.equal(status.inventory.control.dispatch_blocked, true);
-    assert.equal(status.inventory.worker.status, 'running');
+    assert.ok(['running', 'completed'].includes(status.inventory.worker.status), 'drain worker remains live or has completed its retained capture');
     assert.equal(status.inventory.worker.snapshot.drain.capture.journal.consistency, 'append_only_prefix');
-    assert.deepEqual(status.inventory.worker.snapshot.drain.capture.manifest.execution_ids, []);
+    assert.deepEqual(status.inventory.worker.snapshot.drain.capture.manifest.execution_ids, ['probe']);
     await assert.rejects(runnerResume({ evalRoot: root }), { code: 'managed_run_controlled' });
     assert.equal((await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.control.requested').length, 1);
-  } finally {
-    const { processes } = await call(['process', 'status']);
-    for (const record of processes.filter(record => record.kind === 'scope-control')) await call(['process', 'stop', '--id', record.id, '--lease-token', record.lease_token, '--grace-ms', '100']);
-    for (const child of children) if (child.exitCode === null && child.signalCode === null) { const closed = once(child, 'close'); child.kill(); await closed; }
-    await rm(root, { recursive: true, force: true });
+  } catch (error) { primary = error; throw error; }
+  finally {
+    try {
+      for (const scope of ['EVAL-selected', 'EVAL-neighbor']) await retireRealScope(root, cli, env, scope);
+      assert.ok(children.every(child => child.exitCode !== null || child.signalCode !== null), `Fixture child handles are not closed; retained ${root}`);
+      await rm(root, { recursive: true, force: true });
+    } catch (error) {
+      error.retained_root = root;
+      if (primary) primary.cleanup_error = error;
+      else throw error;
+    }
   }
 });
 

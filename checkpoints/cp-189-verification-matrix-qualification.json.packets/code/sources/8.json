@@ -1,0 +1,37 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "61023ed54758164aa3b4cc1d6c822e16943c8fe3a4ba4afadbb46f5ed8c70f9e",
+  "verification_epoch": "e9375844829f9ac990a63536c2647760303ab9ff1af520844fa104c33c3b1b4d",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-189-zcode/conformance/matrix-publication/dd-flow-protocolize-dDCndl/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-189-zcode/conformance/matrix-publication/dd-flow-protocolize-dDCndl/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-189-zcode/conformance/matrix-publication/dd-flow-protocolize-dDCndl/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-189-zcode/conformance/matrix-publication/dd-flow-protocolize-dDCndl/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "736d9edcb5971cd8ec1c2b0a985492136004f514345ecc59957972796c3f8612",
+  "before_fingerprint": "736d9edcb5971cd8ec1c2b0a985492136004f514345ecc59957972796c3f8612",
+  "after_fingerprint": "736d9edcb5971cd8ec1c2b0a985492136004f514345ecc59957972796c3f8612",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-01T14:30:48.757Z",
+  "finished_at": "2026-10-01T14:30:49.511Z"
+}

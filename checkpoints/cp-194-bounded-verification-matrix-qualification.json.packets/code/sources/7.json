@@ -1,0 +1,37 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "1f8304c0725009568b9bc2d582880362e9353b61d4f63855363cf23dae311c62",
+  "verification_epoch": "5ede76f775f1dacb90cbb5da25894f4eb783531a955269e2f5bed64fba2f2db8",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/bounded-matrix-fixture/evidence/dd-flow-protocolize-4AFkIE/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/bounded-matrix-fixture/evidence/dd-flow-protocolize-4AFkIE/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/bounded-matrix-fixture/evidence/dd-flow-protocolize-4AFkIE/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/bounded-matrix-fixture/evidence/dd-flow-protocolize-4AFkIE/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "ee3a2d2d08da81423f803ef00f4aebf83a82a36fc576f9518d25802654b54fa7",
+  "before_fingerprint": "ee3a2d2d08da81423f803ef00f4aebf83a82a36fc576f9518d25802654b54fa7",
+  "after_fingerprint": "ee3a2d2d08da81423f803ef00f4aebf83a82a36fc576f9518d25802654b54fa7",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-03T23:05:41.366Z",
+  "finished_at": "2026-10-03T23:05:41.430Z"
+}

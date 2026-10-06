@@ -4,6 +4,23 @@ Use this procedure for a native harness, transport bridge or adapter update.
 Provider-specific details live in [update-zcode.md](update-zcode.md).
 Git integration and release rules live in [git-workflow.md](git-workflow.md).
 
+New productive owners require the integrity-verified engine's bundled
+`native-children@1` normalization, `operation-progress@1` clock and
+`operation-errors@2` observation and `native-operation-wait@1` phase contracts,
+for every harness, not only Codex. Qualification caches bind to the exact package
+checksum; changing source or an ambient launcher does not update retained engines.
+Verify exports and copied bytes from an installed snapshot before qualification.
+Legacy raw evidence remains readable but cannot supply missing dispatch authority.
+Legacy error@1 receipts remain readable for exact original-operation recovery;
+they do not qualify a newly dispatched Judge. The semantic corpus receipt and
+installed runtime-progress acceptance are distinct proofs; neither source
+checkout changes nor a prior cached semantic PASS replaces selected-byte tests.
+
+At the subsequent engine delivery, refresh installed hook targets in both Codex
+homes (`~/.codex` and `~/.codex-cpa`) and each qualified harness, then verify they
+resolve to the intended runtime. Source implementation alone does not deploy hooks
+or publish an engine; historical EVAL runtimes stay unchanged.
+
 Provider service output is not a product change. Qualification/materialization
 must establish its service-file policy before the productive baseline, without
 hiding tracked user files. AGY hooks can contain both owned dd-flow handlers and user
@@ -51,6 +68,10 @@ artifacts rather than copying a version from prose documentation.
    blocks a new tuple, collect controlled diagnostic evidence first, then make
    a reviewed adapter admission change and release it. Never mark an untested
    tuple qualified just to pass preflight.
+   The technical capacity probe uses its own empty qualification workspace by
+   default. Pass `--project-root` only when project-specific behavior is the
+   subject of the probe; otherwise native service files such as `.zcode/`
+   would contaminate a committed eval definition checkout.
 5. Pin the candidate profile and checkpoint to the verified artifacts. Compute
    checkpoint hashes mechanically. Update case references and relevant contract
    checks. Commit the definition and qualification receipt references.
@@ -63,12 +84,36 @@ artifacts rather than copying a version from prose documentation.
 When the candidate engine is published, refresh the installed Codex hook
 runtime before qualification. Update both Codex homes (`~/.codex` and
 `~/.codex-cpa`); `cx` must continue to select `CODEX_HOME=~/.codex-cpa`.
-The active hook command must call the absolute installed binary
+Resolve each `hooks.json` to its real target first: the two homes may share it
+by symlink. Preserve that topology, unrelated handlers and the explicit
+`DD_FLOW_BIN` selection. The fallback must call the absolute installed binary
 `/Users/deksden/Library/pnpm/dd-flow`, not an older copied `dist/cli.js` or a
-PATH-dependent command. Verify the binary version and hook target in both
-homes, then run one normal dd-flow command to complete the hook-store migration
-before starting a native Codex session. Do not replace an engine or hook under
-an active EVAL home; candidate EVAL homes must use their own published engine.
+PATH-dependent command. Export the interpreter PATH before both pinned and
+fallback branches: an absolute pnpm shim still needs `node` on PATH. A missing
+explicit pin must fail, never silently switch engines.
+
+Verify the installed version, generated hook bytes and selected runtime in both
+homes. Prepare the default store explicitly outside provider callbacks after an
+upgrade; PreToolUse is check-only and must not migrate it. Retain a SQLite-aware
+backup (including committed WAL data) and follow the store writer/drain contract.
+For this workstation, use the installed CLI with a clean environment:
+
+```sh
+/usr/bin/env -i HOME=/Users/deksden PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin DD_FLOW_HOME=/Users/deksden/.dd-flow /Users/deksden/Library/pnpm/dd-flow codex hook handle --event SessionStart --json </dev/null
+```
+
+Expected: exit 0 and `{}` without provider RPC or lifecycle receipt. This is an
+explicit preparation command, not an automatic SessionStart migration hook.
+Verify both configured hook commands with harmless nonparticipating payloads
+under `PATH=/usr/bin:/bin`, plus missing-pin failure. Source changes do not update
+the installed package or existing hook configuration. Do not replace an engine
+or hook under an active EVAL home; candidate homes use their published engine.
+
+For CPA campaigns set `CODEX_HOME=/Users/deksden/.codex-cpa` on the runner's
+qualification and launch commands as well. A technical capacity probe copies
+portable native configuration into its own home before invoking `cx`; the
+wrapper's default alone does not select that copy's source. This keeps both
+Subject and Judge on the qualified CPA route without copying Session storage.
 
 ### AGY qualified hooks and per-launch binding
 
@@ -79,6 +124,11 @@ path or workspace changes. The AGY launcher supplies `DD_AGY_HOOK_NODE`,
 `DD_AGY_HOOK_ENTRY`, `DD_AGY_STATE_DIR` and `DD_AGY_DAEMON_ID` to that launch and
 its children; the daemon validates the binding. Never substitute a global
 "last daemon" pointer or take a routing path from an untrusted native event.
+For tool admission the daemon also attaches its launch-bound cwd. Native
+`workspacePaths` enumerates available roots; its first element is not the
+selected execution directory. Multi-root qualification must show the launch
+cwd, native Session identity and matching Work/Stage route separately. A
+prompted `cd` is not native cwd proof.
 Qualification must prove native root-to-child environment inheritance, a second
 independent launch, relocated engine/workspace, stale/foreign binding rejection
 and preservation of user handlers. A technical `noFlow` probe does not by
@@ -141,3 +191,10 @@ record rejection. Do not silently resume/retry or substitute another provider.
 Rollback means selecting the previous verified tuple for a fresh run; it never
 means replacing binaries or state beneath an active run. Retain old artifacts
 until their dependent runs and retention requirements are finished.
+# Managed-maintenance candidate check
+
+When updating dd-flow, verify the exact new candidate includes the shared lease
+renewal helper and run cold maintenance regression against its installed CLI in
+isolated homes. Existing EVAL runtimes stay pinned and unchanged. New observer
+runtime shims must retain their selected engine's `harness-runtime` alias; missing
+helper assets are an incompatible runtime, not a reason for global fallback.

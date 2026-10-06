@@ -1,0 +1,25 @@
+{
+  "schema_id": "dd-eval/judge-supplement@1",
+  "original_eval_id": "EVAL-20260930024412-c20c2bfe",
+  "candidate_sha256": "f10643a729b3e47912a7d8dd24736d77216c91d5d145d82e9a8e22523f2030f7",
+  "boundary": {
+    "execution_id": "e2e",
+    "name": "merge-ef5c165e2036c8753f1937ce1971a23fb801de318e825ddd143df218bf56e503",
+    "manifest_sha256": "2f5db6ab14ce7b237cd1ca0ccb301aee05b69950594c43e77f31a9dcbf3e5797"
+  },
+  "sources": [
+    { "root": "workspace", "path": "apps/api/drizzle/0002_task_priority.sql", "sha256": "1a78307e1fc6703bd8567b8df95bdab99984f6b0236b83de7bcf57b48148885a" },
+    { "root": "workspace", "path": "apps/api/src/db/migrations.ts", "sha256": "4c2ab24b652c7dae5bba0f7c68dc3d750be9d515818fa37a16a9dfd384971b10" },
+    { "root": "workspace", "path": "apps/api/scripts/test-world.ts", "sha256": "11f30b1a17ab6eab0944974f32252c1bc07936950751de53f7cfceaf434556c5" },
+    { "root": "workspace", "path": "apps/api/tests/global-setup.ts", "sha256": "06eda4c9350bdad740c5cae01102bd4755bb19ed89962e696f6345a170c052b9" }
+  ],
+  "author": "CP187 source investigation",
+  "claim": "The migration creates the priority enum unconditionally, while the reset path appears to remove tables without removing that enum. Re-running reset/migration against the same database may fail on the retained enum. Fresh isolated database checks do not establish repeat-reset correctness.",
+  "kind": "source_inference",
+  "impact": "Assess whether migration/reset lifecycle proof was incomplete and whether this is material product-quality evidence. Distinguish that judgement from mechanical Flow completion and tooling correctness.",
+  "proof_limits": [
+    "Source inference only; no repeated-reset database reproduction was performed.",
+    "The original Judge already identified narrow migration evidence; this supplement adds the specific retained-enum hypothesis, not a predetermined verdict.",
+    "Historical candidate, assessment, checks and scores remain unchanged."
+  ]
+}

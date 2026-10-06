@@ -1,0 +1,21 @@
+{
+  "id": "cp-160-task-priority-runtime-repair-flow-4-1-1-engine-0-9-0-beta-104",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "924ef61752b642f06c2c326b444ed7a3239f20ff",
+    "tag": "eval/cp-074-source-final"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "53d4b76943900f122957c78cc0fefa2051bd7b1a",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "d8b1b96db830c5e56e8409dfc94837fb73638673",
+      "version": "0.9.0-beta.104",
+      "artifact_sha256": "990d2dc9b4e318d88219bd4cbc65ca16349a92deff9e5d95ab86701ae5e79459"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}

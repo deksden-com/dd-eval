@@ -1,0 +1,27 @@
+{
+  "id": "cp-194-task-priority-plan064-recovery",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e",
+    "tag": "eval/cp-172-source-baseline-setup"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "2777773781b69dfd2ccaed55bbec245a88344655",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-194-recovery-verification-matrix-qualification.json",
+      "sha256": "d6ed314c7c3ec9ff572cf55df0b26e89f1c7ebfdcc5a25159c7bf3e63d684687",
+      "canon_commit": "2e57b987ec91b7c3b0fa97f6169047802a1233fb"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "acfcdfefaadc7dd345963e6c75d5a41ddd7e917d",
+      "version": "0.9.0-beta.125",
+      "artifact_sha256": "f731fb3d605486d51717997f3e8c19d4c0de8d6470e86917d9dc0be2e8cb8b94"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}

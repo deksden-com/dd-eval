@@ -1,0 +1,37 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "68192790f10a9a9c105dae13815fe28203e6089a770a1875e3a7548ca2ff59c7",
+  "verification_epoch": "75dde0cddbb560c3d69501828b43a3da0f090a3faed1c5d9b6165e4ab353bdb6",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/light-maintenance-matrix-fixture-7761125/qualification-evidence/dd-flow-protocolize-DET0vE/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/light-maintenance-matrix-fixture-7761125/qualification-evidence/dd-flow-protocolize-DET0vE/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/light-maintenance-matrix-fixture-7761125/qualification-evidence/dd-flow-protocolize-DET0vE/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/light-maintenance-matrix-fixture-7761125/qualification-evidence/dd-flow-protocolize-DET0vE/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "23d0e05c11b5e910084a147c691b8572170dbcacc2f624121e5482198b93a4a2",
+  "before_fingerprint": "23d0e05c11b5e910084a147c691b8572170dbcacc2f624121e5482198b93a4a2",
+  "after_fingerprint": "23d0e05c11b5e910084a147c691b8572170dbcacc2f624121e5482198b93a4a2",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-04T07:39:31.576Z",
+  "finished_at": "2026-10-04T07:39:31.640Z"
+}

@@ -1,0 +1,47 @@
+{
+  "schema_id": "dd-flow/merge-gate@2",
+  "run_id": "RUN-001-tasks",
+  "protocols": [
+    "PRT-001-task-priority"
+  ],
+  "checks": [
+    {
+      "id": "CHK-P1-TEST",
+      "command": "test -f apps/api/src/core/service.ts",
+      "purpose": "Proves the changed task service exists.",
+      "run_at": "work",
+      "availability": "available",
+      "canonical_ref": "PRT-001-task-priority/CHK-P1-TEST"
+    },
+    {
+      "id": "CHK-NEW",
+      "command": "@check/priority-contract",
+      "purpose": "Will prove the new priority contract.",
+      "run_at": "work",
+      "availability": "planned",
+      "provided_by": "P1",
+      "definition": "test -f apps/api/src/core/service.ts",
+      "canonical_ref": "PRT-001-task-priority/CHK-NEW"
+    },
+    {
+      "id": "CHK-READY",
+      "command": "test -f apps/api/src/core/service.ts",
+      "purpose": "Confirms the prepared workspace contains the service.",
+      "run_at": "readiness",
+      "availability": "available",
+      "canonical_ref": "PRT-001-task-priority/CHK-READY"
+    },
+    {
+      "id": "CHK-MERGE",
+      "command": "true",
+      "purpose": "Confirms the integrated target is executable.",
+      "run_at": "merge",
+      "availability": "available",
+      "canonical_ref": "PRT-001-task-priority/CHK-MERGE"
+    }
+  ],
+  "acceptance_refs": [],
+  "gate_hash": "a3baa37f4aa2923846e69edff09f5f75595d48ccd997db01ca36b84fc794b420",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "frozen_at": "2026-10-02T05:26:08.970Z"
+}

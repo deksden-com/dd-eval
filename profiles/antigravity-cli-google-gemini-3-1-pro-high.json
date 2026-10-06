@@ -11,9 +11,9 @@
   "reasoning": "high",
   "mode": "accept-edits",
   "runtime": {
-    "agy": "1.2.10",
+    "agy": "1.2.14",
     "dd_harness_contract": "dd-agy-harness@1"
   },
-  "notes": "Controlled Antigravity CLI profile using isolated config/runtime directories and one native Session across the E2E stages.",
-  "subagent_capacity": 15
+  "notes": "Controlled Antigravity CLI profile using isolated config/runtime directories; the pinned flow pack selects a fresh native Session for each stage.",
+  "subagent_capacity": 4
 }

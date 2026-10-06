@@ -1,0 +1,35 @@
+{
+  "id": "WRK-006-merge/RCP-004",
+  "local_id": "RCP-004",
+  "declaration_id": "CHK-MERGE",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-MERGE"
+  ],
+  "gate": "merge",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "true",
+  "input_hash": "88deed77f8930e7146b431f9ebafa9482d5f6b6415aef98309ac00da5f235649",
+  "verification_epoch": "2ad5325d9e3a8a6fbaed38f6e36740b2619439a171d04c1640d952259035cf44",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/finalized-matrix-fixture/evidence/dd-flow-protocolize-rNDfbN/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/finalized-matrix-fixture/evidence/dd-flow-protocolize-rNDfbN/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/finalized-matrix-fixture/evidence/dd-flow-protocolize-rNDfbN/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/finalized-matrix-fixture/evidence/dd-flow-protocolize-rNDfbN/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "f5bbab794322b1fcb3174696b55cc9024513dee70ee3047f332f5e3cf2714136",
+  "before_fingerprint": "f5bbab794322b1fcb3174696b55cc9024513dee70ee3047f332f5e3cf2714136",
+  "after_fingerprint": "f5bbab794322b1fcb3174696b55cc9024513dee70ee3047f332f5e3cf2714136",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-03T22:17:42.475Z",
+  "finished_at": "2026-10-03T22:17:42.578Z"
+}

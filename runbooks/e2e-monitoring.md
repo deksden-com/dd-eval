@@ -1,5 +1,105 @@
 # E2E monitoring
 
+## Native outcomes and owned child waits
+
+An exact failed overload Turn with proven live owned children is normal waiting,
+not evidence that the controller should cancel healthy children. Record the retained
+operation, continuation intent and frozen refusal time; inspect the same owner until
+fresh whole-tree settlement. Unknown tools, conflicting parentage and observation
+loss are blocked evidence, not permission to resend or create a child wave.
+
+A completed native Turn followed by mandatory observer/profile/storage failure
+remains a tooling failure (`native_outcome_observation_failed`). Retain both the
+native outcome and the primary observation reason; do not report business success
+or replay that Turn. Cleanup errors are secondary.
+
+AGY quota resets expressed as a relative duration are estimates anchored to the
+frozen native terminal observation, labelled `reset_estimated` with `reset_basis`.
+Repeated polling or reading retained evidence must not move that estimate. A reset
+estimate is not access verification and does not authorize automatic quota retry.
+
+## Confirmed Codex overload (plan 060)
+
+Only an exact terminal native `serverOverloaded` permits continuation of the
+same Session and task. The first refusal is not counted. Two distinct consecutive
+continuation Turns refused within 120 seconds terminate as `provider_overload_burst`;
+slower instability has no lifetime attempt cap. Backoff is 5 seconds, then 15
+seconds, extended by proven Retry-After. New productive chains have no elapsed
+work deadline; ownership/admission fences remain. Legacy retained deadlines
+stay under their original contract and are never reset by a monitor.
+Quota/auth failures do not continue; report a reset time only when native metadata
+proves it. Completed Work/Stage or accepted HITL wins over another dispatch.
+
+The selected, integrity-verified engine owns `codex-overload-burst@1`.
+Judge/probe history uses `dd-eval/capacity-chain@2`; legacy @1 is readable evidence,
+not permission to send or silently start another chain. An unknown dispatch is
+observed by its retained operation ID, never replaced. Do not manually resume,
+restart or repair a historical EVAL to obtain a successful result.
+
+## Productive inactivity and observation loss (plan 065)
+
+Read actual current-operation native progress, terminal and child settlement
+alongside controller Stage/Work and lease proof. A quiet root with a validated
+active child is not a dead tree. Cosmetic status/heartbeat, stale Turn events
+and unchanged usage do not renew productivity. HITL/capacity waits require
+their exact accepted phase binding, not a generic `waiting` label.
+
+`subject_liveness_timeout`, transport expiry and output-limit observer failure
+do not establish native failure. Retain the exact operation, read its late
+terminal and preserve unknown state without replay. Native outcome and cleanup
+settlement are separate: a completed root with active children is not whole
+tree success. Scope observation@settlement-inactivity@1 renews only newly
+confirmed physical/native retirement/publication facts; polls and restart do
+not replenish it. Legacy cumulative recovery receipts remain legacy.
+
+Semantic qualification cache alone is not runtime progress acceptance. Verify
+the selected artifact's `operation-progress@1` and `operation-errors@2` helper
+bytes and installed acceptance; new definition commits require a fresh corpus
+qualification. Historic paid evidence remains immutable.
+
+New final-check coverage uses `dd-flow/final-check-coverage@1` and qualification
+@3. Successful MERGE acceptance requires passed native checks. Reached failed
+execution evidence is separately bound to its sealed recovery snapshot: an
+expected output not produced is a failure/gap, while lost claimed bytes are
+unavailable evidence. Neither establishes product cause without Judge assessment.
+
+## Judge verdict versus shutdown (plan 059)
+
+`judge/result.json` is immutable semantic evidence, not proof of clean runtime
+completion. New Judge attempts retain a separate `judge/cleanup.json`
+(`dd-eval/judge-cleanup@1`), bound to verdict hash, native Session, daemon
+incarnation and durable stop operation. Reports expose `judge_cleanup` separately
+from the verdict. `result_ready` alone cannot complete Judge or qualification.
+
+If cleanup fails, report the retained verdict and the typed cleanup cause
+separately. A fresh owned **control** operation may finish remaining cleanup in
+the same fenced incarnation; it must not create a Session, resend a Judge prompt
+or inspect an already closed provider pipe. A failed stop ID stays failed.
+Missing proof means unknown, not clean. Do not edit historical receipts, delete
+sockets manually, mutate runtime databases or restart a provider to manufacture
+cleanup evidence. Whole-tree settlement is distinct from Work success.
+
+Adapter stop now completes physical provider/drain/resource/auth cleanup before
+publishing a successful durable stop reply; listener retirement follows the
+receipt and precedes ACK. Clients confirm retained daemon PID exit as well as
+endpoint disappearance. Socket disappearance alone is insufficient.
+
+For a retained Final Judge (including the current candidate revision), explicit
+`runner cleanup --eval <absolute-eval-root> --request-id <new-id>` may retry only
+the owned stop. It validates the pinned runtime, profile and canonical paths;
+missing/legacy ownership remains blocked. It does not start a daemon, Session
+or prompt. If the previous stop is durably completed and physical shutdown is
+freshly confirmed, only the failed companion is reconciled, without a new RPC
+to a dead bridge. Read-only status and cached Judge reuse never perform repair.
+Interaction/qualification/supplemental Judge directories have separate owners;
+this EVAL cleanup command does not discover or stop those scopes.
+
+HITL admission checks actual item verdicts and packets against their Judge,
+fixture and corpus question; an aggregate `passed` alone is insufficient.
+Reports recheck verdict bytes, all shutdown phases and daemon exit immediately
+before publication. Unconfirmed cleanup preserves semantic evidence but fails
+Judge lifecycle completion.
+
 Start with `node bin/dd-eval.mjs runner status --eval <absolute-eval-root>` from the dd-eval checkout.
 For direct controller diagnostics use the execution's pinned wrapper with
 `DD_FLOW_HOME=<runtime-root> <runtime-root>/bin/dd-flow run drive status --run <RUN-ID> --project-root <project-root> --after <cursor> --json`.
@@ -39,6 +139,12 @@ composition; it is not missing delivery. `invocation_receipt_missing` is reserve
 native evidence. `invocation_assignment_missing` means native delivery succeeded but argv
 did not match an issued assignment. Preserve the original code/reason in the report instead of
 replacing it with a later `execution_ended_without_work_result` or cleanup error.
+For a safe correction, inspect the exact runtime-issued `retry_command` and
+`effect=no_effect`; `recoverable=true` by itself is not retry authority.
+`publication_pending` means the SQL transition committed but its RUN/Work
+projection still needs reconciliation. Never replay a Stage, Work, check or
+provider Turn to recreate that file. A fresh Session after a cwd-changing Stage
+boundary is expected even if the harness and model profile are unchanged.
 
 For a CODE/CODE-REVIEW aggregate failure, distinguish the check result from its continuation.
 `code_gate_failed`/`code_review_gate_failed` with a durable `repair_required` binding is not
@@ -80,6 +186,15 @@ child session evidence, and the child's retained JSONL. Do not materialize/resum
 observe them. A pending model request is not proof of a deadlock. Stop only on an explicit
 operator request, a confirmed fatal execution error or an expired configured execution deadline.
 Retain the source evidence and exact reason before issuing the standard control command.
+
+Managed owners use committed renewal receipts from the selected runtime. A transient
+maintenance lock/timeout permits bounded reconfirmation (30 seconds, physical single-flight
+attempts of at most 5 seconds), not a native Turn replay. Expiry alone does not prove owner
+death. An unconfirmed CLI cleanup blocks further mutable maintenance; retain recovery evidence
+and do not restart the EVAL. The observer renews while awaiting Subject or Judge work.
+These helpers must come from the pinned runtime's `harness-runtime` bundle, never a global
+installation or another source checkout. Qualify a new candidate with cold installed-CLI
+maintenance tests before preparing later E2Es; do not mutate existing runtime homes.
 
 Lease heartbeats and polling timestamps are infrastructure evidence, not model progress. Report
 the latest durable native content/tool event separately; if it is absent or unreadable, label it

@@ -1,0 +1,37 @@
+{
+  "schema_id": "dd-flow/merge-gate@2",
+  "run_id": "RUN-001-tasks",
+  "protocols": [
+    "PRT-001-task-priority"
+  ],
+  "checks": [
+    {
+      "id": "CHK-P1-TEST",
+      "command": "test -f apps/api/src/core/service.ts",
+      "purpose": "Proves the changed task service exists.",
+      "run_at": "work",
+      "availability": "available",
+      "canonical_ref": "PRT-001-task-priority/CHK-P1-TEST"
+    },
+    {
+      "id": "CHK-READY",
+      "command": "test -f apps/api/src/core/service.ts",
+      "purpose": "Confirms the prepared workspace contains the service.",
+      "run_at": "readiness",
+      "availability": "available",
+      "canonical_ref": "PRT-001-task-priority/CHK-READY"
+    },
+    {
+      "id": "CHK-MERGE",
+      "command": "true",
+      "purpose": "Confirms the integrated target is executable.",
+      "run_at": "merge",
+      "availability": "available",
+      "canonical_ref": "PRT-001-task-priority/CHK-MERGE"
+    }
+  ],
+  "acceptance_refs": [],
+  "gate_hash": "39145adb71836f8a2273b8c1d6a747b336b9e5d9f13c6a5071091847da977a78",
+  "profile_hash": "ec27939b5dd473346d4af8cb60d192cd4dfa98318741996375e0e7f21b8b5bd3",
+  "frozen_at": "2026-09-30T02:22:49.234Z"
+}

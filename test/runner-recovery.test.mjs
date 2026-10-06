@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, readFile, open, utimes, readdir, rm, chmod } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, writeFile, readFile, open, utimes, readdir, rename, rm, chmod, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -35,9 +35,12 @@ test("public cleanup retry retains an exhausted attempt and a new identity runs 
 import { commandJson } from "../lib/process-json.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
-import { migrateLegacyCanonicalResumeLock, runnerCheckpoints, runnerResume, runnerCleanup, runnerControlStatus } from "../lib/runner.mjs";
+import { evalJudge, frozenCandidate, loadRunProfile, migrateLegacyCanonicalResumeLock, runnerCheckpoints, runnerResume, runnerCleanup, runnerCleanupReceipt, runnerControlStatus } from "../lib/runner.mjs";
+import { engineArtifactDigest } from '../lib/engine-admission.mjs';
+import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { processSnapshot } from "../lib/process-snapshot.mjs";
 import { recoveryObservationBudget, withRecoveryObservation } from "../lib/recovery-observation-budget.mjs";
+import { ObservationClock } from "../lib/observation-clock.mjs";
 import { assertExecutionDispatch, executionState } from "../lib/execution-state.mjs";
 
 test("fork checkpoint listing advertises only sealed stage-entry snapshots", async t => {
@@ -78,9 +81,72 @@ test("cleanup leaves queued executions and Judge undispatched", async () => {
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+test("exhausted cleanup worker accepts an already published exact terminal receipt without a grant", { timeout: 15000 }, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-cleanup-terminal-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const manifest = { run_id: "EVAL-terminal", executions: [{ id: "e" }], profile: { judge: { enabled: false } } };
+  const manifestFile = path.join(root, "manifest.json"), eventsFile = path.join(root, "events.jsonl");
+  await writeJsonAtomic(manifestFile, manifest);
+  for (const type of ["started", "failed"]) await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: `${manifest.run_id}:e:launch`, error: { code: "preflight_failed", message: "before session" } } });
+  assert.equal((await runnerCleanup({ evalRoot: root })).cleanup_state, "settled");
+  const before = await readFile(eventsFile), manifestHash = sha256(await readFile(manifestFile));
+  const file = path.join(root, "runner-attempts", sha256("spent-unpublished"), "attempt.json");
+  await writeJsonAtomic(file, { schema_id: "dd-eval/resume-worker@1", intent: { eval_root: root, run_id: manifest.run_id, request_id: "spent-unpublished", kind: "cleanup", manifest_sha256: manifestHash }, status: "observing", recovery_observation: { policy_id: "settlement-inactivity@1", remaining_ms: 0, observer_started: true, observation_gaps: 1, progress_markers: [] } });
+  await requestRunnerContinuation({ evalRoot: root, kind: "cleanup", requestId: "spent-unpublished" });
+  const deadline = performance.now() + 10000;
+  let saved;
+  do {
+    saved = JSON.parse(await readFile(file));
+    assert.ok(!["failed", "recovery_blocked"].includes(saved.status), JSON.stringify(saved.error));
+    assert.ok(performance.now() < deadline, "exhausted terminal observer did not exit");
+    await delay(25);
+  } while (saved.status !== "completed" || (await processSnapshot()).some(item => item.pid === saved.owner_pid && !item.zombie));
+  assert.equal(saved.result.cleanup_state, "settled");
+  assert.equal(saved.recovery_observation.remaining_ms, 0);
+  assert.deepEqual(await readFile(eventsFile), before);
+  // A later generation cannot borrow the old completed projection.
+  await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: "dev.dd.eval.operation.requested", data: { operation_id: `${manifest.run_id}:e:launch:recover:next` } });
+  assert.equal(await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: manifestHash, signal: AbortSignal.timeout(1000) }), null);
+  await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: "dev.dd.eval.operation.failed", data: { operation_id: `${manifest.run_id}:e:launch:recover:next`, error: { code: "preflight_failed", message: "before session" } } });
+  await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, type: "dev.dd.eval.completed", data: { state: "completed_with_failures", result_revision: runResultRevision(await readEvents(eventsFile), manifest) } });
+  // Same states and a current terminal event still cannot reuse an older report
+  // whose existing execution_history identifies the previous generation.
+  assert.equal(await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: manifestHash, signal: AbortSignal.timeout(1000) }), null);
+});
+
+test("terminal cleanup receipt rejects unsettled or foreign-scope cancelled native work", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-cancelled-terminal-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const manifest = { run_id: "EVAL-cancelled", executions: [{ id: "e" }], profile: { judge: { enabled: false } }, runtime_resource_home: path.join(root, "resources") };
+  const eventsFile = path.join(root, "events.jsonl"), project = path.join(root, "executions/e/project"), home = path.join(root, "executions/e/dd-flow-home"), statusFile = path.join(root, "status.json"), cli = path.join(home, "bin/dd-flow");
+  await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
+  await mkdir(project, { recursive: true }); await mkdir(path.dirname(cli), { recursive: true });
+  await writeFile(cli, `#!${process.execPath}\nconst fs=require('node:fs');if(process.argv.slice(2,5).join(' ')!=='run control status')throw Error('mutation forbidden');console.log(fs.readFileSync(${JSON.stringify(statusFile)},'utf8'));`); await chmod(cli, 0o700);
+  await writeJsonAtomic(path.join(root, "executions/e/managed-runtime.json"), { schema_id: "dd-eval/managed-runtime@1", project_root: project, runtime_root: home, run_id: "RUN-cancelled" });
+  await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: "dev.dd.eval.execution.cancelled", data: {} });
+  await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, type: "dev.dd.eval.completed", data: { state: "cancelled", result_revision: runResultRevision(await readEvents(eventsFile), manifest) } });
+  await writeJsonAtomic(path.join(root, "reports/report.json"), { schema_id: "dd-eval/report@2", run_id: manifest.run_id, state: "cancelled", execution_state: "cancelled", cleanup_state: "settled", judge_status: "not_requested", executions: [{ execution: "e", state: "cancelled" }], execution_history: recoveryHistory(await readEvents(eventsFile), manifest, [{ execution: "e", state: "cancelled" }]) });
+  const input = { evalRoot: root, expectedManifestSha256: sha256(await readFile(path.join(root, "manifest.json"))) };
+  for (const status of [{ settled: false, scope: { run_id: "RUN-cancelled" } }, { settled: true, scope: { run_id: "RUN-foreign" } }]) {
+    await writeJsonAtomic(statusFile, status);
+    assert.equal(await runnerCleanupReceipt({ ...input, signal: AbortSignal.timeout(1000) }), null);
+  }
+  await writeJsonAtomic(statusFile, { settled: true, scope: { run_id: "RUN-cancelled" } });
+  assert.equal((await runnerCleanupReceipt({ ...input, signal: AbortSignal.timeout(1000) })).cleanup_state, "settled");
+});
+
 test("cleanup RPC is bounded while productive calls do not inherit its timeout", async () => {
-  const budget = recoveryObservationBudget({ recovery_observation: { remaining_ms: 30 } });
+  const budget = recoveryObservationBudget({ recovery_observation: { remaining_ms: 30 } }, () => 0);
   await assert.rejects(withRecoveryObservation(budget, () => commandJson(process.execPath, ["-e", "setTimeout(()=>{}, 10000)", "--"])), { name: "AbortError" });
+  let now = 0;
+  const expired = recoveryObservationBudget({ recovery_observation: { remaining_ms: 30 } }, () => now);
+  now = 30;
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-expired-rpc-"));
+  try {
+    const marker = path.join(root, "late-dispatch");
+    await assert.rejects(withRecoveryObservation(expired, () => commandJson(process.execPath, ["-e", `require('node:fs').writeFileSync(${JSON.stringify(marker)},'dispatched')`, "--"])), { code: "recovery_observation_budget_exhausted" });
+    await assert.rejects(readFile(marker), { code: "ENOENT" });
+  } finally { await rm(root, { recursive: true, force: true }); }
   assert.deepEqual(await commandJson(process.execPath, ["-e", "console.log('{}')", "--"]), {});
   const backoff = recoveryObservationBudget(null);
   assert.deepEqual([backoff.nextDelay(),backoff.nextDelay(),backoff.nextDelay(),backoff.nextDelay()], [1000,2000,5000,10000]);
@@ -137,6 +203,109 @@ test("cleanup worker persists final observation without starting productive work
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+test('explicit Judge reuse refuses missing or failed cleanup without another paid turn', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-cached-judge-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const caseId = 'sdlc-eval-2026-summer-task-priority';
+  const profile = await loadRunProfile(path.resolve('cases', caseId, 'run-profiles/e2e-inline-merge-luna-xhigh.json'));
+  const profileId = profile.value.interaction_judge.profile_id;
+  const manifest = { run_id: 'EVAL-cached-judge', case_id: caseId, executions: [{ id: 'e', stage: 'specify', terminal_stage: 'merge', mode: 'e2e' }], subject_profile: {}, profile: { judge: { enabled: true, profile_id: profileId } } };
+  await writeJsonAtomic(path.join(root, 'manifest.json'), manifest);
+  for (const type of ['started', 'failed']) await appendEvent(path.join(root, 'events.jsonl'), { source: 'test', runId: manifest.run_id, executionId: 'e', type: `dev.dd.eval.operation.${type}`, data: { operation_id: `${manifest.run_id}:e:launch`, error: { code: 'preflight_failed', message: 'before session' } } });
+  const first = await runnerResume({ evalRoot: root });
+  const judgeRoot = path.join(root, 'judge');
+  const receipt = { schema_id: 'dd-eval/final-judge-receipt@1', profile_id: profileId, session_id: 'offline', candidate_sha256: first.candidate.immutable_hash, result: { conclusion: 'retained semantics' } };
+  await writeJsonAtomic(path.join(judgeRoot, 'candidate.json'), first.candidate);
+  await settledJudge(judgeRoot, receipt);
+  assert.deepEqual((await evalJudge({ evalRoot: root })).receipt, receipt);
+  const cleanupFile = path.join(judgeRoot, 'cleanup.json'), cleanup = JSON.parse(await readFile(cleanupFile));
+  const verdictBytes = await readFile(path.join(judgeRoot, 'result.json'));
+  const operationCount = (await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.operation.started').length;
+  for (const status of ['missing', 'failed']) {
+    if (status === 'missing') await rm(cleanupFile);
+    else await writeJsonAtomic(cleanupFile, { ...cleanup, status, error: { code: 'EPERM', message: 'offline cleanup failure' } });
+    await assert.rejects(evalJudge({ evalRoot: root }), { code: 'judge_cleanup_unconfirmed' });
+    const report = JSON.parse(await readFile(path.join(root, 'reports/report.json')));
+    assert.equal(report.judge_status, 'failed');
+    assert.deepEqual(report.judge, receipt);
+    assert.deepEqual(await readFile(path.join(judgeRoot, 'result.json')), verdictBytes);
+    assert.equal((await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.operation.started').length, operationCount);
+  }
+  await writeJsonAtomic(cleanupFile, cleanup);
+  let observations = 0;
+  const originalKill = process.kill;
+  const probe = t.mock.method(process, 'kill', (pid, signal) => {
+    if (pid !== 2147483647 || signal !== 0) return originalKill(pid, signal);
+    // Full receipt check and completion-event check succeed; report recheck fails.
+    throw Object.assign(new Error('offline physical observation'), { code: ++observations === 3 ? 'EPERM' : 'ESRCH' });
+  });
+  const publication = await runnerResume({ evalRoot: root });
+  probe.mock.restore();
+  assert.equal(publication.judge_status, 'failed');
+  const report = JSON.parse(await readFile(path.join(root, 'reports/report.json')));
+  assert.equal(report.judge_status, 'failed');
+  assert.deepEqual(report.judge, receipt);
+});
+
+for (const revision of [false, true]) test(`explicit cleanup retries only the retained Final Judge stop (revision: ${revision})`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-judge-stop-retry-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const home = path.join(root, 'executions/e/dd-flow-home'), engineRoot = path.join(home, 'engines/fixture/1'), calls = path.join(root, 'calls');
+  const adapterSource = `import fs from 'node:fs';import path from 'node:path';import {createHash} from 'node:crypto';
+const a=process.argv.slice(2),id=process.env.DD_EVAL_OPERATION_ID,state=a[a.indexOf('--state-dir')+1];
+if(a[0]!=='daemon'||a[1]!=='stop'||!a.includes('--cancel-tree'))throw Error('productive action forbidden');
+fs.appendFileSync(${JSON.stringify(calls)},id+'\\n');
+const put=(file,value)=>{fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,JSON.stringify(value));};
+const s=JSON.parse(fs.readFileSync(state+'/daemon.json'));put(state+'/daemon.json',{...s,shutdown_state:'clean',active_tree:false,shutdown:{schema_id:'dd-flow/daemon-shutdown@1',daemon_id:s.daemon_id,result:{clean:true},required_phases:['tree','provider_close','daemon_resource'],phases:{tree:true,provider_close:true,daemon_resource:true}}});
+const result={stopped:true,clean:true,shutdown_contract:'dd-flow/daemon-shutdown@1'},o=path.join(state,'operations',createHash('sha256').update(id).digest('hex'));
+put(o+'/requested.json',{operation_id:id,operation:'daemon.stop',daemon_id:s.daemon_id});put(o+'/result.json',{state:'completed',result});console.log(JSON.stringify(result));`;
+  await writeJsonAtomic(path.join(engineRoot, 'marker.json'), { fixture: true });
+  const sourceAdapter = path.join(engineRoot, 'dist/harness-runtime/bin/dd-codex.mjs');
+  await mkdir(path.dirname(sourceAdapter), { recursive: true }); await writeFile(sourceAdapter, adapterSource);
+  const checksum = await engineArtifactDigest(engineRoot), engine = { schema_id: 'dd-flow/engine-manifest@1', package_name: 'fixture', package_version: '1', engine_version: '1', integrity: { checksum }, snapshot_root: engineRoot };
+  await writeJsonAtomic(path.join(engineRoot, 'engine.json'), engine);
+  await cp(path.join(engineRoot, 'dist/harness-runtime'), path.join(home, 'harness-runtime'), { recursive: true });
+  const profileFile = path.join(root, 'profile.json'), profile = { id: 'offline-judge', harness: 'codex-desktop', model: 'offline', reasoning: 'high' };
+  await writeJsonAtomic(profileFile, profile);
+  const manifest = { run_id: 'EVAL-judge-only-cleanup', executions: [{ id: 'e', stage: 'specify' }], profile: { judge: { enabled: true, profile_id: profileFile } }, runtime_resource_home: path.join(root, 'resources') };
+  const result = { execution: 'e', state: 'candidate_ready', stage: 'specify', attempt: path.join(root, 'executions/e'), runtime_engine: { package_name: 'fixture', package_version: '1', engine_version: '1', integrity_checksum: checksum } };
+  const eventsFile = path.join(root, 'events.jsonl'), operationId = `${manifest.run_id}:e:launch`;
+  await writeJsonAtomic(path.join(root, 'manifest.json'), manifest);
+  for (const type of ['requested', 'started', 'completed']) await appendEvent(eventsFile, { source: 'fixture', runId: manifest.run_id, executionId: 'e', type: `dev.dd.eval.operation.${type}`, data: { operation_id: operationId, operation: 'execution.e.launch', ...(type === 'completed' ? { result } : {}) } });
+  let candidate = (await frozenCandidate({ root, manifest, results: [result] })).candidate;
+  if (revision) { candidate = { ...candidate, file: path.join(root, 'candidate-revisions', `${candidate.immutable_hash}.json`) }; await writeJsonAtomic(candidate.file, candidate); }
+  const judgeRoot = revision ? path.join(root, 'judge/revisions', candidate.immutable_hash) : path.join(root, 'judge'), stateDir = path.join(judgeRoot, 'daemon');
+  const receipt = { schema_id: 'dd-eval/final-judge-receipt@1', profile_id: profile.id, session_id: 'retained-judge-session', candidate_sha256: candidate.immutable_hash, result: { conclusion: 'retained verdict' } };
+  await writeJsonAtomic(path.join(judgeRoot, 'result.json'), receipt);
+  await writeJsonAtomic(path.join(root, 'reports/report.json'), { run_id: manifest.run_id, candidate, judge: receipt, judge_status: 'failed', judge_error: { code: 'judge_cleanup_failed' } });
+  const owner = { schema_id: 'dd-flow/runtime-owner@1', role: 'judge', owner_id: `judge:${sha256(stateDir)}`, state_dir: stateDir, dd_flow_home: home, dd_flow_bin: path.join(home, 'bin/dd-flow'), adapter_executable: path.join(home, 'harness-runtime/bin/dd-codex.mjs'), resource_home: manifest.runtime_resource_home, budget: { scope_id: manifest.run_id } };
+  const stateFile = path.join(stateDir, 'daemon.json'), state = { daemon_id: 'owned-judge', pid: 2147483647, config: { cwd: judgeRoot, runtime_owner: owner }, shutdown_state: 'cleanup_failed', active_tree: false };
+  await writeJsonAtomic(stateFile, { ...state, config: { ...state.config, runtime_owner: { ...owner, state_dir: root } } });
+  await assert.rejects(runnerCleanup({ evalRoot: root, requestId: 'foreign' }), { code: 'judge_cleanup_ownership_unknown' });
+  await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  await writeJsonAtomic(stateFile, state);
+  const foreignRoot = await mkdtemp(path.join(os.tmpdir(), 'eval-foreign-judge-'));
+  t.after(() => rm(foreignRoot, { recursive: true, force: true }));
+  const foreignState = path.join(foreignRoot, 'daemon');
+  await rename(stateDir, foreignState); await symlink(foreignState, stateDir);
+  await assert.rejects(runnerCleanup({ evalRoot: root, requestId: 'redirected-state' }), { code: 'judge_cleanup_ownership_unknown' });
+  await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  await rm(stateDir); await rename(foreignState, stateDir);
+  const foreignStateFile = path.join(foreignRoot, 'daemon.json');
+  await rename(stateFile, foreignStateFile); await symlink(foreignStateFile, stateFile);
+  await assert.rejects(runnerCleanup({ evalRoot: root, requestId: 'foreign-state-file' }), { code: 'judge_cleanup_ownership_unknown' });
+  await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  await rm(stateFile); await rename(foreignStateFile, stateFile);
+  const verdictBytes = await readFile(path.join(judgeRoot, 'result.json'));
+  assert.equal((await runnerCleanup({ evalRoot: root, requestId: 'retry' })).judge_status, 'completed');
+  const stopCalls = await readFile(calls, 'utf8'); assert.match(stopCalls, /^judge-cleanup:/); assert.equal(stopCalls.trim().split('\n').length, 1);
+  assert.equal((await runnerCleanup({ evalRoot: root, requestId: 'retry' })).judge_status, 'completed');
+  assert.equal(await readFile(calls, 'utf8'), stopCalls);
+  assert.deepEqual(await readFile(path.join(judgeRoot, 'result.json')), verdictBytes);
+  assert.equal(JSON.parse(await readFile(path.join(root, 'reports/report.json'))).judge_error, undefined);
+  assert.equal((await readEvents(eventsFile)).filter(event => event.type === 'dev.dd.eval.operation.started').length, 1);
+});
+
 for (const enabled of [false, true]) test(`resume finalizes a pre-session failure without replay (Judge enabled: ${enabled})`, async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-failed-resume-"));
   try {
@@ -168,7 +337,7 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
     await mkdir(path.join(runtime, "bin"), { recursive: true }); await mkdir(project);
     const statusFile = path.join(root, "control.json"), bin = path.join(runtime, "bin/dd-flow");
     await writeFile(bin, `#!/usr/bin/env node\nconsole.log(require('node:fs').readFileSync(${JSON.stringify(statusFile)},'utf8'))\n`); await chmod(bin, 0o700);
-    await writeJsonAtomic(statusFile, { ok: true, settled: false });
+    await writeJsonAtomic(statusFile, { ok: true, settled: false, scope: { run_id: "RUN-test" } });
     await writeJsonAtomic(path.join(attempt, "managed-runtime.json"), { schema_id: "dd-eval/managed-runtime@1", project_root: project, runtime_root: runtime, run_id: "RUN-test" });
     const manifest = { run_id: "EVAL-test", runtime_resource_home: path.join(root, "resources"), case_id: "sdlc-eval-2026-summer-task-priority", executions: [{ id: "e", stage: "specify", terminal_stage: "merge", mode: "e2e" }], subject_profile: {}, profile: { judge: { enabled: false } } };
     await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
@@ -178,7 +347,7 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
     assert.equal(pending.execution_state, "failed");
     assert.equal(pending.cleanup_state, "pending");
     const capture = path.join(root, "capture"); await mkdir(capture); await writeJsonAtomic(path.join(capture, "snapshot.json"), { consistency: "sealed" });
-    await writeJsonAtomic(statusFile, { ok: true, settled: true, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test" } });
+    await writeJsonAtomic(statusFile, { ok: true, settled: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test" } });
     const final = await runnerResume({ evalRoot: root });
     assert.equal(final.state, "completed_with_failures");
     assert.equal(final.executions[0].incomplete_evidence, null);
@@ -190,21 +359,27 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-test("recovery-blocked is not cleanup-settled and cannot freeze a candidate", async () => {
+for (const [blocked, worker] of [
+  [true, { status: "recovery_blocked", error: { code: "recovery_observation_budget_exhausted" } }],
+  [true, { status: "failed", error: { code: "snapshot_capture_failed", message: "retained primary capture error" }, snapshot: { status: "recovery_blocked", settled: false, error: { code: "recovery_observation_budget_exhausted" }, recovery_observation: { remaining_ms: 0 } } }],
+  ...["starting", "running"].map(status => [false, { status, error: null, snapshot: { status: "recovery_blocked", settled: false, recovery_observation: { remaining_ms: 120_000, observer_started: false, reconciliation_ids: ["fresh"] } } }])
+]) test(`retained recovery blocker respects the owner phase and cannot freeze a candidate (${worker.status})`, async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-recovery-blocked-"));
   try {
     const attempt = path.join(root, "executions/e"), runtime = path.join(attempt, "dd-flow-home"), project = path.join(attempt, "project");
     await mkdir(path.join(runtime, "bin"), { recursive: true }); await mkdir(project);
     const statusFile = path.join(root, "control.json"), bin = path.join(runtime, "bin/dd-flow");
     await writeFile(bin, `#!/usr/bin/env node\nconsole.log(require('node:fs').readFileSync(${JSON.stringify(statusFile)},'utf8'))\n`); await chmod(bin, 0o700);
-    await writeJsonAtomic(statusFile, { ok: true, settled: true, worker: { status: "recovery_blocked", error: { code: "recovery_observation_budget_exhausted" } } });
+    await writeJsonAtomic(statusFile, { ok: true, settled: true, worker });
     await writeJsonAtomic(path.join(attempt, "managed-runtime.json"), { schema_id: "dd-eval/managed-runtime@1", project_root: project, runtime_root: runtime, run_id: "RUN-test" });
     const manifest = { run_id: "EVAL-test", runtime_resource_home: path.join(root, "resources"), case_id: "sdlc-eval-2026-summer-task-priority", executions: [{ id: "e", stage: "specify", terminal_stage: "merge", mode: "e2e" }], subject_profile: {}, profile: { judge: { enabled: false } } };
     await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
     for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "provider_failed", message: "subject failed" } } });
     const result = await runnerResume({ evalRoot: root });
-    assert.equal(result.state, "recovery_blocked");
-    assert.equal(result.cleanup_state, "blocked");
+    assert.equal(result.state, blocked ? "recovery_blocked" : "awaiting_provider");
+    assert.equal(result.cleanup_state, blocked ? "blocked" : "pending");
+    assert.equal(result.executions[0].code, "provider_failed");
+    assert.equal(result.executions[0].recovery.capture_error.code, blocked ? "recovery_blocked" : "recovery_capture_pending");
     assert.equal(result.candidate, undefined);
     assert.equal((await readEvents(path.join(root, "events.jsonl"))).some(event => event.type === "dev.dd.eval.candidate.frozen"), false);
   } finally { await rm(root, { recursive: true, force: true }); }
@@ -254,6 +429,35 @@ test("productive evaluation time does not spend the cleanup observation budget",
   time += 30_000;
   budget.exhausted();
   assert.equal(budget.state().remaining_ms, 90_000);
+});
+
+test("settlement inactivity renews only new physical proof and preserves legacy policy", () => {
+  let time = 0;
+  const budget = recoveryObservationBudget(null, () => time);
+  time = 60000; budget.observe({ operation_id: "owned", targets: [{ process_id: "p1", physical_settled: true }] });
+  assert.equal(budget.state().remaining_ms, 120000);
+  time += 60000; budget.observe({ operation_id: "owned", targets: [{ process_id: "p1", physical_settled: true }], observed_at: "new metadata" });
+  assert.equal(budget.state().remaining_ms, 60000);
+  time += 10000; budget.observe({ operation_id: "owned", targets: [{ process_id: "p1", physical_settled: true }, { process_id: "p2", native_settled: true }] });
+  assert.equal(budget.state().remaining_ms, 120000);
+  const restored = recoveryObservationBudget({ recovery_observation: budget.state() }, () => time);
+  time += 60000; restored.observe({ operation_id: "owned", targets: [{ process_id: "p2", native_settled: true }, { process_id: "p1", physical_settled: true }] });
+  assert.equal(restored.state().remaining_ms, 60000);
+  const legacy = recoveryObservationBudget({ recovery_observation: { remaining_ms: 1000 } }, () => time);
+  legacy.observe({ physical_settled: true }); assert.equal(legacy.state().remaining_ms, 1000);
+  assert.throws(() => recoveryObservationBudget({ recovery_observation: { policy_id: "unknown", remaining_ms: 1000 } }), { code: "recovery_observation_invalid" });
+  time += 61000; assert.equal(restored.exhausted(), true); // reconstruction + gap is a repeated unknown episode
+  time += 61000; assert.equal(restored.exhausted(), true);
+});
+
+test("automatic reconstruction cannot replenish uncertainty or resurrect exhausted recovery", () => {
+  const first = recoveryObservationBudget(null, () => 0);
+  const replacement = recoveryObservationBudget({ recovery_observation: first.state() }, () => 0);
+  assert.equal(replacement.state().remaining_ms, 120000);
+  const repeated = recoveryObservationBudget({ recovery_observation: replacement.state() }, () => 0);
+  assert.equal(repeated.exhausted(), true);
+  repeated.observe({ operation_id: "owned", physical_settled: true });
+  assert.equal(repeated.state().remaining_ms, 0);
 });
 import { appendRunEventOnce, runResultRevision, recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoverySourceFromEvents, recoveryOperationId, recoveryPrompt, prepareRecoveryDelivery, isInfrastructureFailure } from "../lib/runner.mjs";
 
@@ -459,6 +663,27 @@ test("unknown dispatch remains blocked after a runner crash", async t => {
   await assert.rejects(recoverDriverReply(root, "unknown", { timeoutMs: 5, pollMs: 1 }), { code: "operation_observation_lost" });
 });
 
+test("driver reconciliation persists uncertainty across restart but accepts an exact late terminal", async t => {
+  const root = await temporary(t), id = "original-dispatch";
+  const file = path.join(root, "client-operations", `${sha256(id)}.json`);
+  const first = new ObservationClock({ timeoutMs: 5 });
+  const restored = new ObservationClock({ timeoutMs: 5, saved: first.state() });
+  await writeJsonAtomic(file, { operation_id: id, state: "requested", recovery_observation_clock: restored.state() });
+  await assert.rejects(recoverDriverReply(root, id, { timeoutMs: 5, pollMs: 1 }), { code: "operation_observation_lost" });
+  const retained = JSON.parse(await readFile(file, "utf8"));
+  assert.equal(retained.state, "requested");
+  assert.equal(retained.recovery_observation_clock.observation_lost, true);
+  assert.equal(retained.recovery_observation_clock.gaps, 2);
+  await assert.rejects(recoverDriverReply(root, id, { timeoutMs: 5, pollMs: 1 }), { code: "operation_observation_lost" });
+  assert.equal(JSON.parse(await readFile(file, "utf8")).recovery_observation_clock.gaps, 3);
+  const operation = path.join(root, "operations", sha256(id));
+  await writeJsonAtomic(path.join(operation, "requested.json"), { operation_id: id, daemon_id: "original-daemon" });
+  await writeJsonAtomic(path.join(operation, "result.json"), { state: "completed", result: { answer: "late exact reply" } });
+  assert.deepEqual(await recoverDriverReply(root, id, { timeoutMs: 5, pollMs: 1 }), { answer: "late exact reply" });
+  await reconcileDriverReplies(root);
+  assert.equal(JSON.parse(await readFile(file, "utf8")).state, "completed");
+});
+
 test("a live original daemon cannot be replaced merely because its socket failed", async t => {
   const root = await temporary(t);
   await writeFile(path.join(root, "daemon.json"), JSON.stringify({ pid: process.pid }));
@@ -499,7 +724,7 @@ test("a proven dead lock owner can be reclaimed without time-based eviction", as
   assert.equal(await withRunnerLock(file, () => "recovered"), "recovered");
 });
 
-for (const code of ["operation_observation_lost", "daemon_connection_closed", "rpc_timeout", "daemon_timeout", "turn_timeout"]) {
+for (const code of ["operation_observation_lost", "daemon_connection_closed", "rpc_timeout", "daemon_timeout", "turn_timeout", "subject_liveness_timeout", "operation_output_limit"]) {
   test(`${code} preserves an uncertain operation and accepts its late result exactly once`, async t => {
     const eventsFile = path.join(await temporary(t), "events.jsonl");
     const input = { eventsFile, source: "test", runId: "EVAL-test", executionId: "e2e", traceId: "test", operationId: "prompt", operation: "driver.prompt" };

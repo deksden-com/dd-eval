@@ -22,9 +22,10 @@ and [plan 023](../specs/023-suspend-aware-execution-and-repair-contracts.md).
 The shipped runtime rule is deliberately narrow: an observed host/event-loop
 gap is an **unknown provider outcome**, never proof of model inactivity;
 `running` alone is not progress. Preserve the late provider result and the
-original error, then reconcile that same operation. A confirmed
-`subject_liveness_timeout` is different: the runner requests a verified
-tree-wide cancellation and records the cleanup result.
+original error, then reconcile that same operation. A local
+`subject_liveness_timeout` is also an unknown native outcome, not a provider
+terminal. Reconcile the exact retained operation before any new prompt;
+authorized owned cleanup must separately prove whole-tree settlement.
 Do not work around a recovery error by editing runtime SQLite, accepted results
 or MERGE freeze files. In particular, an RPC/daemon/Turn timeout normally
 means that the client did not observe an outcome; reconcile the existing
@@ -32,6 +33,29 @@ operation before any new prompt, cancellation or retry. Only a native adapter
 may emit `subject_liveness_timeout`, after its own activity evidence has been
 absent for its configured window. Runner heartbeats and a `running` status
 never extend that window.
+
+### Progress policy (plan 065)
+
+New Judge qualification and productive prompt callers have no total-work cap.
+Their selected native adapter owns the inactivity window. Reasoning, text,
+tools, advancing usage and validated current children can renew it; replayed
+events, observer polling, lease renewal and model selection cannot. Never
+increase a wall cap or edit old capacity chains to obtain qualification PASS.
+Unknown dispatch remains fenced until exact native terminal/settlement.
+
+New baseline policy@2 uses `inactivity_timeout_ms` and receipt@2. Its admitted
+command renews from actual output, while the selected maintenance helper
+independently renews its lease. Closing drains renewal before process finish.
+Legacy policy@1 retains its absolute `timeout_ms`; historical receipts and
+checkpoints are not upgraded in place. Preparation/verification/fork use the
+exact pinned policy/hash; product source bytes stay unchanged.
+
+Operational CLI observers have phase-specific quiet guards (control/status
+30 seconds; clone/install/build/snapshot 30 minutes), not model deadlines.
+Their expiry stops only the owned observer and reports observation loss;
+it neither cancels a detached RUN nor proves a provider failure. Large stderr
+uses a diagnostic tail, while an oversized final reply is rejected whole,
+never truncated into a successful JSON receipt.
 
 ## Before launch
 
@@ -199,6 +223,10 @@ Subject starts. It establishes whether a failure already exists before the
 model's changes; it is not a test of the requested new feature. Keep this
 per-execution baseline and its receipt. Do not share a baseline PASS between
 Luna and ZCode workspaces or use an old receipt to excuse a broken environment.
+For a multi-harness campaign on one host, start the next scored E2E only after
+the preceding execution has written its own baseline receipt. Concurrent
+CPU-heavy baselines can make a timing-sensitive source test fail before any
+Subject Session exists; this scheduling rule does not reuse or waive any gate.
 
 `runner eval preflight` is light preparation: it validates the pinned baseline
 policy but does not execute its commands. Its receipt explicitly records
@@ -207,8 +235,36 @@ and non-generative doctors remain. Report success as "inputs/environment ready;
 baseline pending actual run", never as baseline PASS. The actual execution
 still runs baseline before Subject dispatch. No cross-workspace cache is used.
 Do not repeat preflight for unchanged inputs or documentation-only edits.
+A case declaring `hitl_qualification` needs one explicit
+`dd-eval runner definition qualify --profile <run-profile.json>` before
+preflight or scored run. This operation uses the existing Interaction Judge on
+the pinned corpus and stores a shared, checksum-bound receipt under
+`DD_EVAL_DEFINITION_QUALIFICATION_HOME` (default
+`~/.dd-eval/definition-qualifications`). It creates Judge Sessions only, never
+a Subject Session or a scored EVAL. The exact committed definition tree,
+fixture, corpus, Judge profile and prompt contract must match; a changed
+input requires a new qualification. Preflight merely checks this receipt and
+still records `provider_sessions_created: 0`; direct `eval run` checks it too.
 A request to prepare only never authorizes `eval run` or a live compatibility/
 capacity experiment.
+
+New HITL decisions use `dd-eval/hitl-match@2`: the Judge cites exact question
+atoms, frozen context evidence and canonical answer quotes; the runner derives
+the overall result. Historical v1 evidence remains read-only, not new admission.
+Targeted corpus `expected_atoms` compare finite authored quote alternatives,
+classification and response IDs one-to-one; expected fields never reach Judge.
+Where decomposition has more than one valid form, `expected_atomizations` lists
+complete authored alternatives. Each alternative still requires every independent
+uncovered decision; extra/missing atoms do not pass by aggregate class alone.
+Lost verdict publication reconciles the original capacity/native operation only,
+then binds confirmed cleanup to the recovered receipt. An unknown outcome never
+authorizes another Judge Turn.
+After offline checks and committed definition qualification, run the bounded
+reference pair (three fresh Sessions per question; retain every result):
+`node tools/native-interaction-judge-smoke.mjs --pair <unresolved-packet.json> <resolved-packet.json> <judge-profile> <runtime-root> <project-root>`.
+Packets contain `question`, `subject_context`, `responses` and `stage`; resolved
+context explicitly identifies the antecedent. A semantic failure is retained,
+never retried until PASS. This smoke does not create a scored EVAL.
 
 Requalify a harness only when its native runtime, adapter or relevant contract
 changes (or qualification is absent). Broader stop/recovery and all-harness
@@ -241,6 +297,24 @@ Session is started.
 E2E uses the input checkpoint, never a canonical stage-entry pack. Updating the
 engine requires a new checkpoint pointing to its committed project flow pack;
 changing a global CLI alone does not update the pinned experiment.
+
+For the cross-harness full-cycle campaign, pin `stage_session_mode=new_session`
+and `merge_mode=server` in the committed project flow pack, not just in the
+run-profile. SPECIFY and PROTOCOLIZE execute from the stable project checkout;
+PLAN through CODE-REVIEW execute from the provisioned feature checkout; server
+MERGE executes from its integration target. The PROTOCOLIZE transition Work
+keeps the cwd of the Session that entered that Stage even after the CLI creates
+the feature worktree. A changed physical cwd requires a fresh Session unless a
+separate native rebind qualification exists. The hook's observed cwd, launch
+cwd, project identity and model prompt are distinct evidence; a prompt saying
+`cd` does not establish Session binding.
+
+Runtime retry instructions are shared across harnesses. Follow only an exact
+`retry_command` issued for a proven no-effect correction. A committed effect,
+registered repair, pending check, or unknown outcome must be reconciled through
+its retained receipt, not re-executed because a Turn ended or a file projection
+is temporarily absent. A `publication_pending` error means SQL authority
+committed and its artifact needs materialization; it is not a no-effect result.
 
 Keep the product baseline separate from the flow-pack revision. Resolve
 `source.tag` and `source.commit` from the hash-pinned input checkpoint referenced
@@ -387,6 +461,14 @@ credentials. The isolated home never inherits `db.sqlite`, RUNs, locks, ports,
 engines, logs or daemons from the source home. A missing or invalid harness
 configuration is a setup blocker; do not work around it with PATH discovery or
 ad-hoc adapter environment variables.
+
+The configured `<runtime>/harness-runtime` path is a relative alias to the
+selected immutable engine's `dist/harness-runtime`, not a detached adapter copy.
+Node must resolve that engine's complete production dependency closure. Fresh
+provision, fork and Stage restore install this alias after materializing the
+engine; a frozen snapshot alone is not an executable engine installation.
+Do not install missing dependencies or rewrite an alias inside a failed or
+historical execution. Correct provisioning for a new attempt instead.
 
 An eval profile in `profiles/` is not an installed Flow agent profile. Every
 profile referenced by execution routing must also exist in the configuration
@@ -717,3 +799,13 @@ package omitted a fact/path/command it was responsible for providing.
 Do not use historical `prepare`, `starter`, `checkpoint`, `continuation`,
 manual Session fork or hand-written `DD_FLOW_HOME` workflows. They belong to
 the retired pre-runner procedure and are not accepted eval evidence.
+# Managed maintenance contract
+
+For new runs, qualify the selected engine's prepared RUN/resource stores and its
+bundled `harness-runtime/lib/lease-renewal.mjs` before launch. Observer and baseline
+maintenance must use this pinned bundle and explicit runtime/resource homes.
+Do not borrow helpers from an installed global CLI. Cold installed-tarball tests
+must cover renewal receipts, writer contention, timeout cleanup and finish replay.
+An expired lease is not proof of a dead owner; bounded reconfirmation precedes
+productive admission. Unconfirmed physical cleanup is a recovery blocker, never
+permission to repeat a native request or repair a historical EVAL manually.

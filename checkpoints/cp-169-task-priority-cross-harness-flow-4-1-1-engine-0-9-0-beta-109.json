@@ -1,0 +1,21 @@
+{
+  "id": "cp-169-task-priority-cross-harness-flow-4-1-1-engine-0-9-0-beta-109",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "2070638c3811aea6572b9ab8b5ba868fdc519ccc",
+    "tag": "eval/cp-166-source-process-identity"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "b0b124f3816bf3604161398d2cb0c7d7b287f462",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.1",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "350120c67365b0b0c8f2fc81c7cd73548aae6617",
+      "version": "0.9.0-beta.109",
+      "artifact_sha256": "87f7cfb1d3c6da4265c32cb325e2772615f0ef4e0c743d0b278e9035a987d3b4"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}

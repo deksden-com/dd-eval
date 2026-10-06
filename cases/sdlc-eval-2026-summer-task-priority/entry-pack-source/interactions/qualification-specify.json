@@ -1,0 +1,17 @@
+{
+  "schema_id": "dd-eval/stage-context@1",
+  "stage": "specify",
+  "objective": "Уточнить приоритет задач в существующем продукте без новых сортировки, workflow или индикаторов.",
+  "task_input": [],
+  "sources": [
+    {
+      "role": "initial_request",
+      "root": "project",
+      "path": "entry-pack-source/task-priority.md",
+      "required": true,
+      "reason": "Исходная область задачи."
+    }
+  ],
+  "accepted_decisions": [],
+  "dynamic_roles": []
+}

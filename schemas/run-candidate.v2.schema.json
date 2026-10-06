@@ -11,6 +11,7 @@
     "outcome": {"enum": ["complete", "incomplete"]},
     "frozen_at": {"type": "string", "minLength": 1},
     "immutable_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "parent_candidate_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "executions": {
       "type": "array",
       "minItems": 1,
@@ -27,7 +28,15 @@
           "reached_stage": {"type": ["string", "null"]},
           "failure": {"type": ["object", "null"]},
           "evidence_completeness": {"enum": ["checkpointed", "partial", "missing"]},
-          "checkpoint": {"type": ["object", "null"]}
+          "checkpoint": {"type": ["object", "null"]},
+          "execution_operation_id": {"type": ["string", "null"]},
+          "incomplete_evidence": {"type": ["object", "null"]},
+          "recovery": {"type": ["object", "null"]},
+          "case_acceptance": {
+            "type": "object", "additionalProperties": false,
+            "required": ["file", "sha256", "status"],
+            "properties": {"file": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "status": {"enum": ["passed", "failed", "not_applicable", "unavailable"]}}
+          }
         }
       }
     }

@@ -11,7 +11,11 @@ import { observeManagedRun } from '../lib/managed-flow-client.mjs';
 import { evalResumeWorkerFile } from '../lib/eval-resume-worker.mjs';
 import { processSnapshot } from '../lib/process-snapshot.mjs';
 
-test('public background EVAL resume continues a real retained RUN through its next stage', { skip: !process.env.DD_EVAL_TEST_FLOW_CLI || !process.env.DD_EVAL_TEST_FLOW_ADAPTER, timeout: 180_000 }, async t => {
+const phaseWaitMs = 100_000;
+// CI anti-wedge only: prepare/initial RUN, capture, resumed RUN and physical
+// cleanup have separate envelopes. The total guard must not be shorter than
+// the two explicitly allowed capture/resume waits alone.
+test('public background EVAL resume continues a real retained RUN through its next stage', { skip: !process.env.DD_EVAL_TEST_FLOW_CLI || !process.env.DD_EVAL_TEST_FLOW_ADAPTER, timeout: 4 * phaseWaitMs }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-managed-resume-'));
   const definition = path.join(root, 'definition'), evalRoot = path.join(root, 'eval'), attempt = path.join(evalRoot, 'executions', 'stages');
   const project = path.join(attempt, 'project'), home = path.join(attempt, 'dd-flow-home'), cli = path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI);
@@ -59,11 +63,20 @@ test('public background EVAL resume continues a real retained RUN through its ne
     await write(path.join(caseRoot, 'entry-pack-source/stage-context.json'), blueprint);
     const fixture = stage => ({ schema_id: 'dd-eval/canonical-responses@1', stage, mode: 'forbidden', max_rounds: 0, responses: [] });
     for (const stage of ['specify', 'protocolize']) await write(path.join(caseRoot, `entry-pack-source/interactions/${stage}.json`), fixture(stage));
+    const definitionGit = args => commandText('git', args, { cwd: definition });
+    await definitionGit(['init', '--quiet', '-b', 'main']);
+    await definitionGit(['add', '.']);
+    await definitionGit(['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.test', 'commit', '--quiet', '-m', 'retained eval definition']);
     const execution = { id: 'stages', stage: 'specify', terminal_stage: 'protocolize', mode: 'e2e' };
     const manifest = { schema_id: 'dd-eval/runner-manifest@1', run_id: evalId, case_id: 'fixture', runtime_control_bin: cli, runtime_resource_home: resources, executions: [execution], input_checkpoint: { id: checkpoint.id, sha256: cpHash }, interaction_fixtures: Object.fromEntries(['specify', 'protocolize'].map(stage => [stage, { interaction_fixture_sha256: hashJson(fixture(stage)) }])), subject_profile: { id: 'first', harness: 'codex-desktop', model: 'model-first', reasoning: 'low' }, profile: { concurrency: { global: 1, per_harness: {} }, judge: { enabled: false } } };
+    manifest.definition = { commit: await definitionGit(['rev-parse', 'HEAD']) };
+    manifest.profile = { schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: 'fixture', subject: { profile_id: 'first' },
+      selection: { focused_stages: [], segment: null, e2e: true, repetitions: 1 }, concurrency: { global: 1, per_harness: {} },
+      judge: { enabled: false }, interaction_judge: { profile_id: 'fixture' },
+      failure_policy: { stop_execution_on_unexpected_hitl: true, stop_execution_on_unmatched_hitl: true } };
     await write(path.join(evalRoot, 'manifest.json'), manifest);
     await write(path.join(attempt, 'managed-runtime.json'), { schema_id: 'dd-eval/managed-runtime@1', run_id: runId, project_root: project, runtime_root: home, runtime_budget: budget });
-    const admission = await write(path.join(attempt, 'baseline.json'), { status: 'passed', checkpoint_sha256: cpHash, checkpoint_id: checkpoint.id, source_commit: checkpoint.source.commit, policy_sha256: 'd'.repeat(64), checks: [{ exit_code: 0 }] });
+    const admission = await write(path.join(attempt, 'baseline.json'), { schema_id: 'dd-eval/baseline-admission@1', status: 'passed', checkpoint_sha256: cpHash, checkpoint_id: checkpoint.id, source_commit: checkpoint.source.commit, policy_sha256: 'd'.repeat(64), checks: [{ exit_code: 0 }] });
     const intake = await write(path.join(root, 'task.md'), 'Add task priority so members can order existing tasks.\n');
     const eventsFile = path.join(evalRoot, 'events.jsonl'), references = {};
     for (const stage of ['specify', 'protocolize']) {
@@ -84,14 +97,18 @@ test('public background EVAL resume continues a real retained RUN through its ne
     const firstCapture = await readFile(held.boundary.manifest);
     await invoke(['control', 'pause', '--eval', evalRoot, '--request-id', 'pause']);
     const scope = args => commandJson(cli, ['runtime', 'scope', ...args], { cwd: root, env: { ...env, DD_FLOW_HOME: path.join(evalRoot, 'control-runtime') } });
-    const deadline = performance.now() + 100_000;
+    // TEST anti-wedge envelopes belong to each distinct phase. Capture work
+    // must not silently consume the successor's CI wait; these do not set any
+    // production RUN/provider inactivity policy.
+    const captureDeadline = performance.now() + phaseWaitMs;
     for (;;) {
       const status = await scope(['status', '--scope-id', evalId]);
       if (status.drain?.capture?.journal?.event_count === (await readEvents(eventsFile)).length) break;
-      assert.ok(performance.now() < deadline, JSON.stringify(status)); await delay(100);
+      assert.ok(performance.now() < captureDeadline, JSON.stringify(status)); await delay(100);
     }
     const accepted = JSON.parse(await invoke(['control', 'resume', '--eval', evalRoot, '--from', 'pause', '--request-id', 'resume']));
     assert.equal(accepted.accepted, true); workerExited = false;
+    const resumeDeadline = performance.now() + phaseWaitMs;
     const workerFile = evalResumeWorkerFile(evalRoot, 'resume');
     let worker;
     for (;;) {
@@ -99,7 +116,7 @@ test('public background EVAL resume continues a real retained RUN through its ne
       assert.notEqual(worker.status, 'failed', JSON.stringify(worker));
       assert.notEqual(worker.status, 'superseded', JSON.stringify(worker));
       if (worker.status === 'completed' && !(await processSnapshot()).some(item => item.pid === worker.owner_pid)) { workerExited = true; break; }
-      assert.ok(performance.now() < deadline, JSON.stringify(worker)); await delay(100);
+      assert.ok(performance.now() < resumeDeadline, JSON.stringify(worker)); await delay(100);
     }
     assert.equal(worker.result.state, 'completed');
     assert.equal(worker.result.executions[0].run_id, runId);

@@ -1,0 +1,37 @@
+{
+  "id": "WRK-006-merge/RCP-003",
+  "local_id": "RCP-003",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-NEW",
+    "PRT-001-task-priority/CHK-P1-TEST",
+    "PRT-001-task-priority/CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "9392ebe8ce07d38b6c55f4c059f1c7d0fb7bda87194ce01ca0ae49e960fd02af",
+  "verification_epoch": "2941a000ca8254370e316bbbcc1e85402aa7a8188fbd7576c540facb0de9ac2e",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/recovery-readiness-matrix-fixture/qualification-evidence/dd-flow-protocolize-7L57eM/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/recovery-readiness-matrix-fixture/qualification-evidence/dd-flow-protocolize-7L57eM/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/recovery-readiness-matrix-fixture/qualification-evidence/dd-flow-protocolize-7L57eM/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/recovery-readiness-matrix-fixture/qualification-evidence/dd-flow-protocolize-7L57eM/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "2fb914d9318de3221a21032e4979f8edb874f6b1d1b3d4815a0e48b598033f20",
+  "before_fingerprint": "2fb914d9318de3221a21032e4979f8edb874f6b1d1b3d4815a0e48b598033f20",
+  "after_fingerprint": "2fb914d9318de3221a21032e4979f8edb874f6b1d1b3d4815a0e48b598033f20",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-04T03:10:03.619Z",
+  "finished_at": "2026-10-04T03:10:03.693Z"
+}

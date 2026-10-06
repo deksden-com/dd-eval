@@ -1,0 +1,37 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "b68d4a5879be27d2b4ed2d71229a5c412c9e421286625f53e50b35d101243aad",
+  "verification_epoch": "aca66db75693e29a827f6c5e9814c93db00a7ddb7c664bd0126aef30d5623210",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/recovery-matrix-fixture/qualification-evidence/dd-flow-protocolize-wSYYPN/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/recovery-matrix-fixture/qualification-evidence/dd-flow-protocolize-wSYYPN/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/recovery-matrix-fixture/qualification-evidence/dd-flow-protocolize-wSYYPN/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-194-candidate/recovery-matrix-fixture/qualification-evidence/dd-flow-protocolize-wSYYPN/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "ac692d28092ca11ae1efaf7811cda45bf6380f989e00e497d688a1eda83526bc",
+  "before_fingerprint": "ac692d28092ca11ae1efaf7811cda45bf6380f989e00e497d688a1eda83526bc",
+  "after_fingerprint": "ac692d28092ca11ae1efaf7811cda45bf6380f989e00e497d688a1eda83526bc",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-04T00:09:47.048Z",
+  "finished_at": "2026-10-04T00:09:47.180Z"
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { addHome, listHomes, removeHome } from "../lib/homes.mjs";
 import { parse, resolveEvalReference, validateCommand } from "../lib/cli-input.mjs";
-import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualificationRecover, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalPreflight, evalRun, fixturesValidate, harnessCapacityCheck, harnessCompatibilityQualify, runnerCancel, runnerCheckpoints, runnerFork, runnerRecover, runnerReconcile, runnerResume, runnerStatus } from "../lib/runner.mjs";
+import { canonicalAccept, canonicalBoundaryAccept, canonicalBuild, canonicalEngineCapture, canonicalQualificationRecover, canonicalQualify, canonicalResume, canonicalStatus, evalJudge, evalPreflight, evalRun, fixturesValidate, harnessCapacityCheck, harnessCompatibilityQualify, qualifyHitlDefinition, runnerCancel, runnerCheckpoints, runnerFork, runnerRecover, runnerReconcile, runnerResume, runnerStatus } from "../lib/runner.mjs";
 import { gcApply, gcPlan, storageList, storageStatus } from "../lib/storage.mjs";
 import { runnerRecoveryInspect } from "../lib/runner.mjs";
 import { runnerControlReconcile, runnerControlRequest, runnerControlStatus } from "../lib/runner.mjs";
@@ -15,6 +15,7 @@ Usage:
   dd-eval homes add --path <home> [--label <name>]
   dd-eval homes remove --id <id>
   dd-eval runner fixtures validate --case <case-id> [--revision REV-NNN]
+  dd-eval runner definition qualify --profile <run-profile.json>
   dd-eval runner eval preflight --profile <run-profile.json>
   dd-eval harness capacity check --profile <profile-id> --max <n> [--project-root <path>] [--write-profile true|false]
   dd-eval runner canonical build --profile <run-profile.json> --project-root <checkpoint-checkout> --flow-root <flow-pack-checkout>
@@ -26,7 +27,7 @@ Usage:
   dd-eval runner canonical qualification recover --build <path> --receipt <qualification-receipt.json>
   dd-eval runner canonical accept --build <path> --entry <stage> --review <file>
   dd-eval runner eval run --profile <run-profile.json>
-  dd-eval runner eval judge --eval <path> [--profile <judge-profile-id>]
+  dd-eval runner eval judge --eval <path> [--profile <judge-profile-id>] [--supplement <file> --output <new-assessment-root>]
   dd-eval runner status --eval <path>
   dd-eval runner control status --eval <path> [--execution <id>]
   dd-eval runner control pause|stop --eval <path> --request-id <id>
@@ -77,6 +78,7 @@ try {
   else if (family === "homes" && command === "add") result = await addHome(required(options, "path"), options.label);
   else if (family === "homes" && command === "remove") result = await removeHome(required(options, "id"));
   else if (family === "runner" && command === "fixtures" && action === "validate") result = await fixturesValidate({ caseId: required(options, "case"), ...(options.revision ? { revision: options.revision } : {}) });
+  else if (family === "runner" && command === "definition" && action === "qualify") result = await qualifyHitlDefinition({ profileFile: required(options, "profile") });
   else if (family === "runner" && command === "eval" && action === "preflight") result = await evalPreflight({ profileFile: required(options, "profile") });
   else if (family === "harness" && command === "capacity" && action === "check") result = await harnessCapacityCheck({ profileId: required(options, "profile"), maximum: required(options, "max"), ...(options["project-root"] ? { projectRoot: options["project-root"] } : {}), ...(options["write-profile"] ? { writeProfile: optionalBoolean(options, "write-profile") } : {}) });
   else if (family === "harness" && command === "compatibility" && action === "qualify") result = await harnessCompatibilityQualify({ profileId: required(options, "profile"), ...(options["project-root"] ? { projectRoot: options["project-root"] } : {}) });
@@ -98,7 +100,7 @@ try {
   }
   else if (family === "runner" && command === "canonical" && action === "accept") result = await canonicalAccept({ buildRoot: required(options, "build"), entry: required(options, "entry"), reviewFile: required(options, "review") });
   else if (family === "runner" && command === "eval" && action === "run") result = await requestEvalRun({ profileFile: required(options, "profile") });
-  else if (family === "runner" && command === "eval" && action === "judge") result = await evalJudge({ evalRoot: required(options, "eval"), ...(options.profile ? { profileId: options.profile } : {}) });
+  else if (family === "runner" && command === "eval" && action === "judge") result = await evalJudge({ evalRoot: required(options, "eval"), ...(options.profile ? { profileId: options.profile } : {}), supplementFile: options.supplement ?? null, outputRoot: options.output ?? null });
   else if (family === "runner" && command === "status") result = await runnerStatus({ evalRoot: required(options, "eval") });
   else if (family === "runner" && command === "control" && action === "status") {
     if (positional.length !== 3 || Object.keys(options).some(key => !["eval", "execution"].includes(key))) throw new Error("Use runner control status --eval <path> [--execution <id>]");

@@ -1,19 +1,85 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { chmod, cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, authorizeHitl, boundedPromptArgs, canonicalBuild, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
-import { appendEvent, readEvents } from "../lib/runner-events.mjs";
+import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
+import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
+import { materializeQualificationContext } from "../lib/runner.mjs";
+import { buildReport } from "../lib/runner.mjs";
+import { capacityCodexChildren } from "../lib/runner.mjs";
+import { errorRecord, terminalCodexOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
+import { settledJudge } from './fixtures/judge-cleanup.mjs';
+const capacityPolicy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'src/harness-runtime/lib/codex-capacity-policy.mjs')).href) : null;
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
 const buildProfile = path.join(root, "cases", caseId, "run-profiles", "build-entry-pack-reference-sol-high.json");
 const qualificationProfile = path.join(root, "cases", caseId, "run-profiles", "qualify-entry-pack-terra-high.json");
 const run = promisify(execFile);
+
+test("mandatory post-native observation failure is infrastructure, retains stable diagnostic revision", () => {
+  const result = { execution: "e2e", state: "failed", code: "native_outcome_observation_failed", error: "observer failed", details: { native_outcome: { status: "completed" }, observation_error: { code: "lifecycle_shell_syntax_invalid", details: { reason: "dynamic_executable" } }, journal_locator: "/owned/native.jsonl" } };
+  assert.equal(isInfrastructureFailure(result), true);
+  assert.equal(failureAttribution(result), "evaluation_infrastructure");
+  assert.equal(executionEvidence(result).failure.diagnostic.details.native_outcome.status, "completed");
+  assert.notEqual(failureEvidenceRevision(result), failureEvidenceRevision({ ...result, details: { ...result.details, observation_error: { code: "profile_mismatch" } } }));
+  assert.equal(failureEvidenceRevision(result), failureEvidenceRevision({ ...result, sampled_at: "later" }));
+  assert.equal(isInfrastructureFailure("product_check_failed"), false);
+  const unsafe = { ...result, details: { ...result.details, violations: [{ code: "drift", field: "model", authorization: "secret-token", env: { API_KEY: "secret-key" }, transcript: "private transcript" }] } };
+  const projection = JSON.stringify(executionEvidence(unsafe).failure);
+  assert.match(projection, /drift/); assert.doesNotMatch(projection, /secret-token|secret-key|private transcript|API_KEY/);
+  assert.equal(providerLimitMetadata({ ...result, cause: { code: "agy_provider_quota_exhausted", message: "quota" } }), null);
+  assert.equal(classifyInterruption({ ...result, cause: { code: "agy_provider_quota_exhausted", message: "quota" } }).category, "execution_failure");
+});
+
+test("raw report errors remain bounded and JSON safe for evidence and revision", () => {
+  const raw = { state: "failed", code: "native_outcome_observation_failed", error: "x".repeat(32000), details: { provider_session_id: "owned" } };
+  assert.equal(executionEvidence(raw).failure.message.length, 16000);
+  raw.error = raw; raw.details.cycle = raw.details;
+  assert.doesNotThrow(() => JSON.stringify(executionEvidence(raw)));
+  assert.doesNotThrow(() => failureEvidenceRevision(raw));
+  assert.equal(executionEvidence(raw).failure.diagnostic.details.provider_session_id, "owned");
+  raw.code = { invalid: true }; raw.error = 42;
+  assert.equal(executionEvidence(raw).failure.code, "operation_failed");
+  assert.equal(typeof executionEvidence(raw).failure.message, "string");
+});
+
+test("AGY relative reset is estimated from frozen native terminal time, never from polling", () => {
+  const error = { code: "agy_provider_quota_exhausted", details: { provider_session_id: "conversation", observed_at: "2026-10-01T16:18:41.330Z", provider_result: { error: "Individual quota reached. Resets in 3h12m12s" } } };
+  const metadata = providerLimitMetadata(error);
+  assert.equal(metadata.reset_at, "2026-10-01T19:30:53.330Z");
+  assert.equal(metadata.reset_estimated, true);
+  assert.equal(metadata.reset_basis, error.details.observed_at);
+  assert.deepEqual(providerLimitMetadata(structuredClone(error)), metadata);
+  assert.equal(providerLimitMetadata({ ...error, details: { ...error.details, observed_at: undefined } }).reset_at, null);
+  for (const invalid of ["Resets in -3h", "Resets in 1h61m", "Resets in 2m90s", "Resets in 999999999999999999999h", "Resets in 3h 12m", "Resets in 3h12m 12s", "Resets in 3hms", "Resets in 3h+12m", "Resets in 3h 12 minutes"]) assert.equal(providerLimitMetadata({ ...error, details: { ...error.details, provider_result: { error: invalid } } }).reset_at, null);
+});
+
+test("execution evidence classifies the retained primary cause, not only wrapper fields", () => {
+  const result = { execution: "e2e", state: "failed", code: "driver_failed", error: "driver failed", cause: {
+    code: "agy_provider_quota_exhausted", message: "Individual quota reached", details: { observed_at: "2026-10-01T16:18:41.330Z", provider_session_id: "owned",
+      provider_result: { error: "Individual quota reached. Resets in 3h12m12s" } }
+  } };
+  const failure = executionEvidence(result).failure;
+  assert.equal(failure.category, classifyInterruption(result).category);
+  assert.equal(failure.category, "provider_quota");
+  assert.equal(failure.provider_limit.category, failure.category);
+  assert.equal(failure.diagnostic.cause.code, result.cause.code);
+});
+
+test("bootstrap native normalization never upgrades idle or hides a foreign parent", () => {
+  const children = directNativeChildren({ descendants: [{ session_id: "child", parent_session_id: "foreign", status: "idle" }] }, "root");
+  assert.equal(children[0].status, "unknown");
+  assert.equal(children[0].provenance, "parent_mismatch");
+  assert.throws(() => directNativeChildren({ descendants: [{ session_id: "child", parent_session_id: "root", status: "completed" }, { session_id: "child", parent_session_id: "root", status: "failed" }] }, "root"), { code: "native_child_outcome_conflict" });
+});
 
 test("eval CLI rejects ambiguous mutations and treats help as a non-mutating command", async () => {
   const cli = path.join(root, "bin", "dd-eval.mjs");
@@ -32,15 +98,136 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("starter_sessions" in loaded.value, false);
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
-  assert.match(loaded.inputCheckpoint.value.id, /^cp-\d+-task-priority-.+-engine-0-9-0-beta-\d+(?:-.+)?$/);
-  assert.equal(loaded.inputCheckpoint.value.source.commit, "924ef61752b642f06c2c326b444ed7a3239f20ff");
-  assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-074-source-final");
-  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, "53d4b76943900f122957c78cc0fefa2051bd7b1a");
+  assert.equal(loaded.inputCheckpoint.value.id, loaded.value.input_checkpoint.id);
+  assert.match(loaded.inputCheckpoint.value.id, /^cp-\d+-task-priority-.+$/);
+  assert.equal(loaded.inputCheckpoint.value.source.commit, "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e");
+  assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-172-source-baseline-setup");
+  const pinnedCheckpoint = JSON.parse(await readFile(path.join(root, 'checkpoints', `${loaded.value.input_checkpoint.id}.json`), 'utf8'));
+  assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, pinnedCheckpoint.flow_pack.commit);
+  assert.match(loaded.inputCheckpoint.value.flow_pack.commit, /^[a-f0-9]{40}$/);
   assert.match(loaded.inputCheckpoint.value.flow_pack.engine.version, /^0\.9\.0-beta\.\d+$/);
   assert.match(loaded.inputCheckpoint.value.flow_pack.engine.commit, /^[a-f0-9]{40}$/);
   assert.match(loaded.inputCheckpoint.value.flow_pack.engine.artifact_sha256, /^[a-f0-9]{64}$/);
   assert.match(loaded.value.baseline_admission.sha256, /^[a-f0-9]{64}$/);
   assert.deepEqual(loaded.value.flow.contour, ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]);
+});
+
+test("HITL qualification is bound to the exact definition and Judge profile before provider startup", async () => {
+  const temporary = await mkdtemp(path.join(tmpdir(), "dd-eval-hitl-qualification-"));
+  const previous = process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME;
+  process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME = temporary;
+  try {
+    const loaded = await loadCase(caseId);
+    const runProfile = await loadRunProfile(path.join(root, "cases", caseId, "run-profiles", "e2e-inline-merge-luna-xhigh.json"));
+    const input = { loaded, runProfile, definition: { tree: "a".repeat(64) } };
+    const qualified = await hitlQualificationInputs(input);
+    assert.ok(qualified.corpus.items.length >= 14);
+    assert.equal(qualified.corpus.context_required, true, 'task-priority corpus requires production-shaped context');
+    assert.ok(qualified.corpus.items.some(item => item.id === "active-project-permissions"));
+    assert.ok(qualified.corpus.items.some(item => item.stage === "plan"));
+    const requiredIds = ['luna-cp190-exact', 'values-labels-no-order', 'material-gap', 'extra-scope', 'accepted-repeat', 'ambiguous-reference', 'partial-covered', 'gap-and-extra'];
+    assert.ok(requiredIds.every(id => qualified.corpus.items.some(item => item.id === id)));
+    assert.deepEqual(new Set(qualified.corpus.items.map(item => item.classification)), new Set(['covered_by_canonical_response', 'fixture_gap', 'unnecessary_question', 'out_of_scope', 'ambiguous']));
+    const moved = path.join(temporary, 'moved-case');
+    await cp(path.join(loaded.root, 'entry-pack-source'), path.join(moved, 'entry-pack-source'), { recursive: true });
+    const relocatedInput = { ...input, loaded: { ...loaded, root: moved } };
+    const relocated = await hitlQualificationInputs(relocatedInput);
+    assert.equal(relocated.key, qualified.key, 'case absolute root is not stable qualification identity');
+    const rendered = await materializeQualificationContext({ qualified: relocated, item: relocated.corpus.items[0], caseRoot: moved, output: path.join(temporary, 'rendered.json') });
+    const snapshotContext = JSON.parse(await readFile(rendered.path, 'utf8'));
+    assert.equal(snapshotContext.sources[0].path, path.join(snapshotContext.roots.project, 'entry-pack-source/task-priority.md'));
+    assert.notEqual(snapshotContext.roots.project, moved, 'Judge reads retained source snapshot, not mutable case checkout');
+    await writeFile(path.join(moved, 'entry-pack-source/task-priority.md'), 'changed source bytes');
+    const changed = await hitlQualificationInputs(relocatedInput);
+    assert.notEqual(changed.key, qualified.key, 'source bytes under same path invalidate identity');
+    await assert.rejects(materializeQualificationContext({ qualified: relocated, item: relocated.corpus.items[0], caseRoot: moved, output: path.join(temporary, 'stale.json') }), { code: 'definition_qualification_invalid' });
+    assert.match(qualified.identity.fixture_sha256.plan, /^[a-f0-9]{64}$/);
+    await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_missing" });
+    const qualifiedItem = async (qualification, item, name = item.id, change = value => value, changePacket = value => value) => {
+      const stage = item.stage ?? qualification.corpus.stage, fixture = qualification.fixtures[stage];
+      const operation = path.join(qualification.root, 'operation-offline');
+      const judgeRoot = path.join(operation, 'interaction-judge', name);
+      await mkdir(judgeRoot, { recursive: true });
+      const renderedContext = await materializeQualificationContext({ qualified: qualification, item, caseRoot: loaded.root, output: path.join(operation, 'contexts', createHash('sha256').update(item.id).digest('hex') + '.json') });
+      const context = renderedContext ? JSON.parse(await readFile(renderedContext.path, 'utf8')) : null;
+      const originalPacket = await buildHitlPacket({ stage, subjectContext: context, question: item.question, responses: fixture.responses, readRegularFile: file => readFile(file) });
+      const packet = changePacket(originalPacket);
+      await writeFile(path.join(judgeRoot, 'packet.json'), JSON.stringify(packet));
+      const expected = item.expected_atoms ?? [...(item.classification !== 'covered_by_canonical_response' && item.response_ids.length ? [{ source_quotes: [item.question], classification: 'covered_by_canonical_response', response_ids: item.response_ids }] : []), { source_quotes: [item.question], classification: item.classification, response_ids: item.response_ids }];
+      const observed = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@2', atoms: expected.map((atom, index) => ({ source_quote: atom.source_quotes?.[0] ?? atom.source_quote ?? item.question, decision: `offline decision ${index}`, classification: atom.classification, reference_bindings: [], answer_evidence: atom.classification === 'covered_by_canonical_response' ? atom.response_ids.map(id => ({ response_id: id, answer_quote: fixture.responses.find(response => response.id === id).answer })) : [], rationale: 'offline contract fixture, not a semantic Judge proof' })) }, originalPacket);
+      const verdict = change({ schema_id: 'dd-eval/interaction-judge-receipt@1', profile_id: qualification.profile.id, session_id: name, stage, interaction_fixture_sha256: fixture.sha256, packet_sha256: hashJson(packet), verdict: observed });
+      const cleanup = await settledJudge(judgeRoot, verdict);
+      return { id: item.id, stage, passed: true, observed, receipt_file: path.join(judgeRoot, 'result.json'), cleanup };
+    };
+    const results = [];
+    for (const item of qualified.corpus.items) {
+      results.push(await qualifiedItem(qualified, item));
+    }
+    const content = { schema_id: "dd-eval/hitl-qualification@2", key: qualified.key, status: "passed", identity: qualified.identity, operation: path.join(qualified.root, 'operation-offline'), results, cleanup: "settled" };
+    await mkdir(qualified.root, { recursive: true });
+    await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
+    assert.equal((await assertHitlQualification(input)).key, qualified.key);
+    for (const [name, change] of [
+      ['profile', value => ({ ...value, profile_id: 'foreign-judge' })],
+      ['fixture', value => ({ ...value, interaction_fixture_sha256: 'f'.repeat(64) })],
+      ['verdict', value => ({ ...value, verdict: { ...value.verdict, rationale: 'not the aggregate result' } })],
+      ['missing-semantic-verdict', value => ({ profile_id: value.profile_id, session_id: value.session_id })]
+    ]) {
+      const invalidItem = await qualifiedItem(qualified, qualified.corpus.items[0], name, change);
+      const invalid = { ...content, results: [invalidItem, ...content.results.slice(1)] };
+      await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...invalid, immutable_hash: hashJson(invalid) }));
+      await assert.rejects(assertHitlQualification(input), { code: 'definition_qualification_invalid' });
+    }
+    const wrongQuestion = await qualifiedItem(qualified, qualified.corpus.items[0], 'wrong-question', value => value, packet => ({ ...packet, question: 'unrelated question' }));
+    const wrongPacket = { ...content, results: [wrongQuestion, ...content.results.slice(1)] };
+    await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...wrongPacket, immutable_hash: hashJson(wrongPacket) }));
+    await assert.rejects(assertHitlQualification(input), { code: 'definition_qualification_invalid' });
+    const forgedSource = await qualifiedItem(qualified, qualified.corpus.items[0], 'forged-source', value => value, packet => ({ ...packet, grounding_sources: packet.grounding_sources.map(source => source.id.startsWith('source-') ? { ...source, text: 'forged antecedent', sha256: createHash('sha256').update('forged antecedent').digest('hex') } : source) }));
+    const forgedPacket = { ...content, results: [forgedSource, ...content.results.slice(1)] };
+    await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...forgedPacket, immutable_hash: hashJson(forgedPacket) }));
+    await assert.rejects(assertHitlQualification(input), { code: 'definition_qualification_invalid' });
+    const foreignContext = await qualifiedItem(qualified, qualified.corpus.items[0], 'foreign-context', value => value, packet => ({ ...packet, subject_context: { ...packet.subject_context, roots: { project: loaded.root } } }));
+    const foreignPacket = { ...content, results: [foreignContext, ...content.results.slice(1)] };
+    await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...foreignPacket, immutable_hash: hashJson(foreignPacket) }));
+    await assert.rejects(assertHitlQualification(input), { code: 'definition_qualification_invalid' });
+    await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
+    const sourcePacket = JSON.parse(await readFile(path.join(path.dirname(results[0].receipt_file), 'packet.json'), 'utf8'));
+    const frozenSource = sourcePacket.subject_context.sources[0].path;
+    const sourceBytes = await readFile(frozenSource);
+    await chmod(frozenSource, 0o644); await writeFile(frozenSource, 'tampered retained bytes');
+    await assert.rejects(assertHitlQualification(input), { code: 'definition_qualification_invalid' });
+    await writeFile(frozenSource, sourceBytes); await chmod(frozenSource, 0o444);
+    const missingContext = await qualifiedItem(qualified, qualified.corpus.items[0], 'missing-context', value => value, packet => ({ ...packet, subject_context: null }));
+    const missingPacket = { ...content, results: [missingContext, ...content.results.slice(1)] };
+    await writeFile(path.join(qualified.root, 'receipt.json'), JSON.stringify({ ...missingPacket, immutable_hash: hashJson(missingPacket) }));
+    await assert.rejects(assertHitlQualification(input), { code: 'definition_qualification_invalid' });
+    const wrongStage = { ...content, results: content.results.map(result => result.stage === 'plan' ? { ...result, stage: "specify" } : result) };
+    await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...wrongStage, immutable_hash: hashJson(wrongStage) }));
+    await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_invalid" });
+    await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, immutable_hash: hashJson(content) }));
+    await assert.rejects(assertHitlQualification({ ...input, definition: { tree: "b".repeat(64) } }), { code: "definition_qualification_missing" });
+    await writeFile(path.join(qualified.root, "receipt.json"), JSON.stringify({ ...content, status: "failed", immutable_hash: hashJson(content) }));
+    await assert.rejects(assertHitlQualification(input), { code: "definition_qualification_invalid" });
+
+    const legacyRoot = path.join(temporary, "legacy-case");
+    const interactions = path.join(legacyRoot, "entry-pack-source", "interactions");
+    await mkdir(interactions, { recursive: true });
+    await writeFile(path.join(interactions, "specify.json"), await readFile(path.join(loaded.root, "entry-pack-source", "interactions", "specify.json")));
+    const legacyCorpus = JSON.stringify({ schema_id: "dd-eval/hitl-qualification-corpus@1", stage: "specify", items: [{ id: "legacy", question: "Какие уровни приоритета?", classification: "covered_by_canonical_response", response_ids: ["clarification-task-priority"] }] });
+    await writeFile(path.join(interactions, "qualification.json"), legacyCorpus);
+    const legacyLoaded = { ...loaded, root: legacyRoot, value: { ...loaded.value, id: 'legacy-contextless', hitl_qualification: { file: "entry-pack-source/interactions/qualification.json", sha256: createHash("sha256").update(legacyCorpus).digest("hex") } } };
+    const legacyInput = { ...input, loaded: legacyLoaded };
+    const legacy = await hitlQualificationInputs(legacyInput);
+    assert.equal(typeof legacy.identity.fixture_sha256, "string");
+    const legacyContent = { schema_id: "dd-eval/hitl-qualification@2", key: legacy.key, status: "passed", identity: legacy.identity, results: [await qualifiedItem(legacy, legacy.corpus.items[0])], cleanup: "settled" };
+    await mkdir(legacy.root, { recursive: true });
+    await writeFile(path.join(legacy.root, "receipt.json"), JSON.stringify({ ...legacyContent, immutable_hash: hashJson(legacyContent) }));
+    assert.equal((await assertHitlQualification(legacyInput)).key, legacy.key);
+  } finally {
+    if (previous === undefined) delete process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME;
+    else process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME = previous;
+    await rm(temporary, { recursive: true, force: true });
+  }
 });
 
 test("source tag rejects a completed-product commit before materialization", async () => {
@@ -98,7 +285,7 @@ test("AGY prompt liveness is bounded by native activity, not runner heartbeat", 
 });
 
 test("owned cleanup uses tree evidence independently of failure attribution", async () => {
-  for (const code of ["agy_provider_failed", "subject_liveness_timeout", "new_provider_failure"]) {
+  for (const code of ["agy_provider_failed", "new_provider_failure"]) {
     const calls = [];
     const result = await settleExecutionDaemon(async cancel => {
       calls.push(cancel);
@@ -111,6 +298,9 @@ test("owned cleanup uses tree evidence independently of failure attribution", as
   for (const [failure, cleanupCode] of [
     [undefined, "tree_not_settled"],
     [{ code: "operation_observation_lost" }, "tree_not_settled"],
+    [{ code: "subject_liveness_timeout" }, "tree_not_settled"],
+    [{ code: "command_observation_lost" }, "tree_not_settled"],
+    [{ code: "operation_output_limit" }, "tree_not_settled"],
     [{ code: "agy_provider_failed" }, "daemon_connection_closed"],
     [{ code: "agy_provider_failed" }, "permission_denied"],
   ]) {
@@ -164,8 +354,15 @@ test("Codex default and mixed E2E differ only in explicit reviewer routing", asy
   assert.equal(mixed.subject.execution.agent_profile_id, baseline.subject.profile_id);
   assert.deepEqual(Object.keys(mixed.subject.execution.stage_overrides).sort(), ["code-review", "plan-review"]);
   for (const override of Object.values(mixed.subject.execution.stage_overrides)) {
-    assert.deepEqual(override, { delegation: { mode: "external", agent_profile_id: mixed.judge.profile_id, max_parallel: 1 } });
+    assert.deepEqual(Object.keys(override), ['delegation']);
+    assert.equal(override.delegation.mode, 'external');
+    assert.equal(override.delegation.max_parallel, 1);
+    const reviewer = JSON.parse(await readFile(path.join(root, 'profiles', override.delegation.agent_profile_id + '.json'), 'utf8'));
+    assert.equal(reviewer.harness, 'codex-desktop');
+    assert.match(reviewer.model, /-sol$/);
+    assert.equal(reviewer.reasoning, 'high');
   }
+  assert.equal(mixed.subject.execution.stage_overrides['code-review'].delegation.agent_profile_id, mixed.subject.execution.stage_overrides['plan-review'].delegation.agent_profile_id, 'mixed review routes share their declared Sol profile, independently of Judge profile');
 });
 
 test("run profiles are explicit experiments rather than harness defaults", async () => {
@@ -284,6 +481,99 @@ test("provider interruption consumes the CLI-owned sealed recovery capture", asy
   assert.match(source, /candidate-revisions/);
 });
 
+test("interruption attribution preserves structured lifecycle and storage errors", () => {
+  for (const code of ["invocation_receipt_timeout", "storage_write_failed"]) {
+    assert.deepEqual(classifyInterruption({ code, message: "timeout waiting for writer" }).category, "execution_failure");
+  }
+  assert.deepEqual(classifyInterruption({ code: "provider_timeout", message: "provider timed out" }).category, "provider_unavailable");
+  assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "connection timeout" }).category, "provider_unavailable");
+  assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "timeout while saving lifecycle result", details: { primary_error: { code: "storage_write_failed" } } }).category, "execution_failure");
+  assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "operation timed out", details: { cause: { code: "invocation_receipt_timeout" } } }).category, "execution_failure");
+  assert.deepEqual(classifyInterruption({ code: "agy_provider_rate_limited", message: "request failed" }).category, "provider_rate_limit");
+});
+
+test("only exact terminal native overload authorizes Codex continuation", { skip: !capacityPolicy && 'set DD_FLOW_SOURCE_ROOT for pinned policy' }, () => {
+  const native = { code: "turn_interrupted", details: { provider_session_id: "thread-1", turn_id: "turn-2", native_turn_id: "turn-2", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" } } };
+  assert.equal(terminalCodexOverload(native, "thread-1", capacityPolicy)?.turn_id, "turn-2");
+  assert.equal(terminalCodexOverload(native, "thread-other", capacityPolicy), null);
+  assert.equal(terminalCodexOverload({ ...native, details: { ...native.details, terminal_status: "running" } }, "thread-1", capacityPolicy), null);
+  assert.equal(terminalCodexOverload({ code: "driver_failed", message: "serverOverloaded", details: { error: { codexErrorInfo: "serverOverloaded" } } }, "thread-1", capacityPolicy), null);
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: native } }).category, "provider_overloaded");
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: { ...native, details: { ...native.details, provider_error: { codexErrorInfo: "usageLimitExceeded" } } } } }).category, "provider_quota");
+  assert.equal(classifyInterruption({ code: "agy_provider_quota_exhausted" }).retryable, false);
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: { code: "agy_provider_quota_exhausted" } } }).category, "provider_quota");
+  const managedQuota = { code: "harness_adapter_failed", details: { controller: { error: { code: "harness_adapter_failed", details: { cause: { code: "provider_quota_exhausted", details: { native: { http_status: 402 } } } } } } } };
+  assert.equal(classifyInterruption(managedQuota).category, "provider_quota");
+  assert.equal(providerLimitMetadata(managedQuota)?.category, "provider_quota");
+  assert.equal(executionEvidence({ state: "failed", execution: "e2e", ...managedQuota }).failure.category, "provider_quota");
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { controller: { cleanup_error: managedQuota.details.controller.error } } }).category, "execution_failure");
+  const storagePrimary = { code: "harness_adapter_failed", details: { controller: { error: { code: "storage_write_failed", details: { cause: managedQuota.details.controller.error.details.cause } } } } };
+  assert.equal(classifyInterruption(storagePrimary).category, "execution_failure");
+  assert.equal(providerLimitMetadata(storagePrimary), null);
+  assert.equal(classifyInterruption({ code: "driver_failed", message: "HTTP 429" }).category, "provider_limit_unknown");
+  assert.equal(classifyInterruption({ code: "agy_provider_limit_unknown" }).category, "provider_limit_unknown");
+  assert.equal(classifyInterruption({ code: "retry_after_exceeds_budget", details: native.details }).category, "provider_overloaded");
+  assert.equal(isInfrastructureFailure({ ...native, message: "capacity" }), true);
+  assert.equal(failureAttribution({ ...native, message: "capacity" }), "evaluation_infrastructure");
+});
+
+test("serialized operation error retains cleanup as secondary evidence", () => {
+  const error = Object.assign(new Error("primary overload"), { code: "turn_interrupted", cleanup_error: { code: "daemon_stop_failed", message: "cleanup failed" } });
+  assert.deepEqual(errorRecord(error).cleanup_error, { code: "daemon_stop_failed", message: "cleanup failed" });
+  assert.equal(errorRecord(error).code, "turn_interrupted");
+});
+
+test("quota reset comes from the matching structured native error, not Retry-After", () => {
+  const observed_at = "2026-09-28T15:00:00.000Z";
+  const reset = "2026-09-29T15:00:00.000Z";
+  const native = { code: "turn_interrupted", details: { observed_at, provider_session_id: "codex-root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "usageLimitExceeded", resets_at: Math.floor(Date.parse(reset) / 1000), retryAfter: 30 } } };
+  assert.deepEqual(providerLimitMetadata(native), { category: "provider_quota", observed_at, provider_session_id: "codex-root", reset_at: reset, reset_source: "codex.turn.error.resets_at", reset_estimated: false, reset_basis: null, retry_after_at: "2026-09-28T15:00:30.000Z" });
+  native.details.provider_error.resets_at = Date.parse(reset);
+  assert.equal(providerLimitMetadata(native).reset_at, reset);
+  native.details.provider_error.resets_at = Math.floor(Date.parse("2026-09-27T15:00:00.000Z") / 1000);
+  assert.equal(providerLimitMetadata(native).reset_at, null);
+  native.details.provider_error.codexErrorInfo = "rateLimitExceeded";
+  native.details.provider_error.resets_at = Math.floor(Date.parse(reset) / 1000);
+  assert.equal(providerLimitMetadata(native).reset_at, null);
+  native.details.provider_error.retryAfter = undefined;
+  native.details.provider_error.headers = { "Retry-After": "Tue, 29 Sep 2026 15:00:00 GMT" };
+  assert.equal(providerLimitMetadata(native).retry_after_at, reset);
+  assert.equal(providerLimitMetadata({ code: "driver_failed", message: "quota resets tomorrow" }), null);
+});
+
+test("capacity continuation keeps one native tree and refuses sequential child waves", { skip: !capacityPolicy && 'set DD_FLOW_SOURCE_ROOT for pinned policy' }, async () => {
+  const overload = { code: "turn_interrupted", details: { provider_session_id: "root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" }, native_turn_items: { observed: true, possible_effects: false, pending: false } } };
+  let dispatched = 0, time = 0; const waits = [];
+  const base = { policy: capacityPolicy, originalPrompt: 'actual probe', continuationPrompt: 'continue actual probe', sessionId: "root", clock: () => time, inspect: async () => ({ provider_session_id: "root", settled: true, settlement: { state: "settled" } }), pause: async ms => { waits.push(ms); time += ms; } };
+  const result = await boundedCapacityContinuation({ ...base, children: async () => [], attempt: async (_ordinal, _capacity, authorizeDispatch) => { await authorizeDispatch(); if (++dispatched === 1) throw overload; return { ok: true }; } });
+  assert.deepEqual(result, { ok: true });
+  assert.equal(dispatched, 2);
+  assert.equal(waits.reduce((sum, ms) => sum + ms, 0), 5_000);
+  dispatched = 0;
+  await assert.rejects(boundedCapacityContinuation({ ...base, children: async () => [{ session_id: "child" }], attempt: async (_ordinal, _capacity, authorizeDispatch) => { await authorizeDispatch(); dispatched++; throw overload; } }), error => error === overload);
+  assert.equal(dispatched, 1);
+  dispatched = 0;
+  await assert.rejects(boundedCapacityContinuation({ ...base, inspect: async () => ({ provider_session_id: "root", settled: false }), children: async () => [], attempt: async (_ordinal, _capacity, authorizeDispatch) => { await authorizeDispatch(); dispatched++; throw overload; } }), error => error === overload);
+  assert.equal(dispatched, 1);
+});
+
+test("capacity native children appearing after backoff or permit prevent another wave", { skip: !capacityPolicy && 'set DD_FLOW_SOURCE_ROOT for pinned policy' }, async () => {
+  for (const during of ['backoff', 'permit']) {
+    let time = 0, calls = 0, appeared = false;
+    const error = { code: 'turn_interrupted', details: { provider_session_id: 'root', turn_id: 't1', native_turn_id: 't1', terminal_status: 'failed', provider_error: { codexErrorInfo: 'serverOverloaded' }, native_turn_items: { observed: true, possible_effects: false, pending: false } } };
+    await assert.rejects(boundedCapacityContinuation({ policy: capacityPolicy, originalPrompt: 'actual probe', continuationPrompt: 'continue actual probe', sessionId: 'root', clock: () => time,
+      pause: async ms => { time += ms; if (during === 'backoff') appeared = true; },
+      inspect: async () => ({ provider_session_id: 'root', settled: true }), children: async () => appeared ? [{ session_id: 'child' }] : [],
+      attempt: async (ordinal, _capacity, beforeDispatch) => {
+        if (ordinal && during === 'permit') appeared = true;
+        await beforeDispatch();
+        calls++; if (!ordinal) throw error; return {};
+      }
+    }), failure => failure === error);
+    assert.equal(calls, 1);
+  }
+});
+
 test("a terminal incomplete execution keeps an immutable evidence candidate for Judge", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /schema_id: "dd-eval\/run-candidate@2"/);
@@ -370,12 +660,29 @@ test("reconciliation failures retain undetermined attribution for the Judge", ()
   assert.equal(failureAttribution("lifecycle_contract_invalid"), "evaluation_infrastructure");
   assert.equal(failureAttribution("future_unclassified_failure"), "undetermined");
   assert.equal(failureAttribution({ code: "wrapper", cause: { code: "storage_write_failed" } }), "evaluation_infrastructure");
-  assert.equal(failureAttribution({ code: "usage", details: { lifecycle_outcome: { disposition: "fatal" } } }), "evaluation_infrastructure");
+  assert.equal(failureAttribution({ code: "usage", details: { lifecycle_outcome: { disposition: "fatal" } } }), "undetermined", "fatal disposition without owned issuance proof is not attribution");
   for (const code of ["lifecycle_outcome_unknown", "work_start_publication_failed"]) {
     assert.equal(failureAttribution(code), "evaluation_infrastructure");
   }
   const prompt = finalJudgePrompt({ assessmentFile: "/assessment", candidateFile: "/candidate", evidenceFile: "/evidence", scope: "e2e", assessment: { scopes: { e2e: { outcome: [{ id: "outcome" }], flow: [{ id: "flow" }] } } } });
   assert.match(prompt, /stop for runner dispatch/);
+});
+
+test("owned admission attribution uses the actual lifecycle RUN in production failures", () => {
+  const failure = { execution: "e2e", state: "failed", lifecycle: { run_id: "RUN-current" }, code: "invocation_ambiguous",
+    details: { lifecycle_assignment: { issuer: "dd-flow", scope: { projectRoot: "/owned/project", daemonId: "daemon", rootSessionId: "root", runId: "RUN-current", generation: 2 } } } };
+  const foreign = { ...failure, details: { lifecycle_assignment: { ...failure.details.lifecycle_assignment, scope: { ...failure.details.lifecycle_assignment.scope, runId: "RUN-other" } } } };
+  assert.equal(isInfrastructureFailure(failure), true);
+  assert.equal(isInfrastructureFailure(foreign), false);
+  assert.equal(isInfrastructureFailure({ code: "wrapper", lifecycle: failure.lifecycle, cause: foreign }), false);
+  assert.equal(isInfrastructureFailure({ code: "wrapper", lifecycle: failure.lifecycle, cause: failure }), true);
+  assert.equal(isInfrastructureFailure({ ...failure, run_id: "RUN-other" }), false, "contradictory actual RUN evidence fails closed");
+  assert.equal(isInfrastructureFailure({ code: "wrapper", lifecycle: { run_id: "RUN-other" }, cause: failure }), false, "inner RUN does not replace outer ownership");
+  const report = result => buildReport({ root: "/eval", manifest: { run_id: "EVAL-not-a-flow-RUN", case_id: "case", executions: [] }, state: "completed_with_failures", results: [result] });
+  assert.equal(report(failure).run_validity, "invalid_infrastructure_flow");
+  assert.equal(report(foreign).run_validity, "valid");
+  assert.equal(report(foreign).executions[0].failure.attribution, "undetermined");
+  assert.equal(report(failure).executions[0].run_id, "RUN-current");
 });
 
 test("failure evidence preserves reached boundaries, HITL, launcher, and observations", () => {
@@ -401,6 +708,10 @@ test("failure reconciliation ignores volatile controller snapshots but records r
   assert.equal(failureEvidenceRevision({ ...failure, lifecycle: { status: { observed_at: "later" } }, statistics: { sampled_at: "later" } }), first);
   assert.notEqual(failureEvidenceRevision({ ...failure, recovery: { recovery_id: "RCV-001", control_id: "CTL-001", generation: 1 } }), first);
   assert.notEqual(failureEvidenceRevision({ ...failure, recovery: { unavailable: true, capture_error: { code: "recovery_capture_pending", message: "writer still active" } } }), first);
+  const quota = { ...failure, code: "turn_interrupted", details: { observed_at: "2026-09-28T15:00:00.000Z", provider_session_id: "codex-root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "usageLimitExceeded", resets_at: 1790694000 } } };
+  assert.notEqual(failureEvidenceRevision(quota), failureEvidenceRevision({ ...quota, details: { ...quota.details, provider_error: { ...quota.details.provider_error, resets_at: 1790780400 } } }));
+  assert.equal(executionEvidence(quota).failure.category, "provider_quota");
+  assert.equal(executionEvidence(quota).failure.provider_limit?.category, "provider_quota");
 });
 
 test("productive fan-out no longer creates an isolated worker root", async () => {
@@ -420,28 +731,29 @@ test("worker failure remains primary when daemon cleanup also fails", async () =
 test("Interaction Judge accepts alternatives without dropping independent decisions", () => {
   const prompt = interactionJudgePrompt('/packet with "quotes".json');
   assert.ok(prompt.includes(JSON.stringify('/packet with "quotes".json')));
-  assert.match(prompt, /Proposed options are not exhaustive or binding/);
-  assert.match(prompt, /Do not require it to affirm a proposed option's assumptions or consequences/);
-  assert.match(prompt, /independent question about delivery time remains uncovered/);
-  assert.match(prompt, /Never author, paraphrase or strengthen a response/);
-  assert.match(prompt, /Return matched only when every material decision is covered/);
+  assert.match(prompt, /proposed alternatives are not exhaustive/);
+  assert.match(prompt, /Preserve every independent uncovered atom/);
+  assert.match(prompt, /smallest sufficient answer set/);
+  assert.match(prompt, /no aggregate fields/);
+  assert.match(prompt, /Do not author, paraphrase or strengthen canonical answer bytes/);
+  assert.match(prompt, /never from canonical responses or applicability/);
+  assert.match(prompt, /sole repetition of an explicitly accepted decision.*unnecessary_question/);
+  assert.match(prompt, /must be empty for uncovered atoms/);
 });
 
-test("HITL verdicts are strict, fail closed, and preserve exact response bytes", () => {
+test("HITL verdicts are strict, fail closed, and preserve exact response bytes", async () => {
   const fixture = { sha256: "a".repeat(64), responses: [{ id: "one", answer: "first" }, { id: "two", answer: "second" }] };
-  const verdict = validateHitlMatch({ schema_id: "dd-eval/hitl-match@1", status: "matched", classification: "covered_by_canonical_response", response_ids: ["two", "one"], covered_questions: ["Q1", "Q2"], uncovered_questions: [], rationale: "covered" }, fixture);
-  const exchange = resolveHitlJudgment({ fixture, judgment: { profile: "judge", session_id: "session", receipt_file: "/receipt", verdict }, question: "Q1 and Q2", stage: "specify" });
-  assert.equal(exchange.answer, "second\n\nfirst");
+  const packet = await buildHitlPacket({ stage: 'specify', question: 'Q1 and Q2', responses: fixture.responses });
+  const atom = (quote, id) => ({ source_quote: quote, decision: quote, classification: 'covered_by_canonical_response', reference_bindings: [], answer_evidence: [{ response_id: id, answer_quote: fixture.responses.find(response => response.id === id).answer }], rationale: 'covered' });
+  const verdict = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@2', atoms: [atom('Q2', 'two'), atom('Q1', 'one')] }, packet);
+  const exchange = resolveHitlJudgment({ fixture, judgment: { profile: "judge", session_id: "session", receipt_file: "/receipt", verdict, packet }, question: "Q1 and Q2", stage: "specify" });
+  assert.equal(exchange.answer, "first\n\nsecond");
   assert.equal(exchange.delimiter, "dd-eval/hitl-response-delimiter@1");
-  assert.throws(() => validateHitlMatch({ ...verdict, response_ids: ["one", "one"] }, fixture), /malformed arrays/);
-  assert.throws(() => validateHitlMatch({ ...verdict, uncovered_questions: ["Q3"] }, fixture), /inconsistent verdict/);
-  assert.throws(() => validateHitlMatch({ ...verdict, rationale: "" }, fixture), /invalid contract/);
-  const gap = validateHitlMatch({ schema_id: "dd-eval/hitl-match@1", status: "unmatched", classification: "fixture_gap", response_ids: [], covered_questions: ["Q1"], uncovered_questions: ["Q2"], rationale: "missing" }, fixture);
-  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict: gap }, question: "Q1 and Q2", stage: "specify" }), (error) => error.code === "interaction_fixture_gap" && error.hitl.verdict === gap);
-  const partialGap = validateHitlMatch({ schema_id: "dd-eval/hitl-match@1", status: "unmatched", classification: "fixture_gap", response_ids: ["one"], covered_questions: ["Q1"], uncovered_questions: ["Q2"], rationale: "first answer covers only Q1" }, fixture);
-  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict: partialGap }, question: "Q1 and Q2", stage: "specify" }), (error) => error.code === "interaction_fixture_gap" && error.hitl.verdict === partialGap);
-  assert.throws(() => validateHitlMatch({ ...partialGap, covered_questions: ["Q1", "Q1"] }, fixture), /malformed arrays/);
-  assert.throws(() => validateHitlMatch({ ...partialGap, uncovered_questions: ["Q1"] }, fixture), /malformed arrays/);
+  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict }, question: packet.question, stage: packet.stage }), { code: 'judge_result_invalid' });
+  assert.throws(() => validateGroundedHitl({ ...verdict, response_ids: ['two', 'one'] }, packet, { stored: true }), { code: 'judge_result_invalid' });
+  assert.throws(() => validateHitlMatch({ schema_id: 'dd-eval/hitl-match@1', status: 'unmatched', classification: 'fixture_gap', response_ids: [], covered_questions: ['Q1'], uncovered_questions: ['Q2'], rationale: 'missing' }, fixture), { code: 'judge_result_invalid' });
+  const partialGap = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@2', atoms: [atom('Q1', 'one'), { ...atom('Q2', 'two'), classification: 'fixture_gap', answer_evidence: [] }] }, packet);
+  assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict: partialGap, packet }, question: packet.question, stage: packet.stage }), error => error.code === 'interaction_fixture_gap' && error.hitl.verdict.classification === 'fixture_gap');
   assert.equal(isInfrastructureFailure("interaction_fixture_gap"), true);
 });
 
@@ -467,7 +779,7 @@ test("canonical recovery reuses accepted HITL bytes without spending another rou
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /answered_pauses/);
   const implementation = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalBoundaryAccept"));
-  assert.match(implementation, /if \(prior\) \{\s+await acceptedHitlAnswer\(\{ answerFile: prior\.answer_file, answerSha256: prior\.answer_sha256 \}\);\s+return prior\.answer_file/);
+  assert.match(implementation, /if \(prior\) \{[\s\S]*verifyRetainedHitl\(\{ data: prior,[\s\S]*return prior\.answer_file/);
   assert.match(source, /answer_file: answerFile/);
 });
 
@@ -495,13 +807,16 @@ test("capacity qualification counts only authoritative direct native children", 
     { provider_session_id: "child-settled-by-root", parent_provider_session_id: "root", status: "settled_by_root" },
     { provider_session_id: "grandchild", parent_provider_session_id: "child-completed", status: "completed" }
   ] }, "root");
-  assert.deepEqual(children.map((child) => child.session_id), ["child-completed", "child-failed", "child-settled-by-root"]);
+  assert.deepEqual(children.filter(child => child.parent_session_id === "root").map((child) => child.session_id), ["child-completed", "child-failed", "child-settled-by-root"]);
+  assert.equal(children.find(child => child.session_id === "grandchild").provenance, "parent_mismatch");
   assert.equal(children[1].status, "failed");
   assert.equal(children[2].status, "settled_by_root");
   assert.deepEqual(
     directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-ended", status: "success" }] } } } }, "root"),
     [{ session_id: "zcode-ended", parent_session_id: "root", status: "completed", source: "zcode/session/subagents" }]
   );
+  assert.equal(directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-lost", status: "lost" }] } } } }, "root")[0].status, "unknown");
+  assert.equal(directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-unproven" }] } } } }, "root")[0].status, "unknown");
 });
 
 test("capacity qualification stays outside the flow runtime", async () => {
@@ -510,6 +825,8 @@ test("capacity qualification stays outside the flow runtime", async () => {
   assert.ok(helper);
   assert.doesNotMatch(helper[0], /DD_FLOW_HOME/);
   assert.doesNotMatch(helper[0], /provisionCapacityRuntime/);
+  assert.match(helper[0], /projectRoot \?\? path\.join\(attempt, "project"\)/);
+  assert.doesNotMatch(helper[0], /projectRoot = process\.cwd\(\)/);
 });
 
 test("capacity Codex home inherits CPA routing without sharing auth state or hooks", async () => {
@@ -524,13 +841,19 @@ test("capacity Codex home inherits CPA routing without sharing auth state or hoo
   assert.doesNotMatch(helper[0], /sessions/);
 });
 
-test("capacity reads Codex native child metadata rather than model text", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  const helper = source.match(/async function capacityCodexChildren[\s\S]*?\n}/);
-  assert.ok(helper);
-  assert.match(helper[0], /parent_thread_id === rootSessionId/);
-  assert.doesNotMatch(helper[0], /SubAgentActivity/);
-  assert.doesNotMatch(helper[0], /assistant_text/);
+test("capacity reads Codex native child metadata rather than model text", async t => {
+  assert.ok(process.env.DD_FLOW_SOURCE_ROOT, "set DD_FLOW_SOURCE_ROOT for bound native child contract");
+  const contracts = await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, "dist/harness-runtime/lib/native-children.mjs")).href);
+  const home = await mkdtemp(path.join(tmpdir(), "eval-capacity-parent-")); t.after(() => rm(home, { recursive: true, force: true }));
+  const sessions = path.join(home, "sessions"); await mkdir(sessions);
+  for (const [id, parent] of [["owned-child", "root"], ["foreign-child", "other-root"]]) {
+    await writeFile(path.join(sessions, `${id}.jsonl`), [{ type: "session_meta", payload: { id, parent_thread_id: parent } }, { type: "event_msg", payload: { type: "task_complete", turn_id: `${id}-turn` } }].map(JSON.stringify).join("\n"));
+  }
+  await writeFile(path.join(sessions, "model-text.jsonl"), JSON.stringify({ assistant_text: "child completed", payload: { item: { type: "SubAgentActivity", kind: "completed", agent_thread_id: "invented-child" } } }));
+  const children = await capacityCodexChildren(home, "root", contracts);
+  assert.deepEqual(children.filter(child => child.parent_session_id === "root").map(child => child.session_id), ["owned-child"]);
+  assert.equal(children.find(child => child.session_id === "foreign-child").provenance, "parent_mismatch");
+  assert.equal(children.some(child => child.session_id === "invented-child"), false);
 });
 
 test("reference native-child recovery delegates to its retained CLI owner", async () => {

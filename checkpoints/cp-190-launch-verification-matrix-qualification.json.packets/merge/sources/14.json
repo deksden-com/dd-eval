@@ -1,0 +1,35 @@
+{
+  "id": "WRK-006-merge/RCP-004",
+  "local_id": "RCP-004",
+  "declaration_id": "CHK-MERGE",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-MERGE"
+  ],
+  "gate": "merge",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "true",
+  "input_hash": "3707f697d151b0686cf9b9ac67684d471f16e195bcc30a5c20295448f45ccf05",
+  "verification_epoch": "1c7b51ca4e2ff33b64e325e06977dab310b80a5cc439ae77aded3f51248a4540",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-190-launch-matrix-installed-proof/dd-flow-protocolize-2LUOYI/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-190-launch-matrix-installed-proof/dd-flow-protocolize-2LUOYI/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-190-launch-matrix-installed-proof/dd-flow-protocolize-2LUOYI/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-190-launch-matrix-installed-proof/dd-flow-protocolize-2LUOYI/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "9efecb1a2c9204cd87f0151eea4328b1743a3e13ae6103f9100126350c8e9727",
+  "before_fingerprint": "9efecb1a2c9204cd87f0151eea4328b1743a3e13ae6103f9100126350c8e9727",
+  "after_fingerprint": "9efecb1a2c9204cd87f0151eea4328b1743a3e13ae6103f9100126350c8e9727",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-02T05:46:49.202Z",
+  "finished_at": "2026-10-02T05:46:49.239Z"
+}

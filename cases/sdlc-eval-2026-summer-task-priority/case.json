@@ -7,20 +7,29 @@
     {
       "role": "initial_user_request",
       "source": "entry-pack-source/task-priority.md",
-      "sha256": "af92baafdebc3ef4663e1049216a338f20b0948ae8310be7a9bf4f47d7fd694e"
+      "sha256": "6a675112a9269f8bd61d41833ab9f1804be10300b82557b2d788e8fba932d9ba"
     }
   ],
   "input_checkpoint": {
-    "id": "cp-158-task-priority-plan051-flow-4-1-1-engine-0-9-0-beta-103-zcode-0467-dd2",
-    "sha256": "9f323ad042c9cfbe7287dcd501ee20bf9f13ae5d05bf4f53f2342418fa7b6391"
+    "id": "cp-194-task-priority-plan064-recovery-readiness",
+    "sha256": "7ad138bbb559c338c72569ed6d8b61d0ab2e1d65248b2b3007f0778a658f211b"
   },
   "entry_pack": null,
+  "hitl_qualification": {
+    "file": "entry-pack-source/interactions/qualification.json",
+    "sha256": "0d6edec3528882530ae0b6207e0118a22eec50b038ba1c7e46e0647c2081ff46"
+  },
+  "case_acceptance": {
+    "checker": "task-priority@3",
+    "case_id": "sdlc-eval-2026-summer-task-priority"
+  },
   "profiles": {
     "subject": [
       "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-9-0-beta-11",
       "codex-desktop-gpt-5-6-terra-high-dd-flow-0-9-0-beta-11",
       "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-11",
       "antigravity-cli-google-gemini-3-1-pro-high",
+      "antigravity-cli-google-gemini-3-8-flash-high",
       "grok-acp-xai-grok-4-6-high",
       "grok-acp-xai-grok-4-7-high",
       "zcode-acp-zai-glm-5-3-high",
@@ -29,7 +38,8 @@
       "droid-cli-openai-gpt-5-6-sol-high"
     ],
     "judge": [
-      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-11"
+      "codex-desktop-gpt-5-6-sol-high-dd-flow-0-9-0-beta-11",
+      "codex-desktop-gpt-6-1-sol-high"
     ]
   },
   "flow": {
@@ -46,6 +56,6 @@
   },
   "baseline_admission": {
     "file": "baseline-admission.json",
-    "sha256": "f7b8f7263743a9b54eaeb33cc76247f0c8ca8009149320549ec9ecc9d39184e7"
+    "sha256": "920ddb6fae02398a7f2f50d6ca562b5beac602abbac32a3068503d49b4bf8883"
   }
 }

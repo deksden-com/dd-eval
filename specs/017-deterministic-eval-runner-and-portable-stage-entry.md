@@ -1367,7 +1367,7 @@ When the Subject pauses at an allowed HITL point, the runner:
 2. creates a fresh interaction-Judge Session;
 3. gives it only the Subject-visible stage package, raw question packet and
    hidden canonical response descriptors/content;
-4. requires strict `dd-eval/hitl-match@1`;
+4. requires strict `dd-eval/hitl-match@2` for new decisions (v1 is historical read-only);
 5. accepts only an existing response ID;
 6. sends the selected canonical response bytes to the same Subject stage;
 7. records question, judgment, selected IDs and exact delivered bytes.
@@ -1379,24 +1379,30 @@ infrastructure-invalid run, never an implicit repair of an existing attempt.
 
 ```json
 {
-  "schema_id": "dd-eval/hitl-match@1",
-  "status": "matched",
-  "classification": "covered_by_canonical_response",
-  "response_ids": ["RESP-001"],
-  "covered_questions": ["..."],
-  "uncovered_questions": [],
-  "rationale": "..."
+  "schema_id": "dd-eval/hitl-match@2",
+  "atoms": [{
+    "source_quote": "Exact question fragment",
+    "decision": "Requested decision, preserving its conditions",
+    "classification": "covered_by_canonical_response",
+    "reference_bindings": [],
+    "answer_evidence": [{"response_id": "RESP-001", "answer_quote": "Exact canonical answer fragment"}],
+    "rationale": "The answer covers the identified decision."
+  }]
 }
 ```
 
 For several selected responses, the runner combines their exact bytes in the
-Judge-returned order with one versioned deterministic delimiter. The
+fixture order with one versioned deterministic delimiter. The
 interaction Judge never authors, paraphrases or strengthens an answer.
 
 Before matching, the Judge separates a bundled prompt into atomic material
 decisions. Explanations, offered options and recommendations are not treated as
 additional questions. Wording, order and grouping do not affect a match, but a
 descriptor cannot supply content absent from the exact canonical answer.
+References are resolved only against the question and frozen allowlisted
+context before consulting canonical answers. A broad answer cannot supply a
+missing antecedent. Runner validation proves quote/source provenance and derives
+aggregate coverage; semantic entailment still requires Judge qualification.
 
 If any question is uncovered, the result is `unmatched`. The Judge also
 classifies the likely cause as `fixture_gap`, `unnecessary_question`,

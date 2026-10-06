@@ -10,6 +10,16 @@ with their selected engine runtime. Missing bundles are errors, not a reason to
 substitute a configured command or an adapter from this checkout. Local adapter
 sources currently retained for test migration are not supported runner entrypoints.
 
+For cross-repository offline acceptance, set `DD_FLOW_SOURCE_ROOT` to the tested
+dd-flow checkout **after its build**, then run `node --test --test-concurrency=1`.
+This executes the real pinned capacity policy and checks its built runtime asset;
+without that checkout those explicitly named cross-repository tests are skipped.
+`DD_EVAL_TEST_FLOW_CLI` and `DD_EVAL_TEST_FLOW_ADAPTER` enable the disposable
+real-CLI integration fixtures. None of these fixtures needs a paid provider.
+The [FLOW test-suite runbook](runbooks/flow-test-suite-verification.md) defines
+development groups, build-before-test full acceptance, worker qualification,
+complete shard evidence and the exact paired fixture targets.
+
 Factory Droid integration uses `dd-droid`, native JSON-RPC and the pinned
 `droid-cli-openai-gpt-5-6-sol-high` profile. Native close/reload and child identity
 are verified; the profile has measured capacity 15. Scored E2E remains a separate
