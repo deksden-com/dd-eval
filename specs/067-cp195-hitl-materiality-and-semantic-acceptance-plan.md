@@ -1,6 +1,6 @@
 # 067 — CP195: материальность HITL и надёжная семантическая приёмка
 
-Дата: 2026-10-06. Статус: **A–H реализованы; offline verification выполняется;
+Дата: 2026-10-06. Статус: **A–H реализованы; offline G1–G5 PASS;
 новая live acceptance G6/G7 NOT RUN**. Итог реализации — §11.
 Документ фиксирует расследованные дефекты и перепроверенные находки аудита.
 Design решения закреплены в §9; это не разрешение повторить Judge/E2E до PASS.
@@ -786,3 +786,19 @@ contrast. Исправлено до native dispatch: question/stage/canonical re
 должны совпадать; меняются только grounding/context. Добавлена offline регрессия.
 Focused smoke после дополнения: 7/7 PASS. Итоговый полный прогон повторяется
 на следующей committed source revision.
+
+Итоговый полный paired suite на source revision **66a5740**: **577/577 PASS**,
+zero fail/cancel/skip/todo, 232960 ms. Запуск: `node --test --test-concurrency=1`
+с DD_FLOW_SOURCE_ROOT и DD_EVAL_TEST_FLOW_CLI из неизменённого FLOW ff066da,
+DD_EVAL_TEST_FLOW_ADAPTER=test/fixtures/controller-stage-adapter.mjs. Эти CLI
+integration fixtures не используют платных провайдеров. Log:
+`/tmp/dd-eval-plan067-final-paired.log`. Whitespace PASS; canonical answers,
+product sources и historical qualification receipts не изменены.
+
+Проверка ponytail: существующие runtime/projection/capacity/cleanup механизмы
+переиспользованы, новые checks находятся на общих границах всех упряжек.
+Ни per-harness semantic override, ни second Judge, ни retry-until-PASS,
+ни новый dependency/ledger framework не добавлены. G6/G7 требуют отдельной
+авторизации и новой committed definition qualification; offline PASS не означает
+semantic native acceptance или успешно завершённый E2E. Работа останавливается
+после commit/push рабочей ветки; main не merge.
