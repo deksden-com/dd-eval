@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { access, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -18,6 +18,19 @@ const slice = {
   schema_id: "dd-eval/stage-context@1", stage: "specify", objective: "Specify the request.",
   task_input: [{ role: "task", path: "input.md", source: "task.md", sha256: "a".repeat(64) }], sources: [{ role: "index", root: "project", path: "README.md", required: true, reason: "Orientation." }], accepted_decisions: [], dynamic_roles: []
 };
+
+test("task-priority SPECIFY has one canonical response fixture, not legacy script copies", async () => {
+  const caseRoot = new URL("../cases/sdlc-eval-2026-summer-task-priority/", import.meta.url);
+  const fixture = JSON.parse(await readFile(new URL("entry-pack-source/interactions/specify.json", caseRoot), "utf8"));
+  assert.equal(fixture.schema_id, "dd-eval/canonical-responses@1");
+  assert.ok(fixture.responses.length > 0);
+  for (const legacy of ["interactions/specify.json", "interactions/clarification-task-priority.md"]) {
+    await assert.rejects(access(new URL(legacy, caseRoot)), { code: "ENOENT" });
+  }
+  const instructions = await readFile(new URL("stage-entries/authoring-plan.md", caseRoot), "utf8");
+  assert.match(instructions, /only executable SPECIFY response fixture/);
+  assert.match(instructions, /entry-pack-source\/interactions\/specify\.json/);
+});
 
 test("stage context has path-independent semantic identity and path-bearing materialization", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-entry-"));
