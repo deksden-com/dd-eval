@@ -212,7 +212,13 @@ test('failed fork stays pending until cleanup is confirmed, then finalizes witho
   await write(f.configFile, { ...config, fault: null });
   const next = await f.runner.runnerFork({ ...f.input, start: true });
   assert.equal(next.status, 'accepted');
-  await waitForState(f.runner, f.output, ['completed_with_failures']);
+  await waitForState(f.runner, f.output, ['completed_with_failures'], 60_000, async () => {
+    const report = JSON.parse(await readFile(path.join(f.output, 'reports/report.json')));
+    return report.judge_status === 'not_requested' && Boolean(report.candidate?.immutable_hash);
+  });
+  const report = JSON.parse(await readFile(path.join(f.output, 'reports/report.json')));
+  assert.equal(report.judge_status, 'not_requested');
+  assert.ok(report.candidate.immutable_hash);
   const calls = (await readFile(f.callsFile, 'utf8')).trim().split('\n').map(JSON.parse);
   assert.equal(calls.filter(a => a[1] === 'drive' && a[2] === 'launch').length, 1);
 });
