@@ -44,7 +44,11 @@ test('public background EVAL resume continues a real retained RUN through its ne
     const adapter = await write(path.join(root, 'adapter.mjs'), `#!${process.execPath}\nawait import(${JSON.stringify(pathToFileURL(path.resolve(process.env.DD_EVAL_TEST_FLOW_ADAPTER)).href)});\n`); await chmod(adapter, 0o700);
     await write(path.join(home, 'harnesses.json'), { schema_id: 'dd-flow/harness-config@1', harnesses: { 'codex-desktop': { adapter_command: adapter, runtime_command: process.execPath } } });
     await mkdir(env.CODEX_HOME);
-    const launcher = await write(path.join(home, 'bin', 'dd-flow'), `#!${process.execPath}\nimport(${JSON.stringify(pathToFileURL(cli).href)});\n`);
+    // The paired target may be a guarded executable, not an importable module.
+    const quote = value => `'${value.replaceAll("'", "'\\''")}'`;
+    const launcher = await write(path.join(home, 'bin', 'dd-flow'), /\.[cm]?js$/.test(cli)
+      ? `#!${process.execPath}\nimport(${JSON.stringify(pathToFileURL(cli).href)});\n`
+      : `#!/bin/sh\nexec ${quote(cli)} "$@"\n`);
     await chmod(launcher, 0o700);
     const git = args => commandText('git', args, { cwd: project });
     await git(['init', '--quiet', '-b', 'main']); await git(['add', '.']); await git(['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.test', 'commit', '--quiet', '-m', 'fixture']);
