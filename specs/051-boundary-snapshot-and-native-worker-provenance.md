@@ -39,6 +39,31 @@ claim that another harness already failed.
 | Grok/ZCode/Droid/OpenCode/Codex hook entrypoints and controller outcome paths | Audit: hook failures are surfaced by different adapter contracts; Codex has `native_hook_failure` precedent | Matrix of pre-CLI denial propagation; change only demonstrated lost-error paths, preferably through existing receipts/journals |
 | Stage fanout for PLAN-REVIEW, CODE, CODE-REVIEW and later continuation | Audit: common worker renderer and child reconciliation serve multiple stages | Test one shared contract plus stage-specific representative cases; no stage-local copies |
 
+### Systematic codebase audit findings
+
+The repository-wide audit is part of this plan, not an optional follow-up. The
+following findings were confirmed by direct source inspection and must be
+closed or explicitly dispositioned before qualification:
+
+| Status | Location | Defect/risk | Systemic disposition | Regression/gate |
+| --- | --- | --- | --- | --- |
+| Confirmed code path | `services/controller-fanout.ts` | Native states `completed`, `done`, `success` and `idle` are normalized through one allow-list; `idle` can be mistaken for a terminal Work result | Use an explicit per-harness terminal-state matrix; `idle`, `quiet`, unknown and `settled_by_root` remain unresolved without a Work receipt | Fixture for idle vs completed vs failed/unknown; no false Work success |
+| Confirmed code path | `services/controller-fanout.ts::controllerNativeChildren()` | Children whose native parent is not the root are discarded before provenance diagnostics, hiding foreign/nested/unbound evidence | Preserve rejected observations and classify `foreign_child`, `nested_child`, `parent_mismatch` or the existing equivalent; never accept them as success | Foreign, nested, stale and replay-conflicting child fixtures |
+| Confirmed policy risk | `services/eval-snapshots.ts` SQLite proof | `serialize()` can change after a physical repack with unchanged logical rows, while WAL/checkpoint churn is not authority change | Define the managed-DB semantic fingerprint and policy for repack; distinguish logical transaction from physical layout churn | WAL/checkpoint, committed insert/update, delete+insert, and VACUUM cases |
+| Audit risk | bootstrap snapshot path (`createEvalBootstrapSnapshot`) | Bootstrap copy/hash has no before/after writer fence; it may be mistaken for an atomic boundary capture | Reproduce concurrent write. Either add the smallest existing fence or document bootstrap as non-atomic and keep controller-boundary guarantees separate | Concurrent bootstrap writer test or explicit contract test |
+| Confirmed design risk | `run-control*`, `run-controller-capture`, `runtime-scope-*`, recovery capture | Different control/recovery paths may use different owner, generation, ordering or publication fences | Audit all paths against one observation-ordering contract; failed proof never marks a boundary complete and no fire-and-forget write is adopted | Owner/lease change, generation race, failed publication and recovery replay fixtures |
+| Confirmed correlation risk | `services/continuation-outcome.ts` and adapter journals | A denial from an earlier turn/provider incarnation can be confused with the active operation unless identity dimensions all match | Test run/generation/stage/controller-turn/attempt/daemon-incarnation and operation-input identity; persistence failure fails closed | Denied-then-success, stale denial, reused session, changed input and foreign event matrix |
+| Confirmed instruction risk | `services/vnext-*.ts`, `work-registry.ts`, recovery prompts | Some prompt builders can leave the write root implicit or conflate project root, run workspace and native evidence | Add one shared workspace contract to every stage prompt and assert rendered absolute paths; prompts do not enforce via `planned_write_areas` | Prompt snapshot tests for all stages and recovery paths |
+| Confirmed lifecycle policy mismatch | `harness-runtime/lib/dd-agy-daemon.mjs` | Hooks are written during daemon start although qualification is the intended installation boundary | Install/fingerprint/routing-test once during qualification; runtime verifies identity and scope without rewriting global hooks | Qualification receipt plus runtime tamper/routing failure test |
+
+The audit must also search all six harness adapters, snapshot/recovery/bootstrap
+callers, fanout/continuation paths and every stage prompt builder for the same
+patterns. A harness-specific exception is allowed only with a native contract
+or a reproducer; absence of a current E2E failure is not evidence that the
+shared defect is harmless. New generic frameworks are expressly out of scope:
+the fix belongs in the existing shared classifier, receipt, journal or
+reconciliation path that all callers already use.
+
 ## Invariants
 
 1. The boundary publishes one internally consistent payload only after owner,
@@ -144,7 +169,58 @@ claim that another harness already failed.
   pre-hook guard only if the native AGY contract actually exposes that event;
   otherwise the leaf prompt plus provenance checks are the enforceable layer.
 
-### E. Verify and qualify, without touching the failed runs
+### E. Remove unjustified strictness before qualification
+
+Treat strictness as a budget, not as a quality signal. Inventory every rejection,
+hash, identity check, prompt requirement and repeated installation step touched
+by the boundary or worker flow. For each item record the named authority it
+protects, its consumer, the concrete bad outcome prevented, and one regression
+that demonstrates the protection. A check with no named authority/consumer or
+no reproducible failure mode is deleted or moved to non-blocking diagnostics;
+it is not retained merely because it makes a directory look immutable.
+
+The initial deletion/relaxation set is:
+
+- stop recursively hashing diagnostic Grok `memtrace/`, logs, caches, docs,
+  bundled/static assets and other files that are neither copied payload nor
+  lifecycle/work authority; retain only explicit semantic/native evidence
+  required by a consumer. This is a scoped payload policy, not an exclusion of
+  the whole Grok home or all files matching a suffix;
+- stop treating SQLite WAL/SHM bytes, checkpoint/repack layout, mtimes and
+  observer-only metadata as productive changes. Compare managed databases by
+  the documented logical read snapshot; retain rejection for committed logical
+  data changes and for authority/owner changes;
+- remove duplicate re-checks whose result is already covered by the same
+  atomic receipt, read snapshot or owner fence. Keep one authoritative check and
+  a bounded diagnostic receipt rather than several equivalent blockers;
+- install AGY hooks once during harness qualification and record their exact
+  fingerprint/routing receipt. Runtime stages verify that receipt and scope;
+  they do not rewrite global hooks on every daemon/stage start;
+- remove generic provider checks and stage prose that do not feed admission,
+  provenance, workspace isolation or a scored result. Keep exact provider/model
+  identity where qualification consumes it;
+- do not require an unnecessary cwd switch or a second discovery pass in stage
+  prompts. Keep an explicit absolute workspace contract: the project root,
+  run workspace, stage artifact directory and read-only native/evidence paths;
+- do not normalize native `idle`, `quiet`, unknown or `settled_by_root` into
+  Work success. Unknown remains unresolved until a valid Work result exists;
+  this is a semantic correction, not an additional strictness layer.
+
+The following are explicitly retained because they protect a named boundary:
+trusted hook admission and path/symlink checks; owner/generation/process
+identity; direct parent and foreign/stale/replay rejection; Work association and
+result authority; atomic publication; project/workspace/Git semantic changes;
+logical database changes; recovery operation identity and the no-replay rule
+after an unknown outcome; and exact model/provider identity when a qualification
+gate requires it. These must each have a focused positive and negative test.
+
+Do not add a replacement abstraction, provider framework, schema or timeout to
+make the deleted checks feel safer. If a proposed new check cannot name its
+consumer and the artifact it reads, reject it in review. If a supposedly
+diagnostic file later becomes required recovery evidence, promote only that
+file/path through an explicit evidence-gated change and add its consumer test.
+
+### F. Verify and qualify, without touching the failed runs
 
 - Run focused snapshot, fanout, AGY adapter and continuation-outcome tests
   first; then affected controller/recovery/scope suites and full runtime
@@ -181,6 +257,12 @@ claim that another harness already failed.
 - [ ] Unknown/nested/foreign AGY child fails closed, with its pre-CLI cause
       correlated to the correct controller turn; unrelated or superseded
       denial is ignored.
+- [ ] Strictness audit is complete: every blocking check has a named authority,
+      consumer and regression; diagnostic-only checks do not block capture; the
+      listed recursive hashes, physical SQLite checks, duplicate re-checks,
+      per-stage AGY hook writes, generic provider checks and unnecessary cwd
+      demands are removed or reduced as specified. Safety boundaries still fail
+      closed.
 - [ ] Local, package and full release gates pass; fresh Grok and AGY E2Es
       cross the previously failing boundaries. A further defect is reported
       separately, not relabelled as success.
@@ -188,11 +270,13 @@ claim that another harness already failed.
 ## Ponytail review and implementation readiness
 
 The smallest shared changes are a source/copy classifier, one worker wording
-correction, one common terminal-child reconciliation correction, and one
-trusted early-denial path. Prefer existing SQLite APIs, receipts/journals and
-test harnesses. No new dependency, schema, provider framework, blanket
-exclusion, timeout increase or broad adapter refactor. Keep each package's
-smallest runnable regression. Do not implement optional `invoke_subagent`
+correction, one common terminal-child reconciliation correction, one trusted
+early-denial path, and deletion of unconsumed strictness. Prefer existing
+SQLite APIs, receipts/journals and test harnesses. No new dependency, schema,
+provider framework, blanket exclusion, timeout increase or broad adapter
+refactor. Keep each package's smallest runnable regression, including a test
+that benign observer churn no longer blocks capture and a test that each named
+authority change still does. Do not implement optional `invoke_subagent`
 interception or bootstrap redesign unless the evidence gates reproduce a
 failure and show that existing contracts cannot cover it.
 
