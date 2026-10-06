@@ -10,6 +10,7 @@ import { appendEvent, hashJson, readEvents, recordOperation, sha256 } from '../l
 import { observeManagedRun } from '../lib/managed-flow-client.mjs';
 import { evalResumeWorkerFile } from '../lib/eval-resume-worker.mjs';
 import { processSnapshot } from '../lib/process-snapshot.mjs';
+import { installRuntimeShim } from '../lib/runner.mjs';
 
 const phaseWaitMs = 100_000;
 // CI anti-wedge only: prepare/initial RUN, capture, resumed RUN and physical
@@ -56,6 +57,9 @@ test('public background EVAL resume continues a real retained RUN through its ne
     const resolved = await commandJson(cli, ['engine', 'resolve', '--project-root', project], { cwd: project, env });
     const engine = resolved.selection.selected;
     assert.equal(engine.snapshot_root, installed.engine.snapshot_root);
+    // Production provisioning creates this exact-engine maintenance alias.
+    // A shell private launcher cannot supply helpers by its filename layout.
+    await installRuntimeShim(path.join(evalRoot, 'control-runtime'), engine, { resourceHome: resources, registryFile: registry });
     const started = await commandJson(cli, ['run', 'start', '--project-root', project, '--flow-kind', 'vnext_protocolize', '--subject-type', 'discussion', '--subject-id', 'controller-fixture', '--slug', 'controller-stages'], { cwd: project, env });
     runId = started.run.id;
 
