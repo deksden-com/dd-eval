@@ -1,0 +1,37 @@
+{
+  "id": "WRK-006-merge/RCP-003",
+  "local_id": "RCP-003",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-NEW",
+    "PRT-001-task-priority/CHK-P1-TEST",
+    "PRT-001-task-priority/CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "c86553fa0a83d838c7faaace040b3108600cb058322b82b026a7af19805a6180",
+  "verification_epoch": "709e7b08a815d3691f401a9606f29b71a4d9f731e5886c1f0ce042e0bfb7bf2a",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-retry.gritrD/matrix-fixture/dd-flow-protocolize-EaBvmR/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-retry.gritrD/matrix-fixture/dd-flow-protocolize-EaBvmR/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-retry.gritrD/matrix-fixture/dd-flow-protocolize-EaBvmR/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-retry.gritrD/matrix-fixture/dd-flow-protocolize-EaBvmR/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "aa418eb8b6d5fae69114cbb258a68a889d9af4cf8dc871fabb319c504b2ad843",
+  "before_fingerprint": "aa418eb8b6d5fae69114cbb258a68a889d9af4cf8dc871fabb319c504b2ad843",
+  "after_fingerprint": "aa418eb8b6d5fae69114cbb258a68a889d9af4cf8dc871fabb319c504b2ad843",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-06T22:01:52.570Z",
+  "finished_at": "2026-10-06T22:01:52.620Z"
+}

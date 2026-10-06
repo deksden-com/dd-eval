@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-195-task-priority-engine-identity",
-    "sha256": "89793e7ead6f81c8c4fd9be673632152b2b6e164226eeda3b3bbf27c7af034de"
+    "id": "cp-197-task-priority-lifecycle-finalization",
+    "sha256": "ac32c5305029daf52c4d183bdbd60f82c13d6494d35ad4f3a0feb9d77669449d"
   },
   "entry_pack": null,
   "hitl_qualification": {
