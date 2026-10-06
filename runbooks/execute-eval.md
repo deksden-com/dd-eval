@@ -267,7 +267,10 @@ atom still quotes the question verbatim; internal whitespace, Unicode, words,
 classification and the exact response-ID union are not normalized. Every
 contained anchor must have the atom's class; a bundle cannot conceal an
 independently uncovered decision. Missing obligations and unrecognized quotes
-remain failures. Expected anchors never enter the Judge prompt.
+remain failures. Expected anchors never enter the Judge prompt. The shared Judge
+prompt requires source-quote extraction before interpretation and a literal
+quotation check before returning; added sentence punctuation is still rejected
+by the grounded validator, never silently repaired or retried by the runner.
 All oracle IDs/projections and all input packets are checked before the first
 native Session. Expected fields never reach Judge. Qualification@3 reports a neutral
 `definition_qualification_mismatch`, with expected/observed classification, response

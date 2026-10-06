@@ -17,6 +17,9 @@ test("shared Judge prompt structure preserves materiality/reference policy, not 
   assert.match(prompt, /explicit refusal of separate control ordering/);
   assert.match(prompt, /independently requested delivery time remains a gap/);
   assert.match(prompt, /one contiguous substring/);
+  assert.match(prompt, /Copy its source_quote from the original question before describing the decision/);
+  assert.match(prompt, /invalid because it adds punctuation/);
+  assert.match(prompt, /Before returning, verify each source_quote occurs literally in packet.question/);
   assert.doesNotMatch(prompt, /Before returning, use available local tools/);
   assert.match(prompt, /Subject's assertion/);
   assert.match(prompt, /scope_evidence/);
