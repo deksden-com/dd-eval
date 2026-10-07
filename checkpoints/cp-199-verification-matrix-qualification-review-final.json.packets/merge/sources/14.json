@@ -1,0 +1,35 @@
+{
+  "id": "WRK-006-merge/RCP-004",
+  "local_id": "RCP-004",
+  "declaration_id": "CHK-MERGE",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-MERGE"
+  ],
+  "gate": "merge",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "true",
+  "input_hash": "c243d80644879ef1290fb6f660f48121bf05d1451cfc24822a73fa206557687f",
+  "verification_epoch": "7bbd62523b5868c7da0e927a8fa7bbe3765189790b0933528242c09d7920d037",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture-review-final/dd-flow-protocolize-1g2E7p/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture-review-final/dd-flow-protocolize-1g2E7p/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture-review-final/dd-flow-protocolize-1g2E7p/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture-review-final/dd-flow-protocolize-1g2E7p/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "bfe5970b7ed4882443ae0c7676a66d236a5dbf920279bf25e2dfc39a098ab2b8",
+  "before_fingerprint": "bfe5970b7ed4882443ae0c7676a66d236a5dbf920279bf25e2dfc39a098ab2b8",
+  "after_fingerprint": "bfe5970b7ed4882443ae0c7676a66d236a5dbf920279bf25e2dfc39a098ab2b8",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-07T13:10:47.643Z",
+  "finished_at": "2026-10-07T13:10:47.972Z"
+}

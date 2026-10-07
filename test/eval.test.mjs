@@ -833,7 +833,7 @@ test("a new fan-out stage ignores historical native children but keeps its new w
 test("reconciliation failures retain undetermined attribution for the Judge", () => {
   assert.equal(failureAttribution("fanout_reconciliation_required"), "undetermined");
   assert.equal(failureAttribution("provider_rate_limited"), "evaluation_infrastructure");
-  assert.equal(failureAttribution("unexpected_hitl"), "subject");
+  assert.equal(failureAttribution("unexpected_hitl"), "undetermined");
   assert.equal(failureAttribution("incomplete_subject_turn"), "undetermined");
   assert.equal(failureAttribution("lifecycle_contract_invalid"), "evaluation_infrastructure");
   assert.equal(failureAttribution("future_unclassified_failure"), "undetermined");

@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-198-task-priority-reviewed-lifecycle",
-    "sha256": "baa122b6a7e129214bb7f17f8bc5f15ed3b9b417c30894a8cb93f39c7ab27dbd"
+    "id": "cp-199-task-priority-operational-policy",
+    "sha256": "feb9dd426d5a2e345f6bcb56e0908109dc6e7502ed245d1ad9a8b16b54d635d6"
   },
   "entry_pack": null,
   "hitl_qualification": {
@@ -20,7 +20,7 @@
     "sha256": "d8df8e28fa27d6dfa20ed6db1630bfdfe70de530bba76b32c2e7065a2025b07b"
   },
   "case_acceptance": {
-    "checker": "task-priority@3",
+    "checker": "task-priority@4",
     "case_id": "sdlc-eval-2026-summer-task-priority"
   },
   "profiles": {

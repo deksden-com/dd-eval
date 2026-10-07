@@ -5,6 +5,7 @@
   "additionalProperties": false,
   "required": ["schema_id", "id", "case_id", "subject", "selection", "judge", "concurrency", "failure_policy"],
   "properties": {
+    "operational_decision": {"type": "object", "additionalProperties": false, "required": ["schema_id", "id", "settings", "policy", "acceptance"], "properties": {"schema_id": {"const": "run-operational-decision@1"}, "id": {"type": "string", "minLength": 1}, "settings": {"type": "object"}, "policy": {"type": "object"}, "acceptance": {"type": "object"}, "exception": {"type": "object"}}},
     "schema_id": {"const": "dd-eval/run-profile@1"},
     "id": {"type": "string", "minLength": 1}, "case_id": {"type": "string", "minLength": 1},
     "subject": {"type": "object", "additionalProperties": false, "required": ["profile_id"], "properties": {"profile_id": {"type": "string", "minLength": 1}, "execution": {"type": "object", "description": "Complete CLI execution routing; profile IDs resolve from the existing CLI agent-profiles registry and are validated and frozen by dd-flow."}}},

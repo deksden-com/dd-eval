@@ -1,0 +1,37 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "3a1df545e239bb4bfcfb2a4e035fa01da9586e15af4cae847609cc960759bf58",
+  "verification_epoch": "be7a3b8bed96c0d6f2e30b7b984d3b7aef95b8a4c4a45a7e0376ffefe9dc2d0f",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture-review-final/dd-flow-protocolize-1g2E7p/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture-review-final/dd-flow-protocolize-1g2E7p/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture-review-final/dd-flow-protocolize-1g2E7p/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture-review-final/dd-flow-protocolize-1g2E7p/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "122b60544c30d0df1cc1d0f50673f61ae070f675543c2ef2dcefe696134a26fd",
+  "before_fingerprint": "122b60544c30d0df1cc1d0f50673f61ae070f675543c2ef2dcefe696134a26fd",
+  "after_fingerprint": "122b60544c30d0df1cc1d0f50673f61ae070f675543c2ef2dcefe696134a26fd",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-07T13:10:42.769Z",
+  "finished_at": "2026-10-07T13:10:42.972Z"
+}

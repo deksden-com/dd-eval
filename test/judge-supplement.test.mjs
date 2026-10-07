@@ -8,13 +8,34 @@ import { hashJson } from '../lib/runner-events.mjs';
 import { snapshotTreeHash } from '../lib/case-acceptance.mjs';
 import { prepareSupplementalJudge, assertSupplementalEvidence, validateJudgeSupplement } from '../lib/judge-supplement.mjs';
 import { parse, validateCommand } from '../lib/cli-input.mjs';
-import { evalJudge, installRuntimeShim } from '../lib/runner.mjs';
+import { evalJudge, installRuntimeShim, runnerControlStatus } from '../lib/runner.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { successfulPolicyFixture } from './fixtures/capacity-policy.mjs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { DatabaseSync } from 'node:sqlite';
+import { resolveBoundSnapshot, selectedSnapshots } from '../lib/recovery-safety.mjs';
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+async function recoveryFixture(f) {
+  const snapshot = path.join(f.directory, 'old-global-recovery', 'RCV-one');
+  const projectRoot = path.join(f.root, 'executions/e2e/project'), runtimeRoot = path.join(f.root, 'executions/e2e/dd-flow-home');
+  await put(f.root, 'executions/e2e/managed-runtime.json', { schema_id: 'dd-eval/managed-runtime@1', run_id: 'RUN-fixture', project_root: projectRoot, runtime_root: runtimeRoot });
+  await put(snapshot, 'workspace/proof.txt', 'retained pre-recovery proof');
+  await mkdir(path.join(snapshot, 'runtime'), { recursive: true });
+  const db = new DatabaseSync(path.join(snapshot, 'runtime/db.sqlite'));
+  db.exec(`CREATE TABLE run_recovery_guards(recovery_id TEXT,run_id TEXT,project_id TEXT,status TEXT,generation INTEGER,settlement_json TEXT);
+    CREATE TABLE run_controls(control_id TEXT,recovery_id TEXT,run_id TEXT,project_id TEXT);
+    INSERT INTO run_recovery_guards VALUES('RCV-one','RUN-fixture','PRJ-fixture','sealed',1,'{"settled":true}');
+    INSERT INTO run_controls VALUES('CTL-one','RCV-one','RUN-fixture','PRJ-fixture');`);
+  db.close();
+  const data = { schema_id: 'dd-flow/eval-run-snapshot@5', purpose: 'recovery', stage_entry: null, run_id: 'RUN-fixture', project_id: 'PRJ-fixture',
+    project_root: projectRoot, dd_flow_home: runtimeRoot, recovery_id: 'RCV-one', consistency: 'sealed_writer_barrier_required',
+    workspace: { sha256: snapshotTreeHash(path.join(snapshot, 'workspace')) }, runtime_sha256: snapshotTreeHash(path.join(snapshot, 'runtime')) };
+  const manifest = await put(snapshot, 'snapshot.json', data);
+  return { snapshot, manifest, manifest_sha256: sha(await readFile(manifest)), run_id: data.run_id, recovery_id: data.recovery_id,
+    control_id: 'CTL-one', generation: 1, settlement: { settled: true } };
+}
 async function put(root, name, value) { const file = path.join(root, name); await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); return file; }
 async function fixture(t) {
   const directory = await realpath(await mkdtemp(path.join(os.tmpdir(), 'judge-supplement-')));
@@ -23,12 +44,12 @@ async function fixture(t) {
   const boundary = path.join(root, 'executions', 'e2e', 'boundaries', 'merge-frozen');
   await put(boundary, 'workspace/src/proof.sql', 'CREATE TYPE example AS ENUM (\'one\');\n');
   await put(boundary, 'runtime/receipt.json', { status: 'passed', proof_limits: ['fresh isolated world only'] });
-  const snapshot = { schema_id: 'dd-flow/eval-run-snapshot@5', workspace: { sha256: snapshotTreeHash(path.join(boundary, 'workspace')) }, runtime_sha256: snapshotTreeHash(path.join(boundary, 'runtime')) };
+  const snapshot = { schema_id: 'dd-flow/eval-run-snapshot@5', purpose: 'candidate', stage_entry: null, run_id: 'RUN-fixture', workspace: { sha256: snapshotTreeHash(path.join(boundary, 'workspace')) }, runtime_sha256: snapshotTreeHash(path.join(boundary, 'runtime')) };
   const snapshotFile = await put(boundary, 'snapshot.json', snapshot);
   const manifest = { run_id: 'EVAL-ORIGINAL', state: 'cancelled', case_id: 'original-case' };
   await put(root, 'manifest.json', manifest);
   await put(root, 'events.jsonl', 'historical terminal journal, do not rewrite\n');
-  const content = { schema_id: 'dd-eval/run-candidate@2', run_id: manifest.run_id, manifest_sha256: hashJson(manifest), executions: [{ execution: 'e2e', checkpoint: { snapshot: boundary, manifest_sha256: sha(await readFile(snapshotFile)) } }] };
+  const content = { schema_id: 'dd-eval/run-candidate@2', run_id: manifest.run_id, manifest_sha256: hashJson(manifest), executions: [{ execution: 'e2e', run_id: snapshot.run_id, checkpoint: { snapshot: boundary, manifest_sha256: sha(await readFile(snapshotFile)) } }] };
   const candidate = { ...content, immutable_hash: hashJson(content) };
   const evidence = { candidate_sha256: candidate.immutable_hash, execution: { snapshot: boundary, manifest_sha256: sha(await readFile(snapshotFile)) } };
   await put(root, 'judge/candidate.json', candidate);
@@ -44,6 +65,54 @@ async function fixture(t) {
   return { directory, root, boundary, supplement, input: { evalRoot: root, supplementFile, outputRoot, profile } };
 }
 
+test('typed selection rejects conflicting publications and ignores arbitrary nested snapshot strings', () => {
+  const checkpoint = { snapshot: '/frozen', manifest_sha256: 'a'.repeat(64) };
+  const candidate = { executions: [{ execution: 'one', checkpoint }], arbitrary: { snapshot: '/auth', manifest_sha256: 'b'.repeat(64) } };
+  assert.equal(selectedSnapshots(candidate, {}).length, 1);
+  assert.throws(() => selectedSnapshots(candidate, { executions: [{ execution: 'one', candidate: { ...checkpoint, manifest_sha256: 'b'.repeat(64) } }] }), /conflicting/);
+  assert.throws(() => selectedSnapshots(candidate, { executions: [{ execution: 'one', recovery: checkpoint }] }), /conflicting/);
+});
+
+test('frozen recovery binding survives live resume and another generation but rejects foreign scope', async t => {
+  const f = await fixture(t), checkpoint = await recoveryFixture(f);
+  const input = { evalRoot: f.root, execution: 'e2e', result: { run_id: 'RUN-fixture' }, checkpoint, purpose: 'recovery' };
+  await put(f.root, 'executions/e2e/dd-flow-home/live-control.json', { status: 'recovered', generation: 2 });
+  assert.equal((await resolveBoundSnapshot(input)).data.recovery_id, checkpoint.recovery_id);
+  await assert.rejects(resolveBoundSnapshot({ ...input, checkpoint: { ...checkpoint, generation: 2 } }), /generation/);
+  await assert.rejects(resolveBoundSnapshot({ ...input, checkpoint: { ...checkpoint, control_id: 'CTL-other' } }), /generation/);
+  const ownedRecovery = path.join(f.root, 'recovery'); await mkdir(ownedRecovery);
+  await put(f.root, 'manifest.json', { runtime_recovery_home: ownedRecovery });
+  await assert.rejects(resolveBoundSnapshot(input), /escaped frozen recovery root/);
+  await put(f.root, 'manifest.json', { run_id: 'EVAL-ORIGINAL' });
+  const alias = path.join(f.directory, 'recovery-link'); await symlink(checkpoint.snapshot, alias);
+  await assert.rejects(resolveBoundSnapshot({ ...input, checkpoint: { ...checkpoint, snapshot: alias, manifest: path.join(alias, 'snapshot.json') } }), /symlink/);
+  await put(f.root, 'executions/e2e/managed-runtime.json', { schema_id: 'dd-eval/managed-runtime@1', run_id: 'RUN-other' });
+  await assert.rejects(resolveBoundSnapshot(input), /another execution/);
+});
+
+test('successful candidate supplemental view safely retains exact historical global recovery', async t => {
+  const f = await fixture(t), recovery = await recoveryFixture(f);
+  await put(recovery.snapshot, 'unrelated-secret.txt', 'not part of selected evidence payload');
+  const candidate = JSON.parse(await readFile(path.join(f.root, 'judge/candidate.json')));
+  candidate.executions[0].recovery = recovery;
+  delete candidate.immutable_hash; candidate.immutable_hash = hashJson(candidate);
+  const auth = await put(f.root, 'unrelated-auth.json', { token: 'should never be cloned' });
+  const evidence = { candidate_sha256: candidate.immutable_hash, executions: [{ execution: 'e2e', run_id: 'RUN-fixture', recovery }], diagnostic: { auth_file: auth } };
+  await put(f.root, 'judge/candidate.json', candidate); await put(f.root, 'judge/evidence.json', evidence);
+  await put(f.root, 'judge/result.json', { candidate_sha256: candidate.immutable_hash, evidence_sha256: hashJson(evidence) });
+  f.supplement.candidate_sha256 = candidate.immutable_hash;
+  await writeFile(f.input.supplementFile, JSON.stringify(f.supplement));
+  const prepared = await prepareSupplementalJudge(f.input);
+  const view = JSON.parse(await readFile(path.join(f.input.outputRoot, 'evidence.json')));
+  const retained = view.executions[0].recovery.snapshot;
+  assert.ok(retained.startsWith(path.join(f.input.outputRoot, 'evidence/recovery/e2e')));
+  assert.equal(await readFile(path.join(retained, 'workspace/proof.txt'), 'utf8'), 'retained pre-recovery proof');
+  assert.equal(prepared.sourceFiles.some(item => item.original.endsWith('unrelated-secret.txt')), false);
+  assert.equal(prepared.sourceFiles.some(item => item.original === auth), false);
+  assert.equal(view.diagnostic.auth_file, `provenance-only:${auth}`);
+  await assertSupplementalEvidence(prepared);
+});
+
 // Execute the public supplemental route with disposable CLI/native doubles;
 // no native executable, network or historical case definition is consulted.
 async function runtimeFixture(t, fault = null) {
@@ -54,8 +123,9 @@ async function runtimeFixture(t, fault = null) {
   assert.ok(process.env.DD_FLOW_SOURCE_ROOT, 'set DD_FLOW_SOURCE_ROOT for exact built native contract fixtures');
   await cp(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'dist/harness-runtime'), path.join(engineRoot, 'dist/harness-runtime'), { recursive: true });
   await put(engineRoot, 'cli.cjs', `const fs=require('node:fs'); const a=process.argv.slice(2), c=JSON.parse(fs.readFileSync(${JSON.stringify(settings)}));
-fs.appendFileSync(c.calls,JSON.stringify({flow:a})+'\\n');
+fs.appendFileSync(c.calls,JSON.stringify({flow:a,recovery_home:process.env.DD_FLOW_RECOVERY_HOME})+'\\n');
 if(a[0]==='codex' && c.fault==='changed-during-setup') fs.appendFileSync(c.output+'/assessment.json',' ');
+if(a[0]==='runtime' && a[1]==='scope' && a[2]==='status') {console.log(JSON.stringify({scope_id:a[a.indexOf('--scope-id')+1],dispatch_blocked:false,processes:[]}));process.exit(0);}
 console.log(JSON.stringify({ok:true}));`);
   await put(engineRoot, 'dist/harness-runtime/bin/dd-codex.mjs', `import fs from 'node:fs'; import path from 'node:path'; import {createHash} from 'node:crypto';
 const a=process.argv.slice(2),get=k=>a[a.indexOf(k)+1],c=JSON.parse(fs.readFileSync(${JSON.stringify(settings)})),id=process.env.DD_EVAL_OPERATION_ID;
@@ -102,6 +172,9 @@ console.log(JSON.stringify(result));`);
   Object.assign(snapshot, { run_id: runId, dd_flow_home: runtimeRoot, source_status: { run: { run_root: path.join(runtimeRoot, relativeRun) } }, runtime_sha256: snapshotTreeHash(path.join(f.boundary, 'runtime')) });
   await put(f.boundary, 'snapshot.json', snapshot);
   const manifest = JSON.parse(await readFile(path.join(f.root, 'manifest.json')));
+  manifest.runtime_control_bin = path.join(f.root, 'control-runtime/bin/dd-flow');
+  manifest.runtime_resource_home = path.join(f.root, 'resources');
+  manifest.runtime_recovery_home = path.join(f.root, 'recovery');
   manifest.profile = { concurrency: { global: 1, per_harness: { 'codex-desktop': 1 } }, selection: { e2e: true } };
   await put(f.root, 'manifest.json', manifest);
   const checkpoint = { snapshot: f.boundary, run_id: runId, manifest_sha256: sha(await readFile(path.join(f.boundary, 'snapshot.json'))) };
@@ -131,6 +204,12 @@ test('public supplemental Judge executes only its owned runtime and rebuilds a m
   assert.equal(await readFile(f.calls, 'utf8'), calls);
   const report = JSON.parse(await readFile(path.join(result.root, 'report.json')));
   assert.equal(report.supplemental.session_id, 'judge-session'); assert.equal(report.cleanup, 'settled');
+  const manifest = JSON.parse(await readFile(path.join(result.root, 'manifest.json')));
+  assert.equal(manifest.runtime_recovery_home, path.join(result.root, 'recovery'));
+  const status = await runnerControlStatus({ evalRoot: result.root });
+  assert.equal(status.inventory.unavailable, undefined);
+  const statusCall = (await readFile(f.calls, 'utf8')).trim().split('\n').map(JSON.parse).findLast(row => row.flow?.[0] === 'runtime');
+  assert.equal(statusCall.recovery_home, path.join(result.root, 'recovery'));
   assert.equal(snapshotTreeHash(f.root), before);
 });
 

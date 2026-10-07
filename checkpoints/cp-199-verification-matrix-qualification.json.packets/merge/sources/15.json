@@ -1,0 +1,37 @@
+{
+  "id": "WRK-006-merge/RCP-003",
+  "local_id": "RCP-003",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-NEW",
+    "PRT-001-task-priority/CHK-P1-TEST",
+    "PRT-001-task-priority/CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "22e1e0e7674cc043cdc922f3da0bd3bcab8b322a1bb2d548cd6e7753309389c8",
+  "verification_epoch": "b2f94ac6e767243682b2d9ee7a35a13e6b7f17eb074ac5d7b5c1cb6c40071d01",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture/dd-flow-protocolize-LLnziJ/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture/dd-flow-protocolize-LLnziJ/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture/dd-flow-protocolize-LLnziJ/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture/dd-flow-protocolize-LLnziJ/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "65492ca2e6c2837e1891e9c51ef36f05de8aa76895233de707ea2d2721113361",
+  "before_fingerprint": "65492ca2e6c2837e1891e9c51ef36f05de8aa76895233de707ea2d2721113361",
+  "after_fingerprint": "65492ca2e6c2837e1891e9c51ef36f05de8aa76895233de707ea2d2721113361",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-07T10:26:24.430Z",
+  "finished_at": "2026-10-07T10:26:24.599Z"
+}

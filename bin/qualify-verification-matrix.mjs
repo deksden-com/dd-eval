@@ -67,7 +67,7 @@ for (const item of retained) { await mkdir(path.dirname(item.file), { recursive:
 const skipped = ["plan-review", "code-review"].filter(stage => run.settings?.[stage.replace("-", "_")]?.mode === "off" && run.settings[stage.replace("-", "_")].reason?.trim());
 const receipt = { schema_id: "dd-eval/verification-matrix-qualification@3", contract: run.verification_matrix_contract, coverage_contract: run.final_check_coverage_contract, status: "passed", engine_artifact_sha256: engineDigest, engine_binding: { path: bindingRelative, sha256: sha(bindingBytes) }, flow_commit: flowCommit, built_with_canon: { version: canon.version, commit: canon.commit }, skipped_stages: skipped, packets };
 const receiptBytes = Buffer.from(JSON.stringify(receipt, null, 2) + "\n");
-await assertVerificationMatrixQualification({ file: path.join(path.dirname(output), "checkpoint.json"), value: { flow_pack: { commit: flowCommit, memory_bank_version: canon.version, verification_matrix: { contract: receipt.contract, file: path.basename(output), sha256: sha(receiptBytes), canon_commit: canon.commit } } } }, engine, { checker: "task-priority@3" }, receiptBytes);
+await assertVerificationMatrixQualification({ file: path.join(path.dirname(output), "checkpoint.json"), value: { flow_pack: { commit: flowCommit, memory_bank_version: canon.version, verification_matrix: { contract: receipt.contract, file: path.basename(output), sha256: sha(receiptBytes), canon_commit: canon.commit } } } }, engine, { checker: "task-priority@4" }, receiptBytes);
 // A crash during writing must never expose a partial receipt labelled passed.
 // Hard-link publication is atomic and, unlike rename, cannot overwrite a pin.
 const temporary = `${output}.${randomUUID()}.tmp`;

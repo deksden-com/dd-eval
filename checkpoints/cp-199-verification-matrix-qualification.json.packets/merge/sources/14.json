@@ -1,0 +1,35 @@
+{
+  "id": "WRK-006-merge/RCP-004",
+  "local_id": "RCP-004",
+  "declaration_id": "CHK-MERGE",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-MERGE"
+  ],
+  "gate": "merge",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "true",
+  "input_hash": "692e595761c8910d15d983832f8b538560cdf47c1ef60aed508dd5a43093a3ed",
+  "verification_epoch": "ac27ab1bc46479688108cab12ea265ba6f70afc63f8129b69350ff3797251bb1",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture/dd-flow-protocolize-LLnziJ/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture/dd-flow-protocolize-LLnziJ/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture/dd-flow-protocolize-LLnziJ/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture/dd-flow-protocolize-LLnziJ/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "65492ca2e6c2837e1891e9c51ef36f05de8aa76895233de707ea2d2721113361",
+  "before_fingerprint": "65492ca2e6c2837e1891e9c51ef36f05de8aa76895233de707ea2d2721113361",
+  "after_fingerprint": "65492ca2e6c2837e1891e9c51ef36f05de8aa76895233de707ea2d2721113361",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-07T10:26:24.638Z",
+  "finished_at": "2026-10-07T10:26:24.808Z"
+}

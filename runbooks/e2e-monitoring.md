@@ -1,5 +1,17 @@
 # E2E monitoring
 
+## Frozen policy and evidence scope
+
+For new plan-069 runs, report the RUN's frozen operational decision and current
+artifact paths, not ambient project policy or inferred permissions from settings.
+Read captures only through their exact candidate/recovery publication binding
+under `manifest.runtime_recovery_home`; never search another global home for a
+plausible snapshot. Check failed-gate applicability before opening its capture.
+Use canonical source inventory and exact harness/Session identities for model
+coverage; malformed/missing coverage is unavailable, not a guessed legacy path.
+HITL mismatch alone does not establish Subject attribution. Report and Judge
+must use the same candidate-bound Subject history, including authorized recovery.
+
 ## Native outcomes and owned child waits
 
 An exact failed overload Turn with proven live owned children is normal waiting,

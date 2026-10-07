@@ -665,7 +665,7 @@ test("recovery report preserves failed segments without counting capture or cumu
   assert.equal(recoveryHistory(events, manifest, [{ execution: "e", state: "failed" }])[0].reliability, "interrupted");
   const pending = events.slice(0, -1);
   assert.equal(recoveryHistory(pending, manifest, [{ execution: "e", state: "awaiting_provider" }])[0].segments.at(-1).outcome, "unknown");
-  assert.equal(recoveryHistory([], manifest, [{ execution: "e", state: "candidate_ready" }])[0].reliability, "uninterrupted");
+  assert.equal(recoveryHistory([], manifest, [{ execution: "e", state: "candidate_ready" }])[0].reliability, "unknown");
   emit("operation.started", { operation_id: `${second}:retry:1` }, 60);
   const retried = recoveryHistory(events, manifest, [])[0];
   assert.equal(retried.segments.at(-1).recovery_id, "R2");

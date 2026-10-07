@@ -2,6 +2,35 @@
   "schema_id": "dd-eval/run-profile@1",
   "id": "e2e-server-merge-luna-xhigh",
   "case_id": "sdlc-eval-2026-summer-task-priority",
+  "operational_decision": {
+    "schema_id": "run-operational-decision@1",
+    "id": "task-priority-scored-local-retain",
+    "settings": {
+      "merge_delivery": {
+        "strategy": "local"
+      },
+      "merge_cleanup": {
+        "source": "retain"
+      }
+    },
+    "policy": {
+      "path": ".memory-bank/project-policy.md",
+      "sha256": "cc0f1730de1729ffed8dd34fae3bed1716343d518934b4fe291270dc54faf982",
+      "clauses": [
+        "Git branch strategy",
+        "Cleanup feature worktree"
+      ]
+    },
+    "acceptance": {
+      "source": "run-profile-launch",
+      "reference": "e2e-server-merge-luna-xhigh"
+    },
+    "exception": {
+      "reason": "Scored E2E uses local target integration without remote push/tag/deploy; retain the execution-owned source checkout for frozen evidence and investigation.",
+      "owner": "EVAL run-profile operator",
+      "review_at": "2026-10-14"
+    }
+  },
   "subject": {
     "profile_id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-9-0-beta-11"
   },

@@ -8,6 +8,73 @@ import os from "node:os";
 import path from "node:path";
 import { assertCheckpointEngine, assertVerificationMatrixQualification, engineArtifactDigest, verifyEngineArtifact } from "../lib/engine-admission.mjs";
 import { verificationMatrixFingerprint, validateVerificationMatrixAuthority } from "../lib/case-acceptance.mjs";
+import { operationalDecisionFor, materializeOperationalDecision, loadOperationalContract } from "../lib/operational-decision.mjs";
+import { runBaselineAdmission } from "../lib/baseline-admission.mjs";
+
+test("operational declarations bind logical launch scope without inventing acceptance", async () => {
+  const source = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-server-merge-luna-xhigh.json", import.meta.url)));
+  const declaration = source.operational_decision;
+  const first = operationalDecisionFor(declaration, { projectRoot: "/owned/project", evalId: "EVAL-1", executionId: "e2e" });
+  const second = operationalDecisionFor(declaration, { projectRoot: "/relocated/project", evalId: "EVAL-2", executionId: "e2e" });
+  assert.equal(first.declaration.bytes, JSON.stringify(declaration));
+  assert.equal(first.declaration.sha256, second.declaration.sha256);
+  assert.notDeepEqual(first.scope, second.scope);
+  assert.equal(declaration.scope, undefined, "source declaration is not mutated");
+  assert.throws(() => operationalDecisionFor({ ...declaration, acceptance: {} }, { projectRoot: "/owned", evalId: "EVAL-1", executionId: "e2e" }), { code: "operational_decision_invalid" });
+  const root = await mkdtemp(path.join(os.tmpdir(), "operational-admission-"));
+  try {
+    await mkdir(path.join(root, ".memory-bank/dd-flow"), { recursive: true });
+    const file = path.join(root, ".memory-bank/dd-flow/project-execution.json");
+    await writeFile(file, JSON.stringify({ schema_id: "dd-flow/project-execution@2" }));
+    assert.equal(await materializeOperationalDecision({ projectRoot: root, runtimeRoot: root }), null, "ordinary retained @2 has no new approval gate");
+    await assert.rejects(materializeOperationalDecision({ declaration, projectRoot: root, runtimeRoot: root, evalId: "EVAL-1", executionId: "e2e" }), { code: "operational_contract_unsupported" });
+    await writeFile(file, JSON.stringify({ schema_id: "dd-flow/project-execution@3" }));
+    assert.equal(await materializeOperationalDecision({ projectRoot: root, runtimeRoot: root }), null, "ordinary retained @3 relies on its selected-engine structural preparation, not new decision approval");
+    await writeFile(file, JSON.stringify({ schema_id: "dd-flow/project-execution@3", operational_decision: declaration }));
+    await assert.rejects(materializeOperationalDecision({ projectRoot: root, runtimeRoot: root }), { code: "operational_contract_unsupported" });
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("selected real published engine exports the operational contract", { skip: !process.env.DD_EVAL_TEST_OPERATIONAL_RUNTIME }, async () => {
+  const contract = await loadOperationalContract(path.resolve(process.env.DD_EVAL_TEST_OPERATIONAL_RUNTIME));
+  assert.equal(contract.RUN_OPERATIONAL_DECISION_CONTRACT, "run-operational-decision@1");
+});
+
+test("owned launch decision commits only its profile before baseline admission", { skip: !process.env.DD_EVAL_TEST_OPERATIONAL_RUNTIME }, async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "owned-operational-profile-"));
+  const git = async (cwd, args) => (await promisify(execFile)("git", args, { cwd, encoding: "utf8" })).stdout.trim();
+  try {
+    const source = path.join(root, "source"), owned = path.join(root, "owned");
+    await mkdir(path.join(source, ".memory-bank/dd-flow"), { recursive: true });
+    const profile = { schema_id: "dd-flow/project-execution@2", stage_session_mode: "new_session", plan_review_mode: "standard", code_review_mode: "standard", merge_mode: "server", merge_delivery: { strategy: "local" }, merge_cleanup: { source: "retain" }, stop_target: "merge_completed", code_bootstrap: { command: "pnpm bootstrap", policy_ref: ".memory-bank/spec/operations/workspace-bootstrap-policy.md" } };
+    const relative = ".memory-bank/dd-flow/project-execution.json", policyBytes = "# Git branch strategy\n# Cleanup feature worktree\n";
+    await writeFile(path.join(source, relative), JSON.stringify(profile));
+    await writeFile(path.join(source, ".memory-bank/project-policy.md"), policyBytes);
+    await writeFile(path.join(source, "product.txt"), "unchanged baseline\n");
+    await git(source, ["init", "--quiet"]); await git(source, ["add", "."]);
+    await git(source, ["-c", "user.name=test", "-c", "user.email=test@localhost", "commit", "--quiet", "-m", "baseline"]);
+    const baseline = await git(source, ["rev-parse", "HEAD"]);
+    await git(root, ["clone", "--quiet", source, owned]);
+    const launch = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-server-merge-luna-xhigh.json", import.meta.url)));
+    const declaration = { ...launch.operational_decision, policy: { ...launch.operational_decision.policy, sha256: createHash("sha256").update(policyBytes).digest("hex") } };
+    const options = { declaration, projectRoot: owned, runtimeRoot: process.env.DD_EVAL_TEST_OPERATIONAL_RUNTIME, evalId: "EVAL-new", executionId: "e2e", commitOwnedProfile: true };
+    const materialized = await materializeOperationalDecision(options);
+    assert.notEqual(materialized.materialized_commit, baseline);
+    assert.equal(await git(owned, ["status", "--porcelain"]), "");
+    assert.equal(await git(owned, ["diff", "--name-only", baseline, "HEAD"]), relative);
+    assert.equal(await git(owned, ["show", "HEAD:product.txt"]), "unchanged baseline");
+    assert.equal(await git(source, ["rev-parse", "HEAD"]), baseline, "source history was not mutated");
+    const policy = JSON.stringify({ schema_id: "dd-eval/baseline-admission-policy@2", commands: [{ id: "baseline", command: process.execPath, args: ["-e", "process.stdout.write('baseline pass')"], inactivity_timeout_ms: 10000 }] });
+    await writeFile(path.join(root, "baseline.json"), policy);
+    const admission = await runBaselineAdmission({ caseRoot: root, definition: { file: "baseline.json", sha256: createHash("sha256").update(policy).digest("hex") }, projectRoot: owned, outputRoot: path.join(root, "baseline-output"), checkpoint: { sha256: "a".repeat(64), value: { id: "owned", source: { commit: baseline } } } });
+    assert.equal(admission.status, "passed");
+    const before = await readFile(path.join(owned, relative), "utf8");
+    await writeFile(path.join(owned, "product.txt"), "user dirty change\n");
+    await assert.rejects(materializeOperationalDecision({ ...options, evalId: "EVAL-next" }), { code: "operational_materialization_dirty" });
+    assert.equal(await readFile(path.join(owned, relative), "utf8"), before, "dirty rejection precedes profile write");
+    assert.equal(await git(owned, ["rev-parse", "HEAD"]), materialized.materialized_commit);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 
 test("frozen native contracts preserve normalized inputs, resolved prompts and cross-gate exact-input reuse", () => {
   const hash = value => createHash("sha256").update(value).digest("hex");
@@ -77,6 +144,7 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
   const root = await mkdtemp(path.join(os.tmpdir(), "matrix-admission-"));
   const hash = bytes => createHash("sha256").update(bytes).digest("hex");
   const policy = { checker: "task-priority@3" };
+  await assert.rejects(assertVerificationMatrixQualification({}, {}, { checker: "task-priority@4" }), { code: "verification_matrix_qualification_missing" });
   try {
     const put = async (file, value) => { const bytes = typeof value === "string" ? value : JSON.stringify(value); await writeFile(path.join(root, file), bytes); return { path: file, sha256: hash(bytes) }; };
     const canon = { version: "4.1.2", commit: "c".repeat(40) };

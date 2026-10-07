@@ -28,6 +28,10 @@ if(args[0]==='engine' && args[1]==='install') {
   console.log(JSON.stringify({ok:true}));
 } else if(args[0]==='engine' && args[1]==='resolve') {
   console.log(JSON.stringify({selection:{selected:manifest}}));
+} else if(args[0]==='project' && args[1]==='register') {
+  console.log(JSON.stringify({ok:true}));
+} else if(args[0]==='run' && args[1]==='snapshot' && args[2]==='bootstrap' && args[3]==='restore') {
+  console.log(JSON.stringify({target_stage:'specify',materialized_commit:'c'.repeat(40)}));
 } else if(args[0]==='run' && args[1]==='snapshot' && args[2]==='restore') {
   const existing = fs.existsSync(home)?fs.readdirSync(home):[];
   if(existing.some(name=>name!=='agent-profiles')) throw new Error('restore destination is not empty');
@@ -74,6 +78,26 @@ test('qualification provisions an isolated selected runtime without starting a p
     await rm(runtime, { recursive: true, force: true });
     const relocatedAdapter = await driverAdapterInvocation({ harness: 'codex-desktop' }, { env: { DD_FLOW_HOME: relocated } });
     assert.deepEqual(await commandJson(relocatedAdapter.executable, relocatedAdapter.prefix), { selected: true });
+  } finally {
+    for (const [key, value] of Object.entries(prior)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('bootstrap restore retains the materialized checkout commit', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-bootstrap-'));
+  const prior = Object.fromEntries(['DD_FLOW_BIN', 'DD_FLOW_CONFIG_HOME', 'TEST_RESTORE_LOG'].map(key => [key, process.env[key]]));
+  try {
+    const config = path.join(root, 'config'), home = path.join(root, 'home'), snapshot = path.join(home, 'snapshot');
+    await mkdir(config); await mkdir(snapshot, { recursive: true });
+    await writeFile(path.join(config, 'harnesses.json'), JSON.stringify({ schema_id: 'dd-flow/harness-config@1', harnesses: {} }));
+    const executable = path.join(root, 'cli.mjs');
+    await writeFile(executable, fixture);
+    process.env.DD_FLOW_BIN = executable; process.env.DD_FLOW_CONFIG_HOME = config; process.env.TEST_RESTORE_LOG = path.join(root, 'calls.jsonl');
+    const bytes = JSON.stringify({ schema_id: 'dd-eval/bootstrap-snapshot@1', stage: 'specify' });
+    await writeFile(path.join(snapshot, 'bootstrap.json'), bytes);
+    const restored = await restoreStageSnapshot({ home, stage: 'specify', projectRoot: path.join(root, 'project'), runtimeRoot: path.join(root, 'runtime'), entry: { snapshot: { kind: 'bootstrap', locator: 'snapshot', manifest_sha256: createHash('sha256').update(bytes).digest('hex') } } });
+    assert.equal(restored.materialized_commit, 'c'.repeat(40));
   } finally {
     for (const [key, value] of Object.entries(prior)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
     await rm(root, { recursive: true, force: true });
