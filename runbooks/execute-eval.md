@@ -293,7 +293,7 @@ Existing profiles keep `hitl-match@3`. To opt in, select
 profile `e2e-inline-merge-luna-coverage-shadow.json` selects a pinned shadow policy.
 Use the same `runner definition qualify --profile ...` entry point. Qualification
 uses the separately pinned `hitl_qualification.coverage` corpus: twenty calibration
-and twenty held-out cases. It retains one native observation per task and three
+and at least twenty held-out cases. It retains one native observation per task and three
 JEV observations per case. Never include authored expectations in model input.
 
 For negative native verdicts, the command can return

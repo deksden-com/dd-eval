@@ -20,7 +20,7 @@
     "sha256": "d8df8e28fa27d6dfa20ed6db1630bfdfe70de530bba76b32c2e7065a2025b07b",
     "coverage": {
       "file": "entry-pack-source/interactions/qualification-coverage.json",
-      "sha256": "aec9d40ee1819ef20aa3e6d21a395b8a0ee334553d6304839a6865b475fef6a6"
+      "sha256": "c24a3d6e31f31acfa62bd7dd3bca3feca5cbb58c94f6115149bd778db0aef5a3"
     }
   },
   "case_acceptance": {

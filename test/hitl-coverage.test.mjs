@@ -7,9 +7,13 @@ import { buildHitlPacket, hitlCoverageContract, validateHitlCoverage, hitlCovera
 import { coverageTransport, jevPromptHash, validateCoveragePolicy, jevRequest, requestJev, observeJev, calibrateJev, verifyCoverageQualification } from "../lib/hitl-coverage.mjs";
 import { childEnvironment } from "../lib/process-json.mjs";
 import { writeJsonAtomic, hashJson, sha256 } from "../lib/runner-events.mjs";
-import { interactionJudge, loadRunProfile, loadCase, hitlQualificationInputs, buildReport } from "../lib/runner.mjs";
+import { interactionJudge, loadRunProfile, loadCase, hitlQualificationInputs, buildReport, classifyInterruption } from "../lib/runner.mjs";
 import { compareCoverageExpectation } from "../lib/hitl-corpus.mjs";
 import { setTimeout as delay } from "node:timers/promises";
+import { settledJudge } from "./fixtures/judge-cleanup.mjs";
+import { promptJudgeWithCapacity } from "../lib/judge-capacity.mjs";
+import { interactionJudgePrompt } from "../lib/runner.mjs";
+import { verifyRetainedHitl } from "../lib/hitl-retained.mjs";
 
 const policy = { schema_id: "dd-eval/hitl-coverage-policy@1", mode: "shadow", requested_model: "typesafe/jev-1.13", resolved_model: "typesafe/jev-1.13-20260917", provider: "TypeSafe", projection_version: "dd-eval/hitl-coverage-input@1", prompt_sha256: jevPromptHash, transport_version: coverageTransport, max_uncovered_probability: null, qualification_sha256: null };
 const packet = () => buildHitlPacket({ stage: "specify", question: "May closed tasks change priority?", responses: [{ id: "canonical", topic: "priority", applicability: "specify", answer: "Yes. No extra indicators." }], verdictContract: hitlCoverageContract });
@@ -85,10 +89,10 @@ test("non-owner environment strips OpenRouter after overrides", () => {
   assert.equal(childEnvironment({ KEEP_ME: "value" }).KEEP_ME, "value");
 });
 
-test("coverage corpus freezes forty cases and distinguishes semantic review from structural PASS", async () => {
+test("coverage corpus freezes calibration and balanced holdout, separating semantic review from structural PASS", async () => {
   const runProfile = await loadRunProfile("cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-luna-coverage-shadow.json");
   const loaded = await loadCase(runProfile.value.case_id), qualified = await hitlQualificationInputs({ loaded, runProfile, definition: {} });
-  assert.equal(qualified.corpus.items.length, 40); assert.equal(qualified.compact, true);
+  assert.equal(qualified.corpus.items.length, 41); assert.equal(qualified.compact, true);
   const gap = qualified.corpus.items.find(item => item.id === "material-gap"), responses = qualified.fixtures.specify.responses;
   const observed = { schema_id: hitlCoverageContract, status: "uncovered", response_ids: [], uncovered_questions: ["How are concurrent writes resolved?"] };
   assert.equal(compareCoverageExpectation(gap, observed, { responses }).semantic_review_required, true);
@@ -117,6 +121,11 @@ test("qualified JEV fast path issues and replays original proof without a native
     const first = await interactionJudge(options), second = await interactionJudge(options);
     assert.equal(first.decision_source, "jev"); assert.equal(second.reused, true); assert.equal(calls, 1);
     const receipt = JSON.parse(await readFile(first.receipt_file)); assert.equal(receipt.session_id, undefined); assert.equal(receipt.profile_id, undefined);
+    const answerFile = path.join(attempt, "answer.md"); await writeFile(answerFile, p.responses[0].answer);
+    const anchored = { ...binding, response_ids: first.verdict.response_ids, decision_source: "jev", verdict_contract: hitlCoverageContract,
+      receipt_file: first.receipt_file, answer_file: answerFile, receipt_sha256: sha256(await readFile(first.receipt_file)), packet_sha256: hashJson(p), answer_sha256: sha256(p.responses[0].answer) };
+    assert.equal((await verifyRetainedHitl({ data: anchored })).cleanup, null);
+    await assert.rejects(verifyRetainedHitl({ data: { ...anchored, judge_session_id: "fake" } }), /Session|provider/);
     await writeJsonAtomic(first.receipt_file, { ...receipt, qualification_bytes: "{}" });
     await assert.rejects(interactionJudge(options), /frozen qualification/); assert.equal(calls, 1);
   } finally {
@@ -127,8 +136,29 @@ test("qualified JEV fast path issues and replays original proof without a native
   }
 });
 
+test("compact native replay retains its actual Session, final Turn and settled cleanup", async () => {
+  const attempt = await mkdtemp(path.join(os.tmpdir(), "compact-native-"));
+  try {
+    const p = await packet(), binding = { stage: "specify", round: 1, pause_id: "pause", scope_id: "e2e" }; p.hitl_binding = binding;
+    const root = path.join(attempt, "interaction-judge", `specify-${hashJson(binding).slice(0, 20)}`), packetFile = path.join(root, "packet.json");
+    await mkdir(root, { recursive: true }); await writeJsonAtomic(packetFile, p);
+    const profileFile = path.join(attempt, "profile.json"); await writeJsonAtomic(profileFile, { id: "native", harness: "codex-desktop", model: "test", reasoning: "high" });
+    const verdict = { schema_id: hitlCoverageContract, status: "covered", response_ids: ["canonical"], uncovered_questions: [] };
+    await settledJudge(root, { schema_id: "dd-eval/interaction-judge-receipt@1", decision_source: "interaction_judge", stage: "specify", profile_id: "native", session_id: "session", interaction_fixture_sha256: "a".repeat(64), packet_sha256: hashJson(p), verdict });
+    const prompt = interactionJudgePrompt(packetFile, p), stateFile = path.join(root, `capacity-${hashJson(["session", prompt])}.json`);
+    await promptJudgeWithCapacity({ codex: false, sessionId: "session", packetFiles: [packetFile], originalPrompt: prompt, stateFile,
+      dispatch: async (_text, _capacity, before) => { await before(); return { provider_session_id: "session", turn_id: "turn", turn: { id: "turn", status: "completed" }, assistant_text: JSON.stringify(verdict) }; } });
+    const options = { attempt, fixture: { sha256: "a".repeat(64), responses: p.responses }, question: p.question, stage: "specify", hitlBinding: binding,
+      runProfile: { value: { interaction_judge: { profile_id: profileFile, verdict_contract: hitlCoverageContract } } }, runtimeRoot: "/no-runtime", projectRoot: "/no-project" };
+    const replay = await interactionJudge(options); assert.equal(replay.reused, true); assert.equal(replay.session_id, "session");
+    await writeJsonAtomic(stateFile, { ...(JSON.parse(await readFile(stateFile))), turns: [] });
+    await assert.rejects(interactionJudge(options), /native|Turn|turn|chain/);
+  } finally { await rm(attempt, { recursive: true, force: true }); }
+});
+
 test("unresolved coverage stays neutral, not infrastructure blame", () => {
   const manifest = { run_id: "test", case_id: "case", profile: { interaction_judge: { verdict_contract: hitlCoverageContract } }, executions: [] };
   const report = buildReport({ root: "/test", manifest, state: "completed_with_failures", results: [{ execution: "e", state: "failed", code: "hitl_coverage_unresolved" }] });
   assert.equal(report.schema_id, "dd-eval/report@3"); assert.equal(report.interaction_resolution, "unresolved"); assert.equal(report.run_validity, "valid");
+  assert.equal(classifyInterruption({ code: "hitl_coverage_unresolved" }).source, "unknown");
 });

@@ -548,18 +548,14 @@
       "id": "heldout-indicators-refusal",
       "question": "Предлагаю заменить подписи цветными иконками и добавить workflow из пяти статусов. Принимать это расширение или ограничиться утверждённым минимальным состоянием и текстом?",
       "partition": "heldout",
-      "classification": "covered_by_canonical_response",
-      "response_ids": [
-        "clarification-task-priority"
-      ],
+      "classification": "ambiguous",
+      "response_ids": [],
       "context_file": "entry-pack-source/interactions/qualification-specify.json",
       "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
       "coverage_expectation": {
-        "status": "covered",
-        "response_ids": [
-          "clarification-task-priority"
-        ],
-        "remaining_decisions": []
+        "status": "ambiguous",
+        "response_ids": [],
+        "remaining_decisions": [{"id": "state-reference", "description": "Что означает утверждённое минимальное состояние, не определённое вопросом или контекстом?"}]
       }
     },
     {
@@ -751,6 +747,16 @@
           }
         ]
       }
+    },
+    {
+      "id": "heldout-null-priority",
+      "question": "PATCH передаёт priority:null и меняет заголовок. Считать null отсутствием поля и сохранить новый заголовок или отклонить запрос целиком?",
+      "partition": "heldout",
+      "classification": "covered_by_canonical_response",
+      "response_ids": ["clarification-task-priority"],
+      "context_file": "entry-pack-source/interactions/qualification-specify.json",
+      "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
+      "coverage_expectation": {"status": "covered", "response_ids": ["clarification-task-priority"], "remaining_decisions": []}
     }
   ]
 }
