@@ -14,10 +14,12 @@
     "baseline_admission": {"type": "object", "additionalProperties": false, "required": ["file", "sha256"], "properties": {"file": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}},
     "case_acceptance": {"type": "object", "additionalProperties": false, "required": ["case_id", "checker"], "properties": {"case_id": {"const": "sdlc-eval-2026-summer-task-priority"}, "checker": {"enum": ["task-priority@1", "task-priority@2", "task-priority@3", "task-priority@4"]}}},
     "entry_pack": {"type": ["string", "null"]},
+    "hitl_qualification": {"allOf": [{"$ref": "#/$defs/qualification"}], "properties": {"coverage": {"$ref": "#/$defs/qualification"}}},
     "profiles": {"type": "object"},
     "flow": {"type": "object"}
   },
   "$defs": {
+    "qualification": {"type": "object", "required": ["file", "sha256"], "properties": {"file": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}},
     "input": {
       "type": "object", "additionalProperties": false,
       "required": ["role", "source", "sha256"],
