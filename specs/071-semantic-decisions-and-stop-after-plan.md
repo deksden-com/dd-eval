@@ -8,6 +8,10 @@ provider-neutral decision plugins, confidence
 threshold **0.93**, initial call plus two bounded retries, native Judge fallback,
 and `finished` for successful completion of an explicitly requested `stop_after`.
 The first comparison is three Luna runs through SPECIFY only, not full E2E.
+All three pilot attempts are now terminal: Judge-only and JEV finished SPECIFY;
+OpenAI Decisions correctly fell back below threshold, then encountered the
+existing engine's stale second-pause response. This is not a successful third
+stage completion or evidence of acceleration. Historical attempts are unchanged.
 
 Base: dd-eval main `7b4d492886224447bdd83a4ea7abb489129f543a` (plan 070 review).
 This document supersedes plan 070's mandatory empirical promotion gate **for the
@@ -288,6 +292,10 @@ No retry for invalid input, unsupported model, missing key, 401/403, known billi
 or hard quota exhaustion. Generic 429 is bounded transient rate limiting; an
 explicit hard-quota error is not. Provider error bodies are sanitized/classified,
 not copied into prompts or logs with arbitrary fields.
+Failed attempts retain a fixed failure phase (transport, body read, JSON or
+schema), observed HTTP status and an allowlisted native transport code. Never
+retain arbitrary exception messages. This follows the live pilot's discovery
+that one broad transport/response label prevented exact retrospective diagnosis.
 
 Backoff defaults: 1s before retry 1, 3s before retry 2, +0..250ms jitter. Honor a
 valid `Retry-After` by waiting at least its duration; if it exceeds 10s, fall back
@@ -660,11 +668,11 @@ route receipt as authority. Any extra paid comparison needs a declared run scope
 - [x] Update execute-eval/e2e-monitoring with options, fallback and finished.
 - [x] Add three comparison profiles with 0.93 and SPECIFY target.
 - [x] Review diff, local bounded regression checks and old-evidence reading.
-- [ ] Commit/push/PR integration per git-workflow; retain review receipt.
-- [ ] Run normal preflight then the three new isolated SPECIFY pilots.
-- [ ] Stop an individually blocked pilot with normal scoped control; never repair
+- [x] Commit/push/PR integration per git-workflow; retain review receipt.
+- [x] Run normal preflight then the three new isolated SPECIFY pilots.
+- [x] Stop an individually blocked pilot with normal scoped control; never repair
       its runtime artifacts or stop other unrelated runs.
-- [ ] Publish IDs, settings, measured stage timelines, fallbacks and semantic audit.
+- [x] Publish IDs, settings, measured stage timelines, fallbacks and semantic audit.
 
 ## 16. Code audit map for implementation
 
@@ -732,6 +740,7 @@ snapshot's successor-entry label.
 | Detached owner / native child environments | Selected credential retained / both decision keys removed |
 | Native Judge qualification with semantic option enabled | Native observations only; zero decision calls |
 | Finished inventory / GC plan | Terminal, retained until explicit normal GC authorization |
+| Failed before the product gate with sealed recovery checkpoint | Reuse not-applicable acceptance receipt by complete checker recomputation; do not require a checkpoint field the checker intentionally omits |
 
 ## 18. Completion criteria and ponytail review
 

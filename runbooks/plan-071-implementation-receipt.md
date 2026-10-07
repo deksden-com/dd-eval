@@ -80,3 +80,117 @@ SPECIFY does not fan out and does not require it. A future full E2E must perform
 normal capacity qualification; this receipt does not restore the old grant.
 The 41 native semantic Judge tasks keep their identities: model, reasoning,
 question, prompt and source semantics did not change.
+
+## Live SPECIFY comparison — 2026-10-07 UTC
+
+Each profile passed normal preflight with zero Sessions created there. Scored
+attempts ran sequentially in fresh homes, with concurrency 1 and the same case,
+canonical answer, Subject gpt-6-luna/xhigh, fallback gpt-6.1-sol/high and immutable
+engine beta.125 (checkpoint commit `b74ba81f88cbb2fe3b752eb4579baac6b2244d6a`).
+Final Judge was explicitly disabled; all profiles requested `stop_after=specify`.
+Decision confidence threshold stayed 0.93 and max_retries stayed 2.
+
+| Mode / EVAL | Published outcome | Completed SPECIFY wall time | Registered HITL interval | Optional decision |
+| --- | --- | ---: | ---: | --- |
+| Judge-only / `EVAL-20261007215922-3f305c54` | finished, cleanup settled | 497.314 s | 35.971 s | Disabled; native Judge directly |
+| JEV / `EVAL-20261007221049-f5a5fbce` | finished, cleanup settled | 488.692 s | 70.316 s | Three failed HTTP attempts, then native fallback |
+| OpenAI / `EVAL-20261007222514-8f0a65c9` | completed_with_failures, cleanup settled | Not completed | 61.020 s | One successful call, confidence 0.89; native fallback |
+
+Homes are `/Users/deksden/.dd-eval/qualification/cp-201-luna-judge-only`,
+`cp-201-luna-jev` and `cp-201-luna-openai-decisions`. Under each home, the exact
+run's `reports/report.json`, FLOW `timeline.jsonl`, and owned
+`executions/e2e/interaction-judge/specify-691d4030140e8fcce0e7/` directory retain
+the packet, native receipt, cleanup, and optional HTTP observation. UTC stage
+boundaries were 22:01:25.185–22:09:42.499 and 22:12:17.735–22:20:26.427 for the
+two completed stages. Third start was 22:26:27.405; no completion boundary exists.
+Execution wall times, including preparation and settlement, were 625.005,
+596.194 and 387.538 s. They are not completed-stage latency measurements.
+The completed runs took 119.022 and 85.240 s from execution start to stage attach;
+the third took 69.833 s. Those intervals include baseline/runtime preparation,
+not just model latency. Isolated baseline command timing is not separately
+published here and remains unknown; baseline PASS is retained for all three.
+
+JEV spent 19.499 s in HTTP, 4.188 s observed backoff (4.348 s scheduled),
+24.383 s total. All three original errors were `transport_or_response_invalid`;
+their precise phase cannot be recovered from the retained old diagnostics.
+No successful response/confidence/usage was observed there: usage is unknown,
+not zero. OpenAI took 1.983 s HTTP / 2.348 s total, no backoff, returned
+`gpt-6-luna`, P(uncovered)=0.11/confidence=0.89. Usage: 7,386 input/total tokens,
+zero output tokens. Below-threshold success was not resampled.
+
+All three native Judges returned a semantically defensible `covered` verdict
+for their respective original questions. Their model Turns took 8.717,
+10.082 and 10.291 s; native Judge token usage is not in these route receipts
+and remains unreported, rather than invented or mixed into Subject usage.
+Subject total tokens were 1,818,604 / 1,601,185 / 1,051,965 respectively;
+these native session counters include cache/reasoning context and are not cost
+estimates. Optional HTTP usage was kept separate.
+
+Independent read-only audit and main-agent checks confirmed exact canonical
+answer bytes (SHA256 `73a356907343343e42f97e7b8410508f2502916f0528378843365a43e7807f10`),
+packet/fixture/receipt binding and native Judge cleanup. Both completed targets
+had captured boundaries, stopped Subject Sessions, `stop_target_reached` and
+no successor Stage. The failed third correctly had target_reached=false and
+no candidate/stage boundary. No pilot had a confident fast-path acceptance;
+therefore the comparison demonstrates fallback/completion safety, **not**
+acceleration or classifier accuracy. Questions and Subject execution differ
+between attempts, so their whole-stage durations are not paired causal estimates.
+
+## Operational findings and bounded follow-up
+
+After the terminal JEV attempt, two explicitly declared standalone diagnostic
+requests were made outside scored routing: one tiny predicate and one retained
+packet. Both decoded normally (0.958 / 1.189 s). The real packet returned
+confidence 0.62, which would also require native fallback. These are not scored
+proof, do not explain the original three failures, and are excluded from the
+comparison. No original observations or route receipts were modified.
+
+Follow-up `f756ed4` replaces the broad error label with fixed failure phases,
+observed HTTP status and allowlisted native network codes. It does not retain
+messages, arbitrary bodies or credentials, change retry budgets, or reinterpret
+old evidence. Targeted routing/profile/HTTP checks passed 14/14; independent
+read-only review found no blocking issues.
+
+The third attempt exposed a separate existing engine blocker: after receiving
+the canonical answer, Subject wrote Q-004 about creating a task immediately
+closed and made a second `stage pause` using the same question-input path.
+At 22:31:02.420, the CLI returned successful `paused` with the **old HITL-001 and
+old Q-001–Q-003 text**, with no new pause timeline event. The native final at
+22:31:38.397 reported the stale result and stopped; controller correctly required
+recovery with `incomplete_subject_turn`. SQLite retained only one settled pause
+invocation, `df9ddd78-f71b-43db-83da-0b88976baa38`, in generation 0. Inspection of
+the retained engine's lifecycle code confirms public command fingerprint reuse;
+rendering reuses the settled assignment rather than issuing a fresh pause.
+The original question verdict remains correct: Q-004 was not in that packet.
+Possible ambiguity about closed-at-create needs its own canon review; it is not
+permission to manufacture a new product decision here.
+
+Engine pause authority/renewal is outside plan071's engine-change non-goal.
+Its systemic follow-up should issue a new pause assignment after settled resume,
+while preserving replay of the same invocation/intent, with a two-pause regression
+including changed bytes at the same input path. Do not fix it by replaying/resuming
+this historical attempt or weakening the incomplete-Turn check. No engine or
+product changes, extra scored attempts or repairs were made in this task.
+
+A secondary EVAL bug occurred after failed-terminal publication at 22:31:53.840:
+`case_acceptance_receipt_invalid`. The v4 checker correctly emitted
+`not_applicable` before any product check gate and omitted checkpoint identity;
+the reuse validator incorrectly required that field to equal the recovery hash.
+This is fixed at the shared receipt-reuse boundary: retain immutable hash/case
+validation and recompute the **complete** checker receipt, removing the redundant
+incompatible field check. Applicable checks still validate sealed manifest,
+ownership and payload hashes. A no-provider regression reproduces failure before
+the fix, verifies byte-stable repeated finalization afterward, and rejects a
+forged self-hashed `passed` receipt. Independent review confirms no weakened
+applicable checkpoint validation. Historical report/failure events remain intact.
+
+Final affected regression after both follow-ups: **98/98 PASS**, no failures,
+skips or cancellations, 114.375 s, using the same immutable beta.125 pair.
+Suites: runner-recovery, case-acceptance, runner-fork, completion-scope,
+semantic-decisions, semantic-routing and semantic-pilot-profiles. The new receipt
+regression failed with the exact live error before the shared validator fix.
+`git diff --check` passed. The earlier full 675-check result belongs to the core
+implementation; this is the final affected verification, not a claimed rerun of
+the whole suite. Independent reviews covered the follow-up code and all three
+retained semantic/HITL outcomes. No paid reruns were needed for native Judge
+qualification, or to prove the receipt reuse correction.
