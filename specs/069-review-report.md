@@ -101,8 +101,32 @@ installed engine SHA256
 Canon/flow-pack refs are unchanged. Strict build, typecheck and lint passed;
 the final targeted suite passed 32/32 without skips.
 
-Final full FLOW receipts and the final EVAL suite will be recorded below before
-completing integration.
+Final [native matrix proof](../checkpoints/cp-199-verification-matrix-qualification-review-final.json)
+SHA256 `e32702a5c9d6976725a87d81fa3209f6ac56b573a99c8e267a56fb6bd90a648f`.
+CP199 checkpoint SHA256
+`feb9dd426d5a2e345f6bcb56e0908109dc6e7502ed245d1ad9a8b16b54d635d6`
+is exactly the active case pin. The four-stage proof and exact installed-engine
+admission chain passed; pin/proof regressions passed 6/6 with no skips.
+Final committed EVAL `89ee6db` full suite: **614/614 PASS, zero skips**, with all
+installed-engine/runtime optional paths enabled; log:
+`/Users/deksden/.dd-eval/qualification/cp-199-candidate/eval-review-final-candidate-tests.log`.
+
+Final frozen FLOW receipts:
+
+- integration shards 978 + 498 + 393 + 352 = **2221/2221 PASS**;
+- union inventory: 128/128 files, all four integration projects, zero skips;
+- runtime-sensitive: **43/43 PASS**; release: **8/8 PASS**;
+- release-build self-tests: **2/2 PASS**;
+- receipt wrappers verified unchanged source/build identity and exited zero.
+
+Receipt root:
+`/Users/deksden/.dd-eval/qualification/cp-199-candidate/gates-review-final`.
+The complete snapshot suite includes the production CODE two-import witness;
+full offline controller cycles cover Luna/Grok/AGY/ZCode plus repair, overload
+and HITL. These are fixture-adapter cycles, not live model E2E acceptance.
+The release-candidate consumer smoke passed against the exact tarball; its local
+candidate receipt is `accepted` with the same installed engine checksum. This
+does not publish the package or promote CP199 as live accepted.
 
 ## Integration
 
@@ -111,5 +135,11 @@ Flow-pack PR 5 merged as `46cf007a9e8f33cf3d2d81634f42f751cf41e5a9`.
 Merge commits preserve selected/pinned source commits, including disclosed prior
 canon/pack dependencies. No product source was changed.
 
-FLOW review fix commit: `4088c0a` (PR 49). FLOW and EVAL integration remain pending
-the final gates. R9 live acceptance remains separately authorized work.
+FLOW [PR 49](https://github.com/deksden-com/dd-flow-cli/pull/49) merged as
+`2ba2ce2364705cf59fdc48bdd5dc5b37fb7cd784`; its tree exactly matches reviewed
+`b74ba81`, which remains an ancestor of main. EVAL
+[PR 53](https://github.com/deksden-com/dd-eval/pull/53) completes the remaining
+integration with this report. Implementation and offline review gates are
+complete; R8b closes when this PR merges. **R9 live acceptance is not executed**
+and remains separately authorized work. No old EVAL or accepted historical tuple
+was rewritten, no npm release/global installation was performed.

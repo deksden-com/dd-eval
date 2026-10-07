@@ -602,9 +602,9 @@ Judge inputs действительно изменились, dependency-based q
   gates, code review. Обновить execute/monitor runbooks новыми scope/evidence fields.
 - [x] R8a: коммиты/push/PR по [git workflow](../runbooks/git-workflow.md),
   verified immutable engine/canon/definition tuple и implementation report.
-- [ ] R8b: merge подготовленных PR после review и финальных gates. Пользователь
-  разрешил интеграцию через PR; main напрямую не меняется. Canon/pack уже
-  интегрированы; FLOW/EVAL ожидают завершения review.
+- [x] R8b: интеграция после review и финальных gates. Canon PR2, pack PR5 и
+  FLOW PR49 merged; этот пункт закрывается интеграцией EVAL PR53 с финальным
+  review report. Пользователь разрешил merge через PR; main напрямую не меняется.
 - [ ] R9: **отдельно разрешённая** живая приёмка нового E2E после R8; ни один старый
   EVAL не трогать. Этот planning turn R9 не выполняет и не запускает heartbeat.
 
