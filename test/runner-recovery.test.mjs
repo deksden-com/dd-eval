@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
 import { withRunnerLock } from "../lib/runner-lock.mjs";
-import { appendEvent, recordOperation, completeOperation, readEvents, reduceEvents, writeJsonAtomic, sha256 } from "../lib/runner-events.mjs";
+import { appendEvent, recordOperation, completeOperation, readEvents, reduceEvents, writeJsonAtomic, sha256, hashJson } from "../lib/runner-events.mjs";
 import { requestRunnerContinuation } from "../lib/eval-resume-worker.mjs";
 import { setTimeout as delay } from "node:timers/promises";
 
@@ -88,6 +88,37 @@ test("scored finalization after cleanup freezes the failed candidate and attempt
   assert.deepEqual(await readFile(path.join(root, "candidate.json")), candidate);
   assert.equal((await readEvents(eventsFile)).filter(event => event.type === "dev.dd.eval.operation.started" && event.data.operation_id === `${manifest.run_id}:e:launch`).length, 1);
   await assert.rejects(runnerFinalizeSettled({ ...args, expectedManifestSha256: "changed" }), { code: "runner_definition_drift" });
+});
+
+test("failed before the product gate reuses its not-applicable acceptance receipt despite a recovery checkpoint", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-acceptance-not-applicable-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const caseId = "sdlc-eval-2026-summer-task-priority";
+  const manifest = { run_id: "EVAL-acceptance-prefix", case_id: caseId,
+    executions: [{ id: "e", stage: "specify", terminal_stage: "specify", mode: "e2e" }], subject_profile: {},
+    case_acceptance: { checker: "task-priority@4", case_id: caseId }, profile: { judge: { enabled: false } } };
+  const manifestFile = path.join(root, "manifest.json"), eventsFile = path.join(root, "events.jsonl");
+  await writeJsonAtomic(manifestFile, manifest);
+  for (const type of ["started", "failed"]) await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: {
+    operation_id: `${manifest.run_id}:e:launch`, error: { code: "incomplete_subject_turn", message: "No stage completion" }
+  } });
+  await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: "dev.dd.eval.execution.failed", data: {
+    execution: "e", state: "failed", stage: "specify", code: "incomplete_subject_turn",
+    recovery: { recovery_id: "RCV-test", manifest_sha256: sha256("sealed recovery before any product check gate") }
+  } });
+  const args = { evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)) };
+  const first = await runnerFinalizeSettled(args);
+  const acceptance = first.executions[0].case_acceptance;
+  assert.equal(acceptance.receipt.status, "not_applicable");
+  assert.equal(acceptance.receipt.checkpoint_manifest_sha256, undefined);
+  const bytes = await readFile(acceptance.file);
+  assert.equal((await runnerFinalizeSettled(args)).state, "completed_with_failures");
+  assert.deepEqual(await readFile(acceptance.file), bytes);
+  // A self-consistent edited receipt is still rejected against the checker,
+  // even though not-applicable receipts intentionally have no checkpoint field.
+  const altered = { ...acceptance.receipt, status: "passed" }; delete altered.immutable_hash;
+  await writeJsonAtomic(acceptance.file, { ...altered, immutable_hash: hashJson(altered) });
+  await assert.rejects(runnerFinalizeSettled(args), { code: "case_acceptance_receipt_invalid" });
 });
 
 test("cleanup leaves queued executions and Judge undispatched", async () => {
