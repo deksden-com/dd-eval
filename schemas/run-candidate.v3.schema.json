@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/run-candidate@3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "run_id",
+    "manifest_sha256",
+    "outcome",
+    "executions",
+    "frozen_at",
+    "immutable_hash",
+    "completion_scope"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "dd-eval/run-candidate@3"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "outcome": {
+      "enum": [
+        "complete",
+        "incomplete"
+      ]
+    },
+    "frozen_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "immutable_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "parent_candidate_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "subject_history_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "executions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "execution",
+          "stage",
+          "run_id",
+          "session_id",
+          "outcome",
+          "reached_stage",
+          "failure",
+          "evidence_completeness",
+          "checkpoint"
+        ],
+        "properties": {
+          "execution": {
+            "type": "string",
+            "minLength": 1
+          },
+          "stage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "run_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "session_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outcome": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reached_stage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "failure": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "evidence_completeness": {
+            "enum": [
+              "checkpointed",
+              "partial",
+              "missing"
+            ]
+          },
+          "checkpoint": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "execution_operation_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "incomplete_evidence": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "recovery": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "case_acceptance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "file",
+              "sha256",
+              "status"
+            ],
+            "properties": {
+              "file": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "status": {
+                "enum": [
+                  "passed",
+                  "failed",
+                  "not_applicable",
+                  "unavailable"
+                ]
+              }
+            }
+          },
+          "completion_scope": {
+            "type": "object",
+            "required": [
+              "entry_stage",
+              "requested_stop_after",
+              "effective_terminal_stage",
+              "case_entry_stage",
+              "case_terminal_stage",
+              "requested_full_case",
+              "achieved_stage",
+              "stage_outcome",
+              "target_reached",
+              "full_case_completed",
+              "completion_reason"
+            ],
+            "properties": {
+              "execution": {
+                "type": "string"
+              },
+              "entry_stage": {
+                "type": "string"
+              },
+              "requested_stop_after": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "effective_terminal_stage": {
+                "type": "string"
+              },
+              "case_entry_stage": {
+                "type": "string"
+              },
+              "case_terminal_stage": {
+                "type": "string"
+              },
+              "requested_full_case": {
+                "type": "boolean"
+              },
+              "achieved_stage": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "stage_outcome": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "target_reached": {
+                "type": "boolean"
+              },
+              "full_case_completed": {
+                "type": "boolean"
+              },
+              "completion_reason": {
+                "enum": [
+                  "stop_after_reached",
+                  "stop_after_skipped",
+                  null
+                ]
+              },
+              "case_contour": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "completion_scope": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "entry_stage",
+          "requested_stop_after",
+          "effective_terminal_stage",
+          "case_entry_stage",
+          "case_terminal_stage",
+          "requested_full_case",
+          "achieved_stage",
+          "stage_outcome",
+          "target_reached",
+          "full_case_completed",
+          "completion_reason"
+        ],
+        "properties": {
+          "execution": {
+            "type": "string"
+          },
+          "entry_stage": {
+            "type": "string"
+          },
+          "requested_stop_after": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "effective_terminal_stage": {
+            "type": "string"
+          },
+          "case_entry_stage": {
+            "type": "string"
+          },
+          "case_terminal_stage": {
+            "type": "string"
+          },
+          "requested_full_case": {
+            "type": "boolean"
+          },
+          "achieved_stage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stage_outcome": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target_reached": {
+            "type": "boolean"
+          },
+          "full_case_completed": {
+            "type": "boolean"
+          },
+          "completion_reason": {
+            "enum": [
+              "stop_after_reached",
+              "stop_after_skipped",
+              null
+            ]
+          },
+          "case_contour": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

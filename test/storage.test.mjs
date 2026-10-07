@@ -18,6 +18,9 @@ test("storage enumerates terminal runs and GC deletes only its explicit plan", a
     const listed = await storageList({ caseId: "case-a" }); assert.equal(listed.runs.length, 1); assert.equal((await storageStatus()).runs.active.length, 0);
     const plan = await gcPlan(); assert.equal(plan.candidates.length, 1); assert.equal(JSON.parse(await readFile(plan.file, "utf8")).schema_id, "dd-eval/gc-plan@1");
     const eventFile = path.join(run, "events.jsonl"); const completed = await readFile(eventFile, "utf8");
+    await writeFile(eventFile, completed.replace('"state":"completed"', '"state":"finished"'));
+    assert.deepEqual((await storageStatus()).runs.active, []);
+    assert.equal((await gcPlan()).candidates[0].reason, "terminal_finished");
     await writeFile(eventFile, completed.replace('"state":"completed"', '"state":"completed_with_failures"'));
     assert.equal((await gcPlan()).candidates.length, 0);
     await assert.rejects(gcApply({ planFile: plan.file }), /no longer disposable/);

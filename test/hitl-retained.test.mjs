@@ -6,7 +6,8 @@ import path from 'node:path';
 import { hashJson, sha256 } from '../lib/runner-events.mjs';
 import { verifyRetainedHitl } from '../lib/hitl-retained.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
-import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
+import { buildHitlPacket, validateGroundedHitl, hitlCoverageContract } from '../lib/hitl-contract.mjs';
+import { semanticQuestion } from '../lib/semantic-decisions.mjs';
 
 async function retained(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'hitl-retained-'));
@@ -101,4 +102,47 @@ test('historical duplicated response IDs cannot repeat canonical answer bytes', 
   const answer = 'Normal\r\nunchanged\n\nNormal\r\nunchanged';
   await writeFile(data.answer_file, answer);
   await assert.rejects(verifyRetainedHitl({ data: { ...data, response_ids: ['default', 'default'], answer_sha256: sha256(answer) }, legacy: true, historical: true }), { code: 'judge_evidence_mismatch' });
+});
+
+test('semantic route replay binds normalized observation and exact canonical bytes without native cleanup', async t => {
+  const { root, data: oldData, packet: oldPacket } = await retained(t);
+  const packet = await buildHitlPacket({ stage: 'SPECIFY', question: 'Which default?', responses: oldPacket.responses, verdictContract: hitlCoverageContract });
+  packet.hitl_binding = { stage: 'SPECIFY', round: 1, pause_id: 'pause', scope_id: 'e2e' };
+  const policy = { enabled: true, provider: 'openai-decisions', model: 'gpt-6-luna', min_confidence: 0.93, max_retries: 2 };
+  const dependency = 'a'.repeat(64), evalRunId = 'EVAL-retained';
+  const fixtureHash = 'b'.repeat(64);
+  const sourceBinding = { packet_sha256: hashJson(packet), fixture_sha256: fixtureHash, operation_id: 'retained-op', generation: 1 };
+  const response = { schema_id: 'dd-eval/semantic-answer@1', answers: [{ id: 'uncovered', status: 'answered', value: false, probability_true: 0.07, confidence: 1 - 0.07 }],
+    metadata: { provider: 'OpenAI', requested_model: 'gpt-6-luna', returned_model: 'gpt-6-luna', resolved_snapshot: null, request_id: null, usage: {} } };
+  const observation = { schema_id: 'dd-eval/semantic-observation@1', identity: { binding: packet.hitl_binding, source_binding: sourceBinding, eval_run_id: evalRunId,
+    request_sha256: hashJson(semanticQuestion(packet)), policy_sha256: hashJson(policy), dependency_sha256: dependency }, state: 'completed',
+    attempts: [{ ordinal: 1, token: 'retained-owner', owner_pid: 1, owner_started: 'retained-start', dispatched_at: '2026-10-07T12:00:00Z',
+      finished_at: '2026-10-07T12:00:01Z', state: 'completed', response, response_sha256: hashJson(response) }], response, response_sha256: hashJson(response) };
+  const verdict = { schema_id: hitlCoverageContract, status: 'covered', response_ids: ['default'], uncovered_questions: [] };
+  const receipt = { schema_id: 'dd-eval/hitl-coverage-route@2', decision_source: 'semantic_decision', stage: 'SPECIFY', eval_run_id: evalRunId,
+    interaction_fixture_sha256: fixtureHash, source_binding: sourceBinding, packet_sha256: hashJson(packet), policy, policy_sha256: hashJson(policy), dependency_sha256: dependency,
+    observation_sha256: hashJson(observation), verdict, answer_sha256: sha256(packet.responses[0].answer), delimiter: 'dd-eval/hitl-response-delimiter@1' };
+  await writeFile(path.join(root, 'packet.json'), JSON.stringify(packet));
+  await writeFile(path.join(root, 'semantic-observation.json'), JSON.stringify(observation));
+  await writeFile(oldData.receipt_file, JSON.stringify(receipt));
+  await rm(path.join(root, 'cleanup.json'));
+  const data = { stage: 'SPECIFY', round: 1, pause_id: 'pause', scope_id: 'e2e', eval_run_id: evalRunId, decision_source: 'semantic_decision',
+    response_ids: ['default'], receipt_file: oldData.receipt_file, answer_file: oldData.answer_file, answer_sha256: receipt.answer_sha256,
+    receipt_sha256: sha256(await readFile(oldData.receipt_file)), packet_sha256: hashJson(packet), verdict_contract: hitlCoverageContract };
+  const read = changed => verifyRetainedHitl({ data: { ...data, ...changed }, fixture: { responses: packet.responses, sha256: fixtureHash }, expectedEvalId: evalRunId });
+  const retainedProof = await read();
+  assert.equal(retainedProof.answer, 'Normal\r\nunchanged'); assert.equal(retainedProof.cleanup, null);
+  assert.equal(retainedProof.judge_session_id, undefined);
+  for (const changed of [{ judge_profile: 'forged' }, { judge_session_id: 'forged' }, { eval_run_id: 'other' }, { decision_source: 'jev' }, { round: 2 }, { receipt_sha256: 'changed' }]) {
+    await assert.rejects(read(changed), { code: 'judge_evidence_mismatch' });
+  }
+  const saveReceipt = async changed => { await writeFile(oldData.receipt_file, JSON.stringify({ ...receipt, ...changed })); return { receipt_sha256: sha256(await readFile(oldData.receipt_file)) }; };
+  for (const changed of [{ policy_sha256: 'changed' }, { dependency_sha256: 'b'.repeat(64) }, { observation_sha256: 'changed' }, { interaction_fixture_sha256: 'other' }, { session_id: 'forged' }, { delimiter: 'changed' }]) {
+    await assert.rejects(read(await saveReceipt(changed)), { code: 'judge_evidence_mismatch' });
+  }
+  await saveReceipt({});
+  const forged = structuredClone(observation); forged.response.answers[0].confidence = 1;
+  forged.response_sha256 = hashJson(forged.response); forged.attempts[0].response_sha256 = forged.response_sha256;
+  await writeFile(path.join(root, 'semantic-observation.json'), JSON.stringify(forged));
+  await assert.rejects(read(await saveReceipt({ observation_sha256: hashJson(forged) })), { code: 'judge_evidence_mismatch' });
 });

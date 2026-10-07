@@ -1,0 +1,305 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/report@4",
+  "type": "object",
+  "required": [
+    "schema_id",
+    "run_id",
+    "state",
+    "execution_state",
+    "cleanup_state",
+    "run_validity",
+    "executions",
+    "completion_scope",
+    "semantic_decisions"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "dd-eval/report@4"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "methodology": {
+      "type": "object"
+    },
+    "state": {
+      "type": "string"
+    },
+    "execution_state": {
+      "type": "string"
+    },
+    "cleanup_state": {
+      "type": "string"
+    },
+    "run_validity": {
+      "type": "string"
+    },
+    "reliability": {
+      "type": "string"
+    },
+    "recovery_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "execution_history": {
+      "type": "array"
+    },
+    "recoveries": {
+      "type": "array"
+    },
+    "manifest": {
+      "type": "string"
+    },
+    "executions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "observability": {
+      "type": "object"
+    },
+    "judge_status": {
+      "type": "string"
+    },
+    "judge_error": {
+      "type": "object"
+    },
+    "judge_provider_limit": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "observed_at",
+        "provider_session_id",
+        "reset_at",
+        "reset_source",
+        "retry_after_at"
+      ],
+      "properties": {
+        "category": {
+          "enum": [
+            "provider_quota",
+            "provider_rate_limit",
+            "provider_limit_unknown"
+          ]
+        },
+        "observed_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provider_session_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reset_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reset_source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retry_after_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reset_estimated": {
+          "type": "boolean"
+        },
+        "reset_basis": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "judge_cleanup": {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "settled",
+            "failed",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "candidate": {
+      "type": "object"
+    },
+    "judge": {
+      "type": "object"
+    },
+    "case_acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "executions"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "passed",
+            "failed",
+            "not_applicable",
+            "unavailable"
+          ]
+        },
+        "executions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "execution",
+              "status",
+              "receipt_file"
+            ],
+            "properties": {
+              "execution": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "passed",
+                  "failed",
+                  "not_applicable",
+                  "unavailable"
+                ]
+              },
+              "receipt_file": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "interaction_resolution": {
+      "enum": [
+        "resolved",
+        "unresolved",
+        "not_requested"
+      ]
+    },
+    "hitl_coverage_policy": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "completion_scope": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "entry_stage",
+          "requested_stop_after",
+          "effective_terminal_stage",
+          "case_entry_stage",
+          "case_terminal_stage",
+          "requested_full_case",
+          "achieved_stage",
+          "stage_outcome",
+          "target_reached",
+          "full_case_completed",
+          "completion_reason"
+        ],
+        "properties": {
+          "execution": {
+            "type": "string"
+          },
+          "entry_stage": {
+            "type": "string"
+          },
+          "requested_stop_after": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "effective_terminal_stage": {
+            "type": "string"
+          },
+          "case_entry_stage": {
+            "type": "string"
+          },
+          "case_terminal_stage": {
+            "type": "string"
+          },
+          "requested_full_case": {
+            "type": "boolean"
+          },
+          "achieved_stage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stage_outcome": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target_reached": {
+            "type": "boolean"
+          },
+          "full_case_completed": {
+            "type": "boolean"
+          },
+          "completion_reason": {
+            "enum": [
+              "stop_after_reached",
+              "stop_after_skipped",
+              null
+            ]
+          },
+          "case_contour": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "semantic_decisions": {
+      "type": [
+        "object",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

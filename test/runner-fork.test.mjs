@@ -89,7 +89,7 @@ const write = (file, value) => {fs.mkdirSync(path.dirname(file),{recursive:true}
 const project = path.join(c.output,'executions/e2e/project'), runHome=path.join(c.output,'executions/e2e/dd-flow-home/run');
 const managedFile=c.output+'/executions/e2e/managed-runtime.json';
 const runtimeProcess = () => { const pid=Number(a.includes('--pid')?get('--pid'):null)||process.pid, budget=a.includes('--budget-json')?JSON.parse(get('--budget-json')):{schema_id:'dd-flow/runtime-budget@1',scope_id:'x',per_harness:{}}; return {id:'PROC-fake',lease_token:'lease-fake',kind:'eval-observer',owner_id:(a.includes('--owner')?get('--owner'):null)||process.env.DD_EVAL_RUN_ID||'EVAL-fake',operation_id:(a.includes('--operation')?get('--operation'):null)||'',pid,pid_started_at:execFileSync('ps',['-o','lstart=','-p',String(pid)],{encoding:'utf8'}).trim(),state:'running',metadata_json:JSON.stringify({role:'observer',dd_flow_home:process.env.DD_FLOW_HOME,process_group_id:pid,budget})}; };
-const controller = {controller_id:'DRV-fake',run_id:'RUN-fake',request_id:fs.existsSync(c.output+'/launch')?fs.readFileSync(c.output+'/launch','utf8'):'none',stage:'code',status:'stop_target_reached',sessions:[],runtime_budget:fs.existsSync(managedFile)?JSON.parse(fs.readFileSync(managedFile)).runtime_budget:null};
+const controller = {controller_id:'DRV-fake',run_id:'RUN-fake',request_id:fs.existsSync(c.output+'/launch')?fs.readFileSync(c.output+'/launch','utf8'):'none',stage:c.stopAfter||'code',status:'stop_target_reached',sessions:[],runtime_budget:fs.existsSync(managedFile)?JSON.parse(fs.readFileSync(managedFile)).runtime_budget:null};
 const captured = stage => {const file=c.output+'/capture-'+stage+'/snapshot.json';write(file,{purpose:'stage_entry',stage_entry:stage==='plan-review'?'code':'code-review'});return {stage,manifest:file,manifest_sha256:require('node:crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex')};};
 if(a[0]==='engine') out(a[1]==='resolve'?{selection:{selected:c.engine}}:{engine:c.engine});
 else if(a[0]==='runtime' && a[1]==='process') out(a[2]==='status'?{processes:[]}:a[2]==='heartbeat'?{ok:true,process_id:'PROC-fake',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)}:a[2]==='check-admission'?{ok:true,admitted:true,process_id:'PROC-fake'}:a[2]==='finish'?{ok:true}:{process:runtimeProcess()});
@@ -104,6 +104,7 @@ else if(a[0]==='run' && a[1]==='fork') {
   if(c.fault==='lost' && !fs.existsSync(c.output+'/lost')) {fs.writeFileSync(c.output+'/lost','yes');out({ok:false,error:{code:'rpc_timeout',message:'lost observer reply'}});return;}
   const done=fs.existsSync(c.output+'/code'), after=Number(get('--after')||0);
   const first={sequence:1,type:'boundary_captured',data:captured('plan-review')};
+  if(c.stopAfter==='plan-review') {out({controller,events:after<1?[first]:[]});return;}
   if(['boundary','unsettled'].includes(c.fault) && !fs.existsSync(c.output+'/stopped')) fs.writeFileSync(c.fixture,'{}');
   const events=done?[first,{sequence:2,type:'context_required',data:{stage:'code',attempt:1}},{sequence:3,type:'boundary_captured',data:captured('code')}]:[first,{sequence:2,type:'context_required',data:{stage:'code',attempt:1}}];
   out({controller:{...controller,status:done?'stop_target_reached':'waiting_for_context'},events:events.filter(e=>e.sequence>after)});
@@ -112,7 +113,7 @@ else if(a[0]==='run' && a[1]==='fork') {
   const settled=c.fault!=='unsettled';const capture=c.output+'/recovery';write(capture+'/snapshot.json',{consistency:'sealed_writer_barrier_required'});
   out({scope:{run_id:'RUN-fake'},settled,control:{current:true,control_id:'CTL-fake',recovery_id:'REC-fake',admission:'sealed',capture_path:capture,generation:1,settlement:{settled}}});
 } else if(a[0]==='run' && a[1]==='list') out({runs:[{id:'RUN-fake'}]});
-else if(a[0]==='run' && a[1]==='status') out({run:{workspace_root:project,run_root:runHome},index:{stage_runs:[{stage:'plan-review',status:'done'},{stage:'code',status:fs.existsSync(c.output+'/code')?'done':'pending'}]}});
+else if(a[0]==='run' && a[1]==='status') out({run:{workspace_root:project,run_root:runHome},index:{stage_runs:[{stage:'plan-review',status:c.stageOutcome||'done'},{stage:'code',status:fs.existsSync(c.output+'/code')?'done':'pending'}]}});
 else if(a[0]==='stat') out({});
 else throw Error('unexpected command '+JSON.stringify(a));
 `);
@@ -169,6 +170,42 @@ test('completed fork replay does not require its archived source checkpoint', as
   assert.equal(replay.run_id, ready.run_id);
   assert.equal(replay.status, 'ready');
   await assert.rejects(f.runner.runnerFork({ ...f.input, requestId: 'another-request' }), { code: 'fork_request_conflict' });
+});
+
+for (const outcome of ['done', 'skipped']) test(`profile@2 controller stop finishes a bounded fork with ${outcome}, without successor dispatch`, async t => {
+  const f = await setup(t);
+  f.source.profile.schema_id = 'dd-eval/run-profile@2';
+  f.source.profile.selection.stop_after = 'plan-review';
+  f.source.executions[0].terminal_stage = 'plan-review';
+  f.source.executions[0].completion_scope = { entry_stage: 'plan-review', requested_stop_after: 'plan-review', effective_terminal_stage: 'plan-review', case_entry_stage: 'plan-review', case_terminal_stage: 'code', requested_full_case: false };
+  await write(path.join(f.sourceRoot, 'manifest.json'), f.source);
+  await write(f.configFile, { ...JSON.parse(await readFile(f.configFile)), stopAfter: 'plan-review', stageOutcome: outcome });
+  await f.runner.runnerFork({ ...f.input, start: true });
+  const status = await waitForState(f.runner, f.output, ['finished']);
+  assert.equal(status.execution_results[0].stage, 'plan-review');
+  assert.equal(status.execution_results[0].completion_scope.stage_outcome, outcome);
+  const report = JSON.parse(await readFile(path.join(f.output, 'reports/report.json')));
+  assert.equal(report.schema_id, 'dd-eval/report@4');
+  assert.equal(report.completion_scope[0].completion_reason, outcome === 'done' ? 'stop_after_reached' : 'stop_after_skipped');
+  assert.equal(report.candidate.schema_id, 'dd-eval/run-candidate@3');
+  assert.equal(report.completion_scope[0].full_case_completed, false);
+  const calls = (await readFile(f.callsFile, 'utf8')).trim().split('\n').map(JSON.parse);
+  assert.equal(calls.filter(a => a[1] === 'drive' && a[2] === 'launch').length, 1);
+  assert.equal(calls.filter(a => a[1] === 'drive' && a[2] === 'context').length, 0);
+  const launch = calls.find(a => a[1] === 'drive' && a[2] === 'launch');
+  assert.equal(launch[launch.indexOf('--stop-after') + 1], 'plan-review');
+  await assert.rejects(f.runner.runnerResume({ evalRoot: f.output }), { code: 'execution_terminal' });
+});
+
+test('fork rejects a successor checkpoint beyond its retained stop target before output creation', async t => {
+  const f = await setup(t);
+  f.source.profile.schema_id = 'dd-eval/run-profile@2';
+  f.source.profile.selection.stop_after = 'plan-review';
+  f.source.executions[0].terminal_stage = 'plan-review';
+  await write(path.join(f.sourceRoot, 'manifest.json'), f.source);
+  await write(path.join(f.sourceRoot, 'executions/e2e/boundaries', f.input.from, 'snapshot.json'), { purpose: 'stage_entry', stage_entry: 'code' });
+  await assert.rejects(f.runner.runnerFork(f.input), { code: 'fork_checkpoint_invalid' });
+  await assert.rejects(stat(f.output), { code: 'ENOENT' });
 });
 
 test('boundary callback failure retains primary error, stops the RUN and finalizes failure', async t => {

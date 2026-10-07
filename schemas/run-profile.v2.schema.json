@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/run-profile@2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "id", "case_id", "subject", "selection", "judge", "concurrency", "failure_policy"],
+  "properties": {
+    "schema_id": {"const": "dd-eval/run-profile@2"},
+    "id": {"type": "string", "minLength": 1},
+    "case_id": {"type": "string", "minLength": 1},
+    "operational_decision": {"$ref": "run-profile@1#/properties/operational_decision"},
+    "subject": {"$ref": "run-profile@1#/properties/subject"},
+    "judge": {"$ref": "run-profile@1#/properties/judge"},
+    "interaction_judge": {"$ref": "run-profile@1#/properties/interaction_judge"},
+    "concurrency": {"$ref": "run-profile@1#/properties/concurrency"},
+    "failure_policy": {"$ref": "run-profile@1#/properties/failure_policy"},
+    "selection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["focused_stages", "segment", "e2e", "repetitions"],
+      "properties": {
+        "focused_stages": {"type": "array", "items": {"type": "string"}},
+        "segment": {"type": ["object", "null"]},
+        "e2e": {"type": "boolean"},
+        "repetitions": {"type": "integer", "minimum": 1},
+        "stop_after": {"enum": ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]}
+      }
+    },
+    "semantic_decisions": {
+      "oneOf": [
+        {"type": "object", "additionalProperties": false, "required": ["enabled"], "properties": {"enabled": {"const": false}}},
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["enabled", "provider", "model", "min_confidence", "max_retries"],
+          "properties": {
+            "enabled": {"const": true},
+            "provider": {"enum": ["openrouter-decisions", "openai-decisions"]},
+            "model": {"type": "string", "minLength": 1},
+            "min_confidence": {"type": "number", "exclusiveMinimum": 0.5, "maximum": 1},
+            "max_retries": {"type": "integer", "minimum": 0, "maximum": 2}
+          },
+          "allOf": [
+            {"if": {"properties": {"provider": {"const": "openai-decisions"}}}, "then": {"properties": {"model": {"const": "gpt-6-luna"}}}},
+            {"if": {"properties": {"provider": {"const": "openrouter-decisions"}}}, "then": {"properties": {"model": {"const": "typesafe/jev-1.13"}}}}
+          ]
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {"if": {"required": ["semantic_decisions"]}, "then": {"properties": {"interaction_judge": {"not": {"required": ["coverage_policy"]}}}}}
+  ]
+}
