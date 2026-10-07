@@ -50,9 +50,30 @@ or modification of a running/historical EVAL was made.
 ## Verification
 
 The review regressions use synthetic responses and isolated temporary runtimes;
-they do not contact a model. Full paired-suite results are recorded below after
-completion. Reproduction uses the same environment as the
-[implementation receipt](plan-070-implementation-receipt.md).
+they do not contact a model. Verification on 2026-10-07:
+
+- Full paired discovery: **645 PASS, 0 failures/cancellations/skips**, 950 seconds.
+  It started before the last reattach/preflight regressions were added; the
+  subsequent targeted runs cover those final additions and changed paths.
+- Final coverage/qualification/transport/report/replay/reliability selection:
+  **80 PASS, 0 failures/skips** (23 seconds).
+- Final authored-input/qualification/cancellation selection, after moving the
+  semantic duplicate check before native dispatch: **6 PASS, 0 failures/skips**
+  (51 seconds). These selections overlap; their counts are not additive.
+- Actual authored shadow corpus: 41 valid distinct semantic inputs, no dispatch.
+- `git diff --check` clean. Review source commits: `093b439`, `a76e555`.
+
+The full paired run uses the environment from the
+[implementation receipt](plan-070-implementation-receipt.md). Targeted checks:
+
+```sh
+node --test test/hitl-coverage-qualification-review.test.mjs \
+  test/hitl-coverage-transport-review.test.mjs \
+  test/hitl-coverage-report-review.test.mjs test/hitl-reattach-review.test.mjs \
+  test/hitl-coverage.test.mjs test/e2e-reliability.test.mjs \
+  test/hitl-retained.test.mjs test/hitl-corpus.test.mjs
+node --test test/hitl-coverage-qualification-review.test.mjs
+```
 
 ## Acceptance boundary
 
