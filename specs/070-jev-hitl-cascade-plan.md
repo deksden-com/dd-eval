@@ -1,6 +1,10 @@
 # 070 — JEV → compact Interaction Judge
 
 Status: opt-in implementation completed; deterministic verification passed.
+Post-implementation review found and repaired qualification first-use locking,
+in-flight HTTP cancellation, semantic held-out identity/request reuse and
+retained coverage reporting/recovery defects; see
+[`plan-070-review-receipt.md`](../runbooks/plan-070-review-receipt.md).
 Live compact qualification produced 41 matching statuses/response sets; semantic
 review of 20 negative answers is awaiting reviewer authorization. JEV calibration,
 held-out acceptance and cascade promotion are therefore not yet completed.
