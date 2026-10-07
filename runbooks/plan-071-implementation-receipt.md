@@ -34,8 +34,30 @@ successor dispatch, finished resume rejection, canonical HTTP issuance/replay,
 native qualification-key stability, and both plugin codecs. No paid calls.
 `git diff --check` passed.
 
-Paired full regression verification and integration results will be added after
-the committed-tree checks. Operational acceptance is separate: three sequential
+Full paired regression on the committed tree: **675 PASS, zero failures,
+skips or cancellations**, 544.3 seconds. Command: `node --test
+--test-concurrency=1`, with `DD_FLOW_SOURCE_ROOT` naming dd-flow-cli and both
+`DD_EVAL_TEST_FLOW_CLI` / `DD_EVAL_TEST_OPERATIONAL_RUNTIME` naming the immutable
+checkpoint engine beta.125 captured by CP-199. The first run used the unrelated
+source checkout's CLI and encountered its missing local `semver` dependency;
+it is not a regression result for the pinned engine. No dependencies or source
+files in that checkout were modified.
+
+Final independent read-only review found no blocking findings; its supplemental
+completion/routing/fork checks passed **27/27**, zero skips.
+
+Native compact Judge qualification key
+`16ffa91a7a836d3c9dae4e7ff895d82ed3fb05ce19f0a091822fcb8ed96e61f3`
+passed through the normal `runner definition qualify` entrypoint: **41 reused
+cases, zero native calls**. Twenty negative observations received separate
+hash-bound semantic review sidecars after main-agent and independent review of
+the original questions, verdicts and source contexts. Original native outcomes
+were not rewritten and no repeated calls were made to obtain PASS.
+
+Implementation commit: `d6ccdb4`, pushed to `feat/071-semantic-decisions`;
+integration PR: [#57](https://github.com/deksden-com/dd-eval/pull/57).
+
+Operational acceptance is separate: three sequential
 SPECIFY-only profiles use Subject gpt-6-luna/xhigh, Interaction Judge
 gpt-6.1-sol/high, threshold 0.93, max_retries 2, Final Judge disabled.
 Normal preflight must admit the native fallback before any scored run.
