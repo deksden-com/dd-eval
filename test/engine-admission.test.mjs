@@ -8,6 +8,36 @@ import os from "node:os";
 import path from "node:path";
 import { assertCheckpointEngine, assertVerificationMatrixQualification, engineArtifactDigest, verifyEngineArtifact } from "../lib/engine-admission.mjs";
 import { verificationMatrixFingerprint, validateVerificationMatrixAuthority } from "../lib/case-acceptance.mjs";
+import { operationalDecisionFor, materializeOperationalDecision, loadOperationalContract } from "../lib/operational-decision.mjs";
+
+test("operational declarations bind logical launch scope without inventing acceptance", async () => {
+  const source = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-server-merge-luna-xhigh.json", import.meta.url)));
+  const declaration = source.operational_decision;
+  const first = operationalDecisionFor(declaration, { projectRoot: "/owned/project", evalId: "EVAL-1", executionId: "e2e" });
+  const second = operationalDecisionFor(declaration, { projectRoot: "/relocated/project", evalId: "EVAL-2", executionId: "e2e" });
+  assert.equal(first.declaration.bytes, JSON.stringify(declaration));
+  assert.equal(first.declaration.sha256, second.declaration.sha256);
+  assert.notDeepEqual(first.scope, second.scope);
+  assert.equal(declaration.scope, undefined, "source declaration is not mutated");
+  assert.throws(() => operationalDecisionFor({ ...declaration, acceptance: {} }, { projectRoot: "/owned", evalId: "EVAL-1", executionId: "e2e" }), { code: "operational_decision_invalid" });
+  const root = await mkdtemp(path.join(os.tmpdir(), "operational-admission-"));
+  try {
+    await mkdir(path.join(root, ".memory-bank/dd-flow"), { recursive: true });
+    const file = path.join(root, ".memory-bank/dd-flow/project-execution.json");
+    await writeFile(file, JSON.stringify({ schema_id: "dd-flow/project-execution@2" }));
+    assert.equal(await materializeOperationalDecision({ projectRoot: root, runtimeRoot: root }), null, "ordinary retained @2 has no new approval gate");
+    await assert.rejects(materializeOperationalDecision({ declaration, projectRoot: root, runtimeRoot: root, evalId: "EVAL-1", executionId: "e2e" }), { code: "operational_contract_unsupported" });
+    await writeFile(file, JSON.stringify({ schema_id: "dd-flow/project-execution@3" }));
+    assert.equal(await materializeOperationalDecision({ projectRoot: root, runtimeRoot: root }), null, "ordinary retained @3 relies on its selected-engine structural preparation, not new decision approval");
+    await writeFile(file, JSON.stringify({ schema_id: "dd-flow/project-execution@3", operational_decision: declaration }));
+    await assert.rejects(materializeOperationalDecision({ projectRoot: root, runtimeRoot: root }), { code: "operational_contract_unsupported" });
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("selected real published engine exports the operational contract", { skip: !process.env.DD_EVAL_TEST_OPERATIONAL_RUNTIME }, async () => {
+  const contract = await loadOperationalContract(path.resolve(process.env.DD_EVAL_TEST_OPERATIONAL_RUNTIME));
+  assert.equal(contract.RUN_OPERATIONAL_DECISION_CONTRACT, "run-operational-decision@1");
+});
 
 test("frozen native contracts preserve normalized inputs, resolved prompts and cross-gate exact-input reuse", () => {
   const hash = value => createHash("sha256").update(value).digest("hex");
@@ -77,6 +107,7 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
   const root = await mkdtemp(path.join(os.tmpdir(), "matrix-admission-"));
   const hash = bytes => createHash("sha256").update(bytes).digest("hex");
   const policy = { checker: "task-priority@3" };
+  await assert.rejects(assertVerificationMatrixQualification({}, {}, { checker: "task-priority@4" }), { code: "verification_matrix_qualification_missing" });
   try {
     const put = async (file, value) => { const bytes = typeof value === "string" ? value : JSON.stringify(value); await writeFile(path.join(root, file), bytes); return { path: file, sha256: hash(bytes) }; };
     const canon = { version: "4.1.2", commit: "c".repeat(40) };

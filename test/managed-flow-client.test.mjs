@@ -4,6 +4,24 @@ import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { observeManagedRun } from "../lib/managed-flow-client.mjs";
+
+for (const callback of ['onEvent', 'answerFor']) for (const retainedDetails of [false, true]) test(`callback ${callback} retains last observed owner without replacing primary error (${retainedDetails ? 'existing evidence' : 'new evidence'})`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-callback-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs');
+  const controller = { controller_id: 'DRV', status: callback === 'answerFor' ? 'waiting_for_user' : 'running', stage: 'plan', sessions: [{ session_id: 'native', journal: path.join(root, 'native.jsonl') }] };
+  await writeFile(bin, `const args=process.argv.slice(2);console.log(JSON.stringify(args[1]==='status'?{index:{stage_runs:[{stage:'plan',status:'paused',pause:{id:'pause'}}]}}:${JSON.stringify({ controller, events: [{ sequence: 1, type: 'session_created', data: {} }] })}));`);
+  const existingController = { controller_id: 'original-error-owner' }, existingObservation = { cursor: 42, provenance: 'existing' };
+  const primary = Object.assign(new Error('callback failed'), { code: 'fixture_gap', details: { cause: { code: 'original' }, ...(retainedDetails ? { controller: existingController, observation: existingObservation } : {}) } });
+  await assert.rejects(observeManagedRun({ bin, projectRoot: root, runId: 'RUN', controllerId: 'DRV', requestId: 'request', [callback]: async () => { throw primary; } }), error => {
+    assert.equal(error, primary);
+    assert.deepEqual(error.details.controller, retainedDetails ? existingController : controller);
+    assert.equal(error.details.cause.code, 'original');
+    assert.equal(error.details.observation.provenance, retainedDetails ? 'existing' : 'last_validated_observation');
+    assert.equal(error.details.observation.cursor, retainedDetails ? 42 : callback === 'onEvent' ? 0 : 1);
+    return true;
+  });
+});
 import { recordOperation, readEvents, reduceEvents, completeOperation } from "../lib/runner-events.mjs";
 import { executionState } from "../lib/execution-state.mjs";
 

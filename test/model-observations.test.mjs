@@ -11,6 +11,28 @@ import { pathToFileURL } from 'node:url';
 
 async function fixture(t) { const root = await mkdtemp(path.join(os.tmpdir(), 'model-observations-')); t.after(() => rm(root, { recursive: true, force: true })); return { root, journal: path.join(root, 'native.jsonl') }; }
 
+test('canonical inventory suppresses guessed legacy paths and requires exact harness/session coverage', async t => {
+  const { root, journal } = await fixture(t);
+  await appendFile(journal, '');
+  await appendFile(modelObservationFile(journal), `${JSON.stringify({ harness: 'zcode-acp', session_id: 'same', observed: { model: 'known' } })}\n`);
+  const observations = { schema_id: 'dd-flow/run-observations@1', home: root, sources: [
+    { path: 'native.jsonl', provenance: 'current', session: { harness: 'zcode-acp', session_id: 'same' } },
+    { path: 'missing.jsonl', provenance: 'inherited', session: { harness: 'grok-acp', session_id: 'same' } }
+  ], tools: { completeness: 'complete', outcome_completeness: 'complete' } };
+  const resolved = await resolveEvidenceJournals({ attempt: path.join(root, 'attempt'), statistics: { usage: { observations } } });
+  assert.equal(resolved.journals.length, 2);
+  assert.ok(!resolved.journals.some(source => source.journal?.includes('subject.events')));
+  assert.equal(resolved.attribution.observation_completeness, 'incomplete');
+  assert.equal(resolved.tools.status, 'complete', 'tool counters do not prove model coverage');
+  const malformed = await resolveEvidenceJournals({ attempt: root, statistics: { usage: { observations: { schema_id: 'future' } } } });
+  assert.deepEqual(malformed.journals.map(item => item.reason), ['canonical_inventory_invalid']);
+  for (const sources of [{ bad: 'not an array' }, [null], ['not a source']]) {
+    const malformed = await resolveEvidenceJournals({ attempt: root, statistics: { usage: { observations: { schema_id: 'dd-flow/run-observations@1', home: root, sources } } } });
+    assert.deepEqual(malformed.journals.map(item => item.reason), ['canonical_inventory_invalid']);
+    assert.equal(malformed.attribution.observation_completeness, 'incomplete');
+  }
+});
+
 test('canonical inventory carries inherited journals without adding legacy aggregates', async t => {
   const { root, journal } = await fixture(t);
   await appendFile(journal, '');

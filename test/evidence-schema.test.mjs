@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import Ajv2020 from "ajv/dist/2020.js";
-import { buildEvidencePacket, buildReport, buildRunCandidate, validateHitlMatch, resolveHitlJudgment, isInfrastructureFailure, failureAttribution, failureDiagnostic, failureEvidenceRevision } from "../lib/runner.mjs";
+import { buildEvidencePacket, buildReport, buildRunCandidate, frozenCandidate, subjectHistoryEvents, validateHitlMatch, resolveHitlJudgment, isInfrastructureFailure, failureAttribution, failureDiagnostic, failureEvidenceRevision } from "../lib/runner.mjs";
+import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
 
 const schemaRoot = path.resolve(import.meta.dirname, "..", "schemas");
@@ -11,6 +13,53 @@ async function validator(file) {
   const schema = JSON.parse(await readFile(path.join(schemaRoot, file), "utf8"));
   return new Ajv2020({ allErrors: true }).compile(schema);
 }
+
+test('report and Judge use one subject event cut, retain recovery and never double-count usage', async () => {
+  const manifest = { run_id: 'EVAL-history', executions: [{ id: 'e' }] };
+  const launch = `${manifest.run_id}:e:launch`, recovery = `${launch}:recover:RCV-one`;
+  const event = (id, type, operation_id, data = {}) => ({ id, executionid: 'e', type: `dev.dd.eval.${type}`, time: '2026-10-07T00:00:00Z', data: { operation_id, ...data } });
+  const subject = [event('s1', 'operation.started', launch), event('s2', 'operation.failed', launch, { error: { code: 'quota' } }),
+    event('s3', 'execution.failed', undefined, { execution_operation_id: launch, code: 'quota', recovery: { recovery_id: 'RCV-one' } }),
+    event('s4', 'operation.started', recovery), event('s5', 'operation.completed', recovery, { result: { state: 'candidate_ready' } })];
+  const appended = [...subject, event('judge', 'operation.started', `${manifest.run_id}:judge:hash`),
+    event('cleanup', 'operation.completed', `${manifest.run_id}:e:cleanup`), event('other', 'operation.started', 'EVAL-other:e:launch')];
+  assert.deepEqual(subjectHistoryEvents(appended, manifest), subject);
+  const statistics = { collected_at: 'latest', usage: { totals: { total_tokens: 12 } } };
+  const results = [{ execution: 'e', state: 'candidate_ready', stage: 'merge', statistics }];
+  const candidate = await buildRunCandidate({ runId: manifest.run_id, manifest, results, historySha256: hashJson(subject) });
+  const packet = buildEvidencePacket({ manifest, results, candidate, events: appended });
+  const report = buildReport({ root: '/owned', manifest, results, candidate, state: 'completed', events: subject });
+  assert.deepEqual(packet.subject_history.executions, report.execution_history);
+  assert.equal(candidate.subject_history_sha256, packet.subject_history.sha256);
+  assert.deepEqual(packet.subject_history.event_ids, subject.map(item => item.id));
+  assert.equal(report.reliability, 'recovered');
+  assert.equal(report.recovery_count, 1);
+  assert.deepEqual(report.execution_history[0].usage_accounting.usage, statistics.usage);
+  assert.throws(() => buildEvidencePacket({ manifest, results, candidate }), { code: 'judge_evidence_mismatch' }, 'a caller cannot omit the frozen subject cut');
+  const legacy = { ...candidate }; delete legacy.subject_history_sha256;
+  assert.deepEqual(buildEvidencePacket({ manifest, results, candidate: legacy }).subject_history.executions.map(item => item.history_coverage), ['incomplete']);
+  assert.equal((await validator('evaluator-evidence.v2.schema.json'))(packet), true);
+});
+
+test('candidate freezes subject history, ignores Judge append and leaves predecessor bytes intact after recovery', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'history-candidate-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const manifest = { run_id: 'EVAL-history', evidence_contract: 'dd-eval/evaluator-evidence@2', executions: [{ id: 'e' }] };
+  const results = [{ execution: 'e', state: 'candidate_ready', stage: 'merge' }];
+  const file = path.join(root, 'events.jsonl'), launch = `${manifest.run_id}:e:launch`;
+  const emit = (type, operation_id) => appendEvent(file, { source: 'test', runId: manifest.run_id, executionId: 'e', type: `dev.dd.eval.${type}`, data: { operation_id } });
+  await emit('operation.started', launch); await emit('operation.completed', launch);
+  const first = await frozenCandidate({ root, manifest, results }), original = await readFile(first.candidate.file);
+  await emit('operation.completed', `${manifest.run_id}:judge:hash`);
+  assert.equal((await frozenCandidate({ root, manifest, results })).candidate.immutable_hash, first.candidate.immutable_hash);
+  await emit('operation.started', `${launch}:recover:RCV-one`); await emit('operation.completed', `${launch}:recover:RCV-one`);
+  const second = await frozenCandidate({ root, manifest, results });
+  assert.notEqual(second.candidate.immutable_hash, first.candidate.immutable_hash);
+  assert.equal(second.candidate.parent_candidate_sha256, first.candidate.immutable_hash);
+  assert.equal(second.candidate.subject_history_sha256, hashJson(subjectHistoryEvents(await readEvents(file), manifest)));
+  assert.deepEqual(await readFile(first.candidate.file), original);
+  assert.equal((await frozenCandidate({ root, manifest, results })).created, false);
+});
 
 test("partial HITL is schema-valid evidence, never a deliverable answer", async () => {
   const validate = await validator("hitl-match.v1.schema.json");
@@ -89,7 +138,7 @@ test("actual Judge error report validates strict quota projection and infrastruc
 });
 
 test("actual candidate, report and Judge evidence producers satisfy their schemas with and without case acceptance", async () => {
-  const validators = await Promise.all(["run-candidate.v2.schema.json", "report.v2.schema.json", "evaluator-evidence.v1.schema.json"].map(validator));
+  const validators = await Promise.all(["run-candidate.v2.schema.json", "report.v2.schema.json", "evaluator-evidence.v2.schema.json"].map(validator));
   const manifest = { run_id: "EVAL-test", case_id: "sdlc-eval-2026-summer-task-priority", executions: [{ id: "e2e" }], case_acceptance: { checker: "task-priority@1" } };
   const hash = "a".repeat(64);
   const basic = { execution: "e2e", state: "candidate_ready", stage: "merge", run_id: "RUN-test", candidate: { manifest_sha256: hash } };
@@ -116,6 +165,6 @@ test("V3 Judge receives exact frozen matrix and source paths without deriving a 
   const candidate = await buildRunCandidate({ runId: manifest.run_id, manifest, results: [result] });
   const packet = buildEvidencePacket({ manifest, candidate, results: [result] });
   assert.deepEqual(packet.executions[0].verification_matrix_sources.map(source => source.path), [path.join(snapshot, json), path.join(snapshot, markdown), path.join(snapshot, "workspace/.memory-bank/protocol/PRT-1-plan/plan.json")]);
-  const check = await validator("evaluator-evidence.v1.schema.json");
+  const check = await validator("evaluator-evidence.v2.schema.json");
   assert.equal(check(packet), true, JSON.stringify(check.errors));
 });

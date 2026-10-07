@@ -1,5 +1,22 @@
 # Execute an eval
 
+## Scoped operational policy and evidence (plan 069)
+
+An E2E profile using an exception declares `operational_decision` explicitly.
+Settings alone are not permission to override project Git policy. Admission
+verifies the policy bytes and materializes the declaration against the exact
+selected engine for this project/EVAL/execution. Stage and Work read the same
+frozen RUN artifact; never replace a historical decision to unblock a run.
+Recovery retains that decision; a new fork/import requires a newly scoped
+acceptance. A review date is not an expiration unless `expires_at` is declared.
+
+New EVALs freeze `runtime_recovery_home` under their own `recovery/` directory.
+Control commands use it even if the operator environment names another home.
+Checker `task-priority@4` distinguishes gate applicability from missing evidence,
+and all-aborted checks are failures, not successful/not-applicable checks.
+Judge evidence `evaluator-evidence@2` and the candidate bind the same Subject
+history cut as the report. Candidate definitions are not live E2E acceptance.
+
 The only routine interface is `dd-eval runner`.  A focused execution begins
 from an empty provider Session and a portable stage-entry fixture; it does not
 fork, warm up, or read a canonical provider Session.  All mutable files belong

@@ -1,10 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, realpath, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { checkCaseAcceptance, snapshotTreeHash, validateCaseAcceptancePolicy } from "../lib/case-acceptance.mjs";
+import { DatabaseSync } from "node:sqlite";
+import { checkCaseAcceptance, snapshotTreeHash, validateCaseAcceptancePolicy, selectFailedCheckGate } from "../lib/case-acceptance.mjs";
 
 const sha = value => createHash("sha256").update(value).digest("hex");
 const policy = { checker: "task-priority@1", case_id: "sdlc-eval-2026-summer-task-priority" };
@@ -15,12 +16,60 @@ const evidence = ".memory-bank/protocol/PRT-007-task-priority-levels/evidence/lo
 test("case acceptance policy rejects a typo before runner admission", () => {
   assert.doesNotThrow(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@2" }));
   assert.doesNotThrow(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@3" }));
-  assert.throws(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@4" }), /unsupported case acceptance policy/);
+  assert.doesNotThrow(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@4" }));
+  assert.throws(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@5" }), /unsupported case acceptance policy/);
 });
 async function put(root, name, value) { const file = path.join(root, name); await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, value); return file; }
 
+test("V4 selects reached gates before touching captures and preserves enclosing receipts", async () => {
+  const v4 = { ...policy, checker: "task-priority@4" };
+  const result = { state: "failed", code: "unexpected_hitl", recovery: { manifest: "/unreachable/snapshot.json", manifest_sha256: "a".repeat(64) } };
+  assert.equal((await checkCaseAcceptance({ evalRoot: "/unreachable", execution: "e2e", result, policy: v4 })).status, "not_applicable");
+  result.code = "code_gate_failed";
+  assert.equal((await checkCaseAcceptance({ evalRoot: "/unreachable", execution: "e2e", result, policy: v4 })).status, "unavailable");
+  const failures = [{ id: "RUN-001/RCP-001", status: "aborted", input_hash: "input" }];
+  const wrapped = { code: "repair_rejected", details: { failures, cause: { code: "code_gate_failed" } } };
+  assert.deepEqual(selectFailedCheckGate(wrapped).failures, failures);
+  assert.match(selectFailedCheckGate({ code: "code_gate_failed", details: { work_id: "WRK-other", failures } }).error, /different Work/);
+  assert.equal(selectFailedCheckGate({ code: "workspace_readiness_failed", details: { checks: failures } }).readiness, true);
+  assert.deepEqual(selectFailedCheckGate({ code: "workspace_readiness_failed", details: { checks: [{ id: "RUN-001/RCP-passed", status: "passed" }, ...failures] } }).failures, failures);
+  wrapped.details.cause.cause = wrapped;
+  assert.match(selectFailedCheckGate(wrapped).error, /cyclic/);
+  assert.match(selectFailedCheckGate({ cause: { code: "code_gate_failed", details: { failures } }, details: { error: { code: "merge_gate_failed", details: { failures } } } }).error, /ambiguous/);
+});
+
+test("V4 frozen native gate proof handles aborted, readiness, wrappers and namespace rejection", async () => {
+  const f = await fixture();
+  try {
+    const runtimeRoot = path.join(f.root, "live-runtime"), projectRoot = path.join(f.root, "live-project");
+    await put(f.root, "manifest.json", JSON.stringify({ run_id: "EVAL-test" }));
+    await put(f.root, "executions/e2e/managed-runtime.json", JSON.stringify({ schema_id: "dd-eval/managed-runtime@1", run_id: "RUN-001", runtime_root: runtimeRoot, project_root: projectRoot }));
+    const db = new DatabaseSync(path.join(f.snapshot, "runtime", "db.sqlite"));
+    db.exec("CREATE TABLE run_recovery_guards(recovery_id TEXT,run_id TEXT,project_id TEXT,status TEXT,generation INTEGER,settlement_json TEXT); CREATE TABLE run_controls(control_id TEXT,recovery_id TEXT,run_id TEXT,project_id TEXT)");
+    db.prepare("INSERT INTO run_recovery_guards VALUES(?,?,?,?,?,?)").run("RCV-001", "RUN-001", "PRJ-001", "sealed", 1, '{"settled":true}');
+    db.prepare("INSERT INTO run_controls VALUES(?,?,?,?)").run("CTL-001", "RCV-001", "RUN-001", "PRJ-001"); db.close();
+    const native = { id: "RUN-001/RCP-002", local_id: "RCP-002", work_id: null, scope: "aggregate", gate: "readiness", status: "aborted", finished_at: "2026-10-01T00:00:00Z", input_hash: "hash", verification_epoch: "epoch", exit_code: null, required_artifacts: ["proof.json"], artifacts: [], receipt_path: "/historical/05-code/readiness/checks/RCP-002/receipt.json", abort_reason: "interrupted" };
+    const failed = { state: "failed", stage: "code", run_id: "RUN-001", code: "workspace_readiness_failed", details: { checks: [{ id: native.id, status: native.status, receipt_path: native.receipt_path }] }, recovery: { manifest: path.join(f.snapshot, "snapshot.json"), recovery_id: "RCV-001", control_id: "CTL-001", generation: 1, settlement: { settled: true } } };
+    const capture = async () => {
+      await put(f.runtime, "05-code/readiness/checks/RCP-002/receipt.json", JSON.stringify(native));
+      const value = JSON.stringify({ schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", stage_entry: null, recovery_id: "RCV-001", consistency: "sealed_writer_barrier_required", project_id: "PRJ-001", run_id: "RUN-001", project_root: projectRoot, dd_flow_home: runtimeRoot, workspace: { sha256: snapshotTreeHash(f.workspace) }, runtime_sha256: snapshotTreeHash(path.join(f.snapshot, "runtime")) });
+      await put(f.snapshot, "snapshot.json", value); failed.recovery.manifest_sha256 = sha(value);
+    };
+    const read = () => checkCaseAcceptance({ evalRoot: f.root, execution: "e2e", result: failed, policy: { ...policy, checker: "task-priority@4" } });
+    await capture();
+    const aborted = await read(); assert.equal(aborted.status, "failed", JSON.stringify(aborted.evidence_error));
+    assert.equal(aborted.facts.failed_checks[0].status, "aborted"); assert.equal(aborted.facts.failed_checks[0].aborted_reason, "interrupted");
+    assert.equal(aborted.facts.consumed_source.purpose, "recovery");
+    failed.code = "repair_registration_rejected"; failed.details = { failures: [native], cause: { code: "code_gate_failed" } };
+    assert.equal((await read()).status, "failed");
+    native.id = "RUN-999/RCP-002"; await capture(); assert.equal((await read()).status, "unavailable");
+    native.id = "RUN-001/RCP-002"; native.gate = "merge"; await capture(); assert.equal((await read()).status, "unavailable");
+    native.gate = "readiness"; native.status = "running"; await capture(); assert.equal((await read()).status, "unavailable");
+  } finally { await rm(f.root, { recursive: true, force: true }); }
+});
+
 async function fixture() {
-  const root = await mkdtemp(path.join(os.tmpdir(), "eval-acceptance-"));
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), "eval-acceptance-")));
   const snapshot = path.join(root, "executions", "e2e", "boundaries", "merge-frozen");
   const workspace = path.join(snapshot, "workspace");
   const runtime = path.join(snapshot, "runtime", "projects", "PRJ-001", "runs", "RUN-001");
@@ -28,7 +77,7 @@ async function fixture() {
   await put(workspace, matrix, `| \`PRT-007-task-priority-levels\` | \`SCN-002-workspace-task-core\` | local | local | applicable | accepted_local | pass | accepted_local | CODE | checks | \`${evidence}\` | local only |\n`);
   await put(workspace, evidence, "Criterion AC-001: check CHK-LOCAL passed. Local-only proof; no production claim.\n");
   await put(workspace, plan, JSON.stringify({ acceptance: [{ criterion_id: "AC-001", check_refs: ["CHK-LOCAL"], expected_evidence: ["local check"], proof_limits: ["local only"] }] }));
-  await put(runtime, "05-code/checks/RCP-001/receipt.json", JSON.stringify({ id: "RCP-001", declaration_id: "CHK-LOCAL", scope: "aggregate", status: "passed", input_hash: "a", verification_epoch: "epoch", finished_at: "2026-01-01T00:00:00Z" }));
+  await put(runtime, "05-code/checks/RCP-001/receipt.json", JSON.stringify({ id: "RUN-001/RCP-001", local_id: "RCP-001", work_id: null, gate: "code", declaration_id: "CHK-LOCAL", scope: "aggregate", status: "passed", input_hash: "a", verification_epoch: "epoch", finished_at: "2026-01-01T00:00:00Z" }));
   const result = { state: "candidate_ready", stage: "merge", run_id: "RUN-001", candidate: { manifest: path.join(snapshot, "snapshot.json"), manifest_sha256: null } };
   const sealed = { root, snapshot, workspace, runtime, result };
   await seal(sealed);
@@ -109,6 +158,8 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     await put(f.runtime, artifactRelative, artifactBytes);
     await put(f.runtime, "07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json", JSON.stringify({ id: receiptId, status: "passed", scope: "aggregate", exit_code: 0, profile_hash: null, gate: "merge", command: "true", before_fingerprint: fingerprint, after_fingerprint: fingerprint, mutation_paths: [], inputs: [], resources: { ports: {} }, finished_at: completedAt, input_hash: "hash-one", verification_epoch: sha(`merge\0${fingerprint}`), check_refs: [binding], artifacts: [{ path: "proof.bin", sha256: sha(artifactBytes) }], required_artifacts: [] }));
     await put(f.runtime, "07-merge/works/WRK-001-merge/checks/RCP-002/completion.json", JSON.stringify({ exit_code: 0, finished_at: completedAt }));
+    const nativeMerge = JSON.parse(await readFile(path.join(f.runtime, "07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json"), "utf8"));
+    await put(f.runtime, "07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json", JSON.stringify({ ...nativeMerge, local_id: "RCP-002", work_id: "WRK-001-merge" }));
     await seal(f);
     const read = () => checkCaseAcceptance({ evalRoot: f.root, execution: "e2e", result: f.result, policy: v2 });
     const passed = await read();
@@ -166,6 +217,10 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     const generatedRead = () => checkCaseAcceptance({ evalRoot: f.root, execution: "e2e", result: f.result, policy: v3 });
     const generated = await generatedRead();
     assert.equal(generated.status, "passed", JSON.stringify(generated.evidence_error));
+    const current = await checkCaseAcceptance({ evalRoot: f.root, execution: "e2e", result: f.result, policy: { ...v3, checker: "task-priority@4" } });
+    assert.equal(current.status, "passed", JSON.stringify(current.evidence_error));
+    assert.equal(current.facts.consumed_source.purpose, "candidate");
+    assert.equal(current.facts.consumed_source.manifest_sha256, f.result.candidate.manifest_sha256);
     await rm(path.join(f.runtime, artifactRelative)); await seal(f);
     assert.equal((await generatedRead()).status, "unavailable", "missing claimed binary bytes are unavailable authority");
     await put(f.runtime, artifactRelative, "corrupt claimed binary"); await publish();
@@ -266,7 +321,7 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
 test("reached failed check distinguishes missing expected output from corrupt claimed evidence without final acceptance", async () => {
   const f = await fixture();
   try {
-    const receipt = { id: "RCP-001", declaration_id: "CHK-LOCAL", scope: "aggregate", status: "failed", exit_code: 2, input_hash: "failed-input", verification_epoch: "failed-epoch", finished_at: "2026-10-01T00:00:00Z", artifacts: [], required_artifacts: ["expected.json"] };
+    const receipt = { id: "RUN-001/RCP-001", local_id: "RCP-001", work_id: null, gate: "code", declaration_id: "CHK-LOCAL", scope: "aggregate", status: "failed", exit_code: 2, input_hash: "failed-input", verification_epoch: "failed-epoch", finished_at: "2026-10-01T00:00:00Z", artifacts: [], required_artifacts: ["expected.json"] };
     await put(f.runtime, "05-code/checks/RCP-001/receipt.json", JSON.stringify(receipt));
     await put(f.runtime, "05-code/checks/RCP-001/completion.json", JSON.stringify({ exit_code: receipt.exit_code, finished_at: receipt.finished_at }));
     const failed = { state: "failed", stage: "code", run_id: "RUN-001", code: "code_gate_failed", details: { failures: [receipt] }, recovery: { recovery_id: "REC-001", manifest: path.join(f.snapshot, "snapshot.json") } };
@@ -278,7 +333,7 @@ test("reached failed check distinguishes missing expected output from corrupt cl
     const read = () => checkCaseAcceptance({ evalRoot: f.root, execution: "e2e", result: failed, policy: { ...policy, checker: "task-priority@3" } });
     const known = await read();
     assert.equal(known.status, "failed", JSON.stringify(known.evidence_error));
-    assert.ok(known.gaps.includes("check_expected_output_missing:RCP-001:expected.json"));
+    assert.ok(known.gaps.includes("check_expected_output_missing:RUN-001/RCP-001:expected.json"));
     assert.equal(known.facts.failed_checks[0].attribution, "undetermined");
     receipt.exit_code = 0;
     const retainFailure = async () => {
