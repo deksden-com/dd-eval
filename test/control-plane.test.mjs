@@ -6,6 +6,24 @@ import path from 'node:path';
 
 import { cancelOwnedDaemon } from '../lib/daemon-control.mjs';
 import { writeJsonAtomic } from '../lib/runner-events.mjs';
+import { assertDaemonReplaceable } from '../lib/driver-recovery.mjs';
+
+test('settled cancellation and replacement ignore only PIDs born after retained shutdown', async t => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-control-reused-')));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const state = { pid: process.pid, config: { cwd: root }, sessions: ['owned'], active_tree: false,
+    shutdown_state: 'clean', shutdown: { result: { clean: true } }, stopped_at: '2020-01-01T00:00:00Z' };
+  const offline = async () => { throw Object.assign(new Error('offline'), { code: 'daemon_not_running' }); };
+  await writeJsonAtomic(path.join(root, 'daemon.json'), state);
+  await assertDaemonReplaceable(root);
+  assert.equal((await cancelOwnedDaemon({ stateDir: root, projectRoot: root, sessionId: 'owned', stop: offline })).settled, true);
+  for (const patch of [{ stopped_at: undefined }, { stopped_at: 'corrupt' }, { shutdown_state: 'running' }, { active_tree: true }]) {
+    await writeJsonAtomic(path.join(root, 'daemon.json'), { ...state, ...patch });
+    await assert.rejects(assertDaemonReplaceable(root), { code: 'operation_observation_lost' });
+    await assert.rejects(cancelOwnedDaemon({ stateDir: root, projectRoot: root, sessionId: 'owned', stop: offline }), { code: 'cancellation_unconfirmed' });
+  }
+  assert.equal(process.kill(process.pid, 0), true);
+});
 
 test('cancel uses retained identity and native stop without status, start, or profile checks', async t => {
   const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-control-')));
