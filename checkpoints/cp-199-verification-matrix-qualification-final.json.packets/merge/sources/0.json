@@ -1,0 +1,13 @@
+{
+  "schema_id": "dd-flow/retained-check-profile@1",
+  "profile": {
+    "schema_id": "dd-flow/code-check-profile@6",
+    "aliases": {
+      "@check/priority-contract": "test -f apps/api/src/core/service.ts"
+    },
+    "require_alias_for": {},
+    "mandatory_by_gate": {}
+  },
+  "profile_sha256": "ec27939b5dd473346d4af8cb60d192cd4dfa98318741996375e0e7f21b8b5bd3",
+  "profile_bytes": "{\"schema_id\":\"dd-flow/code-check-profile@6\",\"aliases\":{\"@check/priority-contract\":\"test -f apps/api/src/core/service.ts\"},\"require_alias_for\":{},\"mandatory_by_gate\":{}}"
+}

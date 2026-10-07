@@ -1,0 +1,37 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "fc6027eb268b0cd529c2f9f05e93432eeb3dc6003b9b9e6975d1377980da24e5",
+  "verification_epoch": "97069b8ab1ddc453ed2a002b45abae82cbf2a5be44cd6c448fbef18e5f4d9520",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture-v2/dd-flow-protocolize-cHWfqB/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture-v2/dd-flow-protocolize-cHWfqB/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture-v2/dd-flow-protocolize-cHWfqB/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-199-candidate/installed-matrix-fixture-v2/dd-flow-protocolize-cHWfqB/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "9fd2361d76115aa5899380d991ef24d7c9161309963774e88b5c5488355c4be0",
+  "before_fingerprint": "9fd2361d76115aa5899380d991ef24d7c9161309963774e88b5c5488355c4be0",
+  "after_fingerprint": "9fd2361d76115aa5899380d991ef24d7c9161309963774e88b5c5488355c4be0",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-07T11:15:29.595Z",
+  "finished_at": "2026-10-07T11:15:29.828Z"
+}
