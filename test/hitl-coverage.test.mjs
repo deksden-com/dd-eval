@@ -75,6 +75,15 @@ test("JEV retains original observation, reuses it once and rejects drift", async
     await assert.rejects(observeJev({ ...options, binding: { pause: "different" } }), /another input/);
     const abort = new AbortController(); abort.abort(new Error("cancelled"));
     await assert.rejects(observeJev({ ...options, signal: abort.signal }), /cancelled/);
+    const pending = JSON.parse(await readFile(first.file));
+    pending.state = "dispatched";
+    pending.owner_pid = process.pid;
+    pending.owner_started = "a different physical process birth";
+    await writeJsonAtomic(first.file, pending);
+    assert.equal((await observeJev(options)).state, "unknown", "PID reuse must not authorize redispatch");
+    assert.equal((await observeJev(options)).state, "unknown");
+    assert.equal(calls, 1);
+    await assert.rejects(observeJev({ ...options, evalRunId: "foreign-eval" }), /another input/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
