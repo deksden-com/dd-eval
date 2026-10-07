@@ -5,8 +5,8 @@ import os from "node:os";
 import path from "node:path";
 import { buildHitlPacket, hitlCoverageContract } from "../lib/hitl-contract.mjs";
 import { coverageTransport, jevPromptHash, assertCoveragePolicy } from "../lib/hitl-coverage.mjs";
-import { qualifyCoverageFilter, interactionJudge } from "../lib/runner.mjs";
-import { hashJson, writeJsonAtomic, appendEvent, readEvents } from "../lib/runner-events.mjs";
+import { qualifyCoverageFilter, interactionJudge, hitlQualificationInputs, loadRunProfile } from "../lib/runner.mjs";
+import { hashJson, sha256, writeJsonAtomic, appendEvent, readEvents } from "../lib/runner-events.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
 import { compareCoverageExpectation } from "../lib/hitl-corpus.mjs";
 
@@ -25,6 +25,23 @@ async function corpus(root) {
   }
   return { input: { corpus: { items }, tasks, key: "native-qualified", provenance: { corpus_sha256: hashJson(items) } }, results };
 }
+
+test("authored duplicate semantic inputs are rejected before native qualification", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "coverage-input-review-")); t.after(() => rm(root, { recursive: true, force: true }));
+  const runProfile = await loadRunProfile(new URL("../cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-luna-coverage-shadow.json", import.meta.url).pathname);
+  const { input } = await corpus(root);
+  const items = input.corpus.items.map((item, n) => ({ ...item, question: `Unique scenario ${n}?`, classification: n % 2 ? "out_of_scope" : "covered_by_canonical_response", response_ids: n % 2 ? [] : ["canonical"],
+    coverage_expectation: { status: n % 2 ? "uncovered" : "covered", response_ids: n % 2 ? [] : ["canonical"], remaining_decisions: n % 2 ? [{ id: "missing", description: "Extra decision" }] : [] } }));
+  await writeJsonAtomic(path.join(root, "entry-pack-source/interactions/specify.json"), { schema_id: "dd-eval/canonical-responses@1", stage: "specify", mode: "optional", max_rounds: 1, responses });
+  const file = path.join(root, "corpus.json");
+  const inputs = async () => {
+    await writeJsonAtomic(file, { schema_id: "dd-eval/hitl-coverage-corpus@1", stage: "specify", coverage_required: true, items });
+    return hitlQualificationInputs({ loaded: { root, value: { id: "fixture", hitl_qualification: { coverage: { file: "corpus.json", sha256: sha256(await readFile(file)) } } } }, runProfile, definition: {} });
+  };
+  assert.equal((await inputs()).corpus.items.length, 22);
+  items.at(-1).question = items[0].question;
+  await assert.rejects(inputs(), error => error.code === "definition_qualification_invalid" && /distinct semantic inputs/.test(error.message));
+});
 
 test("fresh qualification runs the complete HTTP pipeline, freezes threshold before holdout and reuses every observation", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "jev-qualification-review-"));
