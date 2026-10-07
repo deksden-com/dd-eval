@@ -102,7 +102,11 @@ test('installed setup and Console observation preserve isolated producer boundar
   fs.writeFileSync(frozen, frozenBytes); fs.writeFileSync(path.join(existingHome, 'db.sqlite'), databaseBytes);
   const existing = invoke(['setup', ...args, '--request-id', 'existing'], existingHome);
   assert.equal(existing.status, 0, existing.stderr);
-  assert.equal(JSON.parse(existing.stdout).storage_readiness, 'unknown_requires_diagnostic');
+  const existingStatus = JSON.parse(existing.stdout);
+  assert.equal(existingStatus.storage_readiness, 'unknown_requires_diagnostic');
+  assert.equal(existingStatus.next_action, 'dd-flow migration plan --help');
+  assert.deepEqual(existingStatus.storage_continuation, { kind: 'storage_admission', status: 'requires_diagnostic',
+    reason: 'existing_storage_not_inspected', help_command: 'dd-flow migration plan --help', automatic_migration: false });
   assert.deepEqual(fs.readFileSync(frozen), frozenBytes);
   assert.deepEqual(fs.readFileSync(path.join(existingHome, 'db.sqlite')), databaseBytes);
 
