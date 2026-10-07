@@ -3,8 +3,34 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
+import childProcess from 'node:child_process';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { assertJudgeCleanup, assertJudgeCleanupCurrent, finishJudgeCleanup } from '../lib/judge-cleanup.mjs';
+
+test('all Judge cleanup consumers reject live/unknown identity but reuse a retired daemon with recycled PID', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'judge-reused-pid-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const verdict = { profile_id: 'offline', session_id: 'session', result: { valid: true } };
+  await settledJudge(root, verdict);
+  const stateFile = path.join(root, 'daemon', 'daemon.json');
+  const state = JSON.parse(await readFile(stateFile));
+  const retired = { ...state, pid: process.pid, stopped_at: '2020-01-01T00:00:00Z' };
+  await writeFile(stateFile, JSON.stringify(retired));
+  const before = await Promise.all(['result.json', 'cleanup.json', 'daemon/daemon.json'].map(file => readFile(path.join(root, file))));
+  const reference = await assertJudgeCleanup(root, verdict);
+  assert.equal(assertJudgeCleanupCurrent(reference), true);
+  await finishJudgeCleanup({ root, profileId: 'offline', stop: () => assert.fail('never signal the unrelated recycled PID') });
+  assert.deepEqual(await Promise.all(['result.json', 'cleanup.json', 'daemon/daemon.json'].map(file => readFile(path.join(root, file)))), before);
+  for (const stopped_at of [undefined, 'corrupt', new Date(Date.now() + 60_000).toISOString()]) {
+    await writeFile(stateFile, JSON.stringify({ ...retired, stopped_at }));
+    await assert.rejects(assertJudgeCleanup(root, verdict), { code: 'judge_cleanup_unconfirmed' });
+    assert.throws(() => assertJudgeCleanupCurrent(reference), { code: 'judge_cleanup_unconfirmed' });
+  }
+  await writeFile(stateFile, JSON.stringify(retired));
+  t.mock.method(childProcess, 'execFileSync', () => { throw Object.assign(new Error('ps failed'), { code: 'EIO' }); });
+  await assert.rejects(assertJudgeCleanup(root, verdict), { code: 'judge_cleanup_unconfirmed' });
+  assert.throws(() => assertJudgeCleanupCurrent(reference), { code: 'judge_cleanup_unconfirmed' });
+});
 
 test('Judge verdict and lifecycle remain independently bound; cleanup reuse never repeats a turn', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'judge-cleanup-'));
