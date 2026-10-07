@@ -1,0 +1,87 @@
+{
+  "schema_id": "dd-flow/stage-report@2",
+  "run_id": "RUN-001-tasks",
+  "stage": "plan",
+  "generated_at": "2026-10-07T05:57:47.979Z",
+  "verdict": "done",
+  "semantic": {
+    "result": "Accepted 1 executable PLAN artifact.",
+    "acceptance": [
+      "PRT-001-task-priority"
+    ],
+    "changed_files": [
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+      "run://RUN-001-tasks/03-plan/PRT-001-task-priority/aspect-map.json",
+      "run://RUN-001-tasks/03-plan/code-work-batch.json"
+    ],
+    "checks": [
+      "protocol-plan schema",
+      "aspect-map schema",
+      "cross-artifact references",
+      "generated CODE batch"
+    ],
+    "evidence": [
+      "run://RUN-001-tasks/03-plan/stage-report.json"
+    ],
+    "next_action": "start_plan_review",
+    "plans": [
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json"
+    ],
+    "aspect_maps": [
+      "run://RUN-001-tasks/03-plan/PRT-001-task-priority/aspect-map.json"
+    ],
+    "code_work_batch": "run://RUN-001-tasks/03-plan/code-work-batch.json",
+    "batch_checksum": "87e04b2d0de72ebc62c60cc3fcf258903579dc55ea1f8925affe328a03b062d9",
+    "plan_checksums": [
+      {
+        "path": ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+        "sha256": "54ab1c31ae295a032639f7764fffbf6f8ff2c7e96a87821a0c89d88bd3bb0387"
+      }
+    ],
+    "aspect_map_checksums": [
+      {
+        "path": "03-plan/PRT-001-task-priority/aspect-map.json",
+        "sha256": "706cb6004ccbe32a2b940f739aa335d2afe3dcd8dcd1c0a94af92026cf94bf25"
+      }
+    ],
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "role": "output",
+      "completeness": "declared",
+      "source_fingerprint": "ae0d21dc46178f92403846677814810e2718d5d08af6e1fd3a658e5b72601d20",
+      "json": {
+        "path": "03-plan/verification/ae0d21dc46178f92403846677814810e2718d5d08af6e1fd3a658e5b72601d20/verification-matrix.json",
+        "sha256": "0b2c49c5057ec64c35b1c0da3165049a3311023e9949fa71c15202324fa84850"
+      },
+      "markdown": {
+        "path": "03-plan/verification/ae0d21dc46178f92403846677814810e2718d5d08af6e1fd3a658e5b72601d20/verification-matrix.md",
+        "sha256": "3cf7d510bcb98d99f1d1a2241c337e212b8ac8d27de3b5e4cad3efc51a10d08e"
+      },
+      "coverage_contract": "dd-flow/final-check-coverage@1"
+    }
+  },
+  "mechanical": {
+    "started_at": "2026-10-07T05:57:47.406Z",
+    "finished_at": "2026-10-07T05:57:47.979Z",
+    "wall_clock_ms": 573,
+    "git": {
+      "branch": "main",
+      "head": "2896feb8a481f50093af6adf1e37bdd41962ae7a",
+      "status": "dirty"
+    },
+    "session_stats_command": "DD_FLOW_HOME=\"/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-review.YiSwKt/matrix-fixture/dd-flow-protocolize-YhUTo8/home\" dd-flow stat run sessions ls --run RUN-001-tasks --project-root \"/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-review.YiSwKt/matrix-fixture/dd-flow-protocolize-YhUTo8/project\" --json",
+    "usage_stats_command": "DD_FLOW_HOME=\"/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-review.YiSwKt/matrix-fixture/dd-flow-protocolize-YhUTo8/home\" dd-flow stat usage --run RUN-001-tasks --project-root \"/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-review.YiSwKt/matrix-fixture/dd-flow-protocolize-YhUTo8/project\" --json",
+    "next_command": "DD_FLOW_HOME=\"/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-review.YiSwKt/matrix-fixture/dd-flow-protocolize-YhUTo8/home\" dd-flow stage start RUN-001-tasks --stage plan-review --project-root \"/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-review.YiSwKt/matrix-fixture/dd-flow-protocolize-YhUTo8/project\" --json"
+  },
+  "artifacts": {
+    "json": "stage-report.json",
+    "markdown": "stage-report.md",
+    "html": "stage-report.html"
+  },
+  "validation": {
+    "permission_scope": "known_targets_only",
+    "memory_bank_scope": "changed_files_and_links_only",
+    "status": "passed"
+  },
+  "summary": "Accepted 1 executable PLAN artifact."
+}
