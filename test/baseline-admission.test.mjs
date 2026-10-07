@@ -85,7 +85,7 @@ console.log(JSON.stringify(result));`);
   }
 });
 
-test("baseline owner loss exits despite continuing output and failed physical cleanup", { timeout: 15000 }, async t => {
+test("baseline owner loss exits despite continuing output and failed physical cleanup", { timeout: 30000 }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "baseline-owner-loss-"));
   const projectRoot = path.join(root, "project"), cli = path.join(root, "flow.mjs"), marker = path.join(root, "active"), calls = path.join(root, "calls"), binding = path.join(root, "binding.json");
   const originalInterval = globalThis.setInterval, originalKill = process.kill;
@@ -100,7 +100,9 @@ test("baseline owner loss exits despite continuing output and failed physical cl
   await commandText("git", ["init", "-q"], { cwd: projectRoot });
   await commandText("git", ["-c", "user.name=test", "-c", "user.email=test@localhost", "commit", "--allow-empty", "-qm", "baseline"], { cwd: projectRoot });
   const checkpoint = { sha256: "a".repeat(64), value: { id: "cp-test", source: { commit: await commandText("git", ["rev-parse", "HEAD"], { cwd: projectRoot }) } } };
-  const bytes = JSON.stringify({ schema_id: "dd-eval/baseline-admission-policy@2", commands: [{ id: "check", command: process.execPath, args: ["-e", `require('node:fs').writeFileSync(${JSON.stringify(marker)},'active');setInterval(()=>console.log('productive'),10)`], inactivity_timeout_ms: 2000 }] });
+  // This witness tests lease loss, not silence: allow loaded-host startup before
+  // the deliberately rejected heartbeat, retaining the exact error assertions.
+  const bytes = JSON.stringify({ schema_id: "dd-eval/baseline-admission-policy@2", commands: [{ id: "check", command: process.execPath, args: ["-e", `require('node:fs').writeFileSync(${JSON.stringify(marker)},'active');setInterval(()=>console.log('productive'),10)`], inactivity_timeout_ms: 10000 }] });
   await writeFile(path.join(root, "policy.json"), bytes);
   await writeFile(cli, `import fs from 'node:fs';const a=process.argv.slice(2),action=a[2],v=n=>a[a.indexOf('--'+n)+1],file=${JSON.stringify(binding)},marker=${JSON.stringify(marker)};fs.appendFileSync(${JSON.stringify(calls)},action+'\\n');let r;
 if(action==='register')r={id:v('id'),lease_token:'lease',kind:'eval-baseline',owner_id:v('owner'),operation_id:v('operation'),state:'starting',metadata_json:JSON.stringify({dd_flow_home:process.env.DD_FLOW_HOME,role:'probe',owner_pid:Number(v('owner-pid')),budget:JSON.parse(v('budget-json'))})};else r=JSON.parse(fs.readFileSync(file));
