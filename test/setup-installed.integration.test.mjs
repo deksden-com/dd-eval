@@ -21,6 +21,8 @@ test('installed setup and Console observation preserve isolated producer boundar
   const cli = fs.realpathSync(process.env.DD_EVAL_TEST_SETUP_CLI);
   const packageRoot = path.dirname(path.dirname(cli));
   assert.equal(path.basename(packageRoot), 'dd-flow-cli');
+  assert.equal(path.basename(path.dirname(packageRoot)), '@deksden-com');
+  assert.equal(path.basename(path.dirname(path.dirname(packageRoot))), 'node_modules', 'Require an installed npm consumer, not a source checkout');
   assert.equal(fs.lstatSync(path.resolve(process.env.DD_EVAL_TEST_SETUP_CLI)).isSymbolicLink(), false);
   const build = JSON.parse(fs.readFileSync(path.join(packageRoot, 'dist/build-info.json'), 'utf8'));
   assert.match(build.cli_commit, /^[a-f0-9]{40}$/);
@@ -64,15 +66,28 @@ test('installed setup and Console observation preserve isolated producer boundar
   const canary = '{unrelated registry must remain unread and unchanged'; fs.writeFileSync(registry, canary);
   const env = { PATH: '', DD_FLOW_HOME: home, DD_FLOW_CONFIG_HOME: home, DD_EVAL_REGISTRY_FILE: registry,
     DD_FLOW_RESOURCE_HOME: path.join(root, 'resources') };
+  // Node's Permission Model disables fsync even for an allowed specific write
+  // root. Do not weaken installation durability to satisfy a test sandbox.
+  // Read-only ingress denies writes; mutating setup uses explicit private homes.
   const invoke = (args, selectedHome = home) => spawnSync(process.execPath,
-    ['--permission', `--allow-fs-read=${root}`, `--allow-fs-read=${path.dirname(path.dirname(packageRoot))}`,
-      `--allow-fs-write=${root}`, cli, ...args], { cwd, env: { ...env, DD_FLOW_HOME: selectedHome }, encoding: 'utf8', timeout: 30_000 });
+    [...(args[0] === 'setup' && args[1] === 'status' ? ['--permission', `--allow-fs-read=${root}`,
+      `--allow-fs-read=${path.dirname(path.dirname(packageRoot))}`] : []), cli, ...args],
+    { cwd, env: { ...env, DD_FLOW_HOME: selectedHome }, encoding: 'utf8', timeout: 30_000 });
   const accepted = args => { const result = invoke(args); assert.equal(result.status, 0, result.stderr); return JSON.parse(result.stdout); };
   assert.equal(accepted(['setup', 'status', '--json']).installation_readiness, 'not_installed');
   assert.equal(fs.existsSync(home), false);
   const args = ['--canon-source', source, '--trust-file', trust, '--channel', 'development', '--skip-agent-setup', '--non-interactive', '--json'];
+  const headlessHome = path.join(root, 'headless-home');
+  const missingExecutor = invoke(['setup', ...args.filter(arg => arg !== '--skip-agent-setup'), '--request-id', 'missing-executor'], headlessHome);
+  assert.equal(missingExecutor.status, 1);
+  assert.equal(JSON.parse(missingExecutor.stderr).error.code, 'agent_profile_missing');
+  assert.equal(fs.existsSync(headlessHome), false);
   const installed = accepted(['setup', ...args, '--request-id', 'install']);
   assert.equal(installed.installation_readiness, 'installed'); assert.equal(installed.executor.profile_id, null);
+  const cachedPackage = path.join(installed.installation.engine_root, 'package');
+  for (const name of ['dist/cli.js', 'dist/build-info.json', 'dist/schemas/execution-bundle.schema.json']) {
+    assert.deepEqual(fs.readFileSync(path.join(cachedPackage, name)), fs.readFileSync(path.join(packageRoot, name)), `Installed and archived ${name} must be the same bytes`);
+  }
   const selectionFile = path.join(home, 'installation.json'), before = fs.readFileSync(selectionFile);
   assert.equal(accepted(['setup', ...args, '--request-id', 'install']).replayed, true);
   assert.deepEqual(fs.readFileSync(selectionFile), before);
@@ -81,7 +96,19 @@ test('installed setup and Console observation preserve isolated producer boundar
   assert.deepEqual(fs.readdirSync(cwd), []);
   assert.equal(fs.readFileSync(registry, 'utf8'), canary);
 
+  const existingHome = path.join(root, 'existing-home'), frozen = path.join(existingHome, 'projects/fixture/runs/RUN-retained/engine-binding.json');
+  fs.mkdirSync(path.dirname(frozen), { recursive: true });
+  const frozenBytes = Buffer.from('unrelated frozen RUN binding'), databaseBytes = Buffer.from('incompatible storage must not be opened or migrated');
+  fs.writeFileSync(frozen, frozenBytes); fs.writeFileSync(path.join(existingHome, 'db.sqlite'), databaseBytes);
+  const existing = invoke(['setup', ...args, '--request-id', 'existing'], existingHome);
+  assert.equal(existing.status, 0, existing.stderr);
+  assert.equal(JSON.parse(existing.stdout).storage_readiness, 'unknown_requires_diagnostic');
+  assert.deepEqual(fs.readFileSync(frozen), frozenBytes);
+  assert.deepEqual(fs.readFileSync(path.join(existingHome, 'db.sqlite')), databaseBytes);
+
   const consoleRoot = fs.realpathSync(process.env.DD_EVAL_TEST_SETUP_CONSOLE_ROOT);
+  assert.equal(path.basename(consoleRoot), 'dd-console');
+  assert.equal(path.basename(path.dirname(path.dirname(consoleRoot))), 'node_modules');
   const { sourceAdd } = await import(pathToFileURL(path.join(consoleRoot, 'dist/sources.js')).href);
   const { serve } = await import(pathToFileURL(path.join(consoleRoot, 'dist/server.js')).href);
   const consoleEnv = { ...env, DD_CONSOLE_HOME: path.join(root, 'console-home'), DD_EVAL_REGISTRY_FILE: path.join(root, 'absent-eval-registry.json') };
@@ -90,12 +117,12 @@ test('installed setup and Console observation preserve isolated producer boundar
   try {
     const response = await fetch(`${instance.url}/api/v1/sources/${sourceRecord.id}/readiness`);
     assert.equal(response.status, 200);
-    const projection = await response.json();
+    const body = await response.json(), projection = body.data;
     assert.equal(projection.installation_readiness, 'metadata_present_unverified');
     assert.equal(projection.storage_readiness, 'not_initialized');
     assert.equal(projection.runtime_readiness, 'unknown_requires_qualification');
     assert.equal(projection.reported_canon_version, manifest.version);
-    const bytes = JSON.stringify(projection);
+    const bytes = JSON.stringify(body);
     for (const forbidden of [root, packageRoot, 'public_key_pem', 'manifest_base64', 'signature_base64']) assert.equal(bytes.includes(forbidden), false);
     assert.deepEqual(fs.readFileSync(selectionFile), before);
   } finally { instance.server.close(); instance.server.closeAllConnections(); await instance.closed; }
@@ -108,6 +135,15 @@ test('installed setup and Console observation preserve isolated producer boundar
   fs.writeFileSync(path.join(source, 'canon.tgz'), Buffer.from('corrupt'));
   const corrupt = invoke(['setup', ...args, '--request-id', 'bad-archive'], rejectedHome);
   assert.equal(corrupt.status, 1); assert.equal(fs.existsSync(rejectedHome), false);
+  fs.writeFileSync(path.join(source, 'canon.tgz'), canon);
+  const cachedCli = path.join(cachedPackage, 'dist/cli.js'), tampered = Buffer.from('retained cache canary');
+  fs.writeFileSync(cachedCli, tampered);
+  assert.equal(accepted(['setup', 'status', '--json']).installation_readiness, 'degraded');
+  assert.equal(invoke(['setup', ...args, '--request-id', 'install']).status, 1);
+  assert.deepEqual(fs.readFileSync(cachedCli), tampered, 'Corrupt immutable cache must not be silently replaced');
   assert.equal(fs.readFileSync(registry, 'utf8'), canary);
   assert.deepEqual(fs.readFileSync(selectionFile), before);
+  t.diagnostic(JSON.stringify({ scope: 'offline-installed-setup-only', cli_commit: build.cli_commit,
+    canon_commit: manifest.canon.commit, canon_sha256: digest(canon), engine_sha256: digest(engine),
+    console_build: JSON.parse(fs.readFileSync(path.join(consoleRoot, 'dist/build.json'), 'utf8')) }));
 });

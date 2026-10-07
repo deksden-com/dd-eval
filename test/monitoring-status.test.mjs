@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, rm, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { installRuntimeShim, projectStoppedControl } from '../lib/runner.mjs';
+import { evalRuntimeEnv, installRuntimeShim, projectStoppedControl } from '../lib/runner.mjs';
 import { commandText } from '../lib/process-json.mjs';
 
 test('runtime shim pins home and engine from a foreign cwd and environment', async t => {
@@ -68,4 +68,15 @@ test('an explicit retained shim context beats ambient resource and registry path
   const resourceHome = path.join(root, 'retained-resources'), registryFile = path.join(root, 'retained-registry.json');
   const shim = await installRuntimeShim(home, { snapshot_root: engine, entrypoint: 'cli.cjs' }, { resourceHome, registryFile });
   assert.deepEqual(JSON.parse(await commandText(shim, ['version'], { env: { DD_FLOW_RESOURCE_HOME: '/foreign', DD_EVAL_REGISTRY_FILE: '/foreign' } })), { resources: resourceHome, registry: registryFile });
+});
+
+test('retained private registry and CP198 recovery binding coexist without ambient override', () => {
+  const root = path.join(os.tmpdir(), 'eval-retained-context');
+  const manifest = { runtime_resource_home: path.join(root, 'resources'), eval_registry_file: path.join(root, 'registry.json'),
+    runtime_control_bin: path.join(root, 'control-runtime/bin/dd-flow'), runtime_recovery_home: path.join(root, 'recovery') };
+  const env = evalRuntimeEnv(path.join(root, 'execution'), manifest, { DD_EVAL_REGISTRY_FILE: '/foreign', DD_FLOW_RECOVERY_HOME: '/foreign' });
+  assert.equal(env.DD_EVAL_REGISTRY_FILE, manifest.eval_registry_file);
+  assert.equal(env.DD_FLOW_RECOVERY_HOME, manifest.runtime_recovery_home);
+  assert.equal(env.DD_FLOW_RESOURCE_HOME, manifest.runtime_resource_home);
+  assert.throws(() => evalRuntimeEnv(root, { ...manifest, runtime_recovery_home: path.join(root, 'foreign-recovery') }), { code: 'runtime_scope_identity_missing' });
 });
