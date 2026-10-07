@@ -15,6 +15,19 @@ const policy = {
   maintenanceRetryable: error => error.code === "SQLITE_BUSY"
 };
 const receipt = { ok: true, admitted: true, process_id: "observer", lease_expires_at: new Date(Date.now() + 900000).toISOString(), registration_sha256: "a".repeat(64) };
+test("native maintenance masks the owner's classifier key after ambient merge", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "maintenance-key-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const previous = process.env.OPENROUTER_API_KEY;
+  process.env.OPENROUTER_API_KEY = "synthetic-owner-only";
+  t.after(() => { if (previous === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = previous; });
+  await installMaintenanceFixture(root);
+  const cli = path.join(root, "flow.mjs");
+  await writeFile(cli, 'console.log(JSON.stringify({ok:true, leaked:Object.hasOwn(process.env,"OPENROUTER_API_KEY")}));');
+  const client = await runtimeMaintenance({ ddFlowHome: root, ddFlowBin: cli, env: { OPENROUTER_API_KEY: "override" } });
+  assert.deepEqual(await client.call("finish", { id: "owned" }), { ok: true, leaked: false });
+  assert.equal(process.env.OPENROUTER_API_KEY, "synthetic-owner-only");
+});
 test("observer renews during a long await without overlapping physical requests", async () => {
   let active = 0, max = 0, count = 0;
   const lease = observeRuntimeLease({ policy, async call() { max = Math.max(max, ++active); count++; await delay(15); active--; return receipt; } }, { id: "observer", lease_token: "secret" }, { intervalMs: 2 });

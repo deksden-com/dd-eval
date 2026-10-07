@@ -14,6 +14,7 @@ import { settledJudge } from "./fixtures/judge-cleanup.mjs";
 import { promptJudgeWithCapacity } from "../lib/judge-capacity.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 import { verifyRetainedHitl } from "../lib/hitl-retained.mjs";
+import Ajv from "ajv/dist/2020.js";
 
 const policy = { schema_id: "dd-eval/hitl-coverage-policy@1", mode: "shadow", requested_model: "typesafe/jev-1.13", resolved_model: "typesafe/jev-1.13-20260917", provider: "TypeSafe", projection_version: "dd-eval/hitl-coverage-input@1", prompt_sha256: jevPromptHash, transport_version: coverageTransport, max_uncovered_probability: null, qualification_sha256: null };
 const packet = () => buildHitlPacket({ stage: "specify", question: "May closed tasks change priority?", responses: [{ id: "canonical", topic: "priority", applicability: "specify", answer: "Yes. No extra indicators." }], verdictContract: hitlCoverageContract });
@@ -29,6 +30,10 @@ test("compact contract validates exact shape and never projects partial IDs", as
   assert.equal(input.question, p.question);
   assert.match(interactionCoveragePrompt(p, "/packet.json"), /uncovered_questions/);
   assert.throws(() => validateCoveragePolicy({ ...policy, url: "https://untrusted" }));
+  const schema = new Ajv().compile(JSON.parse(await readFile(new URL("../schemas/hitl-coverage.v1.schema.json", import.meta.url))));
+  assert.equal(schema(covered), true); assert.equal(schema({ ...covered, atoms: [] }), false);
+  assert.equal(schema({ ...covered, status: "uncovered", response_ids: [] }), false);
+  assert.equal(schema({ ...covered, status: "uncovered", response_ids: [], uncovered_questions: ["Need SMS?"] }), true);
 });
 
 test("JEV validates pinned response identity, probability, bytes and HTTP failures", async () => {
@@ -107,7 +112,17 @@ test("qualified JEV fast path issues and replays original proof without a native
     process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME = path.join(attempt, "qualification"); process.env.OPENROUTER_API_KEY = "secret";
     const calibration = [{ id: "yes", expected: "covered", probabilities: [.1, .2, .3] }, { id: "no", expected: "uncovered", probabilities: [.8, .9, .7] }];
     const heldout = Array.from({ length: 20 }, (_, n) => ({ id: `test-${n}`, expected: n < 10 ? "covered" : "uncovered", probabilities: n < 10 ? [.1, .2, .3] : [.8, .9, .7] }));
-    const certificate = calibrateJev(calibration, heldout, policy), bytes = JSON.stringify(certificate, null, 2) + "\n", digest = sha256(bytes);
+    const certificate = calibrateJev(calibration, heldout, policy), frozenPacket = await packet(), certificatePacketFile = path.join(attempt, "qualification-packet.json");
+    await writeJsonAtomic(certificatePacketFile, frozenPacket);
+    for (const sample of [...certificate.calibration, ...certificate.heldout]) {
+      sample.packet_file = certificatePacketFile; sample.packet_sha256 = hashJson(frozenPacket); sample.observations = [];
+      for (const [index, probability] of sample.probabilities.entries()) {
+        const file = path.join(attempt, "mock-original-observations", `${sample.id}-${index}.json`), raw = response(probability);
+        await writeJsonAtomic(file, { schema_id: "dd-eval/jev-observation@1", state: "completed", identity: { packet_sha256: hashJson(frozenPacket), request_sha256: hashJson(jevRequest(frozenPacket, policy)), classifier_sha256: certificate.classifier_sha256 }, response: raw, response_sha256: hashJson(raw) });
+        sample.observations.push({ file, sha256: sha256(await readFile(file)), probability });
+      }
+    }
+    const bytes = JSON.stringify(certificate, null, 2) + "\n", digest = sha256(bytes);
     await writeJsonAtomic(path.join(process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME, "coverage", `${digest}.json`), certificate);
     const cascade = { ...policy, mode: "cascade", max_uncovered_probability: certificate.threshold, qualification_sha256: digest };
     const profileFile = path.join(attempt, "profile.json");

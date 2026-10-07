@@ -1,7 +1,10 @@
 # 070 — JEV → compact Interaction Judge
 
-Status: implementation-ready plan after readiness review; not implemented or
-qualified. Threshold promotion remains an explicit empirical acceptance gate,
+Status: opt-in implementation completed; deterministic verification passed.
+Live compact qualification produced 41 matching statuses/response sets; semantic
+review of 20 negative answers is awaiting reviewer authorization. JEV calibration,
+held-out acceptance and cascade promotion are therefore not yet completed.
+Threshold promotion remains an explicit empirical acceptance gate,
 not an unresolved architecture choice. No changes to running
 EVALs, product source, engine pins, Final Judge model or global harness installs.
 Base: dd-eval main `9715970544096fc0288ac8e18f95d4e35997be54`.

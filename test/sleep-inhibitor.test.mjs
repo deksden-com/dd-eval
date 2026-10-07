@@ -8,7 +8,8 @@ for (const platform of ["darwin", "linux"]) test(`sleep inhibitor is temporary a
   let killed = false;
   child.kill = signal => { assert.equal(signal, "SIGTERM"); killed = true; };
   const failure = new Error("operation failed");
-  await assert.rejects(withSleepInhibitor(() => { throw failure; }, { platform, launch: (bin, args) => {
+  await assert.rejects(withSleepInhibitor(() => { throw failure; }, { platform, launch: (bin, args, options) => {
+    assert.equal(Object.hasOwn(options.env, "OPENROUTER_API_KEY"), false);
     assert.ok(args.some(arg => arg.includes(String(process.pid)))); return child;
   } }), error => error === failure);
   assert.equal(killed, true);
