@@ -1,5 +1,28 @@
 # E2E monitoring
 
+## SPECIFY comparisons and semantic decisions (plan 071)
+
+Read report@4 completion scope and `stage_outcome`. Profile@2 `stop_after` may
+publish `finished` only after every target has an accepted boundary and owned
+cleanup is settled. `target_reached=true` with pending cleanup stays pending.
+Legal skipped targets retain their reason and are not completed SPECIFY timing
+samples. Do not resume or start a successor after a successful target.
+
+Read owned `semantic-observation.json` and route@2 `semantic_decision` anchors for
+provider/requested and returned model, attempts, confidence, usage/latency and
+fallback reason. HTTP has no native Session/daemon cleanup. Low confidence/refusal
+goes directly to native fallback; transient failures have at most three attempts.
+Unknown paid outcomes are retained/fenced before native handoff, never replayed
+blindly. Preserve failed diagnostics after fallback succeeds; never edit receipts.
+
+For three sequential pilots report EVAL IDs, frozen settings, target timelines,
+fast-path/fallback counts and resolved-model changes. Audit every fast-path
+coverage against retained sources/canonical bytes after the stage. One run per
+mode is no accuracy certificate; fallback-only pilots prove no speed improvement.
+Stop only an individually blocked pilot with normal scoped control, leaving
+unrelated runs untouched. Historical route@1/certified JEV evidence keeps its
+original threshold and certificate semantics.
+
 ## Frozen policy and evidence scope
 
 For new plan-069 runs, report the RUN's frozen operational decision and current

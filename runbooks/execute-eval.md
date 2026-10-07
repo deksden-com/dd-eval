@@ -1,5 +1,36 @@
 # Execute an eval
 
+## Bounded semantic-decision pilots (plan 071)
+
+Use committed profiles `specify-luna-judge-only.json`, `specify-luna-jev.json`,
+and `specify-luna-openai-decisions.json` sequentially in fresh isolated homes.
+All use Subject `gpt-6-luna/xhigh`, compact Interaction Judge `gpt-6.1-sol/high`,
+concurrency 1, one repetition, `stop_after=specify`, and Final Judge disabled.
+Checkpoint/context/engine are identical; keep the case contour and do not create
+a focused entry pack. Commit definitions and run normal preflight before launch.
+
+Profile@2 optionally enables `semantic_decisions` with provider/model,
+`min_confidence=0.93` and `max_retries=2`; do not also select legacy
+`interaction_judge.coverage_policy`. Disabled requires no HTTP/key. Selected
+credentials are `OPENROUTER_API_KEY` or `OPENAI_DECISIONS_API_KEY` at the EVAL
+owner only; never put secrets in profiles, arguments or evidence. Missing optional
+credentials/provider errors use the admitted native fallback; existing native
+qualification remains mandatory and cannot be replaced by a confidence score.
+
+Fast coverage requires one canonical response, complete admitted evidence, and
+confident `uncovered=false`, delivering exact canonical bytes. Low confidence,
+refusal, uncovered or unsupported results go to native Judge without generated
+answers. Only transient errors retry (initial plus two attempts); stop/fence
+aborts HTTP/backoff without fallback or late answer issuance. The confidence
+threshold is experimental policy, not measured accuracy or an old certificate.
+
+`finished` means confirmed selected-target completion with settled evidence and
+cleanup, not full E2E/product PASS. Retain skipped-target reasons; skipped SPECIFY
+is not a completed-stage speed sample. Audit every fast-path acceptance after
+the stage against frozen question/sources/answer bytes, outside timed SPECIFY.
+Defining these profiles authorizes no paid calls, full E2E, qualification campaign,
+historical replay or extra comparison.
+
 ## Scoped operational policy and evidence (plan 069)
 
 An E2E profile using an exception declares `operational_decision` explicitly.

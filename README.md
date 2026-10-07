@@ -36,6 +36,13 @@ This repository owns the evaluation cases, prompts, reference answers, runner
 CLI, review rules, and collected results. None of those materials belong in an
 agent's task repository.
 
+Opt-in `dd-eval/run-profile@2` profiles can select a semantic decision provider
+and `selection.stop_after`. A captured and settled target yields `finished`,
+not a full-E2E PASS. These runs publish `dd-eval/report@4` and frozen
+`dd-eval/run-candidate@3` completion scopes; historical profile/report/candidate
+formats remain unchanged. See [execution options](runbooks/execute-eval.md) and
+[plan 071](specs/071-semantic-decisions-and-stop-after-plan.md).
+
 Flow and engine changes are exercised before canonical release through the
 [beta contour](runbooks/beta-contour.md). It reuses project-local flow packs,
 router-installed engine snapshots, immutable checkpoints, and the normal eval

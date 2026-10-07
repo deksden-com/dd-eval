@@ -1,0 +1,70 @@
+{
+  "schema_id": "dd-eval/run-profile@2",
+  "id": "specify-luna-openai-decisions",
+  "case_id": "sdlc-eval-2026-summer-task-priority",
+  "operational_decision": {
+    "schema_id": "run-operational-decision@1",
+    "id": "task-priority-scored-local-retain",
+    "settings": {
+      "merge_delivery": {
+        "strategy": "local"
+      },
+      "merge_cleanup": {
+        "source": "retain"
+      }
+    },
+    "policy": {
+      "path": ".memory-bank/project-policy.md",
+      "sha256": "cc0f1730de1729ffed8dd34fae3bed1716343d518934b4fe291270dc54faf982",
+      "clauses": [
+        "Git branch strategy",
+        "Cleanup feature worktree"
+      ]
+    },
+    "acceptance": {
+      "source": "run-profile-launch",
+      "reference": "specify-luna-openai-decisions"
+    },
+    "exception": {
+      "reason": "Scored E2E uses local target integration without remote push/tag/deploy; retain the execution-owned source checkout for frozen evidence and investigation.",
+      "owner": "EVAL run-profile operator",
+      "review_at": "2026-10-14"
+    }
+  },
+  "subject": {
+    "profile_id": "codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-9-0-beta-11"
+  },
+  "selection": {
+    "focused_stages": [],
+    "segment": null,
+    "e2e": true,
+    "repetitions": 1,
+    "stop_after": "specify"
+  },
+  "judge": {
+    "enabled": false,
+    "profile_id": "codex-desktop-gpt-6-1-sol-high"
+  },
+  "interaction_judge": {
+    "profile_id": "codex-desktop-gpt-6-1-sol-high",
+    "verdict_contract": "dd-eval/hitl-coverage@1"
+  },
+  "concurrency": {
+    "global": 1,
+    "per_harness": {
+      "codex-desktop": 1
+    }
+  },
+  "failure_policy": {
+    "stop_run_on_infrastructure_error": true,
+    "stop_execution_on_unexpected_hitl": true,
+    "stop_execution_on_unmatched_hitl": true
+  },
+  "semantic_decisions": {
+    "enabled": true,
+    "provider": "openai-decisions",
+    "model": "gpt-6-luna",
+    "min_confidence": 0.93,
+    "max_retries": 2
+  }
+}
