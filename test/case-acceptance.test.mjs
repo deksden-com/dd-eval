@@ -47,11 +47,16 @@ test("V4 frozen native gate proof handles aborted, readiness, wrappers and names
     const db = new DatabaseSync(path.join(f.snapshot, "runtime", "db.sqlite"));
     db.exec("CREATE TABLE run_recovery_guards(recovery_id TEXT,run_id TEXT,project_id TEXT,status TEXT,generation INTEGER,settlement_json TEXT); CREATE TABLE run_controls(control_id TEXT,recovery_id TEXT,run_id TEXT,project_id TEXT)");
     db.prepare("INSERT INTO run_recovery_guards VALUES(?,?,?,?,?,?)").run("RCV-001", "RUN-001", "PRJ-001", "sealed", 1, '{"settled":true}');
-    db.prepare("INSERT INTO run_controls VALUES(?,?,?,?)").run("CTL-001", "RCV-001", "RUN-001", "PRJ-001"); db.close();
+    db.prepare("INSERT INTO run_controls VALUES(?,?,?,?)").run("CTL-001", "RCV-001", "RUN-001", "PRJ-001");
+    db.exec("CREATE TABLE runs(id TEXT,project_id TEXT); CREATE TABLE works(work_id TEXT,project_id TEXT,run_id TEXT); CREATE TABLE check_receipts(id TEXT,project_id TEXT,run_id TEXT,work_id TEXT,scope TEXT,gate TEXT,input_hash TEXT,verification_epoch TEXT,status TEXT,finished_at TEXT,receipt_path TEXT)");
+    db.prepare("INSERT INTO runs VALUES(?,?)").run("RUN-001", "PRJ-001"); db.close();
     const native = { id: "RUN-001/RCP-002", local_id: "RCP-002", work_id: null, scope: "aggregate", gate: "readiness", status: "aborted", finished_at: "2026-10-01T00:00:00Z", input_hash: "hash", verification_epoch: "epoch", exit_code: null, required_artifacts: ["proof.json"], artifacts: [], receipt_path: "/historical/05-code/readiness/checks/RCP-002/receipt.json", abort_reason: "interrupted" };
     const failed = { state: "failed", stage: "code", run_id: "RUN-001", code: "workspace_readiness_failed", details: { checks: [{ id: native.id, status: native.status, receipt_path: native.receipt_path }] }, recovery: { manifest: path.join(f.snapshot, "snapshot.json"), recovery_id: "RCV-001", control_id: "CTL-001", generation: 1, settlement: { settled: true } } };
     const capture = async () => {
-      await put(f.runtime, "05-code/readiness/checks/RCP-002/receipt.json", JSON.stringify(native));
+      await put(f.runtime, native.work_id ? `05-code/works/${native.work_id}/checks/RCP-002/receipt.json` : "05-code/readiness/checks/RCP-002/receipt.json", JSON.stringify(native));
+      const authority = new DatabaseSync(path.join(f.snapshot, "runtime", "db.sqlite"));
+      authority.exec("DELETE FROM check_receipts");
+      authority.prepare("INSERT INTO check_receipts VALUES(?,?,?,?,?,?,?,?,?,?,?)").run(native.id, "PRJ-001", "RUN-001", native.work_id, native.scope, native.gate, native.input_hash, native.verification_epoch, native.status, native.finished_at, native.receipt_path); authority.close();
       const value = JSON.stringify({ schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", stage_entry: null, recovery_id: "RCV-001", consistency: "sealed_writer_barrier_required", project_id: "PRJ-001", run_id: "RUN-001", project_root: projectRoot, dd_flow_home: runtimeRoot, workspace: { sha256: snapshotTreeHash(f.workspace) }, runtime_sha256: snapshotTreeHash(path.join(f.snapshot, "runtime")) });
       await put(f.snapshot, "snapshot.json", value); failed.recovery.manifest_sha256 = sha(value);
     };
@@ -65,6 +70,25 @@ test("V4 frozen native gate proof handles aborted, readiness, wrappers and names
     native.id = "RUN-999/RCP-002"; await capture(); assert.equal((await read()).status, "unavailable");
     native.id = "RUN-001/RCP-002"; native.gate = "merge"; await capture(); assert.equal((await read()).status, "unavailable");
     native.gate = "readiness"; native.status = "running"; await capture(); assert.equal((await read()).status, "unavailable");
+    native.status = "aborted"; await capture();
+    const authority = new DatabaseSync(path.join(f.snapshot, "runtime", "db.sqlite"));
+    authority.exec("DELETE FROM runs"); authority.close();
+    // Rebind the sealed checksum, so this tests missing authority, not hash drift.
+    const manifest = JSON.parse(await readFile(path.join(f.snapshot, "snapshot.json"), "utf8"));
+    manifest.runtime_sha256 = snapshotTreeHash(path.join(f.snapshot, "runtime"));
+    const bytes = JSON.stringify(manifest); await put(f.snapshot, "snapshot.json", bytes); failed.recovery.manifest_sha256 = sha(bytes);
+    assert.equal((await read()).status, "unavailable", "same-shaped receipt without its owning RUN is not evidence");
+    await rm(path.join(f.runtime, "05-code/readiness"), { recursive: true });
+    native.id = "WRK-001/RCP-002"; native.work_id = "WRK-001"; native.scope = "work"; native.gate = "work";
+    native.receipt_path = "/historical/05-code/works/WRK-001/checks/RCP-002/receipt.json";
+    failed.code = "work_checks_failed"; failed.details = { failures: [native] };
+    const ownership = new DatabaseSync(path.join(f.snapshot, "runtime", "db.sqlite"));
+    ownership.prepare("INSERT INTO runs VALUES(?,?)").run("RUN-001", "PRJ-001");
+    ownership.prepare("INSERT INTO works VALUES(?,?,?)").run("WRK-001", "PRJ-001", "RUN-999"); ownership.close();
+    await capture(); assert.equal((await read()).status, "unavailable", "foreign Work at an otherwise valid path cannot prove this RUN's failure");
+    const correct = new DatabaseSync(path.join(f.snapshot, "runtime", "db.sqlite"));
+    correct.exec("UPDATE works SET run_id = 'RUN-001'"); correct.close();
+    await capture(); assert.equal((await read()).status, "failed", "bound native Work retains its failure outcome");
   } finally { await rm(f.root, { recursive: true, force: true }); }
 });
 
