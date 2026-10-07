@@ -602,8 +602,9 @@ Judge inputs действительно изменились, dependency-based q
   gates, code review. Обновить execute/monitor runbooks новыми scope/evidence fields.
 - [x] R8a: коммиты/push/PR по [git workflow](../runbooks/git-workflow.md),
   verified immutable engine/canon/definition tuple и implementation report.
-- [ ] R8b: merge подготовленных PR после review. Текущая задача заканчивается
-  реализацией/commit/push; main напрямую не меняется.
+- [ ] R8b: merge подготовленных PR после review и финальных gates. Пользователь
+  разрешил интеграцию через PR; main напрямую не меняется. Canon/pack уже
+  интегрированы; FLOW/EVAL ожидают завершения review.
 - [ ] R9: **отдельно разрешённая** живая приёмка нового E2E после R8; ни один старый
   EVAL не трогать. Этот planning turn R9 не выполняет и не запускает heartbeat.
 
@@ -713,8 +714,9 @@ remote delivery implementation, продуктовые fixes, ослаблени
 массовую историческую переоценку или полную живую qualification из-за docs changes.
 Validation, scope/authority, hashes и защита от удаления/перезаписи сохраняются.
 
-План готов как предмет реализации и review. Чекбоксы выше остаются незакрытыми:
-этот документ фиксирует работу, а не объявляет исправления внесёнными.
+При планировании этот документ не объявлял исправления внесёнными. Текущее
+выполнение отражено чекбоксами выше и в [review report](069-review-report.md);
+исторические qualification receipts не заменяются новыми результатами.
 
 ## 13. Повторная проверка готовности: закрытые пробелы
 

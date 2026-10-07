@@ -1,5 +1,10 @@
 # Plan 069 — implementation and offline verification
 
+Historical pre-review implementation receipt. The latest corrections, exact
+candidate tuple, verification and integration status are recorded in
+[Plan 069 review report](069-review-report.md); the identities below remain
+unchanged as provenance of the earlier candidate.
+
 2026-10-07. No historical EVAL was resumed, repaired or rewritten. No new model
 E2E, heartbeat, npm release or global harness update belongs to this change.
 Product baseline remains `d81cd0acd589a35789aec4c5291ffb5a6efd2d4e`.
