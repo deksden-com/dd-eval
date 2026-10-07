@@ -75,6 +75,20 @@ test("JEV identity allows only its own release resolution and strips arbitrary p
   assert.throws(() => openrouterDecisions.decode({ model: "typesafe/jev-1.14-20260917", provider: "TypeSafe", id: "dec", answers: {} }, jev.model));
 });
 
+test("failed optional calls retain their phase/status without arbitrary provider errors or secrets", async () => {
+  for (const [fetchImpl, reason, status, code] of [
+    [async () => { throw Object.assign(new Error("private-key"), { cause: { code: "ECONNRESET" } }); }, "transport_failed", null, "ECONNRESET"],
+    [async () => { throw Object.assign(new Error("private-key"), { code: "private-key" }); }, "transport_failed", null, null],
+    [async () => new Response(new ReadableStream({ start(c) { c.error(new Error("private-key")); } })), "response_read_failed", 200, null],
+    [async () => new Response("private-key"), "response_json_invalid", 200, null],
+    [async () => Response.json({ model: "private-key", answers: [] }), "response_schema_invalid", 200, null]
+  ]) {
+    const result = await requestSemantic(request, config, { key: "private-key", fetchImpl });
+    assert.equal(result.reason, reason); assert.equal(result.http_status, status); assert.equal(result.transport_code, code);
+    assert.equal(result.retryable, true); assert.ok(!JSON.stringify(result).includes("private-key"));
+  }
+});
+
 test("three-attempt durable budget, retained backoff and immutable settled decision", async () => temporary(async root => {
   let calls = 0; const waits = [];
   const input = options(root); input.transport.sleep = async ms => { waits.push(ms); };
