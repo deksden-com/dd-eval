@@ -284,6 +284,62 @@ Historical receipts are never upgraded in place. This is regression evidence,
 not a certificate that Judge cannot err; real E2E decisions still pass current
 validation. Preflight merely checks the current assessment receipt and
 still records `provider_sessions_created: 0`; direct `eval run` checks it too.
+
+### Compact coverage and optional JEV filter (plan 070)
+
+Existing profiles keep `hitl-match@3`. To opt in, select
+`interaction_judge.verdict_contract: "dd-eval/hitl-coverage@1"`; without a
+`coverage_policy` the compact native Judge resolves each request. The candidate
+profile `e2e-inline-merge-luna-coverage-shadow.json` selects a pinned shadow policy.
+Use the same `runner definition qualify --profile ...` entry point. Qualification
+uses the separately pinned `hitl_qualification.coverage` corpus: twenty calibration
+and twenty held-out cases. It retains one native observation per task and three
+JEV observations per case. Never include authored expectations in model input.
+
+For negative native verdicts, the command can return
+`definition_qualification_review_required`. This is not authorization to repeat
+native calls. Review each original `uncovered_questions` against the authored
+remaining decisions, including completeness and reference ambiguity. Save a
+new sidecar beneath the original Judge root at
+`coverage-reviews/<hashJson(coverage_expectation)>.json`:
+
+```json
+{
+  "schema_id": "dd-eval/hitl-coverage-review@1",
+  "verdict_sha256": "hashJson(original normalized verdict)",
+  "expectation_sha256": "hashJson(authored coverage_expectation)",
+  "reviewer": "identified semantic reviewer",
+  "complete": true,
+  "covered_remaining_ids": ["each authored remaining decision ID"]
+}
+```
+
+Do not mark incomplete or wrong lists complete. Repeat `definition qualify` to
+reassess original native evidence, not dispatch another Session. The command
+freezes calibration threshold before testing holdout, retains all HTTP outcomes,
+and refuses retuning or reusing a held-out batch for a changed classifier.
+`coverage_qualification_incomplete` and `coverage_qualification_failed` preserve
+Judge-only/shadow mode; never manufacture a promotion receipt.
+
+After qualified native coverage and JEV holdout PASS, promote through a **new**
+checked-in policy with mode `cascade`, the observed threshold and the returned
+`qualification_sha256`. The certificate lives under the definition qualification
+home's `coverage/<sha256>.json`. Preflight verifies it without paid calls. Active
+EVALs retain their original policy; edits do not change them. HTTP receipts have
+`decision_source: "jev"` and no fictitious provider Session or daemon cleanup.
+Native fallback continues using the normal owned Session, capacity continuation
+and settled cleanup. Missing credentials, unsupported context/bundles, limits,
+transport errors, model drift and unknown HTTP outcomes select native fallback;
+an invalid selected policy fails admission instead of silently downgrading.
+
+Supply `OPENROUTER_API_KEY` explicitly to the runner owner. Production does not
+read another project's `.env`; child CLI/provider environments strip this key
+after ambient/explicit environment merging. No credential belongs in a profile,
+policy, request body, journal or receipt. Current EVALs and historical receipts
+must not be repaired or upgraded in place. A scored smoke needs separate launch
+authorization. Finite-corpus PASS is regression evidence, not a guarantee that
+JEV or Judge cannot make a future semantic error.
+
 A request to prepare only never authorizes `eval run` or a live compatibility/
 capacity experiment.
 
