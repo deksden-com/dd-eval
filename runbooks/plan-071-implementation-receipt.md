@@ -62,3 +62,21 @@ SPECIFY-only profiles use Subject gpt-6-luna/xhigh, Interaction Judge
 gpt-6.1-sol/high, threshold 0.93, max_retries 2, Final Judge disabled.
 Normal preflight must admit the native fallback before any scored run.
 No live speed or classifier-accuracy claim is made by this receipt.
+
+## Operational preparation after integration
+
+PR #57 was squash-merged as `eb7b64b39d5769ced82c6be6ff80bf958938569f`.
+The first CP-201 preflight stopped before any Subject Session because installed
+Codex CLI was 0.161.0 while the two selected profiles retained 0.160.0. The normal
+`harness compatibility qualify` command then passed one isolated native smoke
+for each profile and settled both daemon trees. Their runtime pins were updated
+by that command, not manually forced. Receipts in CP-201 conformance:
+
+- `harness-compatibility/20261007215709881/codex-desktop-gpt-5-6-luna-xhigh-dd-flow-0-9-0-beta-11/receipt.json`
+- `harness-compatibility/20261007215755758/codex-desktop-gpt-6-1-sol-high/receipt.json`
+
+The Subject's old fanout-capacity measurement was cleared by the update command.
+SPECIFY does not fan out and does not require it. A future full E2E must perform
+normal capacity qualification; this receipt does not restore the old grant.
+The 41 native semantic Judge tasks keep their identities: model, reasoning,
+question, prompt and source semantics did not change.
