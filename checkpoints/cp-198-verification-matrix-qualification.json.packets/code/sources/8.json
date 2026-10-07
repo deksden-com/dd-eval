@@ -1,0 +1,37 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "2220799642b35efe91b2cd23e2c22ce58cb7470d9d9fde013e35f45d8af197bc",
+  "verification_epoch": "e46482e0ac9f6a41f50e3ed96962e82390e43b2133c15a2aeba03ef118bdae50",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-review.YiSwKt/matrix-fixture/dd-flow-protocolize-YhUTo8/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-review.YiSwKt/matrix-fixture/dd-flow-protocolize-YhUTo8/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-review.YiSwKt/matrix-fixture/dd-flow-protocolize-YhUTo8/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_worktrees/dd-cp197-review.YiSwKt/matrix-fixture/dd-flow-protocolize-YhUTo8/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "fd278d920e74e396a94645be9ffdf1f6dd481fa342b07d216ee4079ec1f456e8",
+  "before_fingerprint": "fd278d920e74e396a94645be9ffdf1f6dd481fa342b07d216ee4079ec1f456e8",
+  "after_fingerprint": "fd278d920e74e396a94645be9ffdf1f6dd481fa342b07d216ee4079ec1f456e8",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-07T05:57:52.096Z",
+  "finished_at": "2026-10-07T05:57:52.174Z"
+}
