@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "node --test",
-    "validate": "node --test"
+    "validate": "node --test",
+    "test:setup": "DD_EVAL_REQUIRE_SETUP=1 node --test test/setup-installed.integration.test.mjs"
   },
   "engines": {
     "node": ">=22.0.0"
