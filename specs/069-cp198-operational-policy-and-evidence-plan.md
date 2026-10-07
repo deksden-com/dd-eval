@@ -1,10 +1,10 @@
 # 069 — CP198: согласование operational policy и достоверность evidence
 
-Дата: 2026-10-07. Статус: **план реализации, изменения runtime ещё не выполнены**.
+Дата: 2026-10-07. Статус: **реализация и offline gates завершены; интеграция через PR**.
 Повторная проверка готовности: 2026-10-07; уточнения отражены в разделе 13.
-Текущая задача: зафиксировать расследование, проверить родственные пути и определить
-исправления. Этот документ не разрешает новый E2E, recovery исторического RUN или
-перезапись прежних verdict/receipt. Реализация и живая приёмка — отдельные действия.
+Расследование и реализация зафиксированы в [implementation report](069-implementation-report.md).
+Этот документ не разрешает новый E2E, recovery исторического RUN или перезапись
+прежних verdict/receipt. Живая приёмка остаётся отдельным действием R9.
 
 ## 1. Цель и границы
 
@@ -583,25 +583,27 @@ Judge inputs действительно изменились, dependency-based q
 
 ## 10. Порядок реализации и зависимости
 
-- [ ] R1: сначала red regressions на реальные CP198 policy/evidence и production
+- [x] R1: сначала red regressions на реальные CP198 policy/evidence и production
   receipt shapes; сохранить только необходимые публичные sanitized inputs, без
   auth/native transcripts целиком и без ссылок на локальные temp homes в tests.
-- [ ] R2: FLOW typed scope/authority binding + frozen operational projection +
+- [x] R2: FLOW typed scope/authority binding + frozen operational projection +
   common Stage/Work renderer + review input integrity. Обычные @2 flows compatible.
-- [ ] R3: чистый canon common Git semantics/precedence, siblings references;
+- [x] R3: чистый canon common Git semantics/precedence, siblings references;
   новый pack. Product baseline/source unchanged.
-- [ ] R4: EVAL operational definition/context materialization, structural @2/@3
+- [x] R4: EVAL operational definition/context materialization, structural @2/@3
   admission и новый checker @4; проверить соответствие exact FLOW artifact,
   не ветке по имени. Draft/no-effect и final RUN binding проверить раздельно.
-- [ ] R5: один EVAL-owned recovery-root contract, env всех control paths, общий
+- [x] R5: один EVAL-owned recovery-root contract, env всех control paths, общий
   typed source resolver; applicability, exact receipt index/wrappers/readiness.
-- [ ] R6: journal/model expectations, attribution, report/Judge history/schema и
+- [x] R6: journal/model expectations, attribution, report/Judge history/schema и
   versioned derived identities (@4 acceptance, evidence@2); обновить все version
   predicates/qualification guards. Supplemental projection использует R5.
-- [ ] R7: paired producer/consumer tests, targeted integration и required release
+- [x] R7: paired producer/consumer tests, targeted integration и required release
   gates, code review. Обновить execute/monitor runbooks новыми scope/evidence fields.
-- [ ] R8: коммиты/PR/integration по [git workflow](../runbooks/git-workflow.md),
+- [x] R8a: коммиты/push/PR по [git workflow](../runbooks/git-workflow.md),
   verified immutable engine/canon/definition tuple и implementation report.
+- [ ] R8b: merge подготовленных PR после review. Текущая задача заканчивается
+  реализацией/commit/push; main напрямую не меняется.
 - [ ] R9: **отдельно разрешённая** живая приёмка нового E2E после R8; ни один старый
   EVAL не трогать. Этот planning turn R9 не выполняет и не запускает heartbeat.
 
