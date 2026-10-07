@@ -1,0 +1,12 @@
+{
+  "schema_id": "dd-eval/hitl-coverage-policy@1",
+  "mode": "shadow",
+  "requested_model": "typesafe/jev-1.13",
+  "resolved_model": "typesafe/jev-1.13-20260917",
+  "provider": "TypeSafe",
+  "projection_version": "dd-eval/hitl-coverage-input@1",
+  "prompt_sha256": "bde16212f15cdfff62ef0ce97472fe92848cd87f698e0b6f2f16cc4a5892cd92",
+  "transport_version": "dd-eval/jev-transport@1",
+  "max_uncovered_probability": null,
+  "qualification_sha256": null
+}

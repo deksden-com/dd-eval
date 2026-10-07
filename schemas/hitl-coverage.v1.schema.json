@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dd-eval/hitl-coverage@1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "status", "response_ids", "uncovered_questions"],
+  "properties": {
+    "schema_id": {"const": "dd-eval/hitl-coverage@1"},
+    "status": {"enum": ["covered", "uncovered", "ambiguous"]},
+    "response_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1, "pattern": "\\S"}},
+    "uncovered_questions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1, "pattern": "\\S"}}
+  },
+  "allOf": [{
+    "if": {"properties": {"status": {"const": "covered"}}},
+    "then": {"properties": {"response_ids": {"minItems": 1}, "uncovered_questions": {"maxItems": 0}}},
+    "else": {"properties": {"response_ids": {"maxItems": 0}, "uncovered_questions": {"minItems": 1}}}
+  }]
+}
