@@ -61,7 +61,7 @@ test('controller replay is deduplicated independently of the EVAL sequence', asy
   assert.deepEqual(events.slice(1).map(event => [event.data.sequence, event.data.controller_sequence]), [[2, 1], [3, 1]]);
 });
 
-for (const [code, terminal] of [['provider_failed', 'failed'], ['rpc_timeout', null], ['managed_run_controlled', null], ['managed_run_waiting_for_user', null]]) {
+for (const [code, terminal] of [['provider_failed', 'failed'], ['hitl_coverage_unresolved', 'failed'], ['required_hitl_missing', 'failed'], ['rpc_timeout', null], ['managed_run_controlled', null], ['managed_run_waiting_for_user', null]]) {
   test(`reattach persists ${code} without converting an unknown outcome or wait into failure`, async t => {
     const root = await fixture(t), eventsFile = path.join(root, 'events.jsonl');
     await appendEvent(eventsFile, { source: 'fixture', runId: 'EVAL', executionId: 'subject', type: 'dev.dd.eval.operation.started', data: { operation_id: 'launch', operation: 'launch', status: 'started' } });

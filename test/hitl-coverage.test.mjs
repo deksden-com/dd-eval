@@ -17,7 +17,7 @@ import { verifyRetainedHitl } from "../lib/hitl-retained.mjs";
 import Ajv from "ajv/dist/2020.js";
 
 const policy = { schema_id: "dd-eval/hitl-coverage-policy@1", mode: "shadow", requested_model: "typesafe/jev-1.13", resolved_model: "typesafe/jev-1.13-20260917", provider: "TypeSafe", projection_version: "dd-eval/hitl-coverage-input@1", prompt_sha256: jevPromptHash, transport_version: coverageTransport, max_uncovered_probability: null, qualification_sha256: null };
-const packet = () => buildHitlPacket({ stage: "specify", question: "May closed tasks change priority?", responses: [{ id: "canonical", topic: "priority", applicability: "specify", answer: "Yes. No extra indicators." }], verdictContract: hitlCoverageContract });
+const packet = (question = "May closed tasks change priority?") => buildHitlPacket({ stage: "specify", question, responses: [{ id: "canonical", topic: "priority", applicability: "specify", answer: "Yes. No extra indicators." }], verdictContract: hitlCoverageContract });
 const response = p => ({ id: "decision-1", model: policy.resolved_model, provider: policy.provider, answers: { uncovered: { type: "noul", noul: p } } });
 
 test("compact contract validates exact shape and never projects partial IDs", async () => {
@@ -30,6 +30,7 @@ test("compact contract validates exact shape and never projects partial IDs", as
   assert.equal(input.question, p.question);
   assert.match(interactionCoveragePrompt(p, "/packet.json"), /uncovered_questions/);
   assert.throws(() => validateCoveragePolicy({ ...policy, url: "https://untrusted" }));
+  assert.throws(() => validateCoveragePolicy({ ...policy, requested_model: "typesafe/jev-latest" }), { code: "coverage_policy_invalid" });
   const schema = new Ajv().compile(JSON.parse(await readFile(new URL("../schemas/hitl-coverage.v1.schema.json", import.meta.url))));
   assert.equal(schema(covered), true); assert.equal(schema({ ...covered, atoms: [] }), false);
   assert.equal(schema({ ...covered, status: "uncovered", response_ids: [] }), false);
@@ -121,9 +122,11 @@ test("qualified JEV fast path issues and replays original proof without a native
     process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME = path.join(attempt, "qualification"); process.env.OPENROUTER_API_KEY = "secret";
     const calibration = [{ id: "yes", expected: "covered", probabilities: [.1, .2, .3] }, { id: "no", expected: "uncovered", probabilities: [.8, .9, .7] }];
     const heldout = Array.from({ length: 20 }, (_, n) => ({ id: `test-${n}`, expected: n < 10 ? "covered" : "uncovered", probabilities: n < 10 ? [.1, .2, .3] : [.8, .9, .7] }));
-    const certificate = calibrateJev(calibration, heldout, policy), frozenPacket = await packet(), certificatePacketFile = path.join(attempt, "qualification-packet.json");
-    await writeJsonAtomic(certificatePacketFile, frozenPacket);
+    const certificate = calibrateJev(calibration, heldout, policy);
     for (const sample of [...certificate.calibration, ...certificate.heldout]) {
+      const frozenPacket = await packet(`May closed tasks change priority in independent scenario ${sample.id}?`);
+      const certificatePacketFile = path.join(attempt, `${sample.id}-qualification-packet.json`);
+      await writeJsonAtomic(certificatePacketFile, frozenPacket);
       sample.packet_file = certificatePacketFile; sample.packet_sha256 = hashJson(frozenPacket); sample.observations = [];
       for (const [index, probability] of sample.probabilities.entries()) {
         const file = path.join(attempt, "mock-original-observations", `${sample.id}-${index}.json`), raw = response(probability);
@@ -152,6 +155,12 @@ test("qualified JEV fast path issues and replays original proof without a native
     await assert.rejects(verifyRetainedHitl({ data: { ...anchored, judge_session_id: "fake" } }), /Session|provider/);
     await writeJsonAtomic(first.receipt_file, { ...receipt, qualification_bytes: "{}" });
     await assert.rejects(interactionJudge(options), /frozen qualification/); assert.equal(calls, 1);
+    const duplicated = structuredClone(certificate);
+    duplicated.heldout[0] = { ...duplicated.calibration[0], id: duplicated.heldout[0].id };
+    const duplicateBytes = JSON.stringify(duplicated, null, 2) + "\n", duplicateHash = sha256(duplicateBytes);
+    await writeJsonAtomic(path.join(process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME, "coverage", `${duplicateHash}.json`), duplicated);
+    const { assertCoveragePolicy } = await import("../lib/hitl-coverage.mjs");
+    await assert.rejects(assertCoveragePolicy({ ...cascade, qualification_sha256: duplicateHash }, process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME), /repeats a semantic input/);
   } finally {
     globalThis.fetch = priorFetch;
     if (priorHome === undefined) delete process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME; else process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME = priorHome;
