@@ -388,7 +388,8 @@ that all edge cases were correct. Substantial defects found and fixed:
   bounded recent history is not a lifetime activity quota: new events beyond
   1,024 entries still advance. Events outside that retained history are not
   claimed as indefinitely provable replays; native sequence IDs are the upgrade
-  path if that operational ceiling matters.
+  path if that operational ceiling matters. Store fixed-size SHA-256 fingerprints,
+  not 1,024 retained copies of potentially growing tool output.
 - FIFO/oversized progress input could block or allocate before validation. Open
   nonblocking, require a regular file and cap progress reads at 16KiB plus one.
   Drain in-flight socket polling before returning; no receipt writes after exit.
@@ -402,10 +403,23 @@ speed; positive CR framing uses the ordinary subprocess watchdog; framework
 cleanup hooks use the existing 120-second test envelope. Production silence
 windows were not increased. No new dependency or second state store was added.
 
+The broad EVAL run exposed two additional offline fixture omissions: Judge
+cleanup lacked required progress/recovery exports, and supplemental Judge wrote
+incomplete daemon identity without modern settlement. Correct the test adapters,
+not production authority checks. The supplemental replay test also verifies that
+read-only reuse after clean shutdown performs no further native RPC. Operator
+fixtures keep their actual UX deadlines and no-late-admission assertions, while
+positive multi-process readiness and physical retirement have separately bounded
+test watchdogs; elapsed host speed is not cancellation proof.
+
 Affected review checks: current core socket fixture 16/16 PASS, durable daemon
 fixture 17/17 PASS, native RPC 10/10 PASS, EVAL operation/daemon 19/19 PASS,
 historical HITL recovery 2/2 PASS, required-env native-child proof 1/1 PASS and
-CR framing 1/1 PASS. Static typecheck, strict-canon build, lint and diff checks
+CR framing 1/1 PASS. The corrected Judge cleanup fixture passes 6/6, supplemental
+Judge passes 17/17 on the final frozen build, and operator control regressions
+pass 4/4, with no skips. The coordinator's combined affected
+engine run passes 61/61; counts overlap the individual runs. Static typecheck,
+strict-canon build, lint and diff checks
 were run separately. Counts describe these regression runs, not full acceptance.
 The first broad runs began before the final review tree froze: engine tests
 overlapped dist rebuilding and were stopped; EVAL lacked required paired-runtime

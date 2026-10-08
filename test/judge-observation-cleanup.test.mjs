@@ -18,6 +18,10 @@ async function offlineRuntime(root, failureCode) {
     ['operation-errors.mjs', `export {OPERATION_ERROR_CONTRACT_VERSION,isObservationLoss} from ${JSON.stringify(errors)};`],
     ['dd-agy.mjs', 'export const agyTerminalFailure=()=>null;'],
     ['observation-clock.mjs', "export const OBSERVATION_CLOCK_CONTRACT_VERSION='operation-progress@1';"],
+    // This offline adapter has no capacity wait or settled original receipt.
+    // Missing contract modules must not replace the cleanup error being tested.
+    ['operation-progress.mjs', "export const OPERATION_PROGRESS_CONTRACT='dd-flow/operation-progress@1';export const readOperationWaiting=async()=>false;export const suspendOperationClock=()=>{};"],
+    ['daemon-observation.mjs', "export const retainedDaemonReply=async()=>null;"],
     ['adapter-timeouts.mjs', "export const NATIVE_OPERATION_WAIT_CONTRACT='native-operation-wait@1';export const nativeOperationWait=(_h,op)=>op==='session.prompt'?'native-work':'control';"]
   ]) await writeFile(path.join(lib, file), source);
   // Offline paid-action stand-in. It records actual production arguments and
