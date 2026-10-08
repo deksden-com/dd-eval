@@ -252,3 +252,12 @@ receipts are unchanged; the repaired run needs a fresh campaign.
 Preparation/comparison regression checks: 55/55 PASS, zero failures/skips,
 38943 ms (`/tmp/dd-eval-075-startup-regression.log`). The policy pin is updated
 to include browser provisioning. No historical receipt or product tree changed.
+
+The repaired Judge-only attempt is `EVAL-20261008104125-bf6dc922`.
+It exposed one additional comparison edge case: the scoped process inventory
+retains completed baseline records as `stopped`, not `finished`. The observer
+now excludes the registry's two terminal states (`stopped`, `failed`) from
+active-lease checks, while still checking every record's scope/kind. Orphaned,
+foreign, productive and expired active records remain blockers. Regression:
+50/50 PASS (`/tmp/dd-eval-075-startup-terminal-regression.log`). Comparison is
+reobserved using the same campaign/acknowledged EVAL; no Subject replay.

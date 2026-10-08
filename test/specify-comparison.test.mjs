@@ -155,6 +155,17 @@ test("bound live baseline without a managed RUN continues observation, not dupli
   await runSpecifyComparison(f.options); assert.deepEqual(f.launches, [0, 1]);
 });
 
+for (const state of ["stopped", "failed"]) test(`retired ${state} baseline records do not require an active lease`, async t => {
+  const f = await fixture(t); let calls = 0;
+  f.options.status = async variant => {
+    if (++calls !== 1) return finished();
+    const s = preparing(variant.ack.run_id);
+    s.live.inventory.processes.push({ ...s.live.inventory.processes[1], state, lease_expires_at: new Date(0).toISOString() });
+    return s;
+  };
+  await runSpecifyComparison(f.options); assert.deepEqual(f.launches, [0, 1]);
+});
+
 for (const [label, corrupt] of [
   ["scope", s => { s.live.inventory.scope_id = "foreign"; }],
   ["owner", s => { s.live.inventory.processes[0].owner_id = "foreign"; }],
@@ -166,6 +177,7 @@ for (const [label, corrupt] of [
   ["dispatch", s => { s.live.inventory.dispatch_blocked = true; }],
   ["turn", s => { s.live.inventory.provider_turns.push({ state: "running" }); }],
   ["native", s => { s.live.inventory.processes[1].kind = "harness-daemon"; }],
+  ["orphaned", s => { s.live.inventory.processes[1].state = "orphaned"; }],
   ["error", s => { s.live.executions[0].error.code = "EACCES"; }],
   ["inventory", s => { s.live.inventory.ok = false; }]
 ]) test(`baseline observation cannot hide ${label} ownership uncertainty`, async t => {
