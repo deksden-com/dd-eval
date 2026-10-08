@@ -66,9 +66,14 @@ test("unknown launch with zero manifests is fail closed on restart", async t => 
   await assert.rejects(runSpecifyComparison(f.options), { code: "comparison_launch_unknown" });
 });
 
-for (const status of [{ state: "completed_with_failures", cleanup_state: "settled" }, { state: "awaiting_provider", runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "dead" } }] }, { state: "stopped" }]) {
+for (const status of [{ state: "completed_with_failures", cleanup_state: "settled" }, { state: "awaiting_provider", runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "dead" } }] }, { state: "stopped" },
+  { state: "finished", cleanup_state: "blocked" },
+  { state: "finished", cleanup_state: "pending", runner_attempts: [{ last_recorded_status: "failed", error: { code: "owner_lost" }, live_owner: { state: "dead" } }] },
+  { state: "finished", cleanup_state: "pending", runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "dead" } }] },
+  { state: "awaiting_provider", live: { observation_complete: false, inventory: { unavailable: true } }, runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "alive" } }] }]) {
   test(`blocker ${JSON.stringify(status)} stops campaign`, async t => {
     const f = await fixture(t); f.options.status = async () => status;
+    f.options.wait = async () => assert.fail("A confirmed blocker must not keep polling");
     await assert.rejects(runSpecifyComparison(f.options), { code: "comparison_blocked" }); assert.deepEqual(f.launches, [0]);
   });
 }
@@ -120,6 +125,13 @@ test("skipped target is not counted as completed SPECIFY", async t => {
 test("initial requested owner registration race is not a dead-owner blocker", async t => {
   const f = await fixture(t); let calls = 0;
   f.options.status = async () => ++calls === 1 ? { state: "planned", live: { unavailable: true }, runner_attempts: [{ last_recorded_status: "requested", live_owner: { state: "unknown" } }] } : finished();
+  await runSpecifyComparison(f.options); assert.deepEqual(f.launches, [0, 1]);
+});
+
+test("live preparation may lack a managed RUN before provider dispatch", async t => {
+  const f = await fixture(t); let calls = 0;
+  f.options.status = async () => ++calls === 1 ? { state: "planned", live: { observation_complete: false, executions: [{ unavailable: true }] },
+    runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "alive" } }] } : finished();
   await runSpecifyComparison(f.options); assert.deepEqual(f.launches, [0, 1]);
 });
 

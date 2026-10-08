@@ -131,7 +131,7 @@ test("HITL qualification binds Judge task evidence, not repository tree or harne
     const policyFile = path.join(process.env.DD_FLOW_CONFIG_HOME, 'agent-profiles', `${judgeId}.json`);
     const template = JSON.parse(await readFile(policyFile));
     await writeFile(policyFile, JSON.stringify({ ...template, permission: 'deny' }));
-    assert.notEqual((await hitlQualificationInputs(input)).tasks[qualified.corpus.items[0].id].key, qualified.tasks[qualified.corpus.items[0].id].key, 'effective Judge permission is a qualification dependency');
+    await assert.rejects(hitlQualificationInputs(input), { code: 'execution_policy_unsupported' }, 'Codex cannot qualify a deny policy that its adapter ignores');
     await writeFile(policyFile, JSON.stringify(template));
     assert.ok(qualified.corpus.items.length >= 14);
     assert.equal(qualified.corpus.context_required, true, 'task-priority corpus requires production-shaped context');

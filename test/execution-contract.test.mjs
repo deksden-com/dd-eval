@@ -4,7 +4,8 @@ import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { resolveExecutionContract, validateExecutionContract, materializeExecutionContract, contractProfile, assertRunExecutionContract, conformanceExecutionContract } from "../lib/execution-contract.mjs";
+import { resolveExecutionContract, validateExecutionContract, materializeExecutionContract, contractProfile, assertRunExecutionContract, conformanceExecutionContract, profileSemanticHash } from "../lib/execution-contract.mjs";
+import { hashJson } from "../lib/runner-events.mjs";
 import { assertProfileCapacity, qualifiedCoordinator, admitContractProfiles } from "../lib/runner.mjs";
 
 const template = (id, harness = "codex") => ({ schema_id: "dd-flow/agent-profile@1", id, harness, provider: "openai", model: "old-model", reasoning: "high", mode: "agent", permission: "allow" });
@@ -52,6 +53,21 @@ test("trust boundaries reject missing template, alias/security conflicts, unsafe
   await writeFile(path.join(configHome, "agent-profiles", "subject.json"), JSON.stringify({ ...template("subject"), permission: "root" }));
   await assert.rejects(resolve("subject"), { code: "execution_contract_invalid" });
 });
+test("focused and segment admission excludes dispatch profiles outside the selected ranges", async t => {
+  const configHome = await setup(t);
+  for (const selection of [
+    { focused_stages: ["specify"], segment: null, e2e: false, repetitions: 1 },
+    { focused_stages: [], segment: { from: "plan", to: "plan" }, e2e: false, repetitions: 1 }
+  ]) {
+    const contract = await resolveExecutionContract({ configHome, loadProfile: declaration,
+      runProfile: { subject: { profile_id: "subject", execution: { agent_profile_id: "subject", stage_overrides: {
+        code: { delegation: { mode: "external", agent_profile_id: "worker" } }
+      } } }, selection } });
+    assert.deepEqual(contract.admission_stages, selection.focused_stages.length ? ["specify"] : ["plan"]);
+    assert.deepEqual(contract.admission_profile_ids, ["subject"]);
+    assert.ok(contract.profiles.worker, "unreached routes still require structural freezing");
+  }
+});
 test("native workers cannot quietly replace coordinator session settings", async t => {
   const configHome = await setup(t);
   await assert.rejects(resolveExecutionContract({ configHome, runProfile: { subject: { profile_id: "subject", execution: { agent_profile_id: "subject", delegation: { mode: "native", agent_profile_id: "worker" } } } }, loadProfile: id => ({ ...declaration(id), model: id === "worker" ? "different-model" : "new-model" }) }), { code: "native_profile_override_unqualified" });
@@ -73,6 +89,26 @@ test("all supported harness aliases map without model/provider heuristics", asyn
     const contract = await resolveExecutionContract({ configHome, runProfile: { subject: { profile_id: native } }, loadProfile: id => declaration(id, alias) });
     assert.equal(contract.profiles[native].harness, native); assert.equal(contractProfile(contract, native).harness, alias);
   }
+});
+
+test("permission policy is admitted only when the pinned adapter can enforce it", async t => {
+  for (const harness of ["codex", "agy", "grok", "opencode", "droid", "zcode"]) {
+    const configHome = await setup(t, [{ ...template("subject", harness), permission: "deny" }]);
+    const resolve = () => resolveExecutionContract({ configHome, runProfile: { subject: { profile_id: "subject" } },
+      loadProfile: () => declaration("subject", harness) });
+    if (harness === "zcode") assert.equal((await resolve()).profiles.subject.permission, "deny");
+    else await assert.rejects(resolve(), { code: "execution_policy_unsupported" });
+  }
+  // Admission constraints must not make a historically retained receipt unreadable.
+  const configHome = await setup(t, [{ ...template("subject", "zcode"), permission: "deny" }]);
+  const retained = await resolveExecutionContract({ configHome, runProfile: { subject: { profile_id: "subject" } },
+    loadProfile: () => declaration("subject", "zcode-acp") });
+  retained.profiles.subject.harness = "codex";
+  retained.declarations.subject.harness = "codex-desktop";
+  retained.profile_sha256.subject = profileSemanticHash(retained.profiles.subject);
+  retained.semantic_sha256 = hashJson({ profiles: retained.profiles, routing: retained.routing, roles: retained.roles });
+  retained.integrity_sha256 = hashJson({ ...retained, integrity_sha256: undefined });
+  assert.doesNotThrow(() => validateExecutionContract(retained));
 });
 
 test("existing AGY/ZCode policy declarations constrain templates without being rejected or overridden", async t => {
