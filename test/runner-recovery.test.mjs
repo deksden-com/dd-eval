@@ -449,6 +449,46 @@ for (const [blocked, worker] of [
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+for (const [owner, capture, receiptRun, statusRun = "RUN-test"] of [["absent", "missing", "RUN-test"], ["absent", "recorded", "RUN-test"], ["live", "missing", "RUN-test"], ["unknown", "missing", "RUN-test"], ["absent", "missing", "foreign"], ["absent", "missing", "RUN-test", "foreign"]]) test(`terminal engine finalization receipt preserves the capture barrier (${owner}/${capture}/${receiptRun}/${statusRun})`, async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-terminal-finalization-"));
+  try {
+    const attempt = path.join(root, "executions/e"), runtime = path.join(attempt, "dd-flow-home"), project = path.join(attempt, "project");
+    await mkdir(path.join(runtime, "bin"), { recursive: true }); await mkdir(project);
+    const bin = path.join(runtime, "bin/dd-flow"), statusFile = path.join(root, "status.json");
+    await writeFile(bin, `#!/usr/bin/env node\nconsole.log(require('node:fs').readFileSync(${JSON.stringify(statusFile)},'utf8'))\n`); await chmod(bin, 0o700);
+    const finalization = { schema_id: "dd-flow/terminal-finalization@1", issuer: "dd-flow", phase: "terminal_finalization", project_root: project,
+      run_id: receiptRun, controller_id: "DRV-test", status: "blocked", owner, capture, error: { code: "invalid_run_state", message: "original finalization failure" } };
+    await writeJsonAtomic(statusFile, { scope: { run_id: statusRun }, run_status: "done", settled: false, control: null, worker: null, finalization });
+    await writeJsonAtomic(path.join(attempt, "managed-runtime.json"), { schema_id: "dd-eval/managed-runtime@1", project_root: project, runtime_root: runtime, run_id: "RUN-test" });
+    const manifest = { run_id: "EVAL-test", runtime_resource_home: path.join(root, "resources"), case_id: "sdlc-eval-2026-summer-task-priority", executions: [{ id: "e", stage: "specify", terminal_stage: "merge", mode: "e2e" }], subject_profile: {}, profile: { judge: { enabled: false } } };
+    await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
+    for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "invalid_run_state", message: "original finalization failure" } } });
+    const result = await runnerResume({ evalRoot: root });
+    const bound = receiptRun === "RUN-test" && statusRun === "RUN-test", blocked = owner === "absent" && bound;
+    assert.equal(result.state, blocked ? "recovery_blocked" : "awaiting_provider");
+    assert.equal(result.cleanup_state, blocked ? "blocked" : "pending");
+    assert.equal(result.executions[0].code, "invalid_run_state");
+    const report = JSON.parse(await readFile(path.join(root, "reports/report.json")));
+    assert.equal(report.run_validity, bound ? "invalid_infrastructure_flow" : "valid", JSON.stringify(result.executions[0]));
+    assert.equal(result.candidate, undefined);
+    assert.equal((await readEvents(path.join(root, "events.jsonl"))).some(event => event.type === "dev.dd.eval.candidate.frozen"), false);
+    if (blocked) assert.deepEqual(result.executions[0].recovery.finalization, finalization);
+    if (blocked && capture === "recorded") {
+      const sealed = path.join(root, "capture"); await mkdir(sealed); await writeJsonAtomic(path.join(sealed, "snapshot.json"), { consistency: "sealed" });
+      await writeJsonAtomic(statusFile, { scope: { run_id: "RUN-test" }, run_status: "done", settled: true, finalization,
+        worker: { status: "completed" }, control: { current: true, admission: "sealed", capture_path: sealed, recovery_id: "REC-test", control_id: "CTRL-test" } });
+      const settled = await runnerResume({ evalRoot: root });
+      assert.equal(settled.state, "completed_with_failures");
+      assert.equal(settled.cleanup_state, "settled");
+      assert.equal(settled.executions[0].code, "invalid_run_state");
+      assert.equal(JSON.parse(await readFile(path.join(root, "reports/report.json"))).run_validity, "invalid_infrastructure_flow");
+      const count = (await readEvents(path.join(root, "events.jsonl"))).length;
+      assert.equal((await runnerResume({ evalRoot: root })).candidate.immutable_hash, settled.candidate.immutable_hash);
+      assert.equal((await readEvents(path.join(root, "events.jsonl"))).length, count, "sealed finalization does not rerun Judge/candidate");
+    }
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
 test("canonical legacy lock migration reclaims only a proven dead owner", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "canonical-lock-migration-"));
   const file = path.join(root, "build", "canonical-resume.lock");
