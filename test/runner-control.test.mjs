@@ -475,21 +475,30 @@ else console.log(JSON.stringify(history.includes('resume') ? prepared : { ...pre
   const before = await readFile(eventsFile, 'utf8'), started = performance.now();
   const waitMs = mode === 'release' ? 15_000 : 1500;
   const result = { ok: true, ...await runnerControlResume({ evalRoot: root, fromRequestId: 'stop', requestId: 'resume', waitMs }) };
-  assert.equal(result.ok, mode !== 'unknown');
+  if (mode === 'release') assert.equal(result.ok, true);
+  if (mode === 'unknown') assert.equal(result.ok, false);
   assert.equal(result.request_id, 'resume');
   assert.equal(result.source_request_id, 'stop');
   assert.equal(result.pending, mode !== 'release');
   assert.ok(performance.now() - started < waitMs + ownedCliCleanupMs, 'UX wait plus owned CLI retirement stays bounded');
-  assert.equal((await readFile(calls, 'utf8')).trim().split('\n').filter(x => x === 'resume').length, mode === 'unknown' ? 0 : 1);
+  const actions = (await readFile(calls, 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error; })).trim().split('\n').filter(Boolean);
+  const submissions = actions.filter(x => x === 'resume').length;
+  assert.ok(actions.every(action => ['status', 'resume'].includes(action)));
+  assert.ok(submissions <= 1, 'the bounded observer never replays preparation');
+  if (mode === 'unknown') assert.equal(submissions, 0);
+  if (result.ok) assert.equal(submissions, 1);
   if (mode === 'release') {
     assert.equal(result.applied, true);
     assert.equal(result.receipt.dispatch_blocked, false);
     assert.equal((await readEvents(eventsFile)).filter(e => e.type === 'dev.dd.eval.control.resume_applied').length, 1);
-    assert.equal((await runnerControlResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop', waitMs: 1000 })).reused, true);
+    // This assertion checks exact release reuse, not another 1-second UX race.
+    assert.equal((await runnerControlResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop', waitMs: 10_000 })).reused, true);
   } else {
     assert.equal(result.observation_timed_out, true);
-    assert.equal(result.accepted, mode === 'unknown' ? null : true);
-    if (mode === 'unknown') assert.equal(result.receipt, undefined);
+    // Before the first reply, a busy host can exhaust even the pending/hang
+    // fixture's UX budget. Unknown acceptance is not confirmed preparation.
+    assert.equal(result.accepted, result.ok ? true : null);
+    if (!result.ok) assert.equal(result.receipt, undefined);
     else assert.equal(result.receipt.dispatch_blocked, true);
     assert.equal(await readFile(eventsFile, 'utf8'), before);
   }

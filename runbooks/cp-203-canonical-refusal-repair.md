@@ -63,6 +63,29 @@ timeouts/ownership policy are unchanged. Control suite: 36 PASS, 5 SKIP, 0 FAIL
 (`/tmp/dd-eval-075-control-budget-final.log`). A full suite rerun follows this
 fix; the earlier aggregate is not reported as PASS.
 
+The subsequent EVAL aggregate was 758 PASS, 3 FAIL, 10 SKIP (771 tests).
+One existing active-status test still expected the old throwing API on corrupt
+answer bytes; it now checks explicit unknown/error, absence of usable HITL proof
+and unchanged journal. Two control fixtures assumed a short diagnostic deadline
+always obtains an ACK (including a one-second read of an already applied
+release). Release identity reuse is checked with a bounded ten-second read;
+the short UX cases retain their deadline and permit only honest unknown
+acceptance before any response. They still require pending, no applied journal
+release, no native action except status/resume and at most one preparation.
+This is test-contract correction, not longer production timeouts or retrying a
+failed test until it happens to pass.
+Combined active-status, control, monitoring and comparison verification:
+102 PASS, 5 SKIP, 0 FAIL, 107146 ms
+(`/tmp/dd-eval-075-readback-control-final.log`).
+
+The updated shared Judge prompt produced all 44 original native observations.
+All status/response-ID expectations matched, including the exact CP205 positive
+and notification/accepted-conflict negatives. Twenty-two unresolved cases were
+manually compared against their authored remaining decisions; bound review
+sidecars retain the native verdict and expectation hashes. Assessment reuses
+these observations without another model request. The clean-tree qualification
+reassessment and final full EVAL gate are pending this test-only follow-up.
+
 Full engine gate at runtime commit 356a4e1: release passed; integration 2233 PASS,
 1 FAILED, and runtime-sensitive group was not reached. The single failure was
 the orphan fixture's direct confirmation under a transient unavailable OS birth
