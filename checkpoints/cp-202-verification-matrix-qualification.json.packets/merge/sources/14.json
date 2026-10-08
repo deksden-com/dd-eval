@@ -1,0 +1,35 @@
+{
+  "id": "WRK-006-merge/RCP-004",
+  "local_id": "RCP-004",
+  "declaration_id": "CHK-MERGE",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-MERGE"
+  ],
+  "gate": "merge",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "true",
+  "input_hash": "f36ba49b4f28dffd0ea745f00bb3ebb63365d64113728b3b2f5eac6ffd35325d",
+  "verification_epoch": "229992782a182f08e5507c91f37aeda5f8c24e851a2a77e0dcf5681c6b0b05ed",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "87e117286910dd3690d7c058f332413a39fcb528029ca565554b68386007263f",
+  "before_fingerprint": "87e117286910dd3690d7c058f332413a39fcb528029ca565554b68386007263f",
+  "after_fingerprint": "87e117286910dd3690d7c058f332413a39fcb528029ca565554b68386007263f",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-08T04:33:36.412Z",
+  "finished_at": "2026-10-08T04:33:36.532Z"
+}

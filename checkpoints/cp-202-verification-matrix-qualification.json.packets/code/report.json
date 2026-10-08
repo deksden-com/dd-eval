@@ -1,0 +1,146 @@
+{
+  "schema_id": "dd-flow/stage-report@2",
+  "run_id": "RUN-001-tasks",
+  "stage": "code",
+  "generated_at": "2026-10-08T04:33:34.118Z",
+  "verdict": "done",
+  "verification": {
+    "checks": [
+      {
+        "id": "CHK-P1-TEST",
+        "run_at": "work",
+        "status": "passed",
+        "receipt_ref": "/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json"
+      },
+      {
+        "id": "CHK-READY",
+        "run_at": "readiness",
+        "status": "passed",
+        "receipt_ref": "/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json"
+      },
+      {
+        "id": "CHK-NEW",
+        "run_at": "work",
+        "status": "passed",
+        "receipt_ref": "/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json"
+      }
+    ],
+    "acceptance": [
+      {
+        "criterion_id": "AC-001",
+        "gate": "work",
+        "status": "confirmed",
+        "check_refs": [
+          "CHK-P1-TEST",
+          "CHK-READY"
+        ],
+        "evidence_refs": [
+          ".memory-bank/spec/engineering/code-check-profile.json",
+          ".memory-bank/scenarios/SCN-002.md",
+          "run://RUN-001-tasks/05-code/checks/RCP-002/receipt.json"
+        ]
+      }
+    ]
+  },
+  "semantic": {
+    "result": "Completed 1 CODE Work item; 1 current final check receipt passed.",
+    "acceptance": [
+      "R-001",
+      "AC-001"
+    ],
+    "changed_files": [
+      ".memory-bank/dd-flow/mb-sdlc/plan-aspects/aspects/contract-review.md",
+      ".memory-bank/dd-flow/project-execution.json",
+      ".memory-bank/epics/EP-001-tasks/features/FT-001-task-priority/index.md",
+      ".memory-bank/epics/EP-001-tasks/index.md",
+      ".memory-bank/protocol/PRT-001-historical/summary.md",
+      ".memory-bank/protocol/PRT-001-task-priority/index.md",
+      ".memory-bank/protocol/PRT-001-task-priority/intake/user-input.md",
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+      ".memory-bank/protocol/PRT-001-task-priority/summary.md",
+      ".memory-bank/protocol/index.md",
+      ".memory-bank/scenarios/SCN-002.md",
+      ".memory-bank/spec/engineering/code-check-profile.json",
+      ".tasks/dd-flow-dashboard.md",
+      "apps/api/test/priority.test.ts"
+    ],
+    "checks": [
+      "test -f apps/api/src/core/service.ts"
+    ],
+    "evidence": [
+      "/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json"
+    ],
+    "next_action": "start_merge",
+    "code": {
+      "work_ids": [
+        "WRK-005-prt-001-task-priority-p1"
+      ],
+      "requirement_coverage": [
+        "AC-001",
+        "R-001"
+      ],
+      "repairs": [],
+      "verification": {
+        "schema_id": "dd-flow/code-verification@2",
+        "verdict": "passed",
+        "summary": "The accepted Work materialized its code and durable scenario.",
+        "unresolved": [],
+        "deviations": []
+      }
+    },
+    "plan_conformance": {
+      "schema_id": "dd-flow/code-verification@2",
+      "verdict": "passed",
+      "summary": "The accepted Work materialized its code and durable scenario.",
+      "unresolved": [],
+      "deviations": []
+    },
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "role": "output",
+      "completeness": "execution",
+      "source_fingerprint": "71b4a99cfafd2c417c19904155328c3b8b4f03b049a5cda95e7128921c64171b",
+      "json": {
+        "path": "05-code/verification/71b4a99cfafd2c417c19904155328c3b8b4f03b049a5cda95e7128921c64171b/verification-matrix.json",
+        "sha256": "babff641af0ebd7d3d7fd83375c096f266336fcd24f807cc3051fdcec27d4817"
+      },
+      "markdown": {
+        "path": "05-code/verification/71b4a99cfafd2c417c19904155328c3b8b4f03b049a5cda95e7128921c64171b/verification-matrix.md",
+        "sha256": "e75459161c34fc27ba29d1fc128bca60e075b0e27dc3bbcb63cd1c79c0da8e7e"
+      },
+      "coverage_contract": "dd-flow/final-check-coverage@1"
+    }
+  },
+  "mechanical": {
+    "started_at": "2026-10-08T04:33:31.980Z",
+    "finished_at": "2026-10-08T04:33:34.118Z",
+    "wall_clock_ms": 2138,
+    "git": {
+      "branch": "main",
+      "head": "eccef500b9875af27ea714626ef54bd7223114c3",
+      "status": "dirty"
+    },
+    "graph": {
+      "total": 1,
+      "created": 0,
+      "running": 0,
+      "completed": 1,
+      "failed": 0,
+      "ready": [],
+      "blocked": []
+    },
+    "session_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home\" \"/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home/bin/dd-flow\" stat run sessions ls --run RUN-001-tasks --project-root /Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/project --json",
+    "usage_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home\" \"/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home/bin/dd-flow\" stat usage --run RUN-001-tasks --project-root /Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/project --json"
+  },
+  "artifacts": {
+    "json": "stage-report.json",
+    "markdown": "stage-report.md",
+    "html": "stage-report.html"
+  },
+  "validation": {
+    "permission_scope": "known_targets_only",
+    "memory_bank_scope": "changed_files_and_links_only",
+    "status": "passed"
+  },
+  "summary": "Completed 1 CODE Work item; 1 current final check receipt passed."
+}

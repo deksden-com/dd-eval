@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { validateExpectedAtoms, assertExpectedAtoms, compareHitlExpectation } from '../lib/hitl-corpus.mjs';
-import { buildHitlPacket, validateGroundedHitl, projectHitlAtoms } from '../lib/hitl-contract.mjs';
+import { validateExpectedAtoms, assertExpectedAtoms, compareHitlExpectation, compareCoverageExpectation } from '../lib/hitl-corpus.mjs';
+import { buildHitlPacket, validateGroundedHitl, projectHitlAtoms, hitlCoverageContract, validateHitlCoverage } from '../lib/hitl-contract.mjs';
 import { resolveHitlJudgment } from '../lib/runner.mjs';
 
 const caseRoot = new URL('../cases/sdlc-eval-2026-summer-task-priority/', import.meta.url);
@@ -11,6 +11,50 @@ const corpus = JSON.parse(await readFile(new URL('entry-pack-source/interactions
 const covered = 'covered_by_canonical_response';
 const { responses } = JSON.parse(await readFile(new URL('entry-pack-source/interactions/specify.json', caseRoot)));
 const options = { responses, coverageRequired: true };
+test('CP201 creation-state question remains a genuine gap in the frozen old canon', async () => {
+  const historical = JSON.parse(await readFile(new URL('./fixtures/hitl-cp201-task-create-state.json', import.meta.url)));
+  assert.equal(createHash('sha256').update(historical.responses[0].answer).digest('hex'), historical.canonical_answer_sha256);
+  assert.equal(historical.canonical_answer_sha256, '73a356907343343e42f97e7b8410508f2502916f0528378843365a43e7807f10');
+  const packet = await buildHitlPacket({ stage: 'specify', question: historical.question, responses: historical.responses, verdictContract: hitlCoverageContract });
+  const item = { id: 'cp201-create-state-old-canon', coverage_expectation: {
+    status: 'uncovered', response_ids: [], remaining_decisions: [{ id: 'state-at-create', description: 'Whether explicit closed is allowed on creation, not just the default or later updates.' }]
+  } };
+  // Authored semantic expectation, not a deterministic entailment classifier.
+  // A structurally legal but wrong "covered" must fail the qualification oracle.
+  const coveredVerdict = validateHitlCoverage({ schema_id: hitlCoverageContract, status: 'covered', response_ids: [historical.responses[0].id], uncovered_questions: [] }, packet);
+  assert.equal(compareCoverageExpectation(item, coveredVerdict, { responses: packet.responses }).passed, false);
+  const uncovered = validateHitlCoverage({ schema_id: hitlCoverageContract, status: 'uncovered', response_ids: [], uncovered_questions: ['May a new task be explicitly created closed?'] }, packet);
+  assert.equal(compareCoverageExpectation(item, uncovered, { responses: packet.responses }).semantic_review_required, true);
+  assert.equal(compareCoverageExpectation(item, uncovered, { responses: packet.responses, review: { complete: true, covered_remaining_ids: ['state-at-create'] } }).passed, true);
+});
+test('CP201 creation-state is explicitly resolved by the selected canon, without covering independent questions', async () => {
+  const historical = JSON.parse(await readFile(new URL('./fixtures/hitl-cp201-task-create-state.json', import.meta.url)));
+  const answerQuote = 'При создании допускаются только отсутствие состояния или явное `open`: задача создаётся открытой. Явное `closed` и любое недопустимое состояние отклоняются без создания задачи. Закрыть задачу можно только отдельным обновлением после создания.';
+  for (const stage of ['specify', 'plan']) {
+    const fixture = JSON.parse(await readFile(new URL(`entry-pack-source/interactions/${stage}.json`, caseRoot)));
+    assert.equal(fixture.max_rounds, 1);
+    assert.ok(fixture.responses[0].answer.includes(answerQuote));
+    const packet = await buildHitlPacket({ stage, question: historical.question, responses: fixture.responses });
+    const grounded = { schema_id: 'dd-eval/hitl-match@3', atoms: [{ source_quote: historical.question,
+      decision: 'creation state', classification: covered, reference_bindings: [], scope_evidence: [],
+      answer_evidence: [{ response_id: responses[0].id, answer_quote: answerQuote }], rationale: 'explicit creation policy' }] };
+    validateGroundedHitl(grounded, packet);
+    const exchange = resolveHitlJudgment({ fixture, judgment: { packet, verdict: validateGroundedHitl(grounded, packet) }, question: historical.question, stage });
+    assert.equal(exchange.answer, fixture.responses[0].answer);
+    // An opposite policy cannot reuse the selected policy's literal proof.
+    const opposite = structuredClone(fixture.responses);
+    opposite[0].answer = opposite[0].answer.replace(answerQuote, 'UI и API могут явно создать задачу в состоянии closed; отсутствие состояния даёт open.');
+    assert.throws(() => validateGroundedHitl(grounded, { ...packet, responses: opposite }));
+    const oppositeExpectation = { id: 'selected-create-policy', coverage_expectation: { status: 'uncovered', response_ids: [], remaining_decisions: [{ id: 'selected-create-policy', description: 'The opposite policy does not supply the selected open-only creation decision.' }] } };
+    const oppositePacket = await buildHitlPacket({ stage, question: 'Зафиксируйте выбранное правило: создание только open, closed отклоняется без создания.', responses: opposite, verdictContract: hitlCoverageContract });
+    const oppositeCovered = validateHitlCoverage({ schema_id: hitlCoverageContract, status: 'covered', response_ids: [responses[0].id], uncovered_questions: [] }, oppositePacket);
+    assert.equal(compareCoverageExpectation(oppositeExpectation, oppositeCovered, { responses: oppositePacket.responses }).passed, false);
+    const independent = await buildHitlPacket({ stage, question: 'Нужно ли автоматически закрывать задачу по сроку?', responses: fixture.responses, verdictContract: hitlCoverageContract });
+    const expected = { id: 'automatic-close', coverage_expectation: { status: 'uncovered', response_ids: [], remaining_decisions: [{ id: 'automatic-close', description: 'Automatic closure by deadline is not specified.' }] } };
+    const wrong = validateHitlCoverage({ schema_id: hitlCoverageContract, status: 'covered', response_ids: [responses[0].id], uncovered_questions: [] }, independent);
+    assert.equal(compareCoverageExpectation(expected, wrong, { responses: independent.responses }).passed, false);
+  }
+});
 test('priority-only clarification delivers the complete canonical dependency package at both stages', async () => {
   const plan = JSON.parse(await readFile(new URL('entry-pack-source/interactions/plan.json', caseRoot)));
   assert.deepEqual(plan.responses, responses);
@@ -25,7 +69,7 @@ test('priority-only clarification delivers the complete canonical dependency pac
   }] }, packet);
   const exchange = resolveHitlJudgment({ fixture: { responses }, judgment: { packet, verdict }, question, stage: 'specify' });
   assert.equal(exchange.answer, response.answer);
-  for (const rule of ['сохраняемое состояние задачи `open`/`closed`', 'по умолчанию `open`', 'закрыть задачу или снова открыть', 'изменение состояния сохраняет приоритет', 'изменение приоритета сохраняет состояние', 'Недопустимое состояние отклоняет весь запрос', 'В архивном проекте состояние остаётся read-only']) {
+  for (const rule of ['сохраняемое состояние задачи `open`/`closed`', 'по умолчанию `open`', 'Явное `closed` и любое недопустимое состояние отклоняются без создания задачи', 'закрыть задачу или снова открыть', 'изменение состояния сохраняет приоритет', 'изменение приоритета сохраняет состояние', 'Недопустимое состояние отклоняет весь запрос', 'В архивном проекте состояние остаётся read-only']) {
     assert.ok(exchange.answer.includes(rule), rule);
   }
 });

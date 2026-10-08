@@ -6,7 +6,7 @@ import os from "node:os";
 import { setTimeout as delay } from "node:timers/promises";
 import { hashJson, writeJsonAtomic, sha256 } from "../lib/runner-events.mjs";
 import { buildHitlPacket, hitlCoverageContract } from "../lib/hitl-contract.mjs";
-import { jevInstructions, jevRequest } from "../lib/hitl-coverage.mjs";
+import { jevInstructions, jevRequest, requestJev } from "../lib/hitl-coverage.mjs";
 import { openaiDecisions } from "../lib/semantic-openai-decisions.mjs";
 import { openrouterDecisions } from "../lib/semantic-openrouter-decisions.mjs";
 import { validateSemanticConfig, validateSemanticRequest, semanticQuestion, semanticFingerprint, confidenceMeets,
@@ -85,7 +85,7 @@ test("failed optional calls retain their phase/status without arbitrary provider
   ]) {
     const result = await requestSemantic(request, config, { key: "private-key", fetchImpl });
     assert.equal(result.reason, reason); assert.equal(result.http_status, status); assert.equal(result.transport_code, code);
-    assert.equal(result.retryable, true); assert.ok(!JSON.stringify(result).includes("private-key"));
+    assert.equal(result.retryable, !["response_json_invalid", "response_schema_invalid"].includes(reason)); assert.ok(!JSON.stringify(result).includes("private-key"));
   }
 });
 
@@ -112,8 +112,56 @@ test("three-attempt durable budget, retained backoff and immutable settled decis
   assert.equal((await observeSemantic(input)).state, "fallback_intended"); assert.equal(calls, 3);
 }));
 
+test("both optional transports preserve HTTP precedence and never resample invalid successful responses", async () => {
+  const legacy = { requested_model: jev.model, resolved_model: `${jev.model}-20260917`, provider: "TypeSafe" };
+  const consumers = [
+    fetchImpl => requestSemantic(request, config, { key: "secret", fetchImpl }),
+    fetchImpl => requestSemantic(request, jev, { key: "secret", fetchImpl }),
+    fetchImpl => requestJev({}, legacy, { key: "secret", fetchImpl })
+  ];
+  for (const consumer of consumers) for (const [fetchImpl, reason, status, retryable] of [
+    [async () => new Response("not JSON"), "response_json_invalid", 200, false],
+    [async () => Response.json({ model: "wrong", provider: "wrong", answers: {} }), "response_schema_invalid", 200, false],
+    [async () => new Response(null), "response_missing", 200, false],
+    [async () => new Response(null, { status: 503 }), "http_503", 503, true],
+    [async () => new Response("not JSON", { status: 503 }), "http_503", 503, true],
+    [async () => new Response("not JSON", { status: 401 }), "http_401", 401, false],
+    [async () => Response.json({ error: { code: "insufficient_quota", message: "secret" } }, { status: 429 }), "hard_quota", 429, false],
+    [async () => { throw Object.assign(new Error("secret"), { cause: { code: "CERT_HAS_EXPIRED" } }); }, "transport_failed", null, false],
+    [async () => new Response(new ReadableStream({ start(c) { c.error(new Error("secret")); } }), { status: 503 }), "http_503", 503, true]
+  ]) {
+    const result = await consumer(fetchImpl);
+    assert.equal(result.reason, reason); assert.equal(result.http_status, status); assert.equal(result.retryable, retryable);
+    assert.ok(result.latency_ms >= 0); assert.ok(!JSON.stringify(result).includes("secret"));
+  }
+  for (const selected of [config, jev]) for (const invalidJson of [false, true]) await temporary(async root => {
+    let calls = 0; const input = options(root); input.config = selected;
+    input.transport.fetchImpl = async () => { calls++; return invalidJson ? new Response("bad JSON") : Response.json({ model: "wrong", answers: {} }); };
+    const saved = await observeSemantic(input);
+    assert.equal(saved.state, "fallback_intended"); assert.equal(calls, 1); assert.equal(saved.attempts.length, 1);
+    assert.equal(saved.reason, invalidJson ? "response_json_invalid" : "response_schema_invalid");
+    assert.equal((await observeSemantic(input)).state, "fallback_intended"); assert.equal(calls, 1);
+  });
+});
+
+test("early failures and bounded bodies retain metadata without changing HTTP retry policy", async () => {
+  const limits = { inactivityMs: 100, requestBytes: 65536, responseBytes: 1 };
+  for (const status of [200, 401, 503]) {
+    const result = await requestSemantic(request, config, { key: "secret", limits,
+      fetchImpl: async () => new Response("oversized", { status, headers: { "retry-after": "3" } }) });
+    assert.equal(result.reason, status === 200 ? "output_limit" : `http_${status}`);
+    assert.equal(result.retryable, status === 503); assert.equal(result.http_status, status);
+    assert.equal(result.retry_after_ms, 3000); assert.ok(result.latency_ms >= 0);
+  }
+  for (const options of [{ key: "" }, { key: "secret", limits: { ...limits, requestBytes: 1 } }]) {
+    const result = await requestSemantic(request, config, { ...options, fetchImpl: async () => assert.fail("No HTTP on early failure") });
+    assert.equal(result.retryable, false); assert.equal(result.http_status, null); assert.equal(result.transport_code, null);
+    assert.equal(result.retry_after_ms, null); assert.ok(result.latency_ms >= 0);
+  }
+});
+
 test("optional unavailability, exhausted/long retries and low-confidence need no resampling", async () => {
-  for (const mode of ["disabled", "missing", "unbound", "ineligible", "auth", "quota", "exhausted", "long", "low", "refused"]) await temporary(async root => {
+  for (const mode of ["disabled", "missing", "unbound", "ineligible", "input_limit", "auth", "quota", "exhausted", "long", "low", "refused"]) await temporary(async root => {
     let calls = 0; const input = options(root);
     input.transport.fetchImpl = async () => {
       calls++;
@@ -127,9 +175,19 @@ test("optional unavailability, exhausted/long retries and low-confidence need no
     if (mode === "missing") input.transport.key = "";
     if (mode === "unbound") input.binding = null;
     if (mode === "ineligible") input.skipReason = "bundle_or_context_ineligible";
+    if (mode === "input_limit") input.request = { ...request, state: { question: "x".repeat(70_000) } };
     const saved = await observeSemantic(input);
     assert.equal(saved.state, ["low", "refused"].includes(mode) ? "completed" : mode === "disabled" ? "unavailable" : "fallback_intended");
-    assert.equal(calls, ["disabled", "missing", "unbound", "ineligible"].includes(mode) ? 0 : mode === "exhausted" ? 3 : 1);
+    assert.equal(calls, ["disabled", "missing", "unbound", "ineligible", "input_limit"].includes(mode) ? 0 : mode === "exhausted" ? 3 : 1);
+    if (calls === 0) {
+      assert.equal(saved.phase, saved.reason); assert.equal(saved.retryable, false);
+      for (const field of ["http_status", "transport_code", "retry_after_ms", "latency_ms"]) assert.equal(saved[field], null);
+      if (mode !== "disabled") {
+        assert.deepEqual(saved.attempts, []);
+        assert.equal(JSON.parse(await readFile(saved.file)).phase, saved.phase);
+        assert.deepEqual(await observeSemantic(input), saved);
+      }
+    }
     if (mode === "low" || mode === "refused") {
       assert.equal(semanticFastPathAnswer(saved.response, config), null);
       await markSemanticFallback(root, saved, mode); assert.equal((await observeSemantic(input)).state, "fallback_intended");
@@ -197,6 +255,18 @@ test("only actual body progress extends inactivity and ordinary key does not lea
   assert.equal((await requestSemantic(request, config, { key: "test", limits, fetchImpl: productive })).state, "completed");
   const silent = async (_url, { signal }) => new Promise((_resolve, reject) => signal.addEventListener("abort", () => reject(signal.reason), { once: true }));
   assert.equal((await requestSemantic(request, config, { key: "test", limits, fetchImpl: silent })).reason, "network_inactivity");
+  let emptyCancelled = false;
+  const emptyChunks = async () => new Response(new ReadableStream({
+    async pull(controller) { await delay(10); if (!emptyCancelled) controller.enqueue(new Uint8Array()); },
+    cancel() { emptyCancelled = true; }
+  }));
+  assert.equal((await requestSemantic(request, config, { key: "test", limits, fetchImpl: emptyChunks })).reason, "network_inactivity");
+  assert.equal(emptyCancelled, true);
+  const controller = new AbortController(); let readStarted;
+  const reading = new Promise(resolve => { readStarted = resolve; });
+  const pending = requestSemantic(request, config, { key: "test", limits, signal: controller.signal,
+    fetchImpl: async () => new Response(new ReadableStream({ pull() { readStarted(); } })) });
+  await reading; controller.abort(new Error("operator cancelled body")); await assert.rejects(pending, /operator cancelled body/);
   assert.equal((await requestSemantic(request, config, { key: "test", limits: { ...limits, responseBytes: 1 }, fetchImpl: async () => Response.json(response(.01)) })).reason, "output_limit");
   const env = { OPENAI_API_KEY: "ordinary", OPENAI_DECISIONS_API_KEY: "decision", OPENROUTER_API_KEY: "router", PATH: process.env.PATH };
   assert.deepEqual(ownerEnvironment(config, null, env), { OPENAI_API_KEY: "ordinary", OPENAI_DECISIONS_API_KEY: "decision", PATH: process.env.PATH });
