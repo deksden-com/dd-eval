@@ -53,6 +53,47 @@ or failures (`/tmp/dd-eval-075-privileged-pid-regression.log`). No additional
 production change was needed. The full rerun is recorded separately; the failed
 aggregate is not reported as PASS.
 
+OpenAI Decisions `EVAL-20261008131843-7fc2ce8e` subsequently finished SPECIFY
+at 13:31:34.128Z (547024 ms); its campaign finished at 13:31:55.482Z. Final
+standard `runner status` independently confirms all three fresh EVALs finished,
+cleanup settled, observation complete, matched conformance, zero active resources
+and zero provider turns. Each has `target_reached=true`, `stage_outcome=done`,
+`completion_reason=stop_after_reached` and `full_case_completed=false`.
+There was one native HITL round per sample. None was resumed/restarted by an
+operator, rewritten, or extended into PROTOCOLIZE. The original CP206 comparison
+remains incomplete because the third pre-EVAL rejection was retained; the fresh
+third sample is a separately identified campaign with the same comparison inputs.
+
+| Variant | EVAL | SPECIFY duration | HITL pause | Decision route |
+| --- | --- | --- | --- | --- |
+| Judge only | EVAL-20261008124957-46a74fd1 | 526744 ms | 56325 ms | native Judge |
+| JEV | EVAL-20261008130116-e0938858 | 535260 ms | 46999 ms | 0.66 confidence → native Judge |
+| OpenAI Decisions | EVAL-20261008131843-7fc2ce8e | 547024 ms | 45688 ms | 0.55 confidence → native Judge |
+
+These are independently generated questions/agent trajectories, one sample each,
+not identical-input decision benchmarks. Paused time includes observation,
+routing, cleanup and answer dispatch; it is not pure Judge compute. In these
+samples the decision HTTP calls were fast but neither bypassed native Judge,
+and neither demonstrates improved whole-stage latency. No calibration or extra
+paid samples are silently introduced to obtain a preferred comparison result.
+
+Final full EVAL verification after the retirement contract correction passed:
+771 tests, 761 PASS, 0 FAIL, 10 explicit opt-in SKIP, 273780 ms
+(`/tmp/dd-eval-075-privileged-pid-full-final.log`, exit 0). Test semantics, shared
+semantic instructions, qualified native observations and all three scored
+completion receipts now agree; no threshold/product/oracle relaxation was used.
+
+Final complete engine gate at `d4ae3924015390de0a25c5b8df3fe149b25fdfe8`
+passed with exit 0 (`/tmp/dd-flow-075-full-gate-final.log`): release verifier
+2/2, release Vitest 8/8, integration 2234/2234 in 129 files, runtime-sensitive
+43/43 in two files. No failed/skipped checks in these final groups. The preceding
+build also passed (`/tmp/dd-flow-075-full-build-final.log`); typecheck/lint were
+already passed at the same clean source/test tree. This supersedes the incomplete
+aggregate attempts as verification evidence, not by rewriting their logs.
+The scored samples still use the immutable CP205 beta.125 candidate from runtime
+source `356a4e1`; the intervening flow commits change only test setup. No main
+merge, public release or accepted-runtime promotion is claimed by this task.
+
 ## CP205 follow-up: semantic background and retained requests
 
 All three requested SPECIFY variants were submitted. Judge-only
