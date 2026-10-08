@@ -83,8 +83,37 @@ All status/response-ID expectations matched, including the exact CP205 positive
 and notification/accepted-conflict negatives. Twenty-two unresolved cases were
 manually compared against their authored remaining decisions; bound review
 sidecars retain the native verdict and expectation hashes. Assessment reuses
-these observations without another model request. The clean-tree qualification
-reassessment and final full EVAL gate are pending this test-only follow-up.
+these observations without another model request. Clean-tree reassessment passed
+at `78bb3a4`: key
+`522445572f8952313a9e214cb25fc1c28a5e731b4fdc06fb5c2a069747c2d22d`,
+44 reused cases, zero additional native calls
+(`/tmp/dd-eval-075-cp206-definition-reviewed-final.log`).
+
+CP206 comparison admission then stopped before any scored launch. The first two
+profiles were admitted; the third staged engine's 15-second version probe was
+unavailable. Receipt `cp-206-specify-comparison/receipt.json` has no launch intent,
+ACK or EVAL ID, and all three variant homes have no scored manifests. A read-only
+probe of the retained staged entrypoint subsequently returned beta.125 with exit
+0 in 901 ms. The retained failure proves unavailable observation, consistent
+with simultaneous host delays, not dependency corruption; it does not preserve
+the OS error well enough to prove a more specific historical cause. Re-entry
+must use the same campaign, never blind paid
+resubmission.
+
+The subsequent aggregate attempts were interrupted before a final result;
+partial output is not PASS. They exposed further test setup timing assumptions:
+process-json positive wiring required Node startup inside 1.5 seconds, and one
+exact-release reuse assertion still required a one-second response. Pure injected
+clock tests retain sliding-window arithmetic; process wiring uses the normal
+operational window, while silence/heartbeat negatives retain their short window.
+Release reuse has a bounded ten-second diagnostic read. Production durations and
+release identity checks are unchanged. The affected clock/process/control/fork
+run passed 98 tests, with 5 explicit opt-in skips and no failures
+(`/tmp/dd-eval-075-final-affected.log`). Both fork cases that failed during the
+interrupted loaded run passed, preserving exactly one launch and recovery.
+The subsequent full EVAL gate completed: 771 tests, 761 PASS, 0 FAIL, 10 SKIP
+(explicit opt-in integration checks), 316964 ms
+(`/tmp/dd-eval-075-gate-sequential.log`).
 
 Full engine gate at runtime commit 356a4e1: release passed; integration 2233 PASS,
 1 FAILED, and runtime-sensitive group was not reached. The single failure was
@@ -93,8 +122,11 @@ probe. It bypassed the production bounded no-effect confirmation retry. Commit
 cc6e5a9 reuses the existing identity fixture helper for setup with the exact same
 record/lease and original 30-second uncertainty guard; it does not retry the
 test, alter runtime bytes or weaken ownership fences. Affected 70/70 PASS;
-typecheck/lint/build PASS. A complete gate rerun is in progress; no release/main
-promotion is claimed before its result and new semantic qualification.
+typecheck/lint/build PASS. The full rerun was interrupted and had exposed the
+same single-shot identity setup in snapshot fixtures. Commit `d4ae392` applies
+the same bounded helper to the two remaining snapshot setup calls; all four
+affected snapshot checks and typecheck/lint passed. Runtime artifact bytes are
+unchanged. No complete full-gate PASS or release/main promotion is claimed.
 
 The fresh SPECIFY comparison stopped before any scored EVAL. Qualification
 `b6191a4826a0b5b1ea3083e8f4011a73957e80c38044f842336617de30ebcefb`

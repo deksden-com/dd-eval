@@ -318,7 +318,7 @@ test('operator resume applies one exact runtime release and cannot clear a newer
   assert.equal((await runnerControlResume(input)).reused, true);
   // Final observation of an exhausted worker can only project this release;
   // the fixture CLI rejects every native command except read-only status.
-  assert.equal((await runnerControlResume({ ...input, waitMs: 1000, observeOnlyRuntime: true })).reused, true);
+  assert.equal((await runnerControlResume({ ...input, waitMs: 10_000, observeOnlyRuntime: true })).reused, true);
   assert.equal((await readEvents(eventsFile)).length, 2);
   await appendEvent(eventsFile, { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'new-stop' } });
   const stopped = await readEvents(eventsFile);
