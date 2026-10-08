@@ -37,7 +37,7 @@ The legacy shadow declaration tracks the new JEV instruction hash, but does
 not claim promotion or reuse an old held-out classifier certificate. The
 three requested profiles use `semantic_decisions`, not legacy shadow policy.
 
-Launch uses the standard sequential comparison, same pinned beta.125 engine,
+The attempted launch used the standard sequential comparison, pinned beta.125 engine,
 `gpt-6-luna/xhigh` Subject and `gpt-6.1-sol/high` fallback. Each next variant
 requires durable `finished`, completed SPECIFY, matched execution conformance,
 and settled cleanup. Live results are recorded in external campaign receipts.
@@ -78,5 +78,56 @@ Follow-up must preserve ownership fences and immutable evidence:
   engine repair. Never patch this historical operation or hand-edit its
   resource registry/qualification verdicts to obtain admission.
 
-These runtime repairs are outstanding; the 35 observations are retained, not
-an accepted qualification or successful three-variant comparison.
+## Implemented follow-up (candidate, not a release/launch receipt)
+
+The engine branch `fix/074-maintenance-progress`, commit `abf9f55`, based on current origin/main,
+now uses the existing 30-second ownership-uncertainty budget for each serialized
+maintenance command. Its 5-second silence window advances only on a new,
+request-bound structured storage/maintenance phase. Ordinary logging, duplicate
+phases, foreign process/action, incomplete JSON, hook events and polling cannot
+extend it. The original child storage deadline, outer ownership horizon and
+unconfirmed-cleanup poison remain. Timeout diagnostics also retain subprocess
+PID; a failed group signal plus observed leader exit does not prove subtree exit.
+Affected checks: 73/73 PASS; native CLI transport checks: 5/5 PASS; typecheck,
+lint and build PASS. This is not full runtime-release acceptance; this branch
+must not be substituted into the historical pinned beta.125 artifact.
+
+Qualification intents now have an explicit prepared/dispatch barrier before
+native Session creation. Reassessment permits only an exact bound preparation
+with complete durable stop/physical retirement, no Session, no verdict and no
+productive native operation. Dispatch intents, old intents, failed cleanup,
+changed/foreign packet/profile/path and live daemon remain blocked. The new
+regression covers these boundaries; successful observations remain immutable.
+
+Affected EVAL recovery/cleanup/fork/preparation checks: 73/73 PASS. The first
+broader run had two failures and is not counted as acceptance: its synthetic
+maintenance transport still imposed the old 5-second deadline; a cleanup test
+could confuse cold CLI startup cancellation with rejection of an invalid reply.
+The fixture now uses the shared ownership budget. The cleanup test additionally
+records and asserts all three observed native replies, so an abort cannot make
+its negative cases pass. These changes do not relax production settlement or
+scope validation. The follow-up full-suite result is recorded separately below.
+
+The broader recovery run also exposed a stale-generation test relying on a
+spent worker's best-effort 1-second final diagnostic to invoke its fixture CLI.
+That read is not a guaranteed dispatch under host load. The test now separately
+observes and asserts `runtime_scope_release_unproven` for the wrong generation,
+then checks that the spent worker never projects a release or performs native
+mutation. Both generation cases pass; production deadlines remain unchanged.
+
+Read-only reassessment identifies the current pending task as
+`heldout-offline-client`, native key
+`81ced6ea2f250aa2cc2204b2b85a052ba38ec2c2b3eb140238b17147fc71252e`.
+It returns `definition_qualification_outcome_unknown`, `legacy_unknown`; PID
+4553 is still live. No missing dispatch marker was invented retroactively.
+The historical unconfirmed maintenance subtree has no retained subprocess PID;
+the exact reason for the OS signal denial is not established by its phase log.
+
+Release acceptance and reconciliation of this old unresolved ownership are
+still required before the comparison can be admitted. The 35 observations are
+retained, not an accepted qualification or successful three-variant comparison.
+
+Final deterministic EVAL verification after the fixture corrections:
+740 tests, 730 PASS, 0 FAIL, 10 SKIP, 212420 ms; explicit engine source root
+was the maintenance-progress worktree. `git diff --check` and affected module
+syntax checks passed. The skipped live/opt-in tests are not acceptance evidence.

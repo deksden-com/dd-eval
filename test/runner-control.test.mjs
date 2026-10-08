@@ -339,6 +339,12 @@ for (const valid of [true, false]) test(`exhausted scope worker observes only it
   const requested = await appendEvent(eventsFile, { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
   const file = evalResumeWorkerFile(root, 'resume');
   await writeJsonAtomic(file, { schema_id: 'dd-eval/resume-worker@1', intent: { eval_root: root, run_id: runId, request_id: 'resume', source_request_id: 'stop', request_sequence: requested.data.sequence, manifest_sha256: sha256(await readFile(path.join(root, 'manifest.json'))) }, status: 'observing', recovery_observation: { policy_id: 'settlement-inactivity@1', remaining_ms: 0, observer_started: true, observation_gaps: 1, progress_markers: [] } });
+  if (!valid) {
+    // Prove stale-generation rejection independently of the spent worker's
+    // best-effort 1-second diagnostic read (which may not spawn on a busy host).
+    await assert.rejects(runnerControlResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop', waitMs: 10_000, observeOnlyRuntime: true }), { code: 'runtime_scope_release_unproven' });
+    assert.equal((await readEvents(eventsFile)).filter(event => event.type === 'dev.dd.eval.control.resume_applied').length, 0);
+  }
   await requestEvalResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop' });
   let saved;
   const deadline = performance.now() + 10000;

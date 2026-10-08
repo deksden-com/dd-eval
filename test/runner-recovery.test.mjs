@@ -176,18 +176,27 @@ test("terminal cleanup receipt rejects unsettled or foreign-scope cancelled nati
   const eventsFile = path.join(root, "events.jsonl"), project = path.join(root, "executions/e/project"), home = path.join(root, "executions/e/dd-flow-home"), statusFile = path.join(root, "status.json"), cli = path.join(home, "bin/dd-flow");
   await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
   await mkdir(project, { recursive: true }); await mkdir(path.dirname(cli), { recursive: true });
-  await writeFile(cli, `#!${process.execPath}\nconst fs=require('node:fs');if(process.argv.slice(2,5).join(' ')!=='run control status')throw Error('mutation forbidden');console.log(fs.readFileSync(${JSON.stringify(statusFile)},'utf8'));`); await chmod(cli, 0o700);
+  const observationsFile = path.join(root, 'observations.jsonl');
+  await writeFile(cli, `#!${process.execPath}\nconst fs=require('node:fs');if(process.argv.slice(2,5).join(' ')!=='run control status')throw Error('mutation forbidden');const text=fs.readFileSync(${JSON.stringify(statusFile)},'utf8');fs.appendFileSync(${JSON.stringify(observationsFile)},JSON.stringify(JSON.parse(text))+'\\n');console.log(text);`); await chmod(cli, 0o700);
   await writeJsonAtomic(path.join(root, "executions/e/managed-runtime.json"), { schema_id: "dd-eval/managed-runtime@1", project_root: project, runtime_root: home, run_id: "RUN-cancelled" });
   await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: "dev.dd.eval.execution.cancelled", data: {} });
   await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, type: "dev.dd.eval.completed", data: { state: "cancelled", result_revision: runResultRevision(await readEvents(eventsFile), manifest) } });
   await writeJsonAtomic(path.join(root, "reports/report.json"), { schema_id: "dd-eval/report@2", run_id: manifest.run_id, state: "cancelled", execution_state: "cancelled", cleanup_state: "settled", judge_status: "not_requested", executions: [{ execution: "e", state: "cancelled" }], execution_history: recoveryHistory(await readEvents(eventsFile), manifest, [{ execution: "e", state: "cancelled" }]) });
   const input = { evalRoot: root, expectedManifestSha256: sha256(await readFile(path.join(root, "manifest.json"))) };
+  // This checks binding/settlement, not cold Node startup latency. Observe all
+  // three actual replies; an aborted CLI must not make a negative case pass.
+  const observationSignal = () => AbortSignal.timeout(10_000);
   for (const status of [{ settled: false, scope: { run_id: "RUN-cancelled" } }, { settled: true, scope: { run_id: "RUN-foreign" } }]) {
     await writeJsonAtomic(statusFile, status);
-    assert.equal(await runnerCleanupReceipt({ ...input, signal: AbortSignal.timeout(1000) }), null);
+    assert.equal(await runnerCleanupReceipt({ ...input, signal: observationSignal() }), null);
   }
   await writeJsonAtomic(statusFile, { settled: true, scope: { run_id: "RUN-cancelled" } });
-  assert.equal((await runnerCleanupReceipt({ ...input, signal: AbortSignal.timeout(1000) })).cleanup_state, "settled");
+  assert.equal((await runnerCleanupReceipt({ ...input, signal: observationSignal() })).cleanup_state, "settled");
+  assert.deepEqual((await readFile(observationsFile, 'utf8')).trim().split('\n').map(JSON.parse), [
+    { settled: false, scope: { run_id: "RUN-cancelled" } },
+    { settled: true, scope: { run_id: "RUN-foreign" } },
+    { settled: true, scope: { run_id: "RUN-cancelled" } }
+  ]);
 });
 
 test("cleanup RPC is bounded while productive calls do not inherit its timeout", async () => {

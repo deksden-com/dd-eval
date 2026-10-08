@@ -357,6 +357,16 @@ not a certificate that Judge cannot err; real E2E decisions still pass current
 validation. Preflight merely checks the current assessment receipt and
 still records `provider_sessions_created: 0`; direct `eval run` checks it too.
 
+New qualification intents (`dd-eval/qualification-intent@2`) distinguish
+`prepared` from `dispatch_intent`. The latter is recorded **before** native
+Session creation; a crash on either side of the native reply remains unknown,
+never permission to repeat a paid call. A prepared task is eligible for a fresh
+preparation only when its exact packet/profile/root remain bound, there is no
+Session or productive operation in its native ledger, and the same daemon has
+a complete durable physical/resource stop with observed process retirement.
+A preparation marker, empty Session list or failed cleanup alone is insufficient.
+Legacy intents lack this boundary and retain their reconciliation blocker.
+
 ### Compact coverage and optional JEV filter (plan 070)
 
 Existing profiles keep `hitl-match@3`. To opt in, select
