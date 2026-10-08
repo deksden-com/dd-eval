@@ -7,6 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { commandText } from '../lib/process-json.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
+import { resolveExecutionContract } from '../lib/execution-contract.mjs';
 
 test('public canonical resume and review retain one managed owner in a committed definition', { timeout: 60000 }, async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'canonical-managed-'));
@@ -28,6 +29,8 @@ test('public canonical resume and review retain one managed owner in a committed
     await write(path.join(caseRoot, 'case.json'), { schema_id: 'dd-eval/case@7', id: 'fixture', assessment: 'assessment.json', input: [], entry_pack: null, baseline_admission: { sha256: 'd'.repeat(64) }, input_checkpoint: { id: 'cp-fixture', sha256: cpHash }, flow: { contour: ['specify', 'protocolize'], terminal_stage: 'protocolize' } });
     await write(path.join(repository, 'profiles', 'fixture.json'), { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' });
     const profileFile = await write(path.join(repository, 'run.json'), { schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: 'fixture', subject: { profile_id: 'fixture' }, selection: { focused_stages: [], segment: null, e2e: true, repetitions: 1 }, judge: { enabled: false }, concurrency: { global: 1 }, failure_policy: { stop_run_on_infrastructure_error: true, stop_execution_on_unexpected_hitl: true, stop_execution_on_unmatched_hitl: true } });
+    await write(path.join(runtime, 'agent-profiles/fixture.json'), { schema_id: 'dd-flow/agent-profile@1', id: 'fixture', harness: 'codex', provider: 'openai', model: 'fixture', reasoning: 'low', mode: 'agent', permission: 'allow' });
+    const executionContract = await resolveExecutionContract({ runProfile: await json(profileFile), loadProfile: async () => ({ value: await json(path.join(repository, 'profiles/fixture.json')) }), configHome: runtime });
     const blueprint = { schema_id: 'dd-eval/stage-context-blueprint@1', stages: Object.fromEntries(['specify', 'protocolize'].map(stage => [stage, { schema_id: 'dd-eval/stage-context@1', stage, objective: 'Fixture', task_input: [] }])) };
     await write(path.join(build, 'stage-context.json'), blueprint);
     await mkdir(project, { recursive: true });
@@ -36,7 +39,7 @@ test('public canonical resume and review retain one managed owner in a committed
     await write(path.join(build, 'entries', 'specify.json'), { schema_id: 'dd-eval/stage-entry@1', case_id: 'fixture', revision: 'REV-001', checkpoint_id: 'fixture', stage: 'specify', snapshot: { kind: 'bootstrap', locator: 'bootstrap', manifest_sha256: 'e'.repeat(64), run_id: null }, semantic_package_sha256: 'f'.repeat(64), context_slice_sha256: 'f'.repeat(64) });
     const cli = `#!${process.execPath}
 import fs from 'node:fs'; import path from 'node:path'; import {createHash} from 'node:crypto';
-const root=${JSON.stringify(build)}, project=${JSON.stringify(project)}, engine=${JSON.stringify(engine)};
+const root=${JSON.stringify(build)}, project=${JSON.stringify(project)}, engine=${JSON.stringify(engine)}, executionProfile=${JSON.stringify({ agent_profiles: executionContract.profiles, settings: { execution: executionContract.routing } })};
 const args=process.argv.slice(2), file=root+'/transport.json';
 fs.appendFileSync(root+'/calls.jsonl',JSON.stringify(args)+'\\n');
 const s=fs.existsSync(file)?JSON.parse(fs.readFileSync(file)): {stage:'specify',launched:false};
@@ -45,7 +48,7 @@ const boundary=()=>{const next=s.stage==='specify'?'protocolize':null, output=ro
 const controller=()=>({controller_id:'DRV-fixture',status:s.stage==='specify'?'waiting_for_context':'stop_target_reached',stage:s.stage,sessions:[{session_id:'native-retained',stopped:s.stage!=='specify'}]});
 let out;
 if(args[0]==='engine')out={selection:{selected:engine}};
-else if(args[0]==='run'&&args[1]==='status')out={run:{run_root:root+'/run',workspace_root:project},index:{stage_runs:[{stage:'specify',status:s.stageStatus??'done'},...(s.stage==='protocolize'?[{stage:'protocolize',status:'done'}]:[])]},continuation:s.stage==='specify'?{kind:'start_stage',stage:'protocolize'}:{kind:'terminal'}};
+else if(args[0]==='run'&&args[1]==='status')out={run:{run_root:root+'/run',workspace_root:project},index:{execution_profile:executionProfile,stage_runs:[{stage:'specify',status:s.stageStatus??'done'},...(s.stage==='protocolize'?[{stage:'protocolize',status:'done'}]:[])]},continuation:s.stage==='specify'?{kind:'start_stage',stage:'protocolize'}:{kind:'terminal'}};
 else if(args[1]==='drive'&&args[2]==='launch'){if(s.launched)throw Error('duplicate launch');s.launched=true;out={controller:controller()};}
 else if(args[1]==='drive'&&args[2]==='context'){if(args[args.indexOf('--stage')+1]!=='protocolize')throw Error('wrong context');s.stage='protocolize';out={ok:true};}
 else if(args[1]==='drive'&&args[2]==='status'){const after=Number(args[args.indexOf('--after')+1]??0);out={controller:controller(),events:[{sequence:s.stage==='specify'?1:3,type:'boundary_captured',data:boundary()},...(s.stage==='specify'?[{sequence:2,type:'context_required',data:{stage:'protocolize',attempt:1}}]:[])].filter(e=>e.sequence>after)};}
@@ -55,10 +58,13 @@ fs.writeFileSync(file,JSON.stringify(s));console.log(JSON.stringify(out));
     await write(path.join(runtime, 'bin', 'dd-flow'), cli, { mode: 0o755 });
     const git = args => commandText('git', args, { cwd: repository });
     await git(['init', '--quiet', '-b', 'main']); await git(['add', '.']); await git(['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.test', 'commit', '--quiet', '-m', 'fixture']);
-    const state = { schema_id: 'dd-eval/canonical-build-state@1', case_id: 'fixture', revision: 'REV-001', status: 'awaiting_reference_resume', current_stage: 'specify', profile_file: profileFile, entries: { specify: 'entries/specify.json' }, definition: { commit: await git(['rev-parse', 'HEAD']), tree: await git(['rev-parse', 'HEAD^{tree}']) }, engine: { locator: 'engine', package_name: 'fixture', package_version: '1.0.0', engine_version: '1.0.0', integrity_checksum: digest }, baseline_admission: { file: admission, sha256: hash(await readFile(admission)) }, reference: { managed: true, run_id: 'RUN-fixture', contexts: {} } };
+    const state = { schema_id: 'dd-eval/canonical-build-state@1', case_id: 'fixture', revision: 'REV-001', status: 'awaiting_reference_resume', current_stage: 'specify', profile_file: profileFile, entries: { specify: 'entries/specify.json' }, definition: { commit: await git(['rev-parse', 'HEAD']), tree: await git(['rev-parse', 'HEAD^{tree}']) }, engine: { locator: 'engine', package_name: 'fixture', package_version: '1.0.0', engine_version: '1.0.0', integrity_checksum: digest }, baseline_admission: { file: admission, sha256: hash(await readFile(admission)) }, reference: { execution_contract: executionContract, managed: true, run_id: 'RUN-fixture', contexts: {} } };
+    state.reference.run_profile = await json(profileFile);
+    // The original launch profile is provenance, not a continuation dependency.
+    state.profile_file = path.join(root, 'removed-launch-profile.json');
     await write(path.join(build, 'build', 'state.json'), state);
     const module = pathToFileURL(path.join(repository, 'lib', 'runner.mjs')).href;
-    const invoke = expression => commandText(process.execPath, ['--input-type=module', '-e', `const m=await import(${JSON.stringify(module)});console.log(JSON.stringify(await ${expression}));`], { cwd: root, env: { DD_EVAL_HOME: home } });
+    const invoke = expression => commandText(process.execPath, ['--input-type=module', '-e', `const m=await import(${JSON.stringify(module)});console.log(JSON.stringify(await ${expression}));`], { cwd: root, env: { DD_EVAL_HOME: home, DD_FLOW_CONFIG_HOME: runtime } });
     await assert.rejects(invoke(`m.evalPreflight({profileFile:${JSON.stringify(profileFile)}})`), /Case requires a pinned baseline admission definition/);
     await assert.rejects(readFile(path.join(home, 'conformance')), { code: 'ENOENT' });
     const review = await write(path.join(root, 'review.md'), 'Reviewed fixture.');

@@ -15,6 +15,7 @@ import { promptJudgeWithCapacity } from "../lib/judge-capacity.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 import { verifyRetainedHitl } from "../lib/hitl-retained.mjs";
 import Ajv from "ajv/dist/2020.js";
+import { resolveExecutionContract, profileSemanticHash } from "../lib/execution-contract.mjs";
 
 const policy = { schema_id: "dd-eval/hitl-coverage-policy@1", mode: "shadow", requested_model: "typesafe/jev-1.13", resolved_model: "typesafe/jev-1.13-20260917", provider: "TypeSafe", projection_version: "dd-eval/hitl-coverage-input@1", prompt_sha256: jevPromptHash, transport_version: coverageTransport, max_uncovered_probability: null, qualification_sha256: null };
 const packet = (question = "May closed tasks change priority?") => buildHitlPacket({ stage: "specify", question, responses: [{ id: "canonical", topic: "priority", applicability: "specify", answer: "Yes. No extra indicators." }], verdictContract: hitlCoverageContract });
@@ -106,6 +107,7 @@ test("non-owner environment strips OpenRouter after overrides", () => {
 
 test("coverage corpus freezes calibration and balanced holdout, separating semantic review from structural PASS", async () => {
   const runProfile = await loadRunProfile("cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-luna-coverage-shadow.json");
+  runProfile.qualificationJudgeProfile = { ...JSON.parse(await readFile(path.join('profiles', `${runProfile.value.interaction_judge.profile_id}.json`))), provider: 'openai', mode: 'agent', permission: 'allow' };
   const loaded = await loadCase(runProfile.value.case_id), qualified = await hitlQualificationInputs({ loaded, runProfile, definition: {} });
   assert.equal(qualified.corpus.items.length, 41); assert.equal(qualified.compact, true);
   const gap = qualified.corpus.items.find(item => item.id === "material-gap"), responses = qualified.fixtures.specify.responses;
@@ -175,14 +177,16 @@ test("compact native replay retains its actual Session, final Turn and settled c
     const p = await packet(), binding = { stage: "specify", round: 1, pause_id: "pause", scope_id: "e2e" }; p.hitl_binding = binding;
     const root = path.join(attempt, "interaction-judge", `specify-${hashJson(binding).slice(0, 20)}`), packetFile = path.join(root, "packet.json");
     await mkdir(root, { recursive: true }); await writeJsonAtomic(packetFile, p);
-    const profileFile = path.join(attempt, "profile.json"); await writeJsonAtomic(profileFile, { id: "native", harness: "codex-desktop", model: "test", reasoning: "high" });
+    const nativeProfile = { id: "native", harness: "codex-desktop", model: "test", reasoning: "high" };
+    await writeJsonAtomic(path.join(attempt, "agent-profiles/native.json"), { ...nativeProfile, schema_id: "dd-flow/agent-profile@1", harness: "codex", provider: "openai", mode: "agent", permission: "allow" });
+    const executionContract = await resolveExecutionContract({ runProfile: { subject: { profile_id: "native" }, interaction_judge: { profile_id: "native" } }, loadProfile: async () => ({ value: nativeProfile }), configHome: attempt });
     const verdict = { schema_id: hitlCoverageContract, status: "covered", response_ids: ["canonical"], uncovered_questions: [] };
-    await settledJudge(root, { schema_id: "dd-eval/interaction-judge-receipt@1", decision_source: "interaction_judge", stage: "specify", profile_id: "native", session_id: "session", interaction_fixture_sha256: "a".repeat(64), packet_sha256: hashJson(p), verdict });
+    await settledJudge(root, { schema_id: "dd-eval/interaction-judge-receipt@1", decision_source: "interaction_judge", stage: "specify", profile_id: "native", profile_sha256: profileSemanticHash(executionContract.profiles.native), session_id: "session", interaction_fixture_sha256: "a".repeat(64), packet_sha256: hashJson(p), verdict });
     const prompt = interactionJudgePrompt(packetFile, p), stateFile = path.join(root, `capacity-${hashJson(["session", prompt])}.json`);
     await promptJudgeWithCapacity({ codex: false, sessionId: "session", packetFiles: [packetFile], originalPrompt: prompt, stateFile,
       dispatch: async (_text, _capacity, before) => { await before(); return { provider_session_id: "session", turn_id: "turn", turn: { id: "turn", status: "completed" }, assistant_text: JSON.stringify(verdict) }; } });
     const options = { attempt, fixture: { sha256: "a".repeat(64), responses: p.responses }, question: p.question, stage: "specify", hitlBinding: binding,
-      runProfile: { value: { interaction_judge: { profile_id: profileFile, verdict_contract: hitlCoverageContract } } }, runtimeRoot: "/no-runtime", projectRoot: "/no-project" };
+      runProfile: { executionContract, value: { interaction_judge: { profile_id: "native", verdict_contract: hitlCoverageContract } } }, runtimeRoot: "/no-runtime", projectRoot: "/no-project" };
     const replay = await interactionJudge(options); assert.equal(replay.reused, true); assert.equal(replay.session_id, "session");
     await writeJsonAtomic(stateFile, { ...(JSON.parse(await readFile(stateFile))), turns: [] });
     await assert.rejects(interactionJudge(options), /native|Turn|turn|chain/);

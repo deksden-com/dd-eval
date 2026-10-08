@@ -32,6 +32,16 @@ test('historical HITL exact bytes remain readable but cannot authorize current i
   await assert.rejects(verifyRetainedHitl({ data }), { code: 'judge_evidence_mismatch' });
 });
 
+test('native HITL reuse binds immutable effective Judge settings, not only its ID', async t => {
+  const { root, receipt, data } = await retained(t);
+  const expected = 'a'.repeat(64);
+  await assert.rejects(verifyRetainedHitl({ data, legacy: true, historical: true, expectedProfileSha256: expected }), { code: 'judge_evidence_mismatch' });
+  await rm(path.join(root, 'cleanup.json'));
+  await settledJudge(root, { ...receipt, profile_sha256: expected });
+  assert.equal((await verifyRetainedHitl({ data, legacy: true, historical: true, expectedProfileSha256: expected })).answer, 'Normal\r\nunchanged');
+  await assert.rejects(verifyRetainedHitl({ data, legacy: true, historical: true, expectedProfileSha256: 'b'.repeat(64) }), { code: 'judge_evidence_mismatch' });
+});
+
 test('retained verifier rejects altered answer, packet, selection and caller binding', async t => {
   const { root, packet, data } = await retained(t);
   await assert.rejects(verifyRetainedHitl({ data, legacy: true, historical: true, expectedPauseId: 'other' }), { code: 'judge_evidence_mismatch' });

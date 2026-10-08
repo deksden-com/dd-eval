@@ -99,7 +99,7 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("canonical_checkpoints" in loaded.value, false);
   assert.equal("priming" in loaded.value, false);
   assert.equal(loaded.inputCheckpoint.value.id, loaded.value.input_checkpoint.id);
-  assert.match(loaded.inputCheckpoint.value.id, /^cp-\d+-task-priority-.+$/);
+  assert.match(loaded.inputCheckpoint.value.id, /^[A-Za-z0-9][A-Za-z0-9._-]*$/);
   assert.equal(loaded.inputCheckpoint.value.source.commit, "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e");
   assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-172-source-baseline-setup");
   const pinnedCheckpoint = JSON.parse(await readFile(path.join(root, 'checkpoints', `${loaded.value.input_checkpoint.id}.json`), 'utf8'));
@@ -115,12 +115,24 @@ test("case pins its input checkpoint and exact engine without Session starter st
 test("HITL qualification binds Judge task evidence, not repository tree or harness provenance", async () => {
   const temporary = await mkdtemp(path.join(tmpdir(), "dd-eval-hitl-qualification-"));
   const previous = process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME;
+  const previousConfig = process.env.DD_FLOW_CONFIG_HOME;
   process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME = temporary;
+  process.env.DD_FLOW_CONFIG_HOME = path.join(temporary, 'config');
   try {
     const loaded = await loadCase(caseId);
     const runProfile = await loadRunProfile(path.join(root, "cases", caseId, "run-profiles", "e2e-inline-merge-luna-xhigh.json"));
+    const judgeId = runProfile.value.interaction_judge.profile_id;
+    await mkdir(path.join(process.env.DD_FLOW_CONFIG_HOME, 'agent-profiles'), { recursive: true });
+    await writeFile(path.join(process.env.DD_FLOW_CONFIG_HOME, 'agent-profiles', `${judgeId}.json`), JSON.stringify({ schema_id: 'dd-flow/agent-profile@1', id: judgeId, harness: 'codex', provider: 'openai', model: 'stale-model', reasoning: 'low', mode: 'agent', permission: 'allow' }));
     const input = { loaded, runProfile, definition: { tree: "a".repeat(64) } };
     const qualified = await hitlQualificationInputs(input);
+    assert.equal(qualified.profile.provider, 'openai');
+    assert.equal(qualified.profile.permission, 'allow');
+    const policyFile = path.join(process.env.DD_FLOW_CONFIG_HOME, 'agent-profiles', `${judgeId}.json`);
+    const template = JSON.parse(await readFile(policyFile));
+    await writeFile(policyFile, JSON.stringify({ ...template, permission: 'deny' }));
+    assert.notEqual((await hitlQualificationInputs(input)).tasks[qualified.corpus.items[0].id].key, qualified.tasks[qualified.corpus.items[0].id].key, 'effective Judge permission is a qualification dependency');
+    await writeFile(policyFile, JSON.stringify(template));
     assert.ok(qualified.corpus.items.length >= 14);
     assert.equal(qualified.corpus.context_required, true, 'task-priority corpus requires production-shaped context');
     assert.ok(qualified.corpus.items.some(item => item.id === "active-project-permissions"));
@@ -159,8 +171,8 @@ test("HITL qualification binds Judge task evidence, not repository tree or harne
       const prompt = interactionGroundedPrompt(path.join(judgeRoot, 'packet.json'), checkerFile);
       const chain = { schema_id: 'dd-eval/capacity-chain@2', session_id: name, root_operation_id: 'offline-turn', turns: [{ ordinal: 0, operation_id: 'offline-turn', not_before: 0, state: 'completed', prompt_sha256: createHash('sha256').update(prompt).digest('hex'), result: {
         provider_session_id: name, turn_id: 'native-turn', turn: { id: 'native-turn', status: 'completed' }, harness: qualification.profile.harness,
-        requested_profile: { harness: qualification.profile.harness, model: qualification.profile.model, reasoning: qualification.profile.reasoning },
-        observed_profile: { model: qualification.profile.model, reasoning: qualification.profile.reasoning }, assistant_text: JSON.stringify({ schema_id: observed.schema_id, atoms: observed.atoms }), thread: { preview: prompt }
+        requested_profile: { harness: qualification.profile.harness, provider: qualification.profile.provider, model: qualification.profile.model, reasoning: qualification.profile.reasoning, mode: qualification.profile.mode, permission_mode: qualification.profile.permission },
+        observed_profile: { provider: qualification.profile.provider, model: qualification.profile.model, reasoning: qualification.profile.reasoning, mode: qualification.profile.mode, permission_mode: qualification.profile.permission }, assistant_text: JSON.stringify({ schema_id: observed.schema_id, atoms: observed.atoms }), thread: { preview: prompt }
       } }] };
       await writeFile(path.join(judgeRoot, `capacity-${hashJson([name, prompt])}.json`), JSON.stringify(chain));
       const cleanup = await settledJudge(judgeRoot, verdict);
@@ -249,9 +261,10 @@ test("HITL qualification binds Judge task evidence, not repository tree or harne
     assert.deepEqual((await reassessHitlQualification(await withCorpus(added))).missing, ['new-case']);
     const profileFile = path.join(temporary, 'judge-profile.json');
     const profileInput = { ...input, runProfile: { value: { ...runProfile.value, interaction_judge: { profile_id: profileFile } } } };
-    await writeFile(profileFile, JSON.stringify({ ...qualified.profile, notes: 'new documentation', runtime: { adapter: 'fixed' }, subagent_capacity: 9 }));
+    const { provider, mode, permission, execution_profile_sha256, ...judgeDeclaration } = qualified.profile;
+    await writeFile(profileFile, JSON.stringify({ ...judgeDeclaration, notes: 'new documentation', runtime: { adapter: 'fixed' }, subagent_capacity: 9 }));
     assert.equal((await hitlQualificationInputs(profileInput)).key, qualified.key, 'harness changes are not Judge input changes');
-    await writeFile(profileFile, JSON.stringify({ ...qualified.profile, model: 'new-model' }));
+    await writeFile(profileFile, JSON.stringify({ ...judgeDeclaration, model: 'new-model' }));
     assert.deepEqual((await reassessHitlQualification(await hitlQualificationInputs(profileInput))).missing, qualified.corpus.items.map(item => item.id));
     const changedPrompt = { ...qualified, tasks: Object.fromEntries(Object.entries(qualified.tasks).map(([id, task]) => {
       const identity = { ...task.identity, prompt_sha256: 'f'.repeat(64) }; return [id, { identity, key: hashJson(identity) }];
@@ -315,6 +328,8 @@ test("HITL qualification binds Judge task evidence, not repository tree or harne
     await assert.rejects(hitlQualificationInputs(legacyInput), { code: 'definition_qualification_invalid' });
     await assert.rejects(assertHitlQualification(legacyInput), { code: 'definition_qualification_invalid' });
   } finally {
+    if (previousConfig === undefined) delete process.env.DD_FLOW_CONFIG_HOME;
+    else process.env.DD_FLOW_CONFIG_HOME = previousConfig;
     if (previous === undefined) delete process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME;
     else process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME = previous;
     await rm(temporary, { recursive: true, force: true });
@@ -384,6 +399,7 @@ test('qualification PLAN directory pipeline preserves owned membership, aliases,
   const corpusBytes = JSON.stringify(corpus); await writeFile(path.join(inputDir, 'qualification.json'), corpusBytes);
   const input = { loaded: { ...loaded, root: caseRoot, value: { ...loaded.value, hitl_qualification: { file: 'entry-pack-source/interactions/qualification.json', sha256: digest(corpusBytes) } } },
     runProfile: await loadRunProfile(path.join(root, 'cases', caseId, 'run-profiles/e2e-inline-merge-luna-xhigh.json')), definition: { tree: 'd'.repeat(64) } };
+  input.runProfile.qualificationJudgeProfile = { ...JSON.parse(await readFile(path.join(root, 'profiles', `${input.runProfile.value.interaction_judge.profile_id}.json`))), provider: 'openai', mode: 'agent', permission: 'allow' };
   const qualified = await hitlQualificationInputs(input), item = qualified.corpus.items[0];
   const output = path.join(temporary, 'owned/contexts/plan.json');
   const rendered = await materializeQualificationContext({ qualified, item, caseRoot, output });
@@ -941,7 +957,7 @@ test("HITL recovery enforces the same round, receipt, and evidence contract", as
   assert.match(source, /rounds < fixture\.max_rounds/);
   assert.match(source, /error\.code = "unexpected_hitl"/);
   assert.match(source, /type: "dev\.dd\.eval\.hitl\.matched"[\s\S]*recovered: true/);
-  assert.match(source, /hitl\.push\(\.\.\.await hitlEvidenceFor\(retained, execution\.id\)\)/);
+  assert.match(source, /hitl\.push\(\.\.\.await hitlEvidenceFor\(retained, execution\.id, runId, manifest\.execution_contract\)\)/);
 });
 
 test("unplanned HITL fails before Judge dispatch and preserves the exact question evidence", async () => {

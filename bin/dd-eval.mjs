@@ -6,6 +6,7 @@ import { gcApply, gcPlan, storageList, storageStatus } from "../lib/storage.mjs"
 import { runnerRecoveryInspect } from "../lib/runner.mjs";
 import { runnerControlReconcile, runnerControlRequest, runnerControlStatus } from "../lib/runner.mjs";
 import { requestEvalResume, requestEvalRun, requestRunnerContinuation } from "../lib/eval-resume-worker.mjs";
+import { validateExpectedExecutionInputs } from "../lib/execution-contract.mjs";
 
 function usage() {
   return `dd-eval — deterministic evaluation runner
@@ -26,7 +27,7 @@ Usage:
   dd-eval runner canonical qualify --build <path> --profile <run-profile.json>
   dd-eval runner canonical qualification recover --build <path> --receipt <qualification-receipt.json>
   dd-eval runner canonical accept --build <path> --entry <stage> --review <file>
-  dd-eval runner eval run --profile <run-profile.json>
+  dd-eval runner eval run --profile <run-profile.json> [--expected-inputs <JSON SHA256 bindings>]
   dd-eval runner eval judge --eval <path> [--profile <judge-profile-id>] [--supplement <file> --output <new-assessment-root>]
   dd-eval runner status --eval <path>
   dd-eval runner control status --eval <path> [--execution <id>]
@@ -69,6 +70,11 @@ try {
   // register a run, or launch a worker.  A corrected invocation is therefore
   // always safe to repeat.
   for (const key of ["write-profile", "detach", "start"]) optionalBoolean(options, key);
+  let expectedInputs;
+  if (options["expected-inputs"] !== undefined) {
+    try { expectedInputs = validateExpectedExecutionInputs(JSON.parse(options["expected-inputs"])); }
+    catch (cause) { throw Object.assign(new Error("--expected-inputs must contain valid comparison SHA256 bindings", { cause }), { code: "expected_execution_inputs_invalid" }); }
+  }
   if (options["wait-ms"] !== undefined && (!/^\d+$/.test(options["wait-ms"]) || Number(options["wait-ms"]) > 60_000)) throw Object.assign(new Error("--wait-ms must be an integer between 0 and 60000"), { code: "control_request_invalid" });
   if (options.eval) options.eval = resolveEvalReference(options.eval);
   const [family, command, action] = positional;
@@ -99,7 +105,7 @@ try {
     result = await canonicalQualificationRecover({ buildRoot: required(options, "build"), receiptFile: required(options, "receipt") });
   }
   else if (family === "runner" && command === "canonical" && action === "accept") result = await canonicalAccept({ buildRoot: required(options, "build"), entry: required(options, "entry"), reviewFile: required(options, "review") });
-  else if (family === "runner" && command === "eval" && action === "run") result = await requestEvalRun({ profileFile: required(options, "profile") });
+  else if (family === "runner" && command === "eval" && action === "run") result = await requestEvalRun({ profileFile: required(options, "profile"), expectedInputs });
   else if (family === "runner" && command === "eval" && action === "judge") result = await evalJudge({ evalRoot: required(options, "eval"), ...(options.profile ? { profileId: options.profile } : {}), supplementFile: options.supplement ?? null, outputRoot: options.output ?? null });
   else if (family === "runner" && command === "status") result = await runnerStatus({ evalRoot: required(options, "eval") });
   else if (family === "runner" && command === "control" && action === "status") {

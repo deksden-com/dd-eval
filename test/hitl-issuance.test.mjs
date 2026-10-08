@@ -11,11 +11,20 @@ import { promptJudgeWithCapacity } from '../lib/judge-capacity.mjs';
 import { loadCapacityPolicy } from '../lib/capacity-policy.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { successfulPolicyFixture } from './fixtures/capacity-policy.mjs';
+import { resolveExecutionContract, contractProfile, profileSemanticHash } from '../lib/execution-contract.mjs';
+
+async function frozenJudge(root, declaration) {
+  await mkdir(path.join(root, 'agent-profiles'), { recursive: true });
+  await writeFile(path.join(root, 'agent-profiles', `${declaration.id}.json`), JSON.stringify({ schema_id: 'dd-flow/agent-profile@1', ...declaration, harness: 'codex', provider: 'openai', mode: 'agent', permission: 'allow' }));
+  const contract = await resolveExecutionContract({ runProfile: { subject: { profile_id: declaration.id }, interaction_judge: { profile_id: declaration.id } }, loadProfile: async () => ({ value: declaration }), configHome: root });
+  return { contract, profile: contractProfile(contract, declaration.id) };
+}
 
 test('retained pause reuses settled verdict without runtime/provider access; unknown outcome never retries', async t => {
   const attempt = await mkdtemp(path.join(os.tmpdir(), 'hitl-issuance-'));
   t.after(() => rm(attempt, { recursive: true, force: true }));
   const profile = 'offline-judge';
+  const frozen = await frozenJudge(attempt, { id: profile, harness: 'codex-desktop', model: 'test', reasoning: 'high' });
   const profileFile = path.join(attempt, 'profile.json');
   await writeFile(profileFile, JSON.stringify({ id: profile, harness: 'codex-desktop', model: 'test', reasoning: 'high' }));
   const binding = { stage: 'specify', round: 1, pause_id: 'pause', scope_id: 'e2e' };
@@ -25,10 +34,10 @@ test('retained pause reuses settled verdict without runtime/provider access; unk
   const root = path.join(attempt, 'interaction-judge', `${binding.stage}-${hashJson(binding).slice(0, 20)}`);
   await mkdir(root, { recursive: true });
   await writeFile(path.join(root, 'packet.json'), JSON.stringify(packet));
-  const args = { attempt, fixture, question: packet.question, stage: binding.stage, hitlBinding: binding, runProfile: { value: { interaction_judge: { profile_id: profileFile } } }, runtimeRoot: '/nonexistent-no-runtime-access', projectRoot: '/nonexistent-no-project-access' };
+  const args = { attempt, fixture, question: packet.question, stage: binding.stage, hitlBinding: binding, runProfile: { executionContract: frozen.contract, value: { interaction_judge: { profile_id: profile } } }, runtimeRoot: '/nonexistent-no-runtime-access', projectRoot: '/nonexistent-no-project-access' };
   await assert.rejects(interactionJudge(args), { code: 'judge_outcome_unknown' });
   const verdict = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@3', atoms: [{ source_quote: packet.question, decision: 'Required default', classification: 'covered_by_canonical_response', reference_bindings: [], scope_evidence: [], answer_evidence: [{ response_id: 'answer', answer_quote: 'Canonical' }], rationale: 'Covered' }] }, packet);
-  await settledJudge(root, { schema_id: 'dd-eval/interaction-judge-receipt@1', stage: binding.stage, profile_id: profile, session_id: 'session', interaction_fixture_sha256: fixture.sha256, packet_sha256: hashJson(packet), verdict });
+  await settledJudge(root, { schema_id: 'dd-eval/interaction-judge-receipt@1', stage: binding.stage, profile_id: profile, profile_sha256: profileSemanticHash(frozen.profile), session_id: 'session', interaction_fixture_sha256: fixture.sha256, packet_sha256: hashJson(packet), verdict });
   await assert.rejects(interactionJudge(args), { code: 'judge_outcome_unknown' }, 'published verdict without prompt binding cannot issue an answer');
   const packetFile = path.join(root, 'packet.json'), prompt = interactionJudgePrompt(packetFile);
   const stateFile = path.join(root, `capacity-${hashJson(['session', prompt])}.json`);
@@ -61,7 +70,8 @@ test('retained pause reuses settled verdict without runtime/provider access; unk
 for (const retainedState of ['completed', 'dispatched']) test(`lost verdict publication recovers ${retainedState} original Turn and rebinds settled cleanup without RPC`, async t => {
   const attempt = await mkdtemp(path.join(os.tmpdir(), 'hitl-republish-'));
   t.after(() => rm(attempt, { recursive: true, force: true }));
-  const profile = { id: 'offline-judge', harness: 'codex-desktop', model: 'test', reasoning: 'high' };
+  const frozen = await frozenJudge(attempt, { id: 'offline-judge', harness: 'codex-desktop', model: 'test', reasoning: 'high' });
+  const profile = frozen.profile;
   const profileFile = path.join(attempt, 'profile.json'); await writeFile(profileFile, JSON.stringify(profile));
   const binding = { stage: 'specify', round: 1, pause_id: 'pause', scope_id: 'e2e' };
   const fixture = { sha256: 'a'.repeat(64), responses: [{ id: 'answer', answer: 'Canonical' }] };
@@ -69,6 +79,7 @@ for (const retainedState of ['completed', 'dispatched']) test(`lost verdict publ
   const root = path.join(attempt, 'interaction-judge', `${binding.stage}-${hashJson(binding).slice(0, 20)}`);
   await mkdir(root, { recursive: true });
   const packetFile = path.join(root, 'packet.json'); await writeFile(packetFile, JSON.stringify(packet));
+  await writeFile(path.join(root, 'native-intent.json'), JSON.stringify({ profile_id: profile.id, profile_sha256: profileSemanticHash(profile), packet_sha256: hashJson(packet), filter: null }));
   const runtimeRoot = path.join(attempt, 'runtime'), engine = path.join(runtimeRoot, 'engines/selected'), lib = path.join(engine, 'dist/harness-runtime/lib');
   await mkdir(lib, { recursive: true });
   for (const [file, content] of [['codex-capacity-policy.mjs', successfulPolicyFixture], ['native-children.mjs', "export const NATIVE_CHILD_CONTRACT_VERSION='native-children@1'; export function normalizeNativeChildren(){return []}"], ['operation-errors.mjs', "export const OPERATION_ERROR_CONTRACT_VERSION='operation-errors@1'; export function isObservationLoss(){return false}"], ['dd-agy.mjs', 'export function agyTerminalFailure(){return null}']]) await writeFile(path.join(lib, file), content);
@@ -89,12 +100,12 @@ for (const retainedState of ['completed', 'dispatched']) test(`lost verdict publ
     await writeFile(path.join(operation, 'requested.json'), JSON.stringify({ operation_id: turn.operation_id, operation: 'session.prompt', session_id: sessionId }));
     await writeFile(path.join(operation, 'result.json'), JSON.stringify({ state: 'completed', result: native }));
   }
-  await settledJudge(root, { schema_id: 'dd-eval/interaction-judge-receipt@1', stage: binding.stage, profile_id: profile.id, session_id: sessionId, interaction_fixture_sha256: fixture.sha256, packet_sha256: hashJson(packet), verdict: validateGroundedHitl(raw, packet) });
+  await settledJudge(root, { schema_id: 'dd-eval/interaction-judge-receipt@1', stage: binding.stage, profile_id: profile.id, profile_sha256: profileSemanticHash(profile), session_id: sessionId, interaction_fixture_sha256: fixture.sha256, packet_sha256: hashJson(packet), verdict: validateGroundedHitl(raw, packet) });
   await rm(path.join(root, 'result.json'));
   const cleanupFile = path.join(root, 'cleanup.json'), cleanup = JSON.parse(await readFile(cleanupFile));
   await writeFile(cleanupFile, JSON.stringify({ ...cleanup, verdict_sha256: null, session_id: null }));
   // No adapter/bin exists: any start/prompt/stop dispatch would fail this test.
-  const result = await interactionJudge({ attempt, fixture, question: packet.question, stage: binding.stage, hitlBinding: binding, runProfile: { value: { interaction_judge: { profile_id: profileFile } } }, runtimeRoot, projectRoot: '/nonexistent' });
+  const result = await interactionJudge({ attempt, fixture, question: packet.question, stage: binding.stage, hitlBinding: binding, runProfile: { executionContract: frozen.contract, value: { interaction_judge: { profile_id: profile.id } } }, runtimeRoot, projectRoot: '/nonexistent' });
   assert.equal(result.reused, true); assert.equal(result.session_id, sessionId);
   assert.equal(JSON.parse(await readFile(cleanupFile)).stop_operation_id, cleanup.stop_operation_id);
   assert.equal(JSON.parse(await readFile(stateFile)).turns.length, 1);

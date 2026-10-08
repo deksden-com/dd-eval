@@ -31,6 +31,7 @@
           "evidence_completeness": {"enum": ["checkpointed", "partial", "missing"]},
           "checkpoint": {"type": ["object", "null"]},
           "execution_operation_id": {"type": ["string", "null"]},
+          "experiment_conformance": {"type": "object", "required": ["state", "contract_sha256"], "properties": {"state": {"enum": ["matched", "mismatched", "unknown"]}, "contract_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}},
           "incomplete_evidence": {"type": ["object", "null"]},
           "recovery": {"type": ["object", "null"]},
           "case_acceptance": {

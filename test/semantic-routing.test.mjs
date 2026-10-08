@@ -14,6 +14,7 @@ const json = async file => JSON.parse(await readFile(file));
 
 test("profile@2 schema and runtime admit the same decision settings and preserve native qualification keys", async () => {
   const runProfile = await loadRunProfile(profileFile);
+  runProfile.qualificationJudgeProfile = { ...await json(`profiles/${runProfile.value.interaction_judge.profile_id}.json`), provider: 'openai', mode: 'agent', permission: 'allow' };
   const ajv = new Ajv({ strict: false });
   ajv.addSchema(await json("schemas/run-profile.v1.schema.json"));
   const check = ajv.compile(await json("schemas/run-profile.v2.schema.json"));
