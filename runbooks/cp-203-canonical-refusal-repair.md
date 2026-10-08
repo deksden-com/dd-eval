@@ -34,6 +34,25 @@ The third authorized variant needs a fresh single-variant campaign only after
 this proven pre-EVAL rejection; the original incomplete campaign remains
 unchanged. Full engine testing is still running, not claimed passed.
 
+Fresh single-variant campaign `cp-206-specify-decisions` acknowledged
+`EVAL-20261008131843-7fc2ce8e` at commit `05f96c5`. All five baseline checks
+passed; native Session `01a11bad-a381-7d21-8577-23cbdb3e971d` entered running
+SPECIFY at 13:22:27.104Z with gpt-6-luna/xhigh and matched conformance. OpenAI
+Decisions returned covered in 1524 ms, confidence 0.55, on its first HTTP attempt;
+fallback gpt-6.1-sol/high confirmed covered and the same Subject Session resumed
+after a 45688 ms HITL pause. Both decision providers fell back in these samples;
+this is not evidence of fast-path speedup. Threshold 0.93 is unchanged.
+
+The full EVAL follow-up returned 760 PASS, 1 FAIL, 10 SKIP (771 tests,
+512066 ms). The only failure expected EPERM directly from the old retirement
+helper, despite its mocked unavailable `ps`. The corrected contract retains
+the actual EIO and adds denied-signal contrasts for a new incarnation, same
+incarnation, one-second ambiguity, absent stop time and unrelated signal errors.
+All ten retirement/cleanup/preparation/recovery regressions passed, with no skips
+or failures (`/tmp/dd-eval-075-privileged-pid-regression.log`). No additional
+production change was needed. The full rerun is recorded separately; the failed
+aggregate is not reported as PASS.
+
 ## CP205 follow-up: semantic background and retained requests
 
 All three requested SPECIFY variants were submitted. Judge-only

@@ -24,7 +24,14 @@ test('retirement uses OS birth after frozen shutdown, never PID existence alone'
   ps.mock.mockImplementation(() => { throw Object.assign(new Error('ps unavailable'), { code: 'EIO' }); });
   assert.throws(() => processRetired(123, '2026-10-06T19:22:20Z'), { code: 'EIO' });
   t.mock.method(process, 'kill', () => { throw Object.assign(new Error('permission denied'), { code: 'EPERM' }); });
-  assert.throws(() => processRetired(123, '2026-10-06T19:22:20Z'), { code: 'EPERM' });
+  assert.throws(() => processRetired(123, '2026-10-06T19:22:20Z'), { code: 'EIO' });
+  ps.mock.mockImplementation(() => 'Wed Oct 7 14:00:00 2026\n');
+  assert.equal(processRetired(123, '2026-10-06T19:22:20Z'), true);
+  assert.equal(processRetired(123, '2026-10-07T14:00:00Z'), false);
+  assert.equal(processRetired(123, '2026-10-07T13:59:59Z'), false);
+  assert.equal(processRetired(123), false);
+  t.mock.method(process, 'kill', () => { throw Object.assign(new Error('signal probe unavailable'), { code: 'EIO' }); });
+  assert.throws(() => processRetired(123, '2026-10-06T19:22:20Z'), { code: 'EIO' });
   t.mock.method(process, 'kill', () => { throw Object.assign(new Error('absent'), { code: 'ESRCH' }); });
   assert.equal(processRetired(123), true);
   assert.ok(calls.length > 0);
