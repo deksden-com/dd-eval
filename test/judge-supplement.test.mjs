@@ -187,7 +187,14 @@ console.log(JSON.stringify(result));`);
   f.supplement.candidate_sha256 = candidate.immutable_hash; f.supplement.boundary.manifest_sha256 = checkpoint.manifest_sha256;
   await writeFile(f.input.supplementFile, JSON.stringify(f.supplement));
   const profileId = await put(f.directory, 'profile.json', { id: 'offline-judge', harness: 'codex-desktop', model: 'fixture', reasoning: 'high' });
-  return { ...f, calls, engineRoot, invoke: () => evalJudge({ evalRoot: f.root, profileId, supplementFile: f.input.supplementFile, outputRoot: f.input.outputRoot }) };
+  const configHome = path.join(f.directory, 'config');
+  await put(configHome, 'agent-profiles/offline-judge.json', { schema_id: 'dd-flow/agent-profile@1', id: 'offline-judge', harness: 'codex', provider: 'openai', model: 'stale-fixture', reasoning: 'low', mode: 'agent', permission: 'allow' });
+  return { ...f, calls, engineRoot, invoke: async () => {
+    const previous = process.env.DD_FLOW_CONFIG_HOME;
+    process.env.DD_FLOW_CONFIG_HOME = configHome;
+    try { return await evalJudge({ evalRoot: f.root, profileId, supplementFile: f.input.supplementFile, outputRoot: f.input.outputRoot }); }
+    finally { if (previous === undefined) delete process.env.DD_FLOW_CONFIG_HOME; else process.env.DD_FLOW_CONFIG_HOME = previous; }
+  } };
 }
 
 test('public supplemental Judge executes only its owned runtime and rebuilds a missing report without native replay', async t => {
@@ -198,10 +205,22 @@ test('public supplemental Judge executes only its owned runtime and rebuilds a m
   const calls = await readFile(f.calls, 'utf8'), records = calls.trim().split('\n').map(JSON.parse);
   assert.equal(records.filter(row => row.native?.[0] === 'session' && row.native[1] === 'create').length, 1);
   assert.equal(records.filter(row => row.native?.[0] === 'session' && row.native[1] === 'prompt').length, 1);
+  for (const row of records.filter(row => row.native?.[0] === 'session' && ['create', 'prompt'].includes(row.native[1]))) {
+    for (const [flag, expected] of [['--model', 'fixture'], ['--reasoning', 'high'], ['--provider', 'openai'], ['--mode', 'agent'], ['--permission', 'allow']]) assert.equal(row.native[row.native.indexOf(flag) + 1], expected);
+  }
+  assert.match(result.receipt.profile_sha256, /^[a-f0-9]{64}$/);
   assert.ok(records.some(row => row.native?.[0] === 'daemon' && row.native[1] === 'stop'));
   await unlink(path.join(result.root, 'report.json'));
   const cached = await f.invoke(); assert.equal(cached.reused, true);
   assert.equal(await readFile(f.calls, 'utf8'), calls);
+  const declaration = JSON.parse(await readFile(path.join(f.directory, 'profile.json')));
+  await put(f.directory, 'profile.json', { ...declaration, notes: 'documentation-only edit' });
+  assert.equal((await f.invoke()).reused, true);
+  assert.equal(await readFile(f.calls, 'utf8'), calls);
+  await put(f.directory, 'profile.json', { ...declaration, model: 'changed-model' });
+  await assert.rejects(f.invoke(), { code: 'judge_output_conflict' });
+  assert.equal(await readFile(f.calls, 'utf8'), calls);
+  await put(f.directory, 'profile.json', declaration);
   const report = JSON.parse(await readFile(path.join(result.root, 'report.json')));
   assert.equal(report.supplemental.session_id, 'judge-session'); assert.equal(report.cleanup, 'settled');
   const manifest = JSON.parse(await readFile(path.join(result.root, 'manifest.json')));

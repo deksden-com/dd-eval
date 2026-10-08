@@ -51,6 +51,7 @@
     "recoveries": {
       "type": "array"
     },
+    "execution_contract": { "type": "object" },
     "manifest": {
       "type": "string"
     },

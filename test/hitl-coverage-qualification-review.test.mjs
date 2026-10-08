@@ -29,6 +29,7 @@ async function corpus(root) {
 test("authored duplicate semantic inputs are rejected before native qualification", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "coverage-input-review-")); t.after(() => rm(root, { recursive: true, force: true }));
   const runProfile = await loadRunProfile(new URL("../cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-luna-coverage-shadow.json", import.meta.url).pathname);
+  runProfile.qualificationJudgeProfile = { ...JSON.parse(await readFile(new URL(`../profiles/${runProfile.value.interaction_judge.profile_id}.json`, import.meta.url))), provider: 'openai', mode: 'agent', permission: 'allow' };
   const { input } = await corpus(root);
   const items = input.corpus.items.map((item, n) => ({ ...item, question: `Unique scenario ${n}?`, classification: n % 2 ? "out_of_scope" : "covered_by_canonical_response", response_ids: n % 2 ? [] : ["canonical"],
     coverage_expectation: { status: n % 2 ? "uncovered" : "covered", response_ids: n % 2 ? [] : ["canonical"], remaining_decisions: n % 2 ? [{ id: "missing", description: "Extra decision" }] : [] } }));

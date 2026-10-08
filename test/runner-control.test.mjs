@@ -14,12 +14,19 @@ import { evalResumeWorkerFile, requestEvalResume } from '../lib/eval-resume-work
 import { processSnapshot } from '../lib/process-snapshot.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { installMaintenanceFixture } from './fixtures/maintenance-runtime.mjs';
+import { resolveExecutionContract } from '../lib/execution-contract.mjs';
 
-function initialRunProfile(caseId) {
-  return { value: { schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: caseId, subject: { profile_id: 'fixture' },
+async function initialRunProfile(caseId, t) {
+  const runProfile = { value: { schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: caseId, subject: { profile_id: 'fixture' },
     selection: { focused_stages: [], segment: null, e2e: true, repetitions: 1 },
     concurrency: { global: 1, per_harness: {} }, interaction_judge: { profile_id: 'fixture' }, judge: { enabled: false },
     failure_policy: { stop_run_on_infrastructure_error: false, stop_execution_on_unexpected_hitl: true, stop_execution_on_unmatched_hitl: true } } };
+  const configHome = await mkdtemp(path.join(os.tmpdir(), 'eval-control-profile-'));
+  t.after(() => rm(configHome, { recursive: true, force: true }));
+  await mkdir(path.join(configHome, 'agent-profiles'));
+  await writeJsonAtomic(path.join(configHome, 'agent-profiles', 'fixture.json'), { schema_id: 'dd-flow/agent-profile@1', id: 'fixture', harness: 'codex', provider: 'openai', model: 'fixture', reasoning: 'low', mode: 'agent', permission: 'allow' });
+  runProfile.executionContract = await resolveExecutionContract({ configHome, runProfile: runProfile.value, loadProfile: id => ({ id, harness: 'codex-desktop', model: 'fixture', reasoning: 'low' }) });
+  return runProfile;
 }
 
 test('operator control validates the retained scope before publishing intent', async t => {
@@ -51,7 +58,7 @@ test('initial EVAL waits for the lifecycle owner and rechecks control before pub
   let started, finished = false;
   const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
   const profile = { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' };
-  const runProfile = initialRunProfile(loaded.value.id);
+  const runProfile = await initialRunProfile(loaded.value.id, t);
   await withRunnerLock(`${root}.lifecycle`, async () => {
     started = executeEval({ root, runId: 'EVAL-initial', loaded, profile, runProfile, executions: [{ id: 'queued', mode: 'e2e', stage: 'merge', terminal_stage: 'merge' }] }).catch(error => { finished = true; return error; });
     await delay(50);
@@ -70,7 +77,7 @@ test('initial EVAL rejects a missing context before creating its output parent o
   const root = path.join(directory, 'not-created', 'eval');
   const loaded = { root: path.join(directory, 'case'), value: { id: 'fixture', flow: { terminal_stage: 'merge' } } };
   const profile = { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' };
-  const runProfile = initialRunProfile(loaded.value.id);
+  const runProfile = await initialRunProfile(loaded.value.id, t);
   await assert.rejects(executeEval({ root, loaded, profile, runProfile, executions: [{ id: 'queued', mode: 'e2e', stage: 'merge', terminal_stage: 'merge' }] }), error => error.code === 'ENOENT' && error.path.endsWith('stage-context.json'));
   await assert.rejects(executeEval({ root, loaded, profile, runProfile, executions: [{ id: '../escape', mode: 'e2e', stage: 'merge', terminal_stage: 'merge' }] }), { code: 'control_input_invalid' });
   await assert.rejects(executeEval({ root, loaded, profile, runProfile: { value: { ...runProfile.value, concurrency: { global: 0 } } } }), /concurrency is invalid/);
@@ -165,7 +172,7 @@ if(result.error)throw result.error; process.exit(result.status??1);`);
   const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
   const execution = { id: 'queued', stage: 'specify', terminal_stage: 'specify', mode: 'e2e' };
   const profile = { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' };
-  const runProfile = initialRunProfile(loaded.value.id);
+  const runProfile = await initialRunProfile(loaded.value.id, t);
   const retained = path.join(root, 'executions', execution.id, 'retained');
   await mkdir(path.dirname(retained), { recursive: true }); await writeFile(retained, 'block before provider preparation');
   await withRunnerLock(path.join(root, 'events.jsonl'), async () => {

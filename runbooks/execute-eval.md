@@ -1,5 +1,46 @@
 # Execute an eval
 
+## Sequential SPECIFY comparisons (plan 073)
+
+`runner eval run` exits after **accepted/pending**, not after EVAL completion.
+`concurrency.global=1` is per EVAL; it does not serialize separate homes. Use:
+
+```sh
+node scripts/run-specify-comparison.mjs --campaign /absolute/comparison-receipts --base-home /absolute/prepared-engine-home --profile cases/sdlc-eval-2026-summer-task-priority/run-profiles/specify-luna-judge-only.json --profile cases/sdlc-eval-2026-summer-task-priority/run-profiles/specify-luna-jev.json --profile cases/sdlc-eval-2026-summer-task-priority/run-profiles/specify-luna-openai-decisions.json
+```
+
+The explicit base home must contain the pinned `published-engine` and validated
+`engine-config`; keep its configuration stable during admission. Variants use
+fresh `comparison-<campaign-hash>/variant-1`, `variant-2`, … homes beneath it and
+isolated resource homes; separate campaign directories cannot share variant homes.
+All preflights must agree on effective execution contract/checkpoint before any
+paid submission. Only decision route and descriptive variant labels may differ.
+Secrets remain environment-only. The receipt records hashes and exact EVAL IDs.
+The binding includes retained runtime/capacity admission declarations, not just
+model settings. Each contract's integrity is validated, but provenance-only edits
+(such as an overwritten ambient model) do not invalidate equal execution inputs.
+The script passes `runner eval run --expected-inputs <JSON>` with five retained
+profile, contract, admission, checkpoint and fixture/context hashes. The last
+binding includes the canonical responses and only reachable Stage blueprint
+inputs; unrelated later-stage context or repository edits do not invalidate it.
+The runner checks them before publishing
+the manifest or enqueueing a worker, so drift cannot dispatch before the campaign
+notices it. This guard is optional for ordinary independent launches.
+
+The next variant waits for `finished` **and authoritative `cleanup_state=settled`**.
+Failure, operator stop or ownership blocker stops orchestration, without repair.
+SIGINT/SIGTERM stop polling only; they do not kill the active EVAL. Reusing the
+same campaign re-observes retained IDs. Missing acknowledgment permits only
+read-only reconciliation of one matching manifest in its recorded isolated home;
+zero/multiple/unbound manifests require investigation, never blind retry.
+
+Compare durable Stage start/done separately from paused windows and decision
+HTTP/retry timings. Paused time is not pure Judge compute. Independent SPECIFY
+trajectories can ask different questions; one sample is not a causal speed or
+accuracy estimate. Decision-only benchmarking requires identical retained packets
+and separate authorization for paid calls. Definitions of profiles are not launch
+authorization.
+
 ## Bounded semantic-decision pilots (plan 071)
 
 Use committed profiles `specify-luna-judge-only.json`, `specify-luna-jev.json`,
@@ -652,7 +693,7 @@ The runner allocates a fresh directory under
 
 Before restoring the engine, the runner copies only the portable harness
 configuration from `${DD_FLOW_CONFIG_HOME:-${DD_FLOW_HOME:-~/.dd-flow}}`:
-`harnesses.json` and optional `agent-profiles/`. `harnesses.json` names the
+`harnesses.json` only. `harnesses.json` names the
 absolute adapter and native executable for every harness. It contains no
 credentials. The isolated home never inherits `db.sqlite`, RUNs, locks, ports,
 engines, logs or daemons from the source home. A missing or invalid harness
@@ -669,12 +710,22 @@ historical execution. Correct provisioning for a new attempt instead.
 
 An eval profile in `profiles/` is not an installed Flow agent profile. Every
 profile referenced by execution routing must also exist in the configuration
-home's `agent-profiles/<id>.json` using `dd-flow/agent-profile@1`. Match its
-provider/model/reasoning/mode to the committed eval profile; use Flow's harness
+home's `agent-profiles/<id>.json` using `dd-flow/agent-profile@1`. The runner
+validates this complete template and replaces only model/reasoning with the
+committed repo declaration. Provider/mode/permission remain explicit template
+policy. Existing repo provider/mode declarations must agree with that policy;
+conflicts fail admission rather than silently overriding it. Use Flow's harness
 key (`zcode`, not the eval key `zcode-acp`) and the approved permission policy.
 Do not copy an eval profile verbatim: it has a different schema. Missing
 profiles must be installed in the configuration home before a fresh preflight,
 not patched into a failed run's frozen state.
+
+Preflight displays the effective execution contract and admits every reachable
+coordinator/worker/Judge. Fresh EVALs retain that contract before enqueue and
+materialize it into their isolated home; continuation/fork do not reload same-ID
+ambient profiles. RUN snapshot and known outbound intent are compared separately
+from provider-returned model attribution (`experiment_conformance`). Legacy
+evidence remains unknown, not silently migrated or automatically rejudged.
 
 Before opening a Subject session, the runner validates the materialized input
 as a **project** flow pack: its manifest, every declared file and both

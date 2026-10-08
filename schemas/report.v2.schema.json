@@ -17,6 +17,7 @@
     "execution_history": {"type": "array"},
     "recoveries": {"type": "array"},
     "manifest": {"type": "string"},
+    "execution_contract": {"type": "object"},
     "executions": {"type": "array", "items": {"type": "object"}},
     "observability": {"type": "object"},
     "judge_status": {"type": "string"},

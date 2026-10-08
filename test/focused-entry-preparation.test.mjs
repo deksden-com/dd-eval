@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { interactionFixtureManifest, launchEvalExecution, prepareFocusedEntries } from '../lib/runner.mjs';
+import { contractProfile, resolveExecutionContract } from '../lib/execution-contract.mjs';
 
 test('focused launch rejects its entry before recording an operation and uses prepared data after source deletion', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-focused-prepare-'));
@@ -21,6 +22,10 @@ test('focused launch rejects its entry before recording an operation and uses pr
   const manifest = { run_id: 'EVAL-fixture', kind: 'scored', executions: [execution], subject_profile: { id: 'fixture' }, profile: { concurrency: { global: 1 }, failure_policy: { stop_run_on_infrastructure_error: true } }, runtime_resource_home: path.join(root, 'resources') };
   manifest.interaction_fixtures = await interactionFixtureManifest(loaded.root, [execution]);
   manifest.profile.subject = { profile_id: 'fixture' };
+  await writeFile(path.join(root, 'config', 'agent-profiles', 'fixture.json'), JSON.stringify({ schema_id: 'dd-flow/agent-profile@1', id: 'fixture', harness: 'codex', provider: 'openai', model: 'fixture-model', reasoning: 'high', mode: 'agent', permission: 'allow' }));
+  manifest.execution_contract = await resolveExecutionContract({ configHome: path.join(root, 'config'), runProfile: manifest.profile,
+    loadProfile: id => ({ id, harness: 'codex-desktop', model: 'fixture-model', reasoning: 'high' }) });
+  manifest.subject_profile = contractProfile(manifest.execution_contract, 'fixture');
   const output = path.join(root, 'output');
   const input = { root: output, manifest, execution, loaded, blueprint: {}, pack, packRoot: root };
   await writeFile(file, '{');

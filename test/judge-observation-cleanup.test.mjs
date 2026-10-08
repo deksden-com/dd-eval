@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { interactionJudge, evalJudge } from '../lib/runner.mjs';
 import { appendEvent, writeJsonAtomic } from '../lib/runner-events.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
+import { resolveExecutionContract } from '../lib/execution-contract.mjs';
 
 async function offlineRuntime(root, failureCode) {
   const home = path.join(root, 'executions/e/dd-flow-home'), engine = path.join(home, 'engines/offline'), native = path.join(engine, 'dist/harness-runtime'), lib = path.join(native, 'lib'), calls = path.join(root, 'calls.jsonl');
@@ -42,9 +43,12 @@ else if(kind==='daemon.stop'){
   await symlink('engines/offline/dist/harness-runtime', path.join(home, 'harness-runtime'));
   await writeJsonAtomic(path.join(home, 'harnesses.json'), { harnesses: { 'antigravity-cli': { runtime_command: '/bin/false' } } });
   const profileFile = path.join(root, 'profile.json');
-  await writeJsonAtomic(profileFile, { id: 'offline-observation-judge', harness: 'antigravity-cli', model: 'offline', reasoning: 'low' });
+  const declaration = { id: 'offline-observation-judge', harness: 'antigravity-cli', model: 'offline', reasoning: 'low' };
+  await writeJsonAtomic(profileFile, declaration);
+  await writeJsonAtomic(path.join(home, 'agent-profiles', `${declaration.id}.json`), { schema_id: 'dd-flow/agent-profile@1', ...declaration, harness: 'agy', provider: 'google', mode: 'agent', permission: 'allow' });
+  const contract = await resolveExecutionContract({ runProfile: { subject: { profile_id: declaration.id }, interaction_judge: { profile_id: declaration.id }, judge: { enabled: true, profile_id: declaration.id } }, loadProfile: async () => ({ value: declaration }), configHome: home });
   await mkdir(path.join(root, 'executions/e/project'), { recursive: true });
-  return { home, profileFile, calls };
+  return { home, profileFile, calls, contract, profileId: declaration.id };
 }
 
 for (const caller of ['interaction', 'final']) for (const code of ['subject_liveness_timeout', 'operation_output_limit', 'judge_result_invalid']) test(`${caller} Judge cleanup distinguishes ${code} from cancellation authority`, async t => {
@@ -52,13 +56,13 @@ for (const caller of ['interaction', 'final']) for (const code of ['subject_live
   t.after(() => rm(root, { recursive: true, force: true }));
   const runtime = await offlineRuntime(root, code), project = path.join(root, 'executions/e/project');
   let invoke;
-  if (caller === 'interaction') invoke = () => interactionJudge({ attempt: root, projectRoot: project, runtimeRoot: runtime.home, stage: 'specify', question: 'Required default?', fixture: { sha256: 'a'.repeat(64), responses: [{ id: 'answer', answer: 'Canonical' }] }, runProfile: { value: { interaction_judge: { profile_id: runtime.profileFile } } } });
+  if (caller === 'interaction') invoke = () => interactionJudge({ attempt: root, projectRoot: project, runtimeRoot: runtime.home, stage: 'specify', question: 'Required default?', fixture: { sha256: 'a'.repeat(64), responses: [{ id: 'answer', answer: 'Canonical' }] }, runProfile: { executionContract: runtime.contract, value: { interaction_judge: { profile_id: runtime.profileId } } } });
   else {
-    const manifest = { run_id: 'EVAL-offline-judge', case_id: 'sdlc-eval-2026-summer-task-priority', executions: [{ id: 'e', stage: 'specify', terminal_stage: 'specify', mode: 'focused' }], subject_profile: {}, profile: { judge: { enabled: false }, concurrency: { per_harness: {} } }, runtime_resource_home: path.join(root, 'resources') };
+    const manifest = { run_id: 'EVAL-offline-judge', execution_contract: runtime.contract, case_id: 'sdlc-eval-2026-summer-task-priority', executions: [{ id: 'e', stage: 'specify', terminal_stage: 'specify', mode: 'focused' }], subject_profile: {}, profile: { judge: { enabled: false }, concurrency: { per_harness: {} } }, runtime_resource_home: path.join(root, 'resources') };
     const result = { execution: 'e', state: 'failed', code: 'preflight_failed', stage: 'specify', attempt: path.join(root, 'executions/e') };
     await writeJsonAtomic(path.join(root, 'manifest.json'), manifest);
     for (const type of ['requested', 'started', 'completed']) await appendEvent(path.join(root, 'events.jsonl'), { source: 'offline', runId: manifest.run_id, executionId: 'e', type: `dev.dd.eval.operation.${type}`, data: { operation_id: `${manifest.run_id}:e:launch`, operation: 'execution.e.launch', ...(type === 'completed' ? { result } : {}) } });
-    invoke = () => evalJudge({ evalRoot: root, profileId: runtime.profileFile });
+    invoke = () => evalJudge({ evalRoot: root, profileId: runtime.profileId });
   }
   let primary;
   await assert.rejects(invoke, error => { primary = error; return error.code === (code === 'judge_result_invalid' ? code : 'operation_observation_lost'); });
