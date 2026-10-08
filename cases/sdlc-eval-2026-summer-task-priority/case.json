@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-199-task-priority-operational-policy",
-    "sha256": "feb9dd426d5a2e345f6bcb56e0908109dc6e7502ed245d1ad9a8b16b54d635d6"
+    "id": "cp-202-specify-decision-comparison",
+    "sha256": "690d71e97b2ed16fb6fb3fe8be676859803adec8b85a147b6ad869a97245adc2"
   },
   "entry_pack": null,
   "hitl_qualification": {

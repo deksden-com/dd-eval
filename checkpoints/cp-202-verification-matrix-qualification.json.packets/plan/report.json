@@ -1,0 +1,87 @@
+{
+  "schema_id": "dd-flow/stage-report@2",
+  "run_id": "RUN-001-tasks",
+  "stage": "plan",
+  "generated_at": "2026-10-08T04:33:23.001Z",
+  "verdict": "done",
+  "semantic": {
+    "result": "Accepted 1 executable PLAN artifact.",
+    "acceptance": [
+      "PRT-001-task-priority"
+    ],
+    "changed_files": [
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+      "run://RUN-001-tasks/03-plan/PRT-001-task-priority/aspect-map.json",
+      "run://RUN-001-tasks/03-plan/code-work-batch.json"
+    ],
+    "checks": [
+      "protocol-plan schema",
+      "aspect-map schema",
+      "cross-artifact references",
+      "generated CODE batch"
+    ],
+    "evidence": [
+      "run://RUN-001-tasks/03-plan/stage-report.json"
+    ],
+    "next_action": "start_plan_review",
+    "plans": [
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json"
+    ],
+    "aspect_maps": [
+      "run://RUN-001-tasks/03-plan/PRT-001-task-priority/aspect-map.json"
+    ],
+    "code_work_batch": "run://RUN-001-tasks/03-plan/code-work-batch.json",
+    "batch_checksum": "87e04b2d0de72ebc62c60cc3fcf258903579dc55ea1f8925affe328a03b062d9",
+    "plan_checksums": [
+      {
+        "path": ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+        "sha256": "54ab1c31ae295a032639f7764fffbf6f8ff2c7e96a87821a0c89d88bd3bb0387"
+      }
+    ],
+    "aspect_map_checksums": [
+      {
+        "path": "03-plan/PRT-001-task-priority/aspect-map.json",
+        "sha256": "706cb6004ccbe32a2b940f739aa335d2afe3dcd8dcd1c0a94af92026cf94bf25"
+      }
+    ],
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "role": "output",
+      "completeness": "declared",
+      "source_fingerprint": "6a406e469ef1465924a82c5cecd60af230e9d40b953b6e8303cdb28f933411eb",
+      "json": {
+        "path": "03-plan/verification/6a406e469ef1465924a82c5cecd60af230e9d40b953b6e8303cdb28f933411eb/verification-matrix.json",
+        "sha256": "ce1a2672c767e1d9e2d32c62bd4422614adb2c5cc1617e837a9902556ad2dc2f"
+      },
+      "markdown": {
+        "path": "03-plan/verification/6a406e469ef1465924a82c5cecd60af230e9d40b953b6e8303cdb28f933411eb/verification-matrix.md",
+        "sha256": "1db24264fc5b2232502b8ef0046bf99e6d247183a6a2cd0096c5defb7d76a756"
+      },
+      "coverage_contract": "dd-flow/final-check-coverage@1"
+    }
+  },
+  "mechanical": {
+    "started_at": "2026-10-08T04:33:20.990Z",
+    "finished_at": "2026-10-08T04:33:23.001Z",
+    "wall_clock_ms": 2011,
+    "git": {
+      "branch": "main",
+      "head": "eccef500b9875af27ea714626ef54bd7223114c3",
+      "status": "dirty"
+    },
+    "session_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home\" dd-flow stat run sessions ls --run RUN-001-tasks --project-root \"/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/project\" --json",
+    "usage_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home\" dd-flow stat usage --run RUN-001-tasks --project-root \"/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/project\" --json",
+    "next_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/home\" dd-flow stage start RUN-001-tasks --stage plan-review --project-root \"/Users/deksden/.dd-eval/qualification/cp-202-candidate/installed-matrix-fixture/qualification-evidence/dd-flow-protocolize-IjceMp/project\" --json"
+  },
+  "artifacts": {
+    "json": "stage-report.json",
+    "markdown": "stage-report.md",
+    "html": "stage-report.html"
+  },
+  "validation": {
+    "permission_scope": "known_targets_only",
+    "memory_bank_scope": "changed_files_and_links_only",
+    "status": "passed"
+  },
+  "summary": "Accepted 1 executable PLAN artifact."
+}
