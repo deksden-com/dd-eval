@@ -28,8 +28,15 @@ dd-flow implementation commit: `e61fd67`.
   Independent review found missing diagnostics on owner-level early refusals;
   those now expose additive metadata without fabricating an HTTP attempt.
 - C: retained CP-201 Q-004 and the original canonical answer as a frozen negative
-  regression. No canonical product policy was guessed. Creating an explicit
-  `closed` task still requires the user's choice; this package is **not complete**.
+  regression. After explicit user choice, synchronized SPECIFY/PLAN canon:
+  absence of state or explicit `open` creates an open task; `closed`/invalid
+  values reject creation without a write. Closing is a later update. Priority
+  rules and archived-project read-only boundaries remain unchanged. This is
+  fixture authoring, not a manual product repair or reassessment of old runs.
+  Added literal positive proof at both stages and negative opposite-policy and
+  independent-question regressions. Existing corpus/context hashes and accepted
+  historical descriptors do not reference changed authoring bytes, so they
+  were not rewritten; runner hashes each current stage fixture at planning.
 - D: existing not-applicable acceptance receipt repair remains unchanged and
   covered by the runner recovery regression.
 
@@ -63,6 +70,18 @@ dd-flow:
   run and the corrected sequential rerun; this is not a claim that a single
   full controller invocation passed.
 
-Source correctness does not
-prove a new scored run or decision-model speedup. Full plan completion remains
-blocked by C1, even when A/B/D checks pass.
+## Canon follow-up after user choice
+
+User selected open-only creation on 2026-10-08. Corpus regression: **24 PASS**.
+Affected corpus/contract/entry-pack/coverage/EVAL tests with
+`DD_FLOW_SOURCE_ROOT` set to the built runtime: **145 PASS, 0 failures**.
+Final corpus recheck after the opposite-policy assertion: **24 PASS**.
+Initial affected-test invocation omitted the required source-root setting and
+failed that fixture assertion; the configured rerun passed.
+No new live qualification or EVAL was launched. Previously retained answers and
+model receipts were not rewritten. Ponytail: existing canonical fixtures and
+validators reused, with no new parser, API field or runtime mechanism.
+
+Source correctness does not prove a new scored run or decision-model speedup.
+All implementation packages are complete; live operational acceptance and merge
+remain separate actions.
