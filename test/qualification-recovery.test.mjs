@@ -8,7 +8,7 @@ import { writeJsonAtomic, hashJson, sha256 } from "../lib/runner-events.mjs";
 import { profileSemanticHash } from "../lib/execution-contract.mjs";
 import { assertQualificationPreparationRecovery, reconcileQualificationPreparation } from "../lib/qualification-recovery.mjs";
 
-test("pre-model reconciliation stops only exact owned resources and never rewrites native evidence", async t => {
+for (const boundary of ["heartbeat", "admission"]) test(`pre-model ${boundary} reconciliation stops only exact owned resources and never rewrites native evidence`, async t => {
   const home = await mkdtemp(path.join(os.tmpdir(), "qualification-reconciliation-"));
   t.after(() => rm(home, { recursive: true, force: true }));
   const operation = path.join(home, "a".repeat(64), "operation-offline"), root = path.join(operation, "interaction-judge/specify-offline"), stateDir = path.join(root, "daemon");
@@ -40,8 +40,9 @@ test("pre-model reconciliation stops only exact owned resources and never rewrit
     await writeJsonAtomic(path.join(dir, "requested.json"), { operation_id: id, operation: kind, daemon_id: kind === "daemon.start" ? null : "incarnation", session_id: null });
     await writeJsonAtomic(path.join(dir, "result.json"), result);
   };
-  const failedCreate = { state: "failed", error: { code: "process_ownership_unknown", details: { process_id: records[0].id },
-    cause: { details: { hook_diagnostics: [{ action: "heartbeat", process_id: records[0].id, native_dispatch_started: false }] } } } };
+  const failedCreate = { state: "failed", error: { code: "process_ownership_unknown", details: { process_id: records[0].id,
+    ...(boundary === "admission" ? { action: "admission", effect: "committed", native_dispatch_started: false } : {}) },
+    ...(boundary === "heartbeat" ? { cause: { details: { hook_diagnostics: [{ action: "heartbeat", process_id: records[0].id, native_dispatch_started: false }] } } } : {}) } };
   await saveOperation("start", "daemon.start", { state: "completed", started_daemon_id: "incarnation", result: { daemon_id: "incarnation", pid: state.pid, cwd: root } });
   await saveOperation("create", "session.create", failedCreate);
   await saveOperation("stop", "daemon.stop", { state: "failed" });
@@ -59,6 +60,10 @@ test("pre-model reconciliation stops only exact owned resources and never rewrit
   // Native/prompt uncertainty must fail BEFORE any process mutation.
   for (const kind of ["session.prompt", "session.resume", "session.fork", "session.create"]) {
     await saveOperation("create", kind, kind === "session.create" ? { ...failedCreate, state: "completed" } : failedCreate);
+    await assert.rejects(reconcile(), { code: "definition_qualification_outcome_unknown" }); assert.equal(calls.length, 0);
+  }
+  if (boundary === "admission") for (const change of [{ native_dispatch_started: true }, { effect: "unknown" }, { action: "session.create" }, { process_id: "foreign" }]) {
+    await saveOperation("create", "session.create", { ...failedCreate, error: { ...failedCreate.error, details: { ...failedCreate.error.details, ...change } } });
     await assert.rejects(reconcile(), { code: "definition_qualification_outcome_unknown" }); assert.equal(calls.length, 0);
   }
   await saveOperation("create", "session.create", failedCreate);

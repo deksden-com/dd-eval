@@ -182,3 +182,43 @@ The failed run was retained in `/tmp/dd-eval-075-full.log` and its owned test
 group was retired; it is not acceptance. Maintenance/baseline checks after this
 correction: 47/47 PASS. A fresh full run uses concurrency two without weakening
 assertions; the engine full suite continues separately.
+
+## CP205 follow-up — end confirmed admission uncertainty
+
+CP204's next preparation failed before Session creation. Its daemon log contains
+a successful admission ACK followed by successful provider and daemon renewals;
+the combined post-ACK time then exhausted admission's old uncertainty clock.
+The error was `process_ownership_unknown`, action `admission`, effect `committed`,
+`native_dispatch_started=false`. Cleanup was fully settled. This is a false
+ownership refusal, not a model failure or unconfirmed physical stop.
+
+Engine commit `356a4e1` ends admission uncertainty on the exact timely bound ACK,
+before the post-ACK gate. That gate still verifies current RUN/lease ownership,
+and every heartbeat retains its own finite uncertainty episode. Late admission
+ACKs, late heartbeat ACKs, ownership loss and stale RUN generations still block
+dispatch. Regression: 31/31 PASS; combined maintenance suites: 51/51 PASS.
+The previously running full engine gate was stopped because it used the previous
+build; its log `/tmp/dd-flow-075-full.log` is not acceptance. A fresh full gate
+runs in isolated `cp-205-engine-build` against the unchanged packed candidate.
+
+Qualification reconciliation now also recognizes that exact typed admission
+refusal, with the same sealed no-Session/native ledger, immutable input and
+lease/PID/group proof. Unknown effects or native dispatch remain ineligible.
+Both heartbeat/admission recovery regressions PASS. The CP204 preparation was
+reobserved at 2026-10-08T10:14:03Z; both resources were already terminal and OS
+groups retired. Historical outcomes are unchanged; reconciliation is a sidecar,
+not a fabricated native response or a paid replay.
+
+The broader EVAL gate exposed a test invocation defect: default discovery also
+executed helper `.mjs` files, while parallel modules raced a shared case's
+temporary untracked-input probe. Standard `npm test`/`validate` now select only
+`test/*.test.mjs` and serialize modules. All nine previously failed scenarios
+passed on repeat with unchanged assertions; the serial full gate runs separately.
+
+The installed CP205 candidate passed the real offline PLAN/CODE/MERGE fixture
+and independently verified four Stage matrix publications. Its source commit is
+`356a4e1e95526cbaa9a379f01ff9673dc8187b1d`, tarball SHA256
+`cf30fb7d1d326ebef56f4938fad768784d46a9405b66af6500fbb2b76482c4c7`,
+engine checksum `276d34874bc8c7d92908822307cb0b08a2ade14ec062a644cd223b17fb6f10dd`.
+It remains an explicit development candidate, not a public release or aggregate
+release acceptance. CP204 and earlier artifacts/checkpoints are retained.
