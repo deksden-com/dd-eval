@@ -32,6 +32,7 @@ test("every Judge/decision route shares explicit refusal semantics without maski
     assert.match(prompt, /dependent parameters/);
     assert.match(prompt, /refusal of list sorting alone would not settle it/);
     assert.match(prompt, /Independent unanswered decisions and unidentified material references remain unresolved/);
+    assert.match(prompt, /missing implementation details do not make an identifiable decision ambiguous/);
   }
   assert.match(p.responses[0].answer, /не требование нового порядка задач или отдельного порядка UI-контрола/);
   const covered = { schema_id: hitlCoverageContract, status: "covered", response_ids: [p.responses[0].id], uncovered_questions: [] };
@@ -39,6 +40,10 @@ test("every Judge/decision route shares explicit refusal semantics without maski
   assert.equal(compareCoverageExpectation(item, { ...covered, status: "uncovered", response_ids: [], uncovered_questions: ["Каков порядок уровней приоритета в фиксированной шкале?"] }, { responses: p.responses }).passed, false, "wrong historical verdict is not waived by the oracle");
   const gap = corpus.items.find(item => item.id === "material-gap");
   assert.equal(compareCoverageExpectation(gap, covered, { responses: p.responses }).passed, false);
+  const mixed = corpus.items.find(item => item.id === "gap-and-extra");
+  assert.equal(compareCoverageExpectation(mixed, { ...covered, status: "ambiguous", response_ids: [], uncovered_questions: ["Which calendar?"] }, { responses: p.responses }).passed, false);
+  const ambiguous = corpus.items.find(item => item.id === "ambiguous-reference");
+  assert.equal(compareCoverageExpectation(ambiguous, covered, { responses: p.responses }).passed, false);
 });
 
 test("compact contract validates exact shape and never projects partial IDs", async () => {

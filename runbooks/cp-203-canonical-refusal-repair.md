@@ -26,6 +26,13 @@ Targeted verification: 67/67 PASS (`hitl-contract`, `hitl-coverage`, compact
 qualification review, corpus and semantic-decisions suites). `git diff --check`
 also passed. No model calls are involved in these deterministic checks.
 
+The first repaired live prompt resolved `luna-cp190-exact` correctly but exposed
+another mismatch at `gap-and-extra`: lack of a calendar design was mistaken for
+an unidentified reference. The shared rule now distinguishes an identifiable
+yes/no addition (uncovered if unanswered) from a material unknown antecedent
+(ambiguous). No negative expectation is relaxed. Full suite before this second
+clarification: 739 tests, 729 PASS, 0 FAIL, 10 SKIP, 103358 ms.
+
 The legacy shadow declaration tracks the new JEV instruction hash, but does
 not claim promotion or reuse an old held-out classifier certificate. The
 three requested profiles use `semantic_decisions`, not legacy shadow policy.
