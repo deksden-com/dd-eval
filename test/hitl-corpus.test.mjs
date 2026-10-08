@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { validateExpectedAtoms, assertExpectedAtoms, compareHitlExpectation } from '../lib/hitl-corpus.mjs';
-import { buildHitlPacket, validateGroundedHitl, projectHitlAtoms } from '../lib/hitl-contract.mjs';
+import { validateExpectedAtoms, assertExpectedAtoms, compareHitlExpectation, compareCoverageExpectation } from '../lib/hitl-corpus.mjs';
+import { buildHitlPacket, validateGroundedHitl, projectHitlAtoms, hitlCoverageContract, validateHitlCoverage } from '../lib/hitl-contract.mjs';
 import { resolveHitlJudgment } from '../lib/runner.mjs';
 
 const caseRoot = new URL('../cases/sdlc-eval-2026-summer-task-priority/', import.meta.url);
@@ -11,6 +11,22 @@ const corpus = JSON.parse(await readFile(new URL('entry-pack-source/interactions
 const covered = 'covered_by_canonical_response';
 const { responses } = JSON.parse(await readFile(new URL('entry-pack-source/interactions/specify.json', caseRoot)));
 const options = { responses, coverageRequired: true };
+test('CP201 creation-state question remains a genuine gap in the frozen old canon', async () => {
+  const historical = JSON.parse(await readFile(new URL('./fixtures/hitl-cp201-task-create-state.json', import.meta.url)));
+  assert.equal(createHash('sha256').update(historical.responses[0].answer).digest('hex'), historical.canonical_answer_sha256);
+  assert.equal(historical.canonical_answer_sha256, '73a356907343343e42f97e7b8410508f2502916f0528378843365a43e7807f10');
+  const packet = await buildHitlPacket({ stage: 'specify', question: historical.question, responses: historical.responses, verdictContract: hitlCoverageContract });
+  const item = { id: 'cp201-create-state-old-canon', coverage_expectation: {
+    status: 'uncovered', response_ids: [], remaining_decisions: [{ id: 'state-at-create', description: 'Whether explicit closed is allowed on creation, not just the default or later updates.' }]
+  } };
+  // Authored semantic expectation, not a deterministic entailment classifier.
+  // A structurally legal but wrong "covered" must fail the qualification oracle.
+  const coveredVerdict = validateHitlCoverage({ schema_id: hitlCoverageContract, status: 'covered', response_ids: [historical.responses[0].id], uncovered_questions: [] }, packet);
+  assert.equal(compareCoverageExpectation(item, coveredVerdict, { responses: packet.responses }).passed, false);
+  const uncovered = validateHitlCoverage({ schema_id: hitlCoverageContract, status: 'uncovered', response_ids: [], uncovered_questions: ['May a new task be explicitly created closed?'] }, packet);
+  assert.equal(compareCoverageExpectation(item, uncovered, { responses: packet.responses }).semantic_review_required, true);
+  assert.equal(compareCoverageExpectation(item, uncovered, { responses: packet.responses, review: { complete: true, covered_remaining_ids: ['state-at-create'] } }).passed, true);
+});
 test('priority-only clarification delivers the complete canonical dependency package at both stages', async () => {
   const plan = JSON.parse(await readFile(new URL('entry-pack-source/interactions/plan.json', caseRoot)));
   assert.deepEqual(plan.responses, responses);

@@ -9,7 +9,7 @@ import { withRunnerLock } from "../lib/runner-lock.mjs";
 import { setTimeout as delay } from "node:timers/promises";
 
 const policy = { schema_id: "dd-eval/hitl-coverage-policy@1", mode: "shadow", requested_model: "typesafe/jev-1.13", resolved_model: "typesafe/jev-1.13-20260917", provider: "TypeSafe", projection_version: "dd-eval/hitl-coverage-input@1", prompt_sha256: jevPromptHash, transport_version: coverageTransport, max_uncovered_probability: null, qualification_sha256: null };
-const packet = () => buildHitlPacket({ stage: "specify", question: "May closed tasks change priority?", responses: [{ id: "canonical", topic: "priority", applicability: "specify", answer: "Yes." }], verdictContract: hitlCoverageContract });
+const packet = (question = "May closed tasks change priority?") => buildHitlPacket({ stage: "specify", question, responses: [{ id: "canonical", topic: "priority", applicability: "specify", answer: "Yes." }], verdictContract: hitlCoverageContract });
 const response = () => Response.json({ id: "decision", model: policy.resolved_model, provider: policy.provider, answers: { uncovered: { type: "noul", noul: .1 } } });
 
 test("first qualification observation creates its nested storage before dispatch and reuses receipt", async () => {
@@ -32,6 +32,23 @@ test("failed HTTP observation is durable and never retried for the same binding"
     assert.equal(first.state, "failed"); assert.equal(first.reason, "http_503");
     assert.equal((await observeJev(options)).state, "failed"); assert.equal(calls, 1);
     assert.equal(await readFile(first.file, "utf8"), before); assert.equal(before.includes("private error"), false);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("legacy owner early refusals have diagnostics without a fictitious HTTP attempt", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "jev-early-observation-"));
+  try {
+    for (const reason of ["missing_key", "bundle_or_context_ineligible", "input_limit"]) {
+      const p = await packet(reason === "input_limit" ? "x".repeat(70_000) : undefined);
+      if (reason === "bundle_or_context_ineligible") p.responses = [];
+      let calls = 0;
+      const result = await observeJev({ root, packet: p, policy, binding: null, key: reason === "missing_key" ? "" : "secret",
+        fetchImpl: async () => { calls++; assert.fail("Early refusal must not dispatch"); } });
+      assert.equal(result.reason, reason); assert.equal(result.phase, reason); assert.equal(result.retryable, false);
+      for (const field of ["http_status", "transport_code", "retry_after_ms", "latency_ms"]) assert.equal(result[field], null);
+      assert.equal(calls, 0);
+      await assert.rejects(access(path.join(root, "jev-observation.json")), error => error.code === "ENOENT");
+    }
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
