@@ -328,20 +328,22 @@ test('operator resume applies one exact runtime release and cannot clear a newer
   assert.equal((await readFile(calls, 'utf8')).trim().split('\n').length, 8);
 });
 
-for (const valid of [true, false]) test(`exhausted scope worker observes only its existing matching release (generation valid: ${valid})`, { timeout: 15000 }, async t => {
+for (const { valid, delayed } of [{ valid: true, delayed: false }, { valid: true, delayed: true }, { valid: false, delayed: false }]) test(`exhausted scope worker never mutates native scope or reopens its budget (generation valid: ${valid}, delayed: ${delayed})`, { timeout: 20000 }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-spent-scope-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const runId = 'EVAL-spent-scope', cli = path.join(root, 'flow'), eventsFile = path.join(root, 'events.jsonl'), calls = path.join(root, 'calls');
   const release = { scope_id: runId, source_request_id: 'stop', request_id: 'resume', generation: valid ? 1 : 2, capture_key: 'a'.repeat(64), journal_sha256: 'b'.repeat(64), current: true };
   const status = { scope_id: runId, control: null, fence: null, dispatch_blocked: false, release, resume: { status: 'released', request_id: 'resume', generation: 1, capture_key: release.capture_key, current: true }, processes: [] };
-  await writeFile(cli, `#!/bin/sh\ncommand="$1 $2 $3"\nprintf '%s\\n' "$command" >> '${calls}'\n[ "$command" = 'runtime scope status' ] || exit 1\nprintf '%s\\n' '${JSON.stringify(status)}'\n`); await chmod(cli, 0o700);
+  await writeFile(cli, `#!/bin/sh\ncommand="$1 $2 $3"\nprintf '%s\\n' "$command" >> '${calls}'\n[ "$command" = 'runtime scope status' ] || exit 1\n${delayed ? 'sleep 1.5\n' : ''}printf '%s\\n' '${JSON.stringify(status)}'\n`); await chmod(cli, 0o700);
   await writeJsonAtomic(path.join(root, 'manifest.json'), { run_id: runId, runtime_control_bin: cli, runtime_resource_home: path.join(root, 'resources'), executions: [] });
   const requested = await appendEvent(eventsFile, { source: 'fixture', runId, type: 'dev.dd.eval.control.requested', data: { mode: 'stop', request_id: 'stop' } });
   const file = evalResumeWorkerFile(root, 'resume');
   await writeJsonAtomic(file, { schema_id: 'dd-eval/resume-worker@1', intent: { eval_root: root, run_id: runId, request_id: 'resume', source_request_id: 'stop', request_sequence: requested.data.sequence, manifest_sha256: sha256(await readFile(path.join(root, 'manifest.json'))) }, status: 'observing', recovery_observation: { policy_id: 'settlement-inactivity@1', remaining_ms: 0, observer_started: true, observation_gaps: 1, progress_markers: [] } });
-  if (!valid) {
-    // Prove stale-generation rejection independently of the spent worker's
-    // best-effort 1-second diagnostic read (which may not spawn on a busy host).
+  // Prove matching-release projection and stale-generation rejection without
+  // assuming the spent worker's best-effort 1-second read succeeds on this host.
+  if (valid) {
+    assert.equal((await runnerControlResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop', waitMs: 10_000, observeOnlyRuntime: true })).pending, false);
+  } else {
     await assert.rejects(runnerControlResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'stop', waitMs: 10_000, observeOnlyRuntime: true }), { code: 'runtime_scope_release_unproven' });
     assert.equal((await readEvents(eventsFile)).filter(event => event.type === 'dev.dd.eval.control.resume_applied').length, 0);
   }
@@ -355,7 +357,11 @@ for (const valid of [true, false]) test(`exhausted scope worker observes only it
   } while (!['failed', 'recovery_blocked'].includes(saved.status) || (await processSnapshot()).some(item => item.pid === saved.owner_pid && !item.zombie));
   // There is intentionally no maintenance ABI: after projecting a valid release
   // this fixture stops before productive work, independently of its spent budget.
-  assert.equal(saved.scope_result?.pending === false, valid);
+  if (!valid || delayed) assert.equal(saved.scope_result, undefined);
+  if (!saved.scope_result) {
+    assert.equal(saved.status, 'recovery_blocked');
+    assert.equal(saved.error.code, 'recovery_observation_budget_exhausted');
+  } else assert.equal(saved.scope_result.pending, false);
   assert.equal(saved.recovery_observation.remaining_ms, 0);
   assert.equal((await readEvents(eventsFile)).filter(event => event.type === 'dev.dd.eval.control.resume_applied').length, valid ? 1 : 0);
   assert.ok((await readFile(calls, 'utf8')).trim().split('\n').every(action => action === 'runtime scope status'));

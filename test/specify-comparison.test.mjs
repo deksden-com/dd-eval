@@ -80,6 +80,7 @@ test("unknown launch with zero manifests is fail closed on restart", async t => 
 
 for (const status of [{ state: "completed_with_failures", cleanup_state: "settled" }, { state: "awaiting_provider", runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "dead" } }] }, { state: "stopped" },
   { state: "finished", cleanup_state: "blocked" },
+  { ...finished(), interaction_coverage: { resolution: "unknown", verification: { complete: false } } },
   { state: "finished", cleanup_state: "pending", runner_attempts: [{ last_recorded_status: "failed", error: { code: "owner_lost" }, live_owner: { state: "dead" } }] },
   { state: "finished", cleanup_state: "pending", runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "dead" } }] },
   { state: "awaiting_provider", live: { observation_complete: false, inventory: { unavailable: true } }, runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "alive" } }] }]) {

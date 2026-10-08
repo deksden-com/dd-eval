@@ -42,6 +42,27 @@ unverifiable under changed instructions (`semantic_request_unavailable`); they
 are never backfilled, resampled or presented as newly verified. Their original
 terminal campaign/report is retained.
 
+Status follow-up: HITL readback failure now preserves the durable RUN state and
+returns `interaction_resolution=unknown` with its typed verification error.
+Observation enrichment uses cloned execution results: adding diagnostics cannot
+mutate the in-memory journal revision or turn settled cleanup into pending.
+Comparison checks evidence/ownership blockers before accepting even a finished,
+settled sample, so unavailable proof cannot release the next paid variant.
+The combined status/comparison/retained-evidence/execution-contract regressions
+passed 72/72 (`/tmp/dd-eval-075-status-readback-final.log`).
+
+The full EVAL suite returned 759 PASS, 1 FAIL, 10 SKIP. Its sole failure was a
+fixture that required an exhausted worker's best-effort one-second status read
+to succeed on a loaded host. A repeated diagnostic retained the real safe
+outcome: `recovery_blocked`, zero remaining budget and no scope result, not a
+wrong release or new native mutation. The test now independently proves exact
+release projection/stale-generation rejection with a bounded read; the spent
+worker must preserve zero budget and issue only native status commands. An
+explicit delayed-response contrast checks the unavailable branch. Production
+timeouts/ownership policy are unchanged. Control suite: 36 PASS, 5 SKIP, 0 FAIL
+(`/tmp/dd-eval-075-control-budget-final.log`). A full suite rerun follows this
+fix; the earlier aggregate is not reported as PASS.
+
 Full engine gate at runtime commit 356a4e1: release passed; integration 2233 PASS,
 1 FAILED, and runtime-sensitive group was not reached. The single failure was
 the orphan fixture's direct confirmation under a transient unavailable OS birth
