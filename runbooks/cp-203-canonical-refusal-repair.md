@@ -273,3 +273,26 @@ Reentering a campaign now marks the active orchestration as running and clears
 its previous blocker, rather than displaying an obsolete error during healthy
 observation. It still reuses retained IDs and restores blocked on a new failure.
 Comparison regressions: 51/51 PASS, zero skips/failures, 16509 ms.
+
+The next live transition exposed the remaining false ownership check: a native
+controller can already be registered before `managed-runtime.json` is published.
+Scope membership is selected by the registry's retained `budget.scope_id`, not
+equal owner IDs (controller/daemon owners legitimately differ). Missing that
+exact execution manifest permits continued observation only with healthy scoped
+resources and a bound alive observer. Missing unrelated files, inaccessible or
+corrupt execution evidence, journal/continuation failures, scope fences, unknown
+or expired active resources still block. This authorizes observation, never a
+new native prompt or completion. Comparison regressions: 55/55 PASS, zero
+failures/skips, 28365 ms (`/tmp/dd-eval-075-publication-final.log`).
+
+JEV `EVAL-20261008105513-e8042302` passed baseline and reached SPECIFY.
+Its HTTP result completed in 1286 ms with confidence 0.64; the configured 0.93
+threshold correctly selected native Judge fallback. That Judge returned uncovered
+for an archive read-only assertion in the question's background, despite the
+canonical priority exception. The EVAL is completed_with_failures,
+hitl_coverage_unresolved, cleanup settled. This is a retained semantic
+classification failure, not a transport/retry or confidence-routing failure;
+do not overwrite its verdict or loosen confidence to turn it into PASS.
+The original multi-variant campaign remains blocked as designed. The third
+authorized Decisions sample may use a fresh single-variant campaign after this
+settlement; this does not make the original campaign a completed comparison.
