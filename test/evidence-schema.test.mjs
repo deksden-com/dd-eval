@@ -9,6 +9,17 @@ import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
 
 const schemaRoot = path.resolve(import.meta.dirname, "..", "schemas");
+test('Final Judge has explicit frozen decision packet paths for fast and fallback exchanges', () => {
+  const hitl = ['semantic_decision', 'interaction_judge'].map(decision_source => ({ stage: 'specify', pause_id: decision_source,
+    decision_source, receipt_file: `/owned/${decision_source}/result.json`, coverage_filter: { confidence: 0.88 } }));
+  const result = { execution: 'e', state: 'candidate_ready', hitl };
+  const packet = buildEvidencePacket({ manifest: { run_id: 'EVAL-audit', executions: [{ id: 'e' }] }, results: [result], candidate: { immutable_hash: 'a'.repeat(64) } });
+  for (const [i, item] of packet.executions[0].hitl.entries()) {
+    assert.equal(item.packet_file, `/owned/${hitl[i].decision_source}/packet.json`);
+    assert.equal(item.coverage_filter.confidence, 0.88);
+  }
+  assert.equal(hitl[0].packet_file, undefined, 'projection must not mutate frozen exchanges');
+});
 async function validator(file) {
   const schema = JSON.parse(await readFile(path.join(schemaRoot, file), "utf8"));
   return new Ajv2020({ allErrors: true }).compile(schema);

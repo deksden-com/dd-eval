@@ -536,6 +536,10 @@ test("Final Judge receives a bounded evidence scope", () => {
   assert.match(prompt, /"scope":"e2e"/);
   assert.match(prompt, /"id":"quality"/);
   assert.match(prompt, /"id":"integrity"/);
+  assert.match(prompt, /independently audit the semantic decision/);
+  assert.match(prompt, /Audit both accepted fast paths and fallback routes/);
+  assert.match(prompt, /Missing retained evidence means unassessable, not correct/);
+  assert.match(prompt, /This audit is required even when there are no findings/);
 });
 
 test("Codex default and mixed E2E differ only in explicit reviewer routing", async () => {

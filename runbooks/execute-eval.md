@@ -51,7 +51,7 @@ Checkpoint/context/engine are identical; keep the case contour and do not create
 a focused entry pack. Commit definitions and run normal preflight before launch.
 
 Profile@2 optionally enables `semantic_decisions` with provider/model,
-`min_confidence=0.93` and `max_retries=2`; do not also select legacy
+`min_confidence=0.75` and `max_retries=2` in current launch profiles; do not also select legacy
 `interaction_judge.coverage_policy`. Disabled requires no HTTP/key. Selected
 credentials are `OPENROUTER_API_KEY` or `OPENAI_DECISIONS_API_KEY` at the EVAL
 owner only; never put secrets in profiles, arguments or evidence. Missing optional
@@ -71,6 +71,16 @@ is not a completed-stage speed sample. Audit every fast-path acceptance after
 the stage against frozen question/sources/answer bytes, outside timed SPECIFY.
 Defining these profiles authorizes no paid calls, full E2E, qualification campaign,
 historical replay or extra comparison.
+
+The 0.75 threshold applies to future launches only; historical and active EVALs
+retain their admitted policy (including earlier 0.93 runs). Final Judge audits
+every retained decision exchange, both fast acceptance and fallback, using its
+explicit frozen packet path. It reports correctness or missing evidence per
+stage/pause in the conclusion and material evaluator errors in findings; it does
+not call Decisions again, repair answers, or blame Subject for evaluator errors.
+This is post-run semantic assessment, not a preventive guarantee. SPECIFY-only
+profiles disable Final Judge and therefore do not perform that automatic audit;
+use a full profile with Final Judge enabled when post-run audit is required.
 
 ## Scoped operational policy and evidence (plan 069)
 
