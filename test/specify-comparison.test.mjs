@@ -140,6 +140,40 @@ test("active provider with unavailable ownership and empty attempt inventory sto
   await assert.rejects(runSpecifyComparison(f.options), { code: "comparison_blocked" }); assert.deepEqual(f.launches, [0]);
 });
 
+function preparing(runId) {
+  return { state: "awaiting_provider", live: { observation_complete: false,
+    executions: [{ unavailable: true, error: { code: "ENOENT" } }],
+    inventory: { ok: true, scope_id: runId, provider_turns: [], processes: [
+      { kind: "eval-observer", pid: 123, pid_started_at: "Thu Oct  8 12:28:41 2026", owner_id: runId, state: "running", lease_expires_at: new Date(Date.now() + 60000).toISOString() },
+      { kind: "eval-baseline", pid: 124, owner_id: runId, state: "running", lease_expires_at: new Date(Date.now() + 60000).toISOString() }
+    ] } }, runner_attempts: [{ last_recorded_status: "continuing", owner_pid: 123, owner_started_at: "Thu Oct 8 12:28:41 2026", live_owner: { state: "alive" } }] };
+}
+
+test("bound live baseline without a managed RUN continues observation, not duplicate launch", async t => {
+  const f = await fixture(t); let calls = 0;
+  f.options.status = async variant => ++calls === 1 ? preparing(variant.ack.run_id) : finished();
+  await runSpecifyComparison(f.options); assert.deepEqual(f.launches, [0, 1]);
+});
+
+for (const [label, corrupt] of [
+  ["scope", s => { s.live.inventory.scope_id = "foreign"; }],
+  ["owner", s => { s.live.inventory.processes[0].owner_id = "foreign"; }],
+  ["pid", s => { s.runner_attempts[0].owner_pid++; }],
+  ["birth", s => { s.live.inventory.processes[0].pid_started_at = "replaced"; }],
+  ["lease", s => { s.live.inventory.processes[1].lease_expires_at = new Date(0).toISOString(); }],
+  ["dead", s => { s.runner_attempts[0].live_owner.state = "dead"; }],
+  ["fence", s => { s.live.inventory.fence = { active: true }; }],
+  ["dispatch", s => { s.live.inventory.dispatch_blocked = true; }],
+  ["turn", s => { s.live.inventory.provider_turns.push({ state: "running" }); }],
+  ["native", s => { s.live.inventory.processes[1].kind = "harness-daemon"; }],
+  ["error", s => { s.live.executions[0].error.code = "EACCES"; }],
+  ["inventory", s => { s.live.inventory.ok = false; }]
+]) test(`baseline observation cannot hide ${label} ownership uncertainty`, async t => {
+  const f = await fixture(t);
+  f.options.status = async variant => { const s = preparing(variant.ack.run_id); corrupt(s); return s; };
+  await assert.rejects(runSpecifyComparison(f.options), { code: "comparison_blocked" }); assert.deepEqual(f.launches, [0]);
+});
+
 test("measurement projection uses durable boundaries and separates pause/HTTP", () => {
   const result = finished(); result.execution_results[0].lifecycle = { status: { index: { stage_runs: [{ stage: "specify", status: "done", started_at: "2026-10-08T01:00:00Z", completed_at: "2026-10-08T01:02:00Z", paused_ms: 40000 }] } } };
   result.execution_results[0].hitl = [{ decision_source: "semantic_decision", coverage_filter: { http_latency_ms: 2000, total_ms: 3000, backoff_ms: 0, attempts: [{}] } }];

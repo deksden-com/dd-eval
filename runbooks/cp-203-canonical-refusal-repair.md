@@ -228,3 +228,27 @@ Corrected full EVAL invocation: 745 tests, 735 PASS, 0 FAIL, 10 SKIP,
 case was separately rerun with the heartbeat case: 2/2 PASS. Typecheck, lint,
 build, installed matrix and module syntax checks also passed. The case now pins
 CP205; qualification continues only the six genuinely missing native samples.
+
+CP205 definition qualification subsequently passed all 41 cases. Six missing
+observations were obtained, reviewed against their original native verdicts,
+and retained; final reassessment reused all 41 with zero new native calls.
+Receipt key: `5a3aa593d0d10894dfd807d41ddfb4b849f7a97b39be128da7013415f97a3ed1`.
+
+The first comparison EVAL `EVAL-20261008102834-b535b492` is terminal
+`completed_with_failures`, cleanup settled, before any Subject Session. Install
+and quality passed; browser tests could not launch Chromium headless shell 1234
+because its executable was absent from the host cache. The pinned baseline
+policy now provisions the browser using its own installed/locked Playwright
+before testing, under ordinary process ownership and sliding inactivity.
+Product source, canonical answers and Judge inputs are unchanged.
+
+Separately, comparison polling confused missing `managed-runtime.json` during
+baseline with unknown native ownership. Preparation may now continue only with
+the exact acknowledged EVAL scope, alive observer PID/birth, unexpired leases,
+no fences, no provider turns and only baseline/observer resources. Missing,
+foreign, expired or productive ownership remains a blocker. Old EVAL/campaign
+receipts are unchanged; the repaired run needs a fresh campaign.
+
+Preparation/comparison regression checks: 55/55 PASS, zero failures/skips,
+38943 ms (`/tmp/dd-eval-075-startup-regression.log`). The policy pin is updated
+to include browser provisioning. No historical receipt or product tree changed.

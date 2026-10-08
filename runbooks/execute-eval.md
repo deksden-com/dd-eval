@@ -307,6 +307,11 @@ and `verifyEngineArtifact` from `lib/engine-admission.mjs`; do not implement a
 second checksum algorithm or ask a model/operator to rewrite the hash. Record
 tarball SHA-256, npm integrity and snapshot SHA-256 as separate identities.
 
+Baseline admission includes idempotent installation of the Chromium headless shell
+selected by that workspace's locked Playwright package. This prerequisite runs
+under the same owned baseline process/lease and sliding inactivity policy; its
+failure is retained and blocks Subject dispatch. No globally installed Playwright
+version or previous host cache is assumed, and product tests are not waived.
 The actual E2E runs baseline admission in its own restored project before the
 Subject starts. It establishes whether a failure already exists before the
 model's changes; it is not a test of the requested new feature. Keep this
