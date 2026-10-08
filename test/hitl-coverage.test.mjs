@@ -134,7 +134,15 @@ test("coverage corpus freezes calibration and balanced holdout, separating seman
   const runProfile = await loadRunProfile("cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-luna-coverage-shadow.json");
   runProfile.qualificationJudgeProfile = { ...JSON.parse(await readFile(path.join('profiles', `${runProfile.value.interaction_judge.profile_id}.json`))), provider: 'openai', mode: 'agent', permission: 'allow' };
   const loaded = await loadCase(runProfile.value.case_id), qualified = await hitlQualificationInputs({ loaded, runProfile, definition: {} });
-  assert.equal(qualified.corpus.items.length, 41); assert.equal(qualified.compact, true);
+  assert.equal(qualified.corpus.items.length, 44); assert.equal(qualified.compact, true);
+  const preliminary = qualified.corpus.items.find(item => item.id === "cp205-preliminary-archive-background");
+  assert.equal(preliminary.coverage_expectation.status, "covered");
+  assert.match(preliminary.question, /Зафиксированное ограничение/);
+  for (const id of ["cp205-background-plus-notification", "cp205-accepted-archive-conflict"]) {
+    const sample = qualified.corpus.items.find(item => item.id === id);
+    assert.equal(sample.coverage_expectation.status, "uncovered");
+    assert.equal(compareCoverageExpectation(sample, { schema_id: hitlCoverageContract, status: "covered", response_ids: ["clarification-task-priority"], uncovered_questions: [] }, { responses: qualified.fixtures.specify.responses }).passed, false);
+  }
   const gap = qualified.corpus.items.find(item => item.id === "material-gap"), responses = qualified.fixtures.specify.responses;
   const observed = { schema_id: hitlCoverageContract, status: "uncovered", response_ids: [], uncovered_questions: ["How are concurrent writes resolved?"] };
   assert.equal(compareCoverageExpectation(gap, observed, { responses }).semantic_review_required, true);
@@ -207,9 +215,10 @@ test("compact native replay retains its actual Session, final Turn and settled c
     const executionContract = await resolveExecutionContract({ runProfile: { subject: { profile_id: "native" }, interaction_judge: { profile_id: "native" } }, loadProfile: async () => ({ value: nativeProfile }), configHome: attempt });
     const verdict = { schema_id: hitlCoverageContract, status: "covered", response_ids: ["canonical"], uncovered_questions: [] };
     await settledJudge(root, { schema_id: "dd-eval/interaction-judge-receipt@1", decision_source: "interaction_judge", stage: "specify", profile_id: "native", profile_sha256: profileSemanticHash(executionContract.profiles.native), session_id: "session", interaction_fixture_sha256: "a".repeat(64), packet_sha256: hashJson(p), verdict });
-    const prompt = interactionJudgePrompt(packetFile, p), stateFile = path.join(root, `capacity-${hashJson(["session", prompt])}.json`);
+    const prompt = "Original frozen instructions before the current Judge prompt revision.", stateFile = path.join(root, `capacity-${hashJson(["session", prompt])}.json`);
+    assert.notEqual(prompt, interactionJudgePrompt(packetFile, p));
     await promptJudgeWithCapacity({ codex: false, sessionId: "session", packetFiles: [packetFile], originalPrompt: prompt, stateFile,
-      dispatch: async (_text, _capacity, before) => { await before(); return { provider_session_id: "session", turn_id: "turn", turn: { id: "turn", status: "completed" }, assistant_text: JSON.stringify(verdict) }; } });
+      dispatch: async (_text, _capacity, before) => { await before(); return { provider_session_id: "session", turn_id: "turn", thread: { preview: prompt }, turn: { id: "turn", status: "completed" }, assistant_text: JSON.stringify(verdict) }; } });
     const options = { attempt, fixture: { sha256: "a".repeat(64), responses: p.responses }, question: p.question, stage: "specify", hitlBinding: binding,
       runProfile: { executionContract, value: { interaction_judge: { profile_id: "native", verdict_contract: hitlCoverageContract } } }, runtimeRoot: "/no-runtime", projectRoot: "/no-project" };
     const replay = await interactionJudge(options); assert.equal(replay.reused, true); assert.equal(replay.session_id, "session");

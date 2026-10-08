@@ -1,5 +1,57 @@
 # CP-203 canonical refusal semantics
 
+## CP205 follow-up: semantic background and retained requests
+
+All three requested SPECIFY variants were submitted. Judge-only
+`EVAL-20261008104125-bf6dc922` completed SPECIFY in 529256 ms (pause 55121 ms).
+OpenAI Decisions `EVAL-20261008111007-58a56d99` completed SPECIFY in 420471 ms
+(pause 23210 ms), campaign `cp-205-specify-decisions` finished with settled
+cleanup and matched conformance. Its HTTP request took 2037 ms, confidence
+0.97, first attempt; no native fallback was needed. JEV
+`EVAL-20261008105513-e8042302` remains an immutable terminal semantic failure
+with settled cleanup. These independent trajectories are not a causal speed
+comparison, nor full E2E acceptance. The original three-variant campaign stopped
+on JEV failure; Decisions was a separate single-variant campaign after settlement.
+
+The JEV failure was not a provider/retry problem. Its 0.64 confidence correctly
+fell back at threshold 0.93. Native Judge treated the Subject's background
+heading "Зафиксированное ограничение" as an independent request to enforce
+archive priority read-only behavior. The frozen accepted_decisions were empty;
+the initial request explicitly left archive rules undecided. The canonical
+answer explicitly introduces the narrow priority-edit exception and preserves
+all other read-only fields. No actual Q-001–Q-003 asks for the invented extra
+enforcement rule. Shared instructions now distinguish existing behavior and
+Subject assertions from independently accepted feature constraints. An explicit
+replacement resolves only the replaced condition: independent notifications,
+other-field questions and conflicts with independently accepted rules remain
+unresolved. The authored corpus includes the exact real question and two
+negative contrasts (44 items total). Canonical answer bytes, product source,
+threshold and unresolved-HITL stop policy are unchanged. New prompt semantics
+require new native observations; the previous 41-case PASS is historical only.
+
+Readback also exposed an input-retention defect: semantic observations stored
+only the request hash, then reconstructed instructions from current code.
+Changing the shared prompt invalidated read-only status of a historical successful
+Decisions run. New observations retain the full validated request before HTTP;
+readback binds its hash, packet projection, question contract, policy, EVAL and
+original dependency fingerprint without a model call. Native Judge readback can
+use the original full preview only when its capacity-chain filename/hash and
+every paid turn validate. New qualification still requires current instructions.
+Legacy semantic receipts without original request bytes remain explicitly
+unverifiable under changed instructions (`semantic_request_unavailable`); they
+are never backfilled, resampled or presented as newly verified. Their original
+terminal campaign/report is retained.
+
+Full engine gate at runtime commit 356a4e1: release passed; integration 2233 PASS,
+1 FAILED, and runtime-sensitive group was not reached. The single failure was
+the orphan fixture's direct confirmation under a transient unavailable OS birth
+probe. It bypassed the production bounded no-effect confirmation retry. Commit
+cc6e5a9 reuses the existing identity fixture helper for setup with the exact same
+record/lease and original 30-second uncertainty guard; it does not retry the
+test, alter runtime bytes or weaken ownership fences. Affected 70/70 PASS;
+typecheck/lint/build PASS. A complete gate rerun is in progress; no release/main
+promotion is claimed before its result and new semantic qualification.
+
 The fresh SPECIFY comparison stopped before any scored EVAL. Qualification
 `b6191a4826a0b5b1ea3083e8f4011a73957e80c38044f842336617de30ebcefb`
 returned `definition_qualification_mismatch` for `luna-cp190-exact`: native

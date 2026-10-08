@@ -6,12 +6,23 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import Ajv from "ajv/dist/2020.js";
-import { buildHitlPacket, validateHitlPacket, validateGroundedHitl, hitlMatchContract, interactionGroundedPrompt } from "../lib/hitl-contract.mjs";
+import { buildHitlPacket, validateHitlPacket, validateGroundedHitl, hitlMatchContract, interactionGroundedPrompt, interactionCoveragePrompt, canonicalExclusionRule, hitlCoverageContract } from "../lib/hitl-contract.mjs";
+import { jevInstructions } from "../lib/hitl-coverage.mjs";
 
 const responses = [{ id: "a", topic: "value", applicability: "value", answer: "Closed tasks may change priority. No colors." }, { id: "b", topic: "default", applicability: "default", answer: "Default is normal." }];
 const atom = (source_quote, classification = "covered_by_canonical_response", extra = {}) => ({ source_quote, decision: source_quote, classification, reference_bindings: [], answer_evidence: classification === "covered_by_canonical_response" ? [{ response_id: "a", answer_quote: "Closed tasks may change priority." }] : [], scope_evidence: [], rationale: "Exact supplied evidence", ...extra });
 const raw = atoms => ({ schema_id: hitlMatchContract, atoms });
 const packet = question => buildHitlPacket({ stage: "specify", question, responses });
+
+test("every semantic route shares background/replacement authority without erasing independent decisions", async () => {
+  const p = await buildHitlPacket({ stage: "specify", question: "Old behavior is read-only. Which priority rules?", responses, verdictContract: hitlCoverageContract });
+  for (const prompt of [interactionCoveragePrompt(p, "packet.json"), interactionGroundedPrompt("packet.json"), jevInstructions]) {
+    assert.ok(prompt.includes(canonicalExclusionRule));
+    assert.match(prompt, /do not invent a request to enforce the superseded background rule/);
+    assert.match(prompt, /independent question about notifications or edits to another field/);
+    assert.match(prompt, /independently accepted decision, without an explicit authorized revision, remains unresolved/);
+  }
+});
 
 test("shared Judge prompt structure preserves materiality/reference policy, not live semantic proof", async () => {
   const prompt = interactionGroundedPrompt("packet.json");
