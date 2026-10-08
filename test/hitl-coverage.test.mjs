@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm, writeFile, mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { buildHitlPacket, hitlCoverageContract, validateHitlCoverage, hitlCoverageInput, interactionCoveragePrompt } from "../lib/hitl-contract.mjs";
+import { buildHitlPacket, hitlCoverageContract, validateHitlCoverage, hitlCoverageInput, interactionCoveragePrompt, interactionGroundedPrompt, canonicalExclusionRule } from "../lib/hitl-contract.mjs";
+import { semanticQuestion } from "../lib/semantic-decisions.mjs";
 import { coverageTransport, jevPromptHash, validateCoveragePolicy, jevRequest, requestJev, observeJev, calibrateJev, verifyCoverageQualification } from "../lib/hitl-coverage.mjs";
 import { childEnvironment } from "../lib/process-json.mjs";
 import { writeJsonAtomic, hashJson, sha256 } from "../lib/runner-events.mjs";
@@ -20,6 +21,25 @@ import { resolveExecutionContract, profileSemanticHash } from "../lib/execution-
 const policy = { schema_id: "dd-eval/hitl-coverage-policy@1", mode: "shadow", requested_model: "typesafe/jev-1.13", resolved_model: "typesafe/jev-1.13-20260917", provider: "TypeSafe", projection_version: "dd-eval/hitl-coverage-input@1", prompt_sha256: jevPromptHash, transport_version: coverageTransport, max_uncovered_probability: null, qualification_sha256: null };
 const packet = (question = "May closed tasks change priority?") => buildHitlPacket({ stage: "specify", question, responses: [{ id: "canonical", topic: "priority", applicability: "specify", answer: "Yes. No extra indicators." }], verdictContract: hitlCoverageContract });
 const response = p => ({ id: "decision-1", model: policy.resolved_model, provider: policy.provider, answers: { uncovered: { type: "noul", noul: p } } });
+
+test("every Judge/decision route shares explicit refusal semantics without masking independent gaps", async () => {
+  const corpus = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/entry-pack-source/interactions/qualification-coverage.json", import.meta.url)));
+  const fixture = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/entry-pack-source/interactions/specify.json", import.meta.url)));
+  const item = corpus.items.find(item => item.id === "luna-cp190-exact");
+  const p = await buildHitlPacket({ stage: "specify", question: item.question, responses: fixture.responses, verdictContract: hitlCoverageContract });
+  for (const prompt of [interactionCoveragePrompt(p, "<packet>"), interactionGroundedPrompt("<packet>", "<checker>"), jevRequest(p, policy).questions.uncovered.instructions, semanticQuestion(p).questions[0].instructions]) {
+    assert.ok(prompt.includes(canonicalExclusionRule));
+    assert.match(prompt, /dependent parameters/);
+    assert.match(prompt, /refusal of list sorting alone would not settle it/);
+    assert.match(prompt, /Independent unanswered decisions and unidentified material references remain unresolved/);
+  }
+  assert.match(p.responses[0].answer, /не требование нового порядка задач или отдельного порядка UI-контрола/);
+  const covered = { schema_id: hitlCoverageContract, status: "covered", response_ids: [p.responses[0].id], uncovered_questions: [] };
+  assert.equal(compareCoverageExpectation(item, covered, { responses: p.responses }).passed, true);
+  assert.equal(compareCoverageExpectation(item, { ...covered, status: "uncovered", response_ids: [], uncovered_questions: ["Каков порядок уровней приоритета в фиксированной шкале?"] }, { responses: p.responses }).passed, false, "wrong historical verdict is not waived by the oracle");
+  const gap = corpus.items.find(item => item.id === "material-gap");
+  assert.equal(compareCoverageExpectation(gap, covered, { responses: p.responses }).passed, false);
+});
 
 test("compact contract validates exact shape and never projects partial IDs", async () => {
   const p = await packet();
