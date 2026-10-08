@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-202-specify-decision-comparison",
-    "sha256": "690d71e97b2ed16fb6fb3fe8be676859803adec8b85a147b6ad869a97245adc2"
+    "id": "cp-204-specify-decision-comparison",
+    "sha256": "d7281fbb4940b2bb4aac1fdf19c20ac56995f16cb931ed8eb8a30f755c8be0a8"
   },
   "entry_pack": null,
   "hitl_qualification": {

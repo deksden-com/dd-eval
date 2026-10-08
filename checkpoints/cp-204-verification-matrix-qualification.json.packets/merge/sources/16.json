@@ -1,0 +1,37 @@
+{
+  "id": "WRK-006-merge/RCP-003",
+  "local_id": "RCP-003",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-NEW",
+    "PRT-001-task-priority/CHK-P1-TEST",
+    "PRT-001-task-priority/CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "65772bfc819f86eeb5c0572c73d0f9c47bfe570b00a5f4ffcc74b9f88abec89b",
+  "verification_epoch": "f8ec61fd2658cbf082efbe12ac6e42c2fafb172d17d7980e51f29af3ba3474d8",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-204-matrix-fixture/dd-flow-protocolize-RRIBMx/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-204-matrix-fixture/dd-flow-protocolize-RRIBMx/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-204-matrix-fixture/dd-flow-protocolize-RRIBMx/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-204-matrix-fixture/dd-flow-protocolize-RRIBMx/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "9dfc96aec59b20993125c55561b791afbee3dd2d8df5ea588805bae4c24ccf86",
+  "before_fingerprint": "9dfc96aec59b20993125c55561b791afbee3dd2d8df5ea588805bae4c24ccf86",
+  "after_fingerprint": "9dfc96aec59b20993125c55561b791afbee3dd2d8df5ea588805bae4c24ccf86",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-08T09:48:20.725Z",
+  "finished_at": "2026-10-08T09:48:21.611Z"
+}

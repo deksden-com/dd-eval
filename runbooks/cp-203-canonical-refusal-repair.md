@@ -131,3 +131,54 @@ Final deterministic EVAL verification after the fixture corrections:
 740 tests, 730 PASS, 0 FAIL, 10 SKIP, 212420 ms; explicit engine source root
 was the maintenance-progress worktree. `git diff --check` and affected module
 syntax checks passed. The skipped live/opt-in tests are not acceptance evidence.
+
+## CP204 follow-up — ownership horizon and pre-model recovery
+
+The EVAL observer facade still capped confirmation/heartbeat requests at the
+5-second transport silence interval. It now passes the remaining 30-second
+ownership episode; the selected runtime alone applies its structured-progress
+silence policy. Shorter explicit caller budgets, failed/late acknowledgements,
+ownership fences and finite uncertainty horizons remain authoritative.
+Maintenance tests: 39/39 PASS.
+
+`runner definition reconcile --intent <native-intents/item.json>` is a separate
+control operation, not model replay. It accepts only the inspected Codex contract:
+exact retained packet/profile, Session-less sealed native tree, no prompt/capacity
+chain/verdict, and a create rejected at ownership admission. It verifies registry
+lease/registration/PID/group bindings, stops only the two exact owned resources
+using `runtime process stop`, observes terminal registry records and retired OS
+groups, and publishes a separately bound reconciliation sidecar. Old intents,
+daemon state, failed cleanup and native outcomes are not rewritten. Reassessment
+rechecks that proof before allowing the missing preparation to be sampled.
+Unknown native requests, live/replaced resources, changed packet/profile and
+foreign ownership remain blocked. `runtime process reconcile --owner` is NOT
+used: its owner argument claims all eligible expired records, not one old owner.
+Recovery and CLI checks: 40/40 PASS, with the exact two-resource suffix contract
+also rechecked against the retained live records.
+
+The CP203 `heldout-offline-client` preparation was reconciled at
+2026-10-08T09:45:55Z: daemon PID4553 and provider PID4656 are retired; their
+registry records are terminal. The original failed shutdown evidence remains.
+Its separate proof lives beside native intent `8deb96c3…`; this is no Judge PASS
+and authorizes no replacement of any of the 35 completed observations.
+
+The fresh CP204 engine is a development candidate from `abf9f55`, built against
+unchanged canon `b91f821` and packed/installed in fresh qualification directories.
+It does not replace CP202/CP203 bytes and is not a public npm release. Full-suite
+results, installed matrix proof, final definition qualification and launch IDs
+must be recorded when actually obtained.
+
+Installed CP204 matrix fixture passed and its four real Stage publications were
+independently qualified. Full engine checksum is
+`970da6f642ff67e030ca7cb855bf8d09889a6359f152460a30a019bdb82a2859`;
+checkpoint `cp-204-specify-decision-comparison` pins that exact candidate, with
+unchanged product baseline, flow pack and canon. Admission uses the documented
+pinned development override, not a claimed public release/accepted package.
+
+The first broader follow-up EVAL run exposed a subprocess boundary mismatch:
+monotonic remaining time is fractional, whereas `execFile` requires an integer
+timeout. The facade now rounds remaining budgets down (never extends ownership).
+The failed run was retained in `/tmp/dd-eval-075-full.log` and its owned test
+group was retired; it is not acceptance. Maintenance/baseline checks after this
+correction: 47/47 PASS. A fresh full run uses concurrency two without weakening
+assertions; the engine full suite continues separately.

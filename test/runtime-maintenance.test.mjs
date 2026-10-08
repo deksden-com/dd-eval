@@ -40,6 +40,23 @@ test("observer renews during a long await without overlapping physical requests"
   const stopped = count; await delay(10); assert.equal(count, stopped);
 });
 
+test("observer passes its remaining ownership horizon, not the transport silence window", async () => {
+  const calls = [];
+  const lease = observeRuntimeLease({ policy, async call(action, _identity, transport) {
+    calls.push([action, transport.timeoutMs]); return receipt;
+  } }, { id: "observer", lease_token: "secret" });
+  await lease.admission(); await lease.close();
+  assert.deepEqual(calls, [["heartbeat", 30000], ["check-admission", 30000]]);
+});
+
+test("fractional monotonic ownership budgets are rounded down at the subprocess boundary", async () => {
+  const durations = [];
+  const lease = observeRuntimeLease({ policy: { ...policy, renewalRemaining: () => 12345.75 }, async call(_action, _identity, transport) {
+    durations.push(transport.timeoutMs); return receipt;
+  } }, { id: "observer", lease_token: "secret" });
+  await lease.admission(); await lease.close(); assert.deepEqual(durations, [12345, 12345]);
+});
+
 test("background ownership failure reaches its owner exactly once and closing stops callbacks", async () => {
   let notify;
   const failed = new Promise(resolve => { notify = resolve; }); let calls = 0;
@@ -187,7 +204,7 @@ for (const [action, phase, options] of [
     });
     assert.deepEqual(await client.call(action, options), { ok: true, process: { id: options.id } });
     assert.equal(calls.length, 2);
-    for (const call of calls) { assert.equal(call.observed, action); assert.equal(call.actual, options); assert.equal(call.transport.timeoutMs, 5000); }
+    for (const call of calls) { assert.equal(call.observed, action); assert.equal(call.actual, options); assert.ok(Number.isInteger(call.transport.timeoutMs)); assert.ok(call.transport.timeoutMs > 5000 && call.transport.timeoutMs <= 30000); }
   });
 
   for (const retried of [false, true]) for (const elapsed of [29999, 30000, 30001]) test(`${action} ${retried ? "retried" : "first"} ACK at ${elapsed} cannot reopen its ownership episode`, async t => {
