@@ -1,9 +1,10 @@
 # 078 — Operation progress and native creation reconciliation
 
-Status: implemented; deterministic verification and review completed. Live acceptance remains a separate milestone. 2026-10-08.
+Status: implemented; follow-up review fixes verified by affected regressions. Full offline/release and live acceptance remain separate milestones. 2026-10-09.
 
-Readiness review: design decisions below are binding; implementation and live
-acceptance remain unchecked. No open user-facing policy choice is required.
+Readiness review: design decisions below are binding; the original implementation
+receipt below is historical, not evidence that the follow-up review found no
+defects. No open user-facing policy choice is required.
 
 ## Goal and boundaries
 
@@ -351,3 +352,68 @@ under host load; isolated rerun passed. This is not counted as live acceptance.
 Release/checkpoint preparation and paid parallel comparison are deliberately
 not claimed: the corrected engine must pass normal release admission before a
 new scored checkpoint is pinned. Historical CP-209/210 artifacts are untouched.
+
+## Follow-up implementation review — 2026-10-09
+
+Three reviewers audited engine receipts/observation, native adapters/outer
+launchers and EVAL separately; the coordinator reread their diffs and requested
+additional regressions. The earlier implementation receipt did not establish
+that all edge cases were correct. Substantial defects found and fixed:
+
+- Cancellation during retained-reply I/O could return late success. Check
+  cancellation after asynchronous authority reads and before returning ready.
+- Transport/outer-to-recovery handoff could grant a fresh silence/uncertainty
+  window. Reuse the same outer clock or its retained snapshot, keep sequence
+  high-water, and require genuinely newer event time to reopen exhausted silence.
+  An exact late ready outcome is still read first; no native request is resent.
+- EVAL could count decreasing/replayed progress, freeze a foreign incarnation on
+  its first read, or downgrade failed recovery to historical readiness in catch
+  cleanup. Persist frozen binding/clock/high-water and use the same selected
+  native authority in every reconciliation path. Include exported session.resume.
+- A progress write failure after retained native success lost effect/Session
+  attribution. Keep typed original-operation/native-result evidence; auxiliary
+  progress never replaces the outcome authority.
+- Work/MERGE creation recovery never retried remaining bookkeeping. The shared
+  outer launcher invokes the existing original-ID settlement route once, without
+  replaying creation; preserve any enclosing physical-observation budget.
+- Standalone settlement read process-local generation zero instead of the
+  persisted fence and could ignore shutdown. Validate persisted generation,
+  daemon incarnation/owner and shutdown; pending outcomes check authority before
+  invoking settlement. Missing durable outcome also fails closed for ownerless
+  modern productive calls.
+- Deferred Codex/ACP publication or activity failures could poison a successor.
+  Attribute rejection to the still-current original request/Turn only.
+- AGY terminal and Droid lifecycle/tool snapshots could replay progress. Dedup
+  within the active generation; include both message and Turn identity. Droid's
+  bounded recent history is not a lifetime activity quota: new events beyond
+  1,024 entries still advance. Events outside that retained history are not
+  claimed as indefinitely provable replays; native sequence IDs are the upgrade
+  path if that operational ceiling matters.
+- FIFO/oversized progress input could block or allocate before validation. Open
+  nonblocking, require a regular file and cap progress reads at 16KiB plus one.
+  Drain in-flight socket polling before returning; no receipt writes after exit.
+- Minimal historical unowned/unhashed receipts with an operation name wrongly
+  required modern settlement. Preserve their read-only compatibility; owned,
+  generation-bound or digested modern records still require settlement.
+
+Regression quality was also corrected: real socket actions are joined before
+fixture cleanup; fake-clock tests synchronize I/O rather than measure scheduler
+speed; positive CR framing uses the ordinary subprocess watchdog; framework
+cleanup hooks use the existing 120-second test envelope. Production silence
+windows were not increased. No new dependency or second state store was added.
+
+Affected review checks: current core socket fixture 16/16 PASS, durable daemon
+fixture 17/17 PASS, native RPC 10/10 PASS, EVAL operation/daemon 19/19 PASS,
+historical HITL recovery 2/2 PASS, required-env native-child proof 1/1 PASS and
+CR framing 1/1 PASS. Static typecheck, strict-canon build, lint and diff checks
+were run separately. Counts describe these regression runs, not full acceptance.
+The first broad runs began before the final review tree froze: engine tests
+overlapped dist rebuilding and were stopped; EVAL lacked required paired-runtime
+environment and also reported operator-fixture failures under host load. These
+attempts are not a green complete-suite receipt. Full frozen offline admission,
+immutable release/checkpoint and authorized live comparison remain unchecked.
+
+Integrate via PR with history-preserving merges: this branch also contains the
+preceding maintenance/finalization repairs and qualified comparison provenance.
+Preserving their commits is operationally useful; main integration must not be
+reported as a new published or accepted engine. Historical EVALs stay unchanged.
