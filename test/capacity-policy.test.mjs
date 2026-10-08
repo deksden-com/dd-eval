@@ -79,6 +79,7 @@ test('productive native and capacity imports reject unhashed symlink assets whil
   await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum } }));
   await symlink('engines/selected/dist/harness-runtime', path.join(root, 'harness-runtime'));
   assert.equal((await loadNativeContracts(root)).engine_artifact_sha256, checksum);
+  await assert.rejects(loadNativeContracts(root, { requireProgress: true }), { code: 'native_contract_unsupported' });
   assert.equal((await loadCapacityPolicy(root)).engine_artifact_sha256, checksum);
   const external = path.join(root, 'foreign.mjs');
   await writeFile(external, "globalThis.__review061_foreign_import = true; " + children);

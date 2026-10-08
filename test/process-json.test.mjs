@@ -3,9 +3,23 @@ import { chmod, mkdir, mkdtemp, rm, writeFile, readFile } from "node:fs/promises
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { commandJson, commandText } from "../lib/process-json.mjs";
+import { commandJson, commandText, reportedFailure } from "../lib/process-json.mjs";
 import { callDriver } from "../lib/runner.mjs";
 import { errorRecord } from "../lib/operation-errors.mjs";
+
+test("operation diagnostics cannot hide a pretty typed native failure", () => {
+  const record = { code: "native_rejected", message: "primary", retryable: false, details: { session_id: "retained" } };
+  const output = [JSON.stringify({ kind: "operation_progress", sequence: 1 }), JSON.stringify({ ok: false, error: record }, null, 2), JSON.stringify({ kind: "operation_wait", state: "provider_capacity" })].join("\n");
+  assert.deepEqual(errorRecord(reportedFailure("", output, "fallback")), record);
+});
+
+test("unvalidated operation diagnostics do not renew CLI silence", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-forged-progress-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const executable = path.join(root, "forged.mjs");
+  await writeFile(executable, "let sequence=0;setInterval(()=>console.error(JSON.stringify({kind:'operation_progress',sequence:++sequence})),10);");
+  await assert.rejects(commandJson(executable, [], { timeoutMs: 150 }), { code: "operation_observation_lost" });
+});
 
 test("driver retains JSONL and successful-exit typed error envelopes including false retryable and cleanup", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-driver-error-")); t.after(() => rm(root, { recursive: true, force: true }));
