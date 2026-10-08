@@ -296,3 +296,23 @@ do not overwrite its verdict or loosen confidence to turn it into PASS.
 The original multi-variant campaign remains blocked as designed. The third
 authorized Decisions sample may use a fresh single-variant campaign after this
 settlement; this does not make the original campaign a completed comparison.
+
+Decisions sample `EVAL-20261008111007-58a56d99` uses fresh campaign
+`~/.dd-eval/qualification/cp-205-specify-decisions`, after authoritative JEV
+status proved settled cleanup, zero active processes and zero provider turns.
+Its own baseline passed all five checks and timeline attached running SPECIFY
+at 2026-10-08T11:14:07.940Z. Native inputs/models/checkpoint match the original
+matrix; no previous scored EVAL was resumed/replayed. All three intended
+variants have now started, but only Judge-only has a successful completed sample.
+
+Remaining semantic finding needs a separately verified policy fix, not automatic
+replacement of the native verdict: distinguish existing product behavior and
+the Subject's preliminary assertions from accepted feature requirements; apply
+explicit canonical exceptions only within their declared scope. Preserve genuine
+independent questions and contradictory accepted answers. Add the exact retained
+JEV question as a positive regression plus a negative case with a genuinely
+unanswered independent archive rule before changing shared Judge/decision
+instructions. A shared prompt change requires new native qualification; the
+current 41-case PASS cannot certify different prompt bytes. This correction is
+not implemented or claimed accepted here; the active Decisions sample remains
+on its frozen admitted inputs. Full engine gate is still running, not PASS.
