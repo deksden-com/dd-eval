@@ -1,5 +1,39 @@
 # CP-203 canonical refusal semantics
 
+## CP206 live verification and recycled privileged PID
+
+The reentered comparison submitted Judge-only
+`EVAL-20261008124957-46a74fd1` and JEV
+`EVAL-20261008130116-e0938858`. Both finished with settled cleanup, matched
+conformance and confirmed SPECIFY completion. Stage durations were 526744 ms
+and 535260 ms; HITL pauses were 56325 ms and 46999 ms respectively. JEV returned
+covered with confidence 0.66 in 6056 ms; threshold 0.93 correctly selected native
+Judge fallback, which returned covered. The original semantic request is retained
+with its hash; canonical bytes and historical verdicts were not changed.
+
+The third submission stopped in `assertHitlQualification`, before `executeEval`
+creates any scored manifest or native Subject. Its isolated home has no `runs`
+directory. The comparison conservatively retained the launch intent without an
+ACK and stopped rather than blindly replaying an uncertain submission.
+
+Retained qualification cleanup was clean/settled at 11:37:52Z, but its daemon
+PID 40196 had become UID 0 `/usr/sbin/spindump`, born at 13:11:57Z. The shared
+retirement check threw on `kill(pid, 0)` EPERM before checking birth identity.
+EPERM says only that signalling this PID is denied, not that it is the old
+daemon. The common helper now proceeds to the existing read-only birth probe
+for EPERM, preserving the same one-second ambiguity guard. A missing/corrupt
+stop time, unavailable birth probe, live old incarnation or other signal error
+still blocks; no process is signalled or historical lifecycle receipt rewritten.
+All callers (Judge cleanup/publication, driver replacement, cancellation and
+qualification preparation) use the same corrected helper.
+
+Regression: 9/9 PASS, no skips/failures, covering Judge cleanup, qualification
+intent/recovery and recovery safety. The exact retained qualification verdict
+now passes read-only cleanup verification with its original settled timestamp.
+The third authorized variant needs a fresh single-variant campaign only after
+this proven pre-EVAL rejection; the original incomplete campaign remains
+unchanged. Full engine testing is still running, not claimed passed.
+
 ## CP205 follow-up: semantic background and retained requests
 
 All three requested SPECIFY variants were submitted. Judge-only
