@@ -222,3 +222,9 @@ and independently verified four Stage matrix publications. Its source commit is
 engine checksum `276d34874bc8c7d92908822307cb0b08a2ade14ec062a644cd223b17fb6f10dd`.
 It remains an explicit development candidate, not a public release or aggregate
 release acceptance. CP204 and earlier artifacts/checkpoints are retained.
+
+Corrected full EVAL invocation: 745 tests, 735 PASS, 0 FAIL, 10 SKIP,
+732937 ms (`/tmp/dd-eval-075-serial-full.log`). The extra admission recovery
+case was separately rerun with the heartbeat case: 2/2 PASS. Typecheck, lint,
+build, installed matrix and module syntax checks also passed. The case now pins
+CP205; qualification continues only the six genuinely missing native samples.
