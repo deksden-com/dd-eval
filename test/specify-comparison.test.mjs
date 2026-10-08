@@ -59,6 +59,18 @@ test("lost acknowledgment reconciles only one bound manifest without duplicate s
   await runSpecifyComparison(f.options); assert.deepEqual(f.launches, [0, 1]);
 });
 
+test("reobserved campaign clears a historical blocker while polling retained IDs", async t => {
+  const f = await fixture(t);
+  f.options.status = async () => { throw new Error("temporary observation failure"); };
+  await assert.rejects(runSpecifyComparison(f.options), /temporary observation failure/);
+  f.options.status = async () => {
+    const receipt = JSON.parse(await readFile(path.join(f.options.campaignDir, "receipt.json")));
+    assert.equal(receipt.state, "running"); assert.equal(receipt.error, undefined);
+    return finished();
+  };
+  await runSpecifyComparison(f.options); assert.deepEqual(f.launches, [0, 1]);
+});
+
 test("unknown launch with zero manifests is fail closed on restart", async t => {
   const f = await fixture(t);
   f.options.run = async () => { throw new Error("unknown"); };

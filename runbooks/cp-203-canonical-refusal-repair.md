@@ -261,3 +261,15 @@ active-lease checks, while still checking every record's scope/kind. Orphaned,
 foreign, productive and expired active records remain blockers. Regression:
 50/50 PASS (`/tmp/dd-eval-075-startup-terminal-regression.log`). Comparison is
 reobserved using the same campaign/acknowledged EVAL; no Subject replay.
+
+Judge-only `EVAL-20261008104125-bf6dc922` finished at 10:55:09Z with
+settled cleanup, matched conformance and confirmed SPECIFY completion.
+Stage interval: 529256 ms; HITL pause: 55121 ms. One native Judge returned
+covered and delivered the canonical package. This is SPECIFY completion, not
+full E2E/product acceptance. JEV `EVAL-20261008105513-e8042302` was submitted
+only after that settlement; Decisions remains sequentially queued.
+
+Reentering a campaign now marks the active orchestration as running and clears
+its previous blocker, rather than displaying an obsolete error during healthy
+observation. It still reuses retained IDs and restores blocked on a new failure.
+Comparison regressions: 51/51 PASS, zero skips/failures, 16509 ms.
