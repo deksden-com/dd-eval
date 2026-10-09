@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateFlowContour, validateStageBlueprint, validateStageContext, writeEntryPack } from "../lib/entry-pack.mjs";
-import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint } from "../lib/runner.mjs";
+import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice } from "../lib/runner.mjs";
 
 test("recovery materializes each reopened stage attempt once", () => {
   assert.equal(needsAttemptContext({ attempt: "try-001" }, {}), false);
@@ -89,6 +89,9 @@ test("explicit memory contour materializes contained sources and preserves seman
   assert.throws(() => validateStageBlueprint(source), /unsupported stages/);
   const blueprint = validateStageBlueprint(source, memoryContour);
   const rendered = await materializeStageSlice({ blueprint, stage: "preflight", roots: { project: root }, output: path.join(root, "context.json"), flowContour: memoryContour });
+  const runnerSlice = await materializeCaseStageSlice({ blueprint, stage: "preflight", roots: { project: root }, output: path.join(root, "runner-context.json") }, { value: { flow: { contour: memoryContour } } });
+  assert.equal(runnerSlice.semantic_package_sha256, rendered.semantic_package_sha256);
+  await assert.rejects(materializeCaseStageSlice({ blueprint, stage: "preflight", roots: { project: root }, output: path.join(root, "foreign-context.json") }, {}), /unsupported stage context/);
   assert.equal(rendered.semantic_package_sha256, semanticContextHash(context, memoryContour));
   assert.equal(JSON.parse(await readFile(rendered.path, "utf8")).sources[0].path, path.join(root, "README.md"));
 });
