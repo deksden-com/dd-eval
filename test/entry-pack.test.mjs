@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateFlowContour, validateStageBlueprint, validateStageContext, writeEntryPack } from "../lib/entry-pack.mjs";
-import { createHarnessPermits, needsAttemptContext, selectedEntries } from "../lib/runner.mjs";
+import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack } from "../lib/runner.mjs";
 
 test("recovery materializes each reopened stage attempt once", () => {
   assert.equal(needsAttemptContext({ attempt: "try-001" }, {}), false);
@@ -19,6 +19,18 @@ const slice = {
   task_input: [{ role: "task", path: "input.md", source: "task.md", sha256: "a".repeat(64) }], sources: [{ role: "index", root: "project", path: "README.md", required: true, reason: "Orientation." }], accepted_decisions: [], dynamic_roles: []
 };
 const memoryContour = ["preflight", "discover", "compose", "verify", "review", "finish"];
+
+test("entry-pack validation binds the complete ordered case contour and terminal", () => {
+  const flow = { contour: memoryContour, terminal_stage: "finish" };
+  const pack = { schema_id: "dd-eval/entry-pack@1", case_id: "fixture", revision: "REV-001", stage_context: "stage-context.json", flow,
+    entries: Object.fromEntries(memoryContour.map(stage => [stage, `${stage}.json`])) };
+  assert.equal(validateEntryPack(pack, "fixture", flow), pack);
+  assert.throws(() => validateEntryPack(pack, "fixture"), /invalid flow contour/);
+  for (const foreign of [{ ...flow, contour: [...memoryContour].reverse() }, { ...flow, terminal_stage: "review" }])
+    assert.throws(() => validateEntryPack(pack, "fixture", foreign), error => error.code === "entry_pack_flow_mismatch");
+  assert.throws(() => validateEntryPack({ ...pack, entries: {} }, "fixture", flow), /misses focused/);
+  assert.throws(() => validateEntryPack({ ...pack, flow: { ...flow, contour: ["review", "review"] } }, "fixture", flow), /unique bounded/);
+});
 
 test("runner selection uses the selected contour without widening historical SDLC", () => {
   const profile = { selection: { focused_stages: ["compose"], segment: { from: "discover", to: "review" }, e2e: true, repetitions: 2 } };
