@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, readFile, mkdir, writeFile } from 'node:fs/promises';
+import { appendFile, cp, mkdtemp, open, readdir, rm, readFile, mkdir, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
@@ -11,6 +11,10 @@ import { commandJson } from '../lib/process-json.mjs';
 import { pathToFileURL } from 'node:url';
 import { ObservationClock } from '../lib/observation-clock.mjs';
 import { callDriver } from '../lib/runner.mjs';
+import { loadNativeContracts } from '../lib/capacity-policy.mjs';
+import { engineArtifactDigest } from '../lib/engine-admission.mjs';
+import { isObservationLoss } from '../lib/operation-errors.mjs';
+import { operationContext } from '../lib/operation-context.mjs';
 
 async function fixture(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-operation-progress-'));
@@ -202,9 +206,80 @@ import {appendFile} from 'node:fs/promises';await appendFile(${JSON.stringify(ca
 await writeJsonAtomic(${JSON.stringify(path.join(directory, 'result.json'))},{state:'completed',result:{provider_session_id:'native',resumed:true}});
 await writeJsonAtomic(${JSON.stringify(path.join(directory, 'settlement.json'))},{state:'settled'});console.log('lost reply');`);
   assert.deepEqual(await callDriver({ harness: 'droid-cli' }, ['session', 'resume', '--session-id', 'native', '--state-dir', root], {
-    cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: id
+    cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: id,
+    nativeContracts: { canonicalNativeOperation: (_h, operation) => operation, nativeOperationWait: () => 'control' }
   }), { provider_session_id: 'native', resumed: true });
   assert.equal(await readFile(calls, 'utf8'), `${id}\n`);
+});
+
+test('selected canonical operations keep Grok reads observational and Codex/ZCode resumes durable', {
+  skip: !process.env.DD_FLOW_SOURCE_ROOT && 'set DD_FLOW_SOURCE_ROOT for selected runtime proof', timeout: 120000
+}, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-native-alias-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const engine = path.join(root, 'engines/selected'), runtime = path.join(engine, 'dist/harness-runtime');
+  await cp(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'dist/harness-runtime'), runtime, { recursive: true });
+  await symlink('engines/selected/dist/harness-runtime', path.join(root, 'harness-runtime'));
+  const calls = path.join(root, 'calls.jsonl');
+  for (const [harness, binary] of [['grok-acp', 'dd-grok.mjs'], ['codex-desktop', 'dd-codex.mjs'], ['zcode-acp', 'dd-zcode.mjs']]) {
+    await writeFile(path.join(runtime, 'bin', binary), `
+import {appendFile,mkdir,writeFile} from 'node:fs/promises';import {createHash} from 'node:crypto';import path from 'node:path';
+const args=process.argv.slice(2),id=process.env.DD_EVAL_OPERATION_ID,operation=args.slice(0,2).join('.');
+await appendFile(${JSON.stringify(calls)},JSON.stringify({harness:${JSON.stringify(harness)},id,operation})+'\\n');
+if(${JSON.stringify(harness)}==='grok-acp'&&['session.resume','session.inspect'].includes(operation))console.log('invalid native reply');
+else if(operation==='session.resume'){
+const state=args[args.indexOf('--state-dir')+1],directory=path.join(state,'operations',createHash('sha256').update(id).digest('hex'));
+await mkdir(directory,{recursive:true});
+const requested={operation_id:id,daemon_id:'daemon',operation,params_sha256:createHash('sha256').update(JSON.stringify({operation,params:{argv:args}})).digest('hex'),owner_id:null,generation:null,requested_at:new Date().toISOString()};
+await writeFile(path.join(directory,'requested.json'),JSON.stringify(requested));
+await writeFile(path.join(directory,'settlement.json'),JSON.stringify({state:'not_required'}));
+await writeFile(path.join(directory,'result.json'),JSON.stringify({state:'completed',result:{provider_session_id:'native',resumed:true}}));
+console.log('lost original reply');
+}else console.log(JSON.stringify({provider_session_id:'native'}));
+`);
+  }
+  await writeJsonAtomic(path.join(engine, 'engine.json'), { integrity: { checksum: await engineArtifactDigest(engine) } });
+  const nativeContracts = await loadNativeContracts(root, { requireProgress: true });
+  const grokState = path.join(root, 'grok');
+  for (const command of ['resume', 'inspect']) {
+    // A read must bypass both productive admission and execution-policy gates.
+    const error = await operationContext.run({ executionId: 'stopped', operationId: 'test:launch', eventsFile: path.join(root, 'absent/events.jsonl') }, async () => {
+      try {
+        await callDriver({ harness: 'grok-acp', permission: 'deny' }, ['session', command, '--session-id', 'native', '--state-dir', grokState], {
+          cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: `grok-${command}`, nativeContracts
+        });
+      } catch (error) { return error; }
+    });
+    assert.equal(error?.code, 'harness_adapter_invalid');
+    assert.equal(isObservationLoss(error), true, 'transport loss cannot authorize provider cancellation');
+    assert.equal(nativeContracts.isObservationLoss(error), true);
+    await assert.rejects(readFile(path.join(grokState, 'client-operations', `${createHash('sha256').update(`grok-${command}`).digest('hex')}.json`)), { code: 'ENOENT' });
+  }
+  assert.deepEqual(await callDriver({ harness: 'grok-acp' }, ['session', 'prompt', '--session-id', 'native', '--state-dir', grokState], {
+    cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: 'next-prompt', nativeContracts
+  }), { provider_session_id: 'native' });
+  assert.equal((await readdir(path.join(grokState, 'client-operations'))).length, 1, 'reads leave no poisoned ledger for subsequent work');
+  for (const harness of ['codex-desktop', 'zcode-acp']) {
+    const state = path.join(root, harness), id = `${harness}-resume`;
+    await writeJsonAtomic(path.join(state, 'daemon.json'), { daemon_id: 'daemon' });
+    assert.deepEqual(await callDriver({ harness }, ['session', 'resume', '--session-id', 'native', '--state-dir', state], {
+      cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: id, nativeContracts
+    }), { provider_session_id: 'native', resumed: true });
+    const client = JSON.parse(await readFile(path.join(state, 'client-operations', `${createHash('sha256').update(id).digest('hex')}.json`)));
+    assert.equal(client.state, 'completed');
+    assert.deepEqual(client.command, ['session', 'resume']);
+  }
+  const records = (await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse);
+  assert.equal(records.filter(item => item.operation === 'session.prompt').length, 1);
+  assert.equal(records.length, 5, 'resume recovery must not replay a native call');
+});
+
+test('invalid canonical operation fails before dispatch', async t => {
+  const { root } = await fixture(t);
+  await assert.rejects(callDriver({ harness: 'grok-acp' }, ['session', 'resume'], {
+    cwd: root, env: { DD_FLOW_CONFIG_HOME: root },
+    nativeContracts: { canonicalNativeOperation: () => null }
+  }), { code: 'native_contract_unsupported' });
 });
 
 test('ledger reconciliation cannot import a result from another caller incarnation', async t => {
@@ -238,6 +313,41 @@ test('foreign and future progress fail closed instead of granting time', async t
     await writeJsonAtomic(path.join(directory, 'progress.json'), { ...progress, ...change });
     await assert.rejects(inspectDaemonOperation(root, id), { code: 'operation_progress_invalid' });
   }
+  for (const value of [null, [], false, 0, 'text']) {
+    await writeJsonAtomic(path.join(directory, 'progress.json'), value);
+    await assert.rejects(inspectDaemonOperation(root, id), { code: 'operation_progress_invalid' });
+  }
+  for (const bytes of ['{', 'x'.repeat(16 * 1024 + 1)]) {
+    await writeFile(path.join(directory, 'progress.json'), bytes);
+    await assert.rejects(inspectDaemonOperation(root, id), { code: 'operation_progress_invalid' });
+  }
+});
+
+test('operation progress growth between stat and read remains bounded', async t => {
+  const { root, id, directory, requested } = await fixture(t);
+  const file = path.join(directory, 'progress.json');
+  await writeJsonAtomic(file, { ...requested, schema_id: 'dd-flow/operation-progress@1', sequence: 1, phase: 'native_progress', observed_at: new Date().toISOString() });
+  const probe = await open(file, 'r'), prototype = Object.getPrototypeOf(probe);
+  const identity = await probe.stat();
+  await probe.close();
+  const originalStat = prototype.stat, originalReadFile = prototype.readFile;
+  let progressFd, grown = false;
+  const statMock = t.mock.method(prototype, 'stat', async function (...args) {
+    const info = await originalStat.apply(this, args);
+    if (info.dev === identity.dev && info.ino === identity.ino && !grown) {
+      grown = true; progressFd = this.fd;
+      await appendFile(file, Buffer.alloc(16 * 1024 + 1));
+    }
+    return info;
+  });
+  const readMock = t.mock.method(prototype, 'readFile', function (...args) {
+    assert.notEqual(this.fd, progressFd, 'operation progress must use a bounded read, not readFile');
+    return originalReadFile.apply(this, args);
+  });
+  try {
+    await assert.rejects(inspectDaemonOperation(root, id), { code: 'operation_progress_invalid' });
+    assert.equal(grown, true);
+  } finally { statMock.mock.restore(); readMock.mock.restore(); }
 });
 
 test('recovery restart cannot treat decreasing durable sequence as fresh progress', async t => {

@@ -431,3 +431,99 @@ Integrate via PR with history-preserving merges: this branch also contains the
 preceding maintenance/finalization repairs and qualified comparison provenance.
 Preserving their commits is operationally useful; main integration must not be
 reported as a new published or accepted engine. Historical EVALs stay unchanged.
+
+### Final cross-layer review findings
+
+The frozen engine run at `3e1c245cf4140a4e9d00629e607c342018dffa96`
+completed without interruption: release Vitest 8/8 PASS; integration 2,269/2,272
+PASS (132 files, two failing fixture files). All seven-stage harness cycles,
+overload continuation and capture/shutdown/unclean finalization scenarios passed.
+The three failures were incomplete fake resume receipts and fake ZCode pending
+requests lacking their mandatory publication callback. Fix the fixtures rather
+than weakening productive receipt or observer-failure requirements. The chained
+runtime-sensitive suite did not run after integration failed; it is not a PASS.
+
+Additional confirmed defects require these minimal shared corrections:
+
+- Grok's `session.resume` is an observational `session.inspect` alias, but upper
+  engine/EVAL callers classified the raw spelling as productive. This could
+  create an unrecoverable client-ledger entry, seek a nonexistent durable native
+  resume receipt or reject harmless retained inspection after terminal state.
+  Export canonical operation semantics from the existing native wait contract
+  and use it before every affected admission, observation and recovery predicate.
+  Preserve raw argv/provenance; other harnesses retain materializing resume.
+- Invalid native control output could remain `flow_reconciliation_failed` when
+  no productive ledger existed, incorrectly permitting provider-failure cleanup.
+  Classify malformed output consistently inside `callDriver`, including ordinary
+  inspection and Grok's alias; preserve actual typed provider errors.
+- EVAL's progress reader used an unbounded `readFile` after its size check;
+  concurrent file growth could allocate above the limit. Both readers also
+  mishandled valid JSON primitives/null instead of reporting corrupt progress.
+  Bound the actual read to 16KiB plus one and require an object. Missing files
+  remain absent; malformed records never become heartbeat/liveness evidence.
+- Controller crash recovery could accept a modern settled Session receipt after
+  daemon replacement or a newer native fence. Apply the existing retained native
+  authority helper before recovered productive receipts become actionable,
+  including `receipt_observed`. Bind original method/owner/native generation,
+  preserve native outcome and reject changed authority without replay. Native
+  generation is not RUN/controller generation. Lifecycle start/stop evidence and
+  immutable completed ACK replay keep their separate existing caller contracts;
+  legacy unowned minimal fixtures must not downgrade a modern missing journal.
+- A subsequent independent review found the same downgrade if both native files
+  disappeared. Determine modern custody from the existing frozen managed-daemon
+  registration as well, not file absence. No new marker ledger is needed.
+- Scope Session-load recovery used a cached `settled:true` result without its
+  original-operation settlement/fence. Check shared retained readiness before
+  marking a materializing load prepared, including cached replay; keep pending
+  load evidence and never reissue resume. Grok observational loads retain their
+  live replacement/Session checks. Update incomplete modern scope fixtures.
+
+Fresh Session inspection may legitimately release the original budget without
+rewriting its settlement file. Its release proof must identify the original
+operation (`source: inspection`, matching `operation_ids`) and pass the same
+current authority guard; a generic `settled` cannot upgrade pending bookkeeping.
+Retained ordinary `inspect/status` intents use the same guarded reobservation
+path as Grok's alias. Preserve the first authority error rather than polling it
+away as a generic inspection failure.
+Controller recovery also consumed only hook `primary_error`, ignoring ordinary
+terminal native `error` in a failed/interrupted original receipt. Prefer hook
+primary evidence when present, otherwise retain the typed terminal error after
+the existing original-ID/method/Session checks. A crashed observer must not turn
+a known provider failure into an outcome-unknown blocker or replay native work.
+
+These findings add regressions at native/outer, controller/scope/control and
+paired EVAL boundaries; no dependency, replacement ledger or transport framework.
+During the frozen broad run the canon checkout advanced only engineering progress
+metadata (`6431cdf` to `53c1d25`), with no `dd-flow`, `mbb` or `VERSION` change.
+This is not an immutable full release acceptance receipt. Final source checks,
+PR integration and subsequent release/live qualification remain distinct.
+
+### Final fixture-contract audit
+
+The final affected engine run at `84b985c1bbe98eb57c301169459ce298357bae18`
+passes 261/261 in 12 files. Two new fixture assertions initially overlooked the
+outer error wrapper and Grok's pre-retirement inspection; correct their exact
+expectations, not production. A later scope fixture failure was a pre-receipt
+startup crash caused by a separate one-second provider-PID polling limit.
+Replace that file-polling shortcut with an explicit stdlib IPC readiness event,
+bounded by the existing adapter observation budget, and distinguish a real
+fixture startup failure from its deliberate post-journal lost ACK.
+
+The complete runtime-sensitive run then drained normally: control-worker
+26/26 PASS; native contracts 16/20 PASS. Its four failed outer cases exposed
+three incomplete positive socket mocks (`adapter-progress`, `agy-adapter`,
+`zcode-adapter`) and an outdated Droid cancellation expectation. The positive
+mocks must persist modern original-operation outcome/settlement with the
+existing `durableDaemonDispatch` and join asynchronous server work before
+cleanup. A bare productive socket ACK is deliberately insufficient authority.
+The Droid held prompt must attach its rejection assertion before cancellation:
+the newer durable fence correctly rejects that old observer with
+`operation_cancelled`, even if its native outcome is retained. New work still
+loads the same native Session once. Do not remove the fence or swallow a genuine
+unhandled rejection.
+
+The sibling audit covered all fixture `net.createServer`, daemon-response and
+socket sites. Other bare replies were control/lifecycle calls or intentional
+negative observation-loss cases; no additional positive productive mock was
+found. These are test-contract repairs, not a new production timeout or a
+compatibility bypass. Failed attempts remain diagnostic evidence, not PASS.
