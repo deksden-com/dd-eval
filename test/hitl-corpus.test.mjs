@@ -11,6 +11,17 @@ const corpus = JSON.parse(await readFile(new URL('entry-pack-source/interactions
 const covered = 'covered_by_canonical_response';
 const { responses } = JSON.parse(await readFile(new URL('entry-pack-source/interactions/specify.json', caseRoot)));
 const options = { responses, coverageRequired: true };
+test('canonical state headings cannot identify an unresolved approved-state reference', async () => {
+  const coverage = JSON.parse(await readFile(new URL('entry-pack-source/interactions/qualification-coverage.json', caseRoot)));
+  const item = coverage.items.find(item => item.id === 'heldout-indicators-refusal');
+  assert.equal(item.coverage_expectation.status, 'ambiguous');
+  assert.deepEqual(item.coverage_expectation.remaining_decisions.map(value => value.id), ['state-reference']);
+  assert.ok(responses[0].answer.includes('Минимальное состояние open/closed'));
+  const wrong = { schema_id: hitlCoverageContract, status: 'covered', response_ids: [responses[0].id], uncovered_questions: [] };
+  assert.equal(compareCoverageExpectation(item, wrong, { responses }).passed, false);
+  const unresolved = { ...wrong, status: 'ambiguous', response_ids: [], uncovered_questions: ['Какое именно минимальное состояние было утверждено?'] };
+  assert.equal(compareCoverageExpectation(item, unresolved, { responses, review: { complete: true, covered_remaining_ids: ['state-reference'] } }).passed, true);
+});
 test('CP201 creation-state question remains a genuine gap in the frozen old canon', async () => {
   const historical = JSON.parse(await readFile(new URL('./fixtures/hitl-cp201-task-create-state.json', import.meta.url)));
   assert.equal(createHash('sha256').update(historical.responses[0].answer).digest('hex'), historical.canonical_answer_sha256);

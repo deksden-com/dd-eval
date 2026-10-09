@@ -33,6 +33,8 @@ test("every Judge/decision route shares explicit refusal semantics without maski
     assert.match(prompt, /refusal of list sorting alone would not settle it/);
     assert.match(prompt, /Independent unanswered decisions and unidentified material references remain unresolved/);
     assert.match(prompt, /missing implementation details do not make an identifiable decision ambiguous/);
+    assert.match(prompt, /before reading canonical responses as possible answers/);
+    assert.match(prompt, /A refusal of one alternative does not identify an unresolved material reference in the other/);
   }
   assert.match(p.responses[0].answer, /не требование нового порядка задач или отдельного порядка UI-контрола/);
   const covered = { schema_id: hitlCoverageContract, status: "covered", response_ids: [p.responses[0].id], uncovered_questions: [] };
