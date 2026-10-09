@@ -65,6 +65,16 @@ use a global replacement adapter. Unknown ownership or an unreachable live
 endpoint needs scoped investigation, not `pkill`, a PID-only kill or a restart.
 Preserve the original failure/verdict; cleanup never sends a productive prompt.
 
+If a historical pinned CLI cannot retire its failed native owner, use a checked
+newer maintenance CLI's `runtime scope stop --scope-id <EVAL-id> --request-id <id>`
+with a separate maintenance `DD_FLOW_HOME` and the **original** resource home.
+Keep the old RUN engine, adapter, Sessions and evidence unchanged. This path must
+verify retained registration, lease token and physical birth before stopping an
+owner; never substitute a PID-only kill. Retain the stop receipt and verify exit.
+`physical_stopped=true` permits a fresh isolated campaign after resource-conflict
+checks; `settled=false` still records unresolved native shutdown, not clean PASS
+or permission to resume/delete the old evidence.
+
 ## Database rules
 
 - Target the verified local project server, not an ambient/remote `DATABASE_URL`.
