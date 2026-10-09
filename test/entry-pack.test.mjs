@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateFlowContour, validateStageBlueprint, validateStageContext, writeEntryPack } from "../lib/entry-pack.mjs";
-import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack } from "../lib/runner.mjs";
+import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint } from "../lib/runner.mjs";
 
 test("recovery materializes each reopened stage attempt once", () => {
   assert.equal(needsAttemptContext({ attempt: "try-001" }, {}), false);
@@ -19,6 +19,15 @@ const slice = {
   task_input: [{ role: "task", path: "input.md", source: "task.md", sha256: "a".repeat(64) }], sources: [{ role: "index", root: "project", path: "README.md", required: true, reason: "Orientation." }], accepted_decisions: [], dynamic_roles: []
 };
 const memoryContour = ["preflight", "discover", "compose", "verify", "review", "finish"];
+
+test("runner blueprint validation uses the case catalog and keeps SDLC fixture defaults", () => {
+  const blueprint = { schema_id: "dd-eval/stage-context-blueprint@1", stages: { preflight: { ...slice, stage: "preflight" } } };
+  const loaded = { value: { flow: { contour: memoryContour } } };
+  assert.equal(validateCaseBlueprint(blueprint, loaded), blueprint);
+  assert.throws(() => validateCaseBlueprint(blueprint, {}), /unsupported stages/);
+  assert.throws(() => validateCaseBlueprint({ ...blueprint, stages: { merge: { ...slice, stage: "merge" } } }, loaded), /unsupported stages/);
+  assert.equal(validateCaseBlueprint({ ...blueprint, stages: { specify: slice } }, {}).stages.specify.stage, "specify");
+});
 
 test("entry-pack validation binds the complete ordered case contour and terminal", () => {
   const flow = { contour: memoryContour, terminal_stage: "finish" };
