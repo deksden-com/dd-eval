@@ -5,6 +5,22 @@ import path from 'node:path';
 import test from 'node:test';
 import { interactionFixtureManifest, launchEvalExecution, prepareFocusedEntries } from '../lib/runner.mjs';
 
+test('focused memory entries consume the declared catalog and reject foreign stages before launch', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-memory-focus-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const contour = ['preflight', 'discover', 'compose', 'verify', 'review', 'finish'];
+  const entry = { schema_id: 'dd-eval/stage-entry@1', case_id: 'fixture', revision: 'REV-001', checkpoint_id: 'fixture', stage: 'compose',
+    snapshot: { kind: 'run', locator: 'canonical/run', manifest_sha256: 'a'.repeat(64), run_id: 'RUN-fixture' }, semantic_package_sha256: 'b'.repeat(64), context_slice_sha256: 'c'.repeat(64) };
+  await writeFile(path.join(root, 'compose.json'), JSON.stringify(entry));
+  const execution = { id: 'focus-compose', entry: 'compose', stage: 'compose', terminal_stage: 'compose', mode: 'focused' };
+  const pack = { flow: { contour }, entries: { compose: 'compose.json' } };
+  assert.equal((await prepareFocusedEntries([execution], pack, root))[execution.id].stage, 'compose');
+  await assert.rejects(prepareFocusedEntries([execution], { entries: pack.entries }, root), /unsupported stage entry/);
+  await writeFile(path.join(root, 'compose.json'), JSON.stringify({ ...entry, stage: 'merge' }));
+  await assert.rejects(prepareFocusedEntries([{ ...execution, stage: 'merge' }], pack, root), /unsupported stage entry/);
+  await assert.rejects(readFile(path.join(root, 'events.jsonl')), { code: 'ENOENT' });
+});
+
 test('focused launch rejects its entry before recording an operation and uses prepared data after source deletion', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-focused-prepare-'));
   t.after(() => rm(root, { recursive: true, force: true }));
