@@ -60,6 +60,9 @@ test('priority-only clarification delivers the complete canonical dependency pac
   assert.deepEqual(plan.responses, responses);
   assert.equal(responses.length, 1);
   const response = responses[0];
+  assert.match(response.answer, /^## Принятый контракт задачи/);
+  assert.match(response.answer, /Если предложенные в вопросе варианты отличаются, действуют именно эти решения/);
+  assert.deepEqual([...response.answer.matchAll(/^## ([1-5])\. /gm)].map(match => match[1]), ['1', '2', '3', '4', '5']);
   const question = 'Какие уровни приоритета использовать?';
   const packet = await buildHitlPacket({ stage: 'specify', question, subjectContext: {}, responses });
   const verdict = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@3', atoms: [{
