@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateFlowContour, validateStageBlueprint, validateStageContext, writeEntryPack } from "../lib/entry-pack.mjs";
-import { createHarnessPermits, needsAttemptContext } from "../lib/runner.mjs";
+import { createHarnessPermits, needsAttemptContext, selectedEntries } from "../lib/runner.mjs";
 
 test("recovery materializes each reopened stage attempt once", () => {
   assert.equal(needsAttemptContext({ attempt: "try-001" }, {}), false);
@@ -19,6 +19,19 @@ const slice = {
   task_input: [{ role: "task", path: "input.md", source: "task.md", sha256: "a".repeat(64) }], sources: [{ role: "index", root: "project", path: "README.md", required: true, reason: "Orientation." }], accepted_decisions: [], dynamic_roles: []
 };
 const memoryContour = ["preflight", "discover", "compose", "verify", "review", "finish"];
+
+test("runner selection uses the selected contour without widening historical SDLC", () => {
+  const profile = { selection: { focused_stages: ["compose"], segment: { from: "discover", to: "review" }, e2e: true, repetitions: 2 } };
+  const selected = selectedEntries(profile, memoryContour);
+  assert.equal(selected.length, 6);
+  assert.equal(selected[2].stage, "preflight"); assert.equal(selected[2].terminal_stage, "finish");
+  assert.equal(selected[0].id, "focus-compose-r1");
+  assert.throws(() => selectedEntries(profile), /unknown focused stage/);
+  assert.throws(() => selectedEntries({ ...profile, case_terminal_stage: "merge" }, memoryContour), /outside its flow contour/);
+  assert.throws(() => selectedEntries({ selection: { ...profile.selection, segment: { from: "review", to: "discover" } } }, memoryContour), /ordered contour range/);
+  const legacy = selectedEntries({ selection: { focused_stages: ["code"], segment: null, e2e: true, repetitions: 1 }, case_terminal_stage: "plan" }, ["specify", "plan"]);
+  assert.equal(legacy[0].stage, "code"); assert.equal(legacy[1].stage, "specify");
+});
 
 test("explicit flow contour is bounded metadata and does not widen historical SDLC defaults", () => {
   for (const invalid of [null, [], ["review", "review"], ["../review"], ["Review"], Array.from({ length: 65 }, (_, index) => `stage-${index}`)])
