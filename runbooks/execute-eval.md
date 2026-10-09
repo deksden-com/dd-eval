@@ -537,8 +537,17 @@ Check the source baseline's local prerequisites before launch. For Task
 Priority, PostgreSQL must accept connections on loopback port 55433. Start
 Docker Desktop if needed, inspect existing containers, and start only the
 project-owned PostgreSQL service described by the source bootstrap runbook.
+Before provisioning a new campaign, perform the
+[30-day retention preflight](eval-storage.md#30-day-preparation-cleanup): remove
+eligible old disposable execution data and owned test databases by an exact
+reviewed selection, not a broad age-based filesystem or Docker prune.
 Reuse a healthy existing service; do not create a competing container or reset
 its volume. Baseline tests create and clean their own invocation databases.
+Record the exact container ID and whether this campaign started it or reused a
+shared service. At the final settled boundary, follow
+[container retirement](eval-storage.md#container-retirement-after-an-eval): stop
+the campaign's idle container, or the shared container after its last consumer
+has settled. Keep its volume; do not stop another active consumer.
 `ECONNREFUSED` here is a host prerequisite failure, not a Subject verdict or
 permission to skip baseline admission. Retain the failed receipt and restore
 the service; do not add an independent full baseline rerun before the runner's

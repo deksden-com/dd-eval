@@ -1,5 +1,12 @@
 # E2E monitoring
 
+At a terminal boundary, distinguish semantic completion from settled resource
+cleanup. After the campaign's final consumer settles, perform
+[container retirement](eval-storage.md#container-retirement-after-an-eval).
+Stop its verified idle PostgreSQL container, preserving volumes; defer a shared
+service stop while another EVAL, check or local-development owner still needs it.
+Record the physical stop readback or the specific active/unknown owner reason.
+
 ## SPECIFY comparisons and semantic decisions (plan 071)
 
 Read report@4 completion scope and `stage_outcome`. Profile@2 `stop_after` may
