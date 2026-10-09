@@ -1,0 +1,87 @@
+{
+  "schema_id": "dd-flow/stage-report@2",
+  "run_id": "RUN-001-tasks",
+  "stage": "plan",
+  "generated_at": "2026-10-09T13:31:49.941Z",
+  "verdict": "done",
+  "semantic": {
+    "result": "Accepted 1 executable PLAN artifact.",
+    "acceptance": [
+      "PRT-001-task-priority"
+    ],
+    "changed_files": [
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+      "run://RUN-001-tasks/03-plan/PRT-001-task-priority/aspect-map.json",
+      "run://RUN-001-tasks/03-plan/code-work-batch.json"
+    ],
+    "checks": [
+      "protocol-plan schema",
+      "aspect-map schema",
+      "cross-artifact references",
+      "generated CODE batch"
+    ],
+    "evidence": [
+      "run://RUN-001-tasks/03-plan/stage-report.json"
+    ],
+    "next_action": "start_plan_review",
+    "plans": [
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json"
+    ],
+    "aspect_maps": [
+      "run://RUN-001-tasks/03-plan/PRT-001-task-priority/aspect-map.json"
+    ],
+    "code_work_batch": "run://RUN-001-tasks/03-plan/code-work-batch.json",
+    "batch_checksum": "87e04b2d0de72ebc62c60cc3fcf258903579dc55ea1f8925affe328a03b062d9",
+    "plan_checksums": [
+      {
+        "path": ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+        "sha256": "54ab1c31ae295a032639f7764fffbf6f8ff2c7e96a87821a0c89d88bd3bb0387"
+      }
+    ],
+    "aspect_map_checksums": [
+      {
+        "path": "03-plan/PRT-001-task-priority/aspect-map.json",
+        "sha256": "706cb6004ccbe32a2b940f739aa335d2afe3dcd8dcd1c0a94af92026cf94bf25"
+      }
+    ],
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "role": "output",
+      "completeness": "declared",
+      "source_fingerprint": "11ebc811ab2c0891681bd4c993a70914a50e2846b2f3db76ad083b7461b7e81c",
+      "json": {
+        "path": "03-plan/verification/11ebc811ab2c0891681bd4c993a70914a50e2846b2f3db76ad083b7461b7e81c/verification-matrix.json",
+        "sha256": "7875a18e1f883a75b096cff45c42200fb5b6e2672fc12d2b75c70e7f3a43f291"
+      },
+      "markdown": {
+        "path": "03-plan/verification/11ebc811ab2c0891681bd4c993a70914a50e2846b2f3db76ad083b7461b7e81c/verification-matrix.md",
+        "sha256": "9144854b981bbb5dabc9da47b3149b49416a9584d42867b1759cbe272ddb1861"
+      },
+      "coverage_contract": "dd-flow/final-check-coverage@1"
+    }
+  },
+  "mechanical": {
+    "started_at": "2026-10-09T13:31:49.544Z",
+    "finished_at": "2026-10-09T13:31:49.941Z",
+    "wall_clock_ms": 397,
+    "git": {
+      "branch": "main",
+      "head": "ec6cfa11649197e6eab6417caf73311c96e30e3a",
+      "status": "dirty"
+    },
+    "session_stats_command": "DD_FLOW_HOME=\"/Users/deksden/Documents/_Projects/_artifacts/dd-flow/cp211-scoped-matrix-qualification/dd-flow-protocolize-qKDotV/home\" dd-flow stat run sessions ls --run RUN-001-tasks --project-root \"/Users/deksden/Documents/_Projects/_artifacts/dd-flow/cp211-scoped-matrix-qualification/dd-flow-protocolize-qKDotV/project\" --json",
+    "usage_stats_command": "DD_FLOW_HOME=\"/Users/deksden/Documents/_Projects/_artifacts/dd-flow/cp211-scoped-matrix-qualification/dd-flow-protocolize-qKDotV/home\" dd-flow stat usage --run RUN-001-tasks --project-root \"/Users/deksden/Documents/_Projects/_artifacts/dd-flow/cp211-scoped-matrix-qualification/dd-flow-protocolize-qKDotV/project\" --json",
+    "next_command": "DD_FLOW_HOME=\"/Users/deksden/Documents/_Projects/_artifacts/dd-flow/cp211-scoped-matrix-qualification/dd-flow-protocolize-qKDotV/home\" dd-flow stage start RUN-001-tasks --stage plan-review --project-root \"/Users/deksden/Documents/_Projects/_artifacts/dd-flow/cp211-scoped-matrix-qualification/dd-flow-protocolize-qKDotV/project\" --json"
+  },
+  "artifacts": {
+    "json": "stage-report.json",
+    "markdown": "stage-report.md",
+    "html": "stage-report.html"
+  },
+  "validation": {
+    "permission_scope": "known_targets_only",
+    "memory_bank_scope": "changed_files_and_links_only",
+    "status": "passed"
+  },
+  "summary": "Accepted 1 executable PLAN artifact."
+}

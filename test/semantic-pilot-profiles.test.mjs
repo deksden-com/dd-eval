@@ -17,7 +17,7 @@ test('SPECIFY comparison profiles share Subject, fallback and bounded scope with
     assert.deepEqual(profile.selection, { focused_stages: [], segment: null, e2e: true, repetitions: 1, stop_after: 'specify' });
     assert.deepEqual(profile.concurrency, { global: 1, per_harness: { 'codex-desktop': 1 } });
     assert.equal(profile.semantic_decisions.enabled, index > 0);
-    if (index > 0) { assert.equal(profile.semantic_decisions.min_confidence, 0.75); assert.equal(profile.semantic_decisions.max_retries, 2); }
+    if (index > 0) { assert.equal(profile.semantic_decisions.min_confidence, 0.70); assert.equal(profile.semantic_decisions.max_retries, 2); }
   }
   assert.equal(profiles[1].semantic_decisions.provider, 'openrouter-decisions');
   assert.equal(profiles[1].semantic_decisions.model, 'typesafe/jev-1.13');

@@ -1,0 +1,35 @@
+{
+  "schema_id": "dd-flow/merge-gate-acceptance@2",
+  "merge_request_id": "MRG-001",
+  "run_id": "RUN-001-tasks",
+  "work_id": "WRK-006-merge",
+  "gate_hash": "a3baa37f4aa2923846e69edff09f5f75595d48ccd997db01ca36b84fc794b420",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "accepted_tree": "4e33899c4fe6c479587e94cbbcc78413609ce8b3",
+  "receipts": [
+    {
+      "id": "WRK-006-merge/RCP-003",
+      "execution_refs": [
+        "PRT-001-task-priority/CHK-NEW",
+        "PRT-001-task-priority/CHK-P1-TEST",
+        "PRT-001-task-priority/CHK-READY"
+      ],
+      "binding_refs": [
+        "PRT-001-task-priority/CHK-NEW",
+        "PRT-001-task-priority/CHK-P1-TEST",
+        "PRT-001-task-priority/CHK-READY"
+      ],
+      "input_hash": "a21bc9dd415af64146b48241e9c4cdd07e812f90016722fb9534fe00b636c05b"
+    },
+    {
+      "id": "WRK-006-merge/RCP-004",
+      "execution_refs": [
+        "PRT-001-task-priority/CHK-MERGE"
+      ],
+      "binding_refs": [
+        "PRT-001-task-priority/CHK-MERGE"
+      ],
+      "input_hash": "fa5478a6f09157229861ddcc4f943c5300a56d1b02e4eeee3d1b2718f6c59362"
+    }
+  ]
+}
