@@ -527,3 +527,48 @@ socket sites. Other bare replies were control/lifecycle calls or intentional
 negative observation-loss cases; no additional positive productive mock was
 found. These are test-contract repairs, not a new production timeout or a
 compatibility bypass. Failed attempts remain diagnostic evidence, not PASS.
+
+### Source-integration review receipt (2026-10-09)
+
+All implementation/review repairs are complete. Three independent reviewers
+examined core recovery, paired EVAL observation and native contracts; the primary
+reviewer traced their findings and verified the changed paths. The fixes reuse
+existing operation semantics, custody and durable-dispatch helpers; no new
+dependency, state store or replay mechanism was added.
+
+Verified source and affected checks:
+
+- Engine `cfe51f2f92208795f92ea27080e5913f6c1a5426`: clean full typecheck and
+  lint, strict-canon build, direct AGY native reporter 13/13 PASS, Node release
+  verification 2/2 PASS and Vitest release verification 8/8 PASS.
+- Engine affected integration: 261/261 PASS at
+  `84b985c1bbe98eb57c301169459ce298357bae18`; control-worker 26/26 PASS.
+  Production code did not change between that commit and the final engine head.
+- Complete native contract rerun: 20/20 PASS against that same production
+  commit with the four reviewed test-only fixture repairs subsequently committed
+  in `cfe51f2`. This was affected-development evidence, not a clean immutable
+  release gate. The final clean direct AGY check also covers removal of its
+  unused test import.
+- EVAL `565c8cf4d5c484c2c39cbb02e5d49a065bbd9430` paired with the final built
+  engine: 140/140 PASS, zero failures, cancellations or skips. The explicit
+  source-root, CLI and fixture-adapter environment was supplied. The nine-file
+  run covers operation-progress recovery, capacity policy, Judge observation
+  cleanup, daemon operations, process JSON, runner recovery, qualification
+  recovery, Judge cleanup and supplemental evidence. It drained normally.
+- Build provenance: canon 4.1.2 at
+  `81c37330d84af03f8433fe9cfc43d43d0847a6c8`. Canon advances during this review
+  changed engineering progress metadata only, not `dd-flow`, `mbb` or `VERSION`.
+  The engine `dist` digest before and after the paired EVAL run is unchanged:
+  `b57cf1f2b8874fa88dc1e169b25b9e4b153650646b53b50fbaeabfc1a71c50ed`.
+
+Integration targets are [engine PR #50](https://github.com/deksden-com/dd-flow-cli/pull/50)
+and [EVAL PR #61](https://github.com/deksden-com/dd-eval/pull/61). Preserve stack
+history because its individual maintenance/finalization commits and comparison
+provenance are operationally useful; verify the merged tree equals each tested
+candidate. This final receipt is documentation-only.
+
+The earlier broad integration failure and incomplete-environment EVAL run remain
+recorded diagnostic evidence; they are not retroactively PASS. A full final
+offline/release gate, immutable publication and live qualification are still
+separate follow-up gates. No new scored EVAL, paid provider request, global
+installation or historical runtime repair was performed for this review.
