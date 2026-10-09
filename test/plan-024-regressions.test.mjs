@@ -15,6 +15,11 @@ test("managed execution addresses the restored flow RUN, not the event EVAL ID",
 });
 
 test("CLI continuation permits a repair edge and rejects missing authority", () => {
+  const contour = ["preflight", "discover", "compose", "verify", "review", "finish"];
+  const repair = { status: { continuation: { kind: "continue_stage", stage: "compose" } } };
+  assert.equal(continuationStage(repair, "review", contour), "compose");
+  assert.throws(() => continuationStage(repair, "review"), error => error.code === "flow_reconciliation_failed");
+  assert.throws(() => continuationStage({ status: { continuation: { kind: "start_stage", stage: "merge" } } }, "review", contour), error => error.code === "flow_reconciliation_failed");
   assert.equal(continuationStage({ status: { continuation: { kind: "continue_stage", stage: "code", attempt: "try-002" } } }, "merge"), "code");
   assert.equal(continuationStage({ status: { continuation: { kind: "start_stage", stage: "merge" } } }, "code"), "merge");
   assert.throws(() => continuationStage({}, "plan"), error => error.code === "flow_reconciliation_failed");
