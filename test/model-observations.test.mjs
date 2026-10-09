@@ -9,6 +9,20 @@ import { modelProgressPump } from '../lib/model-progress.mjs';
 import { readEvents } from '../lib/runner-events.mjs';
 import { pathToFileURL } from 'node:url';
 
+test('qualified native routing preserves provenance while model, reasoning and permissions remain strict', () => {
+  const requested = { provider: 'openai', model: 'gpt-6.1-sol', reasoning: 'high', mode: 'agent', permission_mode: 'allow' };
+  const observed = { ...requested, provider: 'cliproxyapi' };
+  const policy = { strictFields: ['model', 'reasoning'], required: ['model', 'reasoning'] };
+  const checked = checkObservedProfile(requested, observed, policy);
+  assert.deepEqual(checked.changes, ['provider']);
+  assert.equal(checked.observed.provider, 'cliproxyapi');
+  for (const [key, value] of [['model', 'another-model'], ['reasoning', 'low'], ['mode', 'safe'], ['permission_mode', 'deny']]) {
+    assert.throws(() => checkObservedProfile(requested, { ...observed, [key]: value }, policy), { code: 'profile_integrity_violation' });
+  }
+  assert.throws(() => checkObservedProfile(requested, { ...observed, model: null }, policy), { code: 'profile_integrity_violation' });
+  assert.throws(() => checkObservedProfile(requested, observed, { strict: true }), { code: 'profile_integrity_violation' });
+});
+
 async function fixture(t) { const root = await mkdtemp(path.join(os.tmpdir(), 'model-observations-')); t.after(() => rm(root, { recursive: true, force: true })); return { root, journal: path.join(root, 'native.jsonl') }; }
 
 test('canonical inventory suppresses guessed legacy paths and requires exact harness/session coverage', async t => {
