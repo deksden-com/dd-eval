@@ -65,6 +65,9 @@ test("focused historical SDLC pack does not promote PLAN to bootstrap", async ()
   const input = { caseDir: "/tmp/case", revision: "REV-001", inputCheckpoint: { id: "cp-001", sha256: "d".repeat(64) },
     flow: { contour: ["plan"], terminal_stage: "plan" }, stageBlueprint: {}, entries: { plan: entry }, authoring: {} };
   assert.deepEqual((await writeEntryPack(input)).entries, { plan: "plan.json" });
+  const extra = { ...entry, stage: "code" };
+  assert.deepEqual((await writeEntryPack({ ...input, entries: { plan: entry, code: extra } })).entries, { plan: "plan.json", code: "code.json" });
+  await assert.rejects(writeEntryPack({ ...input, flow: { contour: memoryContour, terminal_stage: "finish" }, entries: { code: extra } }), /outside its flow contour/);
   await assert.rejects(writeEntryPack({ ...input, entries: { plan: { ...entry, snapshot: { ...entry.snapshot, kind: "bootstrap", run_id: null } } } }), /requires a RUN snapshot/);
 });
 
