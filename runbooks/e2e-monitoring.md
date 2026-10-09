@@ -1,303 +1,99 @@
 # E2E monitoring
 
-At a terminal boundary, distinguish semantic completion from settled resource
-cleanup. After the campaign's final consumer settles, perform
-[container retirement](eval-storage.md#container-retirement-after-an-eval).
-Stop its verified idle PostgreSQL container, preserving volumes; defer a shared
-service stop while another EVAL, check or local-development owner still needs it.
-Record the physical stop readback or the specific active/unknown owner reason.
+## Read status
 
-## SPECIFY comparisons and semantic decisions (plan 071)
+From the definition checkout, with the EVAL's pinned home/engine/config/resources:
 
-Read report@4 completion scope and `stage_outcome`. Profile@2 `stop_after` may
-publish `finished` only after every target has an accepted boundary and owned
-cleanup is settled. `target_reached=true` with pending cleanup stays pending.
-Legal skipped targets retain their reason and are not completed SPECIFY timing
-samples. Do not resume or start a successor after a successful target.
+~~~sh
+node bin/dd-eval.mjs runner status --eval <absolute-eval-root>
+~~~
 
-Read owned `semantic-observation.json` and route@2 `semantic_decision` anchors for
-provider/requested and returned model, attempts, confidence, usage/latency and
-fallback reason. HTTP has no native Session/daemon cleanup. Low confidence/refusal
-goes directly to native fallback; transient failures have at most three attempts.
-Unknown paid outcomes are retained/fenced before native handoff, never replayed
-blindly. Preserve failed diagnostics after fallback succeeds; never edit receipts.
-
-For three sequential pilots report EVAL IDs, frozen settings, target timelines,
-fast-path/fallback counts and resolved-model changes. Audit every fast-path
-coverage against retained sources/canonical bytes after the stage. One run per
-mode is no accuracy certificate; fallback-only pilots prove no speed improvement.
-Stop only an individually blocked pilot with normal scoped control, leaving
-unrelated runs untouched. Historical route@1/certified JEV evidence keeps its
-original threshold and certificate semantics.
-
-## Frozen policy and evidence scope
-
-For new plan-069 runs, report the RUN's frozen operational decision and current
-artifact paths, not ambient project policy or inferred permissions from settings.
-Read captures only through their exact candidate/recovery publication binding
-under `manifest.runtime_recovery_home`; never search another global home for a
-plausible snapshot. Check failed-gate applicability before opening its capture.
-Use canonical source inventory and exact harness/Session identities for model
-coverage; malformed/missing coverage is unavailable, not a guessed legacy path.
-HITL mismatch alone does not establish Subject attribution. Report and Judge
-must use the same candidate-bound Subject history, including authorized recovery.
-
-## Native outcomes and owned child waits
-
-An exact failed overload Turn with proven live owned children is normal waiting,
-not evidence that the controller should cancel healthy children. Record the retained
-operation, continuation intent and frozen refusal time; inspect the same owner until
-fresh whole-tree settlement. Unknown tools, conflicting parentage and observation
-loss are blocked evidence, not permission to resend or create a child wave.
-
-A completed native Turn followed by mandatory observer/profile/storage failure
-remains a tooling failure (`native_outcome_observation_failed`). Retain both the
-native outcome and the primary observation reason; do not report business success
-or replay that Turn. Cleanup errors are secondary.
-
-AGY quota resets expressed as a relative duration are estimates anchored to the
-frozen native terminal observation, labelled `reset_estimated` with `reset_basis`.
-Repeated polling or reading retained evidence must not move that estimate. A reset
-estimate is not access verification and does not authorize automatic quota retry.
-
-## Confirmed Codex overload (plan 060)
-
-Only an exact terminal native `serverOverloaded` permits continuation of the
-same Session and task. The first refusal is not counted. Two distinct consecutive
-continuation Turns refused within 120 seconds terminate as `provider_overload_burst`;
-slower instability has no lifetime attempt cap. Backoff is 5 seconds, then 15
-seconds, extended by proven Retry-After. New productive chains have no elapsed
-work deadline; ownership/admission fences remain. Legacy retained deadlines
-stay under their original contract and are never reset by a monitor.
-Quota/auth failures do not continue; report a reset time only when native metadata
-proves it. Completed Work/Stage or accepted HITL wins over another dispatch.
-
-The selected, integrity-verified engine owns `codex-overload-burst@1`.
-Judge/probe history uses `dd-eval/capacity-chain@2`; legacy @1 is readable evidence,
-not permission to send or silently start another chain. An unknown dispatch is
-observed by its retained operation ID, never replaced. Do not manually resume,
-restart or repair a historical EVAL to obtain a successful result.
-
-## Productive inactivity and observation loss (plan 065)
-
-Read actual current-operation native progress, terminal and child settlement
-alongside controller Stage/Work and lease proof. A quiet root with a validated
-active child is not a dead tree. Cosmetic status/heartbeat, stale Turn events
-and unchanged usage do not renew productivity. HITL/capacity waits require
-their exact accepted phase binding, not a generic `waiting` label.
-
-`subject_liveness_timeout`, transport expiry and output-limit observer failure
-do not establish native failure. Retain the exact operation, read its late
-terminal and preserve unknown state without replay. Native outcome and cleanup
-settlement are separate: a completed root with active children is not whole
-tree success. Scope observation@settlement-inactivity@1 renews only newly
-confirmed physical/native retirement/publication facts; polls and restart do
-not replenish it. Legacy cumulative recovery receipts remain legacy.
-
-Semantic qualification cache alone is not runtime progress acceptance. Verify
-the selected artifact's `operation-progress@1` and `operation-errors@2` helper
-bytes and installed acceptance. Repository commits and harness repairs alone
-do not require new Judge calls. Qualification@4 keys each Judge task by its
-actual inputs and re-evaluates retained finals under the current oracle; see
-[qualification policy](execute-eval.md#before-launch). Historic paid evidence
-remains immutable.
-
-New final-check coverage uses `dd-flow/final-check-coverage@1` and qualification
-@3. Successful MERGE acceptance requires passed native checks. Reached failed
-execution evidence is separately bound to its sealed recovery snapshot: an
-expected output not produced is a failure/gap, while lost claimed bytes are
-unavailable evidence. Neither establishes product cause without Judge assessment.
-
-## Judge verdict versus shutdown (plan 059)
-
-`judge/result.json` is immutable semantic evidence, not proof of clean runtime
-completion. New Judge attempts retain a separate `judge/cleanup.json`
-(`dd-eval/judge-cleanup@1`), bound to verdict hash, native Session, daemon
-incarnation and durable stop operation. Reports expose `judge_cleanup` separately
-from the verdict. `result_ready` alone cannot complete Judge or qualification.
-
-If cleanup fails, report the retained verdict and the typed cleanup cause
-separately. A fresh owned **control** operation may finish remaining cleanup in
-the same fenced incarnation; it must not create a Session, resend a Judge prompt
-or inspect an already closed provider pipe. A failed stop ID stays failed.
-Missing proof means unknown, not clean. Do not edit historical receipts, delete
-sockets manually, mutate runtime databases or restart a provider to manufacture
-cleanup evidence. Whole-tree settlement is distinct from Work success.
-
-Adapter stop now completes physical provider/drain/resource/auth cleanup before
-publishing a successful durable stop reply; listener retirement follows the
-receipt and precedes ACK. Clients confirm retained daemon PID exit as well as
-endpoint disappearance. Socket disappearance alone is insufficient.
-
-For a retained Final Judge (including the current candidate revision), explicit
-`runner cleanup --eval <absolute-eval-root> --request-id <new-id>` may retry only
-the owned stop. It validates the pinned runtime, profile and canonical paths;
-missing/legacy ownership remains blocked. It does not start a daemon, Session
-or prompt. If the previous stop is durably completed and physical shutdown is
-freshly confirmed, only the failed companion is reconciled, without a new RPC
-to a dead bridge. Read-only status and cached Judge reuse never perform repair.
-Interaction/qualification/supplemental Judge directories have separate owners;
-this EVAL cleanup command does not discover or stop those scopes.
-
-HITL admission checks actual item verdicts and packets against their Judge,
-fixture and corpus question; an aggregate `passed` alone is insufficient.
-Reports recheck verdict bytes, all shutdown phases and daemon exit immediately
-before publication. Unconfirmed cleanup preserves semantic evidence but fails
-Judge lifecycle completion.
-
-Start with `node bin/dd-eval.mjs runner status --eval <absolute-eval-root>` from the dd-eval checkout.
-For direct controller diagnostics use the execution's pinned wrapper with
-`DD_FLOW_HOME=<runtime-root> <runtime-root>/bin/dd-flow run drive status --run <RUN-ID> --project-root <project-root> --after <cursor> --json`.
-The explicit home is required for historical wrappers; newly generated wrappers pin it themselves.
+Read EVAL result, baseline, controller, native turns/children, Work graph, HITL,
+leases/process start identities and primary error together. Status is read-only;
+do not resume, repair, launch Judge or send a model prompt to obtain diagnostics.
+Stay quiet on unchanged healthy work; report actual Stage/repair transitions,
+HITL, confirmed blockers, dead owners or completion, with harness and EVAL ID.
 
 ## Determine the current stage
 
-`manifest.executions[].stage` is the configured entry stage. It is immutable run input and
-must never be reported as current progress.
+`manifest.executions[].stage` is the immutable **entry**, not current progress.
+Use the live RUN/controller projection; corroborate it with `timeline.jsonl`
+and current Work/artifacts. The latest unmatched `stage_attached` is current;
+after `stage_completed`, report between stages until the next attach. Prefer a
+newer durable event over a stale projection. Unavailable evidence means unknown,
+with a separately labelled last-known Stage.
 
-Determine the current stage in this order:
+~~~sh
+jq -r 'select(.type == "stage_attached" or .type == "stage_completed") | [.at,.type,.stage,(.status // "-")] | @tsv' <absolute-run-root>/timeline.jsonl | tail -n 20
+~~~
 
-1. Use an explicit live stage projection from the RUN/controller when status provides one.
-2. Otherwise read the RUN's `timeline.jsonl`: the latest `stage_attached` without a later
-   matching `stage_completed` is current. If the latest stage was completed, report the RUN
-   as between stages and include that completed stage as the last known stage.
-3. Corroborate the result with current Work states and recently written stage artifacts.
+`awaiting_provider`, lease renewal and turn count do not identify semantic Stage.
+For direct diagnostics use the execution's pinned wrapper, never the global CLI:
 
-For example:
+~~~sh
+DD_FLOW_HOME=<runtime-root> <runtime-root>/bin/dd-flow run drive status --run <RUN-ID> --project-root <project-root> --after <cursor> --json
+~~~
 
-```sh
-jq -r '
-  select(.type == "stage_attached" or .type == "stage_completed") |
-  [.at, .type, .stage, (.status // "-")] | @tsv
-' <absolute-run-root>/timeline.jsonl | tail -n 20
-```
+## Liveness and children
 
-Do not infer stage progress from `state: awaiting_provider`, process leases or provider-turn
-count: those describe orchestration/liveness, not the semantic stage. If the timeline and a
-live projection disagree, report the discrepancy and use the newer durable RUN event. If live
-RUN evidence is unavailable, report the current stage as unknown with the observation error;
-label retained evidence as last known rather than substituting the entry stage.
+Only fresh current-operation reasoning/text/tool/advancing-usage evidence or
+validated active children renew productivity. Polls, status timestamps and lease
+heartbeats do not. A quiet root with live children is normal. Keep native outcome
+and whole-tree settlement separate: completed prompt/child is not Work success.
+AGY `settled_by_root` and Grok multi-result need each child's matching lifecycle
+receipt; ZCode `lost`, conflicting parentage or unbound children remain unknown.
+Read full inventories, not just one page or the current controller journal.
 
-When a lifecycle call fails, inspect the retained hook event and CLI error together. A
-`lifecycle_shell_syntax_invalid` error means the hook observed the call but rejected its shell
-composition; it is not missing delivery. `invocation_receipt_missing` is reserved for absent
-native evidence. `invocation_assignment_missing` means native delivery succeeded but argv
-did not match an issued assignment. Preserve the original code/reason in the report instead of
-replacing it with a later `execution_ended_without_work_result` or cleanup error.
-For a safe correction, inspect the exact runtime-issued `retry_command` and
-`effect=no_effect`; `recoverable=true` by itself is not retry authority.
-`publication_pending` means the SQL transition committed but its RUN/Work
-projection still needs reconciliation. Never replay a Stage, Work, check or
-provider Turn to recreate that file. A fresh Session after a cwd-changing Stage
-boundary is expected even if the harness and model profile are unchanged.
+Only confirmed Codex `serverOverloaded` continues the same Session/task. Two
+distinct consecutive **continuation** refusals within 120 seconds stop the chain;
+the initial refusal does not count. Backoff is 5/15 seconds or proven Retry-After.
+Quota/auth failures do not auto-continue. Report native reset time/anchored
+estimate without moving it on subsequent polls. Never manually continue an EVAL
+to bypass these rules.
 
-For a CODE/CODE-REVIEW aggregate failure, distinguish the check result from its continuation.
-`code_gate_failed`/`code_review_gate_failed` with a durable `repair_required` binding is not
-stage success or a terminal engine failure: inspect the registered repair Work, its stage,
-attempt/cycle, causal receipts and fresh child. Report the repair transition once. Completed
-repair Work still requires the subsequent semantic verification and aggregate gate. Never
-create another repair, copy receipt/Work IDs into a model-authored command, or retry a check
-as a monitoring action. Environment recovery requires factual JSON evidence, not a placeholder.
+## Errors and unknown outcomes
 
-Use explicit stage/attempt/cycle membership for counts and dispatch. PLAN and PLAN-REVIEW
-siblings under the same coordinator are historical evidence, not CODE children. A legacy or
-stale membership projection is a compatibility blocker; status must not invent membership.
-For unchanged continuation failures, retain the same-turn CLI rejection (route, phase/effect,
-native hook event and scope). `fanout_stage_nonprogressing` is only the fallback when no
-correlated primary cause exists; a fresh process heartbeat does not invalidate that cause.
+- Preserve the first correlated error, its operation/Session/Stage attempt and
+  effect; report cleanup warnings separately. `incomplete_subject_turn` and
+  `fanout_stage_nonprogressing` wrappers alone do not establish cause/attribution.
+- Observer timeout, expired lease, host gap or missing socket does not prove a
+  failed/dead provider. Read the exact retained operation and late outcome;
+  never replay a prompt to recover a lost reply. A live unreachable owner needs
+  investigation, not a new daemon. Diagnostic timeout alone is not a stop reason.
+- Correlate hook deny/timeout, native identity and CLI receipt. A late allow does
+  not undo a deny. `retry_command` requires proven `effect=no_effect`;
+  `publication_pending` requires projection reconciliation, not repeat execution.
+- A registered `repair_required` gate is a repair transition, not Stage success
+  or automatically terminal failure. Monitor its bound Work/cycle; do not create
+  repairs or repeat checks as a monitoring action.
+- An accepted answer plus a settled answer Turn leaving the **same pause** active
+  is `controller_answer_not_applied`, not another request for the same answer.
+- For snapshot/review drift, report actual changed input paths and ownership.
+  Do not reset reviewer baselines, manually checkpoint SQLite or rewrite frozen
+  evidence. Tracked product inputs and untracked provider service files differ.
 
-A diagnostic timeout means observation failed. Validate arguments, runtime home and engine;
-retry the read through the ordinary runner path. Never stop an EVAL solely because a diagnostic
-timed out, a timestamp did not change, the root session is quiet or a Work has not finished.
+## Results and cleanup
 
-For boundary capture, keep `snapshot_source_changed` and `owned_inventory_changed` distinct.
-The former compares copied source content and Git state; inspect its bounded
-`last_capture_mismatch.components` paths to identify the changed source. The latter is a
-productive writer or owned inventory fence. A retry with unchanged source diagnostics is
-not progress; report the component and capture deadline instead of calling SQLite WAL
-activity a model turn. If the budget expires, retain the last concrete mismatch in the
-report. Do not manually checkpoint a database or restart the controller while monitoring.
+Read candidate-bound sources/recovery captures, never a plausible global-home
+snapshot. Keep reached failures, unavailable evidence and unreached/not-applicable
+checks distinct; all-aborted checks are not PASS. Product faults are assessed by
+Judge, not repaired by the operator. Judge verdict and physical shutdown are
+separate: `result_ready` alone does not prove completion.
 
-For each current controller operation report two independent facts: its productive outcome
-(`completed`, `failed`, `interrupted`, or unknown) and its settlement (`settled`, `pending`, or
-`blocked`). A completed native prompt with pending settlement is not a failed prompt and must
-not be resent. It keeps its capacity until the same operation's receipt-only release or one
-fresh, authoritative tree inspection settles it. Show the operation ID, pending reason, last
-observation error and deadline if present. A historical receipt without `settlement.json` is
-unknown settlement, not proof of either success or failure.
+For `stop_after`, `finished` requires accepted target completion and settled
+cleanup. Skipped targets are not completed-stage timing samples. Record decision
+provider/model, confidence, fast-path/fallback reasons and latency; audit retained
+fast-path answers against canonical bytes. Final Judge audits when enabled;
+SPECIFY-only runs require a separate review. Never rerun Decisions for the audit.
 
-Before declaring a blocker, inspect controller errors, owned process identities, native root and
-child session evidence, and the child's retained JSONL. Do not materialize/resume sessions to
-observe them. A pending model request is not proof of a deadlock. Stop only on an explicit
-operator request, a confirmed fatal execution error or an expired configured execution deadline.
-Retain the source evidence and exact reason before issuing the standard control command.
+After **success, failure or cancellation**, save the result and perform
+[daemon/database retirement](eval-storage.md#container-retirement-after-an-eval),
+including preparation failures. A shared DB stops after the last consumer.
+Investigation normally retains files/dumps with processes stopped; a necessary
+live-resource deferral must be closed before the next campaign using it.
+Report a cleanup blocker separately; do not claim clean shutdown from a verdict,
+dead PID alone or a vanished socket. See [owned cleanup commands](eval-storage.md#stop-leftover-daemons).
 
-Managed owners use committed renewal receipts from the selected runtime. A transient
-maintenance lock/timeout permits bounded reconfirmation within the remaining 30-second
-ownership horizon. The 5-second silence window renews only on validated advancing
-maintenance phases; it is not a physical attempt lifetime. This is not a native
-Turn replay. Expiry alone does not prove owner
-death. An unconfirmed CLI cleanup blocks further mutable maintenance; retain recovery evidence
-and do not restart the EVAL. The observer renews while awaiting Subject or Judge work.
-These helpers must come from the pinned runtime's `harness-runtime` bundle, never a global
-installation or another source checkout. Qualify a new candidate with cold installed-CLI
-maintenance tests before preparing later E2Es; do not mutate existing runtime homes.
-
-Lease heartbeats and polling timestamps are infrastructure evidence, not model progress. Report
-the latest durable native content/tool event separately; if it is absent or unreadable, label it
-unknown rather than calling the flow healthy or hung.
-
-For AGY, `settled_by_root` proves native tree settlement, not successful Work completion.
-Correlate every direct child with its Work and lifecycle result; an unbound settled child
-requires reconciliation. An early `hook_rejected` receipt (for example
-`agy_child_identity_unconfirmed` or `agy_child_parent_unqualified`) is the causal error when
-it precedes a generic `fanout_stage_nonprogressing` wrapper. Check its conversation ID,
-daemon ID and turn generation against the active native turn before attributing it.
-
-For every harness, keep native child outcome and Work settlement separate. A Grok
-`TaskOutput.MultiResult` can settle several children at once; inspect each retained child
-identity, outcome and matching Work finish. ZCode `lost`, a contradictory parent, or a
-missing terminal result is an observation/reconciliation blocker, not completion. An
-unknown child may still be executing if its native owner is live. Do not infer success
-from an idle root, an empty list, or a single page of a paginated child directory.
-
-For hook admission, distinguish the client-visible deny/timeout from a later daemon
-response. Correlate request ID, native event, Session, daemon incarnation and active
-operation/generation before naming the primary error. A late allow does not undo a
-native deny. If the wrapper died without a durable outcome, report effect unknown;
-do not retry the Work-start command or replace the first error with a lease timeout.
-
-For PLAN/CODE review waves, use the first committed reviewer start receipt as the
-group's input baseline across recovery generations. The accepted stage report, batch,
-aspect maps, workspace source and external review copy have distinct checks. A
-`read_only_input_changed` between waves means the group cannot combine those results;
-do not move the baseline, silently re-review, or treat a new provider turn as a fix.
-Untracked provider-owned `.zcode/` files and an exact qualified untracked AGY hook are
-service state, not product changes; tracked or mixed files remain product inputs.
-
-For HITL, correlate the pause ID, accepted answer operation and its native prompt receipt.
-An accepted answer plus a completed/settled answer Turn with the **same pause still active**
-and no active provider Turn is a no-progress blocker even when controller/observer leases
-are fresh. The controller must report `controller_answer_not_applied`, not mark the answer
-completed and wait for the same user answer again. A different subsequent pause is legitimate.
-Report this contradiction immediately; do not resend the answer or resume automatically.
-
-Status distinguishes physical stop from recovery readiness. `stopped` means the matching scope
-generation has a durable physical settlement receipt. Recovery may still be pending because
-operation journals require reconciliation; show its reasons and verified RUN capture paths.
-Keep historical execution results and the initiating control request visible. Do not freeze a
-candidate, start Judge, resume or create another fork as a side effect of status monitoring.
-## Causal lifecycle failures
-
-When a managed Turn ends without completing its Stage, do not treat
-`incomplete_subject_turn` alone as the primary cause. Correlate the current RUN,
-controller generation, Session, Stage attempt/cycle and latest durable lifecycle
-receipt. A rejected runtime-owned option, authority failure or unknown effect is
-an engine/infrastructure failure. A generic wrapper without correlated evidence
-has undetermined attribution. Historical failures superseded by a successful
-attempt, registered repair, accepted HITL answer or handoff are not current.
-
-Record the primary error code, message and receipt identity separately from
-controller wrappers and cleanup/dashboard warnings. An unchanged corrective
-retry must have changed semantic input or durable lifecycle state; a new UUID or
-timestamp is not progress.
+For input admission/qualification policy see [launch preparation](execute-eval.md#before-launch).
+Internal contracts and historical incidents belong in specs/CP reports, not extra
+monitoring actions or repeated readiness experiments.
