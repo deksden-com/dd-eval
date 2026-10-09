@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateFlowContour, validateStageBlueprint, validateStageContext, writeEntryPack } from "../lib/entry-pack.mjs";
-import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice } from "../lib/runner.mjs";
+import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice, validateExecutionDescriptors } from "../lib/runner.mjs";
 
 test("recovery materializes each reopened stage attempt once", () => {
   assert.equal(needsAttemptContext({ attempt: "try-001" }, {}), false);
@@ -19,6 +19,15 @@ const slice = {
   task_input: [{ role: "task", path: "input.md", source: "task.md", sha256: "a".repeat(64) }], sources: [{ role: "index", root: "project", path: "README.md", required: true, reason: "Orientation." }], accepted_decisions: [], dynamic_roles: []
 };
 const memoryContour = ["preflight", "discover", "compose", "verify", "review", "finish"];
+
+test("execution descriptor admission binds stage ranges to the selected catalog", () => {
+  const execution = { id: "e2e", mode: "e2e", stage: "preflight", terminal_stage: "finish" };
+  assert.doesNotThrow(() => validateExecutionDescriptors([execution], memoryContour));
+  assert.throws(() => validateExecutionDescriptors([execution]), error => error.code === "control_input_invalid");
+  for (const changed of [{ stage: "merge" }, { stage: "finish", terminal_stage: "review" }, { id: "../escape" }])
+    assert.throws(() => validateExecutionDescriptors([{ ...execution, ...changed }], memoryContour), error => error.code === "control_input_invalid");
+  assert.throws(() => validateExecutionDescriptors([execution, execution], memoryContour), error => error.code === "control_input_invalid");
+});
 
 test("runner blueprint validation uses the case catalog and keeps SDLC fixture defaults", () => {
   const blueprint = { schema_id: "dd-eval/stage-context-blueprint@1", stages: { preflight: { ...slice, stage: "preflight" } } };
