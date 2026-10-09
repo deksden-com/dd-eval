@@ -64,7 +64,7 @@
     "enabled": true,
     "provider": "openrouter-decisions",
     "model": "typesafe/jev-1.13",
-    "min_confidence": 0.75,
+    "min_confidence": 0.7,
     "max_retries": 2
   }
 }

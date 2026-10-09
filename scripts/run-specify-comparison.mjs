@@ -24,10 +24,10 @@ const abort = new AbortController();
 for (const signal of ["SIGINT", "SIGTERM"]) process.once(signal, () => abort.abort(new Error(`Comparison cancelled by ${signal}; retained EVAL remains running`)));
 
 async function cli(variant, args) {
-  // The prepared base owns engine/config; each variant has isolated resources.
+  // Isolate EVAL homes, not the registry which fences shared host resources.
   const env = { ...process.env, DD_EVAL_HOME: variant.home,
     DD_FLOW_BIN: path.join(baseHome, "published-engine/node_modules/@deksden-com/dd-flow-cli/dist/cli.js"),
-    DD_FLOW_CONFIG_HOME: path.join(baseHome, "engine-config"), DD_FLOW_RESOURCE_HOME: path.join(variant.home, "resources") };
+    DD_FLOW_CONFIG_HOME: path.join(baseHome, "engine-config"), DD_FLOW_RESOURCE_HOME: process.env.DD_FLOW_RESOURCE_HOME || path.join(baseHome, "resources") };
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [path.join(repo, "bin/dd-eval.mjs"), "runner", ...args], { cwd: repo, env, stdio: ["ignore", "pipe", "inherit"] });
     const chunks = [];

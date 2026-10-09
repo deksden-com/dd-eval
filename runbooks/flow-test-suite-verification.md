@@ -78,10 +78,14 @@ After the same FLOW build, run from EVAL:
 DD_FLOW_SOURCE_ROOT="$FLOW_ROOT" \
 DD_EVAL_TEST_FLOW_CLI="$FLOW_ROOT/dist/cli.js" \
 DD_EVAL_TEST_FLOW_ADAPTER="$FLOW_ROOT/test/fixtures/controller-stage-adapter.mjs" \
-node --test --test-concurrency=1
+DD_EVAL_TEST_OPERATIONAL_RUNTIME="$INSTALLED_ENGINE_ROOT/dist" \
+npm test
 ```
 
-`FLOW_ROOT` is an absolute path to that tested checkout. These targets enable
+`FLOW_ROOT` is an absolute path to that tested checkout; `INSTALLED_ENGINE_ROOT`
+is its content-verified installed snapshot containing `engine.json`. Run `npm ci`
+first. The package's test command selects `test/*.test.mjs`, not executable
+fixture modules. These targets enable
 the installed capacity/clock contracts and disposable real-CLI lifecycle,
 restore and resume fixtures. A skip of a required paired target does not close
 acceptance. This procedure never calls a paid provider.

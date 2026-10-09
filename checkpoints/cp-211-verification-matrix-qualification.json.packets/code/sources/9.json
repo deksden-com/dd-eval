@@ -1,0 +1,37 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "46ff4399ee290bf7857072cd17b147946182e7be9ae658ece922116a2e492b21",
+  "verification_epoch": "1057ee0ca020a5d3db71d12b88f7eabc8943f54b2ae9dda56d9859ff362574b0",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_artifacts/dd-flow/cp211-scoped-matrix-qualification/dd-flow-protocolize-qKDotV/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_artifacts/dd-flow/cp211-scoped-matrix-qualification/dd-flow-protocolize-qKDotV/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_artifacts/dd-flow/cp211-scoped-matrix-qualification/dd-flow-protocolize-qKDotV/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_artifacts/dd-flow/cp211-scoped-matrix-qualification/dd-flow-protocolize-qKDotV/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "93499a981c04fb68a211e2397e54b3ec8992784f7dbfb5a3f87cb413ff04aaae",
+  "before_fingerprint": "93499a981c04fb68a211e2397e54b3ec8992784f7dbfb5a3f87cb413ff04aaae",
+  "after_fingerprint": "93499a981c04fb68a211e2397e54b3ec8992784f7dbfb5a3f87cb413ff04aaae",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-09T13:31:52.329Z",
+  "finished_at": "2026-10-09T13:31:52.371Z"
+}
