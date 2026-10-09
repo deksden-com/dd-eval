@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateFlowContour, validateStageBlueprint, validateStageContext, writeEntryPack } from "../lib/entry-pack.mjs";
-import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice, validateExecutionDescriptors, assertQualificationSelection } from "../lib/runner.mjs";
+import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice, validateExecutionDescriptors, assertQualificationSelection, canonicalEntries } from "../lib/runner.mjs";
 
 test("recovery materializes each reopened stage attempt once", () => {
   assert.equal(needsAttemptContext({ attempt: "try-001" }, {}), false);
@@ -19,6 +19,20 @@ const slice = {
   task_input: [{ role: "task", path: "input.md", source: "task.md", sha256: "a".repeat(64) }], sources: [{ role: "index", root: "project", path: "README.md", required: true, reason: "Orientation." }], accepted_decisions: [], dynamic_roles: []
 };
 const memoryContour = ["preflight", "discover", "compose", "verify", "review", "finish"];
+
+test("canonical reader restores actual memory entries and refuses missing or foreign stage bytes", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-memory-canonical-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const state = { entries: Object.fromEntries(memoryContour.map(stage => [stage, `${stage}.json`])) };
+  const makeEntry = stage => ({ schema_id: "dd-eval/stage-entry@1", case_id: "fixture", revision: "REV-001", checkpoint_id: stage, stage,
+    snapshot: { kind: stage === "preflight" ? "bootstrap" : "run", locator: "canonical/snapshot", manifest_sha256: "a".repeat(64), run_id: stage === "preflight" ? null : "RUN-fixture" },
+    semantic_package_sha256: "b".repeat(64), context_slice_sha256: "c".repeat(64) });
+  for (const stage of memoryContour) await writeFile(path.join(root, state.entries[stage]), JSON.stringify(makeEntry(stage)));
+  assert.deepEqual(Object.keys(await canonicalEntries(root, state, memoryContour)), memoryContour);
+  await assert.rejects(canonicalEntries(root, { entries: { ...state.entries, review: undefined } }, memoryContour), error => error.code === "canonical_entries_incomplete");
+  await writeFile(path.join(root, "review.json"), JSON.stringify(makeEntry("merge")));
+  await assert.rejects(canonicalEntries(root, state, memoryContour), /stage entry is for merge, expected review/);
+});
 
 test("qualification coverage requires every stage in the selected catalog exactly once", () => {
   const selection = { focused_stages: memoryContour, e2e: false };
