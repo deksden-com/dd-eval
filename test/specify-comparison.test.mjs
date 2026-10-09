@@ -59,6 +59,18 @@ test("lost acknowledgment reconciles only one bound manifest without duplicate s
   await runSpecifyComparison(f.options); assert.deepEqual(f.launches, [0, 1]);
 });
 
+test("reobserved campaign clears a historical blocker while polling retained IDs", async t => {
+  const f = await fixture(t);
+  f.options.status = async () => { throw new Error("temporary observation failure"); };
+  await assert.rejects(runSpecifyComparison(f.options), /temporary observation failure/);
+  f.options.status = async () => {
+    const receipt = JSON.parse(await readFile(path.join(f.options.campaignDir, "receipt.json")));
+    assert.equal(receipt.state, "running"); assert.equal(receipt.error, undefined);
+    return finished();
+  };
+  await runSpecifyComparison(f.options); assert.deepEqual(f.launches, [0, 1]);
+});
+
 test("unknown launch with zero manifests is fail closed on restart", async t => {
   const f = await fixture(t);
   f.options.run = async () => { throw new Error("unknown"); };
@@ -68,6 +80,7 @@ test("unknown launch with zero manifests is fail closed on restart", async t => 
 
 for (const status of [{ state: "completed_with_failures", cleanup_state: "settled" }, { state: "awaiting_provider", runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "dead" } }] }, { state: "stopped" },
   { state: "finished", cleanup_state: "blocked" },
+  { ...finished(), interaction_coverage: { resolution: "unknown", verification: { complete: false } } },
   { state: "finished", cleanup_state: "pending", runner_attempts: [{ last_recorded_status: "failed", error: { code: "owner_lost" }, live_owner: { state: "dead" } }] },
   { state: "finished", cleanup_state: "pending", runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "dead" } }] },
   { state: "awaiting_provider", live: { observation_complete: false, inventory: { unavailable: true } }, runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "alive" } }] }]) {
@@ -138,6 +151,69 @@ test("live preparation may lack a managed RUN before provider dispatch", async t
 test("active provider with unavailable ownership and empty attempt inventory stops", async t => {
   const f = await fixture(t); f.options.status = async () => ({ state: "awaiting_provider", live: { unavailable: true }, runner_attempts: [] });
   await assert.rejects(runSpecifyComparison(f.options), { code: "comparison_blocked" }); assert.deepEqual(f.launches, [0]);
+});
+
+function preparing(ack) {
+  const runId = ack.run_id;
+  return { state: "awaiting_provider", live: { observation_complete: false,
+    executions: [{ unavailable: true, error: { code: "ENOENT", message: `Missing ${path.join(ack.root, "executions/e2e/managed-runtime.json")}` } }],
+    inventory: { ok: true, scope_id: runId, provider_turns: [], processes: [
+      { kind: "eval-observer", pid: 123, pid_started_at: "Thu Oct  8 12:28:41 2026", owner_id: runId, state: "running", lease_expires_at: new Date(Date.now() + 60000).toISOString() },
+      { kind: "eval-baseline", pid: 124, owner_id: runId, state: "running", lease_expires_at: new Date(Date.now() + 60000).toISOString() }
+    ] } }, runner_attempts: [{ last_recorded_status: "continuing", owner_pid: 123, owner_started_at: "Thu Oct 8 12:28:41 2026", live_owner: { state: "alive" } }] };
+}
+
+test("bound live baseline without a managed RUN continues observation, not duplicate launch", async t => {
+  const f = await fixture(t); let calls = 0;
+  f.options.status = async variant => ++calls === 1 ? preparing(variant.ack) : finished();
+  await runSpecifyComparison(f.options); assert.deepEqual(f.launches, [0, 1]);
+});
+
+for (const state of ["stopped", "failed"]) test(`retired ${state} baseline records do not require an active lease`, async t => {
+  const f = await fixture(t); let calls = 0;
+  f.options.status = async variant => {
+    if (++calls !== 1) return finished();
+    const s = preparing(variant.ack);
+    s.live.inventory.processes.push({ ...s.live.inventory.processes[1], state, lease_expires_at: new Date(0).toISOString() });
+    return s;
+  };
+  await runSpecifyComparison(f.options); assert.deepEqual(f.launches, [0, 1]);
+});
+
+for (const [label, corrupt] of [
+  ["scope", s => { s.live.inventory.scope_id = "foreign"; }],
+  ["owner", s => { s.live.inventory.processes[0].owner_id = "foreign"; }],
+  ["pid", s => { s.runner_attempts[0].owner_pid++; }],
+  ["birth", s => { s.live.inventory.processes[0].pid_started_at = "replaced"; }],
+  ["lease", s => { s.live.inventory.processes[1].lease_expires_at = new Date(0).toISOString(); }],
+  ["dead", s => { s.runner_attempts[0].live_owner.state = "dead"; }],
+  ["fence", s => { s.live.inventory.fence = { active: true }; }],
+  ["dispatch", s => { s.live.inventory.dispatch_blocked = true; }],
+  ["turn", s => { s.live.inventory.provider_turns.push({ state: "running" }); }],
+  ["native", s => { s.live.inventory.processes[1].kind = "harness-daemon"; }],
+  ["orphaned", s => { s.live.inventory.processes[1].state = "orphaned"; }],
+  ["error", s => { s.live.executions[0].error.code = "EACCES"; }],
+  ["missing unrelated file", s => { s.live.executions[0].error.message = "Missing foreign/managed-runtime.json"; }],
+  ["journal", s => { s.live.journal = { unavailable: true }; }],
+  ["continuation", s => { s.live.continuations = [{ unavailable: true }]; }],
+  ["inventory", s => { s.live.inventory.ok = false; }]
+]) test(`baseline observation cannot hide ${label} ownership uncertainty`, async t => {
+  const f = await fixture(t);
+  f.options.status = async variant => { const s = preparing(variant.ack); corrupt(s); return s; };
+  await assert.rejects(runSpecifyComparison(f.options), { code: "comparison_blocked" }); assert.deepEqual(f.launches, [0]);
+});
+
+test("RUN publication gap observes bound native controller/provider without replay", async t => {
+  const f = await fixture(t); let calls = 0;
+  f.options.status = async variant => {
+    if (++calls !== 1) return finished();
+    const s = preparing(variant.ack);
+    s.live.inventory.processes.push({ id: "provider", kind: "codex-provider", owner_id: "DRV-native", state: "running",
+      lease_expires_at: new Date(Date.now() + 60000).toISOString(), metadata_json: JSON.stringify({ budget: { scope_id: variant.ack.run_id } }) });
+    s.live.inventory.provider_turns.push({ scope_id: variant.ack.run_id, process_id: "provider" });
+    return s;
+  };
+  await runSpecifyComparison(f.options); assert.deepEqual(f.launches, [0, 1]);
 });
 
 test("measurement projection uses durable boundaries and separates pause/HTTP", () => {

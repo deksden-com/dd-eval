@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-202-specify-decision-comparison",
-    "sha256": "690d71e97b2ed16fb6fb3fe8be676859803adec8b85a147b6ad869a97245adc2"
+    "id": "cp-205-specify-decision-comparison",
+    "sha256": "b46d5cb0ce876249426cbe5e29d05d3569d9c4d08ba8485c44238b292fd360d0"
   },
   "entry_pack": null,
   "hitl_qualification": {
@@ -20,7 +20,7 @@
     "sha256": "d8df8e28fa27d6dfa20ed6db1630bfdfe70de530bba76b32c2e7065a2025b07b",
     "coverage": {
       "file": "entry-pack-source/interactions/qualification-coverage.json",
-      "sha256": "c24a3d6e31f31acfa62bd7dd3bca3feca5cbb58c94f6115149bd778db0aef5a3"
+      "sha256": "1829ac3235032956e6aa1cf3bc53b6adba64f82b269e780a0addab68888a8b92"
     }
   },
   "case_acceptance": {
@@ -60,6 +60,6 @@
   },
   "baseline_admission": {
     "file": "baseline-admission.json",
-    "sha256": "920ddb6fae02398a7f2f50d6ca562b5beac602abbac32a3068503d49b4bf8883"
+    "sha256": "e1ff9793936a3ba0c1b29f19de1953779c6a6c51750b1acafa4b1375221c82ea"
   }
 }

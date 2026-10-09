@@ -144,13 +144,16 @@ if(a[0]==='session') {
  }
  if(['create','prompt'].includes(a[1])) {
   const root=path.join(state,'operations',createHash('sha256').update(id).digest('hex'));
-  write(root+'/requested.json',{operation_id:id,operation:'session.'+a[1],session_id:session});
+  // Synthetic daemon parameters are the original argv, bound to the method.
+  // Carry the same original-operation identity as the selected modern adapter.
+  write(root+'/requested.json',{operation_id:id,operation:'session.'+a[1],session_id:session,daemon_id:'fixture-daemon',owner_id:null,generation:null,params_sha256:createHash('sha256').update(JSON.stringify({operation:'session.'+a[1],params:{argv:a}})).digest('hex'),requested_at:new Date().toISOString()});
   if(a[1]==='prompt' && unknown) {
    const client=path.join(state,'client-operations',createHash('sha256').update(id).digest('hex')+'.json'),saved=JSON.parse(fs.readFileSync(client));
    write(client,{...saved,recovery_observation_clock:{policy:'operation-progress@1',timeout_ms:30000,started_at:Date.now(),cursor:0,observed_at:null,elapsed_ms:0,uncertainty_elapsed_ms:120000,gaps:1,observation_lost:true}});
    console.log(JSON.stringify({ok:false,error:{code:c.fault,message:'offline observer loss'}}));process.exit(0);
   }
   write(root+'/result.json',{state:'completed',result});
+  write(root+'/settlement.json',{state:'not_required'});
   if(a[1]==='prompt' && c.fault==='lost-reply') {console.error(JSON.stringify({error:{code:'operation_observation_lost',message:'lost native reply'}}));process.exit(1);}
  }
 }
@@ -235,6 +238,7 @@ test('public supplemental Judge executes only its owned runtime and rebuilds a m
 test('supplemental Judge reattaches to a confirmed native reply without a second Session or prompt', async t => {
   const f = await runtimeFixture(t, 'lost-reply'), before = snapshotTreeHash(f.root);
   const initial = await f.invoke(); // callDriver can recover an already durable lost reply immediately.
+  const nativeCalls = (await readFile(f.calls, 'utf8')).trim().split('\n').map(JSON.parse).filter(row => row.native);
   const chainFile = (await readdir(initial.root)).find(name => name.startsWith('capacity-') && name.endsWith('.json'));
   const chain = JSON.parse(await readFile(path.join(initial.root, chainFile)));
   chain.turns.at(-1).state = 'dispatched'; delete chain.turns.at(-1).result;
@@ -247,6 +251,9 @@ test('supplemental Judge reattaches to a confirmed native reply without a second
   await unlink(path.join(initial.root, 'report.json'));
   const resumed = await f.invoke(); assert.equal(resumed.receipt.session_id, 'judge-session');
   const records = (await readFile(f.calls, 'utf8')).trim().split('\n').map(JSON.parse);
+  // A settled daemon no longer grants launch authority. Exact final receipt
+  // publication is read-only and must not issue even another daemon.start.
+  assert.deepEqual(records.filter(row => row.native), nativeCalls);
   for (const command of ['create', 'prompt']) assert.equal(records.filter(row => row.native?.[0] === 'session' && row.native[1] === command).length, 1);
   assert.equal(snapshotTreeHash(f.root), before);
 });

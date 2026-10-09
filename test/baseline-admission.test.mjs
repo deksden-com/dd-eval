@@ -9,6 +9,16 @@ import { readBaselineAdmissionPolicy, runBaselineAdmission, verifyBaselineAdmiss
 import { installMaintenanceFixture } from "./fixtures/maintenance-runtime.mjs";
 import { installRuntimeShim } from "../lib/runner.mjs";
 
+test("task-priority baseline provisions its locked Playwright browser before browser checks", async () => {
+  const caseRoot = new URL("../cases/sdlc-eval-2026-summer-task-priority/", import.meta.url);
+  const definition = JSON.parse(await readFile(new URL("case.json", caseRoot))).baseline_admission;
+  const policy = await readBaselineAdmissionPolicy({ caseRoot: caseRoot.pathname, definition });
+  const provision = policy.commands.findIndex(command => command.id === "browser-install");
+  assert.ok(provision > policy.commands.findIndex(command => command.id === "install"));
+  assert.ok(provision < policy.commands.findIndex(command => command.id === "browser"));
+  assert.deepEqual(policy.commands[provision].args, ["--filter", "@dd-tasks/web", "exec", "playwright", "install", "chromium", "--only-shell"]);
+});
+
 test("light preparation validates the baseline policy without executing its command", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "baseline-policy-"));
   try {

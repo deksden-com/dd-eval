@@ -1,0 +1,374 @@
+{
+  "run_id": "RUN-001-tasks",
+  "short_id": "RUN-001",
+  "flow_kind": "vnext_protocolize",
+  "verification_matrix_contract": "dd-flow/verification-matrix@1",
+  "final_check_coverage_contract": "dd-flow/final-check-coverage@1",
+  "subject": {
+    "id": "SPECIFY",
+    "title": "SPECIFY"
+  },
+  "project": {
+    "id": "PRJ-001-project",
+    "title": "project"
+  },
+  "workspace": {
+    "project_root": "/Users/deksden/.dd-eval/qualification/cp-204-matrix-fixture/dd-flow-protocolize-RRIBMx/project",
+    "workspace_path": "/Users/deksden/.dd-eval/qualification/cp-204-matrix-fixture/dd-flow-protocolize-RRIBMx/project",
+    "branch": "main",
+    "base": "6c71b518ae13b481346cb1f3835e79bf3e29f2c1",
+    "manager": "official-worktrunk"
+  },
+  "run_home": {
+    "storage": "dd_flow_home",
+    "path": "/Users/deksden/.dd-eval/qualification/cp-204-matrix-fixture/dd-flow-protocolize-RRIBMx/home/projects/PRJ-001-project/runs/RUN-001-tasks",
+    "relative_path": "runs/RUN-001-tasks"
+  },
+  "execution": {
+    "project_root": "/Users/deksden/.dd-eval/qualification/cp-204-matrix-fixture/dd-flow-protocolize-RRIBMx/project",
+    "workspace_root": "/Users/deksden/.dd-eval/qualification/cp-204-matrix-fixture/dd-flow-protocolize-RRIBMx/project",
+    "git": {
+      "branch": "main",
+      "head": "8a1a210cd494e0b24999f61a7fc021c83b4c2a27",
+      "status": "dirty"
+    }
+  },
+  "legacy": {
+    "project_tasks_run_dir": null
+  },
+  "stage_runs": [
+    {
+      "order": 1,
+      "stage": "specify",
+      "dir": "01-specify",
+      "status": "done",
+      "data_schema_id": "dd-flow/specify@1",
+      "updated_at": "2026-10-08T09:47:16.988Z",
+      "started_at": "2026-10-08T09:47:14.714Z",
+      "duration_ms": 2274,
+      "git": {
+        "branch": "main",
+        "head": "6c71b518ae13b481346cb1f3835e79bf3e29f2c1",
+        "status": "dirty"
+      },
+      "attempt": "try-001",
+      "stage_report": "stage-report.html",
+      "data": "specify.json",
+      "data_sha256": "00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa",
+      "report": "stage-report.md",
+      "completed_at": "2026-10-08T09:47:16.988Z"
+    },
+    {
+      "order": 2,
+      "stage": "protocolize",
+      "dir": "02-protocolize",
+      "status": "done",
+      "data_schema_id": "dd-flow/vnext-protocolize-result@3",
+      "updated_at": "2026-10-08T09:47:21.821Z",
+      "started_at": "2026-10-08T09:47:18.283Z",
+      "duration_ms": 3538,
+      "git": {
+        "branch": "main",
+        "head": "6c71b518ae13b481346cb1f3835e79bf3e29f2c1",
+        "status": "dirty"
+      },
+      "attempt": "try-001",
+      "stage_report": "stage-report.html",
+      "data": "protocolize-result.json",
+      "data_sha256": "e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead",
+      "report": "stage-report.md",
+      "completed_at": "2026-10-08T09:47:21.821Z"
+    },
+    {
+      "order": 3,
+      "stage": "plan",
+      "dir": "03-plan",
+      "status": "done",
+      "data_schema_id": "dd-flow/stage-report@1",
+      "updated_at": "2026-10-08T09:47:36.095Z",
+      "started_at": "2026-10-08T09:47:24.445Z",
+      "duration_ms": 11650,
+      "git": {
+        "branch": "main",
+        "head": "6c71b518ae13b481346cb1f3835e79bf3e29f2c1",
+        "status": "dirty"
+      },
+      "attempt": "try-001",
+      "stage_report": "stage-report.html",
+      "data": "stage-report.json",
+      "data_sha256": "7da63523bde3074118bb60505f1e542bd34e72e59836d373dc13a24c85a57a9d",
+      "report": "stage-report.md",
+      "completed_at": "2026-10-08T09:47:36.095Z"
+    },
+    {
+      "order": 4,
+      "stage": "plan-review",
+      "dir": "04-plan-review",
+      "status": "done",
+      "data_schema_id": "dd-flow/stage-report@1",
+      "updated_at": "2026-10-08T09:47:52.522Z",
+      "started_at": "2026-10-08T09:47:39.484Z",
+      "duration_ms": 13038,
+      "git": {
+        "branch": "main",
+        "head": "6c71b518ae13b481346cb1f3835e79bf3e29f2c1",
+        "status": "dirty"
+      },
+      "attempt": "try-001",
+      "stage_report": "stage-report.html",
+      "data": "stage-report.json",
+      "data_sha256": "295e7ba754d3f34bfbfd62136a29df783ff33b38db34874727eee98e125f92aa",
+      "report": "stage-report.md",
+      "completed_at": "2026-10-08T09:47:52.522Z"
+    },
+    {
+      "order": 5,
+      "stage": "code",
+      "dir": "05-code",
+      "status": "done",
+      "data_schema_id": "dd-flow/stage-report@1",
+      "updated_at": "2026-10-08T09:48:15.640Z",
+      "started_at": "2026-10-08T09:48:06.866Z",
+      "duration_ms": 8774,
+      "git": {
+        "branch": "main",
+        "head": "6c71b518ae13b481346cb1f3835e79bf3e29f2c1",
+        "status": "dirty"
+      },
+      "attempt": "try-001",
+      "stage_report": "stage-report.html",
+      "data": "stage-report.json",
+      "data_sha256": "aa102d4093b75c9050041df55ba80e784d902a711d711e4029823b184b3de5d4",
+      "report": "stage-report.md",
+      "completed_at": "2026-10-08T09:48:15.640Z"
+    },
+    {
+      "order": 6,
+      "stage": "merge",
+      "dir": "07-merge",
+      "status": "done",
+      "data_schema_id": "dd-flow/stage-report@2",
+      "updated_at": "2026-10-08T09:48:23.522Z",
+      "started_at": "2026-10-08T09:48:18.264Z",
+      "duration_ms": 5258,
+      "git": {
+        "branch": "main",
+        "head": "8a1a210cd494e0b24999f61a7fc021c83b4c2a27",
+        "status": "dirty"
+      },
+      "attempt": "try-001",
+      "stage_report": "stage-report.html",
+      "data": "stage-report.json",
+      "data_sha256": "1f87f3a534120e1ed6f053dc482e1637e60fe9ca4c8e8bbd97e403e901fd4d26",
+      "report": "stage-report.md",
+      "completed_at": "2026-10-08T09:48:23.522Z"
+    }
+  ],
+  "sessions": [
+    {
+      "session": {
+        "harness_id": "codex-desktop",
+        "session_id": "session-a"
+      },
+      "role": null,
+      "session_kind": null,
+      "work_id": "WRK-006-merge",
+      "current_stage": "merge",
+      "status": "idle",
+      "created_at": "2026-10-08T09:47:14.199Z",
+      "updated_at": "2026-10-08T09:48:23.115Z",
+      "stopped_at": null,
+      "coverage_units": []
+    },
+    {
+      "session": {
+        "harness_id": "codex-desktop",
+        "session_id": "reviewer-a"
+      },
+      "parent_session": {
+        "harness_id": "codex-desktop",
+        "session_id": "session-a"
+      },
+      "role": null,
+      "session_kind": null,
+      "work_id": "WRK-004-prt-001-task-priority-contract",
+      "current_stage": "work",
+      "status": "stopped",
+      "created_at": "2026-10-08T09:47:42.126Z",
+      "updated_at": "2026-10-08T09:47:46.405Z",
+      "stopped_at": "2026-10-08T09:47:46.232Z",
+      "coverage_units": []
+    },
+    {
+      "session": {
+        "harness_id": "codex-desktop",
+        "session_id": "code-worker"
+      },
+      "parent_session": {
+        "harness_id": "codex-desktop",
+        "session_id": "session-a"
+      },
+      "role": null,
+      "session_kind": null,
+      "work_id": "WRK-005-prt-001-task-priority-p1",
+      "current_stage": "work",
+      "status": "idle",
+      "created_at": "2026-10-08T09:48:07.896Z",
+      "updated_at": "2026-10-08T09:48:11.156Z",
+      "stopped_at": null,
+      "coverage_units": []
+    }
+  ],
+  "status": "done",
+  "verdict": "merge_completed",
+  "next_action": null,
+  "created_at": "2026-10-08T09:47:04.791Z",
+  "updated_at": "2026-10-08T09:48:23.578Z",
+  "started_at": "2026-10-08T09:47:04.791Z",
+  "timing_status": "measured",
+  "runtime_revision": 44,
+  "snapshot_revision": 1,
+  "snapshot_checksum": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "reconciliation_status": "reconciled",
+  "flow_flags": {
+    "contract": {
+      "id": "dd-flow-canonical-2026-05",
+      "version": 1,
+      "capabilities": []
+    },
+    "flow_kind": "vnext_protocolize",
+    "preset": {
+      "requested": null,
+      "applied": "none",
+      "source_ref": "dd-flow-canonical-2026-05#flow_flags.none"
+    },
+    "snapshot_revision": 1,
+    "resolution_status": "valid",
+    "resolved_at": "2026-10-08T09:47:04.791Z",
+    "values": {},
+    "compatibility_projection": {
+      "task_profile_revision": null,
+      "legacy_flow_profile_read": false
+    },
+    "snapshot_checksum": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "floors_applied": []
+  },
+  "settings": {
+    "plan_review": {
+      "mode": "standard",
+      "source": "user_instruction",
+      "reason": "review the substantive contract",
+      "updated_at": "2026-10-08T09:47:22.551Z"
+    },
+    "code_review": {
+      "mode": "off",
+      "source": "default",
+      "reason": "Project execution profile default.",
+      "updated_at": "2026-10-08T09:47:04.791Z"
+    }
+  },
+  "execution_profile": {
+    "schema_id": "dd-flow/run-execution-profile@1",
+    "source_path": "/Users/deksden/.dd-eval/qualification/cp-204-matrix-fixture/dd-flow-protocolize-RRIBMx/project/.memory-bank/dd-flow/project-execution.json",
+    "source_checksum": "b868d71c48735a987b26c0486c68e5440cf88827ebd71703044a2c1828ca5a9c",
+    "settings": {
+      "stage_session_mode": "same_session",
+      "plan_review_mode": "auto",
+      "code_review_mode": "off",
+      "merge_mode": "same_session",
+      "merge_delivery": {
+        "strategy": "local"
+      },
+      "merge_cleanup": {
+        "source": "retain"
+      },
+      "stop_target": "merge_completed",
+      "code_bootstrap": {
+        "command": "true",
+        "policy_ref": ".memory-bank/spec/operations/workspace-bootstrap-policy.md"
+      }
+    },
+    "operational_contract": {
+      "path": "operational-contract.json",
+      "sha256": "a497392c9ddc55ddff080e7ae12ddc46cd16667284e64d11ff4384a72eba6f2e",
+      "binding": {
+        "project_id": "PRJ-001-project",
+        "run_id": "RUN-001-tasks",
+        "project_root": "/Users/deksden/.dd-eval/qualification/cp-204-matrix-fixture/dd-flow-protocolize-RRIBMx/project"
+      }
+    }
+  },
+  "artifacts": {
+    "stage_prompt": "stage-prompt.md",
+    "stage_report_json": "stage-report.json",
+    "stage_report_md": "stage-report.md",
+    "stage_report_html": "stage-report.html",
+    "summary": "summary.md"
+  },
+  "timeline_path": "timeline.jsonl",
+  "works": [
+    {
+      "work_id": "WRK-001-root",
+      "parent_work_id": null,
+      "status": "completed",
+      "depends_on": [],
+      "launch_policy": "reuse_allowed",
+      "started_at": "2026-10-08T09:47:13.905Z",
+      "completed_at": "2026-10-08T09:48:23.562Z"
+    },
+    {
+      "work_id": "WRK-002-plan",
+      "parent_work_id": "WRK-001-root",
+      "status": "completed",
+      "depends_on": [],
+      "launch_policy": "reuse_allowed",
+      "started_at": "2026-10-08T09:47:23.873Z",
+      "completed_at": "2026-10-08T09:47:35.678Z"
+    },
+    {
+      "work_id": "WRK-003-plan-review",
+      "parent_work_id": "WRK-001-root",
+      "status": "completed",
+      "depends_on": [],
+      "launch_policy": "reuse_allowed",
+      "started_at": "2026-10-08T09:47:39.290Z",
+      "completed_at": "2026-10-08T09:47:52.518Z"
+    },
+    {
+      "work_id": "WRK-004-prt-001-task-priority-contract",
+      "parent_work_id": "WRK-003-plan-review",
+      "status": "completed",
+      "depends_on": [],
+      "launch_policy": "fresh_agent_required",
+      "started_at": "2026-10-08T09:47:42.126Z",
+      "completed_at": "2026-10-08T09:47:46.050Z"
+    },
+    {
+      "work_id": "WRK-005-prt-001-task-priority-p1",
+      "parent_work_id": "WRK-001-root",
+      "status": "completed",
+      "depends_on": [],
+      "launch_policy": "fresh_agent_required",
+      "started_at": "2026-10-08T09:48:07.896Z",
+      "completed_at": "2026-10-08T09:48:11.156Z"
+    },
+    {
+      "work_id": "WRK-006-merge",
+      "parent_work_id": "WRK-001-root",
+      "status": "completed",
+      "depends_on": [],
+      "launch_policy": "reuse_allowed",
+      "started_at": "2026-10-08T09:48:17.873Z",
+      "completed_at": "2026-10-08T09:48:23.115Z"
+    }
+  ],
+  "root_work_id": "WRK-001-root",
+  "flag_revision_history": [],
+  "variables": {
+    "runtime.subagent.available_slots": 6
+  },
+  "completed_at": "2026-10-08T09:48:23.578Z",
+  "finished_at": "2026-10-08T09:48:23.578Z",
+  "duration_ms": 78787,
+  "schema_id": "dd-flow/flow-run@3"
+}

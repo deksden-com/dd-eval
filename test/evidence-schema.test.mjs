@@ -9,6 +9,29 @@ import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
 
 const schemaRoot = path.resolve(import.meta.dirname, "..", "schemas");
+test('finalization attribution requires engine phase and matching RUN, not generic invalid_run_state', () => {
+  const finalization = { schema_id: 'dd-flow/terminal-finalization@1', issuer: 'dd-flow', phase: 'terminal_finalization', project_root: '/owned/project', run_id: 'RUN-owned', controller_id: 'DRV-owned', status: 'blocked', owner: 'absent', capture: 'recorded', error: { code: 'invalid_run_state' } };
+  const failure = { code: 'invalid_run_state', run_id: 'RUN-owned', recovery: { finalization } };
+  assert.equal(isInfrastructureFailure(failure), true);
+  assert.equal(isInfrastructureFailure({ code: 'invalid_run_state' }), false);
+  for (const delta of [{ run_id: 'foreign' }, { issuer: 'user' }, { phase: 'launch' }, { controller_id: '' }, { project_root: 'relative' }]) {
+    assert.equal(isInfrastructureFailure({ ...failure, recovery: { finalization: { ...finalization, ...delta } } }), false, JSON.stringify(delta));
+  }
+  assert.equal(isInfrastructureFailure({ code: 'wrapper', run_id: 'foreign', cause: failure }), false);
+  assert.equal(isInfrastructureFailure({ code: 'wrapper', run_id: 'RUN-owned', cause: failure }), true);
+  assert.equal(isInfrastructureFailure({ ...failure, recovery: { finalization: { ...finalization, status: 'pending', owner: 'unknown' } } }), true, 'cleanup uncertainty does not erase a proven finalization failure');
+});
+test('Final Judge has explicit frozen decision packet paths for fast and fallback exchanges', () => {
+  const hitl = ['semantic_decision', 'interaction_judge'].map(decision_source => ({ stage: 'specify', pause_id: decision_source,
+    decision_source, receipt_file: `/owned/${decision_source}/result.json`, coverage_filter: { confidence: 0.88 } }));
+  const result = { execution: 'e', state: 'candidate_ready', hitl };
+  const packet = buildEvidencePacket({ manifest: { run_id: 'EVAL-audit', executions: [{ id: 'e' }] }, results: [result], candidate: { immutable_hash: 'a'.repeat(64) } });
+  for (const [i, item] of packet.executions[0].hitl.entries()) {
+    assert.equal(item.packet_file, `/owned/${hitl[i].decision_source}/packet.json`);
+    assert.equal(item.coverage_filter.confidence, 0.88);
+  }
+  assert.equal(hitl[0].packet_file, undefined, 'projection must not mutate frozen exchanges');
+});
 async function validator(file) {
   const schema = JSON.parse(await readFile(path.join(schemaRoot, file), "utf8"));
   return new Ajv2020({ allErrors: true }).compile(schema);

@@ -1,6 +1,7 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-export async function runtimeProcess(config, action, options = {}, { timeoutMs = 5000, signal } = {}) {
+import { RENEWAL_POLICY } from './lease-renewal.mjs';
+export async function runtimeProcess(config, action, options = {}, { timeoutMs = RENEWAL_POLICY.budgetMs, signal } = {}) {
   const args = ['runtime', 'process', action];
   for (const [name, value] of Object.entries(options)) if (value !== undefined && value !== null) args.push(`--${name}`, String(value));
   args.push('--json');

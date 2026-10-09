@@ -19,6 +19,20 @@
       "inactivity_timeout_ms": 600000
     },
     {
+      "id": "browser-install",
+      "command": "pnpm",
+      "args": [
+        "--filter",
+        "@dd-tasks/web",
+        "exec",
+        "playwright",
+        "install",
+        "chromium",
+        "--only-shell"
+      ],
+      "inactivity_timeout_ms": 600000
+    },
+    {
       "id": "browser",
       "command": "pnpm",
       "args": [

@@ -51,7 +51,7 @@ Checkpoint/context/engine are identical; keep the case contour and do not create
 a focused entry pack. Commit definitions and run normal preflight before launch.
 
 Profile@2 optionally enables `semantic_decisions` with provider/model,
-`min_confidence=0.93` and `max_retries=2`; do not also select legacy
+`min_confidence=0.75` and `max_retries=2` in current launch profiles; do not also select legacy
 `interaction_judge.coverage_policy`. Disabled requires no HTTP/key. Selected
 credentials are `OPENROUTER_API_KEY` or `OPENAI_DECISIONS_API_KEY` at the EVAL
 owner only; never put secrets in profiles, arguments or evidence. Missing optional
@@ -71,6 +71,16 @@ is not a completed-stage speed sample. Audit every fast-path acceptance after
 the stage against frozen question/sources/answer bytes, outside timed SPECIFY.
 Defining these profiles authorizes no paid calls, full E2E, qualification campaign,
 historical replay or extra comparison.
+
+The 0.75 threshold applies to future launches only; historical and active EVALs
+retain their admitted policy (including earlier 0.93 runs). Final Judge audits
+every retained decision exchange, both fast acceptance and fallback, using its
+explicit frozen packet path. It reports correctness or missing evidence per
+stage/pause in the conclusion and material evaluator errors in findings; it does
+not call Decisions again, repair answers, or blame Subject for evaluator errors.
+This is post-run semantic assessment, not a preventive guarantee. SPECIFY-only
+profiles disable Final Judge and therefore do not perform that automatic audit;
+use a full profile with Final Judge enabled when post-run audit is required.
 
 ## Scoped operational policy and evidence (plan 069)
 
@@ -307,6 +317,11 @@ and `verifyEngineArtifact` from `lib/engine-admission.mjs`; do not implement a
 second checksum algorithm or ask a model/operator to rewrite the hash. Record
 tarball SHA-256, npm integrity and snapshot SHA-256 as separate identities.
 
+Baseline admission includes idempotent installation of the Chromium headless shell
+selected by that workspace's locked Playwright package. This prerequisite runs
+under the same owned baseline process/lease and sliding inactivity policy; its
+failure is retained and blocks Subject dispatch. No globally installed Playwright
+version or previous host cache is assumed, and product tests are not waived.
 The actual E2E runs baseline admission in its own restored project before the
 Subject starts. It establishes whether a failure already exists before the
 model's changes; it is not a test of the requested new feature. Keep this
@@ -356,6 +371,16 @@ Historical receipts are never upgraded in place. This is regression evidence,
 not a certificate that Judge cannot err; real E2E decisions still pass current
 validation. Preflight merely checks the current assessment receipt and
 still records `provider_sessions_created: 0`; direct `eval run` checks it too.
+
+New qualification intents (`dd-eval/qualification-intent@2`) distinguish
+`prepared` from `dispatch_intent`. The latter is recorded **before** native
+Session creation; a crash on either side of the native reply remains unknown,
+never permission to repeat a paid call. A prepared task is eligible for a fresh
+preparation only when its exact packet/profile/root remain bound, there is no
+Session or productive operation in its native ledger, and the same daemon has
+a complete durable physical/resource stop with observed process retirement.
+A preparation marker, empty Session list or failed cleanup alone is insufficient.
+Legacy intents lack this boundary and retain their reconciliation blocker.
 
 ### Compact coverage and optional JEV filter (plan 070)
 

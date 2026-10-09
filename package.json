@@ -7,8 +7,8 @@
     "dd-eval": "./bin/dd-eval.mjs"
   },
   "scripts": {
-    "test": "node --test",
-    "validate": "node --test"
+    "test": "node --test --test-concurrency=1 test/*.test.mjs",
+    "validate": "node --test --test-concurrency=1 test/*.test.mjs"
   },
   "engines": {
     "node": ">=22.0.0"

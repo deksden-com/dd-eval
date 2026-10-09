@@ -3,8 +3,32 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { installRuntimeShim, projectStoppedControl } from '../lib/runner.mjs';
+import { buildReport, installRuntimeShim, projectStoppedControl, runnerStatus, runResultRevision, storedExecutionResults } from '../lib/runner.mjs';
+import { appendEvent, readEvents, writeJsonAtomic } from '../lib/runner-events.mjs';
 import { commandText } from '../lib/process-json.mjs';
+
+test('status preserves durable run state while failed HITL readback remains unknown, never permission', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'status-hitl-readback-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const runId = 'EVAL-status', eventsFile = path.join(root, 'events.jsonl');
+  const manifest = { run_id: runId, case_id: 'fixture', runtime_resource_home: path.join(root, 'resources'),
+    executions: [{ id: 'e2e', mode: 'e2e', stage: 'specify' }], profile: { judge: { enabled: false }, interaction_judge: { verdict_contract: 'dd-eval/hitl-coverage@1' } } };
+  await writeJsonAtomic(path.join(root, 'manifest.json'), manifest);
+  await appendEvent(eventsFile, { source: 'test', runId, executionId: 'e2e', type: 'dev.dd.eval.hitl.matched', data: {
+    receipt_file: path.join(root, 'missing-receipt.json'), answer_file: path.join(root, 'missing-answer.md') } });
+  await appendEvent(eventsFile, { source: 'test', runId, executionId: 'e2e', type: 'dev.dd.eval.execution.candidate_ready', data: {
+    result: { execution: 'e2e', state: 'candidate_ready' } } });
+  const events = await readEvents(eventsFile), results = storedExecutionResults(events, manifest);
+  await writeJsonAtomic(path.join(root, 'reports/report.json'), buildReport({ root, manifest, results, state: 'finished', cleanupState: 'settled' }));
+  await appendEvent(eventsFile, { source: 'test', runId, type: 'dev.dd.eval.completed', data: { state: 'finished', result_revision: runResultRevision(events, manifest) } });
+  const status = await runnerStatus({ evalRoot: root });
+  assert.equal(status.state, 'finished');
+  assert.equal(status.cleanup_state, 'settled');
+  assert.equal(status.interaction_resolution, 'unknown');
+  assert.equal(status.interaction_coverage.verification.complete, false);
+  assert.equal(status.execution_results[0].hitl_observation.unavailable, true);
+  assert.equal(status.execution_results[0].hitl_observation.error.code, 'judge_evidence_mismatch');
+});
 
 test('runtime shim pins home and engine from a foreign cwd and environment', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-'$shim-"));

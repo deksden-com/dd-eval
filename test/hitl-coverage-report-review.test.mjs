@@ -83,5 +83,10 @@ test("active status reads verified matched proof before an execution result is a
   assert.equal(status.interaction_coverage.decisions[0].fallback_reason, "missing_key");
   assert.equal(status.execution_results[0].hitl[0].answer, responses[0].answer);
   await writeFile(answerFile, "Corrupt answer");
-  await assert.rejects(runnerStatus({ evalRoot: root }), error => error.code === "judge_evidence_mismatch");
+  const journal = await readFile(eventsFile, "utf8"), unavailable = await runnerStatus({ evalRoot: root });
+  assert.equal(unavailable.interaction_resolution, "unknown");
+  assert.equal(unavailable.interaction_coverage.verification.complete, false);
+  assert.equal(unavailable.execution_results[0].hitl_observation.error.code, "judge_evidence_mismatch");
+  assert.equal(unavailable.execution_results[0].hitl, undefined);
+  assert.equal(await readFile(eventsFile, "utf8"), journal);
 });

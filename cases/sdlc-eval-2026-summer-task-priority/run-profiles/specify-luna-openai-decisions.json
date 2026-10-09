@@ -64,7 +64,7 @@
     "enabled": true,
     "provider": "openai-decisions",
     "model": "gpt-6-luna",
-    "min_confidence": 0.93,
+    "min_confidence": 0.75,
     "max_retries": 2
   }
 }

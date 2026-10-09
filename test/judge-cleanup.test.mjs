@@ -21,6 +21,15 @@ test('all Judge cleanup consumers reject live/unknown identity but reuse a retir
   assert.equal(assertJudgeCleanupCurrent(reference), true);
   await finishJudgeCleanup({ root, profileId: 'offline', stop: () => assert.fail('never signal the unrelated recycled PID') });
   assert.deepEqual(await Promise.all(['result.json', 'cleanup.json', 'daemon/daemon.json'].map(file => readFile(path.join(root, file)))), before);
+  t.mock.method(process, 'kill', (pid, signal) => {
+    assert.equal(pid, process.pid); assert.equal(signal, 0);
+    throw Object.assign(new Error('foreign UID denies signal'), { code: 'EPERM' });
+  });
+  // The same retirement proof works for a recycled system-owned PID; denied
+  // signals alone never grant reuse, and no consumer signals the new process.
+  assert.equal(assertJudgeCleanupCurrent(await assertJudgeCleanup(root, verdict)), true);
+  await finishJudgeCleanup({ root, profileId: 'offline', stop: () => assert.fail('never signal a recycled system-owned PID') });
+  assert.deepEqual(await Promise.all(['result.json', 'cleanup.json', 'daemon/daemon.json'].map(file => readFile(path.join(root, file)))), before);
   for (const stopped_at of [undefined, 'corrupt', new Date(Date.now() + 60_000).toISOString()]) {
     await writeFile(stateFile, JSON.stringify({ ...retired, stopped_at }));
     await assert.rejects(assertJudgeCleanup(root, verdict), { code: 'judge_cleanup_unconfirmed' });

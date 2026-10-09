@@ -18,6 +18,11 @@ test('all-harness native contracts execute from exact installed bytes with conse
   await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
   await symlink('engines/selected/dist/harness-runtime', path.join(root, 'harness-runtime'));
   const contracts = await loadNativeContracts(root, { requireProgress: true });
+  const readOnly = await loadNativeContracts(root);
+  for (const selected of [contracts, readOnly]) {
+    assert.equal(selected.canonicalNativeOperation('grok-acp', 'session.resume'), 'session.inspect');
+    for (const harness of ['codex-desktop', 'zcode-acp']) assert.equal(selected.canonicalNativeOperation(harness, 'session.resume'), 'session.resume');
+  }
   assert.equal(contracts.native_wait_contract, 'native-operation-wait@1');
   assert.equal(contracts.nativeOperationWait('droid-cli', 'session.start'), 'native-work');
   assert.equal(contracts.nativeOperationWait('codex-desktop', 'session.start'), 'control');
@@ -79,7 +84,14 @@ test('productive native and capacity imports reject unhashed symlink assets whil
   await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum } }));
   await symlink('engines/selected/dist/harness-runtime', path.join(root, 'harness-runtime'));
   assert.equal((await loadNativeContracts(root)).engine_artifact_sha256, checksum);
+  assert.equal((await loadNativeContracts(root)).canonicalNativeOperation, undefined, 'historical reads may predate the optional wait module');
+  await assert.rejects(loadNativeContracts(root, { requireProgress: true }), { code: 'native_contract_unsupported' });
   assert.equal((await loadCapacityPolicy(root)).engine_artifact_sha256, checksum);
+  await writeFile(path.join(lib, 'adapter-timeouts.mjs'), "import './missing-dependency.mjs';");
+  await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
+  await assert.rejects(loadNativeContracts(root), { code: 'native_contract_unsupported' }, 'a present module with a broken dependency is not historical absence');
+  await rm(path.join(lib, 'adapter-timeouts.mjs'));
+  await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum } }));
   const external = path.join(root, 'foreign.mjs');
   await writeFile(external, "globalThis.__review061_foreign_import = true; " + children);
   for (const [link, target, type] of [

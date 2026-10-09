@@ -314,6 +314,21 @@ test("retained route verification uses frozen fingerprint without HTTP and exact
     interaction_fixture_sha256: sourceBinding.fixture_sha256,
     observation_sha256: hashJson(stored), verdict, answer_sha256: sha256(packet.responses[0].answer), delimiter: "dd-eval/hitl-response-delimiter@1" };
   assert.deepEqual(await verifySemanticReceipt(root, receipt, packet), verdict);
+  // A prompt revision must not invalidate completed historical evidence.
+  const old = structuredClone(stored);
+  old.request.questions[0].instructions = "Original frozen semantic policy before a later revision.";
+  old.identity.request_sha256 = hashJson(old.request);
+  await writeJsonAtomic(observation.file, old);
+  const originalReceipt = { ...receipt, observation_sha256: hashJson(old) };
+  assert.deepEqual(await verifySemanticReceipt(root, originalReceipt, packet), verdict);
+  old.request.state.question = "A different question";
+  old.identity.request_sha256 = hashJson(old.request);
+  await writeJsonAtomic(observation.file, old);
+  await assert.rejects(verifySemanticReceipt(root, { ...originalReceipt, observation_sha256: hashJson(old) }, packet), /does not describe this packet/);
+  delete old.request;
+  await writeJsonAtomic(observation.file, old);
+  await assert.rejects(verifySemanticReceipt(root, { ...originalReceipt, observation_sha256: hashJson(old) }, packet), { code: "semantic_request_unavailable" });
+  await writeJsonAtomic(observation.file, stored);
   await assert.rejects(verifySemanticReceipt(root, { ...receipt, answer_sha256: sha256("paraphrased") }, packet));
   await assert.rejects(verifySemanticReceipt(root, { ...receipt, session_id: "fake" }, packet));
 }));
