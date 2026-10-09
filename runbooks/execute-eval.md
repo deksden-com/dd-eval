@@ -1,1093 +1,164 @@
 # Execute an eval
 
-## Sequential SPECIFY comparisons (plan 073)
-
-`runner eval run` exits after **accepted/pending**, not after EVAL completion.
-`concurrency.global=1` is per EVAL; it does not serialize separate homes. Use:
-
-```sh
-node scripts/run-specify-comparison.mjs --campaign /absolute/comparison-receipts --base-home /absolute/prepared-engine-home --profile cases/sdlc-eval-2026-summer-task-priority/run-profiles/specify-luna-judge-only.json --profile cases/sdlc-eval-2026-summer-task-priority/run-profiles/specify-luna-jev.json --profile cases/sdlc-eval-2026-summer-task-priority/run-profiles/specify-luna-openai-decisions.json
-```
-
-The explicit base home must contain the pinned `published-engine` and validated
-`engine-config`; keep its configuration stable during admission. Variants use
-fresh `comparison-<campaign-hash>/variant-1`, `variant-2`, … homes beneath it and
-isolated resource homes; separate campaign directories cannot share variant homes.
-All preflights must agree on effective execution contract/checkpoint before any
-paid submission. Only decision route and descriptive variant labels may differ.
-Secrets remain environment-only. The receipt records hashes and exact EVAL IDs.
-The binding includes retained runtime/capacity admission declarations, not just
-model settings. Each contract's integrity is validated, but provenance-only edits
-(such as an overwritten ambient model) do not invalidate equal execution inputs.
-The script passes `runner eval run --expected-inputs <JSON>` with five retained
-profile, contract, admission, checkpoint and fixture/context hashes. The last
-binding includes the canonical responses and only reachable Stage blueprint
-inputs; unrelated later-stage context or repository edits do not invalidate it.
-The runner checks them before publishing
-the manifest or enqueueing a worker, so drift cannot dispatch before the campaign
-notices it. This guard is optional for ordinary independent launches.
-
-The next variant waits for `finished` **and authoritative `cleanup_state=settled`**.
-Failure, operator stop or ownership blocker stops orchestration, without repair.
-SIGINT/SIGTERM stop polling only; they do not kill the active EVAL. Reusing the
-same campaign re-observes retained IDs. Missing acknowledgment permits only
-read-only reconciliation of one matching manifest in its recorded isolated home;
-zero/multiple/unbound manifests require investigation, never blind retry.
-
-Compare durable Stage start/done separately from paused windows and decision
-HTTP/retry timings. Paused time is not pure Judge compute. Independent SPECIFY
-trajectories can ask different questions; one sample is not a causal speed or
-accuracy estimate. Decision-only benchmarking requires identical retained packets
-and separate authorization for paid calls. Definitions of profiles are not launch
-authorization.
-
-## Bounded semantic-decision pilots (plan 071)
-
-Use committed profiles `specify-luna-judge-only.json`, `specify-luna-jev.json`,
-and `specify-luna-openai-decisions.json` sequentially in fresh isolated homes.
-All use Subject `gpt-6-luna/xhigh`, compact Interaction Judge `gpt-6.1-sol/high`,
-concurrency 1, one repetition, `stop_after=specify`, and Final Judge disabled.
-Checkpoint/context/engine are identical; keep the case contour and do not create
-a focused entry pack. Commit definitions and run normal preflight before launch.
-
-Profile@2 optionally enables `semantic_decisions` with provider/model,
-`min_confidence=0.75` and `max_retries=2` in current launch profiles; do not also select legacy
-`interaction_judge.coverage_policy`. Disabled requires no HTTP/key. Selected
-credentials are `OPENROUTER_API_KEY` or `OPENAI_DECISIONS_API_KEY` at the EVAL
-owner only; never put secrets in profiles, arguments or evidence. Missing optional
-credentials/provider errors use the admitted native fallback; existing native
-qualification remains mandatory and cannot be replaced by a confidence score.
-
-Fast coverage requires one canonical response, complete admitted evidence, and
-confident `uncovered=false`, delivering exact canonical bytes. Low confidence,
-refusal, uncovered or unsupported results go to native Judge without generated
-answers. Only transient errors retry (initial plus two attempts); stop/fence
-aborts HTTP/backoff without fallback or late answer issuance. The confidence
-threshold is experimental policy, not measured accuracy or an old certificate.
-
-`finished` means confirmed selected-target completion with settled evidence and
-cleanup, not full E2E/product PASS. Retain skipped-target reasons; skipped SPECIFY
-is not a completed-stage speed sample. Audit every fast-path acceptance after
-the stage against frozen question/sources/answer bytes, outside timed SPECIFY.
-Defining these profiles authorizes no paid calls, full E2E, qualification campaign,
-historical replay or extra comparison.
-
-The 0.75 threshold applies to future launches only; historical and active EVALs
-retain their admitted policy (including earlier 0.93 runs). Final Judge audits
-every retained decision exchange, both fast acceptance and fallback, using its
-explicit frozen packet path. It reports correctness or missing evidence per
-stage/pause in the conclusion and material evaluator errors in findings; it does
-not call Decisions again, repair answers, or blame Subject for evaluator errors.
-This is post-run semantic assessment, not a preventive guarantee. SPECIFY-only
-profiles disable Final Judge and therefore do not perform that automatic audit;
-use a full profile with Final Judge enabled when post-run audit is required.
-
-## Scoped operational policy and evidence (plan 069)
-
-An E2E profile using an exception declares `operational_decision` explicitly.
-Settings alone are not permission to override project Git policy. Admission
-verifies the policy bytes and materializes the declaration against the exact
-selected engine for this project/EVAL/execution. Stage and Work read the same
-frozen RUN artifact; never replace a historical decision to unblock a run.
-Recovery retains that decision; a new fork/import requires a newly scoped
-acceptance. A review date is not an expiration unless `expires_at` is declared.
-
-New EVALs freeze `runtime_recovery_home` under their own `recovery/` directory.
-Control commands use it even if the operator environment names another home.
-Checker `task-priority@4` distinguishes gate applicability from missing evidence,
-and all-aborted checks are failures, not successful/not-applicable checks.
-Judge evidence `evaluator-evidence@2` and the candidate bind the same Subject
-history cut as the report. Candidate definitions are not live E2E acceptance.
-
-The only routine interface is `dd-eval runner`.  A focused execution begins
-from an empty provider Session and a portable stage-entry fixture; it does not
-fork, warm up, or read a canonical provider Session.  All mutable files belong
-under an absolute `DD_EVAL_HOME`.
-
-Project materialization installs local Git exclusions for `.dd-eval/` task
-context and the complete `.zcode/` service directory before Subject work starts.
-The same preparation runs after restore/fork; do not fix historical EVALs by
-editing their excludes. Tracked project files remain tracked, including any
-deliberately versioned `.zcode` configuration. Git ignore is not a snapshot
-policy: task context and uncommitted product work must survive capture; only
-untracked provider-owned `.zcode` data is omitted from new project payloads.
-New recovery snapshots record that selection policy; old sealed payloads retain
-their original verification semantics. Native-home reduction has a separate
-[loader qualification gate](native-payload-inventory-052.md); do not infer
-portable Session recovery from a successful summary/inspect call.
-
-Reliability work is tracked in [repair plan 019](../specs/019-durable-execution-and-e2e-repair-plan.md)
-and [plan 023](../specs/023-suspend-aware-execution-and-repair-contracts.md).
-The shipped runtime rule is deliberately narrow: an observed host/event-loop
-gap is an **unknown provider outcome**, never proof of model inactivity;
-`running` alone is not progress. Preserve the late provider result and the
-original error, then reconcile that same operation. A local
-`subject_liveness_timeout` is also an unknown native outcome, not a provider
-terminal. Reconcile the exact retained operation before any new prompt;
-authorized owned cleanup must separately prove whole-tree settlement.
-Do not work around a recovery error by editing runtime SQLite, accepted results
-or MERGE freeze files. In particular, an RPC/daemon/Turn timeout normally
-means that the client did not observe an outcome; reconcile the existing
-operation before any new prompt, cancellation or retry. Only a native adapter
-may emit `subject_liveness_timeout`, after its own activity evidence has been
-absent for its configured window. Runner heartbeats and a `running` status
-never extend that window.
-
-### Progress policy (plan 065)
-
-New Judge qualification and productive prompt callers have no total-work cap.
-Their selected native adapter owns the inactivity window. Reasoning, text,
-tools, advancing usage and validated current children can renew it; replayed
-events, observer polling, lease renewal and model selection cannot. Never
-increase a wall cap or edit old capacity chains to obtain qualification PASS.
-Unknown dispatch remains fenced until exact native terminal/settlement.
-
-New baseline policy@2 uses `inactivity_timeout_ms` and receipt@2. Its admitted
-command renews from actual output, while the selected maintenance helper
-independently renews its lease. Closing drains renewal before process finish.
-Legacy policy@1 retains its absolute `timeout_ms`; historical receipts and
-checkpoints are not upgraded in place. Preparation/verification/fork use the
-exact pinned policy/hash; product source bytes stay unchanged.
-
-Operational CLI observers have phase-specific quiet guards (control/status
-30 seconds; clone/install/build/snapshot 30 minutes), not model deadlines.
-Their expiry stops only the owned observer and reports observation loss;
-it neither cancels a detached RUN nor proves a provider failure. Large stderr
-uses a diagnostic tail, while an oversized final reply is rejected whole,
-never truncated into a successful JSON receipt.
+Use `node bin/dd-eval.mjs` from a clean committed definition checkout. Preparation
+alone does not authorize paid qualification, provider calls or scored launches.
 
 ## Before launch
 
-### Native child slots and completed parent turns (cp-113/cp-118)
+1. Perform [preparation cleanup](eval-storage.md#before-every-campaign): retire old
+   owned daemons, close investigation deferrals and remove disposable old data/DBs.
+2. Select a committed run profile and its case/input checkpoint. Keep the pinned
+   product baseline; do not substitute current product `main`. Record the selected
+   Subject, worker/Judge models, reasoning, decisions policy and completion scope.
+3. Use a fresh absolute EVAL home and the exact checkpoint engine:
 
-Codex multi-agent v2 owns completed-child residency and slot reuse. Coordinators
-retain terminal results and Work finish/fail receipts, but must not interrupt or
-close completed children as cleanup. On a capacity refusal, preserve successful
-spawns, wait for them and report unlaunched assignments. Never interrupt a
-running child merely to make room. The existing controller dispatches the
-remainder; a failed batch does not undo its successful spawns. Do not add a
-separate slot ledger or a routine capacity requalification.
+   ~~~sh
+   export DD_EVAL_HOME=/absolute/campaign-home
+   export DD_FLOW_BIN="$DD_EVAL_HOME/published-engine/node_modules/@deksden-com/dd-flow-cli/dist/cli.js"
+   export DD_FLOW_CONFIG_HOME="$DD_EVAL_HOME/engine-config"
+   export DD_FLOW_RESOURCE_HOME=/absolute/shared-host-resource-home
+   ~~~
 
-A completed parent Turn with `settlement.reason=tree_unsettled` is normal child
-activity, not a bookkeeping timeout. The controller observes it through its
-existing waiting loop; the daemon keeps its budget until a settled inspection.
-Real bookkeeping errors retain bounded retries. Stop and checkpoint barriers
-still require physical settlement. Monitor controller stage and child receipts,
-not only parent Turn completion or run-control status.
+   Prepare these from the accepted engine/configuration, not a failed execution.
+   All concurrent consumers of shared resources use the same resource registry.
+   Preflight and launch must use the same engine. Do not silently fall back to a
+   global CLI or change a retained run's engine. See [harness updates](update-harnesses.md).
+4. Verify engine integrity, installed `harnesses.json`, every reachable Flow agent
+   profile and Subject/worker/Judge adapter admission. Eval profiles and installed
+   Flow profiles have different schemas. Run the pinned adapter's non-generative
+   doctor; qualify changed native contracts only when relevant evidence is absent.
+   Compatibility/capacity qualification can call a provider and needs authorization.
+5. For focused/segment runs, validate their accepted entry pack:
 
-The installed Codex 0.154.0 slot reuse was proven by the bounded native probe
-in [the CP-113 investigation](cp-113-luna-capacity-settlement-investigation-2026-09-17.md).
-Do not repeat it before every E2E when that native contract is unchanged.
+   ~~~sh
+   node bin/dd-eval.mjs runner fixtures validate --case <case-id>
+   ~~~
 
-### Hook → CLI admission (cp-110)
+   E2E uses its input checkpoint; it does not require a focused entry pack and must
+   not consume later-stage reference artifacts or canonical provider Sessions.
+6. If the case requires HITL qualification, ensure its current assessment passes:
 
-Qualification: the bounded native Luna/Codex 0.154.0 probe passed root,
-code-mode and six concurrent child admissions; evidence is recorded in spec
-038 section 14. This is transport qualification, not a complete product E2E.
-Use the newly built engine for a new fork; do not patch the original CP-110 RUN.
+   ~~~sh
+   node bin/dd-eval.mjs runner definition qualify --profile <absolute-profile.json>
+   ~~~
 
-Native hooks are synchronous ingress only: the hook records a minimal native
-identity/operation receipt in the already-prepared RUN database and returns
-after COMMIT. The CLI then reads and claims that exact receipt and owns the
-Work/Stage mutation. Do not make required admission depend on `updatedInput`,
-which is not reliable across all installed transports. Managed model-facing
-commands omit the runtime invocation UUID. The hook correlates the exact
-operation/target with a prepared attempt inside the trusted native root and
-commits that receipt before returning; the CLI admits only that receipt. If
-more than one attempt matches, admission fails closed and the compatibility
-path may expose an explicit ID. The hook must not migrate the
-store, validate CLI arguments/payload files, bind logical RUN/Work state, issue
-retry commands, start Work, launch a detached writer or be repaired by the model.
-Its project anchor comes from the owning daemon/configured workspace, never
-from the model's `--project-root`. Native identity and receipt storage errors
-remain infrastructure failures. Apply this boundary to all harness adapters.
-
-Managed Codex uses the lightweight CLI ingress, not the business router.
-Before opening storage it asks the existing owning daemon to verify the active
-native `hook/started` event (exact root/child/tool/turn). `hook/completed` retires
-that proof. Supplied stdin IDs alone are insufficient; `native_hook_unproven`
-is an infrastructure failure, never a request for manual repair. The awaited
-worker has a 20-second budget inside the native host's 30-second timeout;
-the owning daemon verification has a 5-second budget within that worker.
-Unrelated tools return before opening storage. Hook stderr contains phase
-timings; the native journal contains the complete host duration.
-
-If the hook fails before COMMIT, the command has no admission and must fail
-with `effect=no_effect`; the controller receives the infrastructure failure and
-stops the owned tree without waiting for a later `finish`. A committed write
-is visible to a new SQLite transaction without a WAL checkpoint or sleep; do
-not keep an old read snapshot while waiting. A timeout after COMMIT is
-reconciled from durable state and never blindly replayed. A stale, foreign or
-ambiguous receipt is rejected. Repeating the same issued command from a new
-native tool call is allowed only while no CLI has claimed execution: the hook
-records the new observation and the CLI's atomic `observed -> executing`
-transition still admits exactly one executor. This covers a native shell launch
-rejected before the CLI process existed. Once execution starts, another
-observation cannot replace its receipt or replay the effect. A real hook failure
-stops execution without automatic retry, even when no effect is proven.
-`status`, a direct hook-handler call and generated IDs are not valid recovery.
-
-CLI argument rejection is different: validate before claiming execution or
-starting Work. An issued/observed invocation with incorrect arguments returns
-`effect=no_effect`, `recoverable=true` and an exact `retry_command`. The CLI
-atomically settles the rejected attempt and issues its sole corrected successor.
-The same native Session may execute that command; it must not repair the hook
-or invent an invocation ID. RUN/Work commands may use their scoped short IDs;
-`@project` is expanded only in declared dd-flow path parameters. `@workspace`,
-`@run` and `@eval` are context aliases only where the corresponding CLI declares
-them; shell tools do not expand these names. Executing/unknown-effect attempts never get this
-replacement. Old IDs replay retained outcomes; storage rollback must not expose
-a usable successor. CP-114's mistyped project path is the regression case.
-
-An unobserved issued invocation times out as a retained infrastructure error,
-not as a correctable result and not as an automatically issued successor.
-Retained outcomes are read before hook observation; replay never requires a
-fresh receipt. Managed Codex hook failures use the adapter's owned native tree
-and managed hooks.json source, preserve the first cause and leave cancellation
-available; unrelated user hooks must not abort a RUN.
-
-### Writer contract and lifecycle outcomes (cp-108)
-
-For engine beta.64, prepare a fresh campaign home and resource home using writer
-contract 2. Do not implicitly migrate historical contract-1 stores or point the
-new engine at their shared registry. Keep one explicit resource home for every
-process in the new campaign; account for old campaigns before allocating shared
-host resources. A receipt with unknown effects is not permission to repeat a
-provider prompt. Recover a committed Work start from its retained packet/reply;
-only a proven SQL-only rollback permits the retained bounded storage retry.
-
-Use controller/root journal outcomes and observation.json to monitor progress.
-An observation projection warning after journal fsync does not mean the productive
-operation failed. A corrupt journal or unavailable retained outcome must stop
-admission and preserve evidence; never truncate the journal to make resume pass.
-
-### Comparison does not require identical runtime versions
-
-Follow [the comparison policy](../methodology/evaluation-methodology.md#comparability-across-runtime-versions).
-Equal checkpoint task inputs, flow/memory-bank and evaluation conditions allow
-comparison across CLI, eval-runner and harness/adapter versions. Record those
-versions per run; an upgrade alone does not require rerunning earlier candidates.
-If checkpoint files differ only in engine pins, record equality of their source,
-flow/memory-bank and case inputs rather than requiring equal whole-file hashes.
-Each new run must still satisfy its own exact pinned-engine admission checks;
-never replace an old run's engine or edit its manifest to make it comparable.
-
-### Harness admission after an upgrade (cp-106 incident)
-
-Before declaring readiness, run the non-generative `doctor` from the exact
-campaign engine's `harness-runtime/bin`, with the actual configured native
-binary/bridge. For ZCode, use `node <runtime>/harness-runtime/bin/dd-zcode.mjs
-doctor --zcode-acp-bin <configured-bridge> --json`. Check both `compatible: true`
-and every `observed_runtime` field against the selected eval profile. A zero
-exit code, unchanged version string, successful engine install, or passing
-release tests alone does not prove admission. Retain the JSON receipt.
-
-When a bridge commit changes, review its relevant protocol changes, update its
-qualified tuple and selected profile together, and verify the actual doctor.
-Unknown tuples must still fail closed. Do not blindly replace a qualification
-hash to make a launch pass. Run a focused live probe only when the changed
-behavior lacks evidence; this is not another product baseline or full E2E.
-
-The ordinary E2E runner now checks its provisioned Subject adapter before
-baseline admission and saves `harness-admission.json` on success. Preparation
-must also check any selected Judge/worker adapters. Engine fixes require the
-normal release and a new checkpoint before the next published-engine campaign;
-source tests do not upgrade an already installed beta.62 snapshot.
+   This may make paid calls for genuinely new Judge inputs. Reuse unchanged tasks:
+   Subject harness/engine fixes, transport repairs and unrelated repo edits do not
+   retest Judge. Oracle changes reassess retained answers deterministically; changed
+   questions affect their tasks, shared Judge prompt/model changes affect all tasks.
+   Corrupt evidence, unknown paid outcomes or unconfirmed cleanup require resolution,
+   not a replacement call. Qualification is regression evidence, not infallibility.
+7. Check host prerequisites. Task Priority needs project PostgreSQL on loopback
+   `55433`; reuse its service/volume, never create a competing container. Do not
+   add a manual product quality/browser/world suite as a preparation gate.
 
 ### Bounded preparation policy (2026-09-13)
 
-For a checkpoint fork, inspect Git status in both restored checkouts before
-declaring readiness. A feature repair cannot repair the separate MERGE target.
-Historical `.env.example` omissions require an evidenced repair in the new fork,
-not an automatic reset; see [the Fork-023 runbook](cp-108-fork-023-template-recovery.md).
+~~~sh
+node bin/dd-eval.mjs runner eval preflight --profile <absolute-profile.json>
+~~~
 
-Preparation is not a product qualification or a live E2E. Reuse an accepted
-published engine and checkpoint when their inputs have not changed; a new
-campaign alone requires neither a CLI release nor another full test suite.
-Check the committed case/checkpoint, exact engine identity and integrity,
-installed profile/configuration agreement, existing harness qualification and
-host prerequisites. Do not run product `quality`, `test:browser` or `test:world`
-manually as additional preparation gates.
-
-The checkpoint engine checksum is the installed immutable engine snapshot
-checksum from `engine.json.integrity`, not the digest of the bare npm package
-directory and not npm tarball integrity. A snapshot includes copied production
-dependencies. Verify the value with `engineArtifactDigest(engine.snapshot_root)`
-and `verifyEngineArtifact` from `lib/engine-admission.mjs`; do not implement a
-second checksum algorithm or ask a model/operator to rewrite the hash. Record
-tarball SHA-256, npm integrity and snapshot SHA-256 as separate identities.
-
-Baseline admission includes idempotent installation of the Chromium headless shell
-selected by that workspace's locked Playwright package. This prerequisite runs
-under the same owned baseline process/lease and sliding inactivity policy; its
-failure is retained and blocks Subject dispatch. No globally installed Playwright
-version or previous host cache is assumed, and product tests are not waived.
-The actual E2E runs baseline admission in its own restored project before the
-Subject starts. It establishes whether a failure already exists before the
-model's changes; it is not a test of the requested new feature. Keep this
-per-execution baseline and its receipt. Do not share a baseline PASS between
-Luna and ZCode workspaces or use an old receipt to excuse a broken environment.
-For a multi-harness campaign on one host, start the next scored E2E only after
-the preceding execution has written its own baseline receipt. Concurrent
-CPU-heavy baselines can make a timing-sensitive source test fail before any
-Subject Session exists; this scheduling rule does not reuse or waive any gate.
-
-`runner eval preflight` is light preparation: it validates the pinned baseline
-policy but does not execute its commands. Its receipt explicitly records
-baseline `not_run`. Identity/configuration checks, unstarted RUN preparation
-and non-generative doctors remain. Report success as "inputs/environment ready;
-baseline pending actual run", never as baseline PASS. The actual execution
-still runs baseline before Subject dispatch. No cross-workspace cache is used.
-Do not repeat preflight for unchanged inputs or documentation-only edits.
-A case declaring `hitl_qualification` needs one explicit
-`dd-eval runner definition qualify --profile <run-profile.json>` before
-preflight or scored run. This operation uses the existing Interaction Judge on
-the pinned corpus and stores a shared, checksum-bound receipt under
-`DD_EVAL_DEFINITION_QUALIFICATION_HOME` (default
-`~/.dd-eval/definition-qualifications`). It creates Judge Sessions only, never
-a Subject Session or a scored EVAL. Qualification@4 separates each native
-Judge task from its deterministic assessment. A task depends on the question,
-stage, semantic context and frozen source membership/bytes, **all** canonical
-answers shown, output contract, shared prompt, and Judge model/reasoning/input
-settings. Subject harness changes, transport/hook/timeout repairs, adapter
-versions, notes, documentation and unrelated repository changes do not require
-new Judge calls. Git commit/tree and runtime versions remain provenance.
-
-Oracle/structural-validator changes require deterministic regressions (including
-negative cases), then `runner definition qualify` re-evaluates retained native
-answers without paying again. Changing one question/context creates only that
-case's new task; changing shared answers affects cases receiving those answers;
-changing the shared prompt/model affects all corresponding cases. Reordering,
-removing, or adding an identical task reuses its original evidence.
-
-The qualification command imports compatible qualification@3 evidence read-only
-and checks **every** retained matching final, not only a convenient PASS. It
-checks original native Session/Turn, exact prompt and final, frozen packet/source
-bytes, hashes and physical cleanup. Checkout/packet paths are transport only;
-the original prompt hash remains bound. Corruption, unknown paid outcome or
-unconfirmed cleanup blocks reuse and never authorizes a replacement Session.
-New task intents and a shared qualification lock fence crash/concurrent replay.
-Historical receipts are never upgraded in place. This is regression evidence,
-not a certificate that Judge cannot err; real E2E decisions still pass current
-validation. Preflight merely checks the current assessment receipt and
-still records `provider_sessions_created: 0`; direct `eval run` checks it too.
-
-New qualification intents (`dd-eval/qualification-intent@2`) distinguish
-`prepared` from `dispatch_intent`. The latter is recorded **before** native
-Session creation; a crash on either side of the native reply remains unknown,
-never permission to repeat a paid call. A prepared task is eligible for a fresh
-preparation only when its exact packet/profile/root remain bound, there is no
-Session or productive operation in its native ledger, and the same daemon has
-a complete durable physical/resource stop with observed process retirement.
-A preparation marker, empty Session list or failed cleanup alone is insufficient.
-Legacy intents lack this boundary and retain their reconciliation blocker.
-
-### Compact coverage and optional JEV filter (plan 070)
-
-Existing profiles keep `hitl-match@3`. To opt in, select
-`interaction_judge.verdict_contract: "dd-eval/hitl-coverage@1"`; without a
-`coverage_policy` the compact native Judge resolves each request. The candidate
-profile `e2e-inline-merge-luna-coverage-shadow.json` selects a pinned shadow policy.
-Use the same `runner definition qualify --profile ...` entry point. Qualification
-uses the separately pinned `hitl_qualification.coverage` corpus: twenty calibration
-and at least twenty held-out cases. It retains one native observation per task and three
-JEV observations per case. Never include authored expectations in model input.
-
-For negative native verdicts, the command can return
-`definition_qualification_review_required`. This is not authorization to repeat
-native calls. Review each original `uncovered_questions` against the authored
-remaining decisions, including completeness and reference ambiguity. Save a
-new sidecar beneath the original Judge root at
-`coverage-reviews/<hashJson(coverage_expectation)>.json`:
-
-```json
-{
-  "schema_id": "dd-eval/hitl-coverage-review@1",
-  "verdict_sha256": "hashJson(original normalized verdict)",
-  "expectation_sha256": "hashJson(authored coverage_expectation)",
-  "reviewer": "identified semantic reviewer",
-  "complete": true,
-  "covered_remaining_ids": ["each authored remaining decision ID"]
-}
-```
-
-Do not mark incomplete or wrong lists complete. Repeat `definition qualify` to
-reassess original native evidence, not dispatch another Session. The command
-freezes calibration threshold before testing holdout, retains all HTTP outcomes,
-and refuses retuning or reusing a held-out batch for a changed classifier.
-`coverage_qualification_incomplete` and `coverage_qualification_failed` preserve
-Judge-only/shadow mode; never manufacture a promotion receipt.
-
-After qualified native coverage and JEV holdout PASS, promote through a **new**
-checked-in policy with mode `cascade`, the observed threshold and the returned
-`qualification_sha256`. The certificate lives under the definition qualification
-home's `coverage/<sha256>.json`. Preflight verifies it without paid calls. Active
-EVALs retain their original policy; edits do not change them. HTTP receipts have
-`decision_source: "jev"` and no fictitious provider Session or daemon cleanup.
-Native fallback continues using the normal owned Session, capacity continuation
-and settled cleanup. Missing credentials, unsupported context/bundles, limits,
-transport errors, model drift and unknown HTTP outcomes select native fallback;
-an invalid selected policy fails admission instead of silently downgrading.
-
-Supply `OPENROUTER_API_KEY` explicitly to the runner owner. Production does not
-read another project's `.env`; child CLI/provider environments strip this key
-after ambient/explicit environment merging. No credential belongs in a profile,
-policy, request body, journal or receipt. Current EVALs and historical receipts
-must not be repaired or upgraded in place. A scored smoke needs separate launch
-authorization. Finite-corpus PASS is regression evidence, not a guarantee that
-JEV or Judge cannot make a future semantic error.
-
-A request to prepare only never authorizes `eval run` or a live compatibility/
-capacity experiment.
-
-New HITL decisions use `dd-eval/hitl-match@3` and packet@3: the Judge cites exact
-question atoms, frozen context evidence and canonical answer quotes; the runner
-derives the overall result. A fixture gap requires typed `scope_evidence` from an
-accepted objective/decision/source/response, not just the Subject's necessity claim.
-An exact canonical refusal can cover a proposed extra option. Structural quote
-checks prove provenance, not semantic entailment.
-An objective's scope restriction is not proof of a prior question/answer exchange.
-Explicit reconfirmation of an agreed decision remains unnecessary; an initial
-clarification may be covered by a canonical refusal of an extra mechanism.
-Historical v1/v2 evidence remains explicitly read-only; it cannot authorize a
-new answer or Judge Turn.
-Current corpus@2 requires `expected_coverage`: finite authored obligations and
-witnesses permit valid split/bundled answers while detecting independent omissions.
-Author content anchors around the independent requested decision, retaining
-material conditions/negations; do not require explanatory setup as a quote
-boundary. Every omitted obligation must still fail its deletion regression.
-Independent conjunctions need independent obligations (for example ranking
-versus list order, SMS versus calendar, accepted values versus default).
-Alternative options within one decision do not create unconditional obligations.
-Include operative choices as well as introductory requests when they express
-the same decision (for example existing-record default filling). A single
-request can carry several independently checked properties: the CP190 request
-"где разрешены операции" asks the UI/API operation boundary within its Q3
-context. Its joint witness covers both properties; standalone witnesses still
-check separate atomizations. Keep deletion regressions for both the independent
-and the actual native bundled verdict, not a required total atom count.
-When one operative request jointly covers properties that a short question
-quote alone cannot distinguish, link its existing witness to the relevant
-obligations and author each obligation's optional `answer_evidence` guard.
-Every guard must be a literal quote from the named canonical response; the
-same matching native atom must cite all required passages. Evidence in an
-unrelated atom cannot lend coverage, and a decision/rationale label is not proof.
-CP196's actual eight-atom verdict proves default filling and archive visibility
-this way. Test removal of the proof, not removal of one redundant atom while
-another still proves the decision. Keep the historical native bytes unchanged.
-These guards remain oracle-only; they do not enter the Judge packet/prompt.
-Audit every authored alternative, not only a previously observed quote. The
-CP190 create/default and archive-boundary options have joint witnesses; archive
-rights, visibility and UI/API equality additionally require their own literal
-canonical proof. Native eight-, nine- and thirteen-atom finals and all three
-whole archive alternatives are regressions, with omission checks on the actual
-proof or all its matching witnesses. Option conditions are not extra accepted
-requirements, and a canonical replacement/refusal can resolve them unchanged.
-The oracle treats authored quotes as content anchors: a longer native atom may
-cover several anchors, and terminal sentence punctuation may be omitted. Each
-atom still quotes the question verbatim; internal whitespace, Unicode, words,
-classification and the exact response-ID union are not normalized. Every
-contained anchor must have the atom's class; a bundle cannot conceal an
-independently uncovered decision. Missing obligations and unrecognized quotes
-remain failures. Expected anchors never enter the Judge prompt. The shared Judge
-prompt requires source-quote extraction before interpretation and a literal
-quotation check before returning. The Judge writes an operation-local draft and
-runs `node bin/check-hitl-draft.mjs <packet.json> <draft.json>` (the prompt supplies
-the absolute checker and packet paths). It reuses the final grounded validator,
-does not read the oracle, does not change files and proves only structure/exact
-citations, not semantic correctness or completeness. Corrections happen within
-the original task; the runner still validates the final native answer and never
-retries an invalid semantic verdict. Checker/validator bytes participate in the
-qualification identity; transport paths do not. A finite vocabulary does not
-imply ordinal ranking: an explicit canonical refusal resolves the proposed
-ranking unless an accepted rule actually requires comparisons.
-All oracle IDs/projections and all input packets are checked before the first
-native Session. Expected fields never reach Judge. Qualification@3 reports a neutral
-`definition_qualification_mismatch`, with expected/observed classification, response
-IDs and missing obligations; it is not a proved fixture gap or Subject failure.
-Declared directory sources use bounded, sorted text manifests with checked role
-contributors and explicit binary exclusions. No provider-home/project-root scan;
-retained reads validate frozen provenance without reopening mutable RUN sources.
-Lost verdict publication reconciles the original capacity/native operation only,
-then binds confirmed cleanup to the recovered receipt. An unknown outcome never
-authorizes another Judge Turn.
-Native smoke is separate paid acceptance, only on explicit authorization after
-offline checks and a committed definition. Prefer fresh authored inputs:
-`node tools/native-interaction-judge-smoke.mjs --corpus <run-profile.json> <runtime-root> <project-root>`.
-It uses all current corpus items, including covered rejection, true gap, extra scope
-and resolved/unresolved references. The optional fixed reference-pair schedule is
-`node tools/native-interaction-judge-smoke.mjs --pair <unresolved-packet.json> <resolved-packet.json> <expectations.json> <judge-profile> <runtime-root> <project-root>`.
-Both packets must be complete frozen packet@3 objects. `expectations.json` contains
-`unresolved` and `resolved` authored corpus items with `expected_coverage`; their
-questions must match the corresponding packets. All inputs are checked before any
-native call; the pair must have identical question, stage and canonical responses,
-so unrelated questions cannot pass as a reference-resolution contrast. Only the
-grounding/context can change between the two inputs. Rebuilt
-grounding must equal each frozen packet, including at dispatch.
-The pair schedule is three fresh Sessions per question, fixed before dispatch.
-The first structural, semantic or cleanup failure stops dispatch and retains its
-result; never retry until PASS. This smoke does not create a scored EVAL.
-
-Requalify a harness only when its native runtime, adapter or relevant contract
-changes (or qualification is absent). Broader stop/recovery and all-harness
-matrices are separate acceptance work, not hidden readiness prerequisites.
-Historical cp-* reports record what was done, not a checklist to repeat.
-
-Check the source baseline's local prerequisites before launch. For Task
-Priority, PostgreSQL must accept connections on loopback port 55433. Start
-Docker Desktop if needed, inspect existing containers, and start only the
-project-owned PostgreSQL service described by the source bootstrap runbook.
-Before provisioning a new campaign, perform the
-[30-day retention preflight](eval-storage.md#30-day-preparation-cleanup): remove
-eligible old disposable execution data and owned test databases by an exact
-reviewed selection, not a broad age-based filesystem or Docker prune.
-Reuse a healthy existing service; do not create a competing container or reset
-its volume. Baseline tests create and clean their own invocation databases.
-Record the exact container ID and whether this campaign started it or reused a
-shared service. At the final settled boundary, follow
-[container retirement](eval-storage.md#container-retirement-after-an-eval): stop
-the campaign's idle container, or the shared container after its last consumer
-has settled. Keep its volume; do not stop another active consumer.
-`ECONNREFUSED` here is a host prerequisite failure, not a Subject verdict or
-permission to skip baseline admission. Retain the failed receipt and restore
-the service; do not add an independent full baseline rerun before the runner's
-next authorized attempt.
-
-For a non-generative preparation check, run `dd-eval runner eval preflight
---profile <absolute-run-profile.json>`. It uses the normal E2E project/flow/runtime
-provisioning and writes its receipt and initial launcher under
-`DD_EVAL_HOME/conformance/e2e-preflight/`. It creates no provider Session and
-does not execute the Stage. A successful receipt proves the pinned pair,
-initial context and installed Subject/Judge profiles can be prepared; it does
-not replace a live harness compatibility smoke or the actual E2E result.
-It also prepares an unstarted logical RUN through the CLI's normal routing
-boundary, validating and freezing every selected agent profile before provider
-checks. Missing or invalid stage/worker profiles fail preflight, not the first
-productive launch. The receipt retains `prepared_run`; no controller or provider
-Session is started.
-E2E uses the input checkpoint, never a canonical stage-entry pack. Updating the
-engine requires a new checkpoint pointing to its committed project flow pack;
-changing a global CLI alone does not update the pinned experiment.
-
-For the cross-harness full-cycle campaign, pin `stage_session_mode=new_session`
-and `merge_mode=server` in the committed project flow pack, not just in the
-run-profile. SPECIFY and PROTOCOLIZE execute from the stable project checkout;
-PLAN through CODE-REVIEW execute from the provisioned feature checkout; server
-MERGE executes from its integration target. The PROTOCOLIZE transition Work
-keeps the cwd of the Session that entered that Stage even after the CLI creates
-the feature worktree. A changed physical cwd requires a fresh Session unless a
-separate native rebind qualification exists. The hook's observed cwd, launch
-cwd, project identity and model prompt are distinct evidence; a prompt saying
-`cd` does not establish Session binding.
-
-Runtime retry instructions are shared across harnesses. Follow only an exact
-`retry_command` issued for a proven no-effect correction. A committed effect,
-registered repair, pending check, or unknown outcome must be reconciled through
-its retained receipt, not re-executed because a Turn ended or a file projection
-is temporarily absent. A `publication_pending` error means SQL authority
-committed and its artifact needs materialization; it is not a no-effect result.
-
-Keep the product baseline separate from the flow-pack revision. Resolve
-`source.tag` and `source.commit` from the hash-pinned input checkpoint referenced
-by the committed case, not from a historical runbook example. The runner checks
-the tag resolves to that commit before E2E materialization or canonical preparation.
-Updating the engine or Memory Bank must not advance this source to current `dd-tasks/main`,
-where the feature is already implemented. See the [baseline audit](task-priority-baseline-audit-2026-09-06.md).
-
-После обновления runtime сверяйте не только версии, но и фактическую готовность
-пакета исправлений. Для плана 023 см. [аудит](../specs/023-verification-audit-2026-09-05.md):
-публикация beta.14 сама по себе не закрывает оставшиеся acceptance gates.
-
-При потере ответа сохраняйте `details.operation_id`. Для адаптера с daemon
-получить существующую операцию можно командой
-`dd-<harness> daemon operation --state-dir <absolute-state-dir> --operation-id <id> --json`.
-Запросы Controller также записаны в `<state-dir>/client-operations/`, ответы —
-в `<state-dir>/operations/`. Команда только читает результат: она не является
-разрешением повторить prompt или вручную менять RUN. Раннер пытается получить
-поздний ответ той же операции в ограниченном окне. Перед следующим продуктивным
-вызовом и при возобновлении он сверяет журнал запросов с ответами демона.
-Если исход остаётся неизвестным, фиксируйте блокер: новый prompt не отправляется.
-Нельзя создавать другой демон только из-за ошибки его сокета, пока исходный
-процесс жив или его состояние не установлено.
-
-На время локального продуктивного вызова раннер запрашивает временное
-предотвращение обычного сна средствами ОС. Это не изменение настроек компьютера
-и не защита от аварийного сна. Сведения сохраняются в `host-events.jsonl`.
-`statistics.observation` хранит разрывы наблюдения отдельно; отсутствие данных
-о сне означает неизвестное значение, а не ноль.
-
-1. Work from a clean committed `dd-eval` definition tree.
-2. Select a committed `run-profile.json`. It names one case, Subject profile,
-   selected focused stages/E2E, Judge policy and resource limits.
-   A profile names the harness/model/reasoning experiment; it is not a copy of
-   an engine version. The exact engine package, version and checksum are
-   pinned by the input checkpoint and recorded in each run manifest. Update a
-   harness profile only when its provider settings change; rebuild the input
-   checkpoint when a changed engine contract needs new installed-runtime
-   acceptance. This is not a reason to repeat unchanged Judge tasks.
-3. For focused/segment runs, validate the accepted package:
-
-   ```sh
-   export DD_EVAL_HOME=/absolute/path/to/eval-data
-   dd-eval runner fixtures validate --case <case-id>
-   ```
-
-   This verifies the declared entry descriptors and context blueprint. Focused
-   and segment runs require a non-null `case.json.entry_pack` whose referenced
-   package is accepted. E2E starts from the committed input checkpoint and does
-   not require an entry pack. Do not call `fixtures validate` for an E2E-only
-   run with `entry_pack: null`: follow the bounded preparation policy above.
-4. Qualify the selected harness profile before a provider update is used in a
-   scored run:
-
-   ```sh
-   dd-eval harness compatibility qualify --profile <profile-id> \
-     --project-root <project-root>
-   ```
-
-   The profile is the source of truth for expected runtime versions. The command
-   observes the installed runtime, runs one isolated native smoke only when it
-   changed, writes a receipt, updates that one profile and clears its measured
-   child capacity. Review, commit and push the profile change before the eval.
-   A routine run fails closed on mismatch; never edit an adapter baseline or
-   accept an update merely because its version looks compatible.
-5. If the selected flow can create native children and the profile has no
-   qualified capacity, measure it after compatibility qualification:
-
-   ```sh
-   dd-eval harness capacity check --profile <profile-id> --max 15 \
-     --project-root <project-root>
-   ```
+Preflight prepares the pinned project/configuration and an unstarted RUN, without
+Subject Sessions or baseline execution. PASS means **ready; baseline pending**.
+Do not repeat it for unchanged inputs or documentation edits. Actual E2E runs its
+own baseline before Subject dispatch, including locked Playwright prerequisites;
+never share baseline PASS across workspaces. Stagger CPU-heavy baseline admission
+before allowing parallel productive runs on one host.
 
 ## Run
 
-```sh
-dd-eval runner eval run --profile \
-  cases/<case-id>/run-profiles/<profile>.json
-```
+~~~sh
+node bin/dd-eval.mjs runner eval run --profile <absolute-profile.json>
+node bin/dd-eval.mjs runner status --eval "$DD_EVAL_HOME/runs/<EVAL-id>"
+~~~
 
-Ordinary `eval run` and `runner resume` start a detached observer using the
-existing resume worker. Their initial reply acknowledges the request; it is
-not the eval verdict. Closing the invoking terminal does not intentionally
-stop that observer or the flow controller. Use `runner status --eval <path>`.
+The initial reply acknowledges a detached launch, **not completion**. Retain its
+EVAL ID/home. Closing the invoking terminal does not stop the EVAL. Use
+[E2E monitoring](e2e-monitoring.md#determine-the-current-stage), not the manifest's
+entry stage, to report progress.
 
-Inspect `runner-attempts/<id>/` for retained attempt state, process identity,
-stdout/stderr and process events. Status separates the persisted EVAL result,
-latest observation, live controller information and observer liveness. A
-missing process with no recorded exit cause means **unknown cause**, not an
-inferred timeout or sleep. PID reuse is checked using process start identity.
-Before productive resume, the retained definition and context checksums must
-still match, including untracked case inputs. Do not edit them to unblock a run.
+The runner restores isolated project/runtime roots and pins execution routing.
+For cross-harness full-cycle runs, use the committed flow pack's
+`stage_session_mode=new_session` and `merge_mode=server`: a changed physical cwd
+needs a new Session unless native rebind is qualified. A prompt saying `cd` does
+not prove binding. Do not start a second merge server or hand-write stage prompts.
 
-Current ZCode readiness and the replacement for child-hook admission are
-tracked in [the CLI receipt plan](zcode-cli-rendezvous-2026-09-13.md). A marker
-probe is not a release or permission to launch an E2E before that checklist closes.
+Use runtime-issued standalone lifecycle commands and JSON/text files. `stage start`
+provides live paths, context and completion instructions; after the Stage, the
+controller alone dispatches its successor. Follow a `retry_command` only for a
+proven no-effect correction. Unknown effects or `publication_pending` require the
+original operation's reconciliation, not replay. Native child completion is not
+Work success; healthy siblings must not be killed to free slots.
 
-### Pinned engine override
+## Semantic decisions and SPECIFY comparisons
 
-The checkpoint is the engine identity for a scored run.  Use the same explicit
-`DD_FLOW_BIN` value for its preflight and its eventual run; the runner records
-the resolved version and full-content checksum and refuses a mismatch.
+The run profile optionally sets `semantic_decisions` (provider/model, confidence
+threshold, retries) and `stop_after`. They work independently of Subject harness.
+Do not combine modular decisions with legacy `interaction_judge.coverage_policy`.
+Credentials stay in the runner owner's environment (`OPENROUTER_API_KEY` or
+`OPENAI_DECISIONS_API_KEY`), never profiles, prompts or child environments.
+Low confidence, unsupported/uncovered/refused decisions use the qualified native
+Judge; transient errors retry at most twice. Unknown paid outcomes remain fenced.
 
-When a committed engine release is temporarily unavailable from npm, use its
-absolute, already-built source entrypoint:
+`finished` with `stop_after` means the selected target and cleanup completed, not
+full product E2E PASS. Final Judge audits decision exchanges when enabled;
+SPECIFY-only profiles disable it and need a separate post-stage evidence review.
+Use the committed profile's threshold; never rewrite an active run's policy.
 
-```sh
-DD_FLOW_BIN=/absolute/path/to/dd-flow-cli/dist/cli.js \
-DD_EVAL_HOME=/absolute/path/to/eval-data \
-dd-eval runner eval run --profile /absolute/path/to/profile.json
-```
+For sequential comparable pilots:
 
-This is a development override. Its commit and package version must match the
-case input checkpoint. Do not mix it with another checkpoint or silently fall
-back to the host-global executable.
+~~~sh
+node scripts/run-specify-comparison.mjs --campaign /absolute/comparison-receipts --base-home /absolute/prepared-engine-home --profile cases/sdlc-eval-2026-summer-task-priority/run-profiles/specify-luna-judge-only.json --profile cases/sdlc-eval-2026-summer-task-priority/run-profiles/specify-luna-jev.json --profile cases/sdlc-eval-2026-summer-task-priority/run-profiles/specify-luna-openai-decisions.json
+~~~
 
-After npm publication, the normal router may still select an older compatible
-snapshot already present in the host engine store.  For published-artifact
-acceptance, install the exact public package into a fresh temporary prefix and
-pin that installed entrypoint instead of using source bytes or changing the
-global installation:
-
-```sh
-eval_engine_root="$(mktemp -d /tmp/dd-flow-eval-engine.XXXXXX)"
-npm install --prefix "$eval_engine_root" --ignore-scripts --no-save \
-  @deksden-com/dd-flow-cli@<checkpoint-version>
-DD_FLOW_BIN="$eval_engine_root/node_modules/@deksden-com/dd-flow-cli/dist/cli.js" \
-dd-eval runner eval run --profile /absolute/path/to/profile.json
-```
-
-Keep that prefix until the run is terminal; then remove only that exact
-temporary directory. The recorded engine version, commit and checksum must
-equal the immutable checkpoint. This is a published-package pin, not a local
-development override.
-
-The runner allocates a fresh directory under
-`$DD_EVAL_HOME/runs/<eval-id>/`. Each execution gets its own restored project,
-`DD_FLOW_HOME`, managed harness state and append-only `events.jsonl`.
-
-Before restoring the engine, the runner copies only the portable harness
-configuration from `${DD_FLOW_CONFIG_HOME:-${DD_FLOW_HOME:-~/.dd-flow}}`:
-`harnesses.json` only. `harnesses.json` names the
-absolute adapter and native executable for every harness. It contains no
-credentials. The isolated home never inherits `db.sqlite`, RUNs, locks, ports,
-engines, logs or daemons from the source home. A missing or invalid harness
-configuration is a setup blocker; do not work around it with PATH discovery or
-ad-hoc adapter environment variables.
-
-The configured `<runtime>/harness-runtime` path is a relative alias to the
-selected immutable engine's `dist/harness-runtime`, not a detached adapter copy.
-Node must resolve that engine's complete production dependency closure. Fresh
-provision, fork and Stage restore install this alias after materializing the
-engine; a frozen snapshot alone is not an executable engine installation.
-Do not install missing dependencies or rewrite an alias inside a failed or
-historical execution. Correct provisioning for a new attempt instead.
-
-An eval profile in `profiles/` is not an installed Flow agent profile. Every
-profile referenced by execution routing must also exist in the configuration
-home's `agent-profiles/<id>.json` using `dd-flow/agent-profile@1`. The runner
-validates this complete template and replaces only model/reasoning with the
-committed repo declaration. Provider/mode/permission remain explicit template
-policy. Existing repo provider/mode declarations must agree with that policy;
-conflicts fail admission rather than silently overriding it. Use Flow's harness
-key (`zcode`, not the eval key `zcode-acp`) and the approved permission policy.
-Do not copy an eval profile verbatim: it has a different schema. Missing
-profiles must be installed in the configuration home before a fresh preflight,
-not patched into a failed run's frozen state.
-
-Preflight displays the effective execution contract and admits every reachable
-coordinator/worker/Judge. Fresh EVALs retain that contract before enqueue and
-materialize it into their isolated home; continuation/fork do not reload same-ID
-ambient profiles. RUN snapshot and known outbound intent are compared separately
-from provider-returned model attribution (`experiment_conformance`). Legacy
-evidence remains unknown, not silently migrated or automatically rejudged.
-
-Before opening a Subject session, the runner validates the materialized input
-as a **project** flow pack: its manifest, every declared file and both
-project-owned execution/workspace contracts must be present and match the
-checkpoint Memory Bank version. A bare canonical `dd-flow/` source is never a
-valid E2E overlay. This is a file-contract check only; policy and semantic
-correctness remain agent/`dd-flow` responsibilities.
-
-## Cancellation
-
-`dd-eval runner cancel --eval <path>` is two-phase. It first records
-`cancel_requested`; the adapter then reports whether the root Session and all
-native children actually settled. Only a receipt with `settled: true` writes
-terminal `execution.cancelled` and finalizes the eval. Otherwise the eval is
-`cancelling`: use `runner status --eval <path>` for read-only observation.
-`runner reconcile` applies only to a terminally failed launch and returns
-`reconcile_not_eligible` for cancellation. A repeat
-`runner cancel --eval <path>` is an explicit scoped retry of the same
-cancellation intent, not an
-observation-only command; first check owner/lease and the retained stop receipt.
-Do not restart the Subject, send a recovery prompt or delete its daemon while
-it is cancelling. Process death alone does not prove native-tree settlement.
-
-## Parallel canonical preparation and E2E
-
-Canonical preparation and ordinary E2E evaluations are independent contours.
-A canonical build owns only its directory below
-`$DD_EVAL_HOME/canonical/<case>/<revision>/`; an E2E owns a fresh directory
-below `$DD_EVAL_HOME/runs/<eval-id>/` and begins from the committed input
-checkpoint. An E2E never reads, resumes, forks, or waits for a canonical
-provider Session.
-
-They may therefore run at the same time. This is useful when a reference chain
-is still being captured while a release comparison is already ready to run.
-Keep the following boundaries intact:
-
-- use a separate, fresh E2E directory for every invocation;
-- keep `DD_FLOW_RESOURCE_HOME` common and absolute so ports and managed
-  processes are coordinated across all concurrent runs;
-- do not modify or dirty the `dd-eval` definition worktree used by a live
-  canonical build; prepare documentation or unrelated source changes in a
-  separate worktree and merge them after the build has reached its boundary;
-- treat a missing accepted focused entry pack as irrelevant to an E2E. It
-  affects focused-stage qualification only; E2E uses the input checkpoint.
-
-The runner also creates `$DD_FLOW_HOME/bin/dd-flow`: a tiny private launcher
-for the exact engine snapshot named by the accepted entry pack. It exports its
-own absolute path as `DD_FLOW_BIN`, is placed first in the Subject, worker and
-merge-server `PATH`, and is passed explicitly to the managed harness daemon.
-Every first lifecycle command explicitly names both `DD_FLOW_BIN` and this
-absolute launcher; later commands retain the same identity from the launcher.
-`PATH` is only a convenience, not an identity guarantee. Do not replace it
-with a globally installed `dd-flow`; the global executable is used only to
-bootstrap or restore an isolated runtime before that snapshot launcher exists.
-
-For `merge_mode=server`, the runner does not send MERGE to the coordinator
-Session. It invokes one isolated `dd-flow merge serve --once`, records the
-server-launched Session and waits for request/Work/Stage/RUN convergence. Do
-not run a second merge server or hand-write a MERGE prompt in that execution.
-
-## What counts as a successful qualification
-
-The required qualification set is one successful **focused** execution for
-each declared stage. They are independent cells: a successful `PLAN` cell is
-not invalidated because a later `CODE-REVIEW` or E2E experiment fails. This is
-the evidence used to accept a portable entry pack.
-
-An E2E execution is a separate integration experiment. Run it only when the
-selected profile explicitly sets `selection.e2e: true` (for example, when a
-release plan calls for an end-to-end comparison). Its result is retained and
-judged on its own merits; it is not a hidden prerequisite for accepting the
-focused-stage set.
-
-## Live qualification
-
-Every selected harness needs valid compatibility and, for fanout, capacity
-qualification; reuse these while their bound inputs remain unchanged. Run
-affected deterministic suites for code changes, commit the definition, then
-start E2E only when requested. A smoke failure is a harness blocker:
-retain its receipt and do not start that profile's E2E. The run profile—not a
-literal command-line model/version—remains the source of truth for Subject,
-Judge and interaction Judge. Continue stages in the same Subject session unless
-the persisted project execution policy selects a supported handoff.
-
-## Operational model
-
-The same short sequence applies to every harness. Keeping these roles separate
-is what makes a focused stage comparable to an E2E contour instead of a replay
-of an earlier provider conversation.
-
-| Step | Owner | Durable result |
-| --- | --- | --- |
-| Resolve a committed case and profile | Runner | resolved identities of the case, package, flow, engine and harness |
-| Restore the requested boundary | Runner | fresh project and runtime roots inside this execution only |
-| Materialize the stage slice | Runner + `dd-flow` | read-only context; `stage start` resolves live paths and lifecycle commands |
-| Perform the stage | Subject | its own artifacts and a `dd-flow` lifecycle receipt |
-| Handle an allowed question | Runner + clean Interaction Judge | exact question, match decision and one authorized answer in the same Stage/Session |
-| Capture or advance | `dd-flow` controller | candidate boundary, append-only journal and, for E2E, the next provider turn |
-| Assess | clean Judge | verdict over immutable evidence; it never edits the evaluated RUN |
-
-`dd-flow` is the sole authority for RUN, Stage and Work state; its managed
-controller owns provider Sessions, productive turns and capture. Eval owns
-experiment preparation, observation, permitted answers and Judge evidence.
-The Subject makes product and
-flow decisions; it does not manufacture snapshots, statistics or Judge
-evidence. A Judge assesses captured facts and cannot repair the Subject's
-output. The human operator only accepts a canonical reference boundary or
-changes the versioned case definition.
-
-The Final Judge must return the exact outcome and flow criterion sets declared
-for its chosen assessment scope. Every applicable criterion needs a score,
-rationale and evidence; an unknown scope, duplicate/missing criterion or empty
-applicable evidence fails the evaluation machinery instead of producing a
-partial score.
-
-The Subject may inspect the isolated runtime. The runner verifies the selected
-engine snapshot before a Subject Session starts, records the harness journal,
-and captures the resulting RUN boundary. It does not infer the legitimacy or
-semantic meaning of shell commands from journal text: that is neither a
-reliable safety boundary nor an evaluation criterion.
-
-Usage accounting preserves the provider's native scope. Grok's root counter is
-an inclusive execution-tree snapshot; ZCode reports individual physical
-sessions. The resulting statistics expose scope and included records rather
-than pretending those two measurements are the same.
-
-For a focused stage it restores exactly that entry boundary, materializes the
-read-only stage context, opens an empty Subject Session and sends one launcher.
-For E2E it restores only the initial entry and follows the Subject's own
-outputs through the selected contour. Never copy a later-stage focused fixture
-into E2E.
-
-The launcher tells the Subject to use the returned standalone `dd-flow stage
-start` command first. Do not prepend `cd`, `cat`, `git`, a help command, a pipe
-or another shell command: the harness hook must see this lifecycle call as its
-own Bash action. `stage start` is the source of the actual context, paths,
-completion command and Work contract.
-
-Lifecycle recognition is centralized in `dd-flow`, not duplicated in provider
-adapters. A quoted absolute `dd-flow` executable emitted by the launcher is a
-valid command word. Text such as `dd-flow stage start` inside `grep` patterns,
-JSON, comments or heredoc bodies is data and must not be trusted or blocked.
-Hooks may recognize a lifecycle call inside shell composition for observation,
-but do not police shell syntax or issue retries. The invoked CLI validates its
-own argv; an ambiguous shell observation is not execution authority. Continue
-to use the issued standalone command as the supported launcher format.
-
-For each E2E stage the operational sequence is: eval supplies context to the
-managed CLI controller → controller sends one launcher →
-Subject invokes standalone `stage start` first → Subject performs only that
-Stage → `dd-flow` returns a terminal receipt or a registered pause → controller
-captures the boundary → controller, not eval or the Subject, sends the successor
-in a later turn. A focused execution stops at the same boundary. This difference is
-intentional: a focused result may use its accepted predecessor snapshot, while
-an E2E successor consumes the Subject's own preceding result.
-
-Some stages materialize a graph of fresh worker Work records. This is still
-one normal Stage: when the graph is agent-owned, the CLI controller first returns
-the same coordinator once to materialize it; when it has a deterministic
-dispatcher, `dd-flow` materializes it directly. The controller returns the ready
-descriptors to the existing coordinator, which launches native subagents.
-Each child calls its exact `work start` and `work finish` commands. The runner
-does not launch substitute root Sessions, choose aspects, change the graph,
-author results or retry workers. Capacity comes from the qualified harness
-profile and is recorded in RUN; qualification happens before E2E, not inside
-the evaluated stage. A quiet worker is not a
-failure and must not be stopped merely because no new message has appeared.
-
-Native terminal observations are reconciled through `stage fanout reconcile`.
-Only a unique registered Session/Work attempt may be failed or cancelled.
-Native completion never implies Work success. Ambiguous/absent bindings are
-explicit blockers with saved observations, not permission to relaunch a child.
-An active deterministic check remains owned by its original invocation.
-
-Recovery capture belongs to the CLI controller. Eval accepts only its sealed
-receipt and verified immutable bytes; it never creates a replacement snapshot
-to bypass a missing capture. Until the controller publishes a usable capture,
-eval records incomplete evidence explicitly. Neither cleanup nor capture failure
-replaces the original execution failure or authorizes replay.
-
-Each launcher permits exactly its named Stage. Once that Stage is finished, the
-Subject stops; it must not follow a successor command shown by a normal
-`dd-flow` receipt. The CLI controller captures the boundary and sends the successor
-only in a later provider turn.
-
-For Codex Desktop, the runner creates an isolated `CODEX_HOME` through
-`dd-flow` and trusts only its generated lifecycle hook for that eval Session.
-It does not reuse an interactive hook-trust decision or load user plugin hooks.
-
-Monitor without modifying the evaluated Session:
-
-```sh
-dd-eval runner status --eval "$DD_EVAL_HOME/runs/<eval-id>"
-```
-
-Follow [E2E monitoring](./e2e-monitoring.md#determine-the-current-stage) when reporting the
-stage. In particular, `manifest.executions[].stage` is the configured entry stage, not live
-progress; use the RUN/controller projection or the RUN's durable `timeline.jsonl` events.
-
-Model-facing structured submissions use a runtime-issued JSON file followed by a separate
-standalone CLI command. HITL uses the retained question/answer text files. Do not instruct the
-Subject to combine file creation and a lifecycle call with heredoc, pipe, shell variable,
-command substitution or base64; legacy stdin forms are compatibility paths, not examples.
-
-Provider silence or a missing current tool call is not a failure. The runner
-waits for a provider terminal state, a registered `dd-flow` pause, an explicit
-provider error/cancellation or a configured hard deadline. A terminal chat
-message is not a completed Stage: completion requires a matching `dd-flow`
-lifecycle receipt for the expected Stage.
-
-An explicit terminal provider error records that Work's provider code and
-evidence without completing it by inference. Independent already-launched
-siblings may settle; the coordinator then explicitly retries, repairs, or
-blocks the failed Work. The runner never cancels healthy siblings merely for
-silence and never fabricates `work finish` for a failed child.
+The script freezes comparable inputs, uses isolated variant homes and waits for
+each target **and cleanup** before the next. Failure stops dispatch, not unrelated
+EVALs. Reusing a campaign observes its retained IDs; never blindly retry an unknown
+launch. Independent EVAL concurrency is not host-wide serialization. Compare
+durable Stage timings, pause time and decision latency separately; one run per
+mode, especially fallback-only, proves neither accuracy nor a speed advantage.
 
 ## HITL and failure handling
 
-Only a registered `dd-flow` pause at an interaction point declared by the
-case may receive a response. The runner preserves the actual question, asks a
-clean Interaction Judge to select an existing canonical response, and resumes
-the same Stage and Session only after a match. A forbidden interaction or an
-exhausted round budget fails the execution with `unexpected_hitl` and retained
-question identity/checksum. An unmatched question also fails with its classified
-reason; it is not an indefinite `pending_answer` wait. The runner preserves the
-primary failure and observes cleanup/capture without replaying productive work.
-It must neither invent an answer nor continue the Subject. Classification
-of an unplanned question remains evaluation evidence, not permission to resume. A
-`fixture_gap` or ambiguous match marks the run invalid as evaluation
-infrastructure and is not a Subject-quality failure; an unnecessary or
-out-of-scope question remains a Subject failure. Repair the committed fixture
-and start a new eval rather than changing the definition underneath an existing
-run.
+Only a declared registered pause may receive exact canonical answer bytes after
+Interaction Judge admission. A matched answer belongs to that Stage/Session/pause;
+transport recovery reuses its saved bytes, not a new semantic answer. A fixture gap
+is evaluation infrastructure, not Subject product failure. Fix definitions for a
+new attempt; never change a live definition or manufacture a response.
 
-For canonical entry authoring, do not resume an old build after changing or
-dirtying the `dd-eval` definition. Commit the corrected definition and start a
-new canonical build. The runner checks the recorded definition commit/tree at
-every mutating canonical transition. An accepted answer is bound to one pause
-and one semantic round. Transport recovery may resend only the already saved
-answer file with the same checksum; it must not invoke the Interaction Judge
-again or author new bytes. `hitl_resume_not_applied` means a successful Subject
-Turn left the same pause unchanged and is a flow defect, not permission to ask
-or answer again.
+Observation timeout, expired lease or quiet root is not provider failure. Inspect
+the same retained native operation and children before any new dispatch. Do not
+repair runtime SQLite, journals, snapshots, hooks or receipts manually. An
+incomplete Stage needs its correlated primary cause, not just the final wrapper.
+See [failure diagnostics](e2e-monitoring.md#errors-and-unknown-outcomes).
 
-Keep `DD_FLOW_RESOURCE_HOME` common to every parallel execution. The runner
-defaults it to `$DD_EVAL_HOME/resources`; override it only with another absolute
-host-local resource directory shared by all concurrent runs. Do not place it
-inside an execution-specific `DD_FLOW_HOME`.
+## Completion and stopping
 
-On a host/controller restart, use:
+After success **or failure**, including failed preparation, perform
+[daemon/DB cleanup](eval-storage.md#container-retirement-after-an-eval). Preserve
+results first; stop the database after the last consumer. Defer live resources
+only for a concrete investigation and close that deferral before their next use.
 
-```sh
-dd-eval runner resume --eval "$DD_EVAL_HOME/runs/<eval-id>"
-```
+For an explicitly abandoned execution:
 
-The detached resume observer first reduces `events.jsonl` and observes the
-existing `dd-flow` controller. It may finalize an observed result or supply an
-already-authorized HITL answer/context through the controller API; only the
-controller sends a successor launcher after its predecessor boundary is present.
-The observer
-it never repeats a launcher, model turn, stage finish, resume, or checkpoint
-whose operation receipt is already terminal. To stop an isolated execution
-without touching another cell:
+~~~sh
+node bin/dd-eval.mjs runner cancel --eval <absolute-eval-root> --execution <id>
+~~~
 
-```sh
-dd-eval runner cancel --eval "$DD_EVAL_HOME/runs/<eval-id>" --execution <id>
-```
+Cancellation is two-phase: `cancelling` is not settled. Whole-EVAL stop and failed
+cleanup instructions are in [storage cleanup](eval-storage.md#stop-leftover-daemons).
+Status never repairs or resumes. `runner resume`, recovery, fork or productive
+control release requires explicit authorization and the original input bindings;
+cleanup must not create a new Session, Judge call or Subject continuation.
 
-The journal is an operation registry, not an instruction log. A completed
-operation is reused with its recorded result; a conflicting duplicate is a
-failed execution with preserved evidence. Status and storage commands continue
-to list unrelated runs even if one historical journal is conflicting.
+## References
 
-`dd-eval storage status` is intentionally metadata-only: canonical snapshots
-may contain complete dependency trees, so recursively measuring them would make
-an ordinary status lookup appear hung. Garbage-collection planning performs the
-explicit, potentially expensive measurement only when it needs reclaimable
-bytes.
+- [Storage and cleanup](eval-storage.md), [monitoring](e2e-monitoring.md).
+- [Comparison policy](../methodology/evaluation-methodology.md#comparability-across-runtime-versions).
+- [Shutdown ownership](../specs/059-cp188-durable-shutdown-and-judge-cleanup-plan.md),
+  [progress/inactivity](../specs/065-operation-progress-and-inactivity-plan.md).
+- [Decision routing/stop-after](../specs/071-semantic-decisions-and-stop-after-plan.md),
+  [comparison orchestration](../specs/073-cp202-execution-contract-and-comparison-plan.md).
+- [Operation reconciliation](../specs/078-operation-progress-and-create-reconciliation-plan.md).
 
-If the provider itself ends a Subject turn while the expected Stage remains
-`running`, the candidate is `incomplete_subject_turn`. The runner preserves
-the journal and does not send a hand-written continuation or attempt to repair
-partially written artifacts. For a reference build, abandon that revision and
-create a fresh one; for a scored execution, retain the incomplete evidence
-bundle and let the Final Judge assess only reached work (unreached criteria are
-not applicable). This is different from a controller restart: only the latter may be
-reconciled without a new Subject turn.
-
-If a controller stops between a provider terminal message and lifecycle
-reconciliation, resume never sends that provider turn again. At an allowed
-HITL point it may ask the independent Interaction Judge to validate the exact
-saved question and then persist those exact bytes as the Stage pause; otherwise
-the attempt remains failed/incomplete with its evidence. It never searches for
-question-like text heuristically and never invents an answer.
-
-## Result interpretation
-
-For new engines, use `statistics.usage.observations` as the RUN evidence
-inventory: it includes current and inherited journals from the copied home.
-Do not inspect only the current controller, and do not add `legacy_tool_calls`
-to canonical counters. Tool coverage, journal availability, token measurement
-and model attribution are separate facts; a missing counter is not proof that
-a transcript was lost. Missing historical observations lower confidence, not
-the already accepted MERGE result. Re-analysis must not overwrite an immutable
-earlier report or reactivate archived controllers.
-
-Equivalent CODE/MERGE requirements execute once within the same gate and share
-one receipt containing all `check_refs`. This is not permission to reuse a
-previous gate automatically: cross-invocation reuse remains explicitly opt-in.
-
-The immutable execution directory contains the resolved manifest, launcher,
-harness journal, `dd-flow` receipts, a terminal candidate checkpoint and
-optional Judge output. A candidate checkpoint is evidence only; it is never a
-substitute for a stage-entry fixture and cannot be restored to continue work.
-Context observations (extra reads, searches and help calls) are input
-for later analysis, not automatic defects. A context miss must show that the
-package omitted a fact/path/command it was responsible for providing.
-
-Do not use historical `prepare`, `starter`, `checkpoint`, `continuation`,
-manual Session fork or hand-written `DD_FLOW_HOME` workflows. They belong to
-the retired pre-runner procedure and are not accepted eval evidence.
-# Managed maintenance contract
-
-For new runs, qualify the selected engine's prepared RUN/resource stores and its
-bundled `harness-runtime/lib/lease-renewal.mjs` before launch. Observer and baseline
-maintenance must use this pinned bundle and explicit runtime/resource homes.
-Do not borrow helpers from an installed global CLI. Cold installed-tarball tests
-must cover renewal receipts, writer contention, timeout cleanup and finish replay.
-An expired lease is not proof of a dead owner; bounded reconfirmation precedes
-productive admission. Unconfirmed physical cleanup is a recovery blocker, never
-permission to repeat a native request or repair a historical EVAL manually.
+Historical CP reports describe past investigations, not extra readiness gates.
