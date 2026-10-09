@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateFlowContour, validateStageBlueprint, validateStageContext, writeEntryPack } from "../lib/entry-pack.mjs";
-import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice, validateExecutionDescriptors } from "../lib/runner.mjs";
+import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice, validateExecutionDescriptors, assertQualificationSelection } from "../lib/runner.mjs";
 
 test("recovery materializes each reopened stage attempt once", () => {
   assert.equal(needsAttemptContext({ attempt: "try-001" }, {}), false);
@@ -19,6 +19,15 @@ const slice = {
   task_input: [{ role: "task", path: "input.md", source: "task.md", sha256: "a".repeat(64) }], sources: [{ role: "index", root: "project", path: "README.md", required: true, reason: "Orientation." }], accepted_decisions: [], dynamic_roles: []
 };
 const memoryContour = ["preflight", "discover", "compose", "verify", "review", "finish"];
+
+test("qualification coverage requires every stage in the selected catalog exactly once", () => {
+  const selection = { focused_stages: memoryContour, e2e: false };
+  assert.doesNotThrow(() => assertQualificationSelection(selection, memoryContour));
+  for (const invalid of [{ ...selection, e2e: true }, { ...selection, focused_stages: memoryContour.slice(1) },
+    { ...selection, focused_stages: [...memoryContour.slice(1), "finish"] }, { ...selection, focused_stages: [...memoryContour.slice(1), "merge"] }])
+    assert.throws(() => assertQualificationSelection(invalid, memoryContour), error => error.code === "qualification_profile_incomplete");
+  assert.throws(() => assertQualificationSelection(selection), error => error.code === "qualification_profile_incomplete");
+});
 
 test("execution descriptor admission binds stage ranges to the selected catalog", () => {
   const execution = { id: "e2e", mode: "e2e", stage: "preflight", terminal_stage: "finish" };
