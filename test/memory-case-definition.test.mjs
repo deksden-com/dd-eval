@@ -7,6 +7,7 @@ import Ajv2020 from 'ajv/dist/2020.js';
 import { loadCase, initialFlowBoundary, validateCaseBlueprint, prepareE2EInput, assertBlankMemoryProject, interactionFixtureManifest, resultCheckpointMode, latestObservedStage, buildRunCandidate, frozenCandidate, assertRetainedRunDefinition } from '../lib/runner.mjs';
 import { commandText } from '../lib/process-json.mjs';
 import { readBaselineAdmissionPolicy, runBaselineAdmission, verifyBaselineAdmission } from '../lib/baseline-admission.mjs';
+import { inheritedFlowStages } from '../lib/runner.mjs';
 
 const caseId = 'mb-init-dd-tasks-zero';
 const json = async file => JSON.parse(await readFile(file, 'utf8'));
@@ -14,6 +15,9 @@ const schema = async file => new Ajv2020({ allErrors: true }).compile(await json
 
 test('Memory checkpoint and failure projection use frozen stage order, not SDLC order', async t => {
   const loaded = await loadCase(caseId), contour = loaded.value.flow.contour;
+  for (const [index, stage] of contour.entries()) assert.deepEqual(inheritedFlowStages(stage, contour), contour.slice(0, index));
+  assert.throws(() => inheritedFlowStages('merge', contour), { code: 'fork_checkpoint_invalid' });
+  assert.deepEqual(inheritedFlowStages('code'), ['specify', 'protocolize', 'plan', 'plan-review']);
   for (const [index, stage] of contour.entries()) assert.deepEqual(resultCheckpointMode(stage, contour), index === contour.length - 1
     ? { purpose: 'candidate', stage_entry: null } : { purpose: 'stage_entry', stage_entry: contour[index + 1] });
   assert.throws(() => resultCheckpointMode('merge', contour), { code: 'selection_invalid' });
