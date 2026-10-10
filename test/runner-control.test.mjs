@@ -339,7 +339,9 @@ for (const valid of [true, false]) test(`exhausted scope worker observes only it
     saved = JSON.parse(await readFile(file));
     assert.ok(performance.now() < deadline, 'spent scope observer did not exit');
     await delay(25);
-  } while (!['failed', 'recovery_blocked'].includes(saved.status) || (await processSnapshot()).some(item => item.pid === saved.owner_pid && !item.zombie));
+  } while (!['failed', 'recovery_blocked'].includes(saved.status)
+    || saved.observed_exit?.pid !== saved.owner_pid
+    || (await processSnapshot()).some(item => item.pid === saved.owner_pid && !item.zombie));
   // There is intentionally no maintenance ABI: after projecting a valid release
   // this fixture stops before productive work, independently of its spent budget.
   assert.equal(saved.scope_result?.pending === false, valid);
