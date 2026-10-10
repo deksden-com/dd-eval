@@ -4,13 +4,36 @@ import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import Ajv2020 from 'ajv/dist/2020.js';
-import { loadCase, initialFlowBoundary, validateCaseBlueprint, prepareE2EInput, assertBlankMemoryProject, interactionFixtureManifest } from '../lib/runner.mjs';
+import { loadCase, initialFlowBoundary, validateCaseBlueprint, prepareE2EInput, assertBlankMemoryProject, interactionFixtureManifest, resultCheckpointMode, latestObservedStage, buildRunCandidate, frozenCandidate, assertRetainedRunDefinition } from '../lib/runner.mjs';
 import { commandText } from '../lib/process-json.mjs';
 import { readBaselineAdmissionPolicy, runBaselineAdmission, verifyBaselineAdmission } from '../lib/baseline-admission.mjs';
 
 const caseId = 'mb-init-dd-tasks-zero';
 const json = async file => JSON.parse(await readFile(file, 'utf8'));
 const schema = async file => new Ajv2020({ allErrors: true }).compile(await json(new URL(`../schemas/${file}`, import.meta.url)));
+
+test('Memory checkpoint and failure projection use frozen stage order, not SDLC order', async t => {
+  const loaded = await loadCase(caseId), contour = loaded.value.flow.contour;
+  for (const [index, stage] of contour.entries()) assert.deepEqual(resultCheckpointMode(stage, contour), index === contour.length - 1
+    ? { purpose: 'candidate', stage_entry: null } : { purpose: 'stage_entry', stage_entry: contour[index + 1] });
+  assert.throws(() => resultCheckpointMode('merge', contour), { code: 'selection_invalid' });
+  assert.throws(() => resultCheckpointMode('preflight'), { code: 'selection_invalid' });
+  const records = [{ stage: 'merge', status: 'running' }, { stage: 'compose', status: 'done' }, { stage: 'preflight', status: 'done' }, { stage: 'review', status: 'blocked' }, { stage: 'verify', status: 'done' }];
+  const status = { index: { stage_runs: records } };
+  assert.equal(latestObservedStage(status, 'preflight', contour), 'review');
+  assert.equal(latestObservedStage({ run: { index: { stage_runs: contour.slice().reverse().map(stage => ({ stage, status: 'done' })) } } }, 'preflight', contour), 'finish');
+  assert.equal(latestObservedStage({ index: { stage_runs: [{ stage: 'merge', status: 'running' }] } }, 'preflight', contour), 'preflight');
+  assert.equal(latestObservedStage({ index: { stage_runs: [{ stage: 'code', status: 'running' }] } }, 'specify'), 'code');
+  const manifest = { run_id: 'EVAL-memory-projection', flow: loaded.value.flow, executions: [{ id: 'subject' }] };
+  const results = [{ execution: 'subject', stage: 'preflight', state: 'failed', lifecycle: { status }, attempt: '/test-only' }];
+  const candidate = await buildRunCandidate({ runId: manifest.run_id, manifest, results });
+  assert.equal(candidate.executions[0].reached_stage, 'review');
+  const root = await mkdtemp(path.join(os.tmpdir(), 'memory-candidate-')); t.after(() => rm(root, { recursive: true, force: true }));
+  const frozen = await frozenCandidate({ root, manifest, results });
+  assert.equal(frozen.candidate.executions[0].reached_stage, 'review');
+  assert.equal((await frozenCandidate({ root, manifest, results })).candidate.immutable_hash, frozen.candidate.immutable_hash);
+  await assert.rejects(assertRetainedRunDefinition({ flow: { ...loaded.value.flow, contour: ['specify', 'merge'] } }, loaded), { code: 'runner_definition_drift' });
+});
 
 test('authored Memory case binds all six contexts and independent facts without claiming pack qualification', async () => {
   const loaded = await loadCase(caseId);
