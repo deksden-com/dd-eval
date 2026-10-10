@@ -23,12 +23,15 @@ test('Memory setup delegates trust to CLI and binds private Home to checkpoint c
   for (const value of [declaration.canonSource, declaration.trustFile, declaration.channel, input.requestId]) assert(observed.args.includes(value));
   await rm(calls);
   for (const changed of [{ runtimeRoot: projectRoot }, { runtimeRoot: undefined }, { declaration: { ...declaration, trustFile: 'relative' } }, { declaration: { ...declaration, profile: 'hidden-save' } }, { checkpoint: { flow_pack: { ...checkpoint.flow_pack, delivery: 'project_pack' } } }]) {
-    await assert.rejects(setupMemoryRuntime({ ...input, ...changed }), { code: 'memory_setup_invalid' });
+    await assert.rejects(setupMemoryRuntime({ ...input, ...changed }), { code: 'memory_setup_invalid', details: { effect: 'no_effect' } });
     await assert.rejects(readFile(calls), { code: 'ENOENT' });
   }
-  for (const value of [{ ...receipt, installation_readiness: 'degraded' }, { ...receipt, installation: { manifest: { ...receipt.installation.manifest, canon: { commit: 'b'.repeat(40), version: '1' } } } }, { ...receipt, installation: { manifest: { ...receipt.installation.manifest, engine: { version: 'other' } } } }]) {
+  for (const value of [null, { ...receipt, installation_readiness: 'degraded' }, { ...receipt, installation: { manifest: { ...receipt.installation.manifest, canon: { commit: 'b'.repeat(40), version: '1' } } } }, { ...receipt, installation: { manifest: { ...receipt.installation.manifest, engine: { version: 'other' } } } }]) {
     await writeFile(bin, script(value));
-    await assert.rejects(setupMemoryRuntime(input), { code: 'memory_setup_invalid' });
+    await assert.rejects(setupMemoryRuntime(input), {
+      code: 'memory_setup_invalid',
+      details: { effect: value?.installation_readiness === 'installed' ? 'committed' : 'unknown', runtime_root: runtimeRoot, request_id: input.requestId }
+    });
   }
   assert.throws(() => validateMemorySetup({ ...declaration, channel: 'unknown' }), { code: 'memory_setup_invalid' });
 });
