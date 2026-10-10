@@ -25,8 +25,8 @@ for (const [kind, commit] of [['minimal', '75d609dc4a0eb769fc52202909331a489b937
   assert.equal(await commandText('git', ['remote'], { cwd: projectRoot }), '');
   await assertBlankMemoryProject(projectRoot);
   const caseRoot = new URL(`../cases/mb-init-authored-${kind}/`, import.meta.url);
-  const prepared = JSON.parse(await readFile(new URL('case-authoring.json', caseRoot)));
-  assert.equal(prepared.readiness, 'awaiting_exact_release_checkpoint'); assert.equal(prepared.entry_pack, null);
+  const prepared = JSON.parse(await readFile(new URL('case.json', caseRoot)));
+  assert.equal(prepared.entry_pack, null);
   const intake = await readFile(new URL('entry-pack-source/initialize.md', caseRoot));
   assert.equal(sha256(intake), prepared.input[0].sha256);
   for (const [file, schema] of [['assessment.json', 'assessment.v1.schema.json'], ['entry-pack-source/stage-context.json', 'stage-context.v1.schema.json']]) {

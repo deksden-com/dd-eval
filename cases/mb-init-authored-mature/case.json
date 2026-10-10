@@ -1,0 +1,46 @@
+{
+  "schema_id": "dd-eval/case@7",
+  "suite_id": "memory-flow-e3",
+  "id": "mb-init-authored-mature",
+  "assessment": "assessment.json",
+  "input": [
+    {
+      "role": "initial_user_request",
+      "source": "entry-pack-source/initialize.md",
+      "sha256": "db28a337b56b7c06e5bedcb95c450bca0c5238638b1948b68ba285cd11c6279c"
+    }
+  ],
+  "input_checkpoint": {
+    "id": "cp-mb-init-authored-mature-983e532",
+    "sha256": "004eb215a3775d393a1e2ff2bd715b127d9cd0d5931386862aac007377c7efc7"
+  },
+  "baseline_admission": {
+    "file": "baseline-admission.json",
+    "sha256": "7efaeb5028c69d77281bc8efd1526cd73f06aa3829bba1c88b1c62df55344892"
+  },
+  "entry_pack": null,
+  "profiles": {
+    "subject": [
+      "codex-desktop-gpt-6-luna-xhigh-codex-0-162-1"
+    ],
+    "judge": [
+      "codex-desktop-gpt-6-1-sol-high-codex-0-162-1"
+    ]
+  },
+  "flow": {
+    "id": "mb-init",
+    "contour": [
+      "preflight",
+      "discover",
+      "compose",
+      "verify",
+      "review",
+      "finish"
+    ],
+    "terminal_stage": "finish",
+    "git_policy": {
+      "route": "integration_branch_direct",
+      "integration_branch": "main"
+    }
+  }
+}

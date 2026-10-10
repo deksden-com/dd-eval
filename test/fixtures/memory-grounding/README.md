@@ -22,9 +22,9 @@ The human-approved minimal/mature E2E authoring inputs now live in
 `cases/mb-init-authored-minimal` and `cases/mb-init-authored-mature`. Their
 separate assessments preserve the approved facts without altering the zero
 case or this historical draft oracle. No focused entry pack is needed for
-initial E2E. `case-authoring.json` is preparation data, not a runnable case:
-the exact signed canon/CLI release checkpoint is still required before
-publishing `case.json` and its checkpoint hash.
+initial E2E. Their `case.json` references an exact source/engine/canon
+checkpoint. Signed development setup and operator-owned run profiles are
+execution inputs; case registration does not claim semantic qualification.
 
 `minimal.bundle` and `mature.bundle` contain only the respective authored
 product trees under `sources/`, not Eval assessments or expected facts.
