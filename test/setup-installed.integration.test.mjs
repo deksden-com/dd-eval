@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import test from 'node:test';
+import { setupMemoryRuntime } from '../lib/memory-runtime-setup.mjs';
 
 const bindings = ['DD_EVAL_TEST_SETUP_CLI', 'DD_EVAL_TEST_SETUP_CANON_ARCHIVE',
   'DD_EVAL_TEST_SETUP_ENGINE_ARCHIVE', 'DD_EVAL_TEST_SETUP_CONSOLE_ROOT'];
@@ -84,6 +85,21 @@ test('installed setup and Console observation preserve isolated producer boundar
   assert.equal(fs.existsSync(headlessHome), false);
   const installed = accepted(['setup', ...args, '--request-id', 'install']);
   assert.equal(installed.installation_readiness, 'installed'); assert.equal(installed.executor.profile_id, null);
+  const memoryHome = path.join(root, 'memory-eval-home');
+  const checkpoint = { flow_pack: { delivery: 'installed_canon', commit: manifest.canon.commit,
+    memory_bank_version: manifest.canon.version, engine: { version: manifest.engine.version } } };
+  const memorySetup = await setupMemoryRuntime({ bin: cli, env, projectRoot: cwd, runtimeRoot: memoryHome,
+    declaration: { canonSource: source, trustFile: trust, channel: 'development' }, checkpoint, requestId: 'memory-eval-setup' });
+  assert.equal(memorySetup.installation_readiness, 'installed');
+  assert.equal(memorySetup.installation.manifest_sha256, installed.installation.manifest_sha256);
+  assert.equal(memorySetup.executor.profile_id, null);
+  assert.equal(fs.existsSync(path.join(cwd, '.memory-bank')), false);
+  for (const name of ['db.sqlite', 'projects', 'agent-profiles', 'profile-settings.json']) assert.equal(fs.existsSync(path.join(memoryHome, name)), false);
+  const memorySelection = fs.readFileSync(path.join(memoryHome, 'installation.json'));
+  const memoryReplay = await setupMemoryRuntime({ bin: cli, env, projectRoot: cwd, runtimeRoot: memoryHome,
+    declaration: { canonSource: source, trustFile: trust, channel: 'development' }, checkpoint, requestId: 'memory-eval-setup' });
+  assert.equal(memoryReplay.replayed, true);
+  assert.deepEqual(fs.readFileSync(path.join(memoryHome, 'installation.json')), memorySelection);
   const cachedPackage = path.join(installed.installation.engine_root, 'package');
   for (const name of ['dist/cli.js', 'dist/build-info.json', 'dist/schemas/execution-bundle.schema.json']) {
     assert.deepEqual(fs.readFileSync(path.join(cachedPackage, name)), fs.readFileSync(path.join(packageRoot, name)), `Installed and archived ${name} must be the same bytes`);
