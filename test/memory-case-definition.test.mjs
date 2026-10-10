@@ -7,11 +7,32 @@ import Ajv2020 from 'ajv/dist/2020.js';
 import { loadCase, initialFlowBoundary, validateCaseBlueprint, prepareE2EInput, assertBlankMemoryProject, interactionFixtureManifest, resultCheckpointMode, latestObservedStage, buildRunCandidate, frozenCandidate, assertRetainedRunDefinition } from '../lib/runner.mjs';
 import { commandText } from '../lib/process-json.mjs';
 import { readBaselineAdmissionPolicy, runBaselineAdmission, verifyBaselineAdmission } from '../lib/baseline-admission.mjs';
-import { inheritedFlowStages } from '../lib/runner.mjs';
+import { inheritedFlowStages, qualifiedNativeFanoutCapacity } from '../lib/runner.mjs';
 
 const caseId = 'mb-init-dd-tasks-zero';
 const json = async file => JSON.parse(await readFile(file, 'utf8'));
 const schema = async file => new Ajv2020({ allErrors: true }).compile(await json(new URL(`../schemas/${file}`, import.meta.url)));
+
+test('Memory native fan-out checks the actual selected coordinator before recording capacity', async () => {
+  const { value: { flow: { contour } } } = await loadCase(caseId);
+  const profile = { id: 'qualified', harness: 'codex-desktop', model: 'fixture', reasoning: 'low', subagent_capacity: 2 };
+  const selected = { coordinator: profile, delegation: { mode: 'native' } };
+  for (const stage of contour) {
+    assert.equal(qualifiedNativeFanoutCapacity(stage, selected, profile, contour), ['compose', 'review'].includes(stage) ? 2 : null);
+    assert.equal(qualifiedNativeFanoutCapacity(stage, { delegation: { mode: 'external' } }, {}, contour), null);
+    assert.equal(qualifiedNativeFanoutCapacity(stage, undefined, {}, contour), null);
+  }
+  for (const stage of ['compose', 'review']) {
+    for (const capacity of [undefined, 0, -1, 1.5, 16, '2'])
+      assert.throws(() => qualifiedNativeFanoutCapacity(stage, selected, { ...profile, subagent_capacity: capacity }, contour), { code: 'subagent_capacity_unqualified' });
+    for (const coordinator of [null, { ...profile, harness: 'zcode-acp' }, { ...profile, model: 'foreign' }, { ...profile, reasoning: 'high' }])
+      assert.throws(() => qualifiedNativeFanoutCapacity(stage, { ...selected, coordinator }, profile, contour), { code: 'subagent_capacity_unqualified' });
+  }
+  assert.throws(() => qualifiedNativeFanoutCapacity('merge', selected, profile, contour), { code: 'selection_invalid' });
+  assert.throws(() => qualifiedNativeFanoutCapacity('compose', selected, profile), { code: 'selection_invalid' });
+  assert.equal(qualifiedNativeFanoutCapacity('plan-review', selected, profile), 2);
+  assert.equal(qualifiedNativeFanoutCapacity('specify', selected, {}), null);
+});
 
 test('Memory checkpoint and failure projection use frozen stage order, not SDLC order', async t => {
   const loaded = await loadCase(caseId), contour = loaded.value.flow.contour;
