@@ -4,7 +4,7 @@ import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import Ajv2020 from 'ajv/dist/2020.js';
-import { loadCase, initialFlowBoundary, validateCaseBlueprint, prepareE2EInput, assertBlankMemoryProject } from '../lib/runner.mjs';
+import { loadCase, initialFlowBoundary, validateCaseBlueprint, prepareE2EInput, assertBlankMemoryProject, interactionFixtureManifest } from '../lib/runner.mjs';
 import { commandText } from '../lib/process-json.mjs';
 import { readBaselineAdmissionPolicy, runBaselineAdmission, verifyBaselineAdmission } from '../lib/baseline-admission.mjs';
 
@@ -22,6 +22,15 @@ test('authored Memory case binds all six contexts and independent facts without 
   assert.equal(validateCaseBlueprint(blueprint, loaded), blueprint);
   assert.deepEqual(initialFlowBoundary(loaded), { flow: 'mb-init', stage: 'preflight' });
   assert.equal(loaded.value.entry_pack, null);
+  const executions = [{ stage: 'preflight', terminal_stage: 'finish' }];
+  const fixtures = await interactionFixtureManifest(loaded.root, executions, null, loaded.value.flow.contour);
+  assert.deepEqual(Object.keys(fixtures), loaded.value.flow.contour);
+  assert.deepEqual(await interactionFixtureManifest(loaded.root, executions, { interaction_fixtures: fixtures }, loaded.value.flow.contour), fixtures);
+  const focused = await interactionFixtureManifest(loaded.root, [{ stage: 'review', terminal_stage: 'review' }], null, loaded.value.flow.contour);
+  assert.deepEqual(Object.keys(focused), ['review']);
+  await assert.rejects(interactionFixtureManifest(loaded.root, executions), { code: 'selection_invalid' }, 'historical SDLC default must not infer Memory');
+  await assert.rejects(interactionFixtureManifest(loaded.root, [{ stage: 'review', terminal_stage: 'discover' }], null, loaded.value.flow.contour), { code: 'selection_invalid' });
+  await assert.rejects(interactionFixtureManifest(loaded.root, [{ stage: 'specify', terminal_stage: 'finish' }], null, loaded.value.flow.contour), { code: 'selection_invalid' });
   const baseline = await readBaselineAdmissionPolicy({ caseRoot: loaded.root, definition: loaded.value.baseline_admission });
   assert.deepEqual(baseline.commands.map(item => item.id), ['zero-checkpoint']);
   assert.deepEqual(Object.keys(blueprint.stages), loaded.value.flow.contour);
