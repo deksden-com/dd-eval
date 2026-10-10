@@ -27,6 +27,16 @@ for (const [kind, commit] of [['minimal', '75d609dc4a0eb769fc52202909331a489b937
   const caseRoot = new URL(`../cases/mb-init-authored-${kind}/`, import.meta.url);
   const prepared = JSON.parse(await readFile(new URL('case.json', caseRoot)));
   assert.equal(prepared.entry_pack, null);
+  const assessment = JSON.parse(await readFile(new URL('assessment.json', caseRoot)));
+  const stageScopes = prepared.flow.contour.map(stage => assessment.scopes[stage]);
+  assert.deepEqual(Object.keys(assessment.scopes), [...prepared.flow.contour, 'e2e']);
+  for (const vector of ['outcome', 'flow']) {
+    assert.deepEqual(assessment.scopes.e2e[vector], stageScopes[0][vector]);
+    for (const scope of stageScopes) assert.deepEqual(scope[vector], assessment.scopes.e2e[vector]);
+  }
+  for (const key of ['required_outcomes', 'accepted_strong_decisions', 'accepted_alternatives', 'known_risks'])
+    assert.deepEqual(assessment.scopes.e2e.golden[key], stageScopes.flatMap(scope => scope.golden[key]));
+  assert(!JSON.stringify(assessment.scopes.e2e).includes(oracle.hidden_canary));
   const intake = await readFile(new URL('entry-pack-source/initialize.md', caseRoot));
   assert.equal(sha256(intake), prepared.input[0].sha256);
   for (const [file, schema] of [['assessment.json', 'assessment.v1.schema.json'], ['entry-pack-source/stage-context.json', 'stage-context.v1.schema.json']]) {
