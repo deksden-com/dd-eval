@@ -100,6 +100,28 @@ test('installed setup and Console observation preserve isolated producer boundar
     declaration: { canonSource: source, trustFile: trust, channel: 'development' }, checkpoint, requestId: 'memory-eval-setup' });
   assert.equal(memoryReplay.replayed, true);
   assert.deepEqual(fs.readFileSync(path.join(memoryHome, 'installation.json')), memorySelection);
+  if (process.env.DD_EVAL_REQUIRE_MEMORY_BOOTSTRAP === '1') {
+    const product = path.join(root, 'blank-product'), snapshot = path.join(root, 'memory-bootstrap');
+    fs.mkdirSync(product);
+    fs.writeFileSync(path.join(product, 'README.md'), 'Installed Memory bootstrap product.\n');
+    for (const gitArgs of [['init', '--quiet', '--initial-branch=main'], ['add', 'README.md'],
+      ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@localhost', 'commit', '--quiet', '-m', 'blank product']]) {
+      const result = spawnSync('git', gitArgs, { cwd: product, encoding: 'utf8' });
+      assert.equal(result.status, 0, result.stderr);
+    }
+    const memoryEnv = { ...env, PATH: process.env.PATH, DD_FLOW_HOME: memoryHome, DD_FLOW_CONFIG_HOME: memoryHome };
+    for (const command of [['engine', 'install', '--force', '--json'], ['run', 'snapshot', 'bootstrap', 'create', '--flow', 'mb-init', '--project-root', product, '--output', snapshot, '--json']]) {
+      const result = spawnSync(process.execPath, [cli, ...command], { cwd: product, env: memoryEnv, encoding: 'utf8', timeout: 30_000 });
+      assert.equal(result.status, 0, result.stderr);
+    }
+    const bootstrap = JSON.parse(fs.readFileSync(path.join(snapshot, 'bootstrap.json'), 'utf8'));
+    assert.equal(bootstrap.schema_id, 'dd-flow/bootstrap-snapshot@2');
+    assert.equal(bootstrap.stage_entry, 'preflight');
+    assert.equal(bootstrap.flow.id, 'mb-init');
+    for (const key of ['source_sha256', 'descriptor_sha256']) assert.match(bootstrap.flow[key], /^[a-f0-9]{64}$/);
+    assert.equal(fs.existsSync(path.join(product, '.memory-bank')), false);
+    assert.equal(fs.readFileSync(path.join(product, 'README.md'), 'utf8'), 'Installed Memory bootstrap product.\n');
+  }
   const cachedPackage = path.join(installed.installation.engine_root, 'package');
   for (const name of ['dist/cli.js', 'dist/build-info.json', 'dist/schemas/execution-bundle.schema.json']) {
     assert.deepEqual(fs.readFileSync(path.join(cachedPackage, name)), fs.readFileSync(path.join(packageRoot, name)), `Installed and archived ${name} must be the same bytes`);
