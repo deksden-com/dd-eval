@@ -6,6 +6,19 @@ import path from 'node:path';
 import os from 'node:os';
 import { prepareCaseManagedRun, validateRunProfile, evalPreflight } from '../lib/runner.mjs';
 import Ajv2020 from 'ajv/dist/2020.js';
+import { materializeOperationalDecision } from '../lib/operational-decision.mjs';
+
+test('Memory operational routing never reads absent SDLC policy and retained SDLC still does', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'memory-operational-route-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const input = { projectRoot: root, runtimeRoot: path.join(root, 'runtime'), evalId: 'fixture', executionId: 'e2e' };
+  assert.equal(await materializeOperationalDecision({ ...input, flowId: 'mb-init' }), null);
+  await assert.rejects(readFile(path.join(root, '.memory-bank/dd-flow/project-execution.json')), { code: 'ENOENT' });
+  await assert.rejects(materializeOperationalDecision(input), { code: 'ENOENT' });
+  await mkdir(path.join(root, '.memory-bank/dd-flow'), { recursive: true });
+  await writeFile(path.join(root, '.memory-bank/dd-flow/project-execution.json'), JSON.stringify({ schema_id: 'dd-flow/project-execution@2' }));
+  assert.equal(await materializeOperationalDecision(input), null);
+});
 
 test('run profile Memory selection is explicit and cannot silently drop SDLC routing', async () => {
   const schema = new Ajv2020({ strict: false }).compile(JSON.parse(await readFile(new URL('../schemas/run-profile.v1.schema.json', import.meta.url))));
