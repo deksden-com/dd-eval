@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateFlowContour, validateStageBlueprint, validateStageContext, writeEntryPack } from "../lib/entry-pack.mjs";
-import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice, validateExecutionDescriptors, assertQualificationSelection, canonicalEntries } from "../lib/runner.mjs";
+import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice, validateExecutionDescriptors, assertQualificationSelection, canonicalEntries, initialFlowBoundary, verifySnapshot } from "../lib/runner.mjs";
 
 test("recovery materializes each reopened stage attempt once", () => {
   assert.equal(needsAttemptContext({ attempt: "try-001" }, {}), false);
@@ -19,6 +19,33 @@ const slice = {
   task_input: [{ role: "task", path: "input.md", source: "task.md", sha256: "a".repeat(64) }], sources: [{ role: "index", root: "project", path: "README.md", required: true, reason: "Orientation." }], accepted_decisions: [], dynamic_roles: []
 };
 const memoryContour = ["preflight", "discover", "compose", "verify", "review", "finish"];
+
+test("initial boundary selects Memory explicitly without changing historical focused SDLC", () => {
+  assert.deepEqual(initialFlowBoundary({ value: { flow: { id: "mb-init", contour: memoryContour } } }), { stage: "preflight", flow: "mb-init" });
+  assert.deepEqual(initialFlowBoundary({ value: { flow: { contour: ["plan", "plan-review"] } } }), { stage: "specify", flow: "sdlc" });
+  for (const flow of [{ contour: memoryContour }, { id: "sdlc", contour: memoryContour }, { id: "mb-init", contour: ["compose", "finish"] }, { id: "foreign", contour: memoryContour }])
+    assert.throws(() => initialFlowBoundary({ value: { flow } }), error => error.code === "initial_flow_boundary_invalid");
+});
+
+test("bootstrap snapshot reader binds version, selected stage and independent manifest hash", async t => {
+  const home = await mkdtemp(path.join(os.tmpdir(), "eval-bootstrap-boundary-"));
+  t.after(() => rm(home, { recursive: true, force: true }));
+  const snapshot = { schema_id: "dd-eval/bootstrap-snapshot@2", stage: "preflight", flow: { id: "mb-init", source_sha256: "a".repeat(64), descriptor_sha256: "b".repeat(64) } };
+  const file = path.join(home, "bootstrap.json");
+  const save = async manifest => { await writeFile(file, canonicalJson(manifest)); return { stage: manifest.stage, snapshot: { kind: "bootstrap", locator: ".", manifest_sha256: hashJson(manifest), run_id: null } }; };
+  let entry = await save(snapshot);
+  assert.equal((await verifySnapshot(home, entry, "preflight")).manifest.stage, "preflight");
+  await assert.rejects(verifySnapshot(home, entry, "specify"), error => error.code === "snapshot_contract_mismatch");
+  await writeFile(file, canonicalJson({ ...snapshot, stage: "compose" }));
+  await assert.rejects(verifySnapshot(home, entry, "preflight"), error => error.code === "snapshot_checksum_mismatch");
+  for (const invalid of [{ ...snapshot, schema_id: "dd-eval/bootstrap-snapshot@1" }, { ...snapshot, flow: { ...snapshot.flow, descriptor_sha256: "bad" } }, { ...snapshot, flow: { ...snapshot.flow, unexpected: true } }, { ...snapshot, stage: "compose" }]) {
+    entry = await save(invalid); await assert.rejects(verifySnapshot(home, entry, invalid.stage), error => error.code === "snapshot_contract_mismatch");
+  }
+  const legacy = { schema_id: "dd-eval/bootstrap-snapshot@1", stage: "specify" };
+  entry = await save(legacy); assert.equal((await verifySnapshot(home, entry, "specify")).manifest.stage, "specify");
+  assert.equal((await verifySnapshot(home, { snapshot: entry.snapshot }, "specify")).manifest.stage, "specify");
+  await assert.rejects(verifySnapshot(home, { ...entry, stage: "preflight" }, "specify"), error => error.code === "snapshot_contract_mismatch");
+});
 
 test("canonical reader restores actual memory entries and refuses missing or foreign stage bytes", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-memory-canonical-"));
