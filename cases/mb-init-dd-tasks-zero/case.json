@@ -1,0 +1,38 @@
+{
+  "schema_id": "dd-eval/case@7",
+  "suite_id": "memory-flow-e3",
+  "id": "mb-init-dd-tasks-zero",
+  "assessment": "assessment.json",
+  "input": [
+    {
+      "role": "initial_user_request",
+      "source": "entry-pack-source/initialize.md",
+      "sha256": "92b51c84dcc3fd664aed7e2d3aec87011298d68fda2367230b2dba86f345a178"
+    }
+  ],
+  "input_checkpoint": {
+    "id": "cp-mb-init-dd-tasks-zero-b83a09c",
+    "sha256": "ee538f0b6f100b647808571a3fa4155355cc530232124bcd83ca55f4ffbffd28"
+  },
+  "entry_pack": null,
+  "profiles": {
+    "subject": [],
+    "judge": []
+  },
+  "flow": {
+    "id": "mb-init",
+    "contour": [
+      "preflight",
+      "discover",
+      "compose",
+      "verify",
+      "review",
+      "finish"
+    ],
+    "terminal_stage": "finish",
+    "git_policy": {
+      "route": "integration_branch_direct",
+      "integration_branch": "main"
+    }
+  }
+}

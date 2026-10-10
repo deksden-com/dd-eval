@@ -83,6 +83,39 @@ answers into the E2E input.
 
 ## Build a canonical entry pack
 
+### Memory init inputs
+
+For `mb-init`, use a genuinely blank product checkpoint: no `.memory-bank`
+file, directory or symlink. `cases/mb-init-dd-tasks-zero` pins the original
+dd-tasks zero checkpoint, not a later checkout with its Memory Bank removed.
+Its entry pack is still null; authored inputs are not qualification evidence.
+
+Declare `flow.id: "mb-init"`, its six-stage contour, terminal `finish` and an
+explicit `flow.git_policy`. The checkpoint selects canonical flow delivery
+`installed_canon`. Supply a clean canonical checkout at `flow_pack.commit`,
+not a project-curated SDLC pack. Unlike the SDLC overlay below, Memory
+materialization preserves the pinned product commit without copying a flow
+pack or creating a synthetic overlay commit. The initial boundary is
+`preflight`; only it receives the byte-preserved original initialization input.
+
+The operator's run profile must pair `subject.memory_init` (explicit profile
+or operation-only profile file, plus any stage/Work assignments) with
+`subject.memory_setup` (absolute signed canon source, trust file and optional
+channel). Setup validates and installs that release into a dedicated private
+Home before snapshot creation or public `init --prepare-only`; it must match
+the checkpoint canon/engine tuple. Never generate trust to disguise an absent
+operator release, use ambient global Home, or commit host paths/credentials as
+portable case facts. Subject/Judge model selection is an explicit experiment
+input, not an inferred first-run default.
+
+Context schemas admit bounded stage identifiers; runtime validation additionally
+requires exact membership in the case's selected catalog and matching slice
+identity. Keep the hidden assessment outside all Subject sources. Qualify all
+six isolated focused entries and the explicitly planned E2E/installed routes
+through normal capture and acceptance owners; do not hand-author acceptance.
+
+### Capture and qualification
+
 1. Commit the case inputs, including its hash-pinned input checkpoint. The
    runner refuses to start a canonical build from a dirty `dd-eval` definition
    tree and records its commit and tree hash in the build state. Prepare
