@@ -23,6 +23,11 @@ test("Memory preparation uses public init without SDLC routing or Session dispat
     assert.equal(selected[selected.indexOf('--max-parallel') + 1], String(limit));
   }
   for (const value of ['memory-request', memoryInit.intakeFile, memoryInit.profileFile, 'review=independent', 'worker']) assert(args.includes(value));
+  await prepareManagedRun({ ...input, memoryInit: { ...memoryInit, delegation: 'native', allowLiveProbe: true, nativeConfigHome: path.join(root, 'private-config'), maxParallel: 2 } });
+  const nativeArgs = JSON.parse(await readFile(calls));
+  assert.equal(nativeArgs[nativeArgs.indexOf('--delegation') + 1], 'native');
+  assert.equal(nativeArgs[nativeArgs.indexOf('--native-config-home') + 1], path.join(root, 'private-config'));
+  assert.equal(nativeArgs.filter(arg => arg === '--allow-live-probe').length, 1);
   await rm(calls);
   for (const maxParallel of [null, 0, -1, 1.5, 257, '2', NaN]) {
     await assert.rejects(prepareManagedRun({ ...input, memoryInit: { ...memoryInit, maxParallel } }), { code: 'managed_flow_input_invalid', details: { effect: 'no_effect' } });

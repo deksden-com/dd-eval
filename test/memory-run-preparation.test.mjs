@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import { prepareCaseManagedRun, validateRunProfile } from '../lib/runner.mjs';
+import { prepareCaseManagedRun, validateRunProfile, evalPreflight } from '../lib/runner.mjs';
 import Ajv2020 from 'ajv/dist/2020.js';
 
 test('run profile Memory selection is explicit and cannot silently drop SDLC routing', async () => {
@@ -24,6 +24,23 @@ test('run profile Memory selection is explicit and cannot silently drop SDLC rou
   for (const selection of [{}, { profile: '' }, { profile: 'local', profileFile: '/file' }, { profile: 'local', stageProfiles: 'review=local' }, { profile: 'local', requestId: 'foreign' }])
     assert.throws(() => validateRunProfile({ ...profile, subject: { ...profile.subject, memory_init: selection } }));
   assert.throws(() => validateRunProfile({ ...profile, subject: { ...profile.subject, execution: {} } }), /exclusive/);
+  const native = { profileFile: '/private/profile.json', delegation: 'native', allowLiveProbe: true, nativeConfigHome: '/private/config', maxParallel: 2 };
+  const nativeProfile = selection => ({ ...profile, subject: { ...profile.subject, memory_init: selection } });
+  assert.equal(schema(nativeProfile(native)), true, JSON.stringify(schema.errors));
+  validateRunProfile(nativeProfile(native));
+  for (const changed of [{ allowLiveProbe: 'true' }, { nativeConfigHome: '' }, { nativeConfigHome: null }, { delegation: 'unknown' }]) {
+    const selected = nativeProfile({ ...native, ...changed });
+    assert.throws(() => validateRunProfile(selected));
+    assert.equal(schema(JSON.parse(JSON.stringify(selected))), false);
+  }
+});
+
+test('native preflight refuses before loading a case or creating any provider/runtime', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'native-preflight-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const file = path.join(root, 'profile.json');
+  await writeFile(file, JSON.stringify({ schema_id: 'dd-eval/run-profile@1', id: 'native', case_id: 'nonexistent', subject: { profile_id: 'nonexistent', memory_setup: { canonSource: '/missing', trustFile: '/missing' }, memory_init: { profileFile: '/missing', delegation: 'native', allowLiveProbe: true, nativeConfigHome: '/missing' } }, selection: { focused_stages: [], segment: null, e2e: true, repetitions: 1 }, judge: { enabled: false }, concurrency: { global: 1 }, failure_policy: { stop_execution_on_unexpected_hitl: true, stop_execution_on_unmatched_hitl: true } }));
+  await assert.rejects(evalPreflight({ profileFile: file }), { code: 'native_preparation_pending', details: { effect: 'no_effect', provider_sessions_created: 0 } });
 });
 
 test('case Memory preparation binds original intake, stable scope and declared policy to public CLI', async t => {
