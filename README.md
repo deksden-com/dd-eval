@@ -28,6 +28,13 @@ task input. The run profile supplies `subject.memory_init` with exactly one
 `profile` or absolute `profileFile` and optional repeatable `stageProfiles` /
 `workProfiles`; it cannot also supply SDLC `subject.execution`. The runner derives
 workspace and stable request identity; agents do not author these fields.
+The paired `subject.memory_setup` supplies absolute `canonSource` and `trustFile`
+locators and optional release `channel`. Public CLI setup installs them into the
+private runtime Home with agent setup skipped; its selected canon commit/version
+and engine version must match the case checkpoint before bootstrap snapshot or
+initial RUN preparation. The runner never creates trust keys or copies global
+installation state. Memory selection cannot consume legacy SDLC operational
+project materialization, which would create a partial Memory Bank before init.
 Preparation publishes project/RUN state but starts no provider Session. Existing
 `run drive launch` owns subsequent context, stop/capture policy and execution.
 Memory input checkpoints explicitly set `flow_pack.delivery: "installed_canon"`.
