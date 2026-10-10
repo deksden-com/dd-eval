@@ -30,7 +30,13 @@ task input. The run profile supplies `subject.memory_init` with exactly one
 workspace and stable request identity; agents do not author these fields.
 Preparation publishes project/RUN state but starts no provider Session. Existing
 `run drive launch` owns subsequent context, stop/capture policy and execution.
-This path is under development: isolated canon/setup materialization, a genuinely
+Memory input checkpoints explicitly set `flow_pack.delivery: "installed_canon"`.
+Canonical and E2E input materialization clone only the pinned product commit,
+retain its tree/commit and reject any existing `.memory-bank` (including files
+and dangling links). They do not copy the canonical flow into the product.
+Source-only canon identity checks do not grant installation trust or executable
+descriptor admission; those remain owned by setup and the selected CLI.
+This path is under development: isolated canon/setup materialization, an authored
 blank product checkpoint and independent focused/E2E case qualification remain
 required before a Memory case may become accepted. Existing task-priority packs
 are not blank-init evidence.
