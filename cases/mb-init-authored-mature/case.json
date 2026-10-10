@@ -16,7 +16,7 @@
   },
   "baseline_admission": {
     "file": "baseline-admission.json",
-    "sha256": "7efaeb5028c69d77281bc8efd1526cd73f06aa3829bba1c88b1c62df55344892"
+    "sha256": "d47d43edf6f087bb8cad121cdb1218615b87318f50addb132883be43833a1076"
   },
   "entry_pack": null,
   "profiles": {

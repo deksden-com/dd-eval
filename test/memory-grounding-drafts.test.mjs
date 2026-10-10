@@ -34,7 +34,12 @@ for (const [kind, commit] of [['minimal', '75d609dc4a0eb769fc52202909331a489b937
     assert.equal(validate(JSON.parse(await readFile(new URL(file, caseRoot)))), true, JSON.stringify(validate.errors));
   }
   const baseline = JSON.parse(await readFile(new URL('baseline-admission.json', caseRoot)));
+  // Init preparation owns its scaffold; baseline protects original product bytes.
+  await mkdir(path.join(projectRoot, '.memory-bank'));
+  await writeFile(path.join(projectRoot, '.memory-bank', 'prepared.json'), '{}');
   for (const command of baseline.commands) await commandText(command.command, command.args, { cwd: projectRoot, env: { NODE_TEST_CONTEXT: undefined } });
+  await writeFile(path.join(projectRoot, 'README.md'), 'changed product source');
+  await assert.rejects(commandText(baseline.commands[0].command, baseline.commands[0].args, { cwd: projectRoot }));
 });
 
 for (const [kind, files] of Object.entries(projects)) test(`draft ${kind} grounding sources are exact, runnable and exclude hidden facts`, async t => {
