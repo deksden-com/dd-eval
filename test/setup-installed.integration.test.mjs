@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import test from 'node:test';
+import { DatabaseSync } from 'node:sqlite';
 import { setupMemoryRuntime } from '../lib/memory-runtime-setup.mjs';
 
 const bindings = ['DD_EVAL_TEST_SETUP_CLI', 'DD_EVAL_TEST_SETUP_CANON_ARCHIVE',
@@ -115,12 +116,21 @@ test('installed setup and Console observation preserve isolated producer boundar
       assert.equal(result.status, 0, result.stderr);
     }
     const bootstrap = JSON.parse(fs.readFileSync(path.join(snapshot, 'bootstrap.json'), 'utf8'));
-    assert.equal(bootstrap.schema_id, 'dd-flow/bootstrap-snapshot@2');
-    assert.equal(bootstrap.stage_entry, 'preflight');
+    assert.equal(bootstrap.schema_id, 'dd-eval/bootstrap-snapshot@2');
+    assert.equal(bootstrap.stage, 'preflight');
     assert.equal(bootstrap.flow.id, 'mb-init');
     for (const key of ['source_sha256', 'descriptor_sha256']) assert.match(bootstrap.flow[key], /^[a-f0-9]{64}$/);
     assert.equal(fs.existsSync(path.join(product, '.memory-bank')), false);
     assert.equal(fs.readFileSync(path.join(product, 'README.md'), 'utf8'), 'Installed Memory bootstrap product.\n');
+    const databaseFile = path.join(memoryHome, 'db.sqlite');
+    if (fs.existsSync(databaseFile)) {
+      const db = new DatabaseSync(databaseFile, { readOnly: true });
+      try {
+        for (const table of ['runs', 'sessions', 'run_controllers']) {
+          if (db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name=?").get(table)) assert.equal(db.prepare(`SELECT count(*) AS n FROM ${table}`).get().n, 0);
+        }
+      } finally { db.close(); }
+    }
   }
   const cachedPackage = path.join(installed.installation.engine_root, 'package');
   for (const name of ['dist/cli.js', 'dist/build-info.json', 'dist/schemas/execution-bundle.schema.json']) {
