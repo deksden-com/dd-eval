@@ -13,7 +13,7 @@ import { interactionJudgePrompt } from "../lib/runner.mjs";
 import { buildHitlPacket, validateGroundedHitl, interactionGroundedPrompt } from '../lib/hitl-contract.mjs';
 import { materializeQualificationContext, reassessHitlQualification } from "../lib/runner.mjs";
 import { buildReport } from "../lib/runner.mjs";
-import { capacityCodexChildren } from "../lib/runner.mjs";
+import { capacityCodexChildren, qualifiedCapacityProbe, harnessCapacityCheck } from "../lib/runner.mjs";
 import { errorRecord, terminalCodexOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 const capacityPolicy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'src/harness-runtime/lib/codex-capacity-policy.mjs')).href) : null;
@@ -996,6 +996,23 @@ test("capacity qualification counts only authoritative direct native children", 
   );
   assert.equal(directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-lost", status: "lost" }] } } } }, "root")[0].status, "unknown");
   assert.equal(directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-unproven" }] } } } }, "root")[0].status, "unknown");
+});
+
+test("capacity qualification needs positive cleanup and exact bounded child ownership", async () => {
+  const receipt = { schema_id: 'dd-eval/subagent-capacity@1', requested: 2, capacity: 1,
+    root_session_id: 'root', cleanup: { stopped: true }, children: [{ session_id: 'child', parent_session_id: 'root' }] };
+  assert.equal(qualifiedCapacityProbe(receipt), true);
+  for (const change of [{ cleanup: null }, { cleanup: {} }, { cleanup: { stopped: false } },
+    { cleanup: { stopped: 'true' } }, { failure: { code: 'probe_failed' } }, { requested: 16 }, { capacity: 3 },
+    { capacity: 0 }, { root_session_id: null }, { children: [] },
+    { children: [{ session_id: 'child', parent_session_id: 'foreign' }] },
+    { children: [{ session_id: 'root', parent_session_id: 'root' }] },
+    { children: [{ session_id: 'child', parent_session_id: 'root', provenance: 'parent_mismatch' }] },
+    { capacity: 2, children: [receipt.children[0], receipt.children[0]] }]) {
+    assert.equal(qualifiedCapacityProbe({ ...receipt, ...change }), false, JSON.stringify(change));
+  }
+  for (const maximum of [0, -1, 1.5, 16, Number.MAX_SAFE_INTEGER, 'not-a-number'])
+    await assert.rejects(harnessCapacityCheck({ profileId: 'must-not-load', maximum }), { code: 'capacity_check_invalid' });
 });
 
 test("capacity qualification stays outside the flow runtime", async () => {
