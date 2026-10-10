@@ -3,9 +3,15 @@ import { chmod, mkdir, mkdtemp, rm, writeFile, readFile } from "node:fs/promises
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { commandJson, commandText } from "../lib/process-json.mjs";
+import { commandJson, commandText, commandObservationTimeout } from "../lib/process-json.mjs";
 import { callDriver } from "../lib/runner.mjs";
 import { errorRecord } from "../lib/operation-errors.mjs";
+
+test("public Memory prepare-only uses the existing build budget without widening ordinary controls", () => {
+  assert.equal(commandObservationTimeout(["init", "--prepare-only", "--non-interactive"]), commandObservationTimeout(["build"]));
+  for (const args of [["init"], ["run", "status"], ["run", "prepare-vnext-specify"], ["status", "--prepare-only"]])
+    assert.equal(commandObservationTimeout(args), 30_000);
+});
 
 test("driver retains JSONL and successful-exit typed error envelopes including false retryable and cleanup", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-driver-error-")); t.after(() => rm(root, { recursive: true, force: true }));
