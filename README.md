@@ -20,6 +20,21 @@ The [FLOW test-suite runbook](runbooks/flow-test-suite-verification.md) defines
 development groups, build-before-test full acceptance, worker qualification,
 complete shard evidence and the exact paired fixture targets.
 
+The E3 Memory runner path prepares `mb-init` through public `init --prepare-only`,
+not `run prepare-vnext-specify`. A Memory case declares `flow.id: "mb-init"`, its
+six-stage contour and `flow.git_policy` (`route`, `integration_branch`). Its
+`preflight` blueprint contains exactly one checksum-bound `initial_user_request`
+task input. The run profile supplies `subject.memory_init` with exactly one
+`profile` or absolute `profileFile` and optional repeatable `stageProfiles` /
+`workProfiles`; it cannot also supply SDLC `subject.execution`. The runner derives
+workspace and stable request identity; agents do not author these fields.
+Preparation publishes project/RUN state but starts no provider Session. Existing
+`run drive launch` owns subsequent context, stop/capture policy and execution.
+This path is under development: isolated canon/setup materialization, a genuinely
+blank product checkpoint and independent focused/E2E case qualification remain
+required before a Memory case may become accepted. Existing task-priority packs
+are not blank-init evidence.
+
 Factory Droid integration uses `dd-droid`, native JSON-RPC and the pinned
 `droid-cli-openai-gpt-5-6-sol-high` profile. Native close/reload and child identity
 are verified; the profile has measured capacity 15. Scored E2E remains a separate

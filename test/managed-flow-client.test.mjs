@@ -3,7 +3,30 @@ import assert from "node:assert/strict";
 import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { observeManagedRun } from "../lib/managed-flow-client.mjs";
+import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
+
+test("Memory preparation uses public init without SDLC routing or Session dispatch", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-memory-prepare-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), calls = path.join(root, 'calls.json');
+  const memoryInit = { workspaceRoot: root, requestId: 'memory-request', intakeFile: path.join(root, 'intake.txt'), intakeSha256: 'a'.repeat(64), gitRoute: 'integration_branch_direct', integrationBranch: 'main', profileFile: path.join(root, 'profile.json'), stageProfiles: ['review=independent'], workProfiles: ['worker'] };
+  await writeFile(bin, `import fs from 'node:fs'; fs.writeFileSync(${JSON.stringify(calls)}, JSON.stringify(process.argv.slice(2))); console.log(JSON.stringify({run_id:'RUN-memory',flow_id:'mb-init',action:'flow_mb_init_prepared',request_id:'memory-request'}));`);
+  const input = { bin, projectRoot: root, flow: 'mb-init', memoryInit };
+  assert.equal((await prepareManagedRun(input)).run_id, 'RUN-memory');
+  const args = JSON.parse(await readFile(calls));
+  assert.equal(args[0], 'init'); assert(args.includes('--prepare-only')); assert(args.includes('--non-interactive'));
+  assert(!args.includes('prepare-vnext-specify')); assert(!args.includes('--execution-routing-file'));
+  for (const value of ['memory-request', memoryInit.intakeFile, memoryInit.profileFile, 'review=independent', 'worker']) assert(args.includes(value));
+  await rm(calls);
+  for (const changed of [{ flow: 'unknown' }, { memoryInit: undefined }, { memoryInit: { ...memoryInit, unexpected: true } }, { memoryInit: { ...memoryInit, workProfiles: 'worker' } }, { flow: 'sdlc' }]) {
+    await assert.rejects(prepareManagedRun({ ...input, ...changed }), { code: 'managed_flow_input_invalid' });
+    await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  }
+  for (const receipt of [{ run_id: 'RUN', flow_id: 'sdlc' }, { run_id: 'RUN', flow_id: 'mb-init', action: 'flow_mb_init_prepared', request_id: 'other' }, { run_id: 'RUN', flow_id: 'mb-init', action: 'flow_mb_init_prepared', request_id: 'memory-request', controller: {} }]) {
+    await writeFile(bin, `console.log(JSON.stringify(${JSON.stringify(receipt)}));`);
+    await assert.rejects(prepareManagedRun(input), { code: 'controller_receipt_invalid' });
+  }
+});
 
 for (const callback of ['onEvent', 'answerFor']) for (const retainedDetails of [false, true]) test(`callback ${callback} retains last observed owner without replacing primary error (${retainedDetails ? 'existing evidence' : 'new evidence'})`, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'managed-callback-'));
