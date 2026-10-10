@@ -16,8 +16,18 @@ test("Memory preparation uses public init without SDLC routing or Session dispat
   const args = JSON.parse(await readFile(calls));
   assert.equal(args[0], 'init'); assert(args.includes('--prepare-only')); assert(args.includes('--non-interactive'));
   assert(!args.includes('prepare-vnext-specify')); assert(!args.includes('--execution-routing-file'));
+  assert(!args.includes('--max-parallel'));
+  for (const limit of [1, 2, 256]) {
+    await prepareManagedRun({ ...input, memoryInit: { ...memoryInit, maxParallel: limit } });
+    const selected = JSON.parse(await readFile(calls));
+    assert.equal(selected[selected.indexOf('--max-parallel') + 1], String(limit));
+  }
   for (const value of ['memory-request', memoryInit.intakeFile, memoryInit.profileFile, 'review=independent', 'worker']) assert(args.includes(value));
   await rm(calls);
+  for (const maxParallel of [null, 0, -1, 1.5, 257, '2', NaN]) {
+    await assert.rejects(prepareManagedRun({ ...input, memoryInit: { ...memoryInit, maxParallel } }), { code: 'managed_flow_input_invalid', details: { effect: 'no_effect' } });
+    await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  }
   for (const changed of [{ flow: 'unknown' }, { memoryInit: undefined }, { memoryInit: { ...memoryInit, unexpected: true } }, { memoryInit: { ...memoryInit, workProfiles: 'worker' } }, { flow: 'sdlc' }]) {
     await assert.rejects(prepareManagedRun({ ...input, ...changed }), { code: 'managed_flow_input_invalid' });
     await assert.rejects(readFile(calls), { code: 'ENOENT' });
