@@ -94,8 +94,9 @@ Declare `flow.id: "mb-init"`, its six-stage contour, terminal `finish` and an
 explicit `flow.git_policy`. The checkpoint selects canonical flow delivery
 `installed_canon`. Supply a clean canonical checkout at `flow_pack.commit`,
 not a project-curated SDLC pack. Unlike the SDLC overlay below, Memory
-materialization preserves the pinned product commit without copying a flow
-pack or creating a synthetic overlay commit. The initial boundary is
+materialization fetches the exact product commit into a new private repository,
+without later refs/objects, copying a flow pack or creating a synthetic overlay
+commit. An existing target is refused, not reinitialized. The initial boundary is
 `preflight`; only it receives the byte-preserved original initialization input.
 
 The operator's run profile must pair `subject.memory_init` (explicit profile

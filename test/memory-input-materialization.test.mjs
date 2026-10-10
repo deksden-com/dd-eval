@@ -19,6 +19,11 @@ test('Memory canonical and E2E materialization preserve blank product bytes with
   await mkdir(product); await writeFile(path.join(product, 'README.md'), 'Product facts.\r\n');
   await writeFile(path.join(product, '.gitattributes'), '* -text\n');
   const sourceCommit = await commit(product);
+  await writeFile(path.join(product, 'future-only.txt'), 'Hidden later product facts.\n');
+  await commandText('git', ['add', 'future-only.txt'], { cwd: product });
+  await commandText('git', ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@localhost', 'commit', '--quiet', '-m', 'future-only'], { cwd: product });
+  const futureCommit = await commandText('git', ['rev-parse', 'HEAD'], { cwd: product });
+  await commandText('git', ['checkout', '--quiet', '--detach', sourceCommit], { cwd: product });
   const flowPath = '.memory-bank/dd-flow';
   await mkdir(path.join(canon, flowPath, 'mb-init'), { recursive: true });
   await writeFile(path.join(canon, flowPath, 'mb-init/flow-descriptor.json'), JSON.stringify({ schema_id: 'dd-flow/flow-descriptor@1', id: 'mb-init', origin: 'canon' }));
@@ -33,6 +38,15 @@ test('Memory canonical and E2E materialization preserve blank product bytes with
   assert.equal(canonical.branch, integrationBranch);
   const e2e = await prepareE2EInput({ projectRoot: path.join(root, 'e2e'), inputCheckpoint: checkpoint, flowId: 'mb-init', integrationBranch });
   for (const directory of [canonical.project_root, e2e.project_root]) assert.equal(await commandText('git', ['branch', '--show-current'], { cwd: directory }), integrationBranch);
+  for (const directory of [canonical.project_root, e2e.project_root]) {
+    await assert.rejects(commandText('git', ['cat-file', '-e', futureCommit], { cwd: directory }), { code: 'command_failed' });
+    assert.equal(await commandText('git', ['remote'], { cwd: directory }), '');
+    assert.equal(await commandText('git', ['for-each-ref', '--format=%(refname)'], { cwd: directory }), `refs/heads/${integrationBranch}`);
+  }
+  const occupied = path.join(root, 'occupied'); await mkdir(occupied); await writeFile(path.join(occupied, 'user.txt'), 'preserve');
+  await assert.rejects(prepareE2EInput({ projectRoot: occupied, inputCheckpoint: checkpoint, flowId: 'mb-init' }), { code: 'EEXIST' });
+  assert.equal(await readFile(path.join(occupied, 'user.txt'), 'utf8'), 'preserve');
+  await assert.rejects(readFile(path.join(occupied, '.git/HEAD')), { code: 'ENOENT' });
   for (const directory of [product, canonical.project_root, e2e.project_root]) {
     await assertBlankMemoryProject(directory);
     assert.equal(await readFile(path.join(directory, 'README.md'), 'utf8'), 'Product facts.\r\n');

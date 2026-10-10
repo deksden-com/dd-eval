@@ -64,4 +64,7 @@ test('actual pinned dd-tasks zero checkpoint materializes blank with exact READM
   assert.equal(await commandText('git', ['ls-tree', '-r', '--name-only', 'HEAD'], { cwd: result.project_root }), 'README.md');
   assert.equal(await readFile(path.join(result.project_root, 'README.md'), 'utf8'), await commandText('git', ['show', `${commit}:README.md`], { cwd: repository }) + '\n');
   assert.equal(await commandText('git', ['status', '--porcelain'], { cwd: result.project_root }), '');
+  const futureHead = await commandText('git', ['rev-parse', 'HEAD'], { cwd: repository });
+  if (futureHead !== commit) await assert.rejects(commandText('git', ['cat-file', '-e', futureHead], { cwd: result.project_root }), { code: 'command_failed' });
+  assert.equal(await commandText('git', ['remote'], { cwd: result.project_root }), '');
 });
