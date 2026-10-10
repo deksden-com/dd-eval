@@ -1,0 +1,22 @@
+{
+  "schema_id": "dd-eval/baseline-admission-policy@2",
+  "commands": [
+    {
+      "id": "authored-source",
+      "command": "node",
+      "args": [
+        "-e",
+        "const assert=require('node:assert/strict'),fs=require('node:fs'),crypto=require('node:crypto'),{execFileSync}=require('node:child_process');const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();const files={\"README.md\":\"d5d507655d251991ac56f5766d806b150806d203e41e1a8bb26735f04526002a\",\"package.json\":\"82f888f9fd5342084f278e8a0cdb34187a4c4a598a0fc934ef111d1dc4e32279\",\"src/sum.mjs\":\"7cbf07286d869dcb4a1a57c251d1430416dc131477a829e885c33b1311d68eb8\",\"test/sum.test.mjs\":\"dd017af536ec879b8e0a8d5d729df6eea9949f2e6dceee67b4fe6e10d3a56db4\"};assert.equal(git('rev-parse','HEAD'),\"75d609dc4a0eb769fc52202909331a489b937f9a\");assert.equal(git('ls-tree','-r','--name-only','HEAD'),Object.keys(files).sort().join('\\n'));for(const [file,sha]of Object.entries(files))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),sha,file);assert.throws(()=>fs.lstatSync('.memory-bank'),{code:'ENOENT'});assert.equal(git('status','--porcelain','--untracked-files=all'),'');console.log('Exact authored source and blank Memory Bank verified.');"
+      ],
+      "inactivity_timeout_ms": 30000
+    },
+    {
+      "id": "product-tests",
+      "command": "node",
+      "args": [
+        "--test"
+      ],
+      "inactivity_timeout_ms": 30000
+    }
+  ]
+}

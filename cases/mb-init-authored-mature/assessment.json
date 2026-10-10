@@ -1,0 +1,319 @@
+{
+  "schema_id": "dd-eval/assessment@1",
+  "case_id": "mb-init-authored-mature",
+  "status": "accepted",
+  "scopes": {
+    "preflight": {
+      "note": "Human-approved authored project facts. Judge actual grounding and preservation, separately from syntax and technical completion.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "mature-preflight",
+            "statement": "Bind the blank Memory Bank, exact existing sources and explicit local main policy; do not modify original product files."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "mature-preflight-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          }
+        ]
+      }
+    },
+    "discover": {
+      "note": "Human-approved authored project facts. Judge actual grounding and preservation, separately from syntax and technical completion.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "discover-MAT-implemented",
+            "statement": "Async filesystem append/read persists newline-delimited JSON in a caller-selected local file; historical synchronous-only claims are obsolete."
+          },
+          {
+            "id": "discover-MAT-validation",
+            "statement": "An event id must be a string; amount is not validated. Corrupt JSON propagates read failure rather than self-repair."
+          },
+          {
+            "id": "discover-MAT-policy",
+            "statement": "Single-writer file ownership/backups are caller obligations, not runtime locking guarantees; a format change needs a migration decision and there is no migration utility."
+          },
+          {
+            "id": "discover-MAT-checks",
+            "statement": "node --test checks append/read roundtrip and missing-id rejection. CI/deploy are unresolved; do not claim arbitrary checks have passed."
+          },
+          {
+            "id": "discover-MAT-future",
+            "statement": "Cloud replication is planned, while HTTP endpoints, authentication and remote replication are absent."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "mature-discover-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          }
+        ]
+      }
+    },
+    "compose": {
+      "note": "Human-approved authored project facts. Judge actual grounding and preservation, separately from syntax and technical completion.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "mature-compose",
+            "statement": "Create useful linked project memory grounded in actual source owners, distinguishing implementation, intent, policy and unknowns."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "mature-compose-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          }
+        ]
+      }
+    },
+    "verify": {
+      "note": "Human-approved authored project facts. Judge actual grounding and preservation, separately from syntax and technical completion.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "verify-MAT-implemented",
+            "statement": "Async filesystem append/read persists newline-delimited JSON in a caller-selected local file; historical synchronous-only claims are obsolete."
+          },
+          {
+            "id": "verify-MAT-validation",
+            "statement": "An event id must be a string; amount is not validated. Corrupt JSON propagates read failure rather than self-repair."
+          },
+          {
+            "id": "verify-MAT-policy",
+            "statement": "Single-writer file ownership/backups are caller obligations, not runtime locking guarantees; a format change needs a migration decision and there is no migration utility."
+          },
+          {
+            "id": "verify-MAT-checks",
+            "statement": "node --test checks append/read roundtrip and missing-id rejection. CI/deploy are unresolved; do not claim arbitrary checks have passed."
+          },
+          {
+            "id": "verify-MAT-future",
+            "statement": "Cloud replication is planned, while HTTP endpoints, authentication and remote replication are absent."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "mature-verify-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          }
+        ]
+      }
+    },
+    "review": {
+      "note": "Human-approved authored project facts. Judge actual grounding and preservation, separately from syntax and technical completion.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "review-MAT-implemented",
+            "statement": "Async filesystem append/read persists newline-delimited JSON in a caller-selected local file; historical synchronous-only claims are obsolete."
+          },
+          {
+            "id": "review-MAT-validation",
+            "statement": "An event id must be a string; amount is not validated. Corrupt JSON propagates read failure rather than self-repair."
+          },
+          {
+            "id": "review-MAT-policy",
+            "statement": "Single-writer file ownership/backups are caller obligations, not runtime locking guarantees; a format change needs a migration decision and there is no migration utility."
+          },
+          {
+            "id": "review-MAT-checks",
+            "statement": "node --test checks append/read roundtrip and missing-id rejection. CI/deploy are unresolved; do not claim arbitrary checks have passed."
+          },
+          {
+            "id": "review-MAT-future",
+            "statement": "Cloud replication is planned, while HTTP endpoints, authentication and remote replication are absent."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "mature-review-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          }
+        ]
+      }
+    },
+    "finish": {
+      "note": "Human-approved authored project facts. Judge actual grounding and preservation, separately from syntax and technical completion.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "mature-finish",
+            "statement": "Integrate only reviewed Memory Bank locally, preserve all original product files and report actual checks and ordinary SDLC readiness."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "mature-finish-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          }
+        ]
+      }
+    }
+  }
+}

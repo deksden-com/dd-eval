@@ -1,0 +1,10 @@
+{
+  "schema_id": "dd-flow/agent-profile@1",
+  "id": "memory-luna",
+  "harness": "codex",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "reasoning": "xhigh",
+  "mode": "default",
+  "permission": "allow"
+}

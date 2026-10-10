@@ -1,0 +1,40 @@
+{
+  "id": "mb-init-authored-minimal",
+  "readiness": "awaiting_exact_release_checkpoint",
+  "assessment": "assessment.json",
+  "baseline_admission_file": "baseline-admission.json",
+  "subject_profile_id": "codex-desktop-gpt-6-luna-xhigh-codex-0-162-1",
+  "judge_profile_id": "codex-desktop-gpt-6-1-sol-high-codex-0-162-1",
+  "cli_profile_file": "profiles/memory-init-gpt-6-luna-xhigh.agent.json",
+  "input": [
+    {
+      "role": "initial_user_request",
+      "source": "entry-pack-source/initialize.md",
+      "sha256": "db28a337b56b7c06e5bedcb95c450bca0c5238638b1948b68ba285cd11c6279c"
+    }
+  ],
+  "source_repository": "test/fixtures/memory-grounding/minimal.bundle",
+  "source_commit": "75d609dc4a0eb769fc52202909331a489b937f9a",
+  "entry_pack": null,
+  "flow": {
+    "id": "mb-init",
+    "contour": [
+      "preflight",
+      "discover",
+      "compose",
+      "verify",
+      "review",
+      "finish"
+    ],
+    "terminal_stage": "finish",
+    "git_policy": {
+      "route": "integration_branch_direct",
+      "integration_branch": "main"
+    }
+  },
+  "required_inputs": [
+    "exact source commit from committed bundle",
+    "signed canon source and trust file",
+    "exact canon/CLI checkpoint tuple"
+  ]
+}
