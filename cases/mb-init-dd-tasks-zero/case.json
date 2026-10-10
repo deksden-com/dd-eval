@@ -15,6 +15,10 @@
     "sha256": "ee538f0b6f100b647808571a3fa4155355cc530232124bcd83ca55f4ffbffd28"
   },
   "entry_pack": null,
+  "baseline_admission": {
+    "file": "baseline-admission.json",
+    "sha256": "3e136c988bfd0fc62e22180fb60d874f04b96fd0361748fb83276e778262a0f3"
+  },
   "profiles": {
     "subject": [],
     "judge": []

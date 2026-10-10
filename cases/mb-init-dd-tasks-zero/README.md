@@ -3,6 +3,11 @@
 Draft case inputs for SPC-014 E3. The pinned product commit contains only
 README.md and no Memory Bank. No later dd-tasks behavior is an accepted fact.
 
+The hash-pinned baseline admission checks the exact source commit/tree,
+original README bytes, absent Memory Bank and clean Git state before capture
+or Subject dispatch. It does not install dependencies or claim application
+checks for a project without an application. Rejected bytes are not repaired.
+
 The hidden assessment defines independent expected project facts, stage
 outcomes and quality risks. Its accepted rubric status does not qualify an
 entry pack. `case.json.entry_pack` remains null until real capture, isolated

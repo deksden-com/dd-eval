@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile, mkdtemp, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { loadCase, initialFlowBoundary, validateCaseBlueprint, prepareE2EInput, assertBlankMemoryProject } from '../lib/runner.mjs';
 import { commandText } from '../lib/process-json.mjs';
+import { readBaselineAdmissionPolicy, runBaselineAdmission, verifyBaselineAdmission } from '../lib/baseline-admission.mjs';
 
 const caseId = 'mb-init-dd-tasks-zero';
 const json = async file => JSON.parse(await readFile(file, 'utf8'));
@@ -21,6 +22,8 @@ test('authored Memory case binds all six contexts and independent facts without 
   assert.equal(validateCaseBlueprint(blueprint, loaded), blueprint);
   assert.deepEqual(initialFlowBoundary(loaded), { flow: 'mb-init', stage: 'preflight' });
   assert.equal(loaded.value.entry_pack, null);
+  const baseline = await readBaselineAdmissionPolicy({ caseRoot: loaded.root, definition: loaded.value.baseline_admission });
+  assert.deepEqual(baseline.commands.map(item => item.id), ['zero-checkpoint']);
   assert.deepEqual(Object.keys(blueprint.stages), loaded.value.flow.contour);
   assert.deepEqual(Object.keys(loaded.assessment.scopes), loaded.value.flow.contour);
   for (const [stage, context] of Object.entries(blueprint.stages)) {
@@ -67,4 +70,12 @@ test('actual pinned dd-tasks zero checkpoint materializes blank with exact READM
   const futureHead = await commandText('git', ['rev-parse', 'HEAD'], { cwd: repository });
   if (futureHead !== commit) await assert.rejects(commandText('git', ['cat-file', '-e', futureHead], { cwd: result.project_root }), { code: 'command_failed' });
   assert.equal(await commandText('git', ['remote'], { cwd: result.project_root }), '');
+  const input = { caseRoot: loaded.root, definition: loaded.value.baseline_admission, projectRoot: result.project_root, checkpoint };
+  const accepted = await runBaselineAdmission({ ...input, outputRoot: path.join(root, 'baseline') });
+  assert.equal(accepted.status, 'passed');
+  await verifyBaselineAdmission({ reference: accepted, definition: input.definition, checkpoint, caseRoot: loaded.root });
+  const original = await readFile(path.join(result.project_root, 'README.md'));
+  await writeFile(path.join(result.project_root, 'README.md'), Buffer.concat([original, Buffer.from('\nUnaccepted future behavior.\n')]));
+  await assert.rejects(runBaselineAdmission({ ...input, outputRoot: path.join(root, 'rejected-baseline') }), { code: 'baseline_admission_failed' });
+  assert.equal((await readFile(path.join(result.project_root, 'README.md'), 'utf8')).endsWith('Unaccepted future behavior.\n'), true, 'admission must not repair product bytes');
 });
