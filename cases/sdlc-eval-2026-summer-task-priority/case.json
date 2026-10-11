@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-215-specify-release",
-    "sha256": "0bd23e51055c42bfd3c78483f3fe708d44fbc571f916db5db5a8700fdfc2f17f"
+    "id": "cp-217-specify-evidence",
+    "sha256": "f3cd434b7f48d8a815199c6f198934d2aa0cb9974dc560b3cfc2c4690244d1ef"
   },
   "entry_pack": null,
   "hitl_qualification": {
