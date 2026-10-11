@@ -67,6 +67,13 @@ before allowing parallel productive runs on one host.
 
 ## Run
 
+New definition receipts bind executable tooling and selected case/profile inputs,
+not the whole repository tree. Unrelated documentation and other experiments do
+not invalidate them. Published receipts/payloads remain checksum-protected;
+legacy receipts keep their original dependency rules. Do not edit a retained run
+to promote it to the new contract. Runtime boundary journals are bounded evidence
+cuts, not proof that the provider stopped writing; shutdown needs owned receipts.
+
 ~~~sh
 node bin/dd-eval.mjs runner eval run --profile <absolute-profile.json>
 node bin/dd-eval.mjs runner status --eval "$DD_EVAL_HOME/runs/<EVAL-id>"

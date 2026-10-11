@@ -636,6 +636,7 @@ test("focused result checkpoints preserve a legal successor entry", () => {
   assert.deepEqual(resultCheckpointMode("code"), { purpose: "stage_entry", stage_entry: "code-review" });
   assert.deepEqual(resultCheckpointMode("code-review"), { purpose: "stage_entry", stage_entry: "merge" });
   assert.deepEqual(resultCheckpointMode("merge"), { purpose: "candidate", stage_entry: null });
+  assert.deepEqual(resultCheckpointMode("specify", "specify"), { purpose: "candidate", stage_entry: null });
 });
 
 test("eval does not retain a second execution snapshot controller", async () => {
@@ -985,7 +986,8 @@ test("canonical recovery reuses accepted HITL bytes without spending another rou
 test("canonical mutations are bound to their committed eval definition", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /runner_definition_drift/);
-  assert.match(source, /state\.definition\?\.commit !== current\.commit/);
+  assert.match(source, /state\.definition\.dependencies_sha256 !== current\.dependencies_sha256/);
+  assert.match(source, /state\.definition\?\.commit !== current\.commit/); // legacy receipts
   assert.match(source, /await assertCanonicalDefinition\(state\)/);
 });
 
@@ -1097,13 +1099,39 @@ test("settled fan-out fingerprint changes when a repair Work changes the graph",
   assert.equal(before, fanoutSettledFingerprint({ stage: "code-review", status: { orchestration: { parent_work_id: "WRK-001", works: { created: 0, running: 0, completed: 5, failed: 0, cancelled: 0, ready: [] } } } }));
 });
 
-test("scored run refuses an uncommitted eval definition before creating a provider Session", async () => {
+test("definition identity ignores unrelated docs and commits but rejects selected input drift", async () => {
   const repository = await mkdtemp(path.join(tmpdir(), "dd-eval-definition-"));
   try {
     await run("git", ["init", "--initial-branch=main", repository]);
-    await run("git", ["-C", repository, "-c", "user.email=eval@example.invalid", "-c", "user.name=Eval", "commit", "--allow-empty", "-m", "initial"]);
-    await writeFile(path.join(repository, "dirty"), "dirty\n");
-    await assert.rejects(committedDefinitionIdentity(repository), /clean committed dd-eval definition tree/);
+    await mkdir(path.join(repository, "lib"));
+    await mkdir(path.join(repository, "cases"));
+    await writeFile(path.join(repository, "lib", "runner.mjs"), "initial\n");
+    await writeFile(path.join(repository, "cases", "selected.json"), "{}\n");
+    await run("git", ["-C", repository, "add", "."]);
+    const commit = () => run("git", ["-C", repository, "-c", "user.email=eval@example.invalid", "-c", "user.name=Eval", "commit", "-m", "definition"]);
+    await commit();
+    const selection = [["cases/selected.json"]];
+    const original = await committedDefinitionIdentity(repository, selection);
+    await assert.rejects(committedDefinitionIdentity(repository, selection,
+      [{ file: path.join(repository, "cases", "selected.json"), value: { stale: true } }]), { code: "runner_definition_drift" });
+    await writeFile(path.join(repository, "README.md"), "unrelated\n");
+    assert.equal((await committedDefinitionIdentity(repository, selection)).dependencies_sha256, original.dependencies_sha256);
+    await run("git", ["-C", repository, "add", "README.md"]); await commit();
+    const later = await committedDefinitionIdentity(repository, selection);
+    assert.notEqual(later.commit, original.commit);
+    assert.equal(later.dependencies_sha256, original.dependencies_sha256);
+    const externalFile = path.join(repository, "external-profile.json");
+    await writeFile(externalFile, "{\"model\":\"first\"}\n");
+    const externalSelection = [...selection, { external_file: externalFile }];
+    const externalOriginal = await committedDefinitionIdentity(repository, externalSelection);
+    await writeFile(externalFile, "{\"model\":\"second\"}\n");
+    assert.notEqual((await committedDefinitionIdentity(repository, externalSelection)).dependencies_sha256, externalOriginal.dependencies_sha256);
+    await writeFile(path.join(repository, "cases", "selected.json"), "changed\n");
+    await assert.rejects(committedDefinitionIdentity(repository, selection), { code: "definition_tree_dirty" });
+    await run("git", ["-C", repository, "add", "."]); await commit();
+    assert.notEqual((await committedDefinitionIdentity(repository, selection)).dependencies_sha256, original.dependencies_sha256);
+    await writeFile(path.join(repository, "lib", "runner.mjs"), "changed\n");
+    await assert.rejects(committedDefinitionIdentity(repository, selection), { code: "definition_tree_dirty" });
   } finally {
     await rm(repository, { recursive: true, force: true });
   }
