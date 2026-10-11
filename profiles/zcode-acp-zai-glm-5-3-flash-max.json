@@ -12,8 +12,8 @@
   "mode": "yolo",
   "runtime": {
     "zcode": "0.16.9",
-    "zcode_acp": "0.52.0",
-    "zcode_acp_commit": "4621fabd3f517ecdd349dfebebae9077c01d2f2b",
+    "zcode_acp": "0.46.7",
+    "zcode_acp_commit": "91a1470650f5fd6105f9863fd31d1cad7b90a109",
     "dd_harness_contract": "dd-zcode-harness@2"
   },
   "notes": "Controlled ZCode Flash subject at the requested maximum reasoning level.",
