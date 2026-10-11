@@ -1,0 +1,27 @@
+{
+  "id": "cp-214-specify-release",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e",
+    "tag": "eval/cp-172-source-baseline-setup"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "cc6f6d99da6b2e3ec80ac6cc0941eb848800baa0",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-214-verification-matrix-qualification.json",
+      "sha256": "f12e25a3818e7bc4f3592b036529c6c78d87407ea9ea746fa61168778277bbc0",
+      "canon_commit": "2ba0b9ceedf8e4544ad9566c240ef37ea5e8d099"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "539de25779fe5b63f9706e849bc4aca9b396a651",
+      "version": "0.9.0-beta.127",
+      "artifact_sha256": "5e874d786001edae19f2d6643246c33eaf4de8efb1e418b704993b53bae588b9"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
