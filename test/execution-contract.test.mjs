@@ -20,6 +20,27 @@ const genericExpectation = (mode = "external") => {
   return { settings, profiles: [{ id: profile.id, revision, profile }], aliases: {}, contour,
     native_capacity: mode === "native" ? "requires_cli_admission" : "not_required", engine_artifact_sha256: "b".repeat(64) };
 };
+test("materialized Memory settings round-trip through installed CLI; Judge needs its complete private template", { skip: !process.env.DD_EVAL_MEMORY_DELIVERY_ROOT }, async t => {
+  const report = JSON.parse(await readFile(path.join(process.env.DD_EVAL_MEMORY_DELIVERY_ROOT, "delivery-report.json")));
+  const { readOperatorProfiles, resolveOperatorProfile, prepareOperatorProfile } = await import(pathToFileURL(path.join(report.snapshot, "dist/services/operator-profiles.js")));
+  const { hybridDigest } = await import(pathToFileURL(path.join(report.snapshot, "dist/services/hybrid-contracts.js")));
+  const configHome = await setup(t, []), expectation = genericExpectation();
+  const loadProfile = id => { if (["subject", "judge"].includes(id)) return declaration(id); throw Object.assign(new Error("missing"), { code: "ENOENT" }); };
+  const input = { runProfile: { subject: { profile_id: "subject" }, judge: { enabled: true, profile_id: "judge" } }, expectation, loadProfile, configHome, stages: expectation.contour };
+  // A repo Judge declaration is not a complete CLI template. Never fall back
+  // to an ambient Home: this private configuration must supply all policy fields.
+  await assert.rejects(resolveGenericExecutionContract(input), { code: "agent_profile_missing" });
+  await writeFile(path.join(configHome, "agent-profiles/judge.json"), JSON.stringify(template("judge")));
+  const contract = await resolveGenericExecutionContract(input), runtimeRoot = path.join(configHome, "isolated");
+  await materializeExecutionContract(runtimeRoot, contract);
+  const settings = readOperatorProfiles(runtimeRoot), { revision, ...content } = settings;
+  assert.equal(revision, hybridDigest(content));
+  assert.deepEqual(resolveOperatorProfile(settings, "memory-root"), expectation.profiles[0].profile);
+  const judge = JSON.parse(await readFile(path.join(runtimeRoot, "agent-profiles/judge.json")));
+  assert.deepEqual(prepareOperatorProfile(judge), contract.profiles.judge);
+  await writeFile(path.join(runtimeRoot, "profile-settings.json"), JSON.stringify(content));
+  assert.throws(() => readOperatorProfiles(runtimeRoot), { code: "profile_settings_invalid" });
+});
 test("Memory expected contract permits distinct Subject alias but enforces selected semantics and frozen routing", async t => {
   const configHome = await setup(t);
   const expectation = genericExpectation();
