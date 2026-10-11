@@ -135,3 +135,12 @@ Readers/writers проверены: controller admission/capture, native durable
 Доставка source branches не означает опубликованный engine: проект требует PR-интеграции, затем immutable release candidate и release gates. Changeset подготовлен. Глобальные hooks и historical EVAL engines не перенаправляются на непубликованный checkout. Перед будущим EVAL нужны released engine, installed-byte проверка и отдельная живая приёмка; эти шаги не объявляются выполненными по source tests.
 
 Проверка реализации: runtime typecheck, lint и build PASS; capture — 18/18, resume-observation — 6/6, inventory — 2/2. Связанный targeted integration прогон snapshot/review/external Work/controller — 13 PASS, 85 невыбранных тестов пропущены; оба реальных stop-after controller сценария PASS. dd-eval eval/reliability/qualification — 82/82 PASS без skipped. Первоначальные ошибки проверки (отсутствующий dist, ожидание единственного journal cut и неполная тестовая запись owner_token) устранены; продуктивные guards не ослаблялись ради тестов. Полный integration suite и живая модельная приёмка этим прогоном не заменяются.
+
+## Независимое review реализации — 2026-10-11
+
+- Исправлена гонка native publication: каталог операции может появиться раньше requested.json. ENOENT на любой фазе fenced capture становится повторяемым snapshot_source_changed; неизвестный неполный request не считается read-only и при постоянном отсутствии исчерпывает существующий бюджет. Обе ветки покрыты regression.
+- Исправлен обход dependency identity через committed symlink: Git связывает текст ссылки, но загрузчик читает цель. Выбранные committed dependencies теперь отклоняют symlinks; изменение ignored target не может сохранять прежний admission digest.
+- Добавлен требовавшийся планом настоящий параллельный subprocess journal writer с IPC handshake; capture проверяется на полный JSONL-префикс, последовательность, совпадение с source prefix и checksum без требования тишины.
+- Проверены stop supersession, publication replay после rename до DB commit и cleanup failures в общих settle/capture путях. Новых доказанных существенных дефектов там не выявлено.
+- Полный dd-eval npm test: 795 PASS, 10 явно skipped интеграционных сценариев, 0 failures (805 tests). Живые модели не вызывались.
+- Branch-ready flow-status обнаружил предсуществующий project-pack drift и старый contract; это отдельно зафиксировано в runtime DEF-079-PREEXISTING-PROJECT-PACK, не исправляется подменой канонического пакета в этом patch.
