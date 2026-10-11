@@ -13,6 +13,13 @@ test("public Memory prepare-only uses the existing build budget without widening
     assert.equal(commandObservationTimeout(args), 30_000);
 });
 
+test("public setup uses the existing installation budget without widening ordinary controls", () => {
+  assert.equal(commandObservationTimeout(["setup", "--skip-agent-setup", "--non-interactive"]), 30 * 60_000);
+  assert.equal(commandObservationTimeout(["setup"]), commandObservationTimeout(["engine", "install"]));
+  for (const args of [["status"], ["run", "status"], ["run", "resume"], ["status", "setup"]])
+    assert.equal(commandObservationTimeout(args), 30_000);
+});
+
 test("driver retains JSONL and successful-exit typed error envelopes including false retryable and cleanup", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-driver-error-")); t.after(() => rm(root, { recursive: true, force: true }));
   const directory = path.join(root, "harness-runtime/bin"); await mkdir(directory, { recursive: true });
