@@ -51,3 +51,17 @@ were corrected before the final frozen run. Changing dist while snapshot tests
 run invalidates their identity evidence, so subsequent runs keep dist unchanged.
 Official release acceptance is separate from targeted startup checks and from a
 locally pinned candidate. No historical EVAL or receipt is repaired in place.
+
+Final implementation review found and fixed two additional common-boundary
+defects: AGY's startup observer referenced an undefined local instead of its
+actual configuration daemon ID; OpenCode's helper overrode an explicitly supplied
+short window with 120 seconds. The beta.129 native run is retained as 44/46,
+not promoted. A separate beta.130 artifact retains the corrected source and
+last confirmed setup phase in uncertainty diagnostics.
+
+Verified: typecheck/lint/build; affected runtime suites 104/104; engine/fork
+42/42; runtime JSON observation fixture 12/12; EVAL transport 32/32; startup
+contract parity; AGY/OpenCode/tool-observation fixtures 39/39 after fixes.
+Installed beta.130 offline full-cycle PASS, with four real owning matrix packets
+and explicit review-off omission, receipt cp-221-verification-matrix-qualification.
+The full native group and live admission remain separate checks.
