@@ -1,0 +1,321 @@
+{
+  "schema_id": "dd-eval/assessment@1",
+  "case_id": "mb-init-dd-tasks-zero",
+  "status": "accepted",
+  "scopes": {
+    "preflight": {
+      "note": "Judge source-grounded meaning and evidence, not Markdown counts or copied templates. Rubric approval is not entry-pack qualification.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "MB-PREFLIGHT-1",
+            "statement": "Keep original README bytes and blank source baseline; bind the explicit local main Git policy and installed canon without inventing product capabilities."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [
+          {
+            "id": "ALT-preflight",
+            "statement": "A compact document layout is acceptable when aspect ownership, explicit uncertainty, links and verification remain useful and complete."
+          }
+        ],
+        "known_risks": [
+          {
+            "id": "RISK-preflight",
+            "severity": "material",
+            "statement": "No hidden reference answers or future checkout history are legitimate evidence for the initialized project's current state. Planned tooling is not installed tooling."
+          }
+        ]
+      }
+    },
+    "discover": {
+      "note": "Judge source-grounded meaning and evidence, not Markdown counts or copied templates. Rubric approval is not entry-pack qualification.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "MB-DISCOVER-1",
+            "statement": "Record that application code, package workspace, database schema, implemented features and project Memory Bank are absent at the pinned commit."
+          },
+          {
+            "id": "MB-DISCOVER-2",
+            "statement": "Distinguish the planned TypeScript/pnpm, React/Vite/Tailwind/shadcn-ui, Hono, PostgreSQL/Drizzle, Biome, tsc, Vitest/Playwright direction from current implementation; cite README and classify relevant unknowns."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [
+          {
+            "id": "ALT-discover",
+            "statement": "A compact document layout is acceptable when aspect ownership, explicit uncertainty, links and verification remain useful and complete."
+          }
+        ],
+        "known_risks": [
+          {
+            "id": "RISK-discover",
+            "severity": "material",
+            "statement": "No hidden reference answers or future checkout history are legitimate evidence for the initialized project's current state. Planned tooling is not installed tooling."
+          }
+        ]
+      }
+    },
+    "compose": {
+      "note": "Judge source-grounded meaning and evidence, not Markdown counts or copied templates. Rubric approval is not entry-pack qualification.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "MB-COMPOSE-1",
+            "statement": "Create project-owned indexes, structure and policy grounded in the zero checkpoint, with useful links and bounded knowledge units."
+          },
+          {
+            "id": "MB-COMPOSE-2",
+            "statement": "Do not author application code, speculative features, invented setup/deploy commands, credentials or hidden Eval material; preserve README."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [
+          {
+            "id": "ALT-compose",
+            "statement": "A compact document layout is acceptable when aspect ownership, explicit uncertainty, links and verification remain useful and complete."
+          }
+        ],
+        "known_risks": [
+          {
+            "id": "RISK-compose",
+            "severity": "material",
+            "statement": "No hidden reference answers or future checkout history are legitimate evidence for the initialized project's current state. Planned tooling is not installed tooling."
+          }
+        ]
+      }
+    },
+    "verify": {
+      "note": "Judge source-grounded meaning and evidence, not Markdown counts or copied templates. Rubric approval is not entry-pack qualification.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "MB-VERIFY-1",
+            "statement": "Use real declared lint/schema/link checks and retained receipts; not a claim that absent application checks passed."
+          },
+          {
+            "id": "MB-VERIFY-2",
+            "statement": "Assess grounding against source facts separately from syntactic validity and document genuine proof limits."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [
+          {
+            "id": "ALT-verify",
+            "statement": "A compact document layout is acceptable when aspect ownership, explicit uncertainty, links and verification remain useful and complete."
+          }
+        ],
+        "known_risks": [
+          {
+            "id": "RISK-verify",
+            "severity": "material",
+            "statement": "No hidden reference answers or future checkout history are legitimate evidence for the initialized project's current state. Planned tooling is not installed tooling."
+          }
+        ]
+      }
+    },
+    "review": {
+      "note": "Judge source-grounded meaning and evidence, not Markdown counts or copied templates. Rubric approval is not entry-pack qualification.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "MB-REVIEW-1",
+            "statement": "Independently review applicable risk units for future-as-current claims, invented commands/policies and lost source facts."
+          },
+          {
+            "id": "MB-REVIEW-2",
+            "statement": "Repair only material findings and affected dependent units, with delta evidence and at most two correction waves."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [
+          {
+            "id": "ALT-review",
+            "statement": "A compact document layout is acceptable when aspect ownership, explicit uncertainty, links and verification remain useful and complete."
+          }
+        ],
+        "known_risks": [
+          {
+            "id": "RISK-review",
+            "severity": "material",
+            "statement": "No hidden reference answers or future checkout history are legitimate evidence for the initialized project's current state. Planned tooling is not installed tooling."
+          }
+        ]
+      }
+    },
+    "finish": {
+      "note": "Judge source-grounded meaning and evidence, not Markdown counts or copied templates. Rubric approval is not entry-pack qualification.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "MB-FINISH-1",
+            "statement": "Integrate only the reviewed Memory Bank under the local main policy, preserve README and show ordinary SPECIFY-first readiness."
+          },
+          {
+            "id": "MB-FINISH-2",
+            "statement": "Report actual check and integration evidence without fabricating product behavior, provider usage or a remote push."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [
+          {
+            "id": "ALT-finish",
+            "statement": "A compact document layout is acceptable when aspect ownership, explicit uncertainty, links and verification remain useful and complete."
+          }
+        ],
+        "known_risks": [
+          {
+            "id": "RISK-finish",
+            "severity": "material",
+            "statement": "No hidden reference answers or future checkout history are legitimate evidence for the initialized project's current state. Planned tooling is not installed tooling."
+          }
+        ]
+      }
+    }
+  }
+}

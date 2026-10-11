@@ -1,0 +1,408 @@
+{
+  "schema_id": "dd-eval/assessment@1",
+  "case_id": "mb-init-authored-minimal",
+  "status": "accepted",
+  "scopes": {
+    "preflight": {
+      "note": "Human-approved authored project facts. Judge actual grounding and preservation, separately from syntax and technical completion.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "minimal-preflight",
+            "statement": "Bind the blank Memory Bank, exact existing sources and explicit local main policy; do not modify original product files."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "minimal-preflight-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          }
+        ]
+      }
+    },
+    "discover": {
+      "note": "Human-approved authored project facts. Judge actual grounding and preservation, separately from syntax and technical completion.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "discover-MIN-implemented",
+            "statement": "A local ESM sum library exists; operands require JavaScript number type. Do not infer finite-number validation."
+          },
+          {
+            "id": "discover-MIN-checks",
+            "statement": "The declared check is node --test, with addition and nonnumber refusal coverage. Do not invent CI or other tests."
+          },
+          {
+            "id": "discover-MIN-limits",
+            "statement": "HTTP is future intent; server, database, deployment and persistence are absent."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "minimal-discover-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          }
+        ]
+      }
+    },
+    "compose": {
+      "note": "Human-approved authored project facts. Judge actual grounding and preservation, separately from syntax and technical completion.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "minimal-compose",
+            "statement": "Create useful linked project memory grounded in actual source owners, distinguishing implementation, intent, policy and unknowns."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "minimal-compose-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          }
+        ]
+      }
+    },
+    "verify": {
+      "note": "Human-approved authored project facts. Judge actual grounding and preservation, separately from syntax and technical completion.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "verify-MIN-implemented",
+            "statement": "A local ESM sum library exists; operands require JavaScript number type. Do not infer finite-number validation."
+          },
+          {
+            "id": "verify-MIN-checks",
+            "statement": "The declared check is node --test, with addition and nonnumber refusal coverage. Do not invent CI or other tests."
+          },
+          {
+            "id": "verify-MIN-limits",
+            "statement": "HTTP is future intent; server, database, deployment and persistence are absent."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "minimal-verify-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          }
+        ]
+      }
+    },
+    "review": {
+      "note": "Human-approved authored project facts. Judge actual grounding and preservation, separately from syntax and technical completion.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "review-MIN-implemented",
+            "statement": "A local ESM sum library exists; operands require JavaScript number type. Do not infer finite-number validation."
+          },
+          {
+            "id": "review-MIN-checks",
+            "statement": "The declared check is node --test, with addition and nonnumber refusal coverage. Do not invent CI or other tests."
+          },
+          {
+            "id": "review-MIN-limits",
+            "statement": "HTTP is future intent; server, database, deployment and persistence are absent."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "minimal-review-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          }
+        ]
+      }
+    },
+    "finish": {
+      "note": "Human-approved authored project facts. Judge actual grounding and preservation, separately from syntax and technical completion.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "minimal-finish",
+            "statement": "Integrate only reviewed Memory Bank locally, preserve all original product files and report actual checks and ordinary SDLC readiness."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "minimal-finish-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          }
+        ]
+      }
+    },
+    "e2e": {
+      "note": "Aggregate E2E projection of approved six stage criteria and facts; no new facts, weights or thresholds.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "minimal-preflight",
+            "statement": "Bind the blank Memory Bank, exact existing sources and explicit local main policy; do not modify original product files."
+          },
+          {
+            "id": "discover-MIN-implemented",
+            "statement": "A local ESM sum library exists; operands require JavaScript number type. Do not infer finite-number validation."
+          },
+          {
+            "id": "discover-MIN-checks",
+            "statement": "The declared check is node --test, with addition and nonnumber refusal coverage. Do not invent CI or other tests."
+          },
+          {
+            "id": "discover-MIN-limits",
+            "statement": "HTTP is future intent; server, database, deployment and persistence are absent."
+          },
+          {
+            "id": "minimal-compose",
+            "statement": "Create useful linked project memory grounded in actual source owners, distinguishing implementation, intent, policy and unknowns."
+          },
+          {
+            "id": "verify-MIN-implemented",
+            "statement": "A local ESM sum library exists; operands require JavaScript number type. Do not infer finite-number validation."
+          },
+          {
+            "id": "verify-MIN-checks",
+            "statement": "The declared check is node --test, with addition and nonnumber refusal coverage. Do not invent CI or other tests."
+          },
+          {
+            "id": "verify-MIN-limits",
+            "statement": "HTTP is future intent; server, database, deployment and persistence are absent."
+          },
+          {
+            "id": "review-MIN-implemented",
+            "statement": "A local ESM sum library exists; operands require JavaScript number type. Do not infer finite-number validation."
+          },
+          {
+            "id": "review-MIN-checks",
+            "statement": "The declared check is node --test, with addition and nonnumber refusal coverage. Do not invent CI or other tests."
+          },
+          {
+            "id": "review-MIN-limits",
+            "statement": "HTTP is future intent; server, database, deployment and persistence are absent."
+          },
+          {
+            "id": "minimal-finish",
+            "statement": "Integrate only reviewed Memory Bank locally, preserve all original product files and report actual checks and ordinary SDLC readiness."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "minimal-preflight-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          },
+          {
+            "id": "minimal-discover-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          },
+          {
+            "id": "minimal-compose-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          },
+          {
+            "id": "minimal-verify-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          },
+          {
+            "id": "minimal-review-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          },
+          {
+            "id": "minimal-finish-risk",
+            "severity": "material",
+            "statement": "Invented guarantees, planned-as-current behavior, source modification or leaked Judge-only expected facts invalidate grounding."
+          }
+        ]
+      }
+    }
+  }
+}

@@ -22,7 +22,7 @@
         "segment": {"type": ["object", "null"]},
         "e2e": {"type": "boolean"},
         "repetitions": {"type": "integer", "minimum": 1},
-        "stop_after": {"enum": ["specify", "protocolize", "plan", "plan-review", "code", "code-review", "merge"]}
+        "stop_after": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$"}
       }
     },
     "semantic_decisions": {

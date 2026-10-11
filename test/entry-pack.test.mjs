@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
-import { access, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
-import { materializeStageSlice, semanticContextHash, validateEntry, validateStageBlueprint, writeEntryPack } from "../lib/entry-pack.mjs";
-import { createHarnessPermits, needsAttemptContext } from "../lib/runner.mjs";
+import { materializeStageSlice, semanticContextHash, validateEntry, validateFlowContour, validateStageBlueprint, validateStageContext, writeEntryPack } from "../lib/entry-pack.mjs";
+import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice, validateExecutionDescriptors, assertQualificationSelection, canonicalEntries, initialFlowBoundary, verifySnapshot } from "../lib/runner.mjs";
 
 test("recovery materializes each reopened stage attempt once", () => {
   assert.equal(needsAttemptContext({ attempt: "try-001" }, {}), false);
@@ -18,6 +18,154 @@ const slice = {
   schema_id: "dd-eval/stage-context@1", stage: "specify", objective: "Specify the request.",
   task_input: [{ role: "task", path: "input.md", source: "task.md", sha256: "a".repeat(64) }], sources: [{ role: "index", root: "project", path: "README.md", required: true, reason: "Orientation." }], accepted_decisions: [], dynamic_roles: []
 };
+const memoryContour = ["preflight", "discover", "compose", "verify", "review", "finish"];
+
+test("initial boundary selects Memory explicitly without changing historical focused SDLC", () => {
+  assert.deepEqual(initialFlowBoundary({ value: { flow: { id: "mb-init", contour: memoryContour } } }), { stage: "preflight", flow: "mb-init" });
+  assert.deepEqual(initialFlowBoundary({ value: { flow: { contour: ["plan", "plan-review"] } } }), { stage: "specify", flow: "sdlc" });
+  for (const flow of [{ contour: memoryContour }, { id: "sdlc", contour: memoryContour }, { id: "mb-init", contour: ["compose", "finish"] }, { id: "foreign", contour: memoryContour }])
+    assert.throws(() => initialFlowBoundary({ value: { flow } }), error => error.code === "initial_flow_boundary_invalid");
+});
+
+test("bootstrap snapshot reader binds version, selected stage and independent manifest hash", async t => {
+  const home = await mkdtemp(path.join(os.tmpdir(), "eval-bootstrap-boundary-"));
+  t.after(() => rm(home, { recursive: true, force: true }));
+  const snapshot = { schema_id: "dd-eval/bootstrap-snapshot@2", stage: "preflight", flow: { id: "mb-init", source_sha256: "a".repeat(64), descriptor_sha256: "b".repeat(64) } };
+  const file = path.join(home, "bootstrap.json");
+  const save = async manifest => { await writeFile(file, canonicalJson(manifest)); return { stage: manifest.stage, snapshot: { kind: "bootstrap", locator: ".", manifest_sha256: hashJson(manifest), run_id: null } }; };
+  let entry = await save(snapshot);
+  assert.equal((await verifySnapshot(home, entry, "preflight")).manifest.stage, "preflight");
+  await assert.rejects(verifySnapshot(home, entry, "specify"), error => error.code === "snapshot_contract_mismatch");
+  await writeFile(file, canonicalJson({ ...snapshot, stage: "compose" }));
+  await assert.rejects(verifySnapshot(home, entry, "preflight"), error => error.code === "snapshot_checksum_mismatch");
+  for (const invalid of [{ ...snapshot, schema_id: "dd-eval/bootstrap-snapshot@1" }, { ...snapshot, flow: { ...snapshot.flow, descriptor_sha256: "bad" } }, { ...snapshot, flow: { ...snapshot.flow, unexpected: true } }, { ...snapshot, stage: "compose" }]) {
+    entry = await save(invalid); await assert.rejects(verifySnapshot(home, entry, invalid.stage), error => error.code === "snapshot_contract_mismatch");
+  }
+  const legacy = { schema_id: "dd-eval/bootstrap-snapshot@1", stage: "specify" };
+  entry = await save(legacy); assert.equal((await verifySnapshot(home, entry, "specify")).manifest.stage, "specify");
+  assert.equal((await verifySnapshot(home, { snapshot: entry.snapshot }, "specify")).manifest.stage, "specify");
+  await assert.rejects(verifySnapshot(home, { ...entry, stage: "preflight" }, "specify"), error => error.code === "snapshot_contract_mismatch");
+});
+
+test("canonical reader restores actual memory entries and refuses missing or foreign stage bytes", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-memory-canonical-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const state = { entries: Object.fromEntries(memoryContour.map(stage => [stage, `${stage}.json`])) };
+  const makeEntry = stage => ({ schema_id: "dd-eval/stage-entry@1", case_id: "fixture", revision: "REV-001", checkpoint_id: stage, stage,
+    snapshot: { kind: stage === "preflight" ? "bootstrap" : "run", locator: "canonical/snapshot", manifest_sha256: "a".repeat(64), run_id: stage === "preflight" ? null : "RUN-fixture" },
+    semantic_package_sha256: "b".repeat(64), context_slice_sha256: "c".repeat(64) });
+  for (const stage of memoryContour) await writeFile(path.join(root, state.entries[stage]), JSON.stringify(makeEntry(stage)));
+  assert.deepEqual(Object.keys(await canonicalEntries(root, state, memoryContour)), memoryContour);
+  await assert.rejects(canonicalEntries(root, { entries: { ...state.entries, review: undefined } }, memoryContour), error => error.code === "canonical_entries_incomplete");
+  await writeFile(path.join(root, "review.json"), JSON.stringify(makeEntry("merge")));
+  await assert.rejects(canonicalEntries(root, state, memoryContour), /stage entry is for merge, expected review/);
+});
+
+test("qualification coverage requires every stage in the selected catalog exactly once", () => {
+  const selection = { focused_stages: memoryContour, e2e: false };
+  assert.doesNotThrow(() => assertQualificationSelection(selection, memoryContour));
+  for (const invalid of [{ ...selection, e2e: true }, { ...selection, focused_stages: memoryContour.slice(1) },
+    { ...selection, focused_stages: [...memoryContour.slice(1), "finish"] }, { ...selection, focused_stages: [...memoryContour.slice(1), "merge"] }])
+    assert.throws(() => assertQualificationSelection(invalid, memoryContour), error => error.code === "qualification_profile_incomplete");
+  assert.throws(() => assertQualificationSelection(selection), error => error.code === "qualification_profile_incomplete");
+});
+
+test("execution descriptor admission binds stage ranges to the selected catalog", () => {
+  const execution = { id: "e2e", mode: "e2e", stage: "preflight", terminal_stage: "finish" };
+  assert.doesNotThrow(() => validateExecutionDescriptors([execution], memoryContour));
+  assert.throws(() => validateExecutionDescriptors([execution]), error => error.code === "control_input_invalid");
+  for (const changed of [{ stage: "merge" }, { stage: "finish", terminal_stage: "review" }, { id: "../escape" }])
+    assert.throws(() => validateExecutionDescriptors([{ ...execution, ...changed }], memoryContour), error => error.code === "control_input_invalid");
+  assert.throws(() => validateExecutionDescriptors([execution, execution], memoryContour), error => error.code === "control_input_invalid");
+});
+
+test("runner blueprint validation uses the case catalog and keeps SDLC fixture defaults", () => {
+  const blueprint = { schema_id: "dd-eval/stage-context-blueprint@1", stages: { preflight: { ...slice, stage: "preflight" } } };
+  const loaded = { value: { flow: { contour: memoryContour } } };
+  assert.equal(validateCaseBlueprint(blueprint, loaded), blueprint);
+  assert.throws(() => validateCaseBlueprint(blueprint, {}), /unsupported stages/);
+  assert.throws(() => validateCaseBlueprint({ ...blueprint, stages: { merge: { ...slice, stage: "merge" } } }, loaded), /unsupported stages/);
+  assert.equal(validateCaseBlueprint({ ...blueprint, stages: { specify: slice } }, {}).stages.specify.stage, "specify");
+});
+
+test("entry-pack validation binds the complete ordered case contour and terminal", () => {
+  const flow = { contour: memoryContour, terminal_stage: "finish" };
+  const pack = { schema_id: "dd-eval/entry-pack@1", case_id: "fixture", revision: "REV-001", stage_context: "stage-context.json", flow,
+    entries: Object.fromEntries(memoryContour.map(stage => [stage, `${stage}.json`])) };
+  assert.equal(validateEntryPack(pack, "fixture", flow), pack);
+  assert.throws(() => validateEntryPack(pack, "fixture"), /invalid flow contour/);
+  for (const foreign of [{ ...flow, contour: [...memoryContour].reverse() }, { ...flow, terminal_stage: "review" }])
+    assert.throws(() => validateEntryPack(pack, "fixture", foreign), error => error.code === "entry_pack_flow_mismatch");
+  assert.throws(() => validateEntryPack({ ...pack, entries: {} }, "fixture", flow), /misses focused/);
+  assert.throws(() => validateEntryPack({ ...pack, flow: { ...flow, contour: ["review", "review"] } }, "fixture", flow), /unique bounded/);
+});
+
+test("runner selection uses the selected contour without widening historical SDLC", () => {
+  const profile = { selection: { focused_stages: ["compose"], segment: { from: "discover", to: "review" }, e2e: true, repetitions: 2 } };
+  const selected = selectedEntries(profile, memoryContour);
+  assert.equal(selected.length, 6);
+  assert.equal(selected[2].stage, "preflight"); assert.equal(selected[2].terminal_stage, "finish");
+  assert.equal(selected[0].id, "focus-compose-r1");
+  assert.throws(() => selectedEntries(profile), /unknown focused stage/);
+  assert.throws(() => selectedEntries({ ...profile, case_terminal_stage: "merge" }, memoryContour), /outside its flow contour/);
+  assert.throws(() => selectedEntries({ selection: { ...profile.selection, segment: { from: "review", to: "discover" } } }, memoryContour), /ordered case contour range/);
+  const legacy = selectedEntries({ selection: { focused_stages: ["code"], segment: null, e2e: true, repetitions: 1 }, case_terminal_stage: "plan" }, ["specify", "plan"]);
+  assert.equal(legacy[0].stage, "code"); assert.equal(legacy[1].stage, "specify");
+});
+
+test("explicit flow contour is bounded metadata and does not widen historical SDLC defaults", () => {
+  for (const invalid of [null, [], ["review", "review"], ["../review"], ["Review"], Array.from({ length: 65 }, (_, index) => `stage-${index}`)])
+    assert.throws(() => validateFlowContour(invalid), /unique bounded/);
+  const original = [...memoryContour], catalog = validateFlowContour(original);
+  catalog.push("extra"); assert.deepEqual(original, memoryContour);
+  const context = { ...slice, stage: "preflight" };
+  assert.throws(() => validateStageContext(context), /unsupported stage context/);
+  assert.equal(validateStageContext(context, "preflight", memoryContour).stage, "preflight");
+  assert.throws(() => validateStageContext({ ...context, stage: "merge" }, null, memoryContour), /unsupported stage context/);
+});
+
+test("memory flow entries use their initial stage for bootstrap and later stages require RUN snapshots", async () => {
+  const entry = { schema_id: "dd-eval/stage-entry@1", case_id: "memory-case", revision: "REV-001", checkpoint_id: "STG-001", stage: "preflight",
+    snapshot: { kind: "bootstrap", locator: "canonical/bootstrap", manifest_sha256: "a".repeat(64), run_id: null },
+    semantic_package_sha256: "b".repeat(64), context_slice_sha256: "c".repeat(64) };
+  assert.throws(() => validateEntry(entry), /unsupported stage entry/);
+  assert.equal(validateEntry(entry, "preflight", memoryContour).snapshot.kind, "bootstrap");
+  assert.throws(() => validateEntry({ ...entry, stage: "discover" }, null, memoryContour), /requires a RUN snapshot/);
+  assert.throws(() => validateEntry({ ...entry, snapshot: { ...entry.snapshot, kind: "run", run_id: "RUN-fixture" } }, null, memoryContour), /requires a bootstrap snapshot/);
+  const context = { ...slice, stage: "preflight" };
+  const pack = await writeEntryPack({ caseDir: "/tmp/memory-case", revision: "REV-001", inputCheckpoint: { id: "cp-001", sha256: "d".repeat(64) },
+    flow: { contour: memoryContour, terminal_stage: "finish" }, stageBlueprint: { schema_id: "dd-eval/stage-context-blueprint@1", stages: { preflight: context } },
+    entries: { preflight: entry }, authoring: {} });
+  assert.deepEqual(pack.entries, { preflight: "preflight.json" });
+  assert.equal(pack.title, "Flow Entry Pack");
+});
+
+test("explicit memory contour materializes contained sources and preserves semantic context identity", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-memory-entry-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(path.join(root, "input.md"), "Task\n"); await writeFile(path.join(root, "README.md"), "Project\n");
+  const context = { ...slice, stage: "preflight" }, source = { schema_id: "dd-eval/stage-context-blueprint@1", stages: { preflight: context } };
+  assert.throws(() => validateStageBlueprint(source), /unsupported stages/);
+  const blueprint = validateStageBlueprint(source, memoryContour);
+  const rendered = await materializeStageSlice({ blueprint, stage: "preflight", roots: { project: root }, output: path.join(root, "context.json"), flowContour: memoryContour });
+  const runnerSlice = await materializeCaseStageSlice({ blueprint, stage: "preflight", roots: { project: root }, output: path.join(root, "runner-context.json") }, { value: { flow: { contour: memoryContour } } });
+  assert.equal(runnerSlice.semantic_package_sha256, rendered.semantic_package_sha256);
+  await assert.rejects(materializeCaseStageSlice({ blueprint, stage: "preflight", roots: { project: root }, output: path.join(root, "foreign-context.json") }, {}), /unsupported stage context/);
+  assert.equal(rendered.semantic_package_sha256, semanticContextHash(context, memoryContour));
+  assert.equal(JSON.parse(await readFile(rendered.path, "utf8")).sources[0].path, path.join(root, "README.md"));
+});
+test("focused historical SDLC pack does not promote PLAN to bootstrap", async () => {
+  const entry = { schema_id: "dd-eval/stage-entry@1", case_id: "case", revision: "REV-001", checkpoint_id: "STG-001", stage: "plan",
+    snapshot: { kind: "run", locator: "canonical/run", manifest_sha256: "a".repeat(64), run_id: "RUN-fixture" },
+    semantic_package_sha256: "b".repeat(64), context_slice_sha256: "c".repeat(64) };
+  const input = { caseDir: "/tmp/case", revision: "REV-001", inputCheckpoint: { id: "cp-001", sha256: "d".repeat(64) },
+    flow: { contour: ["plan"], terminal_stage: "plan" }, stageBlueprint: {}, entries: { plan: entry }, authoring: {} };
+  assert.deepEqual((await writeEntryPack(input)).entries, { plan: "plan.json" });
+  const extra = { ...entry, stage: "code" };
+  assert.deepEqual((await writeEntryPack({ ...input, entries: { plan: entry, code: extra } })).entries, { plan: "plan.json", code: "code.json" });
+  await assert.rejects(writeEntryPack({ ...input, flow: { contour: memoryContour, terminal_stage: "finish" }, entries: { code: extra } }), /outside its flow contour/);
+  await assert.rejects(writeEntryPack({ ...input, entries: { plan: { ...entry, snapshot: { ...entry.snapshot, kind: "bootstrap", run_id: null } } } }), /requires a RUN snapshot/);
+});
 
 test("task-priority SPECIFY has one canonical response fixture, not legacy script copies", async () => {
   const caseRoot = new URL("../cases/sdlc-eval-2026-summer-task-priority/", import.meta.url);

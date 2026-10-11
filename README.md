@@ -20,6 +20,34 @@ The [FLOW test-suite runbook](runbooks/flow-test-suite-verification.md) defines
 development groups, build-before-test full acceptance, worker qualification,
 complete shard evidence and the exact paired fixture targets.
 
+The E3 Memory runner path prepares `mb-init` through public `init --prepare-only`,
+not `run prepare-vnext-specify`. A Memory case declares `flow.id: "mb-init"`, its
+six-stage contour and `flow.git_policy` (`route`, `integration_branch`). Its
+`preflight` blueprint contains exactly one checksum-bound `initial_user_request`
+task input. The run profile supplies `subject.memory_init` with exactly one
+`profile` or absolute `profileFile` and optional repeatable `stageProfiles` /
+`workProfiles`; it cannot also supply SDLC `subject.execution`. The runner derives
+workspace and stable request identity; agents do not author these fields.
+The paired `subject.memory_setup` supplies absolute `canonSource` and `trustFile`
+locators and optional release `channel`. Public CLI setup installs them into the
+private runtime Home with agent setup skipped; its selected canon commit/version
+and engine version must match the case checkpoint before bootstrap snapshot or
+initial RUN preparation. The runner never creates trust keys or copies global
+installation state. Memory selection cannot consume legacy SDLC operational
+project materialization, which would create a partial Memory Bank before init.
+Preparation publishes project/RUN state but starts no provider Session. Existing
+`run drive launch` owns subsequent context, stop/capture policy and execution.
+Memory input checkpoints explicitly set `flow_pack.delivery: "installed_canon"`.
+Canonical and E2E input materialization clone only the pinned product commit,
+retain its tree/commit and reject any existing `.memory-bank` (including files
+and dangling links). They do not copy the canonical flow into the product.
+Source-only canon identity checks do not grant installation trust or executable
+descriptor admission; those remain owned by setup and the selected CLI.
+This path is under development: isolated canon/setup materialization, an authored
+blank product checkpoint and independent focused/E2E case qualification remain
+required before a Memory case may become accepted. Existing task-priority packs
+are not blank-init evidence.
+
 Factory Droid integration uses `dd-droid`, native JSON-RPC and the pinned
 `droid-cli-openai-gpt-5-6-sol-high` profile. Native close/reload and child identity
 are verified; the profile has measured capacity 15. Scored E2E remains a separate
@@ -538,6 +566,14 @@ historical journal only with an explicit partial-observation indication.
 ### Local Eval home registry
 
 `~/.dd-eval/homes.json` is the shared registry, independent of `DD_EVAL_HOME`.
+For isolated development, `DD_EVAL_REGISTRY_FILE` selects a separate absolute
+registry file without changing the system HOME. Empty/relative selections fail
+before registration; missing private files start empty, malformed files are
+preserved. There is no fallback from an explicit selection to the global file.
+New run and fork manifests retain `eval_registry_file`; detached continuation
+uses that path even when the invoking shell selects another registry. Historical
+manifests without the field keep the original global default. See the
+[isolated development runbook](runbooks/isolated-development.md).
 The version 1 document contains `schema_version: 1` and `homes` entries with
 `id`, canonical `root`, `label`, `created_at` and `disabled` fields.
 Creating an Eval or requesting continuation registers its home automatically.

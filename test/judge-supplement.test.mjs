@@ -90,6 +90,38 @@ test('frozen recovery binding survives live resume and another generation but re
   await assert.rejects(resolveBoundSnapshot(input), /another execution/);
 });
 
+test('unborn v6 recovery accepts only scoped Memory custody and exact Git payload metadata', async t => {
+  const f = await fixture(t), checkpoint = await recoveryFixture(f), snapshot = checkpoint.snapshot;
+  const db = new DatabaseSync(path.join(snapshot, 'runtime/db.sqlite'));
+  db.exec("CREATE TABLE runs(id TEXT,project_id TEXT,flow_kind TEXT); INSERT INTO runs VALUES('RUN-fixture','PRJ-fixture','mb-init')"); db.close();
+  await put(snapshot, 'project/README.md', 'Original zero-project source');
+  await put(snapshot, 'project.index.patch', '[]'); await put(snapshot, 'project.index.pack', '');
+  const original = JSON.parse(await readFile(checkpoint.manifest));
+  const data = { ...original, schema_id: 'dd-flow/eval-run-snapshot@6', workspace: { ...original.workspace, kind: 'project' },
+    runtime_sha256: snapshotTreeHash(path.join(snapshot, 'runtime')), project_sha256: snapshotTreeHash(path.join(snapshot, 'project')),
+    project_git: { state: 'unborn', branch: 'main', head: null, bundle_sha256: null, index_format: 'entries@1',
+      index_sha256: sha(await readFile(path.join(snapshot, 'project.index.patch'))), index_objects_sha256: sha(await readFile(path.join(snapshot, 'project.index.pack'))) } };
+  const input = async value => {
+    await put(snapshot, 'snapshot.json', value);
+    return { evalRoot: f.root, execution: 'e2e', result: { run_id: 'RUN-fixture' },
+      checkpoint: { ...checkpoint, manifest_sha256: sha(await readFile(checkpoint.manifest)) }, purpose: 'recovery' };
+  };
+  assert.equal((await resolveBoundSnapshot(await input(data))).data.schema_id, data.schema_id);
+  for (const mutate of [value => { value.purpose = 'candidate'; }, value => { value.workspace.kind = 'git_worktree'; },
+    value => { value.project_git.head = 'a'.repeat(40); }, value => { value.project_git.bundle_sha256 = 'a'.repeat(64); },
+    value => { value.project_git.index_format = 'patch'; }, value => { value.project_git.index_sha256 = null; },
+    value => { value.project_git.index_objects_sha256 = 'a'.repeat(64); }]) {
+    const changed = structuredClone(data); mutate(changed);
+    await assert.rejects(resolveBoundSnapshot(await input(changed)), { code: 'snapshot_binding_invalid' });
+  }
+  await put(snapshot, 'project.bundle', 'unexpected nonempty bundle');
+  await assert.rejects(resolveBoundSnapshot(await input(data)), /unexpected Git bundle/);
+  await unlink(path.join(snapshot, 'project.bundle'));
+  const foreign = new DatabaseSync(path.join(snapshot, 'runtime/db.sqlite'));
+  foreign.exec("UPDATE runs SET flow_kind='vnext_protocolize'"); foreign.close();
+  await assert.rejects(resolveBoundSnapshot(await input({ ...data, runtime_sha256: snapshotTreeHash(path.join(snapshot, 'runtime')) })), /scoped Memory RUN/);
+});
+
 test('successful candidate supplemental view safely retains exact historical global recovery', async t => {
   const f = await fixture(t), recovery = await recoveryFixture(f);
   await put(recovery.snapshot, 'unrelated-secret.txt', 'not part of selected evidence payload');

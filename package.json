@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "node --test --test-concurrency=1 test/*.test.mjs",
-    "validate": "node --test --test-concurrency=1 test/*.test.mjs"
+    "validate": "node --test --test-concurrency=1 test/*.test.mjs",
+    "test:setup": "DD_EVAL_REQUIRE_SETUP=1 node --test test/setup-installed.integration.test.mjs"
   },
   "engines": {
     "node": ">=22.0.0"

@@ -13,6 +13,14 @@ const manifest = value => ({ run_id: "EVAL", case_id: "test", profile: value, ex
 const ready = (execution, stage_outcome = "done") => ({ execution: execution.id, stage: execution.terminal_stage,
   state: "candidate_ready", stage_outcome, candidate: { manifest_sha256: "sealed" }, lifecycle: { stage_status: stage_outcome } });
 
+test("generic Memory stop target stays inside its declared contour", () => {
+  const memory = { ...profile(), case_contour: ["preflight", "discover", "compose", "verify", "review", "finish"], case_terminal_stage: "finish",
+    selection: { ...profile().selection, stop_after: "verify" } };
+  const [execution] = selectedEntries(memory);
+  assert.equal(execution.stage, "preflight"); assert.equal(execution.terminal_stage, "verify");
+  assert.throws(() => selectedEntries({ ...memory, selection: { ...memory.selection, stop_after: "code" } }), { code: "selection_invalid" });
+});
+
 test("bounded direct selection retains original checkpoint mode and planned scope", () => {
   const value = profile(), executions = selectedExecutionEntries(value, contour);
   assert.equal(selectionNeedsEntryPack(executions), false);
