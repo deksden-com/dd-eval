@@ -64,4 +64,13 @@ Verified: typecheck/lint/build; affected runtime suites 104/104; engine/fork
 contract parity; AGY/OpenCode/tool-observation fixtures 39/39 after fixes.
 Installed beta.130 offline full-cycle PASS, with four real owning matrix packets
 and explicit review-off omission, receipt cp-221-verification-matrix-qualification.
-The full native group and live admission remain separate checks.
+The final native group passed 46/46 with complete inventory and unchanged source
+09c3a783d80008637e76faafc3aa4777ba563edf. Runtime PR58 squash-merged as deec90c.
+Live admission remains a separate check.
+
+CP221 preflight correctly rejected a preparation mistake: the checkpoint used
+the npm tarball SHA instead of installed engine content identity. Those are
+different digests. Preserve that failed attempt; CP222 pins the measured engine
+checksum 0f830868453106ca108e9739e4e789cd562297f062a98ebd0c05454aec5deaf4,
+matching both installed fixture and preflight manifests. The execute runbook
+now names this distinction explicitly. No runtime guard was weakened.

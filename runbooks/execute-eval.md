@@ -21,6 +21,9 @@ alone does not authorize paid qualification, provider calls or scored launches.
 
    Prepare these from the accepted engine/configuration, not a failed execution.
    All concurrent consumers of shared resources use the same resource registry.
+   Checkpoint `engine.artifact_sha256` is the installed engine manifest's
+   `integrity.checksum`, not the npm tarball SHA256. Record the tarball digest
+   separately in the candidate receipt; verify both before selecting the pin.
    Preflight and launch must use the same engine. Do not silently fall back to a
    global CLI or change a retained run's engine. See [harness updates](update-harnesses.md).
 4. Verify engine integrity, installed `harnesses.json`, every reachable Flow agent
