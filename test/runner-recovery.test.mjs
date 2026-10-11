@@ -41,6 +41,7 @@ import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { processSnapshot } from "../lib/process-snapshot.mjs";
 import { recoveryObservationBudget, withRecoveryObservation } from "../lib/recovery-observation-budget.mjs";
 import { ObservationClock } from "../lib/observation-clock.mjs";
+import { readBaselineAdmissionPolicy } from "../lib/baseline-admission.mjs";
 import { assertExecutionDispatch, executionState } from "../lib/execution-state.mjs";
 
 test("fork checkpoint listing advertises only sealed stage-entry snapshots", async t => {
@@ -119,6 +120,57 @@ test("failed before the product gate reuses its not-applicable acceptance receip
   const altered = { ...acceptance.receipt, status: "passed" }; delete altered.immutable_hash;
   await writeJsonAtomic(acceptance.file, { ...altered, immutable_hash: hashJson(altered) });
   await assert.rejects(runnerFinalizeSettled(args), { code: "case_acceptance_receipt_invalid" });
+});
+
+for (const disposition of ['fenced', 'running', 'foreign']) test(`explicit cleanup observes stranded unknown without redispatch (${disposition})`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-stranded-cleanup-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
+  const execution = { id: 'e', stage: 'specify', terminal_stage: 'specify', mode: 'e2e' };
+  const attempt = path.join(root, 'executions/e'), project = path.join(attempt, 'project'), home = path.join(attempt, 'dd-flow-home');
+  const engineRoot = path.join(root, 'engine');
+  await mkdir(project, { recursive: true }); await mkdir(engineRoot);
+  const engine = { package_name: 'fixture', package_version: 'fixture', engine_version: 'fixture', snapshot_root: engineRoot,
+    integrity_checksum: await engineArtifactDigest(engineRoot) };
+  const manifest = { run_id: 'EVAL-stranded', case_id: loaded.value.id, kind: 'derived', derived_from: { engine },
+    executions: [execution], subject_profile: {}, runtime_resource_home: path.join(root, 'resources'),
+    profile: { concurrency: { global: 1, per_harness: {} }, judge: { enabled: false } } };
+  manifest.interaction_fixtures = await interactionFixtureManifest(loaded.root, [execution]);
+  const opId = `${manifest.run_id}:e:launch`, events = path.join(root, 'events.jsonl'), context = path.join(root, 'context.json'), baseline = path.join(root, 'baseline.json');
+  await writeJsonAtomic(path.join(root, 'manifest.json'), manifest);
+  await writeJsonAtomic(context, {});
+  const policy = await readBaselineAdmissionPolicy({ caseRoot: loaded.root, definition: loaded.value.baseline_admission });
+  await writeJsonAtomic(baseline, { schema_id: policy.schema_id.endsWith('@2') ? 'dd-eval/baseline-admission@2' : 'dd-eval/baseline-admission@1', policy_schema_id: policy.schema_id, status: 'passed', checkpoint_sha256: loaded.inputCheckpoint.sha256,
+    checkpoint_id: loaded.inputCheckpoint.value.id, source_commit: loaded.inputCheckpoint.value.source.commit,
+    policy_sha256: loaded.value.baseline_admission.sha256, checks: policy.commands.map(command => ({ id: command.id, exit_code: 0,
+      inactivity_timeout_ms: command.inactivity_timeout_ms, timeout_kind: 'inactivity', cleanup: 'settled', native_outcome: 'exited' })) });
+  for (const [type, data] of [['operation.started', { operation_id: opId }], ['execution.context_prepared', { stage: 'specify', context_file: context,
+    materialized_context_sha256: sha256(await readFile(context)), baseline_admission: { file: baseline, sha256: sha256(await readFile(baseline)) } }],
+    ['execution.awaiting_provider', { execution: 'e', state: 'awaiting_provider', execution_operation_id: opId, code: 'operation_observation_lost' }]])
+    await appendEvent(events, { source: 'test', runId: manifest.run_id, executionId: 'e', type: `dev.dd.eval.${type}`, data });
+  await writeJsonAtomic(path.join(attempt, 'managed-runtime.json'), { schema_id: 'dd-eval/managed-runtime@1', run_id: 'RUN', project_root: project, runtime_root: home });
+  const control = { current: true, control_id: 'CTL-existing', generation: 1, request_sequence: 61, admission: 'pending', settlement: { settled: false } };
+  const controller = { controller_id: 'DRV', run_id: 'RUN', request_id: disposition === 'foreign' ? 'foreign' : `eval:${sha256(opId)}`,
+    status: disposition === 'running' ? 'running' : 'recovery_required', sessions: [], error: { code: 'operation_observation_lost', details: { native_outcome: { status: 'unknown' } } } };
+  const calls = path.join(root, 'calls.jsonl'), cli = path.join(home, 'bin/dd-flow');
+  await mkdir(path.dirname(cli), { recursive: true });
+  await writeFile(cli, `#!${process.execPath}\nconst fs=require('node:fs'),a=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify(a)+'\\n');let r;
+if(a[0]==='engine')r={selection:{selected:${JSON.stringify(engine)}}};
+else if(a[1]==='drive'&&a[2]==='status')r={controller:${JSON.stringify(controller)},events:[]};
+else if(a[1]==='control'&&a[2]==='status')r={settled:false,control:${JSON.stringify(control)}};
+else if(a[1]==='control'&&a[2]==='reconcile'){if(a[a.indexOf('--control-id')+1]!=='CTL-existing')throw Error('foreign control');r={};}
+else if(a[0]==='stat'||a[0]==='run'&&['status','list'].includes(a[1]))r={};else throw Error('productive dispatch forbidden '+a);console.log(JSON.stringify(r));\n`);
+  await chmod(cli, 0o700);
+  if (disposition !== 'fenced') await assert.rejects(runnerCleanup({ evalRoot: root, requestId: 'cleanup' }), { code: disposition === 'running' ? 'cleanup_not_required' : 'controller_owner_changed' });
+  else {
+    const cleaned = await runnerCleanup({ evalRoot: root, requestId: 'cleanup' });
+    assert.equal(cleaned.execution_state, 'failed'); assert.equal(cleaned.cleanup_state, 'pending');
+    assert.equal(cleaned.executions[0].code, 'managed_run_interrupted');
+    assert.equal(cleaned.executions[0].details.controller.error.details.native_outcome.status, 'unknown');
+  }
+  const commands = (await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse);
+  assert.ok(commands.every(a => a[0] === 'engine' || a[0] === 'stat' || a[0] === 'run' && (['status', 'list'].includes(a[1]) || ['status', 'reconcile'].includes(a[2]))), JSON.stringify(commands));
+  assert.equal(commands.filter(a => a[2] === 'reconcile').length, disposition === 'fenced' ? 1 : 0);
 });
 
 test("cleanup leaves queued executions and Judge undispatched", async () => {
