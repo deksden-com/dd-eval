@@ -1137,6 +1137,26 @@ test("definition identity ignores unrelated docs and commits but rejects selecte
   }
 });
 
+test("definition identity rejects committed symlinks to unbound input bytes", async () => {
+  const repository = await mkdtemp(path.join(tmpdir(), "dd-eval-definition-link-"));
+  try {
+    await run("git", ["init", "--initial-branch=main", repository]);
+    await mkdir(path.join(repository, "cases"));
+    await writeFile(path.join(repository, ".gitignore"), "target.json\n");
+    await writeFile(path.join(repository, "target.json"), '{"model":"first"}\n');
+    await symlink("../target.json", path.join(repository, "cases", "profile.json"));
+    await run("git", ["-C", repository, "add", "."]);
+    await run("git", ["-C", repository, "-c", "user.email=eval@example.invalid", "-c", "user.name=Eval", "commit", "-m", "definition"]);
+    // Regular-file readers follow this link, while its Git blob never binds target bytes.
+    for (const model of ["first", "second"]) {
+      await writeFile(path.join(repository, "target.json"), JSON.stringify({ model }));
+      await assert.rejects(committedDefinitionIdentity(repository, [["cases/profile.json"]]), { code: "definition_tree_dirty" });
+    }
+  } finally {
+    await rm(repository, { recursive: true, force: true });
+  }
+});
+
 test("canonical build requires an explicit source project before it can capture the bootstrap boundary", async () => {
   const home = await mkdtemp(path.join(tmpdir(), "dd-eval-canonical-")); const prior = process.env.DD_EVAL_HOME; process.env.DD_EVAL_HOME = home;
   try {
