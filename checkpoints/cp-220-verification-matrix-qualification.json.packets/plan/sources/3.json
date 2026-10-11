@@ -1,0 +1,63 @@
+{
+  "schema_id": "dd-flow/stage-report@2",
+  "run_id": "RUN-001-tasks",
+  "stage": "protocolize",
+  "generated_at": "2026-10-11T21:00:23.442Z",
+  "verdict": "done",
+  "semantic": {
+    "result": "Materialized 1 executable protocol.",
+    "acceptance": [
+      "PRT-001-task-priority"
+    ],
+    "changed_files": [
+      ".memory-bank/epics/EP-001-tasks/features/FT-001-task-priority/index.md",
+      ".memory-bank/epics/EP-001-tasks/index.md",
+      ".memory-bank/protocol/PRT-001-task-priority/index.md",
+      ".memory-bank/protocol/PRT-001-task-priority/intake/user-input.md",
+      ".memory-bank/protocol/PRT-001-task-priority/summary.md",
+      ".memory-bank/protocol/index.md"
+    ],
+    "checks": [
+      "result contract",
+      "stage-report schema"
+    ],
+    "evidence": [
+      "/Users/deksden/.dd-eval/qualification/cp-220-offline-full-cycle/dd-flow-protocolize-SE97N1/home/projects/PRJ-001-project/runs/RUN-001-tasks/02-protocolize/protocolize-result.json"
+    ],
+    "next_action": "start_plan"
+  },
+  "mechanical": {
+    "started_at": "2026-10-11T21:00:23.115Z",
+    "finished_at": "2026-10-11T21:00:23.442Z",
+    "wall_clock_ms": 327,
+    "git": {
+      "branch": "main",
+      "head": "b233b733ab41c3ccc59ee748e660cc4f04a4c051",
+      "status": "dirty"
+    },
+    "workspace_route": {
+      "route": "integration_branch_direct",
+      "integration_branch": "main",
+      "base_ref": "b233b733ab41c3ccc59ee748e660cc4f04a4c051",
+      "feature_branch": null,
+      "worktree_path": null,
+      "reason": "Project workspace configuration explicitly selects the integration checkout.",
+      "provision_stage": "protocolize_start",
+      "stage_session_mode": "same_session",
+      "provisioned": true,
+      "bootstrap_status": "not_applicable"
+    },
+    "observability": "query dd-flow stat after all RUN sessions have settled"
+  },
+  "artifacts": {
+    "json": "stage-report.json",
+    "markdown": "stage-report.md",
+    "html": "stage-report.html"
+  },
+  "validation": {
+    "permission_scope": "known_targets_only",
+    "memory_bank_scope": "changed_files_and_links_only",
+    "status": "passed"
+  },
+  "summary": "Materialized 1 executable protocol."
+}

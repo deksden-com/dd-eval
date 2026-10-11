@@ -1,0 +1,37 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "f3fe7c5076c3738e90197312fcfb650fc6842e552fb4fabbdb665ecb220c5218",
+  "verification_epoch": "dc57b2b36c5cd4aba87f00c5bb7b25beda14eb78ff6ded24240d7278f6b55175",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-220-offline-full-cycle/dd-flow-protocolize-SE97N1/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-220-offline-full-cycle/dd-flow-protocolize-SE97N1/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-220-offline-full-cycle/dd-flow-protocolize-SE97N1/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-220-offline-full-cycle/dd-flow-protocolize-SE97N1/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "7226ed70e6181c559cfe53fedd9bec24b59b03f368e15b6fdb564b62678dff7f",
+  "before_fingerprint": "7226ed70e6181c559cfe53fedd9bec24b59b03f368e15b6fdb564b62678dff7f",
+  "after_fingerprint": "7226ed70e6181c559cfe53fedd9bec24b59b03f368e15b6fdb564b62678dff7f",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-11T21:00:33.072Z",
+  "finished_at": "2026-10-11T21:00:33.210Z"
+}

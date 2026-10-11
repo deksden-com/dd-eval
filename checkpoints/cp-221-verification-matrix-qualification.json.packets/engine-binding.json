@@ -1,0 +1,19 @@
+{
+  "schema_id": "dd-flow/run-engine-binding@1",
+  "run_id": "RUN-001-tasks",
+  "project_root": "/Users/deksden/.dd-eval/qualification/cp-221-offline-full-cycle/dd-flow-protocolize-0jAJlt/project",
+  "bound_at": "2026-10-11T21:06:11.059Z",
+  "source": "run_creation",
+  "reason": "RUN created by the selected execution engine.",
+  "engine": {
+    "package_name": "@deksden-com/dd-flow-cli",
+    "package_version": "0.9.0-beta.130",
+    "engine_version": "0.9.0-beta.130",
+    "integrity_checksum": "0f830868453106ca108e9739e4e789cd562297f062a98ebd0c05454aec5deaf4",
+    "snapshot_root": "/Users/deksden/.dd-eval/qualification/cp-221-offline-full-cycle/dd-flow-protocolize-0jAJlt/home/engines/@deksden-com_dd-flow-cli/0.9.0-beta.130"
+  },
+  "probe": {
+    "status": "not_required",
+    "command": null
+  }
+}

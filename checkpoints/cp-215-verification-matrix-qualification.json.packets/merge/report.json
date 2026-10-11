@@ -1,0 +1,88 @@
+{
+  "schema_id": "dd-flow/stage-report@2",
+  "run_id": "RUN-001-tasks",
+  "stage": "merge",
+  "generated_at": "2026-10-11T11:58:10.065Z",
+  "verdict": "done",
+  "summary": "Integrated task priority.",
+  "semantic": {
+    "result": "Integrated task priority.",
+    "acceptance": [
+      "source_commit_frozen",
+      "integration_commit_created",
+      "merge_gate_passed",
+      "delivery_confirmed"
+    ],
+    "changed_files": [],
+    "checks": [
+      "test -f apps/api/src/core/service.ts",
+      "true"
+    ],
+    "evidence": [
+      "/Users/deksden/.dd-eval/qualification/cp-215-matrix-proof/dd-flow-protocolize-pIxEEQ/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/apply-receipt.json",
+      "/Users/deksden/.dd-eval/qualification/cp-215-matrix-proof/dd-flow-protocolize-pIxEEQ/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+      "/Users/deksden/.dd-eval/qualification/cp-215-matrix-proof/dd-flow-protocolize-pIxEEQ/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+      "/Users/deksden/.dd-eval/qualification/cp-215-matrix-proof/dd-flow-protocolize-pIxEEQ/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/cleanup-receipt.json"
+    ],
+    "next_action": "merge_completed",
+    "merge": {
+      "merge_request_id": "MRG-001",
+      "work_id": "WRK-006-merge",
+      "protocols": [
+        "PRT-001-task-priority"
+      ],
+      "source_commit": "1a550dff3fabcce7ad70ce57c6eac20e9fe95039",
+      "execution_target_head": "1a550dff3fabcce7ad70ce57c6eac20e9fe95039",
+      "accepted_tree": "2996150570a9f16a8beee68ae0b1b2ff830e526b",
+      "integration_commit": "1a550dff3fabcce7ad70ce57c6eac20e9fe95039",
+      "route": "same_session",
+      "delivery": {
+        "strategy": "local"
+      },
+      "cleanup": {
+        "source": "retain"
+      },
+      "verification_summary": "The integrated gate proves the result.",
+      "residual_risks": []
+    },
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "role": "output",
+      "completeness": "final",
+      "source_fingerprint": "ec5b5ee27708366266cfbfccb7e04bfe3b203c381fc61030de63cc03f772306f",
+      "json": {
+        "path": "07-merge/verification/ec5b5ee27708366266cfbfccb7e04bfe3b203c381fc61030de63cc03f772306f/verification-matrix.json",
+        "sha256": "096d7fdc9f7f798b7e81d0a5a2f934dedc3e8c4031464d6e7de7d81b98eaa967"
+      },
+      "markdown": {
+        "path": "07-merge/verification/ec5b5ee27708366266cfbfccb7e04bfe3b203c381fc61030de63cc03f772306f/verification-matrix.md",
+        "sha256": "44ab433678b958a6d8a2e3c87aa6c53e77c78fa1a4f93deb35d9b7640a398ee3"
+      },
+      "coverage_contract": "dd-flow/final-check-coverage@1"
+    }
+  },
+  "mechanical": {
+    "started_at": "2026-10-11T11:58:09.169Z",
+    "finished_at": "2026-10-11T11:58:10.065Z",
+    "wall_clock_ms": 896,
+    "git": {
+      "branch": "main",
+      "head": "1a550dff3fabcce7ad70ce57c6eac20e9fe95039",
+      "status": "dirty"
+    },
+    "queue": {
+      "position": 1,
+      "requests_ahead": 0,
+      "status": "completed",
+      "route": "same_session"
+    }
+  },
+  "artifacts": {
+    "json": "stage-report.json",
+    "markdown": "stage-report.md",
+    "html": "stage-report.html"
+  },
+  "validation": {
+    "status": "passed"
+  }
+}
