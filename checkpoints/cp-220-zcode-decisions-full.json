@@ -1,0 +1,27 @@
+{
+  "id": "cp-220-zcode-decisions-full",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e",
+    "tag": "eval/cp-172-source-baseline-setup"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-220-verification-matrix-qualification.json",
+      "sha256": "2ed1fd5994ceabb1074be1fae1abcbd943cb0cd91787eb27c5ae382631029ac1",
+      "canon_commit": "2ba0b9ceedf8e4544ad9566c240ef37ea5e8d099"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "c1abacae9efc626eb9489d4ea2e985f9b12948e9",
+      "version": "0.9.0-beta.129",
+      "artifact_sha256": "66932b465db58da6db4900fcba3da0091ec5c2f44388e9378732b0759dd30d25"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
