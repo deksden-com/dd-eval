@@ -74,3 +74,21 @@ different digests. Preserve that failed attempt; CP222 pins the measured engine
 checksum 0f830868453106ca108e9739e4e789cd562297f062a98ebd0c05454aec5deaf4,
 matching both installed fixture and preflight manifests. The execute runbook
 now names this distinction explicitly. No runtime guard was weakened.
+
+Final startup receipt (2026-10-11): CP222 preflight PASS at
+`/Users/deksden/.dd-eval/qualification/cp-222-zcode-decisions-full/conformance/e2e-preflight/1791753141875-c1be6b34/e2e-zcode-glm-5-3-flash-max-openai-decisions`.
+Both doctors compatible; existing task-scoped Judge qualification reused, no
+additional paid qualification. Definition source 303faae53cfaf4f954a4d258a2f448250e26c24c.
+New scored full run EVAL-20261011211255-023e67a1 in CP222 home, no stop_after.
+Baseline receipt passed all five checks (install, quality, browser-install,
+browser, isolation); each exit_code=0. Timeline stage_attached SPECIFY at
+2026-10-11T21:15:01.099Z, WRK-001-root waiting for agent.
+Native Session sess_625daa66-336e-451f-b92a-3f48fd631972 created by owned daemon
+5fde26f7-9bad-4de1-8229-78df3f4d938e; provider PID18651, daemon PID18559.
+Daemon receipt at 21:15:30.503Z confirms session.prompt dispatched,
+observation productive, cursor27, native_initialized, active_tree=true.
+This satisfies startup acceptance only, not MERGE/Final Judge/full E2E PASS.
+Runtime PR58 squash merged deec90c119105260559953aae00b152525f6d913;
+EVAL integration PR73 contains this final receipt. Local beta.130 candidate is
+not an npm-published or full official release-accepted artifact.
+Final EVAL setup regression rerun: 3/3 PASS; git diff --check clean.
