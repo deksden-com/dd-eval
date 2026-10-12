@@ -9,6 +9,49 @@ import { readBaselineAdmissionPolicy, runBaselineAdmission, verifyBaselineAdmiss
 import { installMaintenanceFixture } from "./fixtures/maintenance-runtime.mjs";
 import { installRuntimeShim } from "../lib/runner.mjs";
 
+test("baseline consumes selected engine runner evidence without turning tooling into a product verdict", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "baseline-runner-evidence-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const projectRoot = path.join(root, "project"), engine = path.join(root, "engine"), cli = path.join(engine, "cli.mjs"), script = path.join(root, "check.cjs"), categoryFile = path.join(root, "category");
+  await mkdir(projectRoot); await mkdir(path.join(engine, "services"), { recursive: true }); await writeFile(cli, "export {};\n");
+  // Explicit synthetic installed-engine ABI. Production never imports this
+  // fixture or borrows the helper from an ambient checkout.
+  await writeFile(path.join(engine, "services/check-runner-evidence.js"), `import fs from 'node:fs';import path from 'node:path';
+export const runnerContractsValid=()=>true;
+export function runnerContractForArgv(p,c,a){const alias=Object.keys(p.runner_evidence_by_alias).find(k=>p.aliases[k]===[c,...a].join(' '));return alias?{alias,command:p.aliases[alias],contract:p.runner_evidence_by_alias[alias]}:null;}
+export function readRunnerEvidence(r,c,b){try{const e=JSON.parse(fs.readFileSync(path.join(r,c.path)));return JSON.stringify(e.binding)===JSON.stringify(b)?e:null;}catch{return null;}}
+export const readRunnerProgress=()=>[];
+export const runnerObservationDurations=()=>({startupMs:1500,executionMs:2500});
+export const runnerEvidencePass=e=>!!e?.completed&&!e.observation_unknown&&e.counts.failed===0&&e.failures.length===0;
+export function checkRepairDisposition(r){if(r.status==='passed')return 'passed';if(r.status==='aborted')return 'settlement_required';if(!r.runner_evidence?.failures?.length||r.exit_code===0)return 'unclassified';return ({tooling:'tooling_blocker',assertion:'source_repair'})[r.runner_evidence.failures[0].category]??'unclassified';}
+`);
+  await writeFile(script, `const fs=require('node:fs'),e=process.env,category=fs.readFileSync(${JSON.stringify(categoryFile)},'utf8');
+if(category==='noise'){setInterval(()=>console.log('logging is not runner progress'),100);return;}
+if(category!=='missing')fs.writeFileSync(e.DD_FLOW_CHECK_RUNNER_EVIDENCE_PATH,JSON.stringify({schema_id:'dd-flow/check-runner-evidence@1',binding:{invocation_id:e.DD_FLOW_CHECK_INVOCATION_ID,check_id:e.DD_FLOW_CHECK_ID,command:e.DD_FLOW_CHECK_COMMAND,input_hash:e.DD_FLOW_CHECK_INPUT_HASH,verification_epoch:e.DD_FLOW_CHECK_VERIFICATION_EPOCH},runner:{name:'synthetic',version:'1'},completed:true,counts:{passed:category==='pass'?1:0,failed:category==='pass'?0:1,skipped:0},failures:category==='pass'?[]:[{category}]}));
+process.exit(category==='pass'||category==='missing'?0:1);`);
+  const command = `${process.execPath} ${script}`;
+  await mkdir(path.join(projectRoot, ".memory-bank/spec/engineering"), { recursive: true });
+  await writeFile(path.join(projectRoot, ".memory-bank/spec/engineering/code-check-profile.json"), JSON.stringify({ schema_id: "dd-flow/code-check-profile@7", aliases: { "@check/quality": command }, runner_evidence_by_alias: { "@check/quality": { schema_id: "dd-flow/check-runner-evidence@1", path: "report.json" } } }));
+  await commandText("git", ["init", "-q"], { cwd: projectRoot });
+  await commandText("git", ["add", "."], { cwd: projectRoot });
+  await commandText("git", ["-c", "user.name=test", "-c", "user.email=test@localhost", "commit", "-qm", "baseline"], { cwd: projectRoot });
+  const checkpoint = { sha256: "a".repeat(64), value: { id: "structured-baseline", source: { commit: await commandText("git", ["rev-parse", "HEAD"], { cwd: projectRoot }) } } };
+  const bytes = JSON.stringify({ schema_id: "dd-eval/baseline-admission-policy@2", commands: [{ id: "quality", command: process.execPath, args: [script], inactivity_timeout_ms: 10000 }] });
+  await writeFile(path.join(root, "policy.json"), bytes);
+  const definition = { file: "policy.json", sha256: createHash("sha256").update(bytes).digest("hex") };
+  for (const [category, outcome] of [["pass", "passed"], ["assertion", "source_repair"], ["tooling", "tooling_blocker"], ["unclassified", "unclassified"], ["missing", "unclassified"], ["noise", "settlement_required"]]) {
+    await writeFile(categoryFile, category);
+    const outputRoot = path.join(root, category);
+    const run = runBaselineAdmission({ caseRoot: root, definition, projectRoot, outputRoot, checkpoint, engineRuntime: { bin: cli, home: engine } });
+    if (category === "pass") await run; else await assert.rejects(run, { code: "baseline_admission_failed" });
+    const receipt = JSON.parse(await readFile(path.join(outputRoot, "receipt.json")));
+    assert.equal(receipt.checks[0].outcome, outcome);
+    assert.equal(receipt.status, category === "pass" ? "passed" : "failed");
+    assert.equal(receipt.checks[0].runner_binding.command, command);
+  }
+  await assert.rejects(runBaselineAdmission({ caseRoot: root, definition, projectRoot, outputRoot: path.join(root, "unselected-engine"), checkpoint }), { code: "baseline_runner_abi_missing" });
+});
+
 test("task-priority baseline provisions its locked Playwright browser before browser checks", async () => {
   const caseRoot = new URL("../cases/sdlc-eval-2026-summer-task-priority/", import.meta.url);
   const definition = JSON.parse(await readFile(new URL("case.json", caseRoot))).baseline_admission;

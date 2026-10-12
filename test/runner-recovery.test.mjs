@@ -80,7 +80,9 @@ test("scored finalization after cleanup freezes the failed candidate and attempt
   await writeJsonAtomic(manifestFile, manifest);
   for (const type of ["started", "failed"]) await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: `${manifest.run_id}:e:launch`, error: { code: "preflight_failed", message: "before session" } } });
   assert.equal((await runnerCleanup({ evalRoot: root })).judge_status, "not_run_cleanup_only");
-  const args = { evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)) };
+  const args = { evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), authorizeFinalization: async () => {} };
+  await assert.rejects(runnerFinalizeSettled({ ...args, authorizeFinalization: null }), { code: "finalization_authority_required" });
+  await assert.rejects(runnerFinalizeSettled({ ...args, authorizeFinalization: async () => { throw Object.assign(new Error("observer expired"), { code: "process_lease_lost" }); } }), { code: "process_lease_lost" });
   const finalized = await runnerFinalizeSettled(args);
   assert.equal(finalized.judge_status, "failed"); // Real Judge admission attempted; missing test profile, no provider call.
   const candidate = await readFile(path.join(root, "candidate.json"));
@@ -410,8 +412,8 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
     assert.equal(pending.state, "awaiting_provider");
     assert.equal(pending.execution_state, "failed");
     assert.equal(pending.cleanup_state, "pending");
-    const capture = path.join(root, "capture"); await mkdir(capture); await writeJsonAtomic(path.join(capture, "snapshot.json"), { consistency: "sealed" });
-    await writeJsonAtomic(statusFile, { ok: true, settled: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test" } });
+    const capture = path.join(runtime, "recovery", "REC-test"); await mkdir(capture, { recursive: true }); await writeJsonAtomic(path.join(capture, "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed" });
+    await writeJsonAtomic(statusFile, { ok: true, settled: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
     const final = await runnerResume({ evalRoot: root });
     assert.equal(final.state, "completed_with_failures");
     assert.equal(final.executions[0].incomplete_evidence, null);
@@ -474,9 +476,9 @@ for (const [owner, capture, receiptRun, statusRun = "RUN-test"] of [["absent", "
     assert.equal((await readEvents(path.join(root, "events.jsonl"))).some(event => event.type === "dev.dd.eval.candidate.frozen"), false);
     if (blocked) assert.deepEqual(result.executions[0].recovery.finalization, finalization);
     if (blocked && capture === "recorded") {
-      const sealed = path.join(root, "capture"); await mkdir(sealed); await writeJsonAtomic(path.join(sealed, "snapshot.json"), { consistency: "sealed" });
+      const sealed = path.join(runtime, "recovery", "REC-test"); await mkdir(sealed, { recursive: true }); await writeJsonAtomic(path.join(sealed, "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed" });
       await writeJsonAtomic(statusFile, { scope: { run_id: "RUN-test" }, run_status: "done", settled: true, finalization,
-        worker: { status: "completed" }, control: { current: true, admission: "sealed", capture_path: sealed, recovery_id: "REC-test", control_id: "CTRL-test" } });
+        worker: { status: "completed" }, control: { current: true, admission: "sealed", capture_path: sealed, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
       const settled = await runnerResume({ evalRoot: root });
       assert.equal(settled.state, "completed_with_failures");
       assert.equal(settled.cleanup_state, "settled");
