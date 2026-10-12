@@ -425,6 +425,50 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+for (const invalid of ["foreign", "missing", "malformed"]) test(`invalid settled capture blocks candidate and Judge until verified (${invalid})`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-invalid-capture-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const attempt = path.join(root, "executions/e"), runtime = path.join(attempt, "dd-flow-home"), project = path.join(attempt, "project");
+  await mkdir(path.join(runtime, "bin"), { recursive: true }); await mkdir(project);
+  const statusFile = path.join(root, "control.json"), bin = path.join(runtime, "bin/dd-flow");
+  await writeFile(bin, `#!/usr/bin/env node\nconsole.log(require('node:fs').readFileSync(${JSON.stringify(statusFile)},'utf8'))\n`); await chmod(bin, 0o700);
+  await writeJsonAtomic(path.join(attempt, "managed-runtime.json"), { schema_id: "dd-eval/managed-runtime@1", project_root: project, runtime_root: runtime, run_id: "RUN-test" });
+  const manifest = { run_id: "EVAL-test", runtime_resource_home: path.join(root, "resources"), case_id: "sdlc-eval-2026-summer-task-priority", executions: [{ id: "e", stage: "specify", terminal_stage: "merge", mode: "e2e" }], subject_profile: {}, profile: { judge: { enabled: true, profile_id: "nonexistent-review-test-profile" } } };
+  const manifestFile = path.join(root, "manifest.json"), eventsFile = path.join(root, "events.jsonl");
+  await writeJsonAtomic(manifestFile, manifest);
+  for (const type of ["started", "failed"]) await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "unexpected_hitl", message: "second question" } } });
+  const capture = path.join(runtime, "recovery", "REC-test"), snapshotFile = path.join(capture, "snapshot.json");
+  await mkdir(capture, { recursive: true });
+  const snapshot = { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed" };
+  if (invalid === "foreign") await writeJsonAtomic(snapshotFile, { ...snapshot, run_id: "FOREIGN-RUN" });
+  if (invalid === "malformed") await writeFile(snapshotFile, "{");
+  await writeJsonAtomic(statusFile, { ok: true, settled: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
+  const blocked = await runnerResume({ evalRoot: root });
+  assert.equal(blocked.state, "recovery_blocked"); assert.equal(blocked.cleanup_state, "blocked");
+  assert.equal(blocked.executions[0].recovery.capture_error.code, "recovery_evidence_invalid");
+  assert.equal(blocked.candidate, undefined); assert.equal(blocked.judge, undefined);
+  await assert.rejects(readFile(path.join(root, "candidate.json")), { code: "ENOENT" });
+  assert.equal((await readEvents(eventsFile)).some(event => event.type === "dev.dd.eval.candidate.frozen"), false);
+  assert.equal((await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true })).cleanup_state, "pending");
+  await writeJsonAtomic(snapshotFile, snapshot);
+  const cleaned = await runnerCleanup({ evalRoot: root });
+  assert.equal(cleaned.cleanup_state, "settled"); assert.equal(cleaned.judge_status, "not_run_cleanup_only");
+  assert.equal(cleaned.executions[0].recovery.recovery_id, "REC-test");
+  await assert.rejects(readFile(path.join(root, "candidate.json")), { code: "ENOENT" });
+  // Retaining a valid capture id must not bypass verification on later reads.
+  await writeJsonAtomic(snapshotFile, { ...snapshot, run_id: "FOREIGN-RUN" });
+  assert.equal((await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true })).cleanup_state, "pending");
+  const stale = await runnerResume({ evalRoot: root });
+  assert.equal(stale.state, "recovery_blocked"); assert.equal(stale.candidate, undefined);
+  await writeJsonAtomic(snapshotFile, snapshot);
+  assert.equal((await runnerCleanup({ evalRoot: root })).cleanup_state, "settled");
+  // A known native RUN cannot become a pre-native failure if its workspace
+  // and binding disappear together.
+  await rm(attempt, { recursive: true, force: true });
+  const absent = await runnerResume({ evalRoot: root });
+  assert.equal(absent.state, "recovery_blocked"); assert.equal(absent.candidate, undefined);
+});
+
 for (const [blocked, worker] of [
   [true, { status: "recovery_blocked", error: { code: "recovery_observation_budget_exhausted" } }],
   [true, { status: "failed", error: { code: "snapshot_capture_failed", message: "retained primary capture error" }, snapshot: { status: "recovery_blocked", settled: false, error: { code: "recovery_observation_budget_exhausted" }, recovery_observation: { remaining_ms: 0 } } }],
