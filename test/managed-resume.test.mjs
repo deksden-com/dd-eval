@@ -20,7 +20,7 @@ test('unmanaged recovery and reconciliation require migration before creating ru
     assert.deepEqual(await readdir(root), []);
     await mkdir(path.join(root, 'executions/legacy/project'), { recursive: true });
     await mkdir(path.join(root, 'executions/legacy/dd-flow-home'), { recursive: true });
-    const capture = await captureRecoveryEvidence({ root, manifest: input.manifest, result: { execution: 'legacy', state: 'failed' } });
+    const capture = await captureRecoveryEvidence({ root, manifest: input.manifest, result: { execution: 'legacy', state: 'failed', session_id: 'legacy-native-session' } });
     assert.equal(capture.unavailable, true);
     assert.equal(capture.capture_error.code, 'execution_migration_required');
     assert.deepEqual(await readdir(path.join(root, 'executions/legacy')), ['dd-flow-home', 'project']);
