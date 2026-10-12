@@ -1,6 +1,6 @@
 # 081. CP223: maintenance, исходы проверок и поздний cleanup
 
-Дата: 2026-10-12. Статус: реализация внесена, финальная проверка и фиксация candidate delivery выполняются (см. §10). Основание dd-eval origin/main c0b9fa6; runtime origin/main deec90c и реально установленный beta.130/source09c3a78. Локальный primary main runtime не заменяет эти источники; его fetch в первоначальном аудите был недоступен из-за Git HTTPS credentials. Historical EVAL не менялся.
+Дата: 2026-10-12. Статус: реализация и local candidate preparation завершены, финальные gates PASS (см. §10); registry/hook delivery и scored E2E не выполнялись. Основание dd-eval origin/main c0b9fa6; runtime origin/main deec90c и реально установленный beta.130/source09c3a78. Локальный primary main runtime не заменяет эти источники; его fetch в первоначальном аудите был недоступен из-за Git HTTPS credentials. Historical EVAL не менялся.
 
 ## 1. Цель, scope и подтверждённые факты
 
@@ -186,6 +186,22 @@ Local candidate `/Users/deksden/.dd-eval/qualification/plan-081-beta132`: source
 
 Новый `cp-224-zcode-decisions-maintenance` связывает baseline26bf561 с engine132; case reference checksum проверен механически. Matrix qualification@3 `cp-224-verification-matrix-qualification.json` SHA256 `821c78b7b7f4646fff37c3fae9686ff7e135c8ac8f1f31b313da5b49c467b2ae` произведена стандартным producer из actual installed PLAN/PLAN-REVIEW/CODE/MERGE publications; CODE-REVIEW off имеет явную fixture reason. Retained packet bytes и их hashes проверены обычным admission, не заменены перечнем существующих schemas. Это offline contract fixture, не приёмка полного scored E2E. Profile остаётся ZCode GLM-5.3-Flash/max, bridge0.46.7/636b141, gpt-6-luna Decisions0.7/retries2, Judge gpt-6.1-sol/high, без stop_after.
 
-Code implementation, local candidate qualification, registry publication, hook delivery и полный scored E2E — отдельные результаты. В этом задании нет нового E2E, merge или замены global hook runtime: runbook требует hook refresh после опубликованного engine. CP223 не возобновлялся; его артефакты/БД не изменены. Живая приёмка §7.8 остаётся следующим отдельно разрешённым запуском, не свидетельством, которое можно изготовить из тестов. Окончательные gate результаты фиксируются ниже после завершения проверки.
+Code implementation, local candidate qualification, registry publication, hook delivery и полный scored E2E — отдельные результаты. В этом задании нет нового E2E, merge или замены global hook runtime: runbook требует hook refresh после опубликованного engine. CP223 не возобновлялся; его артефакты/БД не изменены. Живая приёмка §7.8 остаётся следующим отдельно разрешённым запуском, не свидетельством, которое можно изготовить из тестов.
+
+Финальная проверка:
+
+| Gate | Результат |
+| --- | --- |
+| dd-flow strict canon build / typecheck / lint | PASS; immutable132 собран после source commit f06fef8 в clean detached checkout |
+| dd-flow release | 2 Node checks + 8 Vitest tests PASS на exact132 build |
+| dd-flow full integration | 138 files, 2368/2368 PASS, 2268.14s; без unhandled errors |
+| dd-flow runtime-sensitive | 46/46 PASS на exact132 build, 197.47s |
+| dd-eval full | `DD_FLOW_SOURCE_ROOT=/Users/deksden/Documents/_Projects/_worktrees/dd-flow-081 npm test`: 794 PASS / 804 total / 10 explicit opt-in skips, 0 failures, 245894.67ms; committed CP224 и обновлённое golden source ожидание |
+| dd-tasks tooling | Watchdog13/13 в обоих source trees; real installed Vitest3.2.7 и Playwright1.62.1 assertion/tooling/mixed regressions; main API integration15/unit31/web16/browser8, baseline integration11/unit29/web11, world isolation, typecheck/build/lint PASS |
+| Installed proof / matrix / pins | Exact content verifier + consumer smoke PASS; offline matrix publication fixture1 PASS (25 filtered), 4 owning stage packets; checkpoint/profile admission PASS; remote baseline tag26bf561 verified |
+
+Intermediate failures сохранены как факты, не замаскированы повтором: runtime initial full gate2357 PASS/7 failures (parser5 + async/golden tests2) исправлен и повторён полностью. EVAL uncommitted CP224 закономерно отвергнут definition drift; после commit stale d81 source expectation обновлено на tooling-only26bf561, полный gate повторён и прошёл. Targeted EVAL invocation без required `DD_FLOW_SOURCE_ROOT` не считался доказательством: final full command задаёт явный source. Product assertions, negative ownership/effect cases и обязательность bound evidence не ослаблены.
+
+dd-eval implementation/pins `b34627a`, golden test `0bc19f7` — [PR75](https://github.com/deksden-com/dd-eval/pull/75); этот receipt публикуется отдельным documentation commit. Рабочие implementation branches pushed, без merge и без rewrites main/tags. Временный build checkout удалён после проверки; tarball, installed consumer и fixture evidence сохранены в qualification home. Judge semantic corpus повторно не вызывался: его реальные семантические входы не изменены.
 
 Технический эпизод: ошибочный cherry-pick `f1eeec1` в primary dd-tasks немедленно компенсирован своим revert `4a5f59a`; tracked contents восстановлены, чужие untracked сохранены. Эти два net-zero локальных коммита не пушились; правильные tooling commits опубликованы только в указанных рабочих ветках.
