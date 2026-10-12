@@ -467,6 +467,9 @@ for (const invalid of ["foreign", "missing", "malformed"]) test(`invalid settled
   const cleaned = await runnerCleanup({ evalRoot: root });
   assert.equal(cleaned.cleanup_state, "settled"); assert.equal(cleaned.judge_status, "not_run_cleanup_only");
   assert.equal(cleaned.executions[0].recovery.recovery_id, "REC-test");
+  const foreignHistory = { ...cleaned.executions[0], recovery: { ...cleaned.executions[0].recovery, run_id: "FOREIGN-HISTORY" } };
+  assert.equal((await captureRecoveryEvidence({ root, manifest, result: foreignHistory })).capture_error.code, "execution_scope_invalid", "current capture cannot silently replace a conflicting retained RUN");
+  assert.equal(foreignHistory.recovery.run_id, "FOREIGN-HISTORY");
   await assert.rejects(readFile(path.join(root, "candidate.json")), { code: "ENOENT" });
   // Retaining a valid capture id must not bypass verification on later reads.
   await writeJsonAtomic(snapshotFile, { ...snapshot, run_id: "FOREIGN-RUN" });

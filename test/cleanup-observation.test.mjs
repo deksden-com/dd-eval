@@ -21,6 +21,10 @@ test('late sealed capture is visible independently of report; foreign proof neve
     live: { executions: [{ execution: 'e', run_id: 'RUN-1', receipt: { scope: { run_id: 'RUN-1' }, settled: true, control } }] }, report: null, reportState: 'pending' };
   const ready = await cleanupObservation(input);
   assert.equal(ready.physical, 'settled'); assert.equal(ready.capture, 'ready'); assert.equal(ready.finalization, 'pending');
+  input.results[0].recovery = { run_id: 'FOREIGN-HISTORY' };
+  const conflicting = await cleanupObservation(input);
+  assert.equal(conflicting.physical, 'unknown'); assert.equal(conflicting.capture, 'unknown', 'matching current control cannot replace a foreign retained RUN');
+  delete input.results[0].recovery;
   const normalBytes = JSON.stringify({ ...snapshot, purpose: 'candidate' });
   const normalFile = path.join(root, 'candidate-snapshot.json'); await writeFile(normalFile, normalBytes);
   const normal = { ...input, results: [{ ...input.results[0], state: 'candidate_ready', candidate: { manifest: normalFile, manifest_sha256: createHash('sha256').update(normalBytes).digest('hex') } }],

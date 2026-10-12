@@ -218,6 +218,7 @@ dd-eval implementation/pins `b34627a`, golden test `0bc19f7` — [PR75](https://
 | Recognition cancellation не достигала read-only CLI revalidation | Signal передаётся обоим RPC; abort не превращается в pending. Регрессия проверяет физическое завершение зависшего child и неизменность events. |
 | Completion A→blocked B→A теряла восстановленный текущий статус из-за дедупликации по всей истории | Только completion сравнивается с последним completion этого RUN; прочие historical idempotency contracts сохранены. Natural cleanup→receipt подтверждает restored state и повторную идемпотентность. |
 | Prepared preflight folders ошибочно считались native execution | Pre-native exemption определяется отсутствием RUN/Session/managed binding, не наличием папок; known identity требует capture. Status учитывает также retained recovery.run_id при утрате binding. |
+| Foreign retained recovery.run_id не сравнивался с managed binding и мог молча заменяться текущим RUN | Capture ingestion и status сверяют все три retained RUN identities; противоречивая история не переписывается и не даёт settled/capture-ready. Четыре negative assertions воспроизвели обход до исправления. |
 | Малформированный runner_evidence отвергался лишь при dispatch | Общий validator проверяет contract уже при declaration/admission. Защита до записи существовала и раньше: это не подтверждённый write-escape дефект. |
 
 Runtime review commit `43d88ec57e1b100fa29f31be925d6abfc976e7a2`, beta.133;
@@ -233,7 +234,7 @@ CP224/beta.132 сохранены. Candidate остаётся `built`, не regi
 не live accepted; semantic Judge qualification не повторялась.
 
 Точечные runtime regressions: daemon/monitor59 PASS, code-check evidence71 PASS.
-EVAL recovery/fork/observation/monitoring/Judge regressions88 PASS; missing-binding
+EVAL recovery/fork/cleanup/Judge/managed-resume regressions91 PASS; missing-binding
 status2 PASS. Watchdog dd-tasks13 PASS. Общие gates повторяются на final source;
 результаты и merge readback фиксируются после их завершения.
 
