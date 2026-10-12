@@ -57,6 +57,19 @@ test("fractional monotonic ownership budgets are rounded down at the subprocess 
   await lease.admission(); await lease.close(); assert.deepEqual(durations, [12345, 12345]);
 });
 
+test("registration readback binding is a heartbeat option, not an admission option", async () => {
+  const calls = [];
+  const lease = observeRuntimeLease({ policy, registrationReadback: true, async call(action, identity) {
+    calls.push([action, identity]);
+    if (action === "check-admission") assert.deepEqual(Object.keys(identity).sort(), ["id", "lease-token"]);
+    return receipt;
+  } }, { id: "observer", lease_token: "secret", registration_sha256: receipt.registration_sha256 });
+  await lease.admission(); await lease.close();
+  assert.equal(calls[0][0], "heartbeat");
+  assert.equal(calls[0][1]["registration-sha256"], receipt.registration_sha256);
+  assert.equal(calls[1][0], "check-admission");
+});
+
 test("background ownership failure reaches its owner exactly once and closing stops callbacks", async () => {
   let notify;
   const failed = new Promise(resolve => { notify = resolve; }); let calls = 0;
@@ -113,71 +126,27 @@ test("admission rejects malformed bindings and cannot complete after closing", a
   const admitted = assert.rejects(lease.admission(), { code: "process_lease_closing" });
   await waiting; const closed = lease.close(); resolve(receipt); await closed; await admitted;
 });
-test("a late successful receipt cannot reset an elapsed uncertainty episode", async () => {
-  let remaining = 30000, resets = 0, calls = 0;
-  const lease = observeRuntimeLease({ policy: { ...policy, renewalRemaining: () => remaining, renewalConfirmed: () => { resets++; return true; } }, async call() {
-    if (++calls === 1) throw Object.assign(new Error("busy"), { code: "SQLITE_BUSY" });
-    remaining = 0; return receipt;
-  } }, { id: "observer", lease_token: "secret" });
-  await assert.rejects(lease.admission(), { code: "process_ownership_unconfirmed" });
-  await assert.rejects(lease.admission(), { code: "process_ownership_unconfirmed" });
-  await lease.close(); assert.equal(resets, 0); assert.equal(calls, 2);
+test("observer accepts a verified committed late heartbeat, but rejects replacement and expired ACK", async t => {
+  let now = 0;
+  t.mock.method(performance, "now", () => now);
+  const lease = observeRuntimeLease({ policy: committedPolicy, async call() { now = 130000; return receipt; } },
+    { id: "observer", lease_token: "secret", lease_expires_at: receipt.lease_expires_at, registration_sha256: receipt.registration_sha256 });
+  await lease.admission(); await lease.close();
+  for (const invalid of [{ ...receipt, registration_sha256: "b".repeat(64) }, { ...receipt, lease_expires_at: new Date(Date.now()-1).toISOString() }]) {
+    const bad = observeRuntimeLease({ policy: committedPolicy, async call() { return invalid; } },
+      { id: "observer", lease_token: "secret", lease_expires_at: receipt.lease_expires_at, registration_sha256: receipt.registration_sha256 });
+    await assert.rejects(bad.admission(), { code: "process_maintenance_receipt_invalid" }); await bad.close();
+  }
 });
-test("observer never accepts changed binding or a late success after exhaustion", async () => {
+test("observer retries only known no-effect failures and keeps a fenced owner closed", async () => {
   let calls = 0;
-  const changed = observeRuntimeLease({ policy, async call() { return { ...receipt, registration_sha256: ++calls === 1 ? "a".repeat(64) : "b".repeat(64) }; } }, { id: "observer", lease_token: "secret" });
-  await changed.admission();
-  await assert.rejects(changed.admission(), { code: "process_maintenance_receipt_invalid" });
-  await changed.close();
-  const exhausted = observeRuntimeLease({ policy: { ...policy, renewalFailure: () => 0 }, async call() { throw Object.assign(new Error("busy"), { code: "SQLITE_BUSY" }); } }, { id: "observer", lease_token: "secret" });
-  await assert.rejects(exhausted.admission(), { code: "process_ownership_unconfirmed" });
-  await assert.rejects(exhausted.admission(), { code: "process_ownership_unconfirmed" });
-  await exhausted.close();
+  const lost = observeRuntimeLease({ policy: committedPolicy, async call() {
+    calls++; throw Object.assign(new Error("unknown COMMIT"), { code: "process_maintenance_timeout", details: { effect: "unknown" } });
+  } }, { id: "observer", lease_token: "secret", lease_expires_at: receipt.lease_expires_at });
+  await assert.rejects(lost.admission(), { code: "process_maintenance_timeout" });
+  await assert.rejects(lost.admission(), { code: "process_maintenance_timeout" });
+  await lost.close(); assert.equal(calls, 1);
 });
-
-for (const action of ["heartbeat", "check-admission"]) {
-  for (const elapsed of [29999, 30000, 30001]) test(`first successful ${action} ACK at ${elapsed} cannot extend its uncertainty episode`, async t => {
-    let now = 0, grants = 0;
-    const calls = [];
-    t.mock.method(performance, "now", () => now);
-    const lease = observeRuntimeLease({ policy: committedPolicy, async call(observed) {
-      calls.push(observed);
-      if (observed === action) now = elapsed;
-      return receipt;
-    } }, { id: "observer", lease_token: "secret" });
-    t.after(() => lease.close());
-    const dispatch = async () => { await lease.admission(); grants++; };
-    if (elapsed < 30000) await dispatch();
-    else {
-      let failure;
-      await assert.rejects(dispatch(), error => { failure = error; return error.code === "process_ownership_unconfirmed"; });
-      await assert.rejects(dispatch(), error => error === failure);
-    }
-    assert.equal(grants, elapsed < 30000 ? 1 : 0);
-    assert.deepEqual(calls, action === "heartbeat" && elapsed >= 30000 ? ["heartbeat"] : ["heartbeat", "check-admission"]);
-  });
-
-  test(`expiry between final remaining-time check and real confirmation rejects ${action}`, async t => {
-    let now = 0, grants = 0;
-    const calls = [];
-    t.mock.method(performance, "now", () => now);
-    const confirmationPolicy = { ...committedPolicy, renewalConfirmed(state) {
-      if (now === 29999) now = 30000;
-      return committedPolicy.renewalConfirmed(state);
-    } };
-    const lease = observeRuntimeLease({ policy: confirmationPolicy, async call(observed) {
-      calls.push(observed);
-      if (observed === action) now = 29999;
-      return receipt;
-    } }, { id: "observer", lease_token: "secret" });
-    t.after(() => lease.close());
-    await assert.rejects((async () => { await lease.admission(); grants++; })(), error =>
-      error.code === "process_ownership_unconfirmed" && error.cause?.code === "process_maintenance_timeout");
-    assert.equal(now, 30000);
-    assert.equal(grants, 0);
-    assert.deepEqual(calls, action === "heartbeat" ? ["heartbeat"] : ["heartbeat", "check-admission"]);
-  });
-}
 
 async function selectedClient(t, request) {
   const root = await mkdtemp(path.join(os.tmpdir(), "maintenance-identity-"));
@@ -205,7 +174,11 @@ test("selected read-only status retries transient observation but not fatal or a
   assert.equal(calls, 2);
   for (const error of [
     Object.assign(new Error("unsettled child"), { code: "process_maintenance_timeout", details: { cleanup_unconfirmed: true } }),
-    Object.assign(new Error("foreign owner"), { code: "runtime_owner_mismatch" })
+    Object.assign(new Error("foreign owner"), { code: "runtime_owner_mismatch", details: { effect: "unknown" } }),
+    Object.assign(new Error("nested unsettled child"), { code: "process_maintenance_timeout", details: { effect: "unknown" },
+      cause: Object.assign(new Error("unsettled"), { details: { cleanup_unconfirmed: true } }) }),
+    Object.assign(new Error("nested fenced owner"), { code: "process_maintenance_timeout", details: { effect: "unknown",
+      cause: { code: "runtime_owner_mismatch" } } })
   ]) {
     failure = error; const before = calls;
     await assert.rejects(client.call("status", {}), candidate => candidate === error);
@@ -231,10 +204,10 @@ for (const [action, phase, options] of [
     });
     assert.deepEqual(await client.call(action, options), { ok: true, process: { id: options.id } });
     assert.equal(calls.length, 2);
-    for (const call of calls) { assert.equal(call.observed, action); assert.equal(call.actual, options); assert.ok(Number.isInteger(call.transport.timeoutMs)); assert.ok(call.transport.timeoutMs > 5000 && call.transport.timeoutMs <= 30000); }
+    for (const call of calls) { assert.equal(call.observed, action); assert.equal(call.actual, options); assert.ok(Number.isInteger(call.transport.timeoutMs)); assert.ok(call.transport.timeoutMs > 5000 && call.transport.timeoutMs <= 126000); }
   });
 
-  for (const retried of [false, true]) for (const elapsed of [29999, 30000, 30001]) test(`${action} ${retried ? "retried" : "first"} ACK at ${elapsed} cannot reopen its ownership episode`, async t => {
+  for (const retried of [false, true]) for (const elapsed of [125999, 126000, 126001]) test(`${action} ${retried ? "retried" : "first"} ACK at ${elapsed} cannot reopen its ownership episode`, async t => {
     let now = 0, calls = 0;
     t.mock.method(performance, "now", () => now);
     const client = await selectedClient(t, async () => {
@@ -243,7 +216,7 @@ for (const [action, phase, options] of [
       now = elapsed;
       return { ok: true, process: { id: options.id } };
     });
-    if (elapsed < 30000) await client.call(action, options);
+    if (elapsed < 126000) await client.call(action, options);
     else await assert.rejects(client.call(action, options), error => {
       assert.equal(error.code, "process_ownership_unconfirmed");
       assert.deepEqual(error.details, { action, process_id: options.id, phase, effect: "committed", native_dispatch_started: false });
@@ -286,7 +259,7 @@ for (const [action, phase, options] of [
   test(`${action} late missing or rejected ACK records unknown effect, never committed`, async t => {
     let now = 0, acknowledgement;
     t.mock.method(performance, "now", () => now);
-    const client = await selectedClient(t, async () => { now = 30000; return acknowledgement; });
+    const client = await selectedClient(t, async () => { now = 126000; return acknowledgement; });
     for (const invalid of [null, { ok: false }, { ok: "true" }]) {
       now = 0; acknowledgement = invalid;
       await assert.rejects(client.call(action, options), error => {
@@ -303,7 +276,7 @@ for (const [action, phase, options] of [
     const failure = identityRefusal(options.id, phase);
     const client = await selectedClient(t, async (_action, _options, transport) => {
       calls++; assert.equal(transport.timeoutMs, 1000);
-      now = 30000; throw failure;
+      now = 126000; throw failure;
     });
     await assert.rejects(client.call(action, options, { timeoutMs: 1000 }), error => {
       assert.equal(error.code, "process_ownership_unconfirmed"); assert.equal(error.cause, failure);

@@ -154,3 +154,15 @@ checkpoint-tag change, product baseline replacement, or provider deployment
 was performed. The integration worktree is retained temporarily with its local
 scenario evidence until final cross-repository evidence export; the immutable
 baseline worktree remains separate.
+
+### Evidence archive — 2026-10-12
+
+The redundant integration checkout was retired after exporting its ignored
+evidence to
+`/Users/deksden/.dd-eval/qualification/plan081-retired-worktrees-20261012/test-world-main-evidence.tgz`
+(SHA256 `3870f23091015aa3d922ec9fa5212afa1e7ffac1e7eff593bc06d42f54139e95`).
+All 65 retained files were compared byte-for-byte with the original checkout
+before removal. Historical baseline receipts were exported separately in the
+same private archive directory. These archives preserve the old observations;
+they do not claim a new database or provider qualification. Source commits and
+immutable checkpoint tags remain available remotely.

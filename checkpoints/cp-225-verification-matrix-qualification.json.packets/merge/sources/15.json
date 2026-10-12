@@ -1,0 +1,37 @@
+{
+  "id": "WRK-006-merge/RCP-003",
+  "local_id": "RCP-003",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-NEW",
+    "PRT-001-task-priority/CHK-P1-TEST",
+    "PRT-001-task-priority/CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "b3b7fb4e36930e3f62e9e09901bc101caf2ac7fe8250c8d7fb4f4f6b17a77202",
+  "verification_epoch": "b41ed414170736f1f434a4fd407b6c636445857d64438f45728fff86ddd8fbf2",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/plan-081-beta133/matrix-fixture/dd-flow-protocolize-0lPZZM/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/plan-081-beta133/matrix-fixture/dd-flow-protocolize-0lPZZM/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/plan-081-beta133/matrix-fixture/dd-flow-protocolize-0lPZZM/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/plan-081-beta133/matrix-fixture/dd-flow-protocolize-0lPZZM/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "325a08927069c1ff0f416fb95fb13758967b27a3ff8c786cdfa299fefbd2c0c9",
+  "before_fingerprint": "325a08927069c1ff0f416fb95fb13758967b27a3ff8c786cdfa299fefbd2c0c9",
+  "after_fingerprint": "325a08927069c1ff0f416fb95fb13758967b27a3ff8c786cdfa299fefbd2c0c9",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-12T17:55:33.425Z",
+  "finished_at": "2026-10-12T17:55:33.469Z"
+}

@@ -29,6 +29,15 @@ native-confirmed completion. `native_outcome_unknown` is not permission to retry
 or delete an allocation intent. A late identity receipt is evidence only, not a
 request to replay productive work. Preserve these cases when upgrading upstream.
 
+Before switching the installed bridge, run the managed-turn regression against
+the exact selected source: a frozen read watermark with >10 minutes of reasoning,
+a completed TodoWrite, then >120 seconds of silence must not produce inferred
+end_turn. Native terminal evidence is required; repeated snapshots are not
+progress. Verify the installed commit after switching, not just the package
+version. Update the profile from that observed identity; merged source alone
+does not deploy the fix. Keep the artifact outside temporary directories so a
+later package-manager operation can still resolve its recorded file dependency.
+
 ## Candidate sequence
 
 1. Inventory native ZCode, bridge, extension contract, published dd-flow adapter
