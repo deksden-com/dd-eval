@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-222-zcode-decisions-full",
-    "sha256": "28be63fcbe0a34633cdc6f957948cd14149fc6afd2f4f29bfba6b7bff4342a7b"
+    "id": "cp-225-zcode-decisions-maintenance",
+    "sha256": "ed34821a1092ab137fc3796e0c36e98330ff2173b6ba08bd362dbcba65c2b7ec"
   },
   "entry_pack": null,
   "hitl_qualification": {

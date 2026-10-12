@@ -35,7 +35,7 @@ test("public cleanup retry retains an exhausted attempt and a new identity runs 
 import { commandJson } from "../lib/process-json.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
-import { evalJudge, frozenCandidate, interactionFixtureManifest, loadCase, loadRunProfile, migrateLegacyCanonicalResumeLock, runnerCheckpoints, runnerResume, runnerCleanup, runnerCleanupReceipt, runnerFinalizeSettled, runnerControlStatus } from "../lib/runner.mjs";
+import { evalJudge, frozenCandidate, interactionFixtureManifest, loadCase, loadRunProfile, migrateLegacyCanonicalResumeLock, runnerCheckpoints, runnerResume, runnerCleanup, runnerCleanupReceipt, runnerFinalizeSettled, runnerControlStatus, captureRecoveryEvidence } from "../lib/runner.mjs";
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { processSnapshot } from "../lib/process-snapshot.mjs";
@@ -80,7 +80,9 @@ test("scored finalization after cleanup freezes the failed candidate and attempt
   await writeJsonAtomic(manifestFile, manifest);
   for (const type of ["started", "failed"]) await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: `${manifest.run_id}:e:launch`, error: { code: "preflight_failed", message: "before session" } } });
   assert.equal((await runnerCleanup({ evalRoot: root })).judge_status, "not_run_cleanup_only");
-  const args = { evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)) };
+  const args = { evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), authorizeFinalization: async () => {} };
+  await assert.rejects(runnerFinalizeSettled({ ...args, authorizeFinalization: null }), { code: "finalization_authority_required" });
+  await assert.rejects(runnerFinalizeSettled({ ...args, authorizeFinalization: async () => { throw Object.assign(new Error("observer expired"), { code: "process_lease_lost" }); } }), { code: "process_lease_lost" });
   const finalized = await runnerFinalizeSettled(args);
   assert.equal(finalized.judge_status, "failed"); // Real Judge admission attempted; missing test profile, no provider call.
   const candidate = await readFile(path.join(root, "candidate.json"));
@@ -410,8 +412,8 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
     assert.equal(pending.state, "awaiting_provider");
     assert.equal(pending.execution_state, "failed");
     assert.equal(pending.cleanup_state, "pending");
-    const capture = path.join(root, "capture"); await mkdir(capture); await writeJsonAtomic(path.join(capture, "snapshot.json"), { consistency: "sealed" });
-    await writeJsonAtomic(statusFile, { ok: true, settled: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test" } });
+    const capture = path.join(runtime, "recovery", "REC-test"); await mkdir(capture, { recursive: true }); await writeJsonAtomic(path.join(capture, "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed" });
+    await writeJsonAtomic(statusFile, { ok: true, settled: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
     const final = await runnerResume({ evalRoot: root });
     assert.equal(final.state, "completed_with_failures");
     assert.equal(final.executions[0].incomplete_evidence, null);
@@ -421,6 +423,89 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
     assert.equal((await runnerResume({ evalRoot: root })).candidate.immutable_hash, final.candidate.immutable_hash);
     assert.equal((await readEvents(path.join(root, "events.jsonl"))).length, count);
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("prepared folders without native identity are pre-native; retained RUN or Session still requires capture", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-pre-native-prepared-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const attempt = path.join(root, "executions/e");
+  for (const name of ["project", "dd-flow-home"]) await mkdir(path.join(attempt, name), { recursive: true });
+  const result = { execution: "e", state: "failed", code: "preflight_failed", error: "before native launch", attempt };
+  assert.equal(await captureRecoveryEvidence({ root, manifest: {}, result }), null);
+  for (const identity of [{ run_id: "RUN-known" }, { session_id: "native-session" }]) {
+    const capture = await captureRecoveryEvidence({ root, manifest: {}, result: { ...result, ...identity } });
+    assert.equal(capture.capture_error.code, "execution_migration_required");
+  }
+});
+
+for (const invalid of ["foreign", "missing", "malformed"]) test(`invalid settled capture blocks candidate and Judge until verified (${invalid})`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-invalid-capture-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const attempt = path.join(root, "executions/e"), runtime = path.join(attempt, "dd-flow-home"), project = path.join(attempt, "project");
+  await mkdir(path.join(runtime, "bin"), { recursive: true }); await mkdir(project);
+  const statusFile = path.join(root, "control.json"), bin = path.join(runtime, "bin/dd-flow");
+  await writeFile(bin, `#!/usr/bin/env node\nconsole.log(require('node:fs').readFileSync(${JSON.stringify(statusFile)},'utf8'))\n`); await chmod(bin, 0o700);
+  await writeJsonAtomic(path.join(attempt, "managed-runtime.json"), { schema_id: "dd-eval/managed-runtime@1", project_root: project, runtime_root: runtime, run_id: "RUN-test" });
+  const manifest = { run_id: "EVAL-test", runtime_resource_home: path.join(root, "resources"), case_id: "sdlc-eval-2026-summer-task-priority", executions: [{ id: "e", stage: "specify", terminal_stage: "merge", mode: "e2e" }], subject_profile: {}, profile: { judge: { enabled: true, profile_id: "nonexistent-review-test-profile" } } };
+  const manifestFile = path.join(root, "manifest.json"), eventsFile = path.join(root, "events.jsonl");
+  await writeJsonAtomic(manifestFile, manifest);
+  for (const type of ["started", "failed"]) await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "unexpected_hitl", message: "second question" } } });
+  const capture = path.join(runtime, "recovery", "REC-test"), snapshotFile = path.join(capture, "snapshot.json");
+  await mkdir(capture, { recursive: true });
+  const snapshot = { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed" };
+  if (invalid === "foreign") await writeJsonAtomic(snapshotFile, { ...snapshot, run_id: "FOREIGN-RUN" });
+  if (invalid === "malformed") await writeFile(snapshotFile, "{");
+  await writeJsonAtomic(statusFile, { ok: true, settled: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
+  const blocked = await runnerResume({ evalRoot: root });
+  assert.equal(blocked.state, "recovery_blocked"); assert.equal(blocked.cleanup_state, "blocked");
+  assert.equal(blocked.executions[0].recovery.capture_error.code, "recovery_evidence_invalid");
+  assert.equal(blocked.candidate, undefined); assert.equal(blocked.judge, undefined);
+  await assert.rejects(readFile(path.join(root, "candidate.json")), { code: "ENOENT" });
+  assert.equal((await readEvents(eventsFile)).some(event => event.type === "dev.dd.eval.candidate.frozen"), false);
+  assert.equal((await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true })).cleanup_state, "pending");
+  await writeJsonAtomic(snapshotFile, snapshot);
+  const cleaned = await runnerCleanup({ evalRoot: root });
+  assert.equal(cleaned.cleanup_state, "settled"); assert.equal(cleaned.judge_status, "not_run_cleanup_only");
+  assert.equal(cleaned.executions[0].recovery.recovery_id, "REC-test");
+  const foreignHistory = { ...cleaned.executions[0], recovery: { ...cleaned.executions[0].recovery, run_id: "FOREIGN-HISTORY" } };
+  assert.equal((await captureRecoveryEvidence({ root, manifest, result: foreignHistory })).capture_error.code, "execution_scope_invalid", "current capture cannot silently replace a conflicting retained RUN");
+  assert.equal(foreignHistory.recovery.run_id, "FOREIGN-HISTORY");
+  await assert.rejects(readFile(path.join(root, "candidate.json")), { code: "ENOENT" });
+  // Retaining a valid capture id must not bypass verification on later reads.
+  await writeJsonAtomic(snapshotFile, { ...snapshot, run_id: "FOREIGN-RUN" });
+  // Observation-loss attribution must not bypass a known native RUN capture.
+  assert.equal((await captureRecoveryEvidence({ root, manifest, result: { ...cleaned.executions[0], code: "operation_observation_lost", error: "observer lost its reply" } })).capture_error.code, "recovery_evidence_invalid");
+  assert.equal((await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true })).cleanup_state, "pending");
+  const stale = await runnerResume({ evalRoot: root });
+  assert.equal(stale.state, "recovery_blocked"); assert.equal(stale.candidate, undefined);
+  await writeJsonAtomic(snapshotFile, snapshot);
+  assert.equal((await runnerCleanup({ evalRoot: root })).cleanup_state, "settled");
+  assert.equal((await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true })).cleanup_state, "settled", "restored capture republishes current completion after the intervening blocker");
+  const restoredEvents = await readFile(eventsFile);
+  await runnerCleanup({ evalRoot: root });
+  assert.deepEqual(await readFile(eventsFile), restoredEvents, "repeated current completion remains idempotent");
+  if (invalid === "foreign") {
+    const before = await readFile(eventsFile), controller = new AbortController(), marker = path.join(root, "status-child.json");
+    await writeFile(bin, `#!${process.execPath}\nrequire('node:fs').writeFileSync(${JSON.stringify(marker)},JSON.stringify({pid:process.pid}));setInterval(()=>{},1000);\n`);
+    const reading = runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true, signal: controller.signal });
+    const rejected = assert.rejects(reading, { name: "AbortError" });
+    let child;
+    const deadline = performance.now() + 10_000;
+    while (!child) {
+      try { child = JSON.parse(await readFile(marker)); } catch (error) { if (error.code !== "ENOENT") throw error; }
+      if (performance.now() > deadline) { controller.abort(); assert.fail("recognition did not enter capture status RPC"); }
+      if (!child) await delay(20);
+    }
+    const cancelledAt = performance.now(); controller.abort(); await rejected;
+    assert.ok(performance.now() - cancelledAt < 3000, "recognition cancellation must reach the active read-only RPC");
+    assert.equal((await processSnapshot()).some(item => item.pid === child.pid && !item.zombie), false);
+    assert.deepEqual(await readFile(eventsFile), before, "aborted recognition never writes the EVAL journal");
+  }
+  // A known native RUN cannot become a pre-native failure if its workspace
+  // and binding disappear together.
+  await rm(attempt, { recursive: true, force: true });
+  const absent = await runnerResume({ evalRoot: root });
+  assert.equal(absent.state, "recovery_blocked"); assert.equal(absent.candidate, undefined);
 });
 
 for (const [blocked, worker] of [
@@ -474,9 +559,9 @@ for (const [owner, capture, receiptRun, statusRun = "RUN-test"] of [["absent", "
     assert.equal((await readEvents(path.join(root, "events.jsonl"))).some(event => event.type === "dev.dd.eval.candidate.frozen"), false);
     if (blocked) assert.deepEqual(result.executions[0].recovery.finalization, finalization);
     if (blocked && capture === "recorded") {
-      const sealed = path.join(root, "capture"); await mkdir(sealed); await writeJsonAtomic(path.join(sealed, "snapshot.json"), { consistency: "sealed" });
+      const sealed = path.join(runtime, "recovery", "REC-test"); await mkdir(sealed, { recursive: true }); await writeJsonAtomic(path.join(sealed, "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed" });
       await writeJsonAtomic(statusFile, { scope: { run_id: "RUN-test" }, run_status: "done", settled: true, finalization,
-        worker: { status: "completed" }, control: { current: true, admission: "sealed", capture_path: sealed, recovery_id: "REC-test", control_id: "CTRL-test" } });
+        worker: { status: "completed" }, control: { current: true, admission: "sealed", capture_path: sealed, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
       const settled = await runnerResume({ evalRoot: root });
       assert.equal(settled.state, "completed_with_failures");
       assert.equal(settled.cleanup_state, "settled");
