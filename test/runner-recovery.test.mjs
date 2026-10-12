@@ -425,6 +425,19 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+test("prepared folders without native identity are pre-native; retained RUN or Session still requires capture", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-pre-native-prepared-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const attempt = path.join(root, "executions/e");
+  for (const name of ["project", "dd-flow-home"]) await mkdir(path.join(attempt, name), { recursive: true });
+  const result = { execution: "e", state: "failed", code: "preflight_failed", error: "before native launch", attempt };
+  assert.equal(await captureRecoveryEvidence({ root, manifest: {}, result }), null);
+  for (const identity of [{ run_id: "RUN-known" }, { session_id: "native-session" }]) {
+    const capture = await captureRecoveryEvidence({ root, manifest: {}, result: { ...result, ...identity } });
+    assert.equal(capture.capture_error.code, "execution_migration_required");
+  }
+});
+
 for (const invalid of ["foreign", "missing", "malformed"]) test(`invalid settled capture blocks candidate and Judge until verified (${invalid})`, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-invalid-capture-"));
   t.after(() => rm(root, { recursive: true, force: true }));

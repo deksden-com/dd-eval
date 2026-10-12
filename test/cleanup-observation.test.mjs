@@ -40,6 +40,8 @@ test('pre-native failure needs no RUN cleanup and finally preserves primary fail
   t.after(() => rm(root, { recursive: true, force: true }));
   const observed = await cleanupObservation({ root, manifest: { executions: [{ id: 'e' }] }, results: [{ execution: 'e', state: 'failed' }], live: {}, reportState: 'pending' });
   assert.equal(observed.physical, 'not_applicable'); assert.equal(observed.capture, 'not_applicable');
+  const retained = await cleanupObservation({ root, manifest: { executions: [{ id: 'e' }] }, results: [{ execution: 'e', state: 'failed', recovery: { run_id: 'RUN-retained' } }], live: {}, reportState: 'pending' });
+  assert.equal(retained.physical, 'unknown'); assert.equal(retained.capture, 'unknown', 'lost binding does not erase a retained native RUN');
   const failure = workerCleanupFailure({ status: 'recovery_blocked', error: { code: 'owner_lost' } }, Object.assign(new Error('finish failed'), { code: 'finish_failed' }));
   assert.equal(failure.status, undefined); assert.equal(failure.cleanup_error.code, 'finish_failed');
 });
