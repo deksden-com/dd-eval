@@ -205,3 +205,49 @@ Intermediate failures сохранены как факты, не замаски�
 dd-eval implementation/pins `b34627a`, golden test `0bc19f7` — [PR75](https://github.com/deksden-com/dd-eval/pull/75); этот receipt публикуется отдельным documentation commit. Рабочие implementation branches pushed, без merge и без rewrites main/tags. Временный build checkout удалён после проверки; tarball, installed consumer и fixture evidence сохранены в qualification home. Judge semantic corpus повторно не вызывался: его реальные семантические входы не изменены.
 
 Технический эпизод: ошибочный cherry-pick `f1eeec1` в primary dd-tasks немедленно компенсирован своим revert `4a5f59a`; tracked contents восстановлены, чужие untracked сохранены. Эти два net-zero локальных коммита не пушились; правильные tooling commits опубликованы только в указанных рабочих ветках.
+
+## 11. Независимое ревью реализации — 2026-10-12
+
+Последующий review supersedes beta.132 как текущий candidate, но не переписывает
+предыдущие артефакты или evidence. Новые scored E2E не запускались.
+
+| Находка | Исправление и регрессия |
+| --- | --- |
+| Admission читает устаревший daemon.json expiry, хотя gate уже подтвердил renewal в retained owner | После gate используется exact retained receipt по process/token/registration identity. Проверены stale disk и capacity queue дольше исходных 300s; expired/unknown/replacement по-прежнему запрещены. |
+| Невалидный/чужой capture мог разрешать finalization, потому что блокировались лишь два error code | Общая capture classification закрывает finalization и recognition при любом непроверенном capture; retained recovery id не заменяет проверку текущих bytes/binding. Missing workspace также блокирует известный native RUN. |
+| Recognition cancellation не достигала read-only CLI revalidation | Signal передаётся обоим RPC; abort не превращается в pending. Регрессия проверяет физическое завершение зависшего child и неизменность events. |
+| Completion A→blocked B→A теряла восстановленный текущий статус из-за дедупликации по всей истории | Только completion сравнивается с последним completion этого RUN; прочие historical idempotency contracts сохранены. Natural cleanup→receipt подтверждает restored state и повторную идемпотентность. |
+| Prepared preflight folders ошибочно считались native execution | Pre-native exemption определяется отсутствием RUN/Session/managed binding, не наличием папок; known identity требует capture. Status учитывает также retained recovery.run_id при утрате binding. |
+| Малформированный runner_evidence отвергался лишь при dispatch | Общий validator проверяет contract уже при declaration/admission. Защита до записи существовала и раньше: это не подтверждённый write-escape дефект. |
+
+Runtime review commit `43d88ec57e1b100fa29f31be925d6abfc976e7a2`, beta.133;
+local candidate `/Users/deksden/.dd-eval/qualification/plan-081-beta133`.
+Tarball SHA256 `5019b8ca414c7f5dd92cb88fb1efb824d64f4bf499acf00e934aa0452abdc1bb`,
+installed full-content SHA256 `4bebfd8ea4ebf5308b371abdc01d834bc168908c5075df0662a485dc87f1f5eb`.
+Главный агент повторил installed consumer verification: exact commit/canon,
+compatibility, native compound parser и profile@7 PASS. Стандартный producer
+получил четыре owning stage packets из installed matrix fixture, не из списка
+schemas. CP225 receipt SHA256 `495f6aff2016c8c608c6788f214567d3234fa3815beafe9c70ea6fa7bf7495a5`;
+case checkpoint checksum `ed34821a1092ab137fc3796e0c36e98330ff2173b6ba08bd362dbcba65c2b7ec`.
+CP224/beta.132 сохранены. Candidate остаётся `built`, не registry published,
+не live accepted; semantic Judge qualification не повторялась.
+
+Точечные runtime regressions: daemon/monitor59 PASS, code-check evidence71 PASS.
+EVAL recovery/fork/observation/monitoring/Judge regressions88 PASS; missing-binding
+status2 PASS. Watchdog dd-tasks13 PASS. Общие gates повторяются на final source;
+результаты и merge readback фиксируются после их завершения.
+
+Чистка сохраняет историю: integrated branches удаляются после ancestry/merge
+proof; superseded CP211 и старые baseline альтернативы архивируются тегами,
+а не объявляются merged. Ignored qualification receipts экспортированы в
+private archive и проверены byte-for-byte. Активные memorybank ветки, divergent
+primary main, dirty/unique work и непроверенные источники не удаляются.
+
+Побочный инцидент локальной проверки: npm install без private package.json
+выбрал ancestor `/Users/deksden/node_modules`, удалил 28 прежних package paths
+(включая docx/pptxgenjs) и добавил candidate dependencies. Global pnpm runtime
+не затронут; correct isolated consumer затем создан с `--prefix`. Точных прежних
+версий нет в lock/log, cache неоднозначен; восстановление не заявляется.
+Inventory/log сохранены в candidate home `ancestor-install-incident.md/.log`;
+пользователю сообщено и предложено отдельное восстановление известных cache
+версий без изменения чужих репозиториев.
