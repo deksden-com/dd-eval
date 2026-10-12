@@ -1,6 +1,6 @@
 # 081. CP223: maintenance, исходы проверок и поздний cleanup
 
-Дата: 2026-10-12. Статус: реализация и local candidate preparation завершены, финальные gates PASS (см. §10); registry/hook delivery и scored E2E не выполнялись. Основание dd-eval origin/main c0b9fa6; runtime origin/main deec90c и реально установленный beta.130/source09c3a78. Локальный primary main runtime не заменяет эти источники; его fetch в первоначальном аудите был недоступен из-за Git HTTPS credentials. Historical EVAL не менялся.
+Дата: 2026-10-12. Статус: реализация, независимое ревью и local candidate preparation завершены; финальные gates PASS (см. §11), интеграция через PR59/75/8. Registry/hook delivery и scored E2E не выполнялись. Основание dd-eval origin/main c0b9fa6; runtime origin/main deec90c и реально установленный beta.130/source09c3a78. Локальный primary main runtime не заменяет эти источники; его fetch в первоначальном аудите был недоступен из-за Git HTTPS credentials. Historical EVAL не менялся.
 
 ## 1. Цель, scope и подтверждённые факты
 
@@ -235,14 +235,37 @@ CP224/beta.132 сохранены. Candidate остаётся `built`, не regi
 
 Точечные runtime regressions: daemon/monitor59 PASS, code-check evidence71 PASS.
 EVAL recovery/fork/cleanup/Judge/managed-resume regressions91 PASS; missing-binding
-status2 PASS. Watchdog dd-tasks13 PASS. Общие gates повторяются на final source;
-результаты и merge readback фиксируются после их завершения.
+status2 PASS. Watchdog dd-tasks13 PASS. Финальные общие gates:
+
+| Gate | Final result |
+| --- | --- |
+| Runtime exact beta.133 strict canon build / typecheck / lint | PASS |
+| Runtime release contracts | 2 Node + 8 Vitest PASS |
+| Runtime full integration | 138 files, 2376/2376 PASS, 2041.11s |
+| Runtime-sensitive | 46/46 PASS, 161.23s |
+| EVAL final source `3b582f7` | 798 PASS / 808 total / 10 explicit opt-in skips, 0 failures, 261733.02ms |
+| dd-tasks post-merge tree / watchdog | PR8 merged to `0b998f2170f71d3dbdde67efd655d0961cb1716d`; tree equals reviewed423091b, 13/13 PASS |
+| Installed candidate / CP225 | Exact bytes/native parser/profile7/compatibility/matrix/checkpoint binding PASS |
+
+Первые EVAL gates не скрываются: 3 failures выявили неверную pre-native
+классификацию подготовленных папок; исправлена общая policy, не assertions.
+Следующий legacy fixture failure устранён явной native Session identity;
+migration assertions остались. Final full gate повторён после последнего
+foreign-history identity исправления и source commit. Последующая документация
+не меняет runtime/profile/qualification semantics и не требует модельных вызовов.
 
 Чистка сохраняет историю: integrated branches удаляются после ancestry/merge
 proof; superseded CP211 и старые baseline альтернативы архивируются тегами,
 а не объявляются merged. Ignored qualification receipts экспортированы в
 private archive и проверены byte-for-byte. Активные memorybank ветки, divergent
 primary main, dirty/unique work и непроверенные источники не удаляются.
+Архив и exact recovery refs описаны в
+`/Users/deksden/.dd-eval/qualification/plan081-retired-worktrees-20261012/README.md`.
+После финальных PR удаляются и reviewed implementation ветки; baseline26bf561
+остаётся под immutable remote tag, не merge в product main. `fix/072-hitl-renewal`
+содержит уникальную незавершённую функциональность и сохранена вместе с WIP
+JEV/operations, CP189/190 untracked tests и active memorybank line. Divergent
+local primary main (runtime85 / EVAL13 own commits) не reset/rewrite.
 
 Побочный инцидент локальной проверки: npm install без private package.json
 выбрал ancestor `/Users/deksden/node_modules`, удалил 28 прежних package paths
