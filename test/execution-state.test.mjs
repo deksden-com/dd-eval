@@ -6,14 +6,32 @@ import { once } from 'node:events';
 import os from 'node:os';
 import path from 'node:path';
 import { executionState, assertExecutionDispatch, executionCleanupRequired } from '../lib/execution-state.mjs';
-import { appendEvent, readEvents } from '../lib/runner-events.mjs';
-import { frozenCandidate, storedExecutionResults } from '../lib/runner.mjs';
+import { appendEvent, readEvents, hashJson } from '../lib/runner-events.mjs';
+import { frozenCandidate, storedExecutionResults, subjectHistoryEvents, buildEvidencePacket } from '../lib/runner.mjs';
 const run = 'EVAL', execution = { id: 'e', stage: 'code' }, launch = `${run}:e:launch`;
 const event = (kind, data = {}) => ({ type: `dev.dd.eval.${kind}`, executionid: 'e', data });
 const complete = event('operation.completed', { operation_id: launch, result: { execution: 'e', state: 'candidate_ready' } });
 const failure = event('operation.failed', { operation_id: launch, error: { code: 'integrity_failure', message: 'first cause' } });
 const cancel = event('execution.cancel_requested');
 const settled = event('execution.cancelled');
+
+test('execution projections cannot mutate accepted subject history during attribution', () => {
+  for (const terminal of [event('operation.completed',{operation_id:launch,result:{execution:'e',state:'candidate_ready',recovery:{refs:[{sha256:'original'}]}}}),
+    event('execution.failed',{code:'original_failure',recovery:{refs:[{sha256:'original'}]}})]) {
+    const events=[terminal], before=structuredClone(events), manifest={run_id:run,executions:[execution]};
+    const history=subjectHistoryEvents(events,manifest), candidate={immutable_hash:'fixture',subject_history_sha256:hashJson(history)};
+    const direct=executionState(events,run,execution).result;
+    direct.recovery.refs[0].sha256='direct projection only';
+    const results=storedExecutionResults(events,manifest);
+    results[0].requested_profile={model:'attributed'};
+    results[0].model_attribution={observations:[]};
+    results[0].recovery.refs[0].sha256='stored projection only';
+    assert.deepEqual(events,before);
+    assert.doesNotThrow(()=>buildEvidencePacket({manifest,results,candidate,events:history}));
+    events[0].data.provenance='actual journal change';
+    assert.throws(()=>buildEvidencePacket({manifest,results,candidate,events:history}),{code:'judge_evidence_mismatch'});
+  }
+});
 
 test('cleanup skips settled cancellation and never stops a newer generation', () => {
   assert.equal(executionCleanupRequired([cancel], run, execution, launch), true);
