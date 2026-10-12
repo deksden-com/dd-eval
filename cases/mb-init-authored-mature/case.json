@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-mb-init-authored-mature-214889",
-    "sha256": "b5d827c6c2b341eb37fdb0ef61a6c7d78b331728d0b2541ba02d8a650cf8cbd8"
+    "id": "cp-mb-init-authored-mature-4f1889",
+    "sha256": "fbd33008a6e102200331abc37440f9ef2e6346e6cc2685abad2a3d20ee997b2f"
   },
   "baseline_admission": {
     "file": "baseline-admission.json",
