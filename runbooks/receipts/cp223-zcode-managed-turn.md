@@ -45,3 +45,31 @@ Source regression integration and installed bridge identity are deliberately
 different: test-only PR7 preserves regression on the newer 0.52.0 fork; its
 merge does not promote that unqualified upgrade. The scored run uses the
 already admitted 0.46.7 fix. Completion of capacity is not E2E acceptance.
+
+Final candidate full suite after correcting the temporary import: 114 files,
+1481/1481 PASS (131s). EVAL profile/admission tests: 7 PASS, 2 optional installed
+fixtures SKIP. Fork PR7 merged as a9a6ce95940627ac10b4dde5a56ebca51c2e9c2b;
+both GitHub CI jobs (Node22 and Bun) PASS.
+
+CP223 preflight PASS:
+`/Users/deksden/.dd-eval/qualification/cp-223-zcode-decisions-full/conformance/e2e-preflight/1791779217737-5743cfc1/e2e-zcode-glm-5-3-flash-max-openai-decisions`.
+Existing task-scoped Judge qualification reused. Launch definition ff800279ee82dc9e55da8da0d854d7189a42f807.
+New full scored EVAL-20261012042737-230b5f48, home
+`/Users/deksden/.dd-eval/qualification/cp-223-zcode-decisions-full`.
+Actual baseline passed install, quality, browser-install, browser, isolation,
+all exit_code0. Native Session sess_1c6e3c04-4b6c-43de-9fa4-27adcf78b771,
+owned daemon PID7073/provider PID7167; initialized and prompt dispatched.
+
+Repository cleanup: removed 41 exact merged-PR head branches across dd-eval,
+dd-flow-cli and zcode-acp, and 14 clean inactive worktrees. Before deleting refs,
+pushed archive/cleanup-20261012/* tags preserving each exact source commit.
+Existing matching remote branches deleted with exact-SHA leases. Dirty worktrees,
+unmerged work, primary checkouts, retained EVAL homes and installed artifacts were
+not deleted. Current CP223 checkout remains because its observer runs from it.
+Pruned only the missing dd-mb-e0 worktree registration, not files or commits.
+
+Startup acceptance: timeline stage_attached SPECIFY at 2026-10-12T04:29:19.072Z;
+WRK-001-root attached. At 04:30:04.049Z the owned daemon confirms productive
+session.prompt, cursor34. Controller/observer and native processes alive.
+No startup error observed. Full MERGE/Final Judge outcome remains pending;
+do not promote startup as complete E2E PASS. EVAL integration is PR74.
