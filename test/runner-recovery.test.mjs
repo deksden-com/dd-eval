@@ -35,7 +35,7 @@ test("public cleanup retry retains an exhausted attempt and a new identity runs 
 import { commandJson } from "../lib/process-json.mjs";
 import { recoverDriverReply, reconcileDriverReplies, assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
-import { evalJudge, frozenCandidate, interactionFixtureManifest, loadCase, loadRunProfile, migrateLegacyCanonicalResumeLock, runnerCheckpoints, runnerResume, runnerCleanup, runnerCleanupReceipt, runnerFinalizeSettled, runnerControlStatus } from "../lib/runner.mjs";
+import { evalJudge, frozenCandidate, interactionFixtureManifest, loadCase, loadRunProfile, migrateLegacyCanonicalResumeLock, runnerCheckpoints, runnerResume, runnerCleanup, runnerCleanupReceipt, runnerFinalizeSettled, runnerControlStatus, captureRecoveryEvidence } from "../lib/runner.mjs";
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { processSnapshot } from "../lib/process-snapshot.mjs";
@@ -457,11 +457,34 @@ for (const invalid of ["foreign", "missing", "malformed"]) test(`invalid settled
   await assert.rejects(readFile(path.join(root, "candidate.json")), { code: "ENOENT" });
   // Retaining a valid capture id must not bypass verification on later reads.
   await writeJsonAtomic(snapshotFile, { ...snapshot, run_id: "FOREIGN-RUN" });
+  // Observation-loss attribution must not bypass a known native RUN capture.
+  assert.equal((await captureRecoveryEvidence({ root, manifest, result: { ...cleaned.executions[0], code: "operation_observation_lost", error: "observer lost its reply" } })).capture_error.code, "recovery_evidence_invalid");
   assert.equal((await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true })).cleanup_state, "pending");
   const stale = await runnerResume({ evalRoot: root });
   assert.equal(stale.state, "recovery_blocked"); assert.equal(stale.candidate, undefined);
   await writeJsonAtomic(snapshotFile, snapshot);
   assert.equal((await runnerCleanup({ evalRoot: root })).cleanup_state, "settled");
+  assert.equal((await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true })).cleanup_state, "settled", "restored capture republishes current completion after the intervening blocker");
+  const restoredEvents = await readFile(eventsFile);
+  await runnerCleanup({ evalRoot: root });
+  assert.deepEqual(await readFile(eventsFile), restoredEvents, "repeated current completion remains idempotent");
+  if (invalid === "foreign") {
+    const before = await readFile(eventsFile), controller = new AbortController(), marker = path.join(root, "status-child.json");
+    await writeFile(bin, `#!${process.execPath}\nrequire('node:fs').writeFileSync(${JSON.stringify(marker)},JSON.stringify({pid:process.pid}));setInterval(()=>{},1000);\n`);
+    const reading = runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true, signal: controller.signal });
+    const rejected = assert.rejects(reading, { name: "AbortError" });
+    let child;
+    const deadline = performance.now() + 10_000;
+    while (!child) {
+      try { child = JSON.parse(await readFile(marker)); } catch (error) { if (error.code !== "ENOENT") throw error; }
+      if (performance.now() > deadline) { controller.abort(); assert.fail("recognition did not enter capture status RPC"); }
+      if (!child) await delay(20);
+    }
+    const cancelledAt = performance.now(); controller.abort(); await rejected;
+    assert.ok(performance.now() - cancelledAt < 3000, "recognition cancellation must reach the active read-only RPC");
+    assert.equal((await processSnapshot()).some(item => item.pid === child.pid && !item.zombie), false);
+    assert.deepEqual(await readFile(eventsFile), before, "aborted recognition never writes the EVAL journal");
+  }
   // A known native RUN cannot become a pre-native failure if its workspace
   // and binding disappear together.
   await rm(attempt, { recursive: true, force: true });
