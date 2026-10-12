@@ -100,8 +100,8 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("priming" in loaded.value, false);
   assert.equal(loaded.inputCheckpoint.value.id, loaded.value.input_checkpoint.id);
   assert.match(loaded.inputCheckpoint.value.id, /^[A-Za-z0-9][A-Za-z0-9._-]*$/);
-  assert.equal(loaded.inputCheckpoint.value.source.commit, "d81cd0acd589a35789aec4c5291ffb5a6efd2d4e");
-  assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-172-source-baseline-setup");
+  assert.equal(loaded.inputCheckpoint.value.source.commit, "26bf561f175450337a999fdb114580e641c99cde");
+  assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-224-tooling-baseline-v2");
   const pinnedCheckpoint = JSON.parse(await readFile(path.join(root, 'checkpoints', `${loaded.value.input_checkpoint.id}.json`), 'utf8'));
   assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, pinnedCheckpoint.flow_pack.commit);
   assert.match(loaded.inputCheckpoint.value.flow_pack.commit, /^[a-f0-9]{40}$/);
