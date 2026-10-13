@@ -1,7 +1,6 @@
 # 083 — CP226: native failure attribution и materialized evidence
 
-Статус: готов к реализации после readiness-review; реализация и новые EVAL
-не выполняются этой задачей.
+Статус: реализация A–D завершена; новые EVAL и release не выполнялись.
 Дата: 2026-10-13. Ponytail: full.
 
 ## Цель и границы
@@ -337,3 +336,38 @@ summary не трактовать как отсутствие output. Judge inpu
 или новых EVAL. Внешняя неизвестность ZCode cause явно не блокирует A–D:
 храним только наблюдаемые факты. Приёмка требует targeted regressions и gates,
 а не обещания, что обновлённый ZCode уже исправил исходный signer defect.
+
+## Реализация и проверка — 2026-10-13
+
+- dd-flow: `f5f5b90`, `5e68b83`; dd-eval: `cc2beaa`, `1fcd472`, `7ed5e7b`.
+  Ветки `fix/083-native-evidence` опубликованы в обоих репозиториях.
+- Native failure authority проверяется по frozen registry, reconciliation
+  timeline и фактическим retained native ответам, а не по authored флагам.
+  Реализованы ZCode retained topology/terminal и Codex Desktop thread/read;
+  неподдерживаемые или отсутствующие доказательства остаются unknown.
+  Изменение execution, settlement или scope аннулирует проверенную authority.
+- In-flight observer использует только advertised ZCode read-only capability.
+  Failure fence переживает успешное завершение sibling; shutdown дожидается
+  observer drain. Старые адаптеры сохраняют post-turn поведение.
+- Materialization receipt фиксирует опубликованный результат отдельно от
+  authored input. Judge reader проверяет accepted audit receipt в frozen БД,
+  hashes, paths и только относящиеся к операции reciprocal edges.
+  Completed PROTOCOLIZE replay не переиздаёт документы, не требует позднего
+  live состояния и не откатывает PLAN/CODE/завершённый RUN.
+- Проверки: typecheck, build, lint, release gate PASS; runtime-sensitive 46/46;
+  fanout/observer 22/22; PROTOCOLIZE 27/27; native assets 83/83.
+  Полный EVAL gate дважды: 809 PASS, 10 opt-in skips, 0 failures (819 total).
+  Последняя защита authority cache отдельно: native-failure083 6/6 PASS.
+- Широкий engine integration прогон: 138 файлов / 2382 теста PASS;
+  один observer тест получил `drain is not a function`. Прогон был запущен
+  во время реализации: worker загрузил прежний модуль до добавления drain,
+  а тестовый файл уже содержал новую регрессию. Повтор всего observer файла
+  на окончательном неизменном дереве: 4/4 PASS (3.56 s). Остальные изменённые
+  suites также повторены на окончательном коде. Исходный широкий прогон
+  формально не зелёный; это не заявляется как чистая release acceptance.
+- В ходе общего gate исправлен `root` undefined в continuation: evalRoot
+  передаётся явно. Также усилены audit custody и scope conflict проверки.
+- Исторический CP226 не изменён. Read-only smoke для старого capture вернул
+  `legacy_materialization_unavailable`, а не ложный missing-link.
+  Native signer defect не исправлялся и обновление ZCode не квалифицировалось.
+  Release/pins/hooks/живые EVAL остаются отдельной задачей.
