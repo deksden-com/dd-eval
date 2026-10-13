@@ -1,6 +1,6 @@
 {
   "schema_id": "dd-eval/launch-preparation@1",
-  "status": "blocked_external_prerequisites",
+  "status": "published_candidate_pending_preflight",
   "requested": {
     "subject": "ZCode GLM-5.3-Flash/max",
     "semantic_decisions": "openai-decisions/gpt-6-luna",
@@ -20,20 +20,19 @@
     "commit": "b243f4dac38629b7f0398b3e0b1613904f4aebff",
     "artifact_sha256": "cff72f8271c4268b31c7fca88e237421a592bc2ef3c34e6d0688c4fd09fae80b",
     "candidate": "/Users/deksden/.dd-eval/artifacts/engine-beta134/candidate.json",
-    "status": "built_not_accepted_or_published",
+    "status": "published_registry_consumer_verified",
+    "installed_checksum": "1fa961dadc6e77ef31f959e93432e71189373539f0f859568993d92890f6bfa7",
+    "release_receipt": "/Users/deksden/Documents/_Projects/_worktrees/dd-flow-082-release/.tasks/release-0.9.0-beta.134.json",
+    "local_gate": { "release": 10, "integration": 2378, "runtime_sensitive": 46, "skipped": 0 },
+    "gate_evidence": "/Users/deksden/.dd-eval/artifacts/engine-beta134",
     "source_pr": "https://github.com/deksden-com/dd-flow-cli/pull/63"
   },
-  "blockers": [
-    {
-      "code": "github_actions_billing",
-      "run": "https://github.com/deksden-com/dd-flow-cli/actions/runs/38389625686",
-      "evidence": "prepare check-run annotations: recent account payments failed or spending limit; runner not allocated and no steps executed"
-    },
-    {
-      "code": "npm_authentication_rejected",
-      "evidence": "npm whoami with isolated npmrc and configured NPM_ACCESS_TOKEN returned E401; no publish attempt"
-    }
-  ],
+  "blockers": [],
+  "delivery": {
+    "route": "operator-authorized local gate and exact-candidate publication",
+    "github_actions_billing": "unchanged; local release gates passed",
+    "npm_authentication": "project .env token verified and publication succeeded; stale home npmrc token was not used"
+  },
   "database": {
     "status": "prepared_isolated_service",
     "operator_selection": "separate port for EVAL",
@@ -47,7 +46,7 @@
     "foreign_server_55433": "untouched",
     "retirement": "stop while launch is blocked; retain volume"
   },
-  "unchanged": ["accepted case/profile pins", "historical EVAL runtimes", "installed Codex hook selection"],
+  "unchanged": ["historical EVAL runtimes", "product baseline and flow pack", "Codex hook symlink topology and unrelated handlers"],
   "eval_started": false,
-  "next": "Restore a release authentication route; complete exact-candidate gates, publish, update pins/hooks, qualify managed lifecycle/capacity, start the isolated database with recorded routing, preflight and launch once."
+  "next": "Commit and verify candidate pins, check upgraded hook runtime, qualify the definition, start the isolated database with recorded routing, preflight and launch once."
 }

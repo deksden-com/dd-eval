@@ -1,0 +1,32 @@
+{
+  "schema_id": "dd-eval/harness-candidate-receipt@1",
+  "status": "qualified_candidate_not_completed_e2e",
+  "engine": {
+    "version": "0.9.0-beta.134",
+    "commit": "b243f4dac38629b7f0398b3e0b1613904f4aebff",
+    "installed_checksum": "1fa961dadc6e77ef31f959e93432e71189373539f0f859568993d92890f6bfa7",
+    "tarball_sha256": "cff72f8271c4268b31c7fca88e237421a592bc2ef3c34e6d0688c4fd09fae80b"
+  },
+  "zcode": {
+    "native": "0.16.9",
+    "bridge": "0.52.0",
+    "bridge_commit": "9c5ca6cc81c4eb5065e43f8b7ab6b7cc5ab7ae47",
+    "contract": "dd-zcode-harness@2",
+    "compatibility": "/Users/deksden/.dd-eval/qualification/cp-226-zcode-decisions-full/conformance/harness-compatibility/20261013114954158/zcode-acp-zai-glm-5-3-flash-max/receipt.json",
+    "capacity": "/Users/deksden/.dd-eval/qualification/cp-226-zcode-decisions-full/conformance/native-subagents/20261013115108174/zcode-acp-zai-glm-5-3-flash-max/capacity.json",
+    "requested": 2,
+    "completed": 2,
+    "cleanup": "settled",
+    "managed_lifecycle": "pending_scored_e2e"
+  },
+  "judge": {
+    "profile": "codex-desktop-gpt-6-1-sol-high",
+    "route": "cx with CODEX_HOME=/Users/deksden/.codex-cpa",
+    "capacity": "/Users/deksden/.dd-eval/qualification/cp-226-zcode-decisions-full/conformance/native-subagents/20261013115255884/codex-desktop-gpt-6-1-sol-high/capacity.json",
+    "requested": 1,
+    "completed": 1,
+    "cleanup": "settled"
+  },
+  "native_store": "harness-owned ambient storage; not a fresh-store claim",
+  "notes": "Technical native probes used the exact packaged candidate before publication. No scored EVAL or completed E2E acceptance is implied."
+}

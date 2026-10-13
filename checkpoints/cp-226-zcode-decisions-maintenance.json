@@ -1,0 +1,27 @@
+{
+  "id": "cp-226-zcode-decisions-maintenance",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "26bf561f175450337a999fdb114580e641c99cde",
+    "tag": "eval/cp-224-tooling-baseline-v2"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-226-verification-matrix-qualification.json",
+      "sha256": "adc53ed9421ed6a56cf0444400aa0b34e04132b4490c49a84e06342853d153ca",
+      "canon_commit": "2ba0b9ceedf8e4544ad9566c240ef37ea5e8d099"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "b243f4dac38629b7f0398b3e0b1613904f4aebff",
+      "version": "0.9.0-beta.134",
+      "artifact_sha256": "1fa961dadc6e77ef31f959e93432e71189373539f0f859568993d92890f6bfa7"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}

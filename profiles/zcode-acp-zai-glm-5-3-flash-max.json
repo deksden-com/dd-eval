@@ -12,10 +12,10 @@
   "mode": "yolo",
   "runtime": {
     "zcode": "0.16.9",
-    "zcode_acp": "0.46.7",
-    "zcode_acp_commit": "636b14181d5c9a95476055079836fd6b58169f58",
+    "zcode_acp": "0.52.0",
+    "zcode_acp_commit": "9c5ca6cc81c4eb5065e43f8b7ab6b7cc5ab7ae47",
     "dd_harness_contract": "dd-zcode-harness@2"
   },
   "notes": "Controlled ZCode Flash subject at the requested maximum reasoning level.",
-  "subagent_capacity": 15
+  "subagent_capacity": 2
 }
