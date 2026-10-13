@@ -371,3 +371,43 @@ summary не трактовать как отсутствие output. Judge inpu
   `legacy_materialization_unavailable`, а не ложный missing-link.
   Native signer defect не исправлялся и обновление ZCode не квалифицировалось.
   Release/pins/hooks/живые EVAL остаются отдельной задачей.
+
+## Ревью реализации — 2026-10-14
+
+Полнота A–D проверена по producer → retained observation → controller
+reconciliation → frozen capture → EVAL classification/Judge evidence.
+Существенные найденные дефекты исправлены:
+
+1. In-flight ZCode read передавал public provider ID вместо зарегистрированного
+   adapter ID. Mock ранее не проверял аргумент запроса. Теперь distinct IDs
+   проверяются явно; productive/native resume методы по-прежнему запрещены.
+2. Authority cache не учитывал scope carrier, wrapper controller и schema ID.
+   Изменения этих полей аннулируют подтверждение. Отсутствие поля отличается
+   от null; невычислимая signature не даёт authority. Contradictory controller
+   scope отвергается и при первичной проверке, не только после мутации.
+3. Diagnostic повторно клонировал общие причинные узлы, что раздувало DAG.
+   Проекция и infrastructure predicate посещают узел один раз. Predicate
+   выровнен с общим пределом 12 причинных переходов; подтверждённая storage
+   причина не теряется на прежней восьмиуровневой границе.
+4. Native fact reader иначе нормализовал unsafe/empty error metadata, чем
+   native-children@1 producer. Выровнены scalar filters, codexErrorInfo,
+   attribution и пустые ошибки. Proven failed terminal без подробной причины
+   остаётся подтверждённым; discarded prose/headers не становятся evidence.
+5. Completed PROTOCOLIZE replay всё ещё требовал живую Git-ветку/worktree.
+   Немутационный replay берёт route из принятого отчёта, не восстанавливает
+   удалённый worktree и не выдаёт successor command. Active replay, который
+   продвигает RUN к PLAN, сохраняет live route validation.
+6. Console observation регрессия отстала от интегрированного health/progress
+   контракта. Точное ожидание обновлено. Отдельный built-policy сбой оказался
+   гонкой с build, а не дефектом policy: paired EVAL gate запускается после
+   завершённой сборки engine; проверка dist/source parity не ослаблена.
+
+Целевые проверки: native/Judge/materialization 11/11; recovery/native 68/68;
+capacity/console/health 19/19; полный PROTOCOLIZE файл 27/27, включая replay
+после удаления worktree. Общий EVAL gate после исправлений: 819 PASS,
+10 opt-in skips, 0 failures. Финальные gates и integration refs фиксируются
+ниже после их завершения. Changeset добавлен без выпуска новой версии.
+
+PR: dd-flow-cli #67, dd-eval #86. Dirty main и активные/уникальные наработки
+других задач сохраняются. Новые EVAL, native signing patch, release, hooks
+и pins не входят в это ревью.
