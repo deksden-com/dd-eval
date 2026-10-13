@@ -48,6 +48,7 @@ async function setup(t, fault = null) {
   });
   const definition = path.join(temp, 'definition'), caseRoot = path.join(definition, 'cases/fixture');
   await cp(new URL('../lib', import.meta.url), path.join(definition, 'lib'), { recursive: true });
+  await cp(new URL('../schemas', import.meta.url), path.join(definition, 'schemas'), { recursive: true });
   const runner = await import(pathToFileURL(path.join(definition, 'lib/runner.mjs')));
   const stages = ['plan-review', 'code'];
   const execution = { id: 'e2e', mode: 'e2e', stage: 'plan-review', terminal_stage: 'code' };

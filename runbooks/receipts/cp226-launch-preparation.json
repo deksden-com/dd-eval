@@ -1,0 +1,52 @@
+{
+  "schema_id": "dd-eval/launch-preparation@1",
+  "status": "published_candidate_pending_preflight",
+  "requested": {
+    "subject": "ZCode GLM-5.3-Flash/max",
+    "semantic_decisions": "openai-decisions/gpt-6-luna",
+    "min_confidence": 0.7,
+    "judge": "gpt-6.1-sol/high via cx and .codex-cpa",
+    "scope": "full E2E, no stop_after"
+  },
+  "bridge": {
+    "version": "0.52.0",
+    "commit": "9c5ca6cc81c4eb5065e43f8b7ab6b7cc5ab7ae47",
+    "released": true,
+    "installed_global_identity_verified": true,
+    "native_probe": "cp226-bridge-candidate.json"
+  },
+  "engine": {
+    "version": "0.9.0-beta.134",
+    "commit": "b243f4dac38629b7f0398b3e0b1613904f4aebff",
+    "artifact_sha256": "cff72f8271c4268b31c7fca88e237421a592bc2ef3c34e6d0688c4fd09fae80b",
+    "candidate": "/Users/deksden/.dd-eval/artifacts/engine-beta134/candidate.json",
+    "status": "published_registry_consumer_verified",
+    "installed_checksum": "1fa961dadc6e77ef31f959e93432e71189373539f0f859568993d92890f6bfa7",
+    "release_receipt": "/Users/deksden/Documents/_Projects/_worktrees/dd-flow-082-release/.tasks/release-0.9.0-beta.134.json",
+    "local_gate": { "release": 10, "integration": 2378, "runtime_sensitive": 46, "skipped": 0 },
+    "gate_evidence": "/Users/deksden/.dd-eval/artifacts/engine-beta134",
+    "source_pr": "https://github.com/deksden-com/dd-flow-cli/pull/63"
+  },
+  "blockers": [],
+  "delivery": {
+    "route": "operator-authorized local gate and exact-candidate publication",
+    "github_actions_billing": "unchanged; local release gates passed",
+    "npm_authentication": "project .env token verified and publication succeeded; stale home npmrc token was not used"
+  },
+  "database": {
+    "status": "prepared_isolated_service",
+    "operator_selection": "separate port for EVAL",
+    "host": "127.0.0.1",
+    "port": 55434,
+    "container": "dd-eval-cp226-postgres",
+    "container_id": "5c0d421fd5c3008498f21e8cf828d6a538dd041de614dfc9365414a8e586d9fc",
+    "volume": "dd_eval_cp226_pgdata",
+    "environment_file": "/Users/deksden/.dd-eval/qualification/cp-226-db.env",
+    "routing": ["DD_TASKS_TEST_ADMIN_URL", "DATABASE_URL"],
+    "foreign_server_55433": "untouched",
+    "retirement": "stop while launch is blocked; retain volume"
+  },
+  "unchanged": ["historical EVAL runtimes", "product baseline and flow pack", "Codex hook symlink topology and unrelated handlers"],
+  "eval_started": false,
+  "next": "Commit and verify candidate pins, check upgraded hook runtime, qualify the definition, start the isolated database with recorded routing, preflight and launch once."
+}

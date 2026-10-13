@@ -51,8 +51,16 @@ alone does not authorize paid qualification, provider calls or scored launches.
    questions affect their tasks, shared Judge prompt/model changes affect all tasks.
    Corrupt evidence, unknown paid outcomes or unconfirmed cleanup require resolution,
    not a replacement call. Qualification is regression evidence, not infallibility.
-7. Check host prerequisites. Task Priority needs project PostgreSQL on loopback
-   `55433`; reuse its service/volume, never create a competing container. Do not
+7. Check host prerequisites. Task Priority uses project PostgreSQL on loopback
+   `55433` by default; reuse its service/volume, never create a competing container.
+   If that port belongs to another project, do not stop or use its server. With
+   explicit operator selection, provision an isolated EVAL service/volume on a
+   free loopback port and set `DD_TASKS_TEST_ADMIN_URL` (`/postgres`) and
+   `DATABASE_URL` (foundation database) for the runner and its children. Verify
+   the actual server/role and retained routing; pinned product code already
+   supports these environment overrides. Never edit product code to change ports.
+   Stop the isolated service while a campaign is blocked and after its last
+   consumer; retain the volume/evidence for investigation. Do not
    add a manual product quality/browser/world suite as a preparation gate.
 
 ### Bounded preparation policy (2026-09-13)

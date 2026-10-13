@@ -35,6 +35,7 @@ test('public background EVAL resume continues a real retained RUN through its ne
   try {
     await write(ambientRegistry, '{foreign registry must not be read or rewritten');
     await cp(new URL('../lib', import.meta.url), path.join(definition, 'lib'), { recursive: true });
+    await cp(new URL('../schemas', import.meta.url), path.join(definition, 'schemas'), { recursive: true });
     await cp(new URL('../bin', import.meta.url), path.join(definition, 'bin'), { recursive: true });
     for (const name of ['index', 'spec/engineering/index', 'epics/index', 'epics/EP-001-tasks/index', 'protocol/index']) await write(path.join(project, '.memory-bank', `${name}.md`), '# Fixture\n');
     await write(path.join(project, '.memory-bank/dd-flow/project-workspace.json'), { schema_id: 'dd-flow/project-workspace@1', workspace: { route: 'integration_branch_direct', integration_branch: 'main', feature_branch_template: null, provision_stage: 'protocolize_start' } });

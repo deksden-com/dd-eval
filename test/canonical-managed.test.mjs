@@ -18,6 +18,7 @@ test('public canonical resume and review retain one managed owner in a committed
   const json = async file => JSON.parse(await readFile(file, 'utf8'));
   try {
     await cp(new URL('../lib', import.meta.url), path.join(repository, 'lib'), { recursive: true });
+    await cp(new URL('../schemas', import.meta.url), path.join(repository, 'schemas'), { recursive: true });
     const engineRoot = path.join(home, 'engine'); await write(path.join(engineRoot, 'fixture.txt'), 'fixture engine');
     const digest = await engineArtifactDigest(engineRoot);
     const engine = { schema_id: 'dd-flow/engine-manifest@1', package_name: 'fixture', package_version: '1.0.0', engine_version: '1.0.0', integrity: { checksum: digest }, snapshot_root: engineRoot };
