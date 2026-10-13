@@ -19,6 +19,10 @@ test('native attribution needs independent facts, never a receipt-shaped claim',
   const error = failure();
   assert.equal(validateNativeFailureEvidence(error).status, 'unconfirmed');
   assert.equal(validateNativeFailureEvidence(error, [{ ...binding, outcome: 'failed' }]).status, 'confirmed');
+  for (const key of ['run_id','stage','parent_work_id']) {
+    const contradictory = failure(); contradictory.details.controller.error.details[key] = 'foreign';
+    assert.equal(validateNativeFailureEvidence(contradictory, [{ ...binding, outcome: 'failed' }]).status, 'unconfirmed', key);
+  }
   for (const key of nativeBindingFields) assert.equal(validateNativeFailureEvidence(error, [{ ...binding, [key]: key === 'generation' ? 2 : 'foreign', outcome: 'failed' }]).status, 'unconfirmed', key);
   assert.equal(isInfrastructureFailure(error), false);
   assert.equal(isInfrastructureFailure({ ...error, native_failure_verified: true }), false);
