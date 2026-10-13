@@ -47,6 +47,9 @@ test('causal traversal deduplicates, bounds, rejects cycles and excludes cleanup
   for (let i = 0; i < 12; i++) shared = { code: 'wrapper', cause: shared, details: { cause: shared, primary_error: shared, error: shared, controller: { error: shared } } };
   assert.equal((JSON.stringify(failureDiagnostic(shared)).match(/"code":"wrapper"/g) ?? []).length,12,'diagnostics visit each shared causal node only once');
   assert.equal(isInfrastructureFailure(shared),false,'the infrastructure predicate also deduplicates shared causal nodes');
+  let wrapped = { code: 'storage_write_failed' };
+  for (let i = 0; i < 12; i++) wrapped = { code: 'wrapper', cause: wrapped };
+  assert.equal(isInfrastructureFailure(wrapped),true,'classification and infrastructure share the 12-hop causal boundary');
 });
 
 test('typed account, unavailable and budget share infrastructure classification through all cause branches', () => {
