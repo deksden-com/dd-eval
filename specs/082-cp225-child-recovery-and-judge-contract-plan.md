@@ -1,7 +1,35 @@
 # 082 — CP225: восстановление Work, lifecycle receipts и Judge
 
-Статус: код реализован; финальная проверка и интеграция выполняются.
+Статус: реализация и проверка завершены; изменения интегрированы в main.
 Дата: 2026-10-13.
+
+## Итог реализации
+
+- Engine: [PR #60](https://github.com/deksden-com/dd-flow-cli/pull/60),
+  main `b9c3392`. Разделены admission/replay/settled-read, Work retry атомарно
+  привязан к новой start authority и generation. Для новой попытки обновляются
+  также finish/fail authority; старые settled receipts сохраняются как история.
+- Bridge: [PR #8](https://github.com/deksden-com/zcode-acp/pull/8),
+  main `9c5ca6c`. Retained topology читается со всеми страницами; terminal error
+  извлекается read-only из native SQLite для конкретного child lifetime/turn.
+  Регрессия учитывает реальный разрыв 9 мс между native completion и topology
+  endedAt, не требует равенства часов и не захватывает ошибку предыдущего Turn.
+- EVAL/Judge: [PR #77](https://github.com/deksden-com/dd-eval/pull/77),
+  main `e8350df`. Enum из schema SSOT, безопасная native failure projection,
+  разграничение rubric и действительно выданных canonical answers; assessment
+  согласован с минимальным open/closed. Исправлены test fixture builders,
+  которым теперь требуется копировать schemas вместе с кодом runner.
+- Финальные gates engine на неизменном commit/build: integration 2378/2378
+  (138 файлов), runtime-sensitive 46/46, release 8/8; inventory и provenance
+  каждого отчёта проверены. Typecheck/build/lint и release-build checks прошли.
+- EVAL: 801 PASS, 10 явных opt-in skips, 0 failures (811 всего).
+  Bridge: targeted regression 13/13, typecheck/build/lint, readonly smoke на
+  реальных native lifetime bounds; финальные GitHub CI Node 22 и Bun зелёные.
+  Прерванные/нестабильные локальные прогоны не используются как приёмка.
+
+Новые пакеты не выпускались и не устанавливались, новые EVAL не запускались.
+Исторический CP225 не изменён и не возобновлён. Живая приёмка остаётся отдельной
+операционной задачей после выпуска/установки engine и bridge.
 
 ## Цель и границы
 
