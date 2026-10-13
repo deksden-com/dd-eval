@@ -684,7 +684,7 @@ test("interruption attribution preserves structured lifecycle and storage errors
     assert.deepEqual(classifyInterruption({ code, message: "timeout waiting for writer" }).category, "execution_failure");
   }
   assert.deepEqual(classifyInterruption({ code: "provider_timeout", message: "provider timed out" }).category, "provider_unavailable");
-  assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "connection timeout" }).category, "provider_unavailable");
+  assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "connection timeout" }).category, "execution_failure", "prose does not establish provider attribution");
   assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "timeout while saving lifecycle result", details: { primary_error: { code: "storage_write_failed" } } }).category, "execution_failure");
   assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "operation timed out", details: { cause: { code: "invocation_receipt_timeout" } } }).category, "execution_failure");
   assert.deepEqual(classifyInterruption({ code: "agy_provider_rate_limited", message: "request failed" }).category, "provider_rate_limit");
@@ -708,7 +708,7 @@ test("only exact terminal native overload authorizes Codex continuation", { skip
   const storagePrimary = { code: "harness_adapter_failed", details: { controller: { error: { code: "storage_write_failed", details: { cause: managedQuota.details.controller.error.details.cause } } } } };
   assert.equal(classifyInterruption(storagePrimary).category, "execution_failure");
   assert.equal(providerLimitMetadata(storagePrimary), null);
-  assert.equal(classifyInterruption({ code: "driver_failed", message: "HTTP 429" }).category, "provider_limit_unknown");
+  assert.equal(classifyInterruption({ code: "driver_failed", message: "HTTP 429" }).category, "execution_failure");
   assert.equal(classifyInterruption({ code: "agy_provider_limit_unknown" }).category, "provider_limit_unknown");
   assert.equal(classifyInterruption({ code: "retry_after_exceeds_budget", details: native.details }).category, "provider_overloaded");
   assert.equal(isInfrastructureFailure({ ...native, message: "capacity" }), true);

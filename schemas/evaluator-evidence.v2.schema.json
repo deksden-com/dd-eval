@@ -45,6 +45,18 @@
           "state": {
             "type": "string"
           },
+          "materialization": {
+            "type": "object",
+            "required": ["stage", "status"],
+            "properties": {
+              "stage": { "const": "protocolize" },
+              "status": { "enum": ["passed", "failed", "unavailable"] },
+              "source": { "enum": ["stage_boundary", "recovery"] },
+              "action": { "enum": ["create", "link", "update", "not_applicable"] },
+              "manifest_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "documents": { "type": "array", "items": { "type": "object", "required": ["path", "sha256", "file"], "properties": { "path": { "type": "string" }, "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "file": { "type": "string" } } } }
+            }
+          },
           "candidate": {
             "type": [
               "object",
