@@ -32,15 +32,22 @@
     {
       "code": "npm_authentication_rejected",
       "evidence": "npm whoami with isolated npmrc and configured NPM_ACCESS_TOKEN returned E401; no publish attempt"
-    },
-    {
-      "code": "project_database_port_occupied",
-      "port": 55433,
-      "owner": "hr-agent/customer-vacancy-sync PostgreSQL",
-      "policy": "foreign server untouched; user choice requested"
     }
   ],
+  "database": {
+    "status": "prepared_isolated_service",
+    "operator_selection": "separate port for EVAL",
+    "host": "127.0.0.1",
+    "port": 55434,
+    "container": "dd-eval-cp226-postgres",
+    "container_id": "5c0d421fd5c3008498f21e8cf828d6a538dd041de614dfc9365414a8e586d9fc",
+    "volume": "dd_eval_cp226_pgdata",
+    "environment_file": "/Users/deksden/.dd-eval/qualification/cp-226-db.env",
+    "routing": ["DD_TASKS_TEST_ADMIN_URL", "DATABASE_URL"],
+    "foreign_server_55433": "untouched",
+    "retirement": "stop while launch is blocked; retain volume"
+  },
   "unchanged": ["accepted case/profile pins", "historical EVAL runtimes", "installed Codex hook selection"],
   "eval_started": false,
-  "next": "Restore a release authentication route and resolve database port ownership; complete exact-candidate gates, publish, update pins/hooks, qualify managed lifecycle/capacity, preflight and launch once."
+  "next": "Restore a release authentication route; complete exact-candidate gates, publish, update pins/hooks, qualify managed lifecycle/capacity, start the isolated database with recorded routing, preflight and launch once."
 }
