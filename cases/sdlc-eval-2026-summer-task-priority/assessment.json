@@ -19,7 +19,8 @@
       "golden": {
         "required_outcomes": [
           {"id": "GOLD-SPECIFY-001", "statement": "Resolve the four-value vocabulary, no_priority default/backfill and stable ordering without inventing task archiving."},
-          {"id": "GOLD-SPECIFY-002", "statement": "Express persistence, authorization, list/edit UI, preserved ordering and deterministic acceptance evidence as complete, precise R/AC obligations in a portable handoff."}
+          {"id": "GOLD-SPECIFY-002", "statement": "Express persistence, authorization, list/edit UI, preserved ordering and deterministic acceptance evidence as complete, precise R/AC obligations in a portable handoff."},
+          {"id": "GOLD-SPECIFY-003", "statement": "The issued canonical answer explicitly requires minimal persisted open/closed task state: default/backfill open, reject closed on create, explicit close/reopen by owner/member in active projects, independent priority, and read-only state in archived projects. This is accepted scope, not task archiving or an extra workflow; no additional color or other indicators are required."}
         ],
         "accepted_strong_decisions": [],
         "accepted_alternatives": [],
@@ -44,7 +45,8 @@
       "golden": {
         "required_outcomes": [
           {"id": "GOLD-PROTOCOLIZE-001", "statement": "Allocate every accepted R/AC obligation, including four values/default, authorization, archived-project editing and stable ordering, to the smallest bounded vertical protocol topology without semantic loss."},
-          {"id": "GOLD-PROTOCOLIZE-002", "statement": "Create linked durable feature and protocol records and leave PLAN a portable handoff."}
+          {"id": "GOLD-PROTOCOLIZE-002", "statement": "Create linked durable feature and protocol records and leave PLAN a portable handoff."},
+          {"id": "GOLD-PROTOCOLIZE-003", "statement": "Allocate the accepted minimal open/closed state, defaults, explicit close/reopen authorization, independent priority and archived read-only state without semantic loss."}
         ],
         "accepted_strong_decisions": [],
         "accepted_alternatives": [],
@@ -73,7 +75,8 @@
           {"id": "GOLD-PLAN-001", "statement": "Ground the plan in accepted handoff and current persistence, API, service, web and test surfaces."},
           {"id": "GOLD-PLAN-002", "statement": "Use PLAN as the semantic source for an executable graph covering persistence/legacy migration, API authorization, UI, scenario/docs and verification; derive CODE Works without a second hand-authored graph."},
           {"id": "GOLD-PLAN-003", "statement": "Make default/backfill, database-enforced values, atomic archived-project priority-only mutation, unchanged list ordering and deterministic legacy evidence falsifiable."},
-          {"id": "GOLD-PLAN-004", "statement": "Select evidence for every accepted obligation through one CHK catalogue; when existing project checks are insufficient, plan the exact new @check alias, its provider Work, consumer ordering and honest proof limits rather than silently omitting the proof."}
+          {"id": "GOLD-PLAN-004", "statement": "Select evidence for every accepted obligation through one CHK catalogue; when existing project checks are insufficient, plan the exact new @check alias, its provider Work, consumer ordering and honest proof limits rather than silently omitting the proof."},
+          {"id": "GOLD-PLAN-005", "statement": "Plan persisted open/closed state with open default/backfill, create rejection of closed, explicit close/reopen for active-project owner/member, independent priority, and no archived state edits, including deterministic no-write negative proof."}
         ],
         "accepted_strong_decisions": [
           {"id": "STRONG-PLAN-001", "statement": "A strong persistence plan chooses a reset-safe representation and covers every introduced stateful database object in all supported create, migrate, repeatable reset and cleanup paths; it proves upgrade behavior with a row created under the pre-change schema, then verifies backfill, preserved data and ordering after the migration.", "source": "EVAL-022; reinforced by CMP-011 (EVAL-032—034)"},
@@ -91,7 +94,7 @@
         "worker_contexts": [
           {
             "id": "GOLD-CONTEXT-PERSISTENCE",
-            "responsibility": "Persist, constrain, default and migrate task priority without changing unrelated task data or ordering.",
+            "responsibility": "Persist, constrain, default and migrate task priority and minimal open/closed state without changing unrelated task data or ordering.",
             "essential_sources": [
               "current task schema and migration ledger",
               "existing migration runner and deterministic fixtures",
@@ -100,6 +103,7 @@
             ],
             "essential_semantics": [
               "four exact machine values and no_priority default/backfill",
+              "persisted open/closed state with open default/backfill and database-enforced values",
               "NOT NULL and database-enforced allowed values",
               "pre-change row upgrade with preserved data, stable IDs and ordering",
               "no task archive lifecycle or unrelated migration rewrite"
@@ -132,6 +136,7 @@
             "essential_semantics": [
               "create omission defaults while update omission preserves",
               "priority-only and mixed partial updates",
+              "create rejects closed; explicit close/reopen for owner/member in active projects; archived state stays read-only independently of priority",
               "invalid/null/wrong-type values reject without mutation",
               "archived reads remain available while mutations use the existing guard",
               "outsider and cross-workspace requests remain safe",
@@ -163,6 +168,7 @@
             ],
             "essential_semantics": [
               "exact No priority, Low, Medium and High labels",
+              "minimal open/closed display and explicit close/reopen in active projects, without required extra color or other indicators",
               "untouched edit preserves priority",
               "archived-project tasks remain readable and only their priority control stays editable; unrelated controls remain read-only",
               "existing loading, empty, error, focus and ordering behavior remains",
@@ -233,7 +239,8 @@
         "required_outcomes": [
           {"id": "GOLD-REVIEW-001", "statement": "Identify material migration, authorization, state-transition, verification and handoff defects where present."},
           {"id": "GOLD-REVIEW-002", "statement": "Apply accepted corrections to the PLAN source, then deterministically regenerate a CODE-ready work graph and handoff without claiming unmade fixes."},
-          {"id": "GOLD-REVIEW-003", "statement": "Verify that every resulting CODE Work gives a fresh worker sufficient bounded project context, and correct missing, excessive or wrongly owned context before registration."}
+          {"id": "GOLD-REVIEW-003", "statement": "Verify that every resulting CODE Work gives a fresh worker sufficient bounded project context, and correct missing, excessive or wrongly owned context before registration."},
+          {"id": "GOLD-REVIEW-004", "statement": "Review accepted minimal open/closed obligations as required scope, including defaults, active-project close/reopen authorization, independent priority and archived read-only state; do not misclassify them as task archiving."}
         ],
         "accepted_strong_decisions": [
           {"id": "STRONG-REVIEW-001", "statement": "A strong review covers every applicable aspect in one capacity-aware reviewer wave where practical, consolidates duplicate findings by root cause, prioritizes material defects and applies the accepted corrections once.", "source": "EVAL-023"}
@@ -267,7 +274,8 @@
           {"id": "GOLD-CODE-001", "statement": "Implement the exact four priority values, no_priority create/backfill default and database constraint without adding task archiving, priority sorting or unrelated architecture."},
           {"id": "GOLD-CODE-002", "statement": "Preserve ordinary ordering and enforce the archived-project exception as a priority-only mutation, including rejection of mixed writes without partial mutation."},
           {"id": "GOLD-CODE-003", "statement": "Expose readable and editable priority through the existing typed API and accessible task UI; for tasks in archived projects, keep only priority editable while unrelated fields remain read-only."},
-          {"id": "GOLD-CODE-004", "statement": "Prove migration, negative validation, authorization, UI and acceptance behavior with focused receipts followed by the project aggregate check profile."}
+          {"id": "GOLD-CODE-004", "statement": "Prove migration, negative validation, authorization, UI and acceptance behavior with focused receipts followed by the project aggregate check profile."},
+          {"id": "GOLD-CODE-005", "statement": "Implement accepted minimal persisted open/closed state, open default/backfill, rejection of closed create, explicit close/reopen for owner/member in active projects, independent priority, and archived read-only state. Do not confuse this required state with forbidden task archiving."}
         ],
         "accepted_strong_decisions": [],
         "accepted_alternatives": [
@@ -298,7 +306,8 @@
       "golden": {
         "required_outcomes": [
           {"id": "GOLD-CODE-REVIEW-001", "statement": "Find and close material deviations from accepted obligations, invariants, proof limits and engineering rules using direct evidence."},
-          {"id": "GOLD-CODE-REVIEW-002", "statement": "Keep mandatory CODE verification distinct from independent review and reject taste-only or scope-expanding findings."}
+          {"id": "GOLD-CODE-REVIEW-002", "statement": "Keep mandatory CODE verification distinct from independent review and reject taste-only or scope-expanding findings."},
+          {"id": "GOLD-CODE-REVIEW-003", "statement": "Verify the required minimal open/closed contract, especially independent priority, active-project transitions and forbidden archived state edits; retain the prohibition on task archiving and extra workflow."}
         ],
         "accepted_strong_decisions": [
           {"id": "STRONG-CODE-REVIEW-001", "statement": "A strong review groups compatible aspects into capacity-aware waves, gives every reviewer a fresh read-only session, and makes one evidence-backed disposition for each material finding."},
@@ -327,7 +336,7 @@
       "golden": {
         "required_outcomes": [
           {"id": "GOLD-MERGE-001", "statement": "Integrate exactly the frozen accepted source through the configured serialized merge route without bypassing the queue or lock."},
-          {"id": "GOLD-MERGE-002", "statement": "Run the declared merge gate on the integrated tree, confirm the configured delivery target and retain or remove the source only according to policy."}
+          {"id": "GOLD-MERGE-002", "statement": "Run the declared merge gate on the integrated tree, confirm the configured delivery target and retain or remove the source only according to policy, preserving accepted open/closed and priority contracts."}
         ],
         "accepted_strong_decisions": [],
         "accepted_alternatives": [],
@@ -353,7 +362,7 @@
       ],
       "golden": {
         "required_outcomes": [
-          {"id": "GOLD-E2E-001", "statement": "Preserve four-value/default, stable-order and narrow archived-project priority-only decisions through all stages without scope drift."},
+          {"id": "GOLD-E2E-001", "statement": "Preserve four-value/default, stable-order, accepted minimal open/closed state and narrow archived-project priority-only decisions through all stages without scope drift; archived state edits remain forbidden."},
           {"id": "GOLD-E2E-002", "statement": "Complete CODE from the accepted work graph, close material CODE-REVIEW findings, integrate the frozen result through MERGE and prove the configured target tree."}
         ],
         "accepted_strong_decisions": [],
