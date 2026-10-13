@@ -48,6 +48,23 @@ test("native unknown SSE attribution survives bounded projection without becomin
   assert.equal(executionEvidence(fanout).failure.attribution, "undetermined");
 });
 
+test("native type and root attribution survive both direct and fanout diagnostics", () => {
+  const provider_error = { type: "AiSdkModelAdapterError", source: "provider", reason: "unknown", errorPhase: "stream", exceptionKind: "generic", providerId: "account:example", modelId: "GLM-5.3-Flash", providerKind: "anthropic", transport: "sse", retryable: false, retryAfterMs: 1000, resetAt: 1791839989041, headers: { authorization: "secret" }, message: "secret" };
+  const { headers, message, ...expected } = provider_error;
+  for (const details of [{ provider_error }, { failures: [{ work_id: "WRK-004", status: "failed", provider_error }] }]) {
+    const diagnostic = failureDiagnostic({ code: "fanout_child_failed", details });
+    const { headers: projectedHeaders, ...actual } = diagnostic.details.provider_error ?? diagnostic.details.failures[0].provider_error;
+    assert.deepEqual(actual, expected);
+    assert.ok(projectedHeaders === undefined || Object.keys(projectedHeaders).length === 0);
+    assert.doesNotMatch(JSON.stringify(diagnostic), /secret/);
+  }
+  for (const codexErrorInfo of ["serverOverloaded", { code: "serverOverloaded" }]) {
+    const diagnostic = failureDiagnostic({ code: "fanout_child_failed", details: { failures: [{ work_id: "W", provider_error: { codexErrorInfo, willRetry: false, message: "secret" } }] } });
+    assert.deepEqual(diagnostic.details.failures[0].provider_error, { codexErrorInfo, willRetry: false });
+    assert.doesNotMatch(JSON.stringify(diagnostic), /secret/);
+  }
+});
+
 test("Judge distinguishes issued canon from rubric omissions, drafts and contradictions", async () => {
   const prompt = finalJudgePrompt({ assessment, scope: "e2e", assessmentFile: "/assessment", candidateFile: "/candidate", evidenceFile: "/evidence" });
   assert.match(prompt, /Frozen canonical answers actually issued to the Subject define accepted task content/);

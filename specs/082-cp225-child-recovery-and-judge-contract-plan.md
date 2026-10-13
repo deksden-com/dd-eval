@@ -31,6 +31,46 @@
 Исторический CP225 не изменён и не возобновлён. Живая приёмка остаётся отдельной
 операционной задачей после выпуска/установки engine и bridge.
 
+## Ревью реализации 082
+
+Повторно проверены A–E: admission/replay и immutable identity; новая Work
+attempt/start/finish/fail authority и crash boundary; retained native lifetime,
+pagination и отсутствие resume; Judge schema и действительно выданный canon.
+Обнаружены и исправлены три существенных недостатка:
+
+1. В `nextControllerFanout` произвольная причина `work fail` ошибочно считалась
+   объектом JSON receipt. Допустимая причина `null` вызывала TypeError вместо
+   `fanout_child_failed`; вложенный raw provider_error мог обойти sanitization.
+   Теперь JSON scalar/array/plain text остаётся неизвестной legacy metadata,
+   безопасные provider-поля проходят существующий safeNativeFailure, terminal
+   identities ограничены строковым типом/размером. Work и siblings не меняются.
+2. Native error type терялся после bridge, а верхнеуровневые provider/model/
+   phase/retry facts терялись в EVAL diagnostic (вложенный attribution работал).
+   Дополнены существующие allowlists в engine и EVAL, без нового протокола или
+   классификации unknown как overload. Для Codex fanout также сохраняются
+   codexErrorInfo и willRetry, как уже сохранялись в direct failure path.
+   Raw message/headers/body не передаются.
+3. Счётчики fanout уже использовали текущую stage/attempt/cycle membership,
+   а список failures выбирал всех failed children того же parent. Исторический
+   failure мог попасть к Judge как ошибка текущей стадии. Теперь список
+   использует тот же stageWorkIds; SQL-регрессия сохраняет исторический failed
+   Work, но исключает его из текущего blocker.
+
+Недостатки сначала воспроизведены падающими регрессиями. Ревью-проверки:
+228 affected engine tests PASS, typecheck/build/lint, release (2 build checks
+и 8 policy tests), runtime-sensitive 46/46 с inventory/provenance; полный
+EVAL suite 802 PASS/10 opt-in skips/0 failures; bridge affected tests 13/13.
+Полный integration 2378/2378 выше относится к исходной реализации; для
+небольших диагностических исправлений повторены затронутые contracts/gates,
+а не заявлена новая полная живая приёмка.
+
+Engine follow-ups: [PR #61](https://github.com/deksden-com/dd-flow-cli/pull/61)
+и [PR #62](https://github.com/deksden-com/dd-flow-cli/pull/62).
+
+Удаляются только чистые worktrees/ветки 082 с доказанным merge. Отдельные
+memory-наработки, расходящийся локальный main, исторические runtime homes и
+их evidence сохраняются. Новые пакеты/EVAL по этой задаче не выпускаются.
+
 ## Цель и границы
 
 Устранить доказанные причины остановки полного ZCode + Luna Decisions E2E
@@ -41,7 +81,8 @@
 
 Рабочая база реализации: актуальный origin/main каждого репозитория в отдельных
 короткоживущих ветках. Первичный локальный main dd-eval отличается от origin;
-его не сбрасывать. Реализация EVAL и план находятся в fix/082-judge-evidence.
+его не сбрасывать. Исходная реализация интегрирована по refs выше;
+короткоживущие ветки реализации удаляются после merge и проверки чистоты.
 
 ## Доказанные факты
 
