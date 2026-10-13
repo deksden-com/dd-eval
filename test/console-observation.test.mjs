@@ -71,7 +71,7 @@ test("runner publishes a durable console observation after a committed event", a
   const eventsFile = path.join(root, "events.jsonl");
   await appendEvent(eventsFile, { source: "fixture", runId: "EVAL-001", executionId: "e2e", type: "dev.dd.eval.execution.candidate_ready", data: { state: "candidate_ready" } });
   const observation = JSON.parse(await readFile(path.join(root, "observation.json"), "utf8"));
-  assert.deepEqual(observation, { schema_id: "dd-eval/observation@1", run_id: "EVAL-001", observed_at: observation.observed_at, last_sequence: 1, state: "planned", executions: [{ id: "e2e", state: "candidate_ready", last_sequence: 1 }], pending_operations: [], candidate: false, judge: "unknown" });
+  assert.deepEqual(observation, { schema_id: "dd-eval/observation@1", run_id: "EVAL-001", observed_at: observation.observed_at, last_progress_at: observation.observed_at, last_sequence: 1, state: "planned", health: null, executions: [{ id: "e2e", state: "candidate_ready", last_sequence: 1 }], pending_operations: [], candidate: false, judge: "unknown" });
 });
 
 test("a duplicate retry repairs observation after a committed journal event", async () => {
