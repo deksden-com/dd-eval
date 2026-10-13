@@ -106,21 +106,23 @@ for (const nativeHarness of ['zcode-acp','codex-desktop']) test(`${nativeHarness
     db.prepare('INSERT INTO sessions VALUES(?,?,?,?,?,?)').run('child-store',binding.project_id,binding.provider_session_id,binding.harness_id,'parent-store',binding.parent_provider_session_id);
     db.prepare('INSERT INTO sessions VALUES(?,?,?,?,?,?)').run('parent-store',binding.project_id,binding.parent_provider_session_id,binding.harness_id,null,null);
     db.prepare('INSERT INTO stage_work_memberships VALUES(?,?,?,?,?,?)').run(binding.project_id,binding.run_id,binding.work_id,binding.stage,binding.stage_attempt_id,binding.stage_cycle); db.close();
-    const providerError = failure(binding).details.controller.error.details.failures[0].provider_error;
+    const providerError = nativeHarness === 'zcode-acp' ? {} : failure(binding).details.controller.error.details.failures[0].provider_error;
+    const rawNativeError = { ...providerError, reason: 'не типизированная причина', headers: { authorization: 'secret' }, message: 'secret' };
     await writeFile(path.join(runRoot,'timeline.jsonl'),JSON.stringify({run_id:binding.run_id,stage:binding.stage,type:'native_child_reconciliation',reconciled:[{outcome:'failed',native_binding:binding}],observations:{harness_id:binding.harness_id,parent_session_id:binding.parent_provider_session_id,children:[{status:'failed',session_id:binding.provider_session_id,parent_session_id:binding.parent_provider_session_id,terminal_turn_id:binding.terminal_turn_id,provider_error:providerError}]}})+'\n');
     await writeFile(path.join(runtime,path.dirname(journalRelative),'daemon.json'),JSON.stringify({sessions:[{provider_session_id:binding.parent_provider_session_id,root_provider_session_id:binding.parent_provider_session_id,adapter_session_id:'native-root'}]}));
     const journal = nativeHarness === 'codex-desktop' ? [
       {kind:'outbound',payload:{id:1,method:'thread/read',params:{threadId:binding.provider_session_id}}},
-      {kind:'inbound',payload:{id:1,result:{thread:{id:binding.provider_session_id,turns:[{id:binding.terminal_turn_id,status:'failed',error:providerError}]}}}}
+      {kind:'inbound',payload:{id:1,result:{thread:{id:binding.provider_session_id,turns:[{id:binding.terminal_turn_id,status:'failed',error:rawNativeError}]}}}}
     ] : [
       {kind:'outbound',payload:{id:1,method:'zcode/session/subagents',params:{sessionId:'native-root'}}},
       {kind:'inbound',payload:{id:1,result:{ended:{items:[{childSessionId:binding.provider_session_id,status:'failed',startedAt:1,endedAt:2}]}}}},
       {kind:'outbound',payload:{id:2,method:'zcode/session/retainedTerminal',params:{sessionId:binding.provider_session_id,startedAt:1,endedAt:2}}},
-      {kind:'inbound',payload:{id:2,result:{sessionId:binding.provider_session_id,available:true,terminal_turn_id:binding.terminal_turn_id,startedAt:1,endedAt:2,provider_error:providerError}}}];
+      {kind:'inbound',payload:{id:2,result:{sessionId:binding.provider_session_id,available:true,terminal_turn_id:binding.terminal_turn_id,startedAt:1,endedAt:2,provider_error:rawNativeError}}}];
     await writeFile(path.join(runtime,journalRelative),journal.map(JSON.stringify).join('\n')+'\n');
     const manifest = {schema_id:'dd-flow/eval-run-snapshot@5',purpose:'recovery',stage_entry:null,run_id:binding.run_id,project_id:binding.project_id,recovery_id:'R',project_root:originalProject,dd_flow_home:originalRuntime,consistency:'sealed_writer_barrier_required',workspace:{sha256:snapshotTreeHash(path.join(snapshot,'workspace'))},runtime_sha256:snapshotTreeHash(runtime)};
     const bytes = JSON.stringify(manifest); await writeFile(path.join(snapshot,'snapshot.json'),bytes);
     const result = { ...failure(binding),execution,state:'failed',run_id:binding.run_id,stage:'specify',recovery:{snapshot,manifest:path.join(snapshot,'snapshot.json'),manifest_sha256:createHash('sha256').update(bytes).digest('hex'),control_id:'C',generation:1,recovery_id:'R',settlement} };
+    result.details.controller.error.details.failures[0].provider_error = providerError;
     await resolveBoundSnapshot({evalRoot:root,execution,result,checkpoint:result.recovery,purpose:'recovery'});
     const verified = await verifyCapturedNativeFailure({evalRoot:root,result});
     assert.equal(verified.status,'confirmed',JSON.stringify(verified));
