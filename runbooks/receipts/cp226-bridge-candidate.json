@@ -1,0 +1,21 @@
+{
+  "schema_id": "dd-eval/harness-candidate-receipt@1",
+  "status": "candidate_native_probe_passed",
+  "source_commit": "9c5ca6cc81c4eb5065e43f8b7ab6b7cc5ab7ae47",
+  "upstream": "v0.52.0",
+  "contract": "dd-zcode-harness@2",
+  "artifact_sha256": "d55bdaa780b749033f2cbc3e22005c09c27ade98e4e3b299789e59a78ecc2b34",
+  "release": "https://github.com/deksden-com/zcode-acp/releases/tag/dd-zcode-acp-0.52.0-9c5ca6c",
+  "evidence_home": "/Users/deksden/.dd-eval/qualification/cp-226-bridge",
+  "native_store": "harness-owned ambient storage; not a fresh-store claim",
+  "checks": {
+    "typecheck_build_lint": "passed",
+    "affected_contract_tests": 24,
+    "root_tool": "observed",
+    "concurrent_direct_children": 2,
+    "same_child_continuation": "observed",
+    "native_terminal": "end_turn",
+    "daemon_stop": "passed"
+  },
+  "limitations": ["no capacity=15 claim", "managed lifecycle/capacity qualification is still required before scored launch", "candidate is not completed E2E acceptance"]
+}
