@@ -1,7 +1,7 @@
 # 083 — переход dd-opencode на OpenCode v2
 
-Статус: код v2 реализован; release/install не завершены — full gate и pack
-блокированы текущим окружением. Подробности в receipt реализации. Scored
+Статус: код v2 реализован, полный локальный release gate пройден; engine
+beta.135 опубликован и интегрирован, OpenCode 2.0.28 установлен. Подробности в receipt реализации. Scored
 SPECIFY/E2E не запускаются по текущему указанию пользователя. Техническая
 conformance на native 2.0.28 использует локальный deterministic provider stub.
 Дата исследования: 2026-10-13.

@@ -1,7 +1,7 @@
 # 083 implementation / installation receipt
 
 Date: 2026-10-13. Native candidate: OpenCode/client/plugin 2.0.28;
-engine source candidate: 0.9.0-beta.135, not published or installed yet.
+engine: 0.9.0-beta.135, published and installed.
 Scored SPECIFY/full E2E deliberately deferred.
 This receipt records technical conformance, not model or product acceptance.
 
@@ -54,7 +54,10 @@ excluded. Parent-first native tree archives do not copy credentials or user DBs.
   active shell cancel PASS. Long shell emitted output for >120s with a 10s
   sliding observer and finished PASS; no fixed native cutoff.
 - Packed/installed snapshot loads SDK and plugin offline from outside checkout.
-  Full release gates have not passed; see the explicit blockers below.
+  Final full local release gate: 2381 integration cases / 139 files and
+  46 runtime-sensitive cases / 2 files PASS, zero failures/skips; complete
+  source/build-bound inventories verified. Exact installed-tarball native probes:
+  2/2 PASS, including the long shell.
 - EVAL full suite: 813 total, 803 PASS, 10 explicit platform/opt-in skips;
   no failures. Additional terminal identity/negative overload attribution checks PASS.
 
@@ -67,40 +70,46 @@ model availability, real quota and scored flow acceptance remain future gates.
 Source candidate: `2bf31592781b08329fed05b207d73e2485bdb868`;
 canon: `fb848eee0c7340f8a776f269b86b9ac8412dec24` (4.1.2).
 Engine implementation [PR 64](https://github.com/deksden-com/dd-flow-cli/pull/64)
-is pushed, not merged. Earlier frozen candidates/failed reports are retained;
-they do not qualify this final source tuple.
+squash merged at `38e8738c36b27d70c36eb3c02d753a2d19ce238e`.
+Release tag `v0.9.0-beta.135` identifies the verified source `2bf3159`, not
+the squash commit. Candidate tarball SHA256:
+`d893f7b758be1ef4abd197e3d13f081caf3b1752f66f1b44f50882e6f7abb486`.
+Guarded acceptance, registry byte readback and registry consumer verification
+PASS; engine snapshot checksum:
+`8ee5ab2e4c7962dce99dd9062dd15bc792684458460bb7f3718709826bcc14ee`.
 
-[Actions release run](https://github.com/deksden-com/dd-flow-cli/actions/runs/38411144949)
-was blocked before any step by account billing/spending settings. This is not a
-CI PASS. Main has no configured protected required checks. Use the supported
-guarded local candidate/accept/publish route after all equivalent required suites
-and their complete source/build-bound inventory pass.
-
-Local full gate also failed on a loaded Mac: `process_ownership_unknown` /
-`physical_identity_unavailable` in real process confirmation. The unchanged
-ownership reader requires OS `ps` birth readback; an unavailable observation
-must remain fail-closed, not a synthetic successful confirmation. A subsequent
-sequential run encountered the same barrier, not merely four-shard contention.
-`npm pack` of the final source also hit its 120s tool guard without producing a
-candidate receipt. No accepted artifact, registry publish or release tag exists.
+The final gate and publication were entirely local, with no CI use. Receipts:
+`/Users/deksden/.dd-eval/artifacts/opencode/2.0.28/engine-beta135-local-tests`
+and `engine-candidate-beta135-local-retry`. Earlier failed attempts under heavy
+load are retained, not counted as PASS. OS ownership proof remains fail-closed
+and unchanged; the complete final run passed it without bypasses.
 
 Additional fixture repairs: current daemon-state schema in six-transport tests;
 positive OpenCode scheduling margins separated from deliberate silence expiry;
 recovery cold-CLI guard and whole physical-stop test use the existing CI envelope,
 with retained binding diagnostics. Runtime retry/ownership semantics are unchanged.
 
-Installed native remains OpenCode 1.18.35; installed launcher remains engine
-0.9.0-beta.134. Both Codex homes still share their existing absolute launcher
-and explicit-pin hook configuration. Do not deploy a mismatched native/adapter
-pair while the required gate is unconfirmed.
+Installed native is OpenCode 2.0.28, exact executable hash as above; installed
+launcher and prepared default engine are beta.135. Installation used the saved
+official installer with the verified local binary and `--no-modify-path`, plus
+the accepted engine tarball while npm processed its publication. Both Codex
+homes retain their shared absolute launcher and explicit-pin configuration.
+SessionStart preparation returned `{}`; configured PreToolUse commands under
+minimal PATH returned `{}` in both homes, and a missing explicit pin failed
+with exit 127 rather than switching engines.
 
 Private v1 executable/config/auth/SQLite-aware backup is retained at
 `/Users/deksden/.dd-eval/artifacts/opencode/2.0.28/v1-backup-20261013`;
 backup DB quick_check is OK. No user DB migration occurred. Only owned test
 processes were retired; unrelated apps/EVALs and primary divergent mains remain.
 
-To finish: run the full source/build-bound inventory and guarded pack/accept/
-publish when OS readback is reliable (or Actions billing is restored); verify
-registry bytes, install the selected native/engine pair, warm and verify both
-Codex hook homes, run local-stub post-install conformance, then squash merge.
-Do not launch scored EVALs as part of that continuation.
+Post-install native conformance uses the installed binary and installed engine
+assets against the same local deterministic provider: 2/2 PASS, zero skips,
+including >120s shell, active cancellation, children and relocated archive.
+Logs: `native-installed-local-proof.log` and `native-post-install-proof.log`
+under the artifact root. The pnpm-installed default snapshot is healthy with
+checksum `4ace1e00f14f6cdba90fd881cf8b675095abf594ed4869f63a7dc15ea12b0304`;
+this is recorded separately from the npm registry consumer snapshot above.
+Installed compatibility verdict is `ok` on canon 4.1.2.
+Scored EVALs remain
+deferred; technical conformance does not assert model/product acceptance.
