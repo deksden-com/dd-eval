@@ -113,3 +113,20 @@ this is recorded separately from the npm registry consumer snapshot above.
 Installed compatibility verdict is `ok` on canon 4.1.2.
 Scored EVALs remain
 deferred; technical conformance does not assert model/product acceptance.
+
+## Post-implementation review
+
+Reviewed the v2 transport/queue/outcome and sliding observer, native ownership,
+child settlement/cancellation, private credentials/config, archive boundaries,
+owned plugin admission and packed SDK assets against plan 083. Scored acceptance
+remains explicitly deferred, not claimed from the technical probes.
+
+One confirmed defect: the security-only no-flow plugin returned before removing
+OpenCode's implicit 120s shell cutoff. The common shell entry now sets an omitted
+timeout to zero in both modes while preserving explicit values. No lifecycle
+dispatch is introduced in no-flow mode. Regression checks default, zero and
+explicit timeout plus absence of hook dispatch. Adapter 26/26, shared progress
+12/12, typecheck and lint PASS locally, no CI or new EVALs.
+
+This follow-up is source-only. Published/installed beta.135 and its receipts above
+are unchanged; the fix requires a subsequent engine release before live use.
