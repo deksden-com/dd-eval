@@ -41,6 +41,9 @@ test('causal traversal deduplicates, bounds, rejects cycles and excludes cleanup
   current.code = 'provider_account';
   assert.equal(causalNodes(error).incomplete, true);
   assert.equal(classifyInterruption(error).retryable, false);
+  let shared = { code: 'leaf' };
+  for (let i = 0; i < 12; i++) shared = { code: 'wrapper', cause: shared, details: { cause: shared, primary_error: shared, error: shared, controller: { error: shared } } };
+  assert.ok(JSON.stringify(failureDiagnostic(shared)).length < 10000,'diagnostics must not expand a shared causal DAG exponentially');
 });
 
 test('typed account, unavailable and budget share infrastructure classification through all cause branches', () => {
@@ -123,6 +126,13 @@ for (const nativeHarness of ['zcode-acp','codex-desktop']) test(`${nativeHarness
     assert.equal(report.run_validity,'invalid_infrastructure_flow');
     assert.equal(report.executions[0].failure.category,'native_execution_failed');
     assert.equal(isInfrastructureFailure(structuredClone(result)),false,'serialized flags are not authority');
+    const carrier = result.details.controller.error.details;
+    carrier.stage = 'foreign';
+    assert.equal(isInfrastructureFailure(result),false,'changed carrier scope invalidates authority');
+    delete carrier.stage;
+    carrier.failures[0].native_binding.schema_id = 'foreign';
+    assert.equal(isInfrastructureFailure(result),false,'changed binding contract invalidates authority');
+    carrier.failures[0].native_binding.schema_id = 'dd-flow/native-work-failure@1';
     result.execution = 'foreign';
     assert.equal(isInfrastructureFailure(result),false,'execution relocation invalidates authority');
     result.execution = execution;
@@ -132,6 +142,9 @@ for (const nativeHarness of ['zcode-acp','codex-desktop']) test(`${nativeHarness
     result.run_id = 'foreign';
     assert.equal(isInfrastructureFailure(result),false,'verified identity cannot survive mutation');
     result.run_id = binding.run_id;
+    result.recovery.settlement.circular = result.recovery.settlement;
+    assert.equal(hasVerifiedNativeFailure(result),false,'unserializable signature never grants authority');
+    delete result.recovery.settlement.circular;
     await writeFile(path.join(runtime,journalRelative),'');
     assert.equal((await verifyCapturedNativeFailure({evalRoot:root,result})).status,'unconfirmed');
     assert.equal(isInfrastructureFailure(result),false);
