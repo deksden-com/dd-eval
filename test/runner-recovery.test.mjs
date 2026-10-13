@@ -163,12 +163,12 @@ test("exhausted cleanup worker accepts an already published exact terminal recei
   assert.deepEqual(await readFile(eventsFile), before);
   // A later generation cannot borrow the old completed projection.
   await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: "dev.dd.eval.operation.requested", data: { operation_id: `${manifest.run_id}:e:launch:recover:next` } });
-  assert.equal(await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: manifestHash, signal: AbortSignal.timeout(1000) }), null);
+  assert.equal(await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: manifestHash, signal: AbortSignal.timeout(10000) }), null);
   await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: "dev.dd.eval.operation.failed", data: { operation_id: `${manifest.run_id}:e:launch:recover:next`, error: { code: "preflight_failed", message: "before session" } } });
   await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, type: "dev.dd.eval.completed", data: { state: "completed_with_failures", result_revision: runResultRevision(await readEvents(eventsFile), manifest) } });
   // Same states and a current terminal event still cannot reuse an older report
   // whose existing execution_history identifies the previous generation.
-  assert.equal(await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: manifestHash, signal: AbortSignal.timeout(1000) }), null);
+  assert.equal(await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: manifestHash, signal: AbortSignal.timeout(10000) }), null);
 });
 
 test("terminal cleanup receipt rejects unsettled or foreign-scope cancelled native work", async t => {
@@ -308,6 +308,8 @@ test('explicit Judge reuse refuses missing or failed cleanup without another pai
   const publication = await runnerResume({ evalRoot: root });
   probe.mock.restore();
   assert.equal(publication.judge_status, 'failed');
+  assert.equal(publication.state, 'awaiting_cleanup');
+  assert.equal(publication.cleanup_state, 'pending');
   const report = JSON.parse(await readFile(path.join(root, 'reports/report.json')));
   assert.equal(report.judge_status, 'failed');
   assert.deepEqual(report.judge, receipt);

@@ -8,12 +8,14 @@ import { reconcileHitlQualification } from "../lib/runner.mjs";
 import { runnerControlReconcile, runnerControlRequest, runnerControlStatus } from "../lib/runner.mjs";
 import { requestEvalResume, requestEvalRun, requestRunnerContinuation } from "../lib/eval-resume-worker.mjs";
 import { validateExpectedExecutionInputs } from "../lib/execution-contract.mjs";
+import { reconcileEvalHealth } from "../lib/runner-health.mjs";
 
 function usage() {
   return `dd-eval — deterministic evaluation runner
 
 Usage:
   dd-eval homes list
+  dd-eval runner health --eval <root> [--apply true] [--flow-cli <executable>] [--no-progress-ms <milliseconds>]
   dd-eval homes add --path <home> [--label <name>]
   dd-eval homes remove --id <id>
   dd-eval runner fixtures validate --case <case-id> [--revision REV-NNN]
@@ -83,6 +85,7 @@ try {
   if (!family || family === "help" || family === "--help") { process.stdout.write(usage()); process.exit(0); }
   let result;
   if (family === "homes" && command === "list") result = await listHomes();
+  else if (family === "runner" && command === "health") result = await reconcileEvalHealth({ evalRoot: required(options,"eval"), apply: optionalBoolean(options,"apply") ?? false, flowCli: options["flow-cli"] ?? null, ...(options["no-progress-ms"] ? {noProgressMs:Number(options["no-progress-ms"])} : {}) });
   else if (family === "homes" && command === "add") result = await addHome(required(options, "path"), options.label);
   else if (family === "homes" && command === "remove") result = await removeHome(required(options, "id"));
   else if (family === "runner" && command === "fixtures" && action === "validate") result = await fixturesValidate({ caseId: required(options, "case"), ...(options.revision ? { revision: options.revision } : {}) });
