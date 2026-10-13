@@ -79,6 +79,34 @@ artifacts rather than copying a version from prose documentation.
    EVAL ID/path and installed tuple. Follow [execute-eval.md](execute-eval.md)
    and [e2e-monitoring.md](e2e-monitoring.md).
 
+### OpenCode v2-only update
+
+Use the verified @opencode/cli platform package (not opencode-ai v1), exact
+version and integrity from [083 receipt](cp-083-opencode-v2-implementation.md).
+Before replacing the direct installed binary, check exact active-process paths
+and retain a private executable/config backup. Never copy a live SQLite file
+without WAL; no user DB is opened by the adapter's technical probes.
+
+Review/save the official installer, then use its `--binary <verified-binary>
+--no-modify-path` path; verify installed version/hash and command resolution.
+Update dd-flow in the same maintenance window. The v2-only dd-opencode refuses
+v1 state/archive directories: use a fresh state dir, explicit --opencode-bin and
+selected provider/model/agent. The archive tag preserves rollback, not dual support.
+
+`--config-path` selects portable JSON/JSONC providers and operator restrictions;
+third-party plugins and user Session DBs are not copied. `--auth-path` accepts
+the selected legacy provider auth map or a native v2 credential-list JSON export.
+Selected credentials are activated/read back in the private server; rewriting
+auth.json after DB migration is not authentication proof. Never commit exports.
+
+The owned private daemon uses unregistered serve, its own DB/XDG paths and a
+launch-bound dd-flow plugin. Run `dd-opencode doctor --state-dir <dir> --json`;
+no-flow readiness does not prove productive hooks. Technical local-stub probes
+and required release gates precede live qualification. Existing model profiles
+remain candidates until selected-model qualification; unchanged Judge is not
+requalified merely because OpenCode changed. Do not run scored EVALs when the
+task only authorizes implementation/installation.
+
 ### Codex CLI / dd-flow hook refresh
 
 When the candidate engine is published, refresh the installed Codex hook

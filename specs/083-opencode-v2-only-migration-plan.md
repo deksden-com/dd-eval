@@ -1,7 +1,9 @@
 # 083 — переход dd-opencode на OpenCode v2
 
-Статус: readiness review выполнено; готов к поэтапной реализации, с обязательным
-native contract gate A перед productive admission. Реализация/приёмка не начаты.
+Статус: код v2 реализован; release/install не завершены — full gate и pack
+блокированы текущим окружением. Подробности в receipt реализации. Scored
+SPECIFY/E2E не запускаются по текущему указанию пользователя. Техническая
+conformance на native 2.0.28 использует локальный deterministic provider stub.
 Дата исследования: 2026-10-13.
 
 ## Решения и границы
@@ -13,8 +15,9 @@ native contract gate A перед productive admission. Реализация/п�
   lifecycle instructions, repair, Judge и Decisions остаются общими.
 - Сторонние плагины, в том числе moshi-hooks.ts, исключены из анализа,
   реализации и критериев приёмки. Изолированный EVAL не загружает их.
-- Сейчас только фиксируем v1 и план. Не обновляем установленный OpenCode,
-  пользовательскую конфигурацию, активные runtime homes или исторические EVAL.
+- Реализация включает обновление установленного OpenCode. Пользовательскую
+  конфигурацию, сторонние плагины, активные runtime homes и исторические EVAL
+  не изменяем; новые эвалы отложены отдельным указанием пользователя.
 - Начальный кандидат: @opencode/cli, @opencode/client и @opencode/plugin
   2.0.28. Версия проверена в registry, но кандидат ещё не квалифицирован.
   При реализации повторно проверить доступность, platform package и integrity;
@@ -35,6 +38,10 @@ native contract gate A перед productive admission. Реализация/п�
 запуск старого runtime через новый адаптер и не переписывание его БД.
 
 ## Проверенная база и источники
+
+Итоговые version/hash, integration/release gates и установка фиксируются в
+[receipt реализации 083](../runbooks/cp-083-opencode-v2-implementation.md).
+Native tuple пока не является принятым scored E2E tuple.
 
 Engine исследован по origin/main b243f4d; EVAL — по origin/main 4779b95.
 Расходящиеся первичные локальные main и чужие рабочие деревья не изменяются.
@@ -90,6 +97,36 @@ V2 устанавливается пакетом @opencode/cli, а не обно
 opencode-provider, который регистрирует dd-opencode-daemon.mjs. При наличии
 owner.budget provider registration получает undefined harness. В B/E добавить
 точное сопоставление и регрессию этой productive ветки; не обходить budget gate.
+
+### Уточнения, подтверждённые во время реализации
+
+- CLI 2.0.28 по умолчанию не сохраняет payload событий: session.log может
+  вернуть только log.synced. Durable authority — projected user/idle с точным
+  outcome/error. Volatile events ускоряют observer, но не заменяют эту проверку.
+- Running shell snapshot может ещё не содержать shellID; native tool.progress
+  передаёт его отдельно. Handle сохраняется в operation observer; пропуск
+  события восполняется только однозначным shell.list readback (Session,
+  message-time boundary), затем shell.output cursor отслеживает новые байты.
+- Native плагин исполняется embedded Bun: process.execPath там — opencode,
+  а не Node. В launch binding передаётся выбранный Node executable.
+- Autodiscovery загружает plugins/*.js или *.ts, не *.mjs; configured local
+  plugin — directory. Принадлежащая нам wrapper *.js импортирует pinned factory.
+- Snapshot install раньше дублировал общий dependency DAG под каждым parent.
+  Применено стандартное Node hoisting с локальными конфликтующими версиями;
+  ESM-only packages разрешаются по package root, не require export condition.
+- Native export — один physical Session. V2 archive явно содержит parent-first
+  exports root и всех descendants; import валидирует дерево до первого эффекта.
+  Исторические v1 archives не конвертируются.
+- Promise client и Plugin.define поставляются неизменёнными upstream assets
+  в engine: optional AI/Effect/TUI dependency graph не устанавливается при
+  каждом холодном hook/snapshot запуске. Offline packed проверка обязательна.
+- Topology и root messages читаются раздельно. Если native child notification
+  появился между ними, observer повторно подтверждает ancestry read-only до
+  классификации; notification без native parent proof остаётся чужим вводом.
+- При локальном full gate обнаружены заниженные guards в существующих
+  recovery fixtures: настоящий cold CLI ограничивался 15с, а physical-stop
+  scenario переопределял общий CI envelope теми же 15с. Fixtures используют
+  существующий CI envelope; production watchdog/ownership checks не меняются.
 
 ## Инвентаризация мест изменения
 

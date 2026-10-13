@@ -75,8 +75,9 @@ the [PLAN-draft and Controller-liveness specification 012](specs/012-plan-drafts
 The [Grok Build harness specification 013](specs/013-grok-build-harness-integration.md)
 defines the implemented Grok integration. The common
 [harness backend contract 014](specs/014-harness-backend-contract.md) and
-[OpenCode harness specification 015](specs/015-opencode-harness-integration.md)
-define the next backend integration; the
+[historical OpenCode v1 specification 015](specs/015-opencode-harness-integration.md)
+define the backend contract; current OpenCode follows the
+[v2-only migration 083](specs/083-opencode-v2-only-migration-plan.md). The
 [2026-08-29 OpenCode research record](runbooks/dd-opencode-research-2026-08-29.md)
 captures the safe live transport and native export/import probes. The active
 [deterministic runner and portable stage-entry specification 017](specs/017-deterministic-eval-runner-and-portable-stage-entry.md)

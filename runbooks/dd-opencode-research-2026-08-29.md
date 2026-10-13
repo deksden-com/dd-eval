@@ -1,6 +1,6 @@
 # OpenCode harness research — 2026-08-29
 
-Status: transport and portability research passed; model/delegation conformance pending
+Status: historical v1 research; current v2 contract and pins are in [083](../specs/083-opencode-v2-only-migration-plan.md) and [its receipt](cp-083-opencode-v2-implementation.md).
 
 ## Baseline
 
