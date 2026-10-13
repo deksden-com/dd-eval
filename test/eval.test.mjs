@@ -690,6 +690,15 @@ test("interruption attribution preserves structured lifecycle and storage errors
   assert.deepEqual(classifyInterruption({ code: "agy_provider_rate_limited", message: "request failed" }).category, "provider_rate_limit");
 });
 
+test("OpenCode overload attribution requires exact terminal native identity", () => {
+  const error = { code: "provider_capacity_transient", details: { native_source: "opencode.v2.session.execution", provider_session_id: "s", turn_id: "msg_1", native_turn_id: "msg_1", terminal_status: "failed" } };
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: error } }).category, "provider_overloaded");
+  for (const patch of [{ native_source: "other" }, { terminal_status: "running" }, { turn_id: "" }, { native_turn_id: "other" }, { provider_session_id: "" }]) {
+    assert.notEqual(classifyInterruption({ ...error, details: { ...error.details, ...patch } }).category, "provider_overloaded");
+  }
+  assert.equal(classifyInterruption({ code: "storage_write_failed", details: { cause: error } }).category, "execution_failure");
+});
+
 test("only exact terminal native overload authorizes Codex continuation", { skip: !capacityPolicy && 'set DD_FLOW_SOURCE_ROOT for pinned policy' }, () => {
   const native = { code: "turn_interrupted", details: { provider_session_id: "thread-1", turn_id: "turn-2", native_turn_id: "turn-2", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" } } };
   assert.equal(terminalCodexOverload(native, "thread-1", capacityPolicy)?.turn_id, "turn-2");

@@ -676,6 +676,8 @@ test("identical failures in successive recovery generations each finalize exactl
 
 test("a productive recovery clears the previous terminal run projection", () => {
   assert.equal(isInfrastructureFailure("opencode_provider_failed"), true);
+  assert.equal(isInfrastructureFailure("provider_capacity_transient"), true);
+  assert.equal(isInfrastructureFailure("opencode_native_hitl"), true);
   const completed = { type: "dev.dd.eval.completed", data: { state: "completed_with_failures" } };
   const started = { type: "dev.dd.eval.operation.started", executionid: "e", data: { operation_id: "EVAL:e:launch:recover:R1:retry:1" } };
   assert.equal(reduceEvents([completed, started]).state, "awaiting_provider");
