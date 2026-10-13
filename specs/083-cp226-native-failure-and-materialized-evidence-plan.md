@@ -401,6 +401,12 @@ reconciliation → frozen capture → EVAL classification/Judge evidence.
    контракта. Точное ожидание обновлено. Отдельный built-policy сбой оказался
    гонкой с build, а не дефектом policy: paired EVAL gate запускается после
    завершённой сборки engine; проверка dist/source parity не ослаблена.
+7. Финальный integration gate воспроизвёл production publication race:
+   controller.status=stop_target_reached был виден раньше pause и terminal
+   event. Общий setStatus теперь атомарно публикует SQL status/audit event;
+   terminal event включён в ту же транзакцию, pause подготовлен до неё.
+   В транзакции нет async/native/FS работы. Stage-controller регрессия требует
+   и durable terminal event, и paused RUN сразу после наблюдаемого status.
 
 Целевые проверки: native/Judge/materialization 11/11; recovery/native 68/68;
 capacity/console/health 19/19; полный PROTOCOLIZE файл 27/27, включая replay
@@ -411,3 +417,9 @@ capacity/console/health 19/19; полный PROTOCOLIZE файл 27/27, вклю
 PR: dd-flow-cli #67, dd-eval #86. Dirty main и активные/уникальные наработки
 других задач сохраняются. Новые EVAL, native signing patch, release, hooks
 и pins не входят в это ревью.
+
+Первый runtime-sensitive прогон имел один fail-closed отказ physical birth
+observation до native dispatch. Guard не ослаблялся: подробная причина OS probe
+не сохранена старым кодом и не объявляется доказанной. Три terminal variants
+повторно PASS; полный runtime-sensitive на свежем main затем 46/46 PASS.
+Старые failed gate logs сохранены вместе с финальными, не заменены success.
