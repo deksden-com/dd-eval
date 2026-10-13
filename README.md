@@ -554,3 +554,5 @@ and deduplicates it against its own sources. Local source removal overrides
 registry discovery in that console. A new home requires no console restart.
 Registry mutations use a process-owned lock and atomic replacement; malformed
 registry data is preserved and reported instead of reset.
+
+`dd-eval runner health --eval ROOT` проверяет состояние по журналу, ownership и cleanup; `--apply true` сохраняет наблюдение. Heartbeat не заменяет прогресс. Старые противоречивые итоги остаются unconfirmed; исходные журналы сохраняются.
