@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { validateJudgeResult, finalJudgePrompt, failureDiagnostic, isInfrastructureFailure } from "../lib/runner.mjs";
+import { validateJudgeResult, finalJudgePrompt, failureDiagnostic, isInfrastructureFailure, executionEvidence } from "../lib/runner.mjs";
 
 const assessment = { scopes: { e2e: { outcome: [], flow: [] } } };
 const result = { schema_id: "dd-eval/judge-result@2", scope: "e2e", run_validity: "valid", outcome: [], flow: [], findings: [], golden: { covered: [], missed: [], alternatives: [], novel: [] }, conclusion: "unreached stages" };
@@ -37,6 +37,15 @@ test("native unknown SSE attribution survives bounded projection without becomin
   delete provider_error.attribution.retryable;
   assert.equal("retryable" in failureDiagnostic(failure).details.provider_error.attribution, false);
   assert.equal(isInfrastructureFailure("hook_event_replay_mismatch"), false);
+  const fanout = { execution: "e2e", state: "failed", code: "fanout_child_failed", details: { failures: [{ work_id: "WRK-004", status: "failed", terminal_turn_id: "native-turn", terminal_observed_at: "2026-10-12T21:19:49Z", provider_error }] } };
+  const retained = executionEvidence(fanout).failure.diagnostic.details.failures[0];
+  assert.equal(retained.work_id, "WRK-004");
+  assert.equal(retained.terminal_turn_id, "native-turn");
+  assert.equal(retained.provider_error.attribution.reason, "unknown");
+  assert.equal(retained.provider_error.attribution.transport, "sse");
+  assert.equal("message" in retained.provider_error, false);
+  assert.doesNotMatch(JSON.stringify(retained), /secret/);
+  assert.equal(executionEvidence(fanout).failure.attribution, "undetermined");
 });
 
 test("Judge distinguishes issued canon from rubric omissions, drafts and contradictions", async () => {
