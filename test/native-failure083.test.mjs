@@ -43,7 +43,7 @@ test('causal traversal deduplicates, bounds, rejects cycles and excludes cleanup
   assert.equal(classifyInterruption(error).retryable, false);
   let shared = { code: 'leaf' };
   for (let i = 0; i < 12; i++) shared = { code: 'wrapper', cause: shared, details: { cause: shared, primary_error: shared, error: shared, controller: { error: shared } } };
-  assert.ok(JSON.stringify(failureDiagnostic(shared)).length < 10000,'diagnostics must not expand a shared causal DAG exponentially');
+  assert.equal((JSON.stringify(failureDiagnostic(shared)).match(/"code":"wrapper"/g) ?? []).length,12,'diagnostics visit each shared causal node only once');
 });
 
 test('typed account, unavailable and budget share infrastructure classification through all cause branches', () => {
