@@ -411,8 +411,7 @@ reconciliation → frozen capture → EVAL classification/Judge evidence.
 Целевые проверки: native/Judge/materialization 11/11; recovery/native 68/68;
 capacity/console/health 19/19; полный PROTOCOLIZE файл 27/27, включая replay
 после удаления worktree. Общий EVAL gate после исправлений: 819 PASS,
-10 opt-in skips, 0 failures. Финальные gates и integration refs фиксируются
-ниже после их завершения. Changeset добавлен без выпуска новой версии.
+10 opt-in skips, 0 failures. Changeset добавлен без выпуска новой версии.
 
 PR: dd-flow-cli #67, dd-eval #86. Dirty main и активные/уникальные наработки
 других задач сохраняются. Новые EVAL, native signing patch, release, hooks
@@ -423,3 +422,24 @@ observation до native dispatch. Guard не ослаблялся: подроб�
 не сохранена старым кодом и не объявляется доказанной. Три terminal variants
 повторно PASS; полный runtime-sensitive на свежем main затем 46/46 PASS.
 Старые failed gate logs сохранены вместе с финальными, не заменены success.
+
+### Финальная верификация и integration
+
+- dd-flow source `9ce25f8`, включая актуальный main `0704927`:
+  typecheck/build/lint PASS, release build checks 2/2 и policy tests 8/8 PASS.
+- Integration: четыре штатных shard, 141 файл, 2397 PASS
+  (1053 + 584 + 391 + 369). После последнего controller publication fix
+  четвёртый shard полностью повторён: 35 файлов / 369 PASS;
+  controller core отдельно 55/55, stage-controller отдельно 26/26 PASS.
+  Все семь стадий, repair, continuation и terminal cleanup покрыты.
+- Runtime-sensitive после последнего исправления: 2 файла / 46 PASS.
+- dd-eval runtime source `7bd5edf`, актуальный main `4deff58`:
+  полный gate 829 tests, 819 PASS, 10 opt-in skips, 0 failures;
+  native/Judge/materialization targeted 11/11 PASS.
+- Логи до/после исправлений сохранены вне удаляемых worktree:
+  `/private/tmp/dd-plan083-review.k3lHxK`. Это offline regression evidence,
+  не release acceptance и не новая живая квалификация.
+- PR #67/#86 интегрируются squash в origin/main по runbooks/git-workflow.md.
+  Локальные main с чужими незавершёнными наработками не переписываются.
+  Удаляются только merged refs 082/083 и неиспользуемые task worktree;
+  open PR, dirty tree и qualified release sources сохраняются.
