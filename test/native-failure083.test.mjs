@@ -24,6 +24,8 @@ test('native attribution needs independent facts, never a receipt-shaped claim',
     assert.equal(validateNativeFailureEvidence(contradictory, [{ ...binding, outcome: 'failed' }]).status, 'unconfirmed', key);
   }
   for (const key of nativeBindingFields) assert.equal(validateNativeFailureEvidence(error, [{ ...binding, [key]: key === 'generation' ? 2 : 'foreign', outcome: 'failed' }]).status, 'unconfirmed', key);
+  const foreignController = failure(); foreignController.details.controller.controller_id = 'foreign';
+  assert.equal(validateNativeFailureEvidence(foreignController, [{ ...binding, outcome: 'failed' }]).status,'unconfirmed');
   assert.equal(isInfrastructureFailure(error), false);
   assert.equal(isInfrastructureFailure({ ...error, native_failure_verified: true }), false);
   assert.equal(hasVerifiedNativeFailure(error), false);
@@ -44,6 +46,7 @@ test('causal traversal deduplicates, bounds, rejects cycles and excludes cleanup
   let shared = { code: 'leaf' };
   for (let i = 0; i < 12; i++) shared = { code: 'wrapper', cause: shared, details: { cause: shared, primary_error: shared, error: shared, controller: { error: shared } } };
   assert.equal((JSON.stringify(failureDiagnostic(shared)).match(/"code":"wrapper"/g) ?? []).length,12,'diagnostics visit each shared causal node only once');
+  assert.equal(isInfrastructureFailure(shared),false,'the infrastructure predicate also deduplicates shared causal nodes');
 });
 
 test('typed account, unavailable and budget share infrastructure classification through all cause branches', () => {
@@ -130,6 +133,9 @@ for (const nativeHarness of ['zcode-acp','codex-desktop']) test(`${nativeHarness
     carrier.stage = 'foreign';
     assert.equal(isInfrastructureFailure(result),false,'changed carrier scope invalidates authority');
     delete carrier.stage;
+    result.details.controller.generation = binding.generation + 1;
+    assert.equal(isInfrastructureFailure(result),false,'changed wrapper controller invalidates authority');
+    delete result.details.controller.generation;
     carrier.failures[0].native_binding.schema_id = 'foreign';
     assert.equal(isInfrastructureFailure(result),false,'changed binding contract invalidates authority');
     carrier.failures[0].native_binding.schema_id = 'dd-flow/native-work-failure@1';
