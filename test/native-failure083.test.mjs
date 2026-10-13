@@ -133,6 +133,8 @@ for (const nativeHarness of ['zcode-acp','codex-desktop']) test(`${nativeHarness
     assert.equal(report.executions[0].failure.category,'native_execution_failed');
     assert.equal(isInfrastructureFailure(structuredClone(result)),false,'serialized flags are not authority');
     const carrier = result.details.controller.error.details;
+    carrier.stage = null;
+    assert.equal(isInfrastructureFailure(result),false,'null scope is not the absence of an optional carrier field');
     carrier.stage = 'foreign';
     assert.equal(isInfrastructureFailure(result),false,'changed carrier scope invalidates authority');
     delete carrier.stage;
