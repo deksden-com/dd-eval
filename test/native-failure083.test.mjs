@@ -123,6 +123,12 @@ for (const nativeHarness of ['zcode-acp','codex-desktop']) test(`${nativeHarness
     assert.equal(report.run_validity,'invalid_infrastructure_flow');
     assert.equal(report.executions[0].failure.category,'native_execution_failed');
     assert.equal(isInfrastructureFailure(structuredClone(result)),false,'serialized flags are not authority');
+    result.execution = 'foreign';
+    assert.equal(isInfrastructureFailure(result),false,'execution relocation invalidates authority');
+    result.execution = execution;
+    result.recovery.settlement.settled = false;
+    assert.equal(isInfrastructureFailure(result),false,'changed settlement invalidates authority');
+    result.recovery.settlement.settled = true;
     result.run_id = 'foreign';
     assert.equal(isInfrastructureFailure(result),false,'verified identity cannot survive mutation');
     result.run_id = binding.run_id;
