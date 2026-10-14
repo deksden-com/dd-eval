@@ -49,6 +49,18 @@ collector уже сохраняет полный inventory. Release и новы�
 tests, начатые до готовности build, не считаются приёмкой. Промежуточные отказы
 реальных fixtures сохраняются отдельно, не заменяются утверждением о PASS.
 
+Итоговые проверки: dd-tasks tooling 22/22 с реальными PostgreSQL/Vitest/Playwright;
+format/lint/typecheck PASS. Engine typecheck/lint, shared evidence/repair 24/24,
+stage gates 9/9, isolated native retry 1/1, strict canon build и release 2+8 PASS.
+Широкий code-check suite: 82/83 PASS, marker-отказ не воспроизвёлся в отдельном
+retry; новый ранний assert не скрывает такой отказ за поздним marker. Это не
+заявление о восстановленной причине исторического отказа.
+EVAL полный offline suite: 889 tests, 883 PASS, 0 FAIL, 1 cancelled (60s total
+deadline), 5 optional installed-input SKIP. После исправления этого test harness
+canonical + diagnostic regressions 3/3 PASS; baseline/diagnostic 11/11 PASS.
+Полный 889-test suite повторно не выполнялся; supplemental результаты сохранены
+отдельно от первого полного запуска. Release и новые EVAL не запускались.
+
 Ponytail: исправлены существующие общие обработчики; новых зависимостей, модели,
 daemon, схем БД или дополнительного repair-механизма нет. Не повторялась модельная
 квалификация Judge, не менялись исторические runtime receipts или candidate test.
