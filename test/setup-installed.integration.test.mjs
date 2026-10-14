@@ -4,7 +4,6 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
 import test from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
 import { setupMemoryRuntime } from '../lib/memory-runtime-setup.mjs';
@@ -30,7 +29,11 @@ test('installed setup and Console observation preserve isolated producer boundar
   assert.match(build.cli_commit, /^[a-f0-9]{40}$/);
   assert.match(build.built_with_canon.commit, /^[a-f0-9]{40}$/);
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'eval-installed-setup-')));
-  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  let consoleSettled = true;
+  t.after(() => {
+    if (consoleSettled) fs.rmSync(root, { recursive: true, force: true });
+    else t.diagnostic(`Unsettled Console fixture retained at ${root}`);
+  });
   const cwd = path.join(root, 'outside-project'), home = path.join(root, 'flow-home');
   fs.mkdirSync(cwd);
   const source = path.join(root, 'private-bundle'); fs.mkdirSync(source);
@@ -161,13 +164,21 @@ test('installed setup and Console observation preserve isolated producer boundar
   const consoleRoot = fs.realpathSync(process.env.DD_EVAL_TEST_SETUP_CONSOLE_ROOT);
   assert.equal(path.basename(consoleRoot), 'dd-console');
   assert.equal(path.basename(path.dirname(path.dirname(consoleRoot))), 'node_modules');
-  const { sourceAdd } = await import(pathToFileURL(path.join(consoleRoot, 'dist/sources.js')).href);
-  const { serve } = await import(pathToFileURL(path.join(consoleRoot, 'dist/server.js')).href);
-  const consoleEnv = { ...env, DD_CONSOLE_HOME: path.join(root, 'console-home'), DD_EVAL_REGISTRY_FILE: path.join(root, 'absent-eval-registry.json') };
-  const sourceRecord = await sourceAdd('flow', home, 'installation fixture', consoleEnv);
-  const instance = await serve(0, consoleEnv);
+  const consoleCli = path.join(consoleRoot, 'dist/cli.js');
+  const consoleEnv = { ...env, PATH: process.env.PATH, DD_CONSOLE_HOME: path.join(root, 'console-home'),
+    DD_EVAL_HOME: path.join(root, 'absent-eval-home'), DD_EVAL_REGISTRY_FILE: path.join(root, 'absent-eval-registry.json') };
+  const consoleCommand = args => {
+    const result = spawnSync(process.execPath, [consoleCli, ...args], { cwd, env: consoleEnv, encoding: 'utf8', timeout: 20_000 });
+    assert.equal(result.status, 0, result.stderr);
+    return JSON.parse(result.stdout);
+  };
+  const sourceRecord = consoleCommand(['sources', 'add', '--kind', 'flow', '--path', home, '--label', 'installation fixture']);
+  let observationError;
+  consoleSettled = false;
   try {
-    const response = await fetch(`${instance.url}/api/v1/sources/${sourceRecord.id}/readiness`);
+    const instance = consoleCommand(['start', '--port', '0', '--json']);
+    assert.equal(instance.status, 'running');
+    const response = await fetch(`${instance.server.url}/api/v1/sources/${sourceRecord.id}/readiness`, { signal: AbortSignal.timeout(10_000) });
     assert.equal(response.status, 200);
     const body = await response.json(), projection = body.data;
     assert.equal(projection.installation_readiness, 'metadata_present_unverified');
@@ -177,7 +188,14 @@ test('installed setup and Console observation preserve isolated producer boundar
     const bytes = JSON.stringify(body);
     for (const forbidden of [root, packageRoot, 'public_key_pem', 'manifest_base64', 'signature_base64']) assert.equal(bytes.includes(forbidden), false);
     assert.deepEqual(fs.readFileSync(selectionFile), before);
-  } finally { instance.server.close(); instance.server.closeAllConnections(); await instance.closed; }
+  } catch (error) { observationError = error; throw error; }
+  finally {
+    try { assert.equal(consoleCommand(['stop', '--json']).status, 'stopped'); consoleSettled = true; }
+    catch (cleanupError) {
+      if (observationError) throw new AggregateError([observationError, cleanupError], 'Console observation and owned cleanup failed');
+      throw cleanupError;
+    }
+  }
 
   const rejectedHome = path.join(root, 'rejected-home');
   fs.writeFileSync(envelopeFile, JSON.stringify({ ...envelope, signature_base64: Buffer.alloc(64).toString('base64') }));
