@@ -389,3 +389,25 @@ Native v2 shell env smoke имеет явный критерий результ�
 - Branch-ready project-pack status остаётся отдельно deferred по DEF-079,
   не объявлен PASS. Source integration выполняется через feature PR/squash,
   без изменения существующих diverged local main или active CP228 checkout.
+
+## Ревью реализации 2026-10-14
+
+- Проверены env overlays/callers, shared admission/settlement, repetition,
+  retained receipts, rollback и EVAL attribution. Новые зависимости,
+  compatibility paths и retry authority не добавлены.
+- Выявлен незакрытый D6 в issued-invocation settlement: fatal preparation и
+  execution сохраняли inherited retry_command/retry_instruction. Два теста
+  воспроизвели дефект; теперь только собственный committed successor публикует
+  эти поля. CLI очищает исходную копию перед сериализацией/settlement.
+- При rollback обе ветви оставляли исходное recoverable=true. Усиленный тест
+  воспроизвёл оба случая; persistence failure сбрасывает recoverability в
+  helper и в CLI copy, не обещая незафиксированного продолжения.
+- Финальный lifecycle suite: 156/156 PASS; attribution consumer: 7/7 PASS.
+  Это кодовые дефекты, подтверждённые регрессиями, не новые заявления о CP228.
+- Полный local engine gate на clean commit 319c6046 завершился с exit 0:
+  typecheck, lint, strict-canon build, весь pnpm test и diff-check PASS.
+  Integration: 2438/2438, 141 files; runtime-sensitive: 47/47, 2 files;
+  release: 2 node + 8 Vitest PASS. Нет FAIL или disabled/retried suites.
+  Source во время финального gate не менялся. Предыдущий промежуточный прогон
+  отменён с exit 143, не считается PASS. ZCode CP228 и installed runtime/pins/hooks не затронуты;
+  release и новые EVAL не выполняются.
