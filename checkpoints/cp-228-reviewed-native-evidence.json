@@ -1,0 +1,27 @@
+{
+  "id": "cp-228-reviewed-native-evidence",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "26bf561f175450337a999fdb114580e641c99cde",
+    "tag": "eval/cp-224-tooling-baseline-v2"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-228-verification-matrix-qualification.json",
+      "sha256": "da8a774ad0a627ae8dc7fcd323ce2ce87e0f393226b436b7ebdb608a9923603f",
+      "canon_commit": "1ddedf9d3f086e046f8e7b194c739ec386e7c8b9"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "3a1e4cb4a0a24e388228ebb85591350fa4f5886b",
+      "version": "0.9.0-beta.137",
+      "artifact_sha256": "d154ae706e037a54bd59c8765c8ecae7837beccd818b1349e4814bf036b9229c"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
