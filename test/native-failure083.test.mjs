@@ -15,6 +15,19 @@ binding.schema_id = 'dd-flow/native-work-failure@1';
 binding.harness_id = 'zcode-acp';
 const failure = (b = binding) => ({ code: 'harness_adapter_failed', details: { controller: { error: { code: 'fanout_child_failed', details: { failures: [{ status: 'failed', work_id: b.work_id, terminal_turn_id: b.terminal_turn_id, native_binding: b, provider_error: { code: 'model_request_failed', attribution: { reason: 'unknown' }, message: 'secret' } }] } } } } });
 
+test('managed shell transport failure survives nested diagnostics without reclassifying authored usage', () => {
+  const transport = { code: 'wrapper', details: { controller: { error: { code: 'invocation_scope_unproven', details: {
+    reason: 'managed_shell_context_missing', phase: 'prepare', effect: 'no_effect', recoverable: false,
+    cause: { code: 'usage', parameter: 'project-root', reason: 'missing_required_option' }
+  } } } } };
+  assert.equal(isInfrastructureFailure(transport), true);
+  assert.equal(isInfrastructureFailure(failureDiagnostic(transport)), true);
+  assert.equal(failureDiagnostic(transport).details.controller.error.details.reason, 'managed_shell_context_missing');
+  const usage = { code: 'wrapper', details: { controller: { error: transport.details.controller.error.details.cause } } };
+  assert.equal(isInfrastructureFailure(usage), false);
+  assert.equal(isInfrastructureFailure(failureDiagnostic(usage)), false);
+});
+
 test('native attribution needs independent facts, never a receipt-shaped claim', async () => {
   const error = failure();
   assert.equal(validateNativeFailureEvidence(error).status, 'unconfirmed');
