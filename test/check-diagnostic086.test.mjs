@@ -3,6 +3,13 @@ import assert from "node:assert/strict";
 import { failureDiagnostic, executionEvidence } from "../lib/runner.mjs";
 import { compactCheckDiagnostic } from "../lib/check-diagnostic.mjs";
 
+test("compact native and engine failures redact Bearer and credential variants", () => {
+  const message = `Authorization: Bearer SECRET api-key = SECRET api_key: SECRET password : SECRET token=SECRET secret: SECRET postgres://u:SECRET@host/db {"api_key":"SECRET"}`;
+  const result = compactCheckDiagnostic({ runner_evidence: { failures: [{ message }] }, execution_failures: [{ message }] });
+  assert.ok(!JSON.stringify(result).includes("SECRET"));
+  assert.match(result.execution_failures[0].message, /Authorization/);
+});
+
 test("failed check presentation retains cause identity and refs, not raw reports or stacks", () => {
   const check = { id: "WRK-009/RCP-001", declaration_id: "api", receipt_path: "/retained/receipt.json", status: "failed", exit_code: 1,
     runner_evidence_required: { schema_id: "dd-flow/check-runner-evidence@1", path: "report.json" },

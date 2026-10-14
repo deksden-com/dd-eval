@@ -9,7 +9,9 @@ import { commandText } from '../lib/process-json.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { resolveExecutionContract } from '../lib/execution-contract.mjs';
 
-test('public canonical resume and review retain one managed owner in a committed definition', { timeout: 60000 }, async () => {
+// Each owned command already uses commandText's sliding observation window.
+// A total scenario deadline cancels healthy sequential operations on a busy host.
+test('public canonical resume and review retain one managed owner in a committed definition', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'canonical-managed-'));
   const repository = path.join(root, 'definition'), home = path.join(root, 'eval'), build = path.join(home, 'canonical', 'fixture', 'REV-001');
   const project = path.join(build, 'reference', 'project'), runtime = path.join(build, 'reference', 'dd-flow-home');
@@ -57,7 +59,7 @@ else throw Error('unexpected command '+JSON.stringify(args));
 fs.writeFileSync(file,JSON.stringify(s));console.log(JSON.stringify(out));
 `;
     await write(path.join(runtime, 'bin', 'dd-flow'), cli, { mode: 0o755 });
-    const git = args => commandText('git', args, { cwd: repository });
+    const git = args => commandText('git', args, { cwd: repository, signal: t.signal });
     await git(['init', '--quiet', '-b', 'main']); await git(['add', '.']); await git(['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.test', 'commit', '--quiet', '-m', 'fixture']);
     const state = { schema_id: 'dd-eval/canonical-build-state@1', case_id: 'fixture', revision: 'REV-001', status: 'awaiting_reference_resume', current_stage: 'specify', profile_file: profileFile, entries: { specify: 'entries/specify.json' }, definition: { commit: await git(['rev-parse', 'HEAD']), tree: await git(['rev-parse', 'HEAD^{tree}']) }, engine: { locator: 'engine', package_name: 'fixture', package_version: '1.0.0', engine_version: '1.0.0', integrity_checksum: digest }, baseline_admission: { file: admission, sha256: hash(await readFile(admission)) }, reference: { execution_contract: executionContract, managed: true, run_id: 'RUN-fixture', contexts: {} } };
     state.reference.run_profile = await json(profileFile);
@@ -65,7 +67,7 @@ fs.writeFileSync(file,JSON.stringify(s));console.log(JSON.stringify(out));
     state.profile_file = path.join(root, 'removed-launch-profile.json');
     await write(path.join(build, 'build', 'state.json'), state);
     const module = pathToFileURL(path.join(repository, 'lib', 'runner.mjs')).href;
-    const invoke = expression => commandText(process.execPath, ['--input-type=module', '-e', `const m=await import(${JSON.stringify(module)});console.log(JSON.stringify(await ${expression}));`], { cwd: root, env: { DD_EVAL_HOME: home, DD_FLOW_CONFIG_HOME: runtime } });
+    const invoke = expression => commandText(process.execPath, ['--input-type=module', '-e', `const m=await import(${JSON.stringify(module)});console.log(JSON.stringify(await ${expression}));`], { cwd: root, env: { DD_EVAL_HOME: home, DD_FLOW_CONFIG_HOME: runtime }, signal: t.signal });
     await assert.rejects(invoke(`m.evalPreflight({profileFile:${JSON.stringify(profileFile)}})`), /Case requires a pinned baseline admission definition/);
     await assert.rejects(readFile(path.join(home, 'conformance')), { code: 'ENOENT' });
     const review = await write(path.join(root, 'review.md'), 'Reviewed fixture.');
