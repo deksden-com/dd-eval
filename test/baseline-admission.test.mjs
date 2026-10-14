@@ -43,7 +43,14 @@ process.exit(category==='pass'||category==='missing'?0:1);`);
     await writeFile(categoryFile, category);
     const outputRoot = path.join(root, category);
     const run = runBaselineAdmission({ caseRoot: root, definition, projectRoot, outputRoot, checkpoint, engineRuntime: { bin: cli, home: engine } });
-    if (category === "pass") await run; else await assert.rejects(run, { code: "baseline_admission_failed" });
+    if (category === "pass") await run; else await assert.rejects(run, error => {
+      assert.equal(error.code, "baseline_admission_failed");
+      assert.equal(error.details.product_repair_allowed, false);
+      assert.equal(error.details.checks[0].outcome, outcome);
+      assert.equal(error.details.receipt_file, path.join(outputRoot, "receipt.json"));
+      if (!["missing", "noise"].includes(category)) assert.equal(error.details.checks[0].runner_evidence.failures[0].category, category);
+      return true;
+    });
     const receipt = JSON.parse(await readFile(path.join(outputRoot, "receipt.json")));
     assert.equal(receipt.checks[0].outcome, outcome);
     assert.equal(receipt.status, category === "pass" ? "passed" : "failed");
