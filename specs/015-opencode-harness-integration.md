@@ -1,6 +1,6 @@
 # Specification 015: OpenCode harness integration
 
-Status: researched; implementation planned
+Status: historical v1 contract; current v2 implementation follows [083](083-opencode-v2-only-migration-plan.md)
 Date: 2026-08-29
 Owner: `dd-eval`
 Affected repositories: `dd-eval`, `dd-flow-cli`

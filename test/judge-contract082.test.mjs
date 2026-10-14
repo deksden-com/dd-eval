@@ -26,6 +26,9 @@ test("Judge schema enums are shared with prompt and field diagnostics, never coe
 });
 
 test("native unknown SSE attribution survives bounded projection without becoming overload", () => {
+  const prompt = finalJudgePrompt({ assessment, assessmentFile: "assessment", candidateFile: "candidate", evidenceFile: "evidence", scope: "e2e" });
+  assert.match(prompt, /native-reported evidence/);
+  assert.match(prompt, /stream phase does not prove/);
   const provider_error = { code: "model_request_failed", message: "Model request failed", attribution: { source: "provider", reason: "unknown", errorPhase: "stream", exceptionKind: "generic", transport: "sse", retryable: false, headers: { Authorization: "secret" }, body: "secret" } };
   const failure = { code: "child_failed", details: { provider_error } };
   const diagnostic = failureDiagnostic(failure);

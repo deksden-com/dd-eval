@@ -687,10 +687,19 @@ test("interruption attribution preserves structured lifecycle and storage errors
     assert.deepEqual(classifyInterruption({ code, message: "timeout waiting for writer" }).category, "execution_failure");
   }
   assert.deepEqual(classifyInterruption({ code: "provider_timeout", message: "provider timed out" }).category, "provider_unavailable");
-  assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "connection timeout" }).category, "provider_unavailable");
+  assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "connection timeout" }).category, "execution_failure", "prose does not establish provider attribution");
   assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "timeout while saving lifecycle result", details: { primary_error: { code: "storage_write_failed" } } }).category, "execution_failure");
   assert.deepEqual(classifyInterruption({ code: "driver_failed", message: "operation timed out", details: { cause: { code: "invocation_receipt_timeout" } } }).category, "execution_failure");
   assert.deepEqual(classifyInterruption({ code: "agy_provider_rate_limited", message: "request failed" }).category, "provider_rate_limit");
+});
+
+test("OpenCode overload attribution requires exact terminal native identity", () => {
+  const error = { code: "provider_capacity_transient", details: { native_source: "opencode.v2.session.execution", provider_session_id: "s", turn_id: "msg_1", native_turn_id: "msg_1", terminal_status: "failed" } };
+  assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: error } }).category, "provider_overloaded");
+  for (const patch of [{ native_source: "other" }, { terminal_status: "running" }, { turn_id: "" }, { native_turn_id: "other" }, { provider_session_id: "" }]) {
+    assert.notEqual(classifyInterruption({ ...error, details: { ...error.details, ...patch } }).category, "provider_overloaded");
+  }
+  assert.equal(classifyInterruption({ code: "storage_write_failed", details: { cause: error } }).category, "execution_failure");
 });
 
 test("only exact terminal native overload authorizes Codex continuation", { skip: !capacityPolicy && 'set DD_FLOW_SOURCE_ROOT for pinned policy' }, () => {
@@ -711,7 +720,7 @@ test("only exact terminal native overload authorizes Codex continuation", { skip
   const storagePrimary = { code: "harness_adapter_failed", details: { controller: { error: { code: "storage_write_failed", details: { cause: managedQuota.details.controller.error.details.cause } } } } };
   assert.equal(classifyInterruption(storagePrimary).category, "execution_failure");
   assert.equal(providerLimitMetadata(storagePrimary), null);
-  assert.equal(classifyInterruption({ code: "driver_failed", message: "HTTP 429" }).category, "provider_limit_unknown");
+  assert.equal(classifyInterruption({ code: "driver_failed", message: "HTTP 429" }).category, "execution_failure");
   assert.equal(classifyInterruption({ code: "agy_provider_limit_unknown" }).category, "provider_limit_unknown");
   assert.equal(classifyInterruption({ code: "retry_after_exceeds_budget", details: native.details }).category, "provider_overloaded");
   assert.equal(isInfrastructureFailure({ ...native, message: "capacity" }), true);
