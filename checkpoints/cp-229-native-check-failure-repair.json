@@ -2,8 +2,8 @@
   "id": "cp-229-native-check-failure-repair",
   "source": {
     "repository": "https://github.com/deksden-com/dd-tasks.git",
-    "commit": "b791fea498364465e51e43bd0674b4e212403c9a",
-    "tag": "eval/plan-086-clean-tooling"
+    "commit": "b68b95e086e76440117b03644661ab15d2d1d24b",
+    "tag": "eval/plan-086-review-clean-tooling"
   },
   "flow_pack": {
     "repository": "https://github.com/deksden-com/dd-tasks.git",
@@ -12,7 +12,7 @@
     "memory_bank_version": "4.1.2",
     "engine": {
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
-      "commit": "1d7730cb538055a9098e44b21aa4a43921e7f5cc",
+      "commit": "bbbc20017b604c6437412ce6656b8c8d8bc537c1",
       "version": "0.9.0-beta.137",
       "artifact_sha256": null
     }
@@ -25,6 +25,7 @@
     "engine_pin_status": "unpublished_tested_source",
     "engine_version_note": "Source package version only; this is not the published beta.137 artifact. A new immutable release checkpoint with its actual artifact checksum and verification-matrix qualification is required before launch.",
     "offline_baseline": {
+      "source_commit": "b791fea498364465e51e43bd0674b4e212403c9a",
       "tooling": "passed_21",
       "quality": "passed",
       "browser": "passed_6",
