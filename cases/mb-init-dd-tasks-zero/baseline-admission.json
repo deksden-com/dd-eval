@@ -1,0 +1,14 @@
+{
+  "schema_id": "dd-eval/baseline-admission-policy@2",
+  "commands": [
+    {
+      "id": "zero-checkpoint",
+      "command": "node",
+      "args": [
+        "-e",
+        "const assert=require('node:assert/strict'),fs=require('node:fs'),crypto=require('node:crypto'),{execFileSync}=require('node:child_process');const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();assert.equal(git('rev-parse','HEAD'),'e8a02bb714ed4f378e678fb3c4357e1b8105a928');assert.equal(git('ls-tree','-r','--name-only','HEAD'),'README.md');assert.equal(crypto.createHash('sha256').update(fs.readFileSync('README.md')).digest('hex'),'5cf2a0993d7958bf673c19138a1c0051deebaee881d09749c97a184a7380c656');assert.throws(()=>fs.lstatSync('.memory-bank'),{code:'ENOENT'});assert.equal(git('status','--porcelain','--untracked-files=all'),'');console.log('Pinned zero-checkpoint tree, README bytes, blank Memory Bank and clean Git state verified; application checks are not applicable.');"
+      ],
+      "inactivity_timeout_ms": 30000
+    }
+  ]
+}

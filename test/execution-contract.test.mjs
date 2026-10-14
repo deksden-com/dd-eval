@@ -4,12 +4,68 @@ import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { resolveExecutionContract, validateExecutionContract, materializeExecutionContract, contractProfile, assertRunExecutionContract, conformanceExecutionContract, profileSemanticHash } from "../lib/execution-contract.mjs";
-import { hashJson } from "../lib/runner-events.mjs";
+import { resolveExecutionContract, resolveGenericExecutionContract, validateExecutionContract, materializeExecutionContract, contractProfile, assertRunExecutionContract, conformanceExecutionContract, profileSemanticHash } from "../lib/execution-contract.mjs";
+import { canonicalJson, sha256, hashJson } from "../lib/runner-events.mjs";
 import { assertProfileCapacity, qualifiedCoordinator, admitContractProfiles } from "../lib/runner.mjs";
 
 const template = (id, harness = "codex") => ({ schema_id: "dd-flow/agent-profile@1", id, harness, provider: "openai", model: "old-model", reasoning: "high", mode: "agent", permission: "allow" });
 const declaration = (id, harness = "codex-desktop") => ({ schema_version: 1, id, harness, model: "new-model", reasoning: "xhigh", runtime: { codex_cli: "0.161.0" } });
+const genericExpectation = (mode = "external") => {
+  const profile = { ...template("memory-root"), model: "new-model", reasoning: "xhigh" };
+  const revision = sha256(canonicalJson(profile).slice(0, -1));
+  const contour = ["grounding", "compose", "review", "publish"];
+  const settings = { schema_id: "dd-flow/execution-settings@1", flow_id: "mb-init", descriptor_sha256: "a".repeat(64), execution: "managed",
+    attached_session_receipt: null, stage_session_mode: "new_session", delegation: { mode, max_parallel: 2, native_capacity_receipt: null },
+    profiles: [{ id: profile.id, revision }], root_profile: profile.id, stage_profiles: Object.fromEntries(contour.map(stage => [stage, profile.id])), work_profiles: [] };
+  return { settings, profiles: [{ id: profile.id, revision, profile }], aliases: {}, contour,
+    native_capacity: mode === "native" ? "requires_cli_admission" : "not_required", engine_artifact_sha256: "b".repeat(64) };
+};
+test("materialized Memory settings round-trip through installed CLI; Judge needs its complete private template", { skip: !process.env.DD_EVAL_MEMORY_DELIVERY_ROOT }, async t => {
+  const report = JSON.parse(await readFile(path.join(process.env.DD_EVAL_MEMORY_DELIVERY_ROOT, "delivery-report.json")));
+  const { readOperatorProfiles, resolveOperatorProfile, prepareOperatorProfile } = await import(pathToFileURL(path.join(report.snapshot, "dist/services/operator-profiles.js")));
+  const { hybridDigest } = await import(pathToFileURL(path.join(report.snapshot, "dist/services/hybrid-contracts.js")));
+  const configHome = await setup(t, []), expectation = genericExpectation();
+  const loadProfile = id => { if (["subject", "judge"].includes(id)) return declaration(id); throw Object.assign(new Error("missing"), { code: "ENOENT" }); };
+  const input = { runProfile: { subject: { profile_id: "subject" }, judge: { enabled: true, profile_id: "judge" } }, expectation, loadProfile, configHome, stages: expectation.contour };
+  // A repo Judge declaration is not a complete CLI template. Never fall back
+  // to an ambient Home: this private configuration must supply all policy fields.
+  await assert.rejects(resolveGenericExecutionContract(input), { code: "agent_profile_missing" });
+  await writeFile(path.join(configHome, "agent-profiles/judge.json"), JSON.stringify(template("judge")));
+  const contract = await resolveGenericExecutionContract(input), runtimeRoot = path.join(configHome, "isolated");
+  await materializeExecutionContract(runtimeRoot, contract);
+  const settings = readOperatorProfiles(runtimeRoot), { revision, ...content } = settings;
+  assert.equal(revision, hybridDigest(content));
+  assert.deepEqual(resolveOperatorProfile(settings, "memory-root"), expectation.profiles[0].profile);
+  const judge = JSON.parse(await readFile(path.join(runtimeRoot, "agent-profiles/judge.json")));
+  assert.deepEqual(prepareOperatorProfile(judge), contract.profiles.judge);
+  await writeFile(path.join(runtimeRoot, "profile-settings.json"), JSON.stringify(content));
+  assert.throws(() => readOperatorProfiles(runtimeRoot), { code: "profile_settings_invalid" });
+});
+test("Memory expected contract permits distinct Subject alias but enforces selected semantics and frozen routing", async t => {
+  const configHome = await setup(t);
+  const expectation = genericExpectation();
+  const loadProfile = id => { if (id === "subject") return declaration(id); throw Object.assign(new Error("missing"), { code: "ENOENT" }); };
+  const contract = await resolveGenericExecutionContract({ runProfile: { subject: { profile_id: "subject" } }, expectation, loadProfile, configHome, stages: expectation.contour });
+  assert.equal(contract.roles.subject, "subject"); assert.equal(contract.routing.root_profile, "memory-root");
+  const frozen = { frozen_execution: { settings: structuredClone(expectation.settings), profiles: structuredClone(expectation.profiles) } };
+  assert.equal(assertRunExecutionContract(frozen, contract).state, "matched");
+  frozen.frozen_execution.settings.delegation.max_parallel = 1;
+  assert.throws(() => assertRunExecutionContract(frozen, contract), { code: "profile_contract_mismatch" });
+  await assert.rejects(resolveGenericExecutionContract({ runProfile: { subject: { profile_id: "subject" } }, expectation, loadProfile: id => ({ ...declaration(id), model: "wrong" }), configHome, stages: expectation.contour }), { code: "profile_contract_mismatch" });
+  await materializeExecutionContract(path.join(configHome, "isolated"), contract);
+  const materialized = JSON.parse(await readFile(path.join(configHome, "isolated", "profile-settings.json")));
+  assert.deepEqual(materialized.profiles, expectation.profiles);
+});
+test("Memory native physical authority cannot be forged by copying semantic snapshot metadata", async t => {
+  const expectation = genericExpectation("native"), configHome = await setup(t);
+  const contract = await resolveGenericExecutionContract({ runProfile: { subject: { profile_id: "subject" } }, expectation,
+    loadProfile: id => { if (id === "subject") return { ...declaration(id), subagent_capacity: 2 }; throw Object.assign(new Error("missing"), { code: "ENOENT" }); }, configHome, stages: expectation.contour });
+  const forged = { frozen_execution: { settings: structuredClone(expectation.settings), profiles: structuredClone(expectation.profiles) } };
+  forged.frozen_execution.settings.delegation.native_capacity_receipt = { sha256: "c".repeat(64) };
+  assert.equal(conformanceExecutionContract(forged, contract).reason, "native_capacity_not_cli_admitted");
+  assert.throws(() => assertRunExecutionContract(forged, contract), { code: "profile_contract_mismatch" });
+  assert.doesNotThrow(() => assertProfileCapacity(contractProfile(contract, "subject"), [{ stage: "grounding", terminal_stage: "publish" }], contract));
+});
 async function setup(t, values = [template("subject"), template("judge"), template("worker")]) {
   const home = await mkdtemp(path.join(os.tmpdir(), "eval-contract-")); t.after(() => rm(home, { recursive: true, force: true }));
   await mkdir(path.join(home, "agent-profiles"));

@@ -9,11 +9,12 @@ import { promisify } from "node:util";
 import test from "node:test";
 import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
+import { definitionSelection } from "../lib/runner.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 import { buildHitlPacket, validateGroundedHitl, interactionGroundedPrompt } from '../lib/hitl-contract.mjs';
 import { materializeQualificationContext, reassessHitlQualification } from "../lib/runner.mjs";
 import { buildReport } from "../lib/runner.mjs";
-import { capacityCodexChildren } from "../lib/runner.mjs";
+import { capacityCodexChildren, qualifiedCapacityProbe, harnessCapacityCheck } from "../lib/runner.mjs";
 import { errorRecord, terminalCodexOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 const capacityPolicy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'src/harness-runtime/lib/codex-capacity-policy.mjs')).href) : null;
@@ -636,7 +637,9 @@ test("focused result checkpoints preserve a legal successor entry", () => {
   assert.deepEqual(resultCheckpointMode("code"), { purpose: "stage_entry", stage_entry: "code-review" });
   assert.deepEqual(resultCheckpointMode("code-review"), { purpose: "stage_entry", stage_entry: "merge" });
   assert.deepEqual(resultCheckpointMode("merge"), { purpose: "candidate", stage_entry: null });
-  assert.deepEqual(resultCheckpointMode("specify", "specify"), { purpose: "candidate", stage_entry: null });
+  assert.deepEqual(resultCheckpointMode("specify", undefined, "specify"), { purpose: "candidate", stage_entry: null });
+  assert.deepEqual(resultCheckpointMode("compose", ["preflight", "discover", "compose", "verify"], "compose"), { purpose: "candidate", stage_entry: null });
+  assert.throws(() => resultCheckpointMode("merge", ["preflight", "verify"], "merge"), { code: "selection_invalid" });
 });
 
 test("eval does not retain a second execution snapshot controller", async () => {
@@ -1029,6 +1032,23 @@ test("capacity qualification counts only authoritative direct native children", 
   assert.equal(directNativeChildren({ evidence: { subagents: { ended: { items: [{ childSessionId: "zcode-unproven" }] } } } }, "root")[0].status, "unknown");
 });
 
+test("capacity qualification needs positive cleanup and exact bounded child ownership", async () => {
+  const receipt = { schema_id: 'dd-eval/subagent-capacity@1', requested: 2, capacity: 1,
+    root_session_id: 'root', cleanup: { stopped: true }, children: [{ session_id: 'child', parent_session_id: 'root' }] };
+  assert.equal(qualifiedCapacityProbe(receipt), true);
+  for (const change of [{ cleanup: null }, { cleanup: {} }, { cleanup: { stopped: false } },
+    { cleanup: { stopped: 'true' } }, { failure: { code: 'probe_failed' } }, { requested: 16 }, { capacity: 3 },
+    { capacity: 0 }, { root_session_id: null }, { children: [] },
+    { children: [{ session_id: 'child', parent_session_id: 'foreign' }] },
+    { children: [{ session_id: 'root', parent_session_id: 'root' }] },
+    { children: [{ session_id: 'child', parent_session_id: 'root', provenance: 'parent_mismatch' }] },
+    { capacity: 2, children: [receipt.children[0], receipt.children[0]] }]) {
+    assert.equal(qualifiedCapacityProbe({ ...receipt, ...change }), false, JSON.stringify(change));
+  }
+  for (const maximum of [0, -1, 1.5, 16, Number.MAX_SAFE_INTEGER, 'not-a-number'])
+    await assert.rejects(harnessCapacityCheck({ profileId: 'must-not-load', maximum }), { code: 'capacity_check_invalid' });
+});
+
 test("capacity qualification stays outside the flow runtime", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   const helper = source.match(/export async function harnessCapacityCheck[\s\S]*?\n}/);
@@ -1131,7 +1151,11 @@ test("definition identity ignores unrelated docs and commits but rejects selecte
     assert.equal(later.dependencies_sha256, original.dependencies_sha256);
     const externalFile = path.join(repository, "external-profile.json");
     await writeFile(externalFile, "{\"model\":\"first\"}\n");
-    const externalSelection = [...selection, { external_file: externalFile }];
+    const memorySelection = await definitionSelection({ root: path.join(repository, 'cases'), inputCheckpoint: { file: path.join(repository, 'cases/selected.json') }, value: { input: [] } },
+      { file: path.join(repository, 'cases/selected.json'), value: { subject: { memory_init: { profileFile: externalFile } } } });
+    const memoryDependency = memorySelection.find(scope => scope.external_file === externalFile);
+    assert.deepEqual(memoryDependency, { external_file: externalFile });
+    const externalSelection = [...selection, memoryDependency];
     const externalOriginal = await committedDefinitionIdentity(repository, externalSelection);
     await writeFile(externalFile, "{\"model\":\"second\"}\n");
     assert.notEqual((await committedDefinitionIdentity(repository, externalSelection)).dependencies_sha256, externalOriginal.dependencies_sha256);

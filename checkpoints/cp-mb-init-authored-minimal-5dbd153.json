@@ -1,0 +1,21 @@
+{
+  "id": "cp-mb-init-authored-minimal-5dbd153",
+  "source": {
+    "repository": "test/fixtures/memory-grounding/minimal.bundle",
+    "commit": "75d609dc4a0eb769fc52202909331a489b937f9a"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "beabf446167b896a9d02c0e8460eb0e2687f6522",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "5dbd153ac9269d80a0920174511587890332b814",
+      "version": "0.9.0-beta.125",
+      "artifact_sha256": "27c33fcbcbd9dcec0d422b95fb7b397306cfb627c69bffefa75ee195fe96deef"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}

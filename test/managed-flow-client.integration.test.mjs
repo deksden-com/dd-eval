@@ -10,9 +10,9 @@ import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client
 import { errorRecord } from "../lib/operation-errors.mjs";
 
 test("eval client drives two real CLI lifecycle stages and retains controller-owned captures", { skip: !process.env.DD_EVAL_TEST_FLOW_CLI || !process.env.DD_EVAL_TEST_FLOW_ADAPTER, timeout: 120_000 }, async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "eval-managed-flow-"));
+  const root = await mkdtemp(path.join(process.env.DD_EVAL_TEST_FIXTURE_ROOT ?? os.tmpdir(), "eval-managed-flow-"));
   const project = path.join(root, "project"), home = path.join(root, "home"), cli = path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI);
-  const env = { DD_FLOW_HOME: home, DD_FLOW_RESOURCE_HOME: home, DD_FLOW_ENGINE_MODE: "1", CODEX_HOME: path.join(root, "codex-home"), DD_FLOW_TEST_ROOT: root, DD_FLOW_TEST_UNCLEAN_STOP: "0", DD_FLOW_TEST_CAPTURE_FAILURE: "0" };
+  const env = { DD_FLOW_HOME: home, DD_FLOW_CONFIG_HOME: home, DD_FLOW_RESOURCE_HOME: process.env.DD_EVAL_TEST_RESOURCE_HOME ?? home, DD_FLOW_ENGINE_MODE: "1", CODEX_HOME: path.join(root, "codex-home"), DD_FLOW_TEST_ROOT: root, DD_FLOW_TEST_UNCLEAN_STOP: "0", DD_FLOW_TEST_CAPTURE_FAILURE: "0" };
   const hash = value => createHash("sha256").update(value).digest("hex");
   const write = async (relative, value) => { const file = path.join(root, relative); await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === "string" ? value : JSON.stringify(value)); return file; };
   let runId, settled = false, primary;

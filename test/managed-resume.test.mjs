@@ -81,7 +81,7 @@ let result;
 const pending = ${waiting} && !fs.existsSync(${JSON.stringify(path.join(root, 'answered'))});
 const interrupted = fs.existsSync(${JSON.stringify(path.join(root, 'interrupt'))}) && !fs.existsSync(${JSON.stringify(path.join(root, 'resumed'))});
 if (args[0] === 'engine' && args[1] === 'resolve') result = {selection:{selected:${JSON.stringify(engine)}}};
-else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'status') result = {scope:{run_id:'RUN-retained'},settled:true,control:${JSON.stringify(control)}};
+else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'status') result = {scope:{run_id:'RUN-retained'},settled:true,control:{...${JSON.stringify(control)},admission:fs.existsSync(${JSON.stringify(path.join(root, 'unsealed'))})?'open':'sealed'}};
 else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'resume') {
   if(args[args.indexOf('--from')+1]!=='CTL-retained') throw new Error('wrong recovery control');
   fs.writeFileSync(${JSON.stringify(path.join(root, 'resumed'))},args[args.indexOf('--request-id')+1]);
@@ -118,6 +118,7 @@ console.log(JSON.stringify(result));
     assert.equal(events.filter(event => event.type === 'dev.dd.eval.subject.session_created').length, 1);
     assert.equal(events.filter(event => event.type === 'dev.dd.eval.controller.event').length, 4);
     await write('interrupt', 'yes');
+    await assert.rejects(recoverExecution({ ...input, events, terminalOnly: true }), { code: 'managed_run_interrupted' });
     const callsBeforeInvalidScope = await readFile(path.join(root, 'calls.jsonl'), 'utf8');
     for (const resourceHome of [undefined, 'relative-resources']) {
       const invalidManifest = { ...manifest, runtime_resource_home: resourceHome };
@@ -130,6 +131,29 @@ console.log(JSON.stringify(result));
     const recovery = await captureRecoveryEvidence({ root, manifest, result: { execution: execution.id, attempt, state: 'failed', code: 'provider_failed' } });
     assert.equal(recovery.control_id, control.control_id);
     assert.equal(recovery.manifest_sha256, hash(await readFile(recoveryManifest)));
+    // A late settled owner receipt is usable even if the original native
+    // session.create outcome remains unknown. No native operation is replayed.
+    const unknown = { code: 'operation_observation_lost', details: { native_outcome: { status: 'unknown', operation_id: 'OPR-existing' } } };
+    const fencedFailure = { execution: execution.id, attempt, state: 'failed', code: 'managed_run_interrupted',
+      details: { controller: { ...controller, status: 'recovery_required', error: unknown } } };
+    const lateCapture = await captureRecoveryEvidence({ root, manifest, result: fencedFailure });
+    assert.equal(lateCapture.control_id, control.control_id);
+    assert.equal(lateCapture.manifest_sha256, recovery.manifest_sha256);
+    assert.deepEqual(fencedFailure.details.controller.error, unknown);
+    const unknownRunning = { ...fencedFailure, code: 'operation_observation_lost', details: { controller: { ...controller, status: 'running' } } };
+    const diagnostic = structuredClone(unknownRunning), beforeCapture = await readFile(path.join(root, 'calls.jsonl'), 'utf8');
+    const independentlySealed = await captureRecoveryEvidence({ root, manifest, result: unknownRunning });
+    assert.equal(independentlySealed.control_id, control.control_id);
+    assert.equal(independentlySealed.manifest_sha256, recovery.manifest_sha256);
+    assert.deepEqual(unknownRunning, diagnostic);
+    const captureCalls = (await readFile(path.join(root, 'calls.jsonl'), 'utf8')).slice(beforeCapture.length).trim().split('\n').map(JSON.parse);
+    assert.ok(captureCalls.length > 0);
+    assert.ok(captureCalls.every(args => args[0] === 'run' && args[1] === 'control' && args[2] === 'status'));
+    await write('unsealed', 'yes');
+    const unavailable = await captureRecoveryEvidence({ root, manifest, result: unknownRunning });
+    assert.equal(unavailable.unavailable, true);
+    assert.equal(unavailable.capture_error.code, 'recovery_capture_pending');
+    await rm(path.join(root, 'unsealed'));
     await assert.rejects(recoverExecution({ ...input, events, recovery: { ...recovery, control_id: 'CTL-stale' } }), { code: 'recovery_source_stale' });
     const retainedContext = await readFile(contextFile);
     await writeFile(contextFile, 'corrupt before resume');

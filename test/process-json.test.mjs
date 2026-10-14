@@ -3,7 +3,7 @@ import { chmod, mkdir, mkdtemp, rm, writeFile, readFile } from "node:fs/promises
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { commandJson, commandText, reportedFailure } from "../lib/process-json.mjs";
+import { commandJson, commandText, commandObservationTimeout, reportedFailure } from "../lib/process-json.mjs";
 import { callDriver } from "../lib/runner.mjs";
 import { errorRecord } from "../lib/operation-errors.mjs";
 
@@ -19,6 +19,19 @@ test("unvalidated operation diagnostics do not renew CLI silence", async t => {
   const executable = path.join(root, "forged.mjs");
   await writeFile(executable, "let sequence=0;setInterval(()=>console.error(JSON.stringify({kind:'operation_progress',sequence:++sequence})),10);");
   await assert.rejects(commandJson(executable, [], { timeoutMs: 150 }), { code: "operation_observation_lost" });
+});
+
+test("public Memory prepare-only uses the existing build budget without widening ordinary controls", () => {
+  assert.equal(commandObservationTimeout(["init", "--prepare-only", "--non-interactive"]), commandObservationTimeout(["build"]));
+  for (const args of [["init"], ["run", "status"], ["run", "prepare-vnext-specify"], ["status", "--prepare-only"]])
+    assert.equal(commandObservationTimeout(args), 30_000);
+});
+
+test("public setup uses the existing installation budget without widening ordinary controls", () => {
+  assert.equal(commandObservationTimeout(["setup", "--skip-agent-setup", "--non-interactive"]), 30 * 60_000);
+  assert.equal(commandObservationTimeout(["setup"]), commandObservationTimeout(["engine", "install"]));
+  for (const args of [["status"], ["run", "status"], ["run", "resume"], ["status", "setup"]])
+    assert.equal(commandObservationTimeout(args), 30_000);
 });
 
 test("driver retains JSONL and successful-exit typed error envelopes including false retryable and cleanup", async t => {

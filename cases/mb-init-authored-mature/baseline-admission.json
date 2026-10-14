@@ -1,0 +1,22 @@
+{
+  "schema_id": "dd-eval/baseline-admission-policy@2",
+  "commands": [
+    {
+      "id": "authored-source",
+      "command": "node",
+      "args": [
+        "-e",
+        "const assert=require('node:assert/strict'),fs=require('node:fs'),crypto=require('node:crypto'),{execFileSync}=require('node:child_process');const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();const files={\"README.md\":\"32a4305b568dbb9c08c2dc9c7b043eade51b870d5ef9f60f10c37c87bbff9937\",\"package.json\":\"2772c17a2811fb9f8e4e50644af06aa5066f717c433d6454a5b4681d844b51d7\",\"src/ledger.mjs\":\"7a1a49d9611569638303751d97a5545fe3da687e3ac3342fe24661fee786cad1\",\"test/ledger.test.mjs\":\"7e3243b65942ad3a006c8ccc538d44317d463d8ee0e7bb83f507601efec5ef19\",\"docs/architecture.md\":\"3b10415b2daa01d0959dd7f8e0c4452bb1cbdee73789420ee6465f964446d6f6\",\"docs/decisions.md\":\"3050d77d9680470388851fddb7905451c848ea9d6c96788de3a78ebe93910df9\"};assert.equal(git('rev-parse','HEAD'),\"a97030ab42d673c6331c1e650fbd7c10b3f1b7e4\");assert.equal(git('ls-tree','-r','--name-only','HEAD'),Object.keys(files).sort().join('\\n'));for(const [file,sha]of Object.entries(files))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),sha,file);assert.equal(git('status','--porcelain','--untracked-files=all','--',...Object.keys(files)),'');console.log('Exact authored product source verified.');"
+      ],
+      "inactivity_timeout_ms": 30000
+    },
+    {
+      "id": "product-tests",
+      "command": "node",
+      "args": [
+        "--test"
+      ],
+      "inactivity_timeout_ms": 30000
+    }
+  ]
+}

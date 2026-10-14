@@ -3,7 +3,45 @@ import assert from "node:assert/strict";
 import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { observeManagedRun } from "../lib/managed-flow-client.mjs";
+import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
+
+test("Memory preparation uses public init without SDLC routing or Session dispatch", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-memory-prepare-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), calls = path.join(root, 'calls.json');
+  const memoryInit = { workspaceRoot: root, requestId: 'memory-request', intakeFile: path.join(root, 'intake.txt'), intakeSha256: 'a'.repeat(64), gitRoute: 'integration_branch_direct', integrationBranch: 'main', profileFile: path.join(root, 'profile.json'), stageProfiles: ['review=independent'], workProfiles: ['worker'] };
+  await writeFile(bin, `import fs from 'node:fs'; fs.writeFileSync(${JSON.stringify(calls)}, JSON.stringify(process.argv.slice(2))); console.log(JSON.stringify({run_id:'RUN-memory',flow_id:'mb-init',action:'flow_mb_init_prepared',request_id:'memory-request'}));`);
+  const input = { bin, projectRoot: root, flow: 'mb-init', memoryInit };
+  assert.equal((await prepareManagedRun(input)).run_id, 'RUN-memory');
+  const args = JSON.parse(await readFile(calls));
+  assert.equal(args[0], 'init'); assert(args.includes('--prepare-only')); assert(args.includes('--non-interactive'));
+  assert(!args.includes('prepare-vnext-specify')); assert(!args.includes('--execution-routing-file'));
+  assert(!args.includes('--max-parallel'));
+  for (const limit of [1, 2, 256]) {
+    await prepareManagedRun({ ...input, memoryInit: { ...memoryInit, maxParallel: limit } });
+    const selected = JSON.parse(await readFile(calls));
+    assert.equal(selected[selected.indexOf('--max-parallel') + 1], String(limit));
+  }
+  for (const value of ['memory-request', memoryInit.intakeFile, memoryInit.profileFile, 'review=independent', 'worker']) assert(args.includes(value));
+  await prepareManagedRun({ ...input, memoryInit: { ...memoryInit, delegation: 'native', allowLiveProbe: true, nativeConfigHome: path.join(root, 'private-config'), maxParallel: 2 } });
+  const nativeArgs = JSON.parse(await readFile(calls));
+  assert.equal(nativeArgs[nativeArgs.indexOf('--delegation') + 1], 'native');
+  assert.equal(nativeArgs[nativeArgs.indexOf('--native-config-home') + 1], path.join(root, 'private-config'));
+  assert.equal(nativeArgs.filter(arg => arg === '--allow-live-probe').length, 1);
+  await rm(calls);
+  for (const maxParallel of [null, 0, -1, 1.5, 257, '2', NaN]) {
+    await assert.rejects(prepareManagedRun({ ...input, memoryInit: { ...memoryInit, maxParallel } }), { code: 'managed_flow_input_invalid', details: { effect: 'no_effect' } });
+    await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  }
+  for (const changed of [{ flow: 'unknown' }, { memoryInit: undefined }, { memoryInit: { ...memoryInit, unexpected: true } }, { memoryInit: { ...memoryInit, workProfiles: 'worker' } }, { flow: 'sdlc' }]) {
+    await assert.rejects(prepareManagedRun({ ...input, ...changed }), { code: 'managed_flow_input_invalid' });
+    await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  }
+  for (const receipt of [{ run_id: 'RUN', flow_id: 'sdlc' }, { run_id: 'RUN', flow_id: 'mb-init', action: 'flow_mb_init_prepared', request_id: 'other' }, { run_id: 'RUN', flow_id: 'mb-init', action: 'flow_mb_init_prepared', request_id: 'memory-request', controller: {} }]) {
+    await writeFile(bin, `console.log(JSON.stringify(${JSON.stringify(receipt)}));`);
+    await assert.rejects(prepareManagedRun(input), { code: 'controller_receipt_invalid' });
+  }
+});
 
 for (const callback of ['onEvent', 'answerFor']) for (const retainedDetails of [false, true]) test(`callback ${callback} retains last observed owner without replacing primary error (${retainedDetails ? 'existing evidence' : 'new evidence'})`, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'managed-callback-'));
@@ -96,7 +134,24 @@ for (const status of ['running', 'recovery_required']) test(`repair continuation
   assert.deepEqual(events[0].data.error.details.continuation, continuation);
 });
 
-for (const slow of [false, true]) test(`input preparation observes failure and never dispatches late input (slow: ${slow})`, async t => {
+for (const status of ['running', 'control_requested', 'recovery_required']) test(`unknown native outcome cannot mask an issued owner fence (${status})`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-unknown-fence-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs');
+  const error = { code: 'operation_observation_lost', message: 'session.create reply lost', details: { native_outcome: { status: 'unknown', operation_id: 'OPR-existing' } } };
+  const controller = { controller_id: 'DRV-existing', status, error,
+    control: { control_id: 'CTL-existing', generation: 1, request_sequence: 61, settlement: { settled: false } } };
+  await writeFile(bin, `if(process.argv[2]!=='run'||process.argv[3]!=='drive'||process.argv[4]!=='status')throw Error('duplicate dispatch');console.log(JSON.stringify(${JSON.stringify({ controller, events: [] })}));`);
+  const input = { bin, env: process.env, projectRoot: root, runId: 'RUN', controllerId: controller.controller_id, observeOnce: true };
+  if (status === 'running') assert.equal((await observeManagedRun(input)).controller.status, 'running');
+  else await assert.rejects(observeManagedRun(input), failure => {
+    assert.equal(failure.code, status === 'control_requested' ? 'managed_run_controlled' : 'managed_run_interrupted');
+    assert.deepEqual(failure.details.controller, controller);
+    return true;
+  });
+});
+
+for (const slow of [false, true]) for (const unknown of [false, true]) test(`input preparation observes failure and never dispatches late input (slow: ${slow}, unknown: ${unknown})`, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'managed-input-fence-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const bin = path.join(root, 'cli.mjs'), stop = path.join(root, 'stopped');
@@ -104,14 +159,14 @@ for (const slow of [false, true]) test(`input preparation observes failure and n
     const args=process.argv.slice(2), after=Number(args[args.indexOf('--after')+1]);
     if(args[2]!=='status') throw new Error('unexpected dispatch');
     const stopped=fs.existsSync(${JSON.stringify(stop)});
-    console.log(JSON.stringify({controller:{controller_id:'DRV',stage:'plan',status:stopped?'control_requested':'waiting_for_context',...(stopped?{error:{code:'write_transaction_failed',message:'storage failed'}}:{})},
+    console.log(JSON.stringify({controller:{controller_id:'DRV',stage:'plan',status:stopped?${JSON.stringify(unknown ? 'recovery_required' : 'control_requested')}:'waiting_for_context',...(stopped?{error:{code:${JSON.stringify(unknown ? 'operation_observation_lost' : 'write_transaction_failed')},message:'storage failed'}}:{})},
       events: stopped ? (after<2?[{sequence:2,type:'recovery_required',data:{}}]:[]) : (after<1?[{sequence:1,type:'context_required',data:{stage:'plan',attempt:1}}]:[])}));`);
   const delivered = []; let actions = 0;
   await assert.rejects(observeManagedRun({ bin, projectRoot: root, runId: 'RUN', controllerId: 'DRV', requestId: 'request', pollMs: 50,
     onEvent: event => { delivered.push(event.sequence); },
     contextFor: async () => { actions++; await writeFile(stop, 'yes'); return slow ? new Promise(() => {}) : { file: '/must-not-send', sha256: 'unused' }; },
     beforeDispatch: () => assert.fail('input crossed the stop fence'),
-  }), { code: 'write_transaction_failed', message: 'storage failed' });
+  }), { code: unknown ? 'managed_run_interrupted' : 'write_transaction_failed', message: 'storage failed' });
   assert.deepEqual(delivered, [1, 2]);
   assert.equal(actions, 1);
 });

@@ -1,0 +1,43 @@
+{
+  "status": "draft_not_accepted",
+  "qualification": "none",
+  "hidden_canary": "judge-only-grounding-oracle-72cfa019",
+  "projects": {
+    "minimal": {
+      "preserve_sha256": {
+        "README.md": "d5d507655d251991ac56f5766d806b150806d203e41e1a8bb26735f04526002a",
+        "package.json": "82f888f9fd5342084f278e8a0cdb34187a4c4a598a0fc934ef111d1dc4e32279",
+        "src/sum.mjs": "7cbf07286d869dcb4a1a57c251d1430416dc131477a829e885c33b1311d68eb8",
+        "test/sum.test.mjs": "dd017af536ec879b8e0a8d5d729df6eea9949f2e6dceee67b4fe6e10d3a56db4"
+      },
+      "facts": [
+        { "id": "MIN-implemented", "statement": "A local ESM sum library exists; operands require JavaScript number type. Do not infer finite-number validation.", "evidence": { "src/sum.mjs": "typeof a !== 'number'" } },
+        { "id": "MIN-checks", "statement": "The declared check is node --test, with addition and nonnumber refusal coverage. Do not invent CI or other tests.", "evidence": { "package.json": "node --test", "test/sum.test.mjs": "sum('2', 3)" } },
+        { "id": "MIN-limits", "statement": "HTTP is future intent; server, database, deployment and persistence are absent.", "evidence": { "README.md": "HTTP transport is an idea, not a shipped feature." } }
+      ]
+    },
+    "mature": {
+      "preserve_sha256": {
+        "README.md": "32a4305b568dbb9c08c2dc9c7b043eade51b870d5ef9f60f10c37c87bbff9937",
+        "package.json": "2772c17a2811fb9f8e4e50644af06aa5066f717c433d6454a5b4681d844b51d7",
+        "src/ledger.mjs": "7a1a49d9611569638303751d97a5545fe3da687e3ac3342fe24661fee786cad1",
+        "test/ledger.test.mjs": "7e3243b65942ad3a006c8ccc538d44317d463d8ee0e7bb83f507601efec5ef19",
+        "docs/architecture.md": "3b10415b2daa01d0959dd7f8e0c4452bb1cbdee73789420ee6465f964446d6f6",
+        "docs/decisions.md": "3050d77d9680470388851fddb7905451c848ea9d6c96788de3a78ebe93910df9"
+      },
+      "facts": [
+        { "id": "MAT-implemented", "statement": "Async filesystem append/read persists newline-delimited JSON in a caller-selected local file; historical synchronous-only claims are obsolete.", "evidence": { "src/ledger.mjs": "node:fs/promises", "README.md": "synchronous-only storage description is obsolete", "docs/architecture.md": "newline-delimited JSON" } },
+        { "id": "MAT-validation", "statement": "An event id must be a string; amount is not validated. Corrupt JSON propagates read failure rather than self-repair.", "evidence": { "src/ledger.mjs": "typeof event.id !== 'string'", "docs/architecture.md": "amount values are not validated", "docs/decisions.md": "not automatically repaired" } },
+        { "id": "MAT-policy", "statement": "Single-writer file ownership/backups are caller obligations, not runtime locking guarantees; a format change needs a migration decision and there is no migration utility.", "evidence": { "docs/decisions.md": "A single writer per file is required", "docs/architecture.md": "concurrent-writer locking", "src/ledger.mjs": "appendFile" } },
+        { "id": "MAT-checks", "statement": "node --test checks append/read roundtrip and missing-id rejection. CI/deploy are unresolved; do not claim arbitrary checks have passed.", "evidence": { "package.json": "node --test", "test/ledger.test.mjs": "ledger roundtrip", "docs/decisions.md": "CI and deployment targets have not been chosen" } },
+        { "id": "MAT-future", "statement": "Cloud replication is planned, while HTTP endpoints, authentication and remote replication are absent.", "evidence": { "README.md": "Cloud replication remains planned", "docs/architecture.md": "No HTTP endpoints, authentication" } }
+      ]
+    }
+  },
+  "proposed_acceptance": [
+    "Discover maps facts to actual source owners, distinguishes implementation from intent, and records genuine unknowns.",
+    "Compose produces useful linked project knowledge without changing any preserved source byte or inventing tooling/policies.",
+    "Verify/review evaluate semantic coverage independently from syntax and receipts, including each source-supported limitation.",
+    "Finish preserves original sources and integrates only reviewed Memory Bank under an explicitly authorized local Git route."
+  ]
+}

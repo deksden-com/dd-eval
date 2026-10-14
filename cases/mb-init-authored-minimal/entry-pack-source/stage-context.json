@@ -1,0 +1,326 @@
+{
+  "schema_id": "dd-eval/stage-context-blueprint@1",
+  "stages": {
+    "preflight": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "preflight",
+      "objective": "Проверить безопасный маршрут и границы инициализации.",
+      "task_input": [
+        {
+          "role": "initial_user_request",
+          "path": ".dd-eval/initialize.md",
+          "source": "initialize.md",
+          "sha256": "db28a337b56b7c06e5bedcb95c450bca0c5238638b1948b68ba285cd11c6279c"
+        }
+      ],
+      "sources": [
+        {
+          "role": "project_readme",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Подтверждённые границы текущего проекта и согласованное направление."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/sum.mjs",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/sum.test.mjs",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI возвращает физические пути, predecessor receipts, write scopes, checks, Work-граф и completion contract выбранной стадии."
+        }
+      ]
+    },
+    "discover": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "discover",
+      "objective": "Исследовать текущее дерево и подтвердить проектные факты.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_readme",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Подтверждённые границы текущего проекта и согласованное направление."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "01-preflight",
+          "required": true,
+          "reason": "Принятый результат предыдущей стадии данного выполнения; не эталонный ответ."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/sum.mjs",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/sum.test.mjs",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI возвращает физические пути, predecessor receipts, write scopes, checks, Work-граф и completion contract выбранной стадии."
+        }
+      ]
+    },
+    "compose": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "compose",
+      "objective": "Создать связный проектный Memory Bank по принятому исследованию.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_readme",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Подтверждённые границы текущего проекта и согласованное направление."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "02-discover",
+          "required": true,
+          "reason": "Принятый результат предыдущей стадии данного выполнения; не эталонный ответ."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/sum.mjs",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/sum.test.mjs",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI возвращает физические пути, predecessor receipts, write scopes, checks, Work-граф и completion contract выбранной стадии."
+        }
+      ]
+    },
+    "verify": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "verify",
+      "objective": "Выполнить обязательные проверки и оценить фактическую полноту.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_readme",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Подтверждённые границы текущего проекта и согласованное направление."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "03-compose",
+          "required": true,
+          "reason": "Принятый результат предыдущей стадии данного выполнения; не эталонный ответ."
+        },
+        {
+          "role": "project_memory",
+          "root": "workspace",
+          "path": ".memory-bank",
+          "required": true,
+          "reason": "Документы, созданные предыдущими стадиями и подлежащие проверке."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/sum.mjs",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/sum.test.mjs",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI возвращает физические пути, predecessor receipts, write scopes, checks, Work-граф и completion contract выбранной стадии."
+        }
+      ]
+    },
+    "review": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "review",
+      "objective": "Независимо проверить результат и исправить существенные дефекты.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_readme",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Подтверждённые границы текущего проекта и согласованное направление."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "04-verify",
+          "required": true,
+          "reason": "Принятый результат предыдущей стадии данного выполнения; не эталонный ответ."
+        },
+        {
+          "role": "project_memory",
+          "root": "workspace",
+          "path": ".memory-bank",
+          "required": true,
+          "reason": "Документы, созданные предыдущими стадиями и подлежащие проверке."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/sum.mjs",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/sum.test.mjs",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI возвращает физические пути, predecessor receipts, write scopes, checks, Work-граф и completion contract выбранной стадии."
+        }
+      ]
+    },
+    "finish": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "finish",
+      "objective": "Интегрировать принятый результат локально и подтвердить готовность обычного SDLC.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_readme",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Подтверждённые границы текущего проекта и согласованное направление."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "05-review",
+          "required": true,
+          "reason": "Принятый результат предыдущей стадии данного выполнения; не эталонный ответ."
+        },
+        {
+          "role": "project_memory",
+          "root": "workspace",
+          "path": ".memory-bank",
+          "required": true,
+          "reason": "Документы, созданные предыдущими стадиями и подлежащие проверке."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/sum.mjs",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/sum.test.mjs",
+          "required": true,
+          "reason": "Current implemented source and declared project checks; not reference answers."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI возвращает физические пути, predecessor receipts, write scopes, checks, Work-граф и completion contract выбранной стадии."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "cp-mb-init-dd-tasks-zero-b83a09c",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "e8a02bb714ed4f378e678fb3c4357e1b8105a928"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "b06a661feb3b905146c98d280180507cce5da01f",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "b83a09c422effefb005b459564e93f30c8ed82f4",
+      "version": "0.9.0-beta.125"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}

@@ -2,10 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import os from 'node:os';
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import { cleanupObservation } from '../lib/cleanup-observation.mjs';
 import { workerCleanupFailure } from '../lib/eval-resume-worker.mjs';
 import { createHash } from 'node:crypto';
+import { DatabaseSync } from 'node:sqlite';
+import { snapshotTreeHash } from '../lib/case-acceptance.mjs';
 
 test('late sealed capture is visible independently of report; foreign proof never completes cleanup', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'cleanup-observation-'));
@@ -30,6 +32,33 @@ test('late sealed capture is visible independently of report; foreign proof neve
   const normal = { ...input, results: [{ ...input.results[0], state: 'candidate_ready', candidate: { manifest: normalFile, manifest_sha256: createHash('sha256').update(normalBytes).digest('hex') } }],
     live: { executions: [{ ...input.live.executions[0], receipt: { scope: { run_id: 'RUN-1' }, settled: true, control: null } }] } };
   assert.equal((await cleanupObservation(normal)).capture, 'ready', 'normal completion needs no recovery control');
+  const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+  for (const dir of ['project', 'runtime']) await mkdir(path.join(capture, dir));
+  await writeFile(path.join(capture, 'project/README.md'), 'Original source');
+  await writeFile(path.join(capture, 'project.index.patch'), '[]');
+  await writeFile(path.join(capture, 'project.index.pack'), '');
+  const database = new DatabaseSync(path.join(capture, 'runtime/db.sqlite'));
+  database.exec("CREATE TABLE runs(id TEXT,project_id TEXT,flow_kind TEXT); INSERT INTO runs VALUES('RUN-1','PRJ-1','mb-init')");
+  database.close();
+  const unborn = { ...snapshot, schema_id: 'dd-flow/eval-run-snapshot@6', project_id: 'PRJ-1', stage_entry: null,
+    workspace: { kind: 'project' }, project_sha256: snapshotTreeHash(path.join(capture, 'project')),
+    project_git: { state: 'unborn', branch: 'main', head: null, bundle_sha256: null, index_format: 'entries@1',
+      index_sha256: sha('[]'), index_objects_sha256: sha('') } };
+  await writeFile(path.join(capture, 'snapshot.json'), JSON.stringify(unborn));
+  const memory = await cleanupObservation(input);
+  assert.equal(memory.capture, 'ready', `genuine scoped Memory unborn recovery is readable: ${memory.executions[0].reason}`);
+  for (const changed of [{ ...unborn, run_id: 'foreign' }, { ...unborn, purpose: 'candidate' },
+    { ...unborn, project_git: { ...unborn.project_git, head: 'a'.repeat(40) } }]) {
+    await writeFile(path.join(capture, 'snapshot.json'), JSON.stringify(changed));
+    assert.equal((await cleanupObservation(input)).capture, 'unknown');
+  }
+  const foreign = new DatabaseSync(path.join(capture, 'runtime/db.sqlite'));
+  foreign.exec("UPDATE runs SET flow_kind='vnext_protocolize'"); foreign.close();
+  await writeFile(path.join(capture, 'snapshot.json'), JSON.stringify(unborn));
+  assert.equal((await cleanupObservation(input)).capture, 'unknown', 'v6 SDLC is not Memory recovery');
+  await writeFile(normalFile, JSON.stringify({ ...snapshot, schema_id: 'dd-flow/eval-run-snapshot@6', purpose: 'candidate' }));
+  normal.results[0].candidate.manifest_sha256 = sha(await readFile(normalFile));
+  assert.equal((await cleanupObservation(normal)).capture, 'unknown', 'candidate remains v5-only');
   control.current = false;
   assert.equal((await cleanupObservation(input)).physical, 'unknown');
   control.current = true;

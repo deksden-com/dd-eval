@@ -160,6 +160,37 @@ const identityRefusal = (id, phase) => Object.assign(new Error("physical identit
   code: "process_ownership_unknown", details: { process_id: id, reason: "physical_identity_unavailable", phase, effect: "no_effect", native_dispatch_started: false }
 });
 
+test("selected read-only status retries transient observation but not fatal or aborted requests", async t => {
+  let failure, calls = 0;
+  const client = await selectedClient(t, async (action, options, transport) => {
+    assert.equal(action, "status"); assert.deepEqual(options, {});
+    assert.ok(transport.timeoutMs > 0 && transport.timeoutMs <= 5000);
+    calls++;
+    if (failure) { const error = failure; failure = null; throw error; }
+    return { ok: true, processes: [] };
+  });
+  failure = Object.assign(new Error("lost read response"), { code: "process_maintenance_timeout", details: { effect: "unknown", native_dispatch_started: false } });
+  assert.deepEqual(await client.call("status", {}), { ok: true, processes: [] });
+  assert.equal(calls, 2);
+  for (const error of [
+    Object.assign(new Error("unsettled child"), { code: "process_maintenance_timeout", details: { cleanup_unconfirmed: true } }),
+    Object.assign(new Error("foreign owner"), { code: "runtime_owner_mismatch", details: { effect: "unknown" } }),
+    Object.assign(new Error("nested unsettled child"), { code: "process_maintenance_timeout", details: { effect: "unknown" },
+      cause: Object.assign(new Error("unsettled"), { details: { cleanup_unconfirmed: true } }) }),
+    Object.assign(new Error("nested fenced owner"), { code: "process_maintenance_timeout", details: { effect: "unknown",
+      cause: { code: "runtime_owner_mismatch" } } })
+  ]) {
+    failure = error; const before = calls;
+    await assert.rejects(client.call("status", {}), candidate => candidate === error);
+    assert.equal(calls, before + 1);
+  }
+  const abort = new AbortController(); abort.abort();
+  failure = Object.assign(new Error("lost read response"), { code: "process_maintenance_timeout" });
+  const before = calls;
+  await assert.rejects(client.call("status", {}, { signal: abort.signal }), { code: "process_maintenance_timeout" });
+  assert.equal(calls, before + 1);
+});
+
 for (const [action, phase, options] of [
   ["register", "observer_registration", { id: "observer", kind: "eval-observer", pid: "123", "process-group-id": "123", operation: "retained-operation" }],
   ["confirm", "process_confirmation", { id: "baseline", "lease-token": "retained", pid: "456", "process-group-id": "456" }]

@@ -1,0 +1,1 @@
+import { appendFile, readFile } from 'node:fs/promises'; export async function append(file, event) { if (typeof event.id !== 'string') throw new TypeError('id required'); await appendFile(file, JSON.stringify(event) + '\n'); } export async function read(file) { const text = await readFile(file, 'utf8'); return text.trim() ? text.trim().split('\n').map(JSON.parse) : []; }
