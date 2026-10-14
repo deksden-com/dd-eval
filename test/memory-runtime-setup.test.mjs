@@ -7,7 +7,7 @@ import { setupMemoryRuntime, validateMemorySetup, resolveMemoryExecutionExpectat
 
 test('exact authenticated installed CLI resolves external and native semantic selection without a physical receipt', { skip: !process.env.DD_EVAL_MEMORY_DELIVERY_ROOT }, async () => {
   const root = process.env.DD_EVAL_MEMORY_DELIVERY_ROOT;
-  const setup = JSON.parse(await readFile(path.join(root, 'development-setup-response-ff7.json')));
+  const setup = JSON.parse(await readFile(path.join(root, 'development-setup-response.json')));
   const report = JSON.parse(await readFile(path.join(root, 'delivery-report.json')));
   const engine = JSON.parse(await readFile(path.join(report.snapshot, 'engine.json')));
   const input = { runtimeRoot: report.home, installation: setup.installation, engine,
