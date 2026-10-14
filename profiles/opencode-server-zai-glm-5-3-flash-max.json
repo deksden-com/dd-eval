@@ -1,0 +1,11 @@
+{
+  "schema_id": "dd-eval/profile@1",
+  "id": "opencode-server-zai-glm-5-3-flash-max",
+  "harness": "opencode-server",
+  "provider": "zai-coding-plan",
+  "model": "glm-5.3-flash",
+  "reasoning": "max",
+  "mode": "build",
+  "subagent_capacity": 2,
+  "notes": "OpenCode 2.0.28 reports the selected model and native max variant; candidate pending scored E2E."
+}

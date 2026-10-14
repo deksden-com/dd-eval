@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-226-zcode-decisions-maintenance",
-    "sha256": "1d08ec2ff02618b962d68e6c678b01fc843b2bd2561f2f29e7426bae7a4565fa"
+    "id": "cp-227-reviewed-native-evidence",
+    "sha256": "942e7f51a47fff55e50150b28f938f7a58ace0836ff17150afd4d8bfc8e7fccb"
   },
   "entry_pack": null,
   "hitl_qualification": {
@@ -39,6 +39,7 @@
       "zcode-acp-zai-glm-5-3-high",
       "zcode-acp-zai-glm-5-3-flash-high",
       "zcode-acp-zai-glm-5-3-flash-max",
+      "opencode-server-zai-glm-5-3-flash-max",
       "droid-cli-openai-gpt-5-6-sol-high"
     ],
     "judge": [
