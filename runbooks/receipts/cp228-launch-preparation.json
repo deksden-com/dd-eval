@@ -1,0 +1,52 @@
+{
+  "schema_id": "dd-eval/launch-preparation@1",
+  "status": "pending_engine_release_gate_judge_overloaded",
+  "engine": {
+    "version": "0.9.0-beta.137",
+    "commit": "3a1e4cb4a0a24e388228ebb85591350fa4f5886b",
+    "artifact_sha256": "7c09d886ff781d44eb83aa01e5a858f3242a66c23aa49ad6e71a7016dd07ad4d",
+    "snapshot_sha256": "d154ae706e037a54bd59c8765c8ecae7837beccd818b1349e4814bf036b9229c",
+    "candidate": "/Users/deksden/.dd-eval/artifacts/engine-beta137-final/candidate.json",
+    "source_pr": "https://github.com/deksden-com/dd-flow-cli/pull/68"
+  },
+  "bridge": {
+    "version": "0.52.0",
+    "commit": "9c5ca6cc81c4eb5065e43f8b7ab6b7cc5ab7ae47",
+    "artifact_sha256": "d55bdaa780b749033f2cbc3e22005c09c27ade98e4e3b299789e59a78ecc2b34",
+    "release": "https://github.com/deksden-com/zcode-acp/releases/tag/dd-zcode-acp-0.52.0-9c5ca6c-cp227",
+    "checks": "typecheck/build/lint; 135 files, 1922 tests PASS",
+    "reproducible": "same digest as previous immutable build; no source changes or previous asset overwrite"
+  },
+  "campaigns": [
+    {
+      "home": "/Users/deksden/.dd-eval/qualification/cp-228-zcode-decisions-full",
+      "profile": "e2e-zcode-glm-5-3-flash-max-openai-decisions",
+      "subject": "ZCode 0.16.9 / GLM-5.3-Flash / max",
+      "decisions": "gpt-6-luna / threshold 0.7",
+      "native_capacity": "2 started, 2 completed, clean settled shutdown",
+      "port": 55435,
+      "container": "dd-eval-cp227-zcode-postgres"
+    },
+    {
+      "home": "/Users/deksden/.dd-eval/qualification/cp-228-opencode-full",
+      "profile": "e2e-inline-merge-opencode-zai-glm-5-3-flash-max",
+      "subject": "OpenCode 2.0.28 / zai-coding-plan/glm-5.3-flash / max / build",
+      "decisions": "disabled; native Interaction Judge",
+      "native_capacity": "2 started, 0 directly observed completed, 2 settled_by_root; clean settled shutdown",
+      "port": 55436,
+      "container": "dd-eval-cp227-opencode-postgres"
+    }
+  ],
+  "judge": {
+    "profile": "codex-desktop-gpt-6-1-sol-high",
+    "route": "cx / CODEX_HOME=/Users/deksden/.codex-cpa",
+    "blocker": "provider_overload_burst",
+    "native_error": "serverOverloaded",
+    "policy_result": "two same-session continuation refusals within 18472 ms; no further probe loop",
+    "definition_error": "/Users/deksden/.dd-eval/definition-qualifications",
+    "capacity_receipt": "/Users/deksden/.dd-eval/qualification/cp-228-zcode-decisions-full/conformance/native-subagents/20261014055705560/codex-desktop-gpt-6-1-sol-high/capacity.json",
+    "cleanup": "both capacity attempts physically stopped and settled"
+  },
+  "preserved": ["product/flow checkpoint inputs", "historical EVAL evidence", "Codex hook topology and unrelated handlers", "foreign PostgreSQL on 55433"],
+  "eval_started": false
+}
