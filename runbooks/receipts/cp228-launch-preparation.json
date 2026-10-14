@@ -1,13 +1,17 @@
 {
   "schema_id": "dd-eval/launch-preparation@1",
-  "status": "pending_engine_release_gate_judge_overloaded",
+  "status": "published_preflight_pass_baseline_pending",
   "engine": {
     "version": "0.9.0-beta.137",
     "commit": "3a1e4cb4a0a24e388228ebb85591350fa4f5886b",
     "artifact_sha256": "7c09d886ff781d44eb83aa01e5a858f3242a66c23aa49ad6e71a7016dd07ad4d",
     "snapshot_sha256": "d154ae706e037a54bd59c8765c8ecae7837beccd818b1349e4814bf036b9229c",
     "candidate": "/Users/deksden/.dd-eval/artifacts/engine-beta137-final/candidate.json",
-    "source_pr": "https://github.com/deksden-com/dd-flow-cli/pull/68"
+    "source_pr": "https://github.com/deksden-com/dd-flow-cli/pull/68",
+    "release_status": "published_registry_bytes_and_consumer_verified",
+    "local_checks": { "integration_files": 141, "integration_tests": 2397, "runtime_sensitive": 46, "release_checks": 10, "failures": 0 },
+    "tag": "v0.9.0-beta.137",
+    "merge_commit": "5dffc13515a6c02ae140b8f3013499c36d018c08"
   },
   "bridge": {
     "version": "0.52.0",
@@ -40,13 +44,32 @@
   "judge": {
     "profile": "codex-desktop-gpt-6-1-sol-high",
     "route": "cx / CODEX_HOME=/Users/deksden/.codex-cpa",
-    "blocker": "provider_overload_burst",
+    "preparation_probe_error": "provider_overload_burst",
     "native_error": "serverOverloaded",
     "policy_result": "two same-session continuation refusals within 18472 ms; no further probe loop",
     "definition_error": "/Users/deksden/.dd-eval/definition-qualifications",
     "capacity_receipt": "/Users/deksden/.dd-eval/qualification/cp-228-zcode-decisions-full/conformance/native-subagents/20261014055705560/codex-desktop-gpt-6-1-sol-high/capacity.json",
-    "cleanup": "both capacity attempts physically stopped and settled"
+    "cleanup": "both capacity attempts physically stopped and settled",
+    "selected_contract": "dd-eval/hitl-coverage@1 for both harnesses",
+    "semantic_qualification": "passed with native_calls=0; unchanged Judge prompts/answers/settings reused and reassessed",
+    "risk": "Native service overload remains an observed risk, not a tooling failure or proof of current availability; actual calls retain same-session continuation and two-refusal/120s burst stop policy."
   },
   "preserved": ["product/flow checkpoint inputs", "historical EVAL evidence", "Codex hook topology and unrelated handlers", "foreign PostgreSQL on 55433"],
+  "preflight": {
+    "zcode": "passed",
+    "opencode": "passed",
+    "provider_sessions_created": 0,
+    "baseline": "not_run; actual EVAL owns its baseline"
+  },
+  "installed_hooks": {
+    "runtime": "0.9.0-beta.137",
+    "codex_homes": ["/Users/deksden/.codex", "/Users/deksden/.codex-cpa"],
+    "shared_target": "/Users/deksden/.codex/hooks.json",
+    "session_start_preparation": "passed",
+    "minimal_path_nonparticipating_payload": "passed in both homes",
+    "missing_explicit_pin": "failed closed with exit 127 in both homes",
+    "zcode_bridge_identity": "global and campaign installations report 9c5ca6c",
+    "managed_zcode_and_opencode_hooks": "launch-bound to each execution's pinned engine; historical runtimes unchanged"
+  },
   "eval_started": false
 }
