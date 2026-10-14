@@ -1,0 +1,19 @@
+{
+  "schema_id": "dd-flow/run-engine-binding@1",
+  "run_id": "RUN-001-tasks",
+  "project_root": "/Users/deksden/.dd-eval/qualification/cp-228-verification-matrix/dd-flow-protocolize-VF5SRl/project",
+  "bound_at": "2026-10-14T05:53:49.221Z",
+  "source": "run_creation",
+  "reason": "RUN created by the selected execution engine.",
+  "engine": {
+    "package_name": "@deksden-com/dd-flow-cli",
+    "package_version": "0.9.0-beta.137",
+    "engine_version": "0.9.0-beta.137",
+    "integrity_checksum": "d154ae706e037a54bd59c8765c8ecae7837beccd818b1349e4814bf036b9229c",
+    "snapshot_root": "/Users/deksden/.dd-eval/qualification/cp-228-verification-matrix/dd-flow-protocolize-VF5SRl/home/engines/@deksden-com_dd-flow-cli/0.9.0-beta.137"
+  },
+  "probe": {
+    "status": "not_required",
+    "command": null
+  }
+}

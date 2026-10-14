@@ -1,0 +1,37 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "a2140f1e5eec5ac44967fd6dbb40c9b69a2a27363c7ba7cc7b0152054a2bfbbe",
+  "verification_epoch": "fbdb01eb3184e605262b62f4a3ce6369d5ceb8c4145974a28898464161f48cd1",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-228-verification-matrix/dd-flow-protocolize-VF5SRl/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-228-verification-matrix/dd-flow-protocolize-VF5SRl/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-228-verification-matrix/dd-flow-protocolize-VF5SRl/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-228-verification-matrix/dd-flow-protocolize-VF5SRl/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "c8f7af198bcabdff9a092daa24260fb27612f7b0648bf5c3be1c27c0ba6e9ea2",
+  "before_fingerprint": "c8f7af198bcabdff9a092daa24260fb27612f7b0648bf5c3be1c27c0ba6e9ea2",
+  "after_fingerprint": "c8f7af198bcabdff9a092daa24260fb27612f7b0648bf5c3be1c27c0ba6e9ea2",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-14T05:53:54.308Z",
+  "finished_at": "2026-10-14T05:53:54.363Z"
+}
