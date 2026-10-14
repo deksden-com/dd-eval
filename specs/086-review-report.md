@@ -28,6 +28,10 @@ collector уже сохраняет полный inventory. Release и новы�
 5. Retry integration не доказывал, что начальный check реально дошёл до exit 1:
    отказ preparation обнаруживался поздним несовпадением marker. Добавлена ранняя
    проверка actual status/exit с physical diagnostics, без обхода custody/retry.
+6. Полный offline EVAL suite отменил длинный canonical fixture на общем
+   абсолютном 60s deadline, хотя отдельные CLI-команды уже имеют скользящее
+   наблюдение и завершались. Убран дублирующий total deadline; test.signal
+   передаётся owned command observers для отмены/cleanup, их budgets сохранены.
 
 ## Источники и границы
 
