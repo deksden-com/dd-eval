@@ -6,6 +6,7 @@ import path from "node:path";
 import { buildHitlPacket, hitlCoverageContract, validateHitlCoverage, hitlCoverageInput, interactionCoveragePrompt, interactionGroundedPrompt, canonicalExclusionRule } from "../lib/hitl-contract.mjs";
 import { semanticQuestion } from "../lib/semantic-decisions.mjs";
 import { coverageTransport, jevPromptHash, validateCoveragePolicy, jevRequest, requestJev, observeJev, calibrateJev, verifyCoverageQualification } from "../lib/hitl-coverage.mjs";
+import { selectedPolicy as capacityPolicy, successfulPolicy, installSuccessfulPolicy } from "./fixtures/capacity-policy.mjs";
 import { childEnvironment } from "../lib/process-json.mjs";
 import { writeJsonAtomic, hashJson, sha256 } from "../lib/runner-events.mjs";
 import { interactionJudge, loadRunProfile, loadCase, hitlQualificationInputs, buildReport, classifyInterruption } from "../lib/runner.mjs";
@@ -97,7 +98,7 @@ test("JEV retains original observation, reuses it once and rejects drift", async
   const root = await mkdtemp(path.join(os.tmpdir(), "jev-observation-"));
   try {
     const p = await packet(); let calls = 0;
-    const options = { root, packet: p, policy, binding: null, key: "never-persist", fetchImpl: async () => { calls++; return Response.json(response(.12)); } };
+    const options = { capacityPolicy, root, packet: p, policy, binding: null, key: "never-persist", fetchImpl: async () => { calls++; return Response.json(response(.12)); } };
     const first = await observeJev(options), second = await observeJev(options);
     assert.equal(first.probability, .12); assert.equal(second.probability, .12); assert.equal(calls, 1);
     assert.ok(!(await readFile(first.file, "utf8")).includes("never-persist"));
@@ -113,6 +114,21 @@ test("JEV retains original observation, reuses it once and rejects drift", async
     assert.equal((await observeJev(options)).state, "unknown");
     assert.equal(calls, 1);
     await assert.rejects(observeJev({ ...options, evalRunId: "foreign-eval" }), /another input/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("new legacy JEV tasks use semantic retries; cached failures never resample", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "jev-shared-retry-"));
+  try {
+    let calls = 0; const waits = [], p = await packet();
+    const options = { root, packet: p, policy, capacityPolicy, binding: { repetition: 0 }, key: "not-retained", random: () => 0,
+      sleep: async ms => { waits.push(ms); }, fetchImpl: async () => ++calls < 3 ? new Response("busy", { status: 503 }) : Response.json(response(.12)) };
+    const saved = await observeJev(options);
+    assert.equal(saved.state, "completed"); assert.equal(saved.probability, .12); assert.equal(calls, 3);
+    assert.deepEqual(saved.attempts.map(item => item.state), ["failed", "failed", "completed"]);
+    assert.equal(waits.length, 2);
+    await writeJsonAtomic(saved.file, { ...JSON.parse(await readFile(saved.file)), state: "failed", reason: "historical" });
+    assert.equal((await observeJev(options)).reason, "historical"); assert.equal(calls, 3);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
@@ -181,7 +197,7 @@ test("qualified JEV fast path issues and replays original proof without a native
     await mkdir(root, { recursive: true }); await writeJsonAtomic(path.join(root, "packet.json"), p);
     let calls = 0; globalThis.fetch = async () => { calls++; return Response.json(response(.1)); };
     const options = { attempt, fixture: { sha256: "a".repeat(64), responses: p.responses }, question: p.question, stage: "specify", hitlBinding: binding,
-      runProfile: { value: { interaction_judge: { profile_id: profileFile, verdict_contract: hitlCoverageContract } }, coveragePolicy: cascade }, runtimeRoot: "/no-native-runtime", projectRoot: "/no-project-access" };
+      runProfile: { value: { interaction_judge: { profile_id: profileFile, verdict_contract: hitlCoverageContract } }, coveragePolicy: cascade }, runtimeRoot: await installSuccessfulPolicy(path.join(attempt, "runtime")), projectRoot: "/no-project-access" };
     const first = await interactionJudge(options), second = await interactionJudge(options);
     assert.equal(first.decision_source, "jev"); assert.equal(second.reused, true); assert.equal(calls, 1);
     const receipt = JSON.parse(await readFile(first.receipt_file)); assert.equal(receipt.session_id, undefined); assert.equal(receipt.profile_id, undefined);
@@ -219,7 +235,7 @@ test("compact native replay retains its actual Session, final Turn and settled c
     await settledJudge(root, { schema_id: "dd-eval/interaction-judge-receipt@1", decision_source: "interaction_judge", stage: "specify", profile_id: "native", profile_sha256: profileSemanticHash(executionContract.profiles.native), session_id: "session", interaction_fixture_sha256: "a".repeat(64), packet_sha256: hashJson(p), verdict });
     const prompt = "Original frozen instructions before the current Judge prompt revision.", stateFile = path.join(root, `capacity-${hashJson(["session", prompt])}.json`);
     assert.notEqual(prompt, interactionJudgePrompt(packetFile, p));
-    await promptJudgeWithCapacity({ codex: false, sessionId: "session", packetFiles: [packetFile], originalPrompt: prompt, stateFile,
+    await promptJudgeWithCapacity({ policy: successfulPolicy, sessionId: "session", packetFiles: [packetFile], originalPrompt: prompt, stateFile,
       dispatch: async (_text, _capacity, before) => { await before(); return { provider_session_id: "session", turn_id: "turn", thread: { preview: prompt }, turn: { id: "turn", status: "completed" }, assistant_text: JSON.stringify(verdict) }; } });
     const options = { attempt, fixture: { sha256: "a".repeat(64), responses: p.responses }, question: p.question, stage: "specify", hitlBinding: binding,
       runProfile: { executionContract, value: { interaction_judge: { profile_id: "native", verdict_contract: hitlCoverageContract } } }, runtimeRoot: "/no-runtime", projectRoot: "/no-project" };

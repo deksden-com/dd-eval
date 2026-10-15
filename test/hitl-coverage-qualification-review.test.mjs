@@ -9,6 +9,7 @@ import { qualifyCoverageFilter, interactionJudge, hitlQualificationInputs, loadR
 import { hashJson, sha256, writeJsonAtomic, appendEvent, readEvents } from "../lib/runner-events.mjs";
 import { operationContext } from "../lib/operation-context.mjs";
 import { compareCoverageExpectation } from "../lib/hitl-corpus.mjs";
+import { installSuccessfulPolicy } from "./fixtures/capacity-policy.mjs";
 
 const policy = { schema_id: "dd-eval/hitl-coverage-policy@1", mode: "shadow", requested_model: "typesafe/jev-1.13", resolved_model: "typesafe/jev-1.13-20260917", provider: "TypeSafe", projection_version: "dd-eval/hitl-coverage-input@1", prompt_sha256: jevPromptHash, transport_version: coverageTransport, max_uncovered_probability: null, qualification_sha256: null };
 const responses = [{ id: "canonical", topic: "priority", applicability: "specify", answer: "Existing tasks support priority updates." }];
@@ -59,11 +60,12 @@ test("fresh qualification runs the complete HTTP pipeline, freezes threshold bef
     }
     return Response.json({ id: `decision-${calls}`, model: policy.resolved_model, provider: policy.provider, answers: { uncovered: { type: "noul", noul: request.state.question.startsWith("Need SMS") ? .9 : .1 } } });
   };
-  const accepted = await qualifyCoverageFilter(input, results, policy);
+  const runtimeOptions = { runtimeRoot: await installSuccessfulPolicy(path.join(root, "runtime")) };
+  const accepted = await qualifyCoverageFilter(input, results, policy, runtimeOptions);
   assert.equal(accepted.status, "passed"); assert.equal(calls, 66);
-  assert.deepEqual(await qualifyCoverageFilter(input, results, policy), accepted); assert.equal(calls, 66);
+  assert.deepEqual(await qualifyCoverageFilter(input, results, policy, runtimeOptions), accepted); assert.equal(calls, 66);
   const changedJudge = { ...input, tasks: Object.fromEntries(Object.entries(input.tasks).map(([id]) => [id, { key: `changed-native-judge-${id}` }])) };
-  assert.deepEqual(await qualifyCoverageFilter(changedJudge, results, policy), accepted); assert.equal(calls, 66, "native Judge task changes do not repeat unchanged JEV requests");
+  assert.deepEqual(await qualifyCoverageFilter(changedJudge, results, policy, runtimeOptions), accepted); assert.equal(calls, 66, "native Judge task changes do not repeat unchanged JEV requests");
   await assertCoveragePolicy({ ...policy, mode: "cascade", qualification_sha256: accepted.qualification_sha256, max_uncovered_probability: accepted.threshold }, process.env.DD_EVAL_DEFINITION_QUALIFICATION_HOME, input.provenance.corpus_sha256);
   const renamed = { ...input, corpus: { items: input.corpus.items.map(item => ({ ...item, id: `renamed-${item.id}` })) }, tasks: Object.fromEntries(Object.entries(input.tasks).map(([id, value]) => [`renamed-${id}`, value])) };
   const renamedResults = results.map(result => ({ ...result, id: `renamed-${result.id}` }));
@@ -100,7 +102,8 @@ for (const mode of ["cancel", "stop", "pause"]) test(`${mode} aborts a progressi
     started(); return new Response(stream);
   };
   const operationId = `${runId}:${executionId}:launch`;
-  const pending = operationContext.run({ runId, executionId, eventsFile, operationId }, () => interactionJudge({ attempt, fixture: { responses, sha256: "a".repeat(64) }, question: "Update priority?", stage: "specify", hitlBinding: binding, evalRunId: runId, runProfile: { value: { interaction_judge: { verdict_contract: hitlCoverageContract, profile_id: profileFile } }, coveragePolicy: policy }, runtimeRoot: "/no-native-runtime", projectRoot: "/no-project-access" }));
+  const runtimeRoot = await installSuccessfulPolicy(path.join(root, "runtime"));
+  const pending = operationContext.run({ runId, executionId, eventsFile, operationId }, () => interactionJudge({ attempt, fixture: { responses, sha256: "a".repeat(64) }, question: "Update priority?", stage: "specify", hitlBinding: binding, evalRunId: runId, runProfile: { value: { interaction_judge: { verdict_contract: hitlCoverageContract, profile_id: profileFile } }, coveragePolicy: policy }, runtimeRoot, projectRoot: "/no-project-access" }));
   const rejected = assert.rejects(pending, { code: mode === "cancel" ? "runtime_scope_stopped" : "managed_run_controlled" });
   await dispatched;
   await appendEvent(eventsFile, { source: "fixture", runId, type: mode === "cancel" ? "dev.dd.eval.cancel_requested" : "dev.dd.eval.control.requested", data: mode === "cancel" ? { state: "cancelling" } : { mode, request_id: "control" } });

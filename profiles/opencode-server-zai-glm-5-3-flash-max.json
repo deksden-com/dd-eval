@@ -8,7 +8,7 @@
   "mode": "build",
   "notes": "OpenCode 2.0.28 reports the selected model and native max variant; candidate pending scored E2E.",
   "runtime": {
-    "opencode": "2.0.28"
+    "opencode": "2.0.29"
   },
   "subagent_capacity": 2
 }

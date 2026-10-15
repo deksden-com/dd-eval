@@ -6,7 +6,8 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { judgeTurnText } from "../lib/runner.mjs";
-const policy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, "src/harness-runtime/lib/codex-capacity-policy.mjs")).href) : null;
+import { successfulPolicy } from "./fixtures/capacity-policy.mjs";
+const policy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, "src/harness-runtime/lib/provider-overload-policy.mjs")).href) : null;
 const test = (name, run) => nodeTest(name, { skip: !policy && "set DD_FLOW_SOURCE_ROOT to test the selected engine policy" }, run);
 
 nodeTest('publication recovery observes only: no fresh dispatch, inspection or backoff, even after deadline', async t => {
@@ -14,7 +15,7 @@ nodeTest('publication recovery observes only: no fresh dispatch, inspection or b
   t.after(() => rm(root, { recursive: true, force: true }));
   let dispatches = 0, inspections = 0, clock = 0;
   const stateFile = path.join(root, 'chain.json');
-  const input = { codex: false, sessionId: 'same', originalPrompt: 'task', stateFile, deadline: 1000, clock: () => clock,
+  const input = { policy: successfulPolicy, sessionId: 'same', originalPrompt: 'task', stateFile, deadline: 1000, clock: () => clock,
     inspect: () => { inspections++; throw Error('no inspection'); },
     dispatch: async (_text, _capacity, before) => { dispatches++; await before(); throw Object.assign(new Error('unknown reply'), { code: 'operation_observation_lost' }); } };
   await assert.rejects(promptJudgeWithCapacity(input), { code: 'operation_observation_lost' });
@@ -37,7 +38,7 @@ nodeTest('publication recovery observes only: no fresh dispatch, inspection or b
 nodeTest('new Judge chains have no lifetime cap and late completion remains publishable', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'judge-no-work-cap-')); t.after(() => rm(root, { recursive: true, force: true }));
   const stateFile = path.join(root, 'chain.json'); let time = 0;
-  const result = await promptJudgeWithCapacity({ codex: false, sessionId: 'same', originalPrompt: 'task', stateFile, clock: () => time,
+  const result = await promptJudgeWithCapacity({ policy: successfulPolicy, sessionId: 'same', originalPrompt: 'task', stateFile, clock: () => time,
     dispatch: async (_text, _capacity, before) => { await before(); time = 46 * 60_000; return { assistant_text: 'completed after old cap' }; } });
   assert.equal(result.assistant_text, 'completed after old cap');
   const chain = JSON.parse(await readFile(stateFile)); assert.equal(chain.deadline, null); assert.equal(chain.turns[0].state, 'completed');
@@ -53,7 +54,7 @@ function harness({ outcomes, inspect = call => ({ provider_session_id: "session-
   let time = 0;
   const calls = [];
   const input = { codex: true, policy, sessionId: "session-1", packetFiles: ["/packet.json"], originalPrompt: "original prompt", pauses, deadline,
-    clock: () => time, wait: async ms => { time += ms; }, admit,
+    clock: () => time, random: () => 0, wait: async ms => { time += ms; }, admit,
     inspect: async () => inspect(calls.at(-1)),
     dispatch: async (prompt, capacity, authorizeDispatch) => {
       await authorizeDispatch();
@@ -83,7 +84,20 @@ test("Judge continues only the same Session with bounded fresh operations", asyn
 
 test("Judge preserves the overload chain after three failed turns", async () => {
   const fixture = harness({ outcomes: ["overload", "overload", "overload"], inspect: last => ({ provider_session_id: "session-1", settled: true, settlement: { state: "settled", operation_ids: [last.capacity.operation_id] } }) });
-  await assert.rejects(promptJudgeWithCapacity(fixture.input), error => error.code === "provider_overload_burst" && error.details.capacity_continuation.attempts === 3 && error.details.capacity_continuation.stop_reason === "provider_overload_burst");
+  await assert.rejects(promptJudgeWithCapacity(fixture.input), error => error.code === "provider_unavailable" && error.details.capacity_continuation.attempts === 3 && error.details.capacity_continuation.stop_reason === "overload_retries_exhausted");
+  assert.equal(fixture.calls.length, 3);
+});
+
+test("retained over-budget intent never dispatches a fourth attempt", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'judge-over-budget-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const fixture = harness({ outcomes: ['overload', 'overload', 'overload', {}] });
+  fixture.input.stateFile = path.join(root, 'chain.json');
+  await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'provider_unavailable' });
+  const chain = JSON.parse(await readFile(fixture.input.stateFile));
+  chain.turns.push({ ...chain.turns[2], ordinal: 3, operation_id: `${chain.root_operation_id}:capacity:3:session.prompt`, state: 'prepared' });
+  await writeFile(fixture.input.stateFile, JSON.stringify(chain));
+  await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'capacity_chain_conflict' });
   assert.equal(fixture.calls.length, 3);
 });
 
@@ -103,7 +117,7 @@ test("Judge refuses unproven settlement and excessive Retry-After", async () => 
   assert.equal(unsettled.calls.length, 1);
   const tooLate = harness({ deadline: 30000, outcomes: ["overload", { assistant_text: "{}" }], inspect: last => ({ provider_session_id: "session-1", settled: true, settlement: { state: "settled", operation_ids: [last.capacity.operation_id] } }) });
   tooLate.input.dispatch = async (prompt, capacity, authorizeDispatch) => { await authorizeDispatch(); tooLate.calls.push({ prompt, capacity }); throw overload(capacity.operation_id, "turn-1", "session-1", { codexErrorInfo: "serverOverloaded", retryAfter: 31 }); };
-  await assert.rejects(promptJudgeWithCapacity(tooLate.input), { code: "retry_after_exceeds_budget" });
+  await assert.rejects(promptJudgeWithCapacity(tooLate.input), { code: "provider_unavailable" });
   assert.equal(tooLate.calls.length, 1);
   const budget = harness({ outcomes: ["overload", { assistant_text: "{}" }], inspect: () => ({ provider_session_id: "session-1", settled: true, settlement: { state: "not_required" } }) });
   budget.input.requireSettlement = true;
@@ -159,7 +173,7 @@ test('Retry-After accepts capitalized headers, dates and bounded 0/30/>30 second
   assert.equal(policy.capacityBackoff({ headers: { 'Retry-After': '30' } }, 1, 0), 30000);
   assert.equal(policy.capacityBackoff({ headers: { 'Retry-After': ' 30 ' } }, 1, 0), 30000);
   assert.equal(policy.capacityBackoff({ headers: { 'RETRY-AFTER': 'Thu, 01 Jan 1970 00:00:30 GMT' } }, 1, 0), 30000);
-  assert.equal(policy.capacityBackoff({ headers: { 'Retry-After': 'Thu, 01 Jan 1970 00:00:00 GMT' } }, 1, 1), 5000);
+  assert.equal(policy.capacityBackoff({ headers: { 'Retry-After': 'Thu, 01 Jan 1970 00:00:00 GMT' } }, 1, 1, () => 0), 5000);
   assert.throws(() => policy.capacityBackoff({ headers: { 'Retry-After': 'invalid' } }, 1), { code: 'capacity_retry_metadata_invalid' });
   for (const seconds of [0, 30, 31]) {
     const fixture = harness({ outcomes: ['overload', {}] });
@@ -169,7 +183,8 @@ test('Retry-After accepts capitalized headers, dates and bounded 0/30/>30 second
       if (!capacity.ordinal) throw overload(capacity.operation_id, 'turn-1', 'session-1', { codexErrorInfo: 'serverOverloaded', headers: { 'Retry-After': String(seconds) } });
       return {};
     };
-    await promptJudgeWithCapacity(fixture.input); assert.equal(fixture.time(), Math.max(5000, seconds * 1000));
+    if (seconds > 30) await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'provider_unavailable' });
+    else { await promptJudgeWithCapacity(fixture.input); assert.equal(fixture.time(), Math.max(5000, seconds * 1000)); }
   }
 });
 
@@ -285,18 +300,20 @@ test('cancellation during post-permit native inspection prevents dispatch', asyn
   assert.equal(fixture.calls.length, 1);
 });
 
-test('slow distinct refusals do not exhaust a lifetime attempt counter', async () => {
-  const fixture = harness({ outcomes: ['overload', 'overload', 'overload', 'overload', {}] });
+test('slow refusals still stop after three attempts', async () => {
+  const fixture = harness({ outcomes: ['overload', 'overload', 'overload', {}] });
   const dispatch = fixture.input.dispatch;
+  const wait = fixture.input.wait;
   fixture.input.dispatch = async (...args) => {
+    await wait(121000);
     try { return await dispatch(...args); }
-    catch (error) { error.details.provider_error.retryAfter = 121; throw error; }
+    catch (error) { throw error; }
   };
-  assert.deepEqual(await promptJudgeWithCapacity(fixture.input), {});
-  assert.deepEqual(fixture.calls.map(call => call.capacity.ordinal), [0, 1, 2, 3, 4]);
+  await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'provider_unavailable' });
+  assert.deepEqual(fixture.calls.map(call => call.capacity.ordinal), [0, 1, 2]);
 });
 
-test('two continuation refusals have inclusive two-minute burst boundary; original is excluded', async () => {
+test('long Retry-After never dispatches before provider budget', async () => {
   for (const elapsed of [119999, 120000, 120001]) {
     const fixture = harness({ outcomes: ['overload', 'overload', 'overload', {}] });
     const dispatch = fixture.input.dispatch;
@@ -307,9 +324,8 @@ test('two continuation refusals have inclusive two-minute burst boundary; origin
         throw error;
       }
     };
-    if (elapsed <= 120000) await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'provider_overload_burst' });
-    else assert.deepEqual(await promptJudgeWithCapacity(fixture.input), {});
-    assert.equal(fixture.calls.length, elapsed <= 120000 ? 3 : 4);
+    await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'provider_unavailable' });
+    assert.equal(fixture.calls.length, 2);
   }
 });
 
@@ -404,7 +420,7 @@ test('recovered native receipt preserves its failure time and cannot bypass the 
   assert.equal(fixture.time(), 20000);
   fixture.input.clock = () => 200000;
   fixture.input.recover = async operationId => { assert.equal(operationId, recoveredError.details.operation_id); throw recoveredError; };
-  await assert.rejects(promptJudgeWithCapacity(fixture.input), error => error.code === 'provider_overload_burst' && error.details.capacity_continuation.elapsed_ms === 15000);
+  await assert.rejects(promptJudgeWithCapacity(fixture.input), error => error.code === 'provider_unavailable' && error.details.capacity_continuation.attempts === 3);
   const retained = JSON.parse(await readFile(fixture.input.stateFile, 'utf8'));
   assert.equal(retained.turns[2].refusal.first_observed_at, '1970-01-01T00:00:20.000Z');
   assert.deepEqual(fixture.calls.map(call => call.capacity.ordinal), [0, 1, 2]);
@@ -442,7 +458,7 @@ test('retained refusal policy, timestamps and duplicate Turn identities are reje
   t.after(() => rm(directory, { recursive: true, force: true }));
   const fixture = harness({ outcomes: ['overload', 'overload', 'overload'] });
   fixture.input.stateFile = path.join(directory, 'chain.json');
-  await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'provider_overload_burst' });
+  await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'provider_unavailable' });
   const valid = JSON.parse(await readFile(fixture.input.stateFile, 'utf8'));
   for (const corrupt of [
     chain => { chain.turns[0].refusal.policy = 'foreign-policy'; },
