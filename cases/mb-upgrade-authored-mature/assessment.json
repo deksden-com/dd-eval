@@ -1,0 +1,511 @@
+{
+  "schema_id": "dd-eval/assessment@1",
+  "case_id": "mb-upgrade-authored-mature",
+  "status": "accepted",
+  "scopes": {
+    "preflight": {
+      "note": "User-approved grounding facts and E4 named preservation requirements. Evaluate actual stage scope and do not require later-stage effects prematurely.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "upgrade-preservation",
+            "statement": "Preserve source-linked current behavior versus plans and all curated old-bank facts. Preserve DEF-UPGRADE-001 acceptance, identity and version1.2.7; scripts/check-local.sh bytes and executable mode; scripts/check-current symbolic-link target; original product files and intentional local extensions. No silent source changes or invented product capabilities."
+          },
+          {
+            "id": "upgrade-actual-target",
+            "statement": "Use genuine selected target delta and local divergence assessment, accepted bounded work, verified canonical publication, named old-tree preservation checks and independent review. Fresh-init or lint-only PASS is insufficient."
+          },
+          {
+            "id": "upgrade-finish",
+            "statement": "Integrate reviewed result locally with actual checks, recoverable canonical archive/migration record where applicable, durable evidence and ordinary marker-free SDLC readiness. Do not claim global or production release qualification."
+          },
+          {
+            "id": "discover-MAT-implemented",
+            "statement": "Async filesystem append/read persists newline-delimited JSON in a caller-selected local file; historical synchronous-only claims are obsolete."
+          },
+          {
+            "id": "discover-MAT-validation",
+            "statement": "An event id must be a string; amount is not validated. Corrupt JSON propagates read failure rather than self-repair."
+          },
+          {
+            "id": "discover-MAT-policy",
+            "statement": "Single-writer file ownership/backups are caller obligations, not runtime locking guarantees; a format change needs a migration decision and there is no migration utility."
+          },
+          {
+            "id": "discover-MAT-checks",
+            "statement": "node --test checks append/read roundtrip and missing-id rejection. CI/deploy are unresolved; do not claim arbitrary checks have passed."
+          },
+          {
+            "id": "discover-MAT-future",
+            "statement": "Cloud replication is planned, while HTTP endpoints, authentication and remote replication are absent."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "semantic-loss",
+            "severity": "material",
+            "statement": "Deleted/changed accepted limitation, metadata, custom command, link/mode, curated fact or planned-as-current claim is material even if lint and runtime complete."
+          }
+        ]
+      }
+    },
+    "diff-analysis": {
+      "note": "User-approved grounding facts and E4 named preservation requirements. Evaluate actual stage scope and do not require later-stage effects prematurely.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "upgrade-preservation",
+            "statement": "Preserve source-linked current behavior versus plans and all curated old-bank facts. Preserve DEF-UPGRADE-001 acceptance, identity and version1.2.7; scripts/check-local.sh bytes and executable mode; scripts/check-current symbolic-link target; original product files and intentional local extensions. No silent source changes or invented product capabilities."
+          },
+          {
+            "id": "upgrade-actual-target",
+            "statement": "Use genuine selected target delta and local divergence assessment, accepted bounded work, verified canonical publication, named old-tree preservation checks and independent review. Fresh-init or lint-only PASS is insufficient."
+          },
+          {
+            "id": "upgrade-finish",
+            "statement": "Integrate reviewed result locally with actual checks, recoverable canonical archive/migration record where applicable, durable evidence and ordinary marker-free SDLC readiness. Do not claim global or production release qualification."
+          },
+          {
+            "id": "discover-MAT-implemented",
+            "statement": "Async filesystem append/read persists newline-delimited JSON in a caller-selected local file; historical synchronous-only claims are obsolete."
+          },
+          {
+            "id": "discover-MAT-validation",
+            "statement": "An event id must be a string; amount is not validated. Corrupt JSON propagates read failure rather than self-repair."
+          },
+          {
+            "id": "discover-MAT-policy",
+            "statement": "Single-writer file ownership/backups are caller obligations, not runtime locking guarantees; a format change needs a migration decision and there is no migration utility."
+          },
+          {
+            "id": "discover-MAT-checks",
+            "statement": "node --test checks append/read roundtrip and missing-id rejection. CI/deploy are unresolved; do not claim arbitrary checks have passed."
+          },
+          {
+            "id": "discover-MAT-future",
+            "statement": "Cloud replication is planned, while HTTP endpoints, authentication and remote replication are absent."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "semantic-loss",
+            "severity": "material",
+            "statement": "Deleted/changed accepted limitation, metadata, custom command, link/mode, curated fact or planned-as-current claim is material even if lint and runtime complete."
+          }
+        ]
+      }
+    },
+    "upgrade": {
+      "note": "User-approved grounding facts and E4 named preservation requirements. Evaluate actual stage scope and do not require later-stage effects prematurely.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "upgrade-preservation",
+            "statement": "Preserve source-linked current behavior versus plans and all curated old-bank facts. Preserve DEF-UPGRADE-001 acceptance, identity and version1.2.7; scripts/check-local.sh bytes and executable mode; scripts/check-current symbolic-link target; original product files and intentional local extensions. No silent source changes or invented product capabilities."
+          },
+          {
+            "id": "upgrade-actual-target",
+            "statement": "Use genuine selected target delta and local divergence assessment, accepted bounded work, verified canonical publication, named old-tree preservation checks and independent review. Fresh-init or lint-only PASS is insufficient."
+          },
+          {
+            "id": "upgrade-finish",
+            "statement": "Integrate reviewed result locally with actual checks, recoverable canonical archive/migration record where applicable, durable evidence and ordinary marker-free SDLC readiness. Do not claim global or production release qualification."
+          },
+          {
+            "id": "discover-MAT-implemented",
+            "statement": "Async filesystem append/read persists newline-delimited JSON in a caller-selected local file; historical synchronous-only claims are obsolete."
+          },
+          {
+            "id": "discover-MAT-validation",
+            "statement": "An event id must be a string; amount is not validated. Corrupt JSON propagates read failure rather than self-repair."
+          },
+          {
+            "id": "discover-MAT-policy",
+            "statement": "Single-writer file ownership/backups are caller obligations, not runtime locking guarantees; a format change needs a migration decision and there is no migration utility."
+          },
+          {
+            "id": "discover-MAT-checks",
+            "statement": "node --test checks append/read roundtrip and missing-id rejection. CI/deploy are unresolved; do not claim arbitrary checks have passed."
+          },
+          {
+            "id": "discover-MAT-future",
+            "statement": "Cloud replication is planned, while HTTP endpoints, authentication and remote replication are absent."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "semantic-loss",
+            "severity": "material",
+            "statement": "Deleted/changed accepted limitation, metadata, custom command, link/mode, curated fact or planned-as-current claim is material even if lint and runtime complete."
+          }
+        ]
+      }
+    },
+    "verify": {
+      "note": "User-approved grounding facts and E4 named preservation requirements. Evaluate actual stage scope and do not require later-stage effects prematurely.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "upgrade-preservation",
+            "statement": "Preserve source-linked current behavior versus plans and all curated old-bank facts. Preserve DEF-UPGRADE-001 acceptance, identity and version1.2.7; scripts/check-local.sh bytes and executable mode; scripts/check-current symbolic-link target; original product files and intentional local extensions. No silent source changes or invented product capabilities."
+          },
+          {
+            "id": "upgrade-actual-target",
+            "statement": "Use genuine selected target delta and local divergence assessment, accepted bounded work, verified canonical publication, named old-tree preservation checks and independent review. Fresh-init or lint-only PASS is insufficient."
+          },
+          {
+            "id": "upgrade-finish",
+            "statement": "Integrate reviewed result locally with actual checks, recoverable canonical archive/migration record where applicable, durable evidence and ordinary marker-free SDLC readiness. Do not claim global or production release qualification."
+          },
+          {
+            "id": "discover-MAT-implemented",
+            "statement": "Async filesystem append/read persists newline-delimited JSON in a caller-selected local file; historical synchronous-only claims are obsolete."
+          },
+          {
+            "id": "discover-MAT-validation",
+            "statement": "An event id must be a string; amount is not validated. Corrupt JSON propagates read failure rather than self-repair."
+          },
+          {
+            "id": "discover-MAT-policy",
+            "statement": "Single-writer file ownership/backups are caller obligations, not runtime locking guarantees; a format change needs a migration decision and there is no migration utility."
+          },
+          {
+            "id": "discover-MAT-checks",
+            "statement": "node --test checks append/read roundtrip and missing-id rejection. CI/deploy are unresolved; do not claim arbitrary checks have passed."
+          },
+          {
+            "id": "discover-MAT-future",
+            "statement": "Cloud replication is planned, while HTTP endpoints, authentication and remote replication are absent."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "semantic-loss",
+            "severity": "material",
+            "statement": "Deleted/changed accepted limitation, metadata, custom command, link/mode, curated fact or planned-as-current claim is material even if lint and runtime complete."
+          }
+        ]
+      }
+    },
+    "review": {
+      "note": "User-approved grounding facts and E4 named preservation requirements. Evaluate actual stage scope and do not require later-stage effects prematurely.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "upgrade-preservation",
+            "statement": "Preserve source-linked current behavior versus plans and all curated old-bank facts. Preserve DEF-UPGRADE-001 acceptance, identity and version1.2.7; scripts/check-local.sh bytes and executable mode; scripts/check-current symbolic-link target; original product files and intentional local extensions. No silent source changes or invented product capabilities."
+          },
+          {
+            "id": "upgrade-actual-target",
+            "statement": "Use genuine selected target delta and local divergence assessment, accepted bounded work, verified canonical publication, named old-tree preservation checks and independent review. Fresh-init or lint-only PASS is insufficient."
+          },
+          {
+            "id": "upgrade-finish",
+            "statement": "Integrate reviewed result locally with actual checks, recoverable canonical archive/migration record where applicable, durable evidence and ordinary marker-free SDLC readiness. Do not claim global or production release qualification."
+          },
+          {
+            "id": "discover-MAT-implemented",
+            "statement": "Async filesystem append/read persists newline-delimited JSON in a caller-selected local file; historical synchronous-only claims are obsolete."
+          },
+          {
+            "id": "discover-MAT-validation",
+            "statement": "An event id must be a string; amount is not validated. Corrupt JSON propagates read failure rather than self-repair."
+          },
+          {
+            "id": "discover-MAT-policy",
+            "statement": "Single-writer file ownership/backups are caller obligations, not runtime locking guarantees; a format change needs a migration decision and there is no migration utility."
+          },
+          {
+            "id": "discover-MAT-checks",
+            "statement": "node --test checks append/read roundtrip and missing-id rejection. CI/deploy are unresolved; do not claim arbitrary checks have passed."
+          },
+          {
+            "id": "discover-MAT-future",
+            "statement": "Cloud replication is planned, while HTTP endpoints, authentication and remote replication are absent."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "semantic-loss",
+            "severity": "material",
+            "statement": "Deleted/changed accepted limitation, metadata, custom command, link/mode, curated fact or planned-as-current claim is material even if lint and runtime complete."
+          }
+        ]
+      }
+    },
+    "finish": {
+      "note": "User-approved grounding facts and E4 named preservation requirements. Evaluate actual stage scope and do not require later-stage effects prematurely.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "upgrade-preservation",
+            "statement": "Preserve source-linked current behavior versus plans and all curated old-bank facts. Preserve DEF-UPGRADE-001 acceptance, identity and version1.2.7; scripts/check-local.sh bytes and executable mode; scripts/check-current symbolic-link target; original product files and intentional local extensions. No silent source changes or invented product capabilities."
+          },
+          {
+            "id": "upgrade-actual-target",
+            "statement": "Use genuine selected target delta and local divergence assessment, accepted bounded work, verified canonical publication, named old-tree preservation checks and independent review. Fresh-init or lint-only PASS is insufficient."
+          },
+          {
+            "id": "upgrade-finish",
+            "statement": "Integrate reviewed result locally with actual checks, recoverable canonical archive/migration record where applicable, durable evidence and ordinary marker-free SDLC readiness. Do not claim global or production release qualification."
+          },
+          {
+            "id": "discover-MAT-implemented",
+            "statement": "Async filesystem append/read persists newline-delimited JSON in a caller-selected local file; historical synchronous-only claims are obsolete."
+          },
+          {
+            "id": "discover-MAT-validation",
+            "statement": "An event id must be a string; amount is not validated. Corrupt JSON propagates read failure rather than self-repair."
+          },
+          {
+            "id": "discover-MAT-policy",
+            "statement": "Single-writer file ownership/backups are caller obligations, not runtime locking guarantees; a format change needs a migration decision and there is no migration utility."
+          },
+          {
+            "id": "discover-MAT-checks",
+            "statement": "node --test checks append/read roundtrip and missing-id rejection. CI/deploy are unresolved; do not claim arbitrary checks have passed."
+          },
+          {
+            "id": "discover-MAT-future",
+            "statement": "Cloud replication is planned, while HTTP endpoints, authentication and remote replication are absent."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "semantic-loss",
+            "severity": "material",
+            "statement": "Deleted/changed accepted limitation, metadata, custom command, link/mode, curated fact or planned-as-current claim is material even if lint and runtime complete."
+          }
+        ]
+      }
+    },
+    "e2e": {
+      "note": "User-approved grounding facts and E4 named preservation requirements. Evaluate actual stage scope and do not require later-stage effects prematurely.",
+      "outcome": [
+        {
+          "id": "project-truth",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "bounded-completeness",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "stage-custody",
+          "weight": 0.5,
+          "essential": true
+        },
+        {
+          "id": "evidence-and-preservation",
+          "weight": 0.5,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "upgrade-preservation",
+            "statement": "Preserve source-linked current behavior versus plans and all curated old-bank facts. Preserve DEF-UPGRADE-001 acceptance, identity and version1.2.7; scripts/check-local.sh bytes and executable mode; scripts/check-current symbolic-link target; original product files and intentional local extensions. No silent source changes or invented product capabilities."
+          },
+          {
+            "id": "upgrade-actual-target",
+            "statement": "Use genuine selected target delta and local divergence assessment, accepted bounded work, verified canonical publication, named old-tree preservation checks and independent review. Fresh-init or lint-only PASS is insufficient."
+          },
+          {
+            "id": "upgrade-finish",
+            "statement": "Integrate reviewed result locally with actual checks, recoverable canonical archive/migration record where applicable, durable evidence and ordinary marker-free SDLC readiness. Do not claim global or production release qualification."
+          },
+          {
+            "id": "discover-MAT-implemented",
+            "statement": "Async filesystem append/read persists newline-delimited JSON in a caller-selected local file; historical synchronous-only claims are obsolete."
+          },
+          {
+            "id": "discover-MAT-validation",
+            "statement": "An event id must be a string; amount is not validated. Corrupt JSON propagates read failure rather than self-repair."
+          },
+          {
+            "id": "discover-MAT-policy",
+            "statement": "Single-writer file ownership/backups are caller obligations, not runtime locking guarantees; a format change needs a migration decision and there is no migration utility."
+          },
+          {
+            "id": "discover-MAT-checks",
+            "statement": "node --test checks append/read roundtrip and missing-id rejection. CI/deploy are unresolved; do not claim arbitrary checks have passed."
+          },
+          {
+            "id": "discover-MAT-future",
+            "statement": "Cloud replication is planned, while HTTP endpoints, authentication and remote replication are absent."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "semantic-loss",
+            "severity": "material",
+            "statement": "Deleted/changed accepted limitation, metadata, custom command, link/mode, curated fact or planned-as-current claim is material even if lint and runtime complete."
+          }
+        ]
+      }
+    }
+  }
+}

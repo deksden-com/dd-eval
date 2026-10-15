@@ -1,0 +1,22 @@
+{
+  "schema_id": "dd-eval/baseline-admission-policy@2",
+  "commands": [
+    {
+      "id": "exact-old-checkpoint",
+      "command": "node",
+      "args": [
+        "-e",
+        "const assert=require('node:assert/strict'),fs=require('node:fs'),{execFileSync}=require('node:child_process');assert.equal(execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),\"cf7f5b37a3ab161708c144a21fc946cf1d22136c\");execFileSync('git',['diff','--exit-code','HEAD','--','.']);assert(fs.statSync('scripts/check-local.sh').mode&0o111);assert.equal(fs.readlinkSync('scripts/check-current'),'check-local.sh');console.log('Exact old-bank fixture, original commands and link admitted.');"
+      ],
+      "inactivity_timeout_ms": 30000
+    },
+    {
+      "id": "original-product-tests",
+      "command": "node",
+      "args": [
+        "--test"
+      ],
+      "inactivity_timeout_ms": 30000
+    }
+  ]
+}

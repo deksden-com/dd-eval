@@ -1,0 +1,46 @@
+{
+  "schema_id": "dd-eval/case@7",
+  "suite_id": "memory-flow-e4",
+  "id": "mb-upgrade-authored-mature",
+  "assessment": "assessment.json",
+  "input": [
+    {
+      "role": "initial_user_request",
+      "source": "entry-pack-source/upgrade.md",
+      "sha256": "6eebbb33234707b69f4b96fc480ff1b365791dbd8bd1d7ff9820eb79658b042e"
+    }
+  ],
+  "input_checkpoint": {
+    "id": "cp-mb-upgrade-authored-mature-e4-dev2",
+    "sha256": "5b2fc49558fe4b8dce0f44239da790884091e44b40befec1e52a5e9927a2fc3d"
+  },
+  "baseline_admission": {
+    "file": "baseline-admission.json",
+    "sha256": "8307f0320f3ea3ccf7ed99243facaa2c9d83cd603f08fa2b17cdc8f8b5045665"
+  },
+  "entry_pack": null,
+  "profiles": {
+    "subject": [
+      "codex-desktop-gpt-6-luna-xhigh-codex-0-162-1"
+    ],
+    "judge": [
+      "codex-desktop-gpt-6-1-sol-high-codex-0-162-1"
+    ]
+  },
+  "flow": {
+    "id": "mb-upgrade",
+    "contour": [
+      "preflight",
+      "diff-analysis",
+      "upgrade",
+      "verify",
+      "review",
+      "finish"
+    ],
+    "terminal_stage": "finish",
+    "git_policy": {
+      "route": "integration_branch_direct",
+      "integration_branch": "main"
+    }
+  }
+}
