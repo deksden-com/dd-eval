@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateFlowContour, validateStageBlueprint, validateStageContext, writeEntryPack } from "../lib/entry-pack.mjs";
-import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice, validateExecutionDescriptors, assertQualificationSelection, canonicalEntries, initialFlowBoundary, verifySnapshot } from "../lib/runner.mjs";
+import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice, validateExecutionDescriptors, assertQualificationSelection, canonicalEntries, initialFlowBoundary, verifySnapshot,restoreStageSnapshot } from "../lib/runner.mjs";
 
 test("recovery materializes each reopened stage attempt once", () => {
   assert.equal(needsAttemptContext({ attempt: "try-001" }, {}), false);
@@ -35,6 +35,17 @@ test("bootstrap snapshot reader binds version, selected stage and independent ma
   const save = async manifest => { await writeFile(file, canonicalJson(manifest)); return { stage: manifest.stage, snapshot: { kind: "bootstrap", locator: ".", manifest_sha256: hashJson(manifest), run_id: null } }; };
   let entry = await save(snapshot);
   assert.equal((await verifySnapshot(home, entry, "preflight")).manifest.stage, "preflight");
+  assert.equal((await verifySnapshot(home,entry,'preflight',{id:'mb-init',descriptor_sha256:'b'.repeat(64)})).manifest.flow.id,'mb-init');
+  await assert.rejects(verifySnapshot(home,entry,'preflight',{id:'mb-upgrade'}),{code:'snapshot_contract_mismatch'});
+  const upgrade={...snapshot,flow:{...snapshot.flow,id:'mb-upgrade'}};
+  entry=await save(upgrade);
+  assert.equal((await verifySnapshot(home,entry,'preflight',{id:'mb-upgrade',descriptor_sha256:'b'.repeat(64)})).manifest.flow.id,'mb-upgrade');
+  for(const expected of [{id:'mb-init'},{id:'sdlc'},{id:'mb-upgrade',descriptor_sha256:'c'.repeat(64)}])
+    await assert.rejects(verifySnapshot(home,entry,'preflight',expected),{code:'snapshot_contract_mismatch'});
+  const projectRoot=path.join(home,'must-not-create'),runtimeRoot=path.join(home,'must-not-initialize');
+  await assert.rejects(restoreStageSnapshot({home,entry,stage:'preflight',projectRoot,runtimeRoot,flowId:'mb-init'}),{code:'snapshot_contract_mismatch'});
+  await assert.rejects(access(projectRoot),{code:'ENOENT'});await assert.rejects(access(runtimeRoot),{code:'ENOENT'});
+  entry=await save(snapshot);
   await assert.rejects(verifySnapshot(home, entry, "specify"), error => error.code === "snapshot_contract_mismatch");
   await writeFile(file, canonicalJson({ ...snapshot, stage: "compose" }));
   await assert.rejects(verifySnapshot(home, entry, "preflight"), error => error.code === "snapshot_checksum_mismatch");
