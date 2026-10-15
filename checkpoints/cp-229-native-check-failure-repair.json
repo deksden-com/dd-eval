@@ -10,11 +10,17 @@
     "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
     "path": ".memory-bank/dd-flow",
     "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-229-verification-matrix-qualification.json",
+      "sha256": "dd54fac20d39f79828cafe41805eefb5035376eb004eb2bf7295ff1dcd9979cc",
+      "canon_commit": "1ddedf9d3f086e046f8e7b194c739ec386e7c8b9"
+    },
     "engine": {
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
-      "commit": "bbbc20017b604c6437412ce6656b8c8d8bc537c1",
-      "version": "0.9.0-beta.137",
-      "artifact_sha256": null
+      "commit": "c1a9786d04e0944daac204e1c767414904d9ced2",
+      "version": "0.9.0-beta.138",
+      "artifact_sha256": "3dd46bae5cbf1e58f2cc13a68078e7c39f3dc850a50d1dc5855765821eccdbee"
     }
   },
   "state": "candidate_pending_release",
@@ -22,8 +28,8 @@
     "plan": "086",
     "launchable": false,
     "product_base": "26bf561f175450337a999fdb114580e641c99cde",
-    "engine_pin_status": "unpublished_tested_source",
-    "engine_version_note": "Source package version only; this is not the published beta.137 artifact. A new immutable release checkpoint with its actual artifact checksum and verification-matrix qualification is required before launch.",
+    "engine_pin_status": "built_candidate_pending_gate",
+    "engine_version_note": "Exact beta.138 candidate; publication and full release gate required before scored launch. Installed matrix qualification passed.",
     "offline_baseline": {
       "source_commit": "b791fea498364465e51e43bd0674b4e212403c9a",
       "tooling": "passed_21",
