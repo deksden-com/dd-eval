@@ -11,12 +11,12 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-mb-upgrade-authored-mature-e4-dev3",
-    "sha256": "5c2fd4cb9f5efa3660679b8a714924b88642a1fdfa132193cea5f6c855874ced"
+    "id": "cp-mb-upgrade-authored-mature-e4-dev4",
+    "sha256": "28d3601e3ab0dd9b9dc2fc89d2ae3a8dd0f99cd86e466f035ec4fc64536a1cc4"
   },
   "baseline_admission": {
     "file": "baseline-admission.json",
-    "sha256": "8307f0320f3ea3ccf7ed99243facaa2c9d83cd603f08fa2b17cdc8f8b5045665"
+    "sha256": "4221e7b9b4e79821bc3b5e00404e322aedbe57b26fd183feaa7b851b51f3c105"
   },
   "entry_pack": null,
   "profiles": {

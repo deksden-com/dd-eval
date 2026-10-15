@@ -6,7 +6,7 @@
       "command": "node",
       "args": [
         "-e",
-        "const assert=require('node:assert/strict'),fs=require('node:fs'),{execFileSync}=require('node:child_process');assert.equal(execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),\"c2c6be43f80bedf033c21f6d864c09c9cea16ad7\");execFileSync('git',['diff','--exit-code','HEAD','--','.']);assert(fs.statSync('scripts/check-local.sh').mode&0o111);assert.equal(fs.readlinkSync('scripts/check-current'),'check-local.sh');console.log('Exact old-bank fixture, original commands and link admitted.');"
+        "const assert=require('node:assert/strict'),fs=require('node:fs'),{execFileSync}=require('node:child_process');assert.equal(execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),\"01e58c6aac793aeb27b798e6fe70896400de766c\");execFileSync('git',['diff','--exit-code','HEAD','--','.']);assert(fs.statSync('scripts/check-local.sh').mode&0o111);assert.equal(fs.readlinkSync('scripts/check-current'),'check-local.sh');console.log('Exact old-bank fixture, original commands and link admitted.');"
       ],
       "inactivity_timeout_ms": 30000
     },
