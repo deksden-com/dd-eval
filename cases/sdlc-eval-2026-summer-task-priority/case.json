@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-229-native-check-failure-repair",
-    "sha256": "e90a456f6f19db560e64a1e40fb16b727e3fddc6b37f37b2cdaeced63d24c361"
+    "id": "cp-230-isolated-world-observation",
+    "sha256": "96c3ff9bb3bcc28237daa178bd4bbfbbe3a38051d4b6fa3f90f47afb31bb8887"
   },
   "entry_pack": null,
   "hitl_qualification": {
