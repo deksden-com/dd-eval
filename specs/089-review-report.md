@@ -102,6 +102,19 @@
     silence/empty chunks/cancellation/output limit сохранены. Production code
     и duration не менялись. Итоговые policy/Judge/semantic: 50/50 PASS.
 
+12. Whole integration на ecd4a4b9: 2797 PASS/1 FAIL. Единственный отказ
+    `runtime-scope-stop (eval-observer)` произошёл до stop при регистрации:
+    `process_ownership_unknown/physical_identity_unavailable`,
+    phase=observer_registration, effect=no_effect, native_dispatch_started=false.
+    Runtime корректно не принял неподтверждённую physical identity; точная причина
+    недоступности отдельного ps-ответа не сохранена и не приписывается таймауту.
+    Фикстура ошибочно требовала успеха первого наблюдения. Она использует уже
+    имеющийся retryPhysical с production maintenanceRetryable и неизменным общим
+    uncertainty guard, сохраняя точный registration ID/lease. Stop assertions
+    не обёрнуты в retry и не ослаблены. Адресный replay до исправления 2/2 PASS
+    не выдаётся за успешный whole gate. Все 11 full-cycle cases исходного общего
+    integration прошли, включая overload children и terminal cleanup.
+
 Ponytail: исправления в существующих общих точках; без новых зависимостей,
 retry executor, замены модели, новой Session или обхода admission.
 
@@ -160,7 +173,9 @@ SHA-256 build-info.json `521a306a97a5eb1e8ddd928b21f581be65b225fd1f13984fec74bd8
 EVAL после пункта 11: полный suite с DD_FLOW_SOURCE_ROOT на этот candidate —
 897 tests, 882 PASS, 0 FAIL, 15 environment-gated SKIP, exit 0.
 Адресный current-engine policy/Judge/semantic — 50/50 PASS, exit 0.
-Итоговый результат будет записан до merge.
+Полный invocation ecd4a4b9 прошёл hybrid/E2/E3/release, но завершился exit 1
+из-за пункта 12; runtime-sensitive после него не запускался.
+Итоговый результат следующего чистого candidate будет записан до merge.
 
 Проверка выполняется в отдельных worktrees. Установленные runtime/хуки,
 работающие EVAL и их артефакты не менялись; новые EVAL не запускались.
