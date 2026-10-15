@@ -5,6 +5,44 @@ import os from "node:os";
 import path from "node:path";
 import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
 
+test('Memory reconciles only an explicitly allocated original request, once, without replacement or dispatch', async t => {
+  const root=await mkdtemp(path.join(os.tmpdir(),'memory-reconcile-'));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const bin=path.join(root,'cli.mjs'),calls=path.join(root,'calls.json');
+  for(const flow of ['mb-init','mb-upgrade']) {
+    const memory={workspaceRoot:root,requestId:'original',intakeFile:path.join(root,'intake'),intakeSha256:'a'.repeat(64),
+      gitRoute:'integration_branch_direct',integrationBranch:'main',profile:'fast'};
+    const input={bin,projectRoot:root,flow,[flow==='mb-init'?'memoryInit':'memoryUpgrade']:memory};
+    const partial={code:'run_start_incomplete',message:'Reconcile original allocation',details:{
+      effect:'partial',reason:'git_observation_failed',run_id:'RUN-original',request_id:'original',next_action:'reconcile_exact_request'}};
+    const receipt={run_id:'RUN-original',flow_id:flow,action:flow==='mb-init'?'flow_mb_init_prepared':'flow_mb_upgrade_prepared',request_id:'original'};
+    const install=async(error=partial,result=receipt,alwaysFail=false)=>{
+      await rm(calls,{force:true});
+      await writeFile(bin,`import fs from 'node:fs';const file=${JSON.stringify(calls)};
+const calls=fs.existsSync(file)?JSON.parse(fs.readFileSync(file)):[];calls.push(process.argv.slice(2));fs.writeFileSync(file,JSON.stringify(calls));
+if(calls.length===1 || ${alwaysFail}) {console.log(JSON.stringify({ok:false,error:${JSON.stringify(error)}}));process.exit(1);}
+console.log(JSON.stringify(${JSON.stringify(result)}));`);
+    };
+    await install();assert.deepEqual(await prepareManagedRun(input),receipt);
+    const actual=JSON.parse(await readFile(calls));assert.equal(actual.length,2);assert.deepEqual(actual[0],actual[1]);
+    assert(actual[0].includes('--prepare-only'));assert(!actual[0].includes('launch'));
+    for(const change of [{effect:'no_effect'},{effect:'unknown'},{request_id:'foreign'},{run_id:''},
+      {next_action:'start_new_request'},{authority_truncated:true}]) {
+      await install({...partial,details:{...partial.details,...change}});
+      await assert.rejects(prepareManagedRun(input),{code:'run_start_incomplete'});
+      assert.equal(JSON.parse(await readFile(calls)).length,1);
+    }
+    await install({...partial,code:'command_observation_lost'});
+    await assert.rejects(prepareManagedRun(input),{code:'command_observation_lost'});
+    assert.equal(JSON.parse(await readFile(calls)).length,1);
+    await install(partial,{...receipt,run_id:'RUN-replacement'});
+    await assert.rejects(prepareManagedRun(input),{code:'controller_receipt_invalid'});
+    await install(partial,receipt,true);
+    await assert.rejects(prepareManagedRun(input),{code:'run_start_incomplete'});
+    assert.equal(JSON.parse(await readFile(calls)).length,2);
+  }
+});
+
 test('upgrade uses its public CLI with exact native selectors, never init or an implicit migration apply',async t=>{
   const root=await mkdtemp(path.join(os.tmpdir(),'managed-upgrade-'));
   t.after(()=>rm(root,{recursive:true,force:true}));
