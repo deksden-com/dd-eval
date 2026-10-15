@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-mb-upgrade-authored-minimal-e4-dev17",
-    "sha256": "2a5e3af184f6114040816c5d556428300a4c8ac26c25d2e075fe97d08131da8f"
+    "id": "cp-mb-upgrade-authored-minimal-e4-dev18",
+    "sha256": "79fc086c612df3bbae4a7cf008c16dc3d4c423b6fbe352b20295bbd9ae0065c7"
   },
   "baseline_admission": {
     "file": "baseline-admission.json",
