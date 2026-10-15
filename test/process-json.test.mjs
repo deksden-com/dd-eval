@@ -22,8 +22,9 @@ test("unvalidated operation diagnostics do not renew CLI silence", async t => {
 });
 
 test("public Memory prepare-only uses the existing build budget without widening ordinary controls", () => {
-  assert.equal(commandObservationTimeout(["init", "--prepare-only", "--non-interactive"]), commandObservationTimeout(["build"]));
-  for (const args of [["init"], ["run", "status"], ["run", "prepare-vnext-specify"], ["status", "--prepare-only"]])
+  for(const command of [["init"],["upgrade"],["flow","mb-init"],["flow","mb-upgrade"]])
+    assert.equal(commandObservationTimeout([...command,"--prepare-only","--non-interactive"]),commandObservationTimeout(["build"]));
+  for (const args of [["init"], ["upgrade"], ["flow","mb-upgrade"], ["flow","sdlc","--prepare-only"], ["run", "status"], ["run", "prepare-vnext-specify"], ["status", "--prepare-only"]])
     assert.equal(commandObservationTimeout(args), 30_000);
 });
 
