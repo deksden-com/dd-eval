@@ -44,9 +44,13 @@ AGY `settled_by_root` and Grok multi-result need each child's matching lifecycle
 receipt; ZCode `lost`, conflicting parentage or unbound children remain unknown.
 Read full inventories, not just one page or the current controller journal.
 
-Only confirmed Codex `serverOverloaded` continues the same Session/task. Two
-distinct consecutive **continuation** refusals within 120 seconds stop the chain;
-the initial refusal does not count. Backoff is 5/15 seconds or proven Retry-After.
+For `provider-overload-episode@1`, confirmed terminal overload continues the same
+Session/task at most twice (three attempts total), regardless of refusal duration.
+Backoff is 5/15 seconds plus small jitter, respecting proven Retry-After up to 30s.
+Success closes the episode; a later overload has a fresh budget. Exhaustion is
+`provider_unavailable`; optional Decisions fall back to classic Judge. Native retry
+still in progress or unknown outcome never authorizes another prompt. Historical
+pinned runs retain their recorded policy; never reinterpret or reset their budget.
 Quota/auth failures do not auto-continue. Report native reset time/anchored
 estimate without moving it on subsequent polls. Never manually continue an EVAL
 to bypass these rules.

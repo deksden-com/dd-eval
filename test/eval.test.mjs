@@ -15,9 +15,9 @@ import { buildHitlPacket, validateGroundedHitl, interactionGroundedPrompt } from
 import { materializeQualificationContext, reassessHitlQualification } from "../lib/runner.mjs";
 import { buildReport } from "../lib/runner.mjs";
 import { capacityCodexChildren, qualifiedCapacityProbe, harnessCapacityCheck } from "../lib/runner.mjs";
-import { errorRecord, terminalCodexOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
+import { errorRecord, terminalProviderOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
-const capacityPolicy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'src/harness-runtime/lib/codex-capacity-policy.mjs')).href) : null;
+const capacityPolicy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'src/harness-runtime/lib/provider-overload-policy.mjs')).href) : null;
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
 const root = path.resolve(import.meta.dirname, "..");
@@ -101,9 +101,10 @@ test("case pins its input checkpoint and exact engine without Session starter st
   assert.equal("priming" in loaded.value, false);
   assert.equal(loaded.inputCheckpoint.value.id, loaded.value.input_checkpoint.id);
   assert.match(loaded.inputCheckpoint.value.id, /^[A-Za-z0-9][A-Za-z0-9._-]*$/);
-  assert.equal(loaded.inputCheckpoint.value.source.commit, "26bf561f175450337a999fdb114580e641c99cde");
-  assert.equal(loaded.inputCheckpoint.value.source.tag, "eval/cp-224-tooling-baseline-v2");
   const pinnedCheckpoint = JSON.parse(await readFile(path.join(root, 'checkpoints', `${loaded.value.input_checkpoint.id}.json`), 'utf8'));
+  assert.equal(loaded.inputCheckpoint.value.source.commit, pinnedCheckpoint.source.commit);
+  assert.equal(loaded.inputCheckpoint.value.source.tag, pinnedCheckpoint.source.tag);
+  assert.match(pinnedCheckpoint.source.commit, /^[a-f0-9]{40}$/);
   assert.equal(loaded.inputCheckpoint.value.flow_pack.commit, pinnedCheckpoint.flow_pack.commit);
   assert.match(loaded.inputCheckpoint.value.flow_pack.commit, /^[a-f0-9]{40}$/);
   assert.match(loaded.inputCheckpoint.value.flow_pack.engine.version, /^0\.9\.0-beta\.\d+$/);
@@ -704,10 +705,10 @@ test("OpenCode overload attribution requires exact terminal native identity", ()
 
 test("only exact terminal native overload authorizes Codex continuation", { skip: !capacityPolicy && 'set DD_FLOW_SOURCE_ROOT for pinned policy' }, () => {
   const native = { code: "turn_interrupted", details: { provider_session_id: "thread-1", turn_id: "turn-2", native_turn_id: "turn-2", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" } } };
-  assert.equal(terminalCodexOverload(native, "thread-1", capacityPolicy)?.turn_id, "turn-2");
-  assert.equal(terminalCodexOverload(native, "thread-other", capacityPolicy), null);
-  assert.equal(terminalCodexOverload({ ...native, details: { ...native.details, terminal_status: "running" } }, "thread-1", capacityPolicy), null);
-  assert.equal(terminalCodexOverload({ code: "driver_failed", message: "serverOverloaded", details: { error: { codexErrorInfo: "serverOverloaded" } } }, "thread-1", capacityPolicy), null);
+  assert.equal(terminalProviderOverload(native, "thread-1", capacityPolicy)?.turn_id, "turn-2");
+  assert.equal(terminalProviderOverload(native, "thread-other", capacityPolicy), null);
+  assert.equal(terminalProviderOverload({ ...native, details: { ...native.details, terminal_status: "running" } }, "thread-1", capacityPolicy), null);
+  assert.equal(terminalProviderOverload({ code: "driver_failed", message: "serverOverloaded", details: { error: { codexErrorInfo: "serverOverloaded" } } }, "thread-1", capacityPolicy), null);
   assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: native } }).category, "provider_overloaded");
   assert.equal(classifyInterruption({ code: "harness_adapter_failed", details: { cause: { ...native, details: { ...native.details, provider_error: { codexErrorInfo: "usageLimitExceeded" } } } } }).category, "provider_quota");
   assert.equal(classifyInterruption({ code: "agy_provider_quota_exhausted" }).retryable, false);
@@ -733,6 +734,14 @@ test("serialized operation error retains cleanup as secondary evidence", () => {
   assert.equal(errorRecord(error).code, "turn_interrupted");
 });
 
+test("unproven overload identity is infrastructure failure, never product blame or retry", () => {
+  const error = { code: "provider_overload_evidence_unavailable", details: { provider_category: "provider_capacity_transient", reason: "native_turn_identity_unavailable" } };
+  assert.equal(classifyInterruption(error).category, "provider_unavailable");
+  assert.equal(classifyInterruption(error).retryable, false);
+  assert.equal(isInfrastructureFailure(error), true);
+  assert.equal(failureAttribution(error), "evaluation_infrastructure");
+});
+
 test("quota reset comes from the matching structured native error, not Retry-After", () => {
   const observed_at = "2026-09-28T15:00:00.000Z";
   const reset = "2026-09-29T15:00:00.000Z";
@@ -754,7 +763,7 @@ test("quota reset comes from the matching structured native error, not Retry-Aft
 test("capacity continuation keeps one native tree and refuses sequential child waves", { skip: !capacityPolicy && 'set DD_FLOW_SOURCE_ROOT for pinned policy' }, async () => {
   const overload = { code: "turn_interrupted", details: { provider_session_id: "root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" }, native_turn_items: { observed: true, possible_effects: false, pending: false } } };
   let dispatched = 0, time = 0; const waits = [];
-  const base = { policy: capacityPolicy, originalPrompt: 'actual probe', continuationPrompt: 'continue actual probe', sessionId: "root", clock: () => time, inspect: async () => ({ provider_session_id: "root", settled: true, settlement: { state: "settled" } }), pause: async ms => { waits.push(ms); time += ms; } };
+  const base = { random: () => 0, policy: capacityPolicy, originalPrompt: 'actual probe', continuationPrompt: 'continue actual probe', sessionId: "root", clock: () => time, inspect: async () => ({ provider_session_id: "root", settled: true, settlement: { state: "settled" } }), pause: async ms => { waits.push(ms); time += ms; } };
   const result = await boundedCapacityContinuation({ ...base, children: async () => [], attempt: async (_ordinal, _capacity, authorizeDispatch) => { await authorizeDispatch(); if (++dispatched === 1) throw overload; return { ok: true }; } });
   assert.deepEqual(result, { ok: true });
   assert.equal(dispatched, 2);

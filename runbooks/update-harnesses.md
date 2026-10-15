@@ -10,6 +10,12 @@ New productive owners require the integrity-verified engine's bundled
 for every harness, not only Codex. Qualification caches bind to the exact package
 checksum; changing source or an ambient launcher does not update retained engines.
 Verify exports and copied bytes from an installed snapshot before qualification.
+
+Verify `provider-overload-episode@1` with terminal native error fixtures: original
+plus two same-Session continuations, success resets the episode, active native
+retry/unknown outcome never dispatches a duplicate. Check each adapter's actual
+Session/Turn evidence and child-followup capability; a retryable flag alone is
+not proof. Read old EVALs using their pinned policy, not new global hooks.
 Legacy raw evidence remains readable but cannot supply missing dispatch authority.
 Legacy error@1 receipts remain readable for exact original-operation recovery;
 they do not qualify a newly dispatched Judge. The semantic corpus receipt and

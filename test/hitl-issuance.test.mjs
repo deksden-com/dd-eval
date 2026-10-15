@@ -10,7 +10,7 @@ import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { promptJudgeWithCapacity } from '../lib/judge-capacity.mjs';
 import { loadCapacityPolicy } from '../lib/capacity-policy.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
-import { successfulPolicyFixture } from './fixtures/capacity-policy.mjs';
+import { successfulPolicyFixture, successfulPolicy } from './fixtures/capacity-policy.mjs';
 import { resolveExecutionContract, contractProfile, profileSemanticHash } from '../lib/execution-contract.mjs';
 
 async function frozenJudge(root, declaration) {
@@ -42,7 +42,7 @@ test('retained pause reuses settled verdict without runtime/provider access; unk
   const packetFile = path.join(root, 'packet.json'), prompt = interactionJudgePrompt(packetFile);
   const stateFile = path.join(root, `capacity-${hashJson(['session', prompt])}.json`);
   const raw = { schema_id: verdict.schema_id, atoms: verdict.atoms };
-  await promptJudgeWithCapacity({ codex: false, sessionId: 'session', packetFiles: [packetFile], originalPrompt: prompt, stateFile,
+  await promptJudgeWithCapacity({ policy: successfulPolicy, sessionId: 'session', packetFiles: [packetFile], originalPrompt: prompt, stateFile,
     dispatch: async (_text, _capacity, before) => { await before(); return { provider_session_id: 'session', turn_id: 'turn', turn: { id: 'turn', status: 'completed' }, assistant_text: JSON.stringify(raw) }; } });
   assert.equal((await interactionJudge(args)).reused, true);
   const chainBytes = await readFile(stateFile), chain = JSON.parse(chainBytes);
@@ -82,7 +82,7 @@ for (const retainedState of ['completed', 'dispatched']) test(`lost verdict publ
   await writeFile(path.join(root, 'native-intent.json'), JSON.stringify({ profile_id: profile.id, profile_sha256: profileSemanticHash(profile), packet_sha256: hashJson(packet), filter: null }));
   const runtimeRoot = path.join(attempt, 'runtime'), engine = path.join(runtimeRoot, 'engines/selected'), lib = path.join(engine, 'dist/harness-runtime/lib');
   await mkdir(lib, { recursive: true });
-  for (const [file, content] of [['codex-capacity-policy.mjs', successfulPolicyFixture], ['native-children.mjs', "export const NATIVE_CHILD_CONTRACT_VERSION='native-children@1'; export function normalizeNativeChildren(){return []}"], ['operation-errors.mjs', "export const OPERATION_ERROR_CONTRACT_VERSION='operation-errors@1'; export function isObservationLoss(){return false}"], ['dd-agy.mjs', 'export function agyTerminalFailure(){return null}']]) await writeFile(path.join(lib, file), content);
+  for (const [file, content] of [['provider-overload-policy.mjs', successfulPolicyFixture], ['native-children.mjs', "export const NATIVE_CHILD_CONTRACT_VERSION='native-children@1'; export function normalizeNativeChildren(){return []}"], ['operation-errors.mjs', "export const OPERATION_ERROR_CONTRACT_VERSION='operation-errors@1'; export function isObservationLoss(){return false}"], ['dd-agy.mjs', 'export function agyTerminalFailure(){return null}']]) await writeFile(path.join(lib, file), content);
   await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
   await symlink('engines/selected/dist/harness-runtime', path.join(runtimeRoot, 'harness-runtime'));
   const policy = await loadCapacityPolicy(runtimeRoot), sessionId = 'session', prompt = interactionJudgePrompt(packetFile);

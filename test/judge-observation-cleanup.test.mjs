@@ -8,12 +8,14 @@ import { interactionJudge, evalJudge } from '../lib/runner.mjs';
 import { appendEvent, writeJsonAtomic } from '../lib/runner-events.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { resolveExecutionContract } from '../lib/execution-contract.mjs';
+import { successfulPolicyFixture } from './fixtures/capacity-policy.mjs';
 
 async function offlineRuntime(root, failureCode) {
   const home = path.join(root, 'executions/e/dd-flow-home'), engine = path.join(home, 'engines/offline'), native = path.join(engine, 'dist/harness-runtime'), lib = path.join(native, 'lib'), calls = path.join(root, 'calls.jsonl');
   await mkdir(lib, { recursive: true }); await mkdir(path.join(native, 'bin'));
   const errors = pathToFileURL(path.resolve('lib/operation-errors.mjs')).href;
   for (const [file, source] of [
+    ['provider-overload-policy.mjs', successfulPolicyFixture],
     ['native-children.mjs', "export const NATIVE_CHILD_CONTRACT_VERSION='native-children@1';export const normalizeNativeChildren=()=>[];"],
     ['operation-errors.mjs', `export {OPERATION_ERROR_CONTRACT_VERSION,isObservationLoss} from ${JSON.stringify(errors)};`],
     ['dd-agy.mjs', 'export const agyTerminalFailure=()=>null;'],

@@ -13,6 +13,7 @@ import { validateSemanticConfig, validateSemanticRequest, semanticQuestion, sema
   requestSemantic, observeSemantic, markSemanticFallback, verifySemanticObservation, verifySemanticReceipt,
   ownerEnvironment, semanticRetryAfter, semanticFastPathAnswer, semanticMetrics } from "../lib/semantic-decisions.mjs";
 import { childEnvironment } from "../lib/process-json.mjs";
+import { selectedPolicy as capacityPolicy } from "./fixtures/capacity-policy.mjs";
 
 const config = { enabled: true, provider: "openai-decisions", model: "gpt-6-luna", min_confidence: .93, max_retries: 2 };
 const jev = { ...config, provider: "openrouter-decisions", model: "typesafe/jev-1.13" };
@@ -25,7 +26,7 @@ const temporary = async fn => {
   const root = await mkdtemp(path.join(os.tmpdir(), "semantic-decision-"));
   try { await fn(root); } finally { await rm(root, { recursive: true, force: true }); }
 };
-const options = root => ({ root, request, config, binding, evalRunId: "EVAL-test", transport: { key: "credential-not-retained", random: () => 0, sleep: async () => {} } });
+const options = root => ({ capacityPolicy, root, request, config, binding, evalRunId: "EVAL-test", transport: { key: "credential-not-retained", random: () => 0, sleep: async () => {}, snapshot: async () => [{ pid: process.pid, started: "fixture-owner-birth", zombie: false }] } });
 
 test("provider-neutral configuration and codecs preserve exact question meaning and keyed responses", async () => {
   assert.deepEqual(validateSemanticConfig(), { enabled: false });
@@ -97,11 +98,11 @@ test("three-attempt durable budget, retained backoff and immutable settled decis
   assert.equal(saved.state, "completed"); assert.equal(calls, 3);
   assert.deepEqual(saved.attempts.map(a => a.state), ["failed", "failed", "completed"]);
   assert.equal(saved.attempts[0].reason, "http_503");
-  assert.equal(waits.length, 2); assert.ok(waits[0] <= 1000 && waits[0] > 0); assert.ok(waits[1] <= 3000 && waits[1] > 0);
+  assert.equal(waits.length, 2); assert.ok(waits[0] <= 5000 && waits[0] > 0); assert.ok(waits[1] <= 15000 && waits[1] > 0);
   assert.ok(semanticFastPathAnswer(saved.response, config));
   const metrics = semanticMetrics(saved);
   assert.ok(metrics.http_latency_ms >= 0); assert.ok(metrics.backoff_ms >= 0);
-  assert.equal(metrics.scheduled_backoff_ms, 4000); assert.equal(metrics.attempts, 3);
+  assert.equal(metrics.scheduled_backoff_ms, 20000); assert.equal(metrics.attempts, 3);
   const retained = await observeSemantic(input); assert.deepEqual(retained, saved); assert.equal(calls, 3);
   assert.ok(!(await readFile(saved.file, "utf8")).includes(input.transport.key));
   const fingerprint = await semanticFingerprint(config);
@@ -111,6 +112,43 @@ test("three-attempt durable budget, retained backoff and immutable settled decis
   assert.equal(fallback.state, "fallback_intended"); assert.deepEqual(fallback.response, saved.response);
   assert.equal((await observeSemantic(input)).state, "fallback_intended"); assert.equal(calls, 3);
 }));
+
+test("policy is required before any paid dispatch and each new task gets a fresh budget", async () => {
+  let calls = 0;
+  await temporary(async root => {
+    const input = options(root); delete input.capacityPolicy;
+    input.transport.fetchImpl = async () => { calls++; return Response.json(response(.01)); };
+    await assert.rejects(observeSemantic(input), { code: "capacity_contract_unsupported" });
+    assert.equal(calls, 0);
+  });
+  for (let episode = 0; episode < 2; episode++) await temporary(async root => {
+    let local = 0; const input = options(root);
+    input.transport.fetchImpl = async () => { calls++; return ++local < 3 ? new Response("overload", { status: 503 }) : Response.json(response(.01)); };
+    assert.equal((await observeSemantic(input)).state, "completed");
+    assert.equal(local, 3);
+  });
+  assert.equal(calls, 6);
+});
+
+test("unknown rate limits, auth-in-503 and malformed Retry-After do not retry", async () => {
+  for (const [status, raw, headers] of [[429, { error: { code: "unknown" } }, {}], [503, { error: { code: "invalid_api_key" } }, {}], [503, { error: { message: "Invalid API key" } }, {}], [429, { error: { code: "serverOverloaded", message: "Invalid API key" } }, {}], [503, {}, { "retry-after": "-1" }]]) await temporary(async root => {
+    let calls = 0; const input = options(root);
+    input.transport.fetchImpl = async () => { calls++; return Response.json(raw, { status, headers }); };
+    assert.equal((await observeSemantic(input)).state, "fallback_intended");
+    assert.equal(calls, 1);
+  });
+});
+
+test("structural overload in HTTP429 gets bounded retries, unknown429 stays terminal", async () => {
+  for (const code of ["serverOverloaded", "unknown"]) await temporary(async root => {
+    let calls = 0; const input = options(root);
+    input.transport.fetchImpl = async () => { calls++; return Response.json({ error: { code } }, { status: 429 }); };
+    const saved = await observeSemantic(input);
+    assert.equal(saved.state, "fallback_intended");
+    assert.equal(calls, code === "serverOverloaded" ? 3 : 1);
+    assert.equal(saved.reason, code === "serverOverloaded" ? "overload_retries_exhausted" : "http_429");
+  });
+});
 
 test("both optional transports preserve HTTP precedence and never resample invalid successful responses", async () => {
   const legacy = { requested_model: jev.model, resolved_model: `${jev.model}-20260917`, provider: "TypeSafe" };
@@ -125,7 +163,7 @@ test("both optional transports preserve HTTP precedence and never resample inval
     [async () => new Response(null), "response_missing", 200, false],
     [async () => new Response(null, { status: 503 }), "http_503", 503, true],
     [async () => new Response("not JSON", { status: 503 }), "http_503", 503, true],
-    [async () => new Response("not JSON", { status: 401 }), "http_401", 401, false],
+    [async () => new Response("not JSON", { status: 401 }), "provider_auth_failed", 401, false],
     [async () => Response.json({ error: { code: "insufficient_quota", message: "secret" } }, { status: 429 }), "hard_quota", 429, false],
     [async () => { throw Object.assign(new Error("secret"), { cause: { code: "CERT_HAS_EXPIRED" } }); }, "transport_failed", null, false],
     [async () => new Response(new ReadableStream({ start(c) { c.error(new Error("secret")); } }), { status: 503 }), "http_503", 503, true]
@@ -149,7 +187,7 @@ test("early failures and bounded bodies retain metadata without changing HTTP re
   for (const status of [200, 401, 503]) {
     const result = await requestSemantic(request, config, { key: "secret", limits,
       fetchImpl: async () => new Response("oversized", { status, headers: { "retry-after": "3" } }) });
-    assert.equal(result.reason, status === 200 ? "output_limit" : `http_${status}`);
+    assert.equal(result.reason, status === 200 ? "output_limit" : status === 401 ? "provider_auth_failed" : `http_${status}`);
     assert.equal(result.retryable, status === 503); assert.equal(result.http_status, status);
     assert.equal(result.retry_after_ms, 3000); assert.ok(result.latency_ms >= 0);
   }
@@ -167,7 +205,7 @@ test("optional unavailability, exhausted/long retries and low-confidence need no
       calls++;
       if (mode === "auth") return new Response("credential-not-retained", { status: 401 });
       if (mode === "quota") return Response.json({ error: { code: "insufficient_quota", message: "credential-not-retained" } }, { status: 429 });
-      if (mode === "exhausted" || mode === "long") return new Response("temporary", { status: 503, headers: mode === "long" ? { "retry-after": "11" } : {} });
+      if (mode === "exhausted" || mode === "long") return new Response("temporary", { status: 503, headers: mode === "long" ? { "retry-after": "31" } : {} });
       if (mode === "refused") return Response.json({ model: config.model, answers: [{ type: "refusal", name: "uncovered" }] });
       return Response.json(response(mode === "low" ? .2 : .01));
     };
@@ -223,6 +261,8 @@ test("recovery retains failed attempt budget and backoff without repeating unkno
   delete retained.attempts[0].response; delete retained.attempts[0].response_sha256;
   retained.delay_ms = 1000; retained.not_before = new Date(Date.now() + 90_000).toISOString();
   await writeJsonAtomic(saved.file, retained); let waited = null; input.transport.sleep = async ms => { waited = ms; };
+  await assert.rejects(observeSemantic({ ...input, capacityPolicy: { ...capacityPolicy, engine_artifact_sha256: 'a'.repeat(64) } }), { code: 'capacity_policy_mismatch' });
+  assert.equal(calls, 1, 'new engine bytes cannot renew an active retry episode');
   const recovered = await observeSemantic(input);
   assert.equal(waited, 1000, "clock skew cannot extend retained backoff");
   assert.equal(recovered.attempts.length, 2); assert.equal(calls, 2); assert.equal(recovered.attempts[0].reason, "http_503");

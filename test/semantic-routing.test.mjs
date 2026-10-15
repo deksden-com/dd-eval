@@ -8,6 +8,7 @@ import { interactionJudge, loadRunProfile, loadCase, hitlQualificationInputs, na
 import { buildHitlPacket, hitlCoverageContract } from "../lib/hitl-contract.mjs";
 import { semanticFingerprint } from "../lib/semantic-decisions.mjs";
 import { hashJson, writeJsonAtomic } from "../lib/runner-events.mjs";
+import { installSuccessfulPolicy } from "./fixtures/capacity-policy.mjs";
 
 const profileFile = "cases/sdlc-eval-2026-summer-task-priority/run-profiles/specify-luna-openai-decisions.json";
 const json = async file => JSON.parse(await readFile(file));
@@ -52,7 +53,7 @@ test("shared semantic HITL issues exact bytes without a scored signal, then repl
   await writeJsonAtomic(path.join(root, "packet.json"), packet);
   let calls = 0;
   globalThis.fetch = async () => { calls++; return Response.json({ model: "gpt-6-luna", answers: [{ name: "uncovered", type: "predicate", probability: .07 }], usage: { input_tokens: 10 } }); };
-  const options = { attempt, fixture: { sha256: "a".repeat(64), responses: packet.responses }, runProfile, question: packet.question, stage: "specify", hitlBinding: binding, runtimeRoot: "/no-native-runtime", projectRoot: "/no-project" };
+  const options = { attempt, fixture: { sha256: "a".repeat(64), responses: packet.responses }, runProfile, question: packet.question, stage: "specify", hitlBinding: binding, runtimeRoot: await installSuccessfulPolicy(path.join(attempt, "runtime")), projectRoot: "/no-project" };
   const first = await interactionJudge(options), replay = await interactionJudge(options);
   assert.equal(first.decision_source, "semantic_decision"); assert.equal(replay.reused, true); assert.equal(calls, 1);
   const receipt = await json(first.receipt_file), observation = await json(path.join(root, "semantic-observation.json"));
