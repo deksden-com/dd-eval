@@ -1,0 +1,34 @@
+{
+  "id": "cp-230-isolated-world-observation",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "f36145464688040a81fd218520b1426710091e79",
+    "tag": "eval/plan-088-clean-isolation"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-229-verification-matrix-qualification.json",
+      "sha256": "dd54fac20d39f79828cafe41805eefb5035376eb004eb2bf7295ff1dcd9979cc",
+      "canon_commit": "1ddedf9d3f086e046f8e7b194c739ec386e7c8b9"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "c1a9786d04e0944daac204e1c767414904d9ced2",
+      "version": "0.9.0-beta.138",
+      "artifact_sha256": "3dd46bae5cbf1e58f2cc13a68078e7c39f3dc850a50d1dc5855765821eccdbee"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "23 passed on this source",
+    "world_isolation": "passed on this source",
+    "baseline": "Each scored execution must run its own full baseline before Subject dispatch."
+  }
+}
