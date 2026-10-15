@@ -21,10 +21,16 @@ test('upgrade setup populates pinned old canon before target using separate publ
   const result=await setupMemoryUpgradeRuntime(input);assert.deepEqual(result.installation,target.installation);assert.deepEqual(result.baseline_installation,old.installation);
   const observed=(await readFile(calls,'utf8')).trim().split('\n').map(JSON.parse);
   assert.equal(observed.length,2);
+  assert.equal(observed[0].args[1],'--canon-source','The baseline is a cold installation');
+  assert.equal(observed[1].args[1],'update','The target updates the existing installation');
   for(const call of observed) {assert.equal(call.args[0],'setup');assert.equal(call.home,runtimeRoot);assert.equal(call.config,runtimeRoot);assert(call.args.includes('--skip-agent-setup'));}
   const option=(call,key)=>call.args[call.args.indexOf(`--${key}`)+1];
   assert.equal(option(observed[0],'canon-source'),declaration.baseline.canonSource);assert.equal(option(observed[0],'request-id'),'upgrade-setup.baseline');
   assert.equal(option(observed[1],'canon-source'),declaration.canonSource);assert.equal(option(observed[1],'request-id'),'upgrade-setup');
+  await writeFile(bin,script({...target,request_installation:old.installation}));
+  const replay=await setupMemoryUpgradeRuntime(input);
+  assert.deepEqual(replay.baseline_installation,old.installation,'Bind the replayed request, not the newer active installation');
+  assert.deepEqual(replay.installation,target.installation);
   await rm(calls);
   for(const change of [{checkpoint:{flow_pack:checkpoint.flow_pack}},{checkpoint:{...checkpoint,flow_pack:{}}},{declaration:{...declaration,baseline:undefined}},{runtimeRoot:projectRoot}]) {
     await assert.rejects(setupMemoryUpgradeRuntime({...input,...change}),{code:'memory_setup_invalid'});await assert.rejects(readFile(calls),{code:'ENOENT'});
