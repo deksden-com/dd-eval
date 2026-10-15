@@ -12,7 +12,7 @@
   ],
   "input_checkpoint": {
     "id": "cp-229-native-check-failure-repair",
-    "sha256": "564c4b787dd1667519d8c942ce579b8a8677b78e3b5661ec2c6843cca2ad003a"
+    "sha256": "e90a456f6f19db560e64a1e40fb16b727e3fddc6b37f37b2cdaeced63d24c361"
   },
   "entry_pack": null,
   "hitl_qualification": {
