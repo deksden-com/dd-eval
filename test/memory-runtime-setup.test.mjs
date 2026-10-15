@@ -5,6 +5,11 @@ import path from 'node:path';
 import os from 'node:os';
 import { setupMemoryRuntime, validateMemorySetup, resolveMemoryExecutionExpectation } from '../lib/memory-runtime-setup.mjs';
 
+test('Memory expectation refuses a foreign workflow before importing installed code',async()=>{
+  await assert.rejects(resolveMemoryExecutionExpectation({flow:'sdlc'}),{code:'memory_setup_invalid'});
+  await assert.rejects(resolveMemoryExecutionExpectation({flow:'unknown'}),{code:'memory_setup_invalid'});
+});
+
 test('exact authenticated installed CLI resolves external and native semantic selection without a physical receipt', { skip: !process.env.DD_EVAL_MEMORY_DELIVERY_ROOT }, async () => {
   const root = process.env.DD_EVAL_MEMORY_DELIVERY_ROOT;
   const setup = JSON.parse(await readFile(path.join(root, 'development-setup-response.json')));

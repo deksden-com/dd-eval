@@ -5,6 +5,33 @@ import os from "node:os";
 import path from "node:path";
 import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
 
+test('upgrade uses its public CLI with exact native selectors, never init or an implicit migration apply',async t=>{
+  const root=await mkdtemp(path.join(os.tmpdir(),'managed-upgrade-'));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const bin=path.join(root,'cli.mjs'),calls=path.join(root,'calls.json');
+  const memoryUpgrade={workspaceRoot:root,requestId:'upgrade-request',intakeFile:path.join(root,'intake.txt'),intakeSha256:'a'.repeat(64),
+    gitRoute:'integration_branch_direct',integrationBranch:'main',profile:'fast',stageProfiles:['diff-analysis=independent'],
+    delegation:'native',allowLiveProbe:true,nativeConfigHome:path.join(root,'private-native'),maxParallel:2};
+  const receipt={run_id:'RUN-upgrade',flow_id:'mb-upgrade',action:'flow_mb_upgrade_prepared',request_id:memoryUpgrade.requestId};
+  const script=value=>`import fs from 'node:fs';fs.writeFileSync(${JSON.stringify(calls)},JSON.stringify(process.argv.slice(2)));console.log(JSON.stringify(${JSON.stringify(value)}));`;
+  await writeFile(bin,script(receipt));
+  const input={bin,projectRoot:root,flow:'mb-upgrade',memoryUpgrade};
+  assert.deepEqual(await prepareManagedRun(input),receipt);
+  const args=JSON.parse(await readFile(calls));assert.equal(args[0],'upgrade');assert(args.includes('--prepare-only'));
+  for(const value of ['native','--allow-live-probe',memoryUpgrade.nativeConfigHome,'diff-analysis=independent'])assert(args.includes(value));
+  assert(!args.includes('init'));assert(!args.includes('apply'));assert(!args.includes('transition'));
+  await rm(calls);
+  for(const change of [{memoryUpgrade:undefined},{memoryInit:memoryUpgrade},{flow:'mb-init'},{flow:'sdlc'},
+    {memoryUpgrade:{...memoryUpgrade,maxParallel:0}},{memoryUpgrade:{...memoryUpgrade,unexpected:true}}]) {
+    await assert.rejects(prepareManagedRun({...input,...change}),{code:'managed_flow_input_invalid'});
+    await assert.rejects(readFile(calls),{code:'ENOENT'});
+  }
+  for(const changed of [{flow_id:'mb-init'},{action:'flow_mb_init_prepared'},{request_id:'other'},{controller:{}}]) {
+    await writeFile(bin,script({...receipt,...changed}));
+    await assert.rejects(prepareManagedRun(input),{code:'controller_receipt_invalid'});
+  }
+});
+
 test("Memory preparation uses public init without SDLC routing or Session dispatch", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'managed-memory-prepare-'));
   t.after(() => rm(root, { recursive: true, force: true }));
