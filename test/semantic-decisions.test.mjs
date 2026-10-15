@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { setTimeout as delay } from "node:timers/promises";
+import { setTimeout as delay, setImmediate as nextTurn } from "node:timers/promises";
 import { hashJson, writeJsonAtomic, sha256 } from "../lib/runner-events.mjs";
 import { buildHitlPacket, hitlCoverageContract } from "../lib/hitl-contract.mjs";
 import { jevInstructions, jevRequest, requestJev } from "../lib/hitl-coverage.mjs";
@@ -304,13 +304,23 @@ test("cancellation during HTTP/backoff does not launch fallback or publish late 
   });
 });
 
-test("only actual body progress extends inactivity and ordinary key does not leak", async () => {
+test("only actual body progress extends inactivity and ordinary key does not leak", async t => {
   const text = JSON.stringify(response(.01)), limits = { inactivityMs: 70, requestBytes: 65536, responseBytes: 65536 };
-  const productive = async () => new Response(new ReadableStream({ async start(controller) {
-    for (const part of [text.slice(0, 20), text.slice(20, 50), text.slice(50)]) { await delay(40); controller.enqueue(new TextEncoder().encode(part)); }
-    controller.close();
-  } }));
-  assert.equal((await requestSemantic(request, config, { key: "test", limits, fetchImpl: productive })).state, "completed");
+  let elapsed = 0, sample, body;
+  const epoch = Date.now();
+  const mocks = [t.mock.method(Date, "now", () => epoch + elapsed), t.mock.method(performance, "now", () => elapsed),
+    t.mock.method(globalThis, "setInterval", callback => { sample = callback; return 0; })];
+  try {
+    const productive = async () => new Response(new ReadableStream({ start(controller) { body = controller; } }));
+    const pending = requestSemantic(request, config, { key: "test", limits, fetchImpl: productive });
+    await nextTurn();
+    for (const part of [text.slice(0, 20), text.slice(20, 50), text.slice(50)]) {
+      elapsed += 40; sample(); body.enqueue(new TextEncoder().encode(part)); await nextTurn();
+    }
+    body.close();
+    assert.equal((await pending).state, "completed");
+    assert.equal(elapsed, 120, "productive response outlives the original 70ms window");
+  } finally { for (const mock of mocks) mock.mock.restore(); }
   const silent = async (_url, { signal }) => new Promise((_resolve, reject) => signal.addEventListener("abort", () => reject(signal.reason), { once: true }));
   assert.equal((await requestSemantic(request, config, { key: "test", limits, fetchImpl: silent })).reason, "network_inactivity");
   let emptyCancelled = false;

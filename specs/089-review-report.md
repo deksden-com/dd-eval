@@ -61,12 +61,53 @@
    сохраняются без вывода самих потоков. Проверки содержимого engine и фактов
    admission не отключены. Регрессия проверяет budget и точный отказ subprocess.
 
+7. После устранения внутреннего timeout fixture выявила недостаток observable
+   прогресса: Memory-init не публиковал ingress/imports и завершение реальных
+   candidate/selection/flow-admission/stores/startup-input checkpoints. Эти
+   сигналы теперь идут через существующий setupReporter, с прежней binding и
+   timestamps. Compiled operation-only регрессия проверяет их наличие.
+   Home-free E2/installed CLI probes используют тот же startup budget вместо
+   собственных 30s. Это не изменение таймаутов/бюджета provider operations.
+   Попытка ускорить source loader native stripping отклонена при проверке:
+   существующие type-only imports без `import type` требуют compiler semantics;
+   итоговый loader оставлен прежним. Эта попытка не считается исправлением.
+
+8. Release fixture вручную копировала неполный список native contracts и
+   пропустила новую зависимость native-children → provider-overload-policy.
+   Сам dist содержал нужный модуль; падал искусственно усечённый consumer.
+   Fixture копирует реальный harness-runtime layout целиком, проверяя точные
+   байты публичных contracts (включая policy/types) и исполняя их вне source tree.
+   Это не исключение отсутствующей зависимости из проверки.
+
+9. Общая capture-fixture имела дополнительный deadline 15s от момента её
+   создания, включая подготовку и все capture/replay проверки case. Он завершил
+   три корректно продвигающихся сценария вместо их contract assertions.
+   Дублирующий guard удалён; owner-token assertion оставлен. Production
+   recovery budget и framework timeout 120s не менялись. Все 24 capture-теста,
+   включая journal mutation/refusal и owner fencing, прошли после исправления.
+
+10. Общий classifier пропускал документированные Claude API
+    `type/code=overloaded_error` и HTTP 529: адаптеры возвращали generic failure,
+    обходя retry-policy. SSOT теперь распознаёт структурный code/type и status;
+    простое упоминание `overloaded_error` в сообщении не даёт права повторять.
+    Quota/auth имеют прежний приоритет. Проверены OpenCode/Droid/AGY, включая
+    отсутствие настоящего AGY request ID и native willRetry. Контракт terminal
+    proof не ослаблен. [Первичный источник](https://platform.claude.com/docs/en/api/errors).
+
+11. Semantic streaming fixture зависела от real-time разницы 40ms/70ms:
+    scheduler delay под нагрузкой превращал продуктивный ответ в timeout.
+    Часы и sampling в положительном сценарии управляются тестом; настоящая
+    streaming/decoding цепочка принимает три чанка за модельные 120ms при окне
+    70ms. Без сдвига окна на байтах проверка падает. Отрицательные проверки
+    silence/empty chunks/cancellation/output limit сохранены. Production code
+    и duration не менялись. Итоговые policy/Judge/semantic: 50/50 PASS.
+
 Ponytail: исправления в существующих общих точках; без новых зависимостей,
 retry executor, замены модели, новой Session или обхода admission.
 
 ## Проверка
 
-- Engine candidate: `ebb621b0` (retry metadata: `b599b0da`);
+- Runtime candidate: `fb01a59e` (retry metadata: `b599b0da`);
   targeted observer/policy/child: 67/67 PASS.
 - Engine strict-canon build PASS; typecheck/lint PASS; installed gate: 2/2 PASS.
 - EVAL candidate: `6dea421`; полный suite: 882 PASS, 0 FAIL, 15 gated SKIP
@@ -79,8 +120,55 @@ retry executor, замены модели, новой Session или обход�
   compiled operation-only=true упали; invocation остановлен после сохранения
   отказов. Последующие наборы не засчитаны. Focused reproduction на следующем
   кандидате доказало отдельный 15s frozen-engine timeout из пункта 6.
-- Итоговый общий engine gate ещё не пройден. Результат нового чистого кандидата
-  записывается перед merge; адресные проверки не подменяют этот gate.
+- Общий invocation `1d08e306` прошёл hybrid, но остановлен после FAIL E2 completion
+  на отдельном 30s cold CLI deadline. Его результат не засчитан за PASS.
+- На `fb01a59e`: оба ранее падавших Memory сценария прошли вместе (2/2,
+  включая compiled operation-only). Installed gate: 2/2 PASS.
+- Полный invocation `fb01a59e`: hybrid 66/66, E2 133 PASS/1 gated SKIP,
+  E3 461 PASS/0 FAIL/5 gated SKIP (466 tests); затем FAIL release-fixture из
+  пункта 8. Общему invocation не приписывается exit 0.
+- После исправления только `scripts/verify-release-build.test.mjs` release
+  пройден полностью: Node 2/2 + Vitest 8/8. Runtime source, build inputs и
+  построенный engine не менялись, поэтому зелёные hybrid/E2/E3/installed
+  сохраняются для тех же байтов. Source tree: `6c53bcdcf55a7b3b2a147a94aa3f65735fe13bd9`;
+  SHA-256 build-info.json: `f166934483bb6ca538979d08affeecb08a6dac7225e93b0b144f94e2ff999cf6`.
+- Первый integration invocation остановлен после трёх отказов fixture guard
+  из пункта 9; ему не приписывается полный PASS. После capture 24/24 запущены
+  новые typecheck/lint (PASS) и повторный integration. У раннего повторного
+  integration одновременно с отдельным тяжёлым E3 возникли два framework
+  hook-timeout 120s в run-cli.test.ts. Те же cases прежде прошли в одиночном
+  invocation за 46975ms и 13890ms. Дублирующий feedback run остановлен;
+  framework timeout не увеличен. Этот run также не засчитан за полный PASS.
+  Причинность contention не выдаётся за доказанный production-дефект:
+  окончательная проверка — один последовательный gate ниже.
+
+## Финальный чистый candidate
+
+`ec948cb6bc678fa2926f4c73c68711043a474974` содержит оба последних test fixes.
+Runtime source tree совпадает с `fb01a59e`:
+`6c53bcdcf55a7b3b2a147a94aa3f65735fe13bd9`. Strict-canon build прошёл;
+SHA-256 его build-info.json:
+`835eece585cacc2471a31f95bac27127613415ecefdc074d741c3abd4f776afc`.
+Этот invocation остановлен без выявленных отказов на E3 перед изменением
+runtime classifier из пункта 10; общий PASS ему не приписывается.
+
+Новый candidate `ecd4a4b9aa1b55ff4e1652f2aa28a94232ca3693` включает пункт 10.
+Адресные проверки: policy 60/60 и native adapters 7/7 PASS. Для него заново
+запущены strict-canon build и полный последовательный `pnpm test`.
+Build PASS; source tree `b7f76d2e14a09ce846eebd17fe98cb808e941041`,
+SHA-256 build-info.json `521a306a97a5eb1e8ddd928b21f581be65b225fd1f13984fec74bd84e3a64eeb`.
+EVAL после пункта 11: полный suite с DD_FLOW_SOURCE_ROOT на этот candidate —
+897 tests, 882 PASS, 0 FAIL, 15 environment-gated SKIP, exit 0.
+Адресный current-engine policy/Judge/semantic — 50/50 PASS, exit 0.
+Итоговый результат будет записан до merge.
 
 Проверка выполняется в отдельных worktrees. Установленные runtime/хуки,
 работающие EVAL и их артефакты не менялись; новые EVAL не запускались.
+
+## Сохранённые границы
+
+Ревью не подменяет live acceptance. Ограничения native API из плана остаются:
+AGY без настоящего turn/request ID не получает выдуманную continuation authority;
+ZCode native Agent без same-child followup не заменяется новым spawn. Неизвестный
+исход требует observation/reconciliation, а не повторного dispatch. Это явные
+безопасные отказы, не обещание универсального retry без native evidence.
