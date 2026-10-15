@@ -1,6 +1,7 @@
 # 089 — Единая ограниченная серия повторов при перегрузке провайдера
 
-Дата: 2026-10-15. Статус: реализация завершена, идёт итоговая проверка.
+Дата: 2026-10-15. Статус: реализован и проверен; результаты и ограничения —
+в [отчёте реализации](089-implementation-report.md).
 Ponytail: full. Исправляем FLOW/адаптеры/EVAL, не оцениваемый продукт.
 
 ## 1. Цель и границы
@@ -222,9 +223,13 @@ load/stop — control/observation операции, не модельные за
 - Compatibility: old policy read-only; active incompatible chain no dispatch;
   new engine artifact содержит новые module/types и EVAL loader его принимает.
 
-Команды проверки (уточнить имена новых suites после переименования):
+Команды проверки:
 engine pnpm typecheck; pnpm lint; pnpm test (hybrid, e2, e3, release,
 integration, runtime-sensitive); installed gates по package.json/runbooks.
+Build требует явного DD_FLOW_BUILD_CANON_ROOT и DD_FLOW_BUILD_STRICT_CANON=1;
+E3 — DD_FLOW_E3_CANON_ROOT и абсолютного DD_FLOW_E3_WT. Не менять build-info
+между capture fixture archive и его приёмкой. Границы fixture observer не являются
+таймаутами агента: многоэтапный прогресс продлевает ожидание по terminal receipts.
 EVAL node --test --test-concurrency=1 test/capacity-policy.test.mjs
 test/judge-capacity.test.mjs test/semantic-decisions.test.mjs, затем npm test.
 Installed fixture использует локальный packaged engine, без новых scored EVAL.
@@ -243,8 +248,8 @@ durable owners и semantic executor, удалить legacy dispatch bypass и ha
 runtime config для каждого harness, универсальный retry любой CLI команды,
 автоматическую смену модели или новая Session после перегрузки.
 
-Готов к реализации. Остаточная зависимость — проверка точных native error payload
-вариантов при написании fixtures, не нерешённый выбор политики. Для любого API без
+Реализован. Точные native error payload варианты проверены adapter fixtures;
+фактические ограничения API описаны ниже. Для любого API без
 необходимого evidence заранее определён безопасный результат: unsupported proof,
 не выдуманная identity и не безусловный retry. Завершённость требует закрыть этот
 inventory для каждой поддерживаемой упряжки либо явно показать внешний blocker;
