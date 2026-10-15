@@ -90,6 +90,24 @@ test("failed optional calls retain their phase/status without arbitrary provider
   }
 });
 
+test("terminal semantic evidence does not reload dispatch policy; active tasks still require it", async () => temporary(async root => {
+  const input = options(root);
+  let calls = 0, loads = 0;
+  input.capacityPolicy = undefined;
+  input.loadRetryPolicy = async () => { loads++; throw Object.assign(new Error("old engine has no new retry module"), { code: "capacity_contract_unsupported" }); };
+  input.transport.fetchImpl = async () => { calls++; return Response.json(response(.01)); };
+  await assert.rejects(observeSemantic(input), { code: "capacity_contract_unsupported" });
+  assert.equal(calls, 0);
+  input.loadRetryPolicy = async () => { loads++; return capacityPolicy; };
+  const saved = await observeSemantic(input);
+  assert.equal(calls, 1); assert.equal(loads, 2);
+  input.loadRetryPolicy = async () => { throw new Error("must not load policy for terminal evidence"); };
+  assert.deepEqual(await observeSemantic(input), saved);
+  const fallback = await markSemanticFallback(root, saved, "confidence_fallback");
+  assert.deepEqual(await observeSemantic(input), fallback);
+  assert.equal(calls, 1);
+}));
+
 test("three-attempt durable budget, retained backoff and immutable settled decision", async () => temporary(async root => {
   let calls = 0; const waits = [];
   const input = options(root); input.transport.sleep = async ms => { waits.push(ms); };
