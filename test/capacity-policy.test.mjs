@@ -56,7 +56,7 @@ test('capacity policy is per-owner, verified from the pinned engine, with no amb
     const home = path.join(root, name), engine = path.join(home, 'engines/pinned');
     const adapters = path.join(engine, 'dist/harness-runtime');
     await mkdir(path.join(adapters, 'lib'), { recursive: true });
-    await writeFile(path.join(adapters, 'lib/codex-capacity-policy.mjs'), successfulPolicyFixture + `export const owner = '${name}';`);
+    await writeFile(path.join(adapters, 'lib/provider-overload-policy.mjs'), successfulPolicyFixture + `export const owner = '${name}';`);
     await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
     await symlink('engines/pinned/dist/harness-runtime', path.join(home, 'harness-runtime'));
     homes.push(home);
@@ -64,10 +64,22 @@ test('capacity policy is per-owner, verified from the pinned engine, with no amb
   const policies = await Promise.all(homes.map(loadCapacityPolicy));
   assert.deepEqual(policies.map(policy => policy.owner), ['one', 'two']);
   assert.notEqual(policies[0].engine_artifact_sha256, policies[1].engine_artifact_sha256);
-  await writeFile(path.join(homes[0], 'harness-runtime/lib/codex-capacity-policy.mjs'), successfulPolicyFixture + '// tampered');
+  await writeFile(path.join(homes[0], 'harness-runtime/lib/provider-overload-policy.mjs'), successfulPolicyFixture + '// tampered');
   await assert.rejects(loadCapacityPolicy(homes[0]), { code: 'capacity_contract_unsupported' });
   assert.equal((await loadCapacityPolicy(homes[1])).owner, 'two');
   await assert.rejects(loadCapacityPolicy(path.join(root, 'missing')), { code: 'capacity_contract_unsupported' });
+});
+
+test('historical burst policy can only be loaded for read-only evidence', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-historical-policy-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const engine = path.join(root, 'engines/old'), lib = path.join(engine, 'dist/harness-runtime/lib');
+  await mkdir(lib, { recursive: true });
+  await writeFile(path.join(lib, 'codex-capacity-policy.mjs'), "export const CAPACITY_POLICY='codex-overload-burst@1';");
+  await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
+  await symlink('engines/old/dist/harness-runtime', path.join(root, 'harness-runtime'));
+  assert.equal((await loadCapacityPolicy(root, { readOnly: true })).CAPACITY_POLICY, 'codex-overload-burst@1');
+  await assert.rejects(loadCapacityPolicy(root), { code: 'capacity_contract_unsupported' });
 });
 
 test('productive native and capacity imports reject unhashed symlink assets while allowing the runtime alias', async t => {
@@ -79,7 +91,7 @@ test('productive native and capacity imports reject unhashed symlink assets whil
   await writeFile(path.join(lib, 'native-children.mjs'), children);
   await writeFile(path.join(lib, 'operation-errors.mjs'), "export const OPERATION_ERROR_CONTRACT_VERSION='operation-errors@1'; export function isObservationLoss(){return false}");
   await writeFile(path.join(lib, 'dd-agy.mjs'), "export function agyTerminalFailure(){return null}");
-  await writeFile(path.join(lib, 'codex-capacity-policy.mjs'), successfulPolicyFixture);
+  await writeFile(path.join(lib, 'provider-overload-policy.mjs'), successfulPolicyFixture);
   const checksum = await engineArtifactDigest(engine);
   await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum } }));
   await symlink('engines/selected/dist/harness-runtime', path.join(root, 'harness-runtime'));
@@ -116,18 +128,18 @@ test('productive native and capacity imports reject unhashed symlink assets whil
 test('built capacity asset executes from an installed engine snapshot, not the source checkout', { skip: !process.env.DD_FLOW_SOURCE_ROOT && 'set DD_FLOW_SOURCE_ROOT for built runtime proof' }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-built-policy-'));
   t.after(() => rm(root, { recursive: true, force: true }));
-  const relative = 'harness-runtime/lib/codex-capacity-policy.mjs';
+  const relative = 'harness-runtime/lib/provider-overload-policy.mjs';
   const bytes = await readFile(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'dist', relative));
   assert.deepEqual(bytes, await readFile(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'src', relative)));
   const engine = path.join(root, 'engines/selected'), adapters = path.join(engine, 'dist/harness-runtime');
   await mkdir(path.join(adapters, 'lib'), { recursive: true });
-  await writeFile(path.join(adapters, 'lib/codex-capacity-policy.mjs'), bytes);
+  await writeFile(path.join(adapters, 'lib/provider-overload-policy.mjs'), bytes);
   await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
   await symlink('engines/selected/dist/harness-runtime', path.join(root, 'harness-runtime'));
   const policy = await loadCapacityPolicy(root);
-  assert.equal(policy.CAPACITY_POLICY, 'codex-overload-burst@1');
+  assert.equal(policy.CAPACITY_POLICY, 'provider-overload-episode@1');
   const error = { code: 'turn_interrupted', details: { provider_session_id: 'session', turn_id: 'turn', native_turn_id: 'turn', terminal_status: 'failed', provider_error: { codexErrorInfo: { code: 'serverOverloaded' } } } };
-  assert.equal(policy.terminalCodexOverload(error, 'session'), true);
-  assert.equal(policy.capacityBackoff(error, 10), 15000);
-  assert.equal(policy.terminalCodexOverload({ code: 'ownership_lost', cause: error }, 'session'), false);
+  assert.equal(policy.terminalProviderOverload(error, 'session'), true);
+  assert.equal(policy.capacityBackoff(error, 2, 0, () => 0), 15000);
+  assert.equal(policy.terminalProviderOverload({ code: 'ownership_lost', cause: error }, 'session'), false);
 });

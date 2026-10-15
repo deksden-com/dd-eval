@@ -7,6 +7,7 @@ import { observeJev, coverageTransport, jevPromptHash } from "../lib/hitl-covera
 import { buildHitlPacket, hitlCoverageContract } from "../lib/hitl-contract.mjs";
 import { withRunnerLock } from "../lib/runner-lock.mjs";
 import { setTimeout as delay } from "node:timers/promises";
+import { selectedPolicy as capacityPolicy } from "./fixtures/capacity-policy.mjs";
 
 const policy = { schema_id: "dd-eval/hitl-coverage-policy@1", mode: "shadow", requested_model: "typesafe/jev-1.13", resolved_model: "typesafe/jev-1.13-20260917", provider: "TypeSafe", projection_version: "dd-eval/hitl-coverage-input@1", prompt_sha256: jevPromptHash, transport_version: coverageTransport, max_uncovered_probability: null, qualification_sha256: null };
 const packet = (question = "May closed tasks change priority?") => buildHitlPacket({ stage: "specify", question, responses: [{ id: "canonical", topic: "priority", applicability: "specify", answer: "Yes." }], verdictContract: hitlCoverageContract });
@@ -16,7 +17,7 @@ test("first qualification observation creates its nested storage before dispatch
   const parent = await mkdtemp(path.join(os.tmpdir(), "jev-first-observation-"));
   try {
     const root = path.join(parent, "coverage-observations", "classifier", "request"); let calls = 0;
-    const options = { root, packet: await packet(), policy, binding: { native_key: "native", repetition: 0 }, key: "not-retained", fetchImpl: async () => { calls++; return response(); } };
+    const options = { capacityPolicy, random: () => 0, sleep: async () => {}, root, packet: await packet(), policy, binding: { native_key: "native", repetition: 0 }, key: "not-retained", fetchImpl: async () => { calls++; return response(); } };
     const first = await observeJev(options), replay = await observeJev(options);
     assert.equal(first.state, "completed"); assert.equal(replay.probability, .1); assert.equal(calls, 1);
     assert.equal((await readFile(first.file, "utf8")).includes("not-retained"), false);
@@ -27,10 +28,10 @@ test("failed HTTP observation is durable and never retried for the same binding"
   const root = await mkdtemp(path.join(os.tmpdir(), "jev-failed-observation-"));
   try {
     let calls = 0;
-    const options = { root, packet: await packet(), policy, binding: null, key: "secret", fetchImpl: async () => { calls++; return new Response("private error", { status: 503 }); } };
+    const options = { capacityPolicy, random: () => 0, sleep: async () => {}, root, packet: await packet(), policy, binding: null, key: "secret", fetchImpl: async () => { calls++; return new Response("private error", { status: 503 }); } };
     const first = await observeJev(options), before = await readFile(first.file, "utf8");
-    assert.equal(first.state, "failed"); assert.equal(first.reason, "http_503");
-    assert.equal((await observeJev(options)).state, "failed"); assert.equal(calls, 1);
+    assert.equal(first.state, "failed"); assert.equal(first.reason, "overload_retries_exhausted");
+    assert.equal((await observeJev(options)).state, "failed"); assert.equal(calls, 3);
     assert.equal(await readFile(first.file, "utf8"), before); assert.equal(before.includes("private error"), false);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
@@ -42,7 +43,7 @@ test("legacy owner early refusals have diagnostics without a fictitious HTTP att
       const p = await packet(reason === "input_limit" ? "x".repeat(70_000) : undefined);
       if (reason === "bundle_or_context_ineligible") p.responses = [];
       let calls = 0;
-      const result = await observeJev({ root, packet: p, policy, binding: null, key: reason === "missing_key" ? "" : "secret",
+      const result = await observeJev({ capacityPolicy, random: () => 0, sleep: async () => {}, root, packet: p, policy, binding: null, key: reason === "missing_key" ? "" : "secret",
         fetchImpl: async () => { calls++; assert.fail("Early refusal must not dispatch"); } });
       assert.equal(result.reason, reason); assert.equal(result.phase, reason); assert.equal(result.retryable, false);
       for (const field of ["http_status", "transport_code", "retry_after_ms", "latency_ms"]) assert.equal(result[field], null);
@@ -57,7 +58,7 @@ test("cancellation during dispatch takes priority and a live unknown owner canno
   try {
     const controller = new AbortController(); let calls = 0, dispatched;
     const started = new Promise(resolve => { dispatched = resolve; });
-    const options = { root, packet: await packet(), policy, binding: null, key: "secret", fetchImpl: async (_url, { signal }) => {
+    const options = { capacityPolicy, random: () => 0, sleep: async () => {}, root, packet: await packet(), policy, binding: null, key: "secret", fetchImpl: async (_url, { signal }) => {
       calls++; dispatched(); return new Promise((_resolve, reject) => signal.addEventListener("abort", () => reject(signal.reason), { once: true }));
     } };
     const pending = observeJev({ ...options, signal: controller.signal });
@@ -71,7 +72,7 @@ test("invalid policy and refused admission never dispatch HTTP", async () => {
   const parent = await mkdtemp(path.join(os.tmpdir(), "jev-admission-"));
   try {
     const root = path.join(parent, "new"); let calls = 0;
-    const options = { root, packet: await packet(), policy, binding: null, key: "secret", fetchImpl: async () => { calls++; return response(); } };
+    const options = { capacityPolicy, random: () => 0, sleep: async () => {}, root, packet: await packet(), policy, binding: null, key: "secret", fetchImpl: async () => { calls++; return response(); } };
     await assert.rejects(observeJev({ ...options, policy: { ...policy, provider: "wrong" } }), error => error.code === "coverage_policy_invalid");
     await assert.rejects(access(root), error => error.code === "ENOENT");
     await assert.rejects(observeJev({ ...options, admit: async () => { throw new Error("generation revoked"); } }), /generation revoked/);
@@ -87,7 +88,7 @@ test("cancellation interrupts waiting for an existing observation writer lock", 
     const writer = withRunnerLock(path.join(root, "jev-observation.json"), async () => { acquired(); await new Promise(resolve => { release = resolve; }); });
     await locked;
     const controller = new AbortController(); let calls = 0;
-    const pending = observeJev({ root, packet: await packet(), policy, binding: null, key: "secret", signal: controller.signal, fetchImpl: async () => { calls++; return response(); } });
+    const pending = observeJev({ capacityPolicy, random: () => 0, sleep: async () => {}, root, packet: await packet(), policy, binding: null, key: "secret", signal: controller.signal, fetchImpl: async () => { calls++; return response(); } });
     const settled = pending.then(() => "completed", error => error.name);
     controller.abort();
     assert.equal(await Promise.race([settled, delay(500).then(() => "still waiting for writer")]), "AbortError");
