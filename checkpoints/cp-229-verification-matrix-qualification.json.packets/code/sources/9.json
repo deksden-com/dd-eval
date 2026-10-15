@@ -1,0 +1,40 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "71968c584de4aa02fa63c260aea9f03e1c33c3ef2f8d7c8c2e1d482c0d5c6c9a",
+  "verification_epoch": "513038853683b2b11ce85fbaacaca737c3501c0e0478e9c32a3afef01e741250",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-229-verification-matrix/dd-flow-protocolize-NQYcR0/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-229-verification-matrix/dd-flow-protocolize-NQYcR0/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-229-verification-matrix/dd-flow-protocolize-NQYcR0/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-229-verification-matrix/dd-flow-protocolize-NQYcR0/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "158432c40afb9f01536b49860c06b052e96594229b195c992b0605cb7043a9fe",
+  "before_fingerprint": "158432c40afb9f01536b49860c06b052e96594229b195c992b0605cb7043a9fe",
+  "after_fingerprint": "158432c40afb9f01536b49860c06b052e96594229b195c992b0605cb7043a9fe",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-15T05:31:47.540Z",
+  "finished_at": "2026-10-15T05:31:47.705Z",
+  "candidate_root": "/Users/deksden/.dd-eval/qualification/cp-229-verification-matrix/dd-flow-protocolize-NQYcR0/project",
+  "candidate_files": [],
+  "execution_failures": []
+}
