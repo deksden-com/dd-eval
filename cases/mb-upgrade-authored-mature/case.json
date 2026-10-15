@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-mb-upgrade-authored-mature-e4-dev14",
-    "sha256": "f70e35dc7b555a56cf12f07940b58f32b5f877a23f5f8030129ec2f91098e5a6"
+    "id": "cp-mb-upgrade-authored-mature-e4-dev15",
+    "sha256": "eb232294d4ccc5389f41595fd04fba699915124355669663f61a9b4b0fa97cc2"
   },
   "baseline_admission": {
     "file": "baseline-admission.json",
