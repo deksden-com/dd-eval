@@ -119,8 +119,13 @@ paired receipt below.
   NOT RUN because the chain stopped at integration. The failures are preserved.
   The fresh complete run on final candidate `b1bb5a9f` is in progress: hybrid
   66/66, E2 133 PASS/one unavailable fish skip, E3 462 PASS/five external-input
-  skips and release 2/2 plus 8/8 PASS. Integration and runtime-sensitive groups,
-  installed checks and latest paired EVAL acceptance still require completion.
+  skips and release 2/2 plus 8/8 PASS. The host reboot interrupted integration
+  at 2026-10-16 21:37 local host time, without a final suite/exit receipt. That
+  interrupted integration is NOT PASS, even though its observed cases had no
+  reported failure. Source HEAD/tree, build-info and installed checksum remain
+  unchanged. A fresh entire integration group followed by runtime-sensitive,
+  installed, native mock and paired EVAL checks runs sequentially through the
+  retained `finish-gates.sh` driver, with separate logs and exit receipts.
 
 Artifacts: `/Users/deksden/Documents/_Projects/_artifacts/plan-090-review.Lh1WVr/`.
 Final rerun: `/Users/deksden/Documents/_Projects/_artifacts/plan-090-review-final.q0N3CM/`.
