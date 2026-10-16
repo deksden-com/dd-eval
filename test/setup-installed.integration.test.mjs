@@ -18,7 +18,10 @@ const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 
 // Private fixture authority tests installation mechanics, not native route
 // qualification. No public signing key, release, model or account is used.
-test('installed setup and Console observation preserve isolated producer boundaries', { skip: !configured, timeout: 60_000 }, async t => {
+// Several bounded setup/replay commands precede asynchronous Console startup
+// and owned shutdown. The outer guard must not cancel that cleanup mid-flight;
+// individual command and HTTP deadlines below remain unchanged.
+test('installed setup and Console observation preserve isolated producer boundaries', { skip: !configured, timeout: 600_000 }, async t => {
   const cli = fs.realpathSync(process.env.DD_EVAL_TEST_SETUP_CLI);
   const packageRoot = path.dirname(path.dirname(cli));
   assert.equal(path.basename(packageRoot), 'dd-flow-cli');
