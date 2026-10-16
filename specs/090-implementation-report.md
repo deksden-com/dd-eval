@@ -112,3 +112,6 @@ The final logs are `dd-flow-090-acceptance.log` and `dd-eval-090-acceptance.log`
 PRs: [engine #78](https://github.com/deksden-com/dd-flow-cli/pull/78),
 [EVAL #97](https://github.com/deksden-com/dd-eval/pull/97). Integration uses squash
 merge with exact tested head/tree verification, not a direct push to main.
+Engine integration commit: `71d31b0cdc2bc31cf07c0ac4a1240855d667d9f4`; its tree
+exactly equals the tested engine tree above. EVAL PR retains the tested executable
+candidate plus report/runbook-only follow-ups; no runtime rebuild or deployment.
