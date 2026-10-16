@@ -177,6 +177,26 @@ EVAL после пункта 11: полный suite с DD_FLOW_SOURCE_ROOT на 
 из-за пункта 12; runtime-sensitive после него не запускался.
 Итоговый результат следующего чистого candidate будет записан до merge.
 
+На `4c5bcd066c2d9e0d42f36f523d62f825e8c42c95` повторные hybrid/E2/E3/release
+прошли; integration полностью зелёный: 165 files, 2798/2798 PASS.
+Runtime-sensitive native fixtures не исполнились из-за ошибки запуска проверки:
+переданный оператором NODE_OPTIONS=--test-reporter=tap добавлялся к explicit
+checked reporter и нарушал число reporter destinations. Это не засчитано за PASS
+и не названо дефектом адаптеров. Окончательный общий gate запускается без этого
+инструментального флага, не меняя исходники, dist или assertions.
+
+Следующий standard-env invocation прошёл hybrid/E2, но E3: 460 PASS/1 FAIL/5 SKIP.
+Memory verification получил failed/aborted check receipt, а assertion вывел только
+boolean; общий fixture cleanup удалил receipt/log files. Точную первопричину
+провалившегося check доказать по этому evidence нельзя. Два отдельных повторения
+того же case без runtime fixes прошли (18.6s и 33.9s). Не утверждается, что это
+таймаут, ошибка провайдера или доказанно исправленный runtime defect.
+Устранена потеря диагностики: assertion сохраняет status/exit_code/abort_reason,
+execution_failures/mutation_paths и ограниченные хвосты stdout/stderr двух
+локальных авторских checks. Отсутствующий stream отмечается null. Production
+timeouts и критерий passed не ослаблены. Compiled init в этом invocation успешно
+пережил 163563ms общей работы при прежнем скользящем окне 120s.
+
 Проверка выполняется в отдельных worktrees. Установленные runtime/хуки,
 работающие EVAL и их артефакты не менялись; новые EVAL не запускались.
 
