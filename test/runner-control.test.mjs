@@ -52,11 +52,21 @@ test('operator control validates the retained scope before publishing intent', a
 
 async function completeContinuationFixture(root) {
   const file = path.join(root, 'manifest.json'), manifest = JSON.parse(await readFile(file, 'utf8'));
+  const controlRoot = path.join(root, 'control-runtime');
+  await mkdir(controlRoot, { recursive: true });
+  const resourceHome = manifest.runtime_resource_home ?? process.env.DD_FLOW_RESOURCE_HOME;
+  await mkdir(resourceHome, { recursive: true });
+  let controlBin = manifest.runtime_control_bin ?? process.env.DD_EVAL_TEST_FLOW_CLI;
+  if (!controlBin) {
+    controlBin = path.join(controlRoot, 'fixture-control.mjs');
+    await writeFile(controlBin, `const a=process.argv.slice(2); console.log(JSON.stringify({scope_id:a[a.indexOf('--scope-id')+1],dispatch_blocked:false,processes:[],provider_turns:[],settled:true,physical_stopped:true,nodes:[]}));`);
+  }
   const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
   const executions = manifest.executions.length ? manifest.executions : [{ id: 'queued', mode: 'e2e', stage: 'merge', terminal_stage: 'merge' }];
   const subject = manifest.subject_profile ?? { id: 'fixture', harness: 'codex-desktop', model: 'fixture', reasoning: 'low' };
   await writeFile(file, JSON.stringify({ ...manifest, schema_id: 'dd-eval/runner-manifest@1', case_id: loaded.value.id,
     executions, subject_profile: subject, input_checkpoint: { sha256: loaded.inputCheckpoint.sha256 },
+    eval_registry_file: process.env.DD_EVAL_REGISTRY_FILE, runtime_resource_home: await realpath(resourceHome), runtime_control_bin: controlBin,
     definition: { commit: await commandText('git', ['rev-parse', 'HEAD']) },
     interaction_fixtures: await interactionFixtureManifest(loaded.root, executions),
     profile: { schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: loaded.value.id, subject: { profile_id: subject.id },
@@ -98,7 +108,7 @@ test('initial EVAL rejects a missing context before creating its output parent o
 });
 
 test('runner resume routes an unstarted execution through launch without rewriting its manifest', async t => {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-resume-queue-'));
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-resume-queue-')));
   t.after(() => rm(root, { recursive: true, force: true }));
   const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
   const execution = { id: 'queued', stage: 'specify', terminal_stage: 'specify', mode: 'e2e' };
@@ -743,7 +753,7 @@ console.log(JSON.stringify({ok:false,error:{code:fs.existsSync(${JSON.stringify(
 // Three readiness phases (captured setup, exact release, completed queue),
 // followed by exact scope/process cleanup (four CLI reads/writes), not a sleep.
 for (const clientExit of ['normal', 'killed', 'observer-killed']) test(`real EVAL resume continues its queue through one active observer (${clientExit})`, { skip: !process.env.DD_EVAL_TEST_FLOW_CLI, timeout: 3 * realFixtureReadinessMs + 4 * cliQuietMs + ownedCliCleanupMs }, async t => {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-real-resume-'));
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-real-resume-')));
   const cli = path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI), runId = 'EVAL-prepare';
   const env = { DD_FLOW_HOME: path.join(root, 'control-runtime'), DD_FLOW_RESOURCE_HOME: path.join(root, 'resources'), DD_FLOW_ENGINE_MODE: '1' };
   const pending = new Set(); let client, clientClosed;
@@ -831,7 +841,7 @@ for (const clientExit of ['normal', 'killed', 'observer-killed']) test(`real EVA
     if (resumed.pending) await delay(100);
   }
   assert.equal(resumed.pending, false);
-  assert.equal(resumed.receipt.dispatch_blocked, false);
+  assert.equal(resumed.receipt.dispatch_blocked, resumed.historical === true);
   const completionDeadline = performance.now() + realFixtureReadinessMs;
   let worker;
   for (;;) {
@@ -849,9 +859,15 @@ for (const clientExit of ['normal', 'killed', 'observer-killed']) test(`real EVA
   assert.ok(observers.every(record => record.state === 'stopped'));
   assert.equal((await body(() => runnerControlStatus({ evalRoot: root, signal: t.signal }))).continuations[0].last_recorded_status, 'completed');
   assert.equal((await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.operation.started').length, 1);
-  assert.equal((await body(() => runnerControlResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'pause' }))).reused, true);
+  const retirementDeadline = performance.now() + realFixtureReadinessMs;
+  while (!(await call(['status', '--scope-id', runId])).fence) {
+    assert.ok(performance.now() < retirementDeadline, 'automatic retirement fenced the completed EVAL'); await delay(100);
+  }
+  const repeated = await body(() => runnerControlResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'pause' }));
+  assert.equal(repeated.reused, true); assert.equal(repeated.historical, true);
+  assert.equal(repeated.receipt.dispatch_blocked, true); assert.equal(repeated.receipt.release.current, false);
   assert.equal((await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.control.resume_applied').length, 1);
-  await body(() => runnerControlRequest({ evalRoot: root, requestId: 'new-stop', mode: 'stop' }));
+  await assert.rejects(body(() => runnerControlRequest({ evalRoot: root, requestId: 'new-stop', mode: 'stop' })), { code: 'runtime_scope_stopped' });
   await assert.rejects(body(() => runnerControlResume({ evalRoot: root, requestId: 'resume', fromRequestId: 'pause' })), { code: 'control_request_stale' });
 });
 

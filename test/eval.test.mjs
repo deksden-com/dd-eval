@@ -1045,7 +1045,10 @@ test("capacity qualification needs positive cleanup and exact bounded child owne
   const receipt = { schema_id: 'dd-eval/subagent-capacity@1', requested: 2, capacity: 1,
     root_session_id: 'root', cleanup: { stopped: true }, children: [{ session_id: 'child', parent_session_id: 'root' }] };
   assert.equal(qualifiedCapacityProbe(receipt), true);
+  assert.equal(qualifiedCapacityProbe({ ...receipt, cleanup: { stopped: true, scope_retirement: { physical_stopped: true, native_settled: true } } }), true);
   for (const change of [{ cleanup: null }, { cleanup: {} }, { cleanup: { stopped: false } },
+    { cleanup: { stopped: true, scope_retirement: { physical_stopped: true, native_settled: false } } },
+    { cleanup: { stopped: true, scope_retirement: { physical_stopped: null, native_settled: true } } },
     { cleanup: { stopped: 'true' } }, { failure: { code: 'probe_failed' } }, { requested: 16 }, { capacity: 3 },
     { capacity: 0 }, { root_session_id: null }, { children: [] },
     { children: [{ session_id: 'child', parent_session_id: 'foreign' }] },

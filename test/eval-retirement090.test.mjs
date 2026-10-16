@@ -103,6 +103,7 @@ test("live controller drain is not superseded by scope fence; failed drain uses 
 test("prelaunch fence covers changed resource homes, revalidates and blocks unknown physical retirement", async t => {
   const f = await fixture(t), nextResource = path.join(f.temp, "next-resources"); await mkdir(nextResource);
   await writeFile(path.join(f.root, "events.jsonl"), "");
+  for (const type of ["started", "failed"]) await appendEvent(path.join(f.root, "events.jsonl"), { source: "dd-eval://runner", runId: "EVAL-test", executionId: "e2e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e2e:launch", error: { code: "fixture_failure" } } });
   await appendEvent(path.join(f.root, "events.jsonl"), { source: "dd-eval://runner", runId: "EVAL-test", type: "dev.dd.eval.completed", data: { state: "completed_with_failures" } });
   let actionCalls = 0, stopCalls = 0;
   const candidate = { root: f.root, manifest: f.manifest };

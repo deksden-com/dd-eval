@@ -45,6 +45,7 @@ test("qualification runtime cleanup uncertainty never turns into clean success",
   const owner = await prepareQualificationOwner({ home, caseId: "fixture", runtimeRoot: path.join(home, "runtime"), resourceHome: path.join(home, "resources"),
     registryFile: path.join(home, "homes.json"), engine: {}, perHarness: {} }, { retirement: async (_options, reserve) => reserve() });
   await assert.rejects(finishQualificationOwner(owner, null, { cleanup: async () => ({ result: { physical_stopped: null } }) }), { code: "definition_qualification_cleanup_failed" });
+  await assert.rejects(finishQualificationOwner(owner, null, { cleanup: async () => ({ result: { physical_stopped: true, native_settled: false } }) }), { code: "definition_qualification_cleanup_failed" });
 });
 
 test("qualification status is read-only and reports retained cleanup independently of missing runtime", async t => {
@@ -52,7 +53,7 @@ test("qualification status is read-only and reports retained cleanup independent
   t.after(() => rm(home, { recursive: true, force: true }));
   const owner = await prepareQualificationOwner({ home, caseId: "fixture", runtimeRoot: path.join(home, "unavailable-runtime"), resourceHome: path.join(home, "resources"),
     registryFile: path.join(home, "homes.json"), engine: {}, perHarness: {} }, { retirement: async (_options, reserve) => reserve() });
-  await finishQualificationOwner(owner, null, { cleanup: async () => ({ result: { physical_stopped: true } }) });
+  await finishQualificationOwner(owner, null, { cleanup: async () => ({ result: { physical_stopped: true, native_settled: true } }) });
   const requestId = "retained-cleanup", file = path.join(owner.root, "runner-attempts", sha256(requestId), "attempt.json");
   await writeJsonAtomic(file, { schema_id: "dd-eval/resume-worker@1", intent: { kind: "cleanup", eval_root: owner.root, request_id: requestId, mode: "reconcile" },
     status: "completed", updated_at: "2026-10-16T00:00:00Z", result: { physical_stopped: true, native_settled: false, cleanup_state: "pending" } });

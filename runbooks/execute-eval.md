@@ -20,10 +20,13 @@ alone does not authorize paid qualification, provider calls or scored launches.
    export DD_FLOW_BIN="$DD_EVAL_HOME/published-engine/node_modules/@deksden-com/dd-flow-cli/dist/cli.js"
    export DD_FLOW_CONFIG_HOME="$DD_EVAL_HOME/engine-config"
    export DD_FLOW_RESOURCE_HOME=/absolute/shared-host-resource-home
+   export DD_EVAL_REGISTRY_FILE=/absolute/project-eval-registry/homes.json
    ~~~
 
    Prepare these from the accepted engine/configuration, not a failed execution.
    All concurrent consumers of shared resources use the same resource registry.
+   Reuse the selected EVAL registry across that project's campaigns: a fresh
+   EVAL home must not hide previous registered owners. Never point tests at it.
    Checkpoint `engine.artifact_sha256` is the installed engine manifest's
    `integrity.checksum`, not the npm tarball SHA256. Record the tarball digest
    separately in the candidate receipt; verify both before selecting the pin.
