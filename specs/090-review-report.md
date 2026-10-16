@@ -53,8 +53,11 @@ EVAL processes is part of this review.
    finite CI envelope. Wiring/abort regressions supplement existing real
    progress and subtree-cleanup tests; no test outcome assertion is weakened.
 
-Final engine source: `a098266d33162b328247616dcda989cb8314d145`, tree
+Frozen running engine source: `a098266d33162b328247616dcda989cb8314d145`, tree
 `7f82f9d8e5aea988fd5afca79aec23c17108def3`.
+Additional reviewed candidate: `02c0d90d833f753573f2a1c2f3de68e65cf74938`,
+published to engine PR #79. This candidate is not yet built/tested: the prior
+frozen complete suite must finish its remaining cases and owned teardown first.
 EVAL executable source: `b683fb1d3a517f8ff1a06e1253fa1f5dc469f028`.
 Final paired acceptance must include the subsequent original-cause retention
 regression and scheduler/platform-independent assertions, not just the earlier
@@ -91,6 +94,11 @@ paired receipt below.
   raw fixed 60-second CLI timeout bypassing the shared observed subprocess
   transport. Boundary-specific fixes and regressions are being prepared in a
   separate checkout; the running candidate remains frozen.
+  ZCode exceeded its 1440-second whole-scenario envelope; Luna same-session
+  reached completed MERGE Work but exceeded the same overall envelope while
+  controller settlement remained pending. Host load reached 180.16. These are
+  failures, not successful live EVALs or proof of green acceptance. No broad
+  timeout increase, test retry, neighboring-process stop or merge was used.
 
 Artifacts: `/Users/deksden/Documents/_Projects/_artifacts/plan-090-review.Lh1WVr/`.
 Final rerun: `/Users/deksden/Documents/_Projects/_artifacts/plan-090-review-final.q0N3CM/`.
@@ -115,3 +123,8 @@ EVAL definitions remain. `dd-flow-089` remains because two live fixture daemons
 reference its code. Unique unintegrated E0 and HITL-renewal work is not discarded
 or silently merged into this review. Remote deletions use exact-ref leases;
 already absent remote branches are removed only from stale tracking metadata.
+
+Cleanup so far: 18 obsolete checkouts, 18 local branches and seven actually
+existing remote branches removed; five nonexistent temporary checkout metadata
+registrations pruned. Current review/candidate checkouts remain necessary until
+acceptance and integration complete. Engine PR #79 and EVAL PR #98 remain draft.
