@@ -60,6 +60,15 @@ test("foreign inventory and changed manifest cannot authorize physical stop", as
   await assert.rejects(cleanupInventory(f.root, f.manifest, {}, async () => ({ scope_id: "EVAL-test", processes: [{ ...f.process, metadata_json: '{}' }], provider_turns: [] })), { code: "runtime_scope_inventory_invalid" });
 });
 
+test("automatic cleanup rechecks eligibility after a new execution starts", async t => {
+  const f = await fixture(t); let stops = 0;
+  await writeFile(path.join(f.root, "events.jsonl"), "");
+  await appendEvent(path.join(f.root, "events.jsonl"), { source: "dd-eval://runner", runId: f.manifest.run_id,
+    executionId: "e2e", type: "dev.dd.eval.operation.started", data: { operation_id: "EVAL-test:e2e:launch" } });
+  await assert.rejects(retireEval({ evalRoot: f.root, intent: { ...f.intent, origin: "automatic" }, call: async () => { stops++; } }), { code: "prior_cleanup_pending" });
+  assert.equal(stops, 0, "an automatic finalizer never inherits operator stop authority");
+});
+
 test("maintenance fallback uses verified payload, never a shim that redirects old resource home", async t => {
   const f = await fixture(t), nextHome = path.join(f.temp, "next-home"), engine = path.join(f.temp, "engine"), adapters = path.join(engine, "dist", "harness-runtime");
   await mkdir(adapters, { recursive: true }); await mkdir(nextHome);

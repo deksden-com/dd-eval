@@ -34,6 +34,7 @@ test("qualification has an independent discoverable runtime scope without changi
   const primary = Object.assign(new Error("provider rejected"), { code: "provider_failed" });
   await finishQualificationOwner(owner, primary, { cleanup: async request => {
     assert.equal(request.evalRoot, owner.root); assert.equal(request.inlineCleanup, true);
+    assert.equal(request.cleanupOrigin, "automatic");
     assert.equal(reduceEvents(await readEvents(path.join(owner.root, "events.jsonl"))).state, "failed");
     return { result: { physical_stopped: true, cleanup_state: "pending", native_settled: false } };
   } });
