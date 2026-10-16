@@ -79,12 +79,35 @@ do not change executable inputs).
   negative bindings, qualification ownership and reliable continuation checks
   also passed.
 - Engine build/typecheck/lint: PASS. Installed E2: 2/2 PASS. Final complete frozen
-  engine `pnpm test` remains pending; no completion is inferred from focused checks.
+  engine `pnpm test`: exit 0, no filters/retries/bail or ignored unhandled errors.
+  Hybrid 66/66; E2 133 PASS/one gated skip; E3 462 PASS/five gated skips;
+  release build checks 2/2 plus release Vitest 8/8; integration 166 files,
+  2807/2807; runtime-sensitive 2 files, 48/48. No failed/cancelled tests.
+  E3 skips are explicit old/new package pairing, installed init negatives,
+  retained correction replay, and two installed real-linter qualification cells.
+  They are NOT RUN, not live qualification. The E2 gated installed capability
+  remains separate from the additional installed E2 2/2 result.
+- Post-gate source tree remains `a4ebcc7689a3be0d76bdb13c6b0ad1f3d5bb6482`,
+  clean; `dist` matches the independently installed snapshot byte-for-byte.
+  `dist/build-info.json` SHA-256 before/after:
+  `2889b4afba6d6ce3fddfb35d65fb233732e66f8ef3f40250e3f48f8ec0644a6e`.
+  Snapshot full-content checksum:
+  `1b0eedfb1d81e039120ca2d788dcec592c5640b3cc5339c325f167d0b03f352b`.
+  Canon remains clean at the recorded revision.
 - Earlier failed development runs are retained: unpaired EVAL lacked required
   bindings; paired iterations exposed private-registry/schema fixture gaps and
   terminal-retirement ACK semantics, all corrected before the final full run.
-  An initial engine invocation omitted `DD_FLOW_E3_CANON_ROOT`; it is not the
-  acceptance run. The final invocation explicitly selects the clean canon.
+  An initial engine invocation omitted `DD_FLOW_E3_CANON_ROOT`; its separate
+  `unverified_lock_owner` refusal is preserved and did not reproduce in the final
+  gate (no ownership guard was weakened). A second invocation was cancelled after
+  discovering missing `DD_FLOW_E3_WT`. Neither is the acceptance run. The final
+  complete invocation explicitly selects clean canon, real Worktrunk and mb-lint;
+  the runbook command now retains the required E3 environment.
+
+Raw logs, including failed/cancelled development attempts:
+`/Users/deksden/Documents/_Projects/_artifacts/plan-090-verification/receipt.L53sht/`.
+The final logs are `dd-flow-090-acceptance.log` and `dd-eval-090-acceptance.log`.
 
 PRs: [engine #78](https://github.com/deksden-com/dd-flow-cli/pull/78),
-[EVAL #97](https://github.com/deksden-com/dd-eval/pull/97). Merge pending engine gate.
+[EVAL #97](https://github.com/deksden-com/dd-eval/pull/97). Integration uses squash
+merge with exact tested head/tree verification, not a direct push to main.

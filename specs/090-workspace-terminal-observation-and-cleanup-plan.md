@@ -1,6 +1,7 @@
 # 090 — Актуальный workspace, сохранение native outcome и очистка EVAL
 
-Дата: 2026-10-16. Статус: P1–P9 реализованы; финальная приёмка и merge выполняются.
+Дата: 2026-10-16. Статус: P1–P9 реализованы и проверены полными engine/EVAL gates;
+интеграция через engine PR #78 и EVAL PR #97.
 Результаты и границы проверки — [implementation receipt](090-implementation-report.md).
 Уточнения readiness-проверки — раздел 7.
 Ponytail: full. Исправляем FLOW/адаптеры/EVAL tooling, не оцениваемый продукт.
@@ -381,8 +382,8 @@ operational refusal fields пропадают; оба hook-integrity кода и
 - [x] P6–P7: AGY terminal retention, typed admission/correction во всех consumers.
 - [x] P8: EVAL evidence/classification.
 - [x] P9: автоматический cleanup lifecycle, deferral и prelaunch barrier.
-- [ ] Regression/gate, проверка patch inventory, короткий implementation receipt.
-- [ ] Коммиты/PR/merge по runbooks/git-workflow.md только при поручении реализации;
+- [x] Regression/gate, проверка patch inventory, короткий implementation receipt.
+- [x] Коммиты/PR/squash merge через #78/#97 по runbooks/git-workflow.md;
   release/pins/hooks/scored EVAL — отдельный operational шаг, не скрытая часть tests.
 
 ### Минимальная regression matrix (в существующих suites)
