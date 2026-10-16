@@ -155,7 +155,7 @@ retry executor, замены модели, новой Session или обход�
   Причинность contention не выдаётся за доказанный production-дефект:
   окончательная проверка — один последовательный gate ниже.
 
-## Финальный чистый candidate
+## История повторных проверок
 
 `ec948cb6bc678fa2926f4c73c68711043a474974` содержит оба последних test fixes.
 Runtime source tree совпадает с `fb01a59e`:
@@ -175,7 +175,7 @@ EVAL после пункта 11: полный suite с DD_FLOW_SOURCE_ROOT на 
 Адресный current-engine policy/Judge/semantic — 50/50 PASS, exit 0.
 Полный invocation ecd4a4b9 прошёл hybrid/E2/E3/release, но завершился exit 1
 из-за пункта 12; runtime-sensitive после него не запускался.
-Итоговый результат следующего чистого candidate будет записан до merge.
+Итоговый результат окончательного candidate приведён ниже.
 
 На `4c5bcd066c2d9e0d42f36f523d62f825e8c42c95` повторные hybrid/E2/E3/release
 прошли; integration полностью зелёный: 165 files, 2798/2798 PASS.
@@ -196,6 +196,47 @@ execution_failures/mutation_paths и ограниченные хвосты stdou
 локальных авторских checks. Отсутствующий stream отмечается null. Production
 timeouts и критерий passed не ослаблены. Compiled init в этом invocation успешно
 пережил 163563ms общей работы при прежнем скользящем окне 120s.
+
+## Итоговая проверка — PASS
+
+Чистый engine candidate `68c6bc23ec6c1229806c49b98402f0d4e8772837`.
+Runtime source tree `b7f76d2e14a09ce846eebd17fe98cb808e941041`;
+SHA-256 build-info.json
+`b415a7da8879ab9218afbab6fe808f572c92d068f5b58bba1b30423303981a07`.
+Strict build с canon v4.1.2 (`1ddedf9d3f086e046f8e7b194c739ec386e7c8b9`),
+typecheck, lint и diff-check — exit 0.
+
+Один полный последовательный `pnpm test` без глобального NODE_OPTIONS reporter
+завершился **exit 0** на неизменных source/dist:
+
+| Набор | Результат |
+| --- | --- |
+| hybrid | 66/66 PASS |
+| E2 | 133 PASS, 1 environment-gated SKIP |
+| E3 | 461 PASS, 5 environment-gated SKIP |
+| release | Node 2/2 и Vitest 8/8 PASS |
+| integration | 165 files, 2798/2798 PASS |
+| runtime-sensitive | 2 files, 48/48 PASS |
+| отдельный installed gate | 2/2 PASS, exit 0 |
+
+Пропуски — существующие explicit artifact/platform gates, не снятые assertions.
+Memory verification в этом полном invocation прошёл (11.2s); все 11 full-cycle
+сценариев прошли, включая overload children, repair и terminal cleanup.
+Это не восстанавливает первопричину исторического check failure выше и не
+превращает старые неуспешные invocations в PASS.
+
+EVAL implementation и streaming regression прошли полный suite: 882 PASS,
+0 FAIL, 15 environment-gated SKIP (897 tests), exit 0. Final current-engine
+policy/Judge/semantic на точном финальном engine: 50/50 PASS, exit 0.
+Ревью использует существующие SSOT policy, owner executors и fixture helpers;
+новых зависимостей, scheduler, новой Session или blanket retry не добавлено.
+
+Engine интегрирован squash через [PR #76](https://github.com/deksden-com/dd-flow-cli/pull/76):
+`a3a65214979e72aecb25817c527d60e80b0d1838`.
+Полное Git-дерево origin/main после merge совпадает с протестированным candidate;
+проверка diff — exit 0. Исторически расходящийся локальный main не переписывался.
+EVAL-исправления и этот receipt интегрируются через
+[PR #96](https://github.com/deksden-com/dd-eval/pull/96).
 
 Проверка выполняется в отдельных worktrees. Установленные runtime/хуки,
 работающие EVAL и их артефакты не менялись; новые EVAL не запускались.
