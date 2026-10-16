@@ -117,6 +117,18 @@ test("prelaunch fence covers changed resource homes, revalidates and blocks unkn
   assert.equal(actionCalls, 0);
 });
 
+test("native settlement alone cannot complete an inline local retirement", async t => {
+  const f = await fixture(t);
+  const result = await requestRunnerContinuation({ evalRoot: f.root, kind: "cleanup", requestId: "native-only", inlineCleanup: true,
+    cleanupCall: async (_bin, args) => args[2] === "status"
+      ? { scope_id: "EVAL-test", processes: [f.process], provider_turns: [] }
+      : { scope_id: "EVAL-test", settled: true, physical_stopped: false, nodes: [{ process_id: f.process.id, settled: true }] } });
+  assert.equal(result.result.cleanup_state, "settled");
+  assert.equal(result.result.physical_stopped, false);
+  const attempt = JSON.parse(await readFile(path.join(f.root, "runner-attempts", sha256("native-only"), "attempt.json")));
+  assert.equal(attempt.status, "settling");
+});
+
 test("diagnostic retains bounded operational evidence; exact integrity classification needs issued authority", () => {
   const scope = { projectRoot: "/project", daemonId: "daemon", rootSessionId: "root", runId: "RUN-test", generation: 1 };
   const failure = { code: "native_hook_receipt_invalid", run_id: "RUN-test", details: { phase: "admission", effect: "no_effect", recoverable: false,

@@ -159,7 +159,7 @@ test('terminal continuation replay does not reopen productive input dependencies
   await writeFile(path.join(root, 'manifest.json'), bytes);
   const file = path.join(root, 'runner-attempts', sha256(requestId), 'attempt.json');
   await mkdir(path.dirname(file), { recursive: true });
-  const receipt = JSON.stringify({ status: 'completed', result: { state: 'completed' }, intent: {
+  const receipt = JSON.stringify({ schema_id: 'dd-eval/resume-worker@1', status: 'completed', result: { state: 'completed' }, intent: {
     eval_root: root, run_id: 'EVAL-test', request_id: requestId, kind: 'resume', manifest_sha256: sha256(bytes)
   } });
   await writeFile(file, receipt);
