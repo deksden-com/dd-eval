@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import os from "node:os";
-import { mkdtemp, mkdir, readFile, writeFile, rm, realpath, symlink } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, writeFile, rm, realpath, symlink, rename } from "node:fs/promises";
 import { cleanupBinding, cleanupInventory, maintenanceEnvironment, retireEval, withPriorEvalRetirement } from "../lib/eval-retirement.mjs";
 import { requestRunnerContinuation } from "../lib/eval-resume-worker.mjs";
 import { appendEvent, hashJson, sha256, writeJsonAtomic } from "../lib/runner-events.mjs";
@@ -10,6 +10,7 @@ import { failureDiagnostic, isInfrastructureFailure } from "../lib/runner.mjs";
 import { engineArtifactDigest } from "../lib/engine-admission.mjs";
 import { recoveryObservationBudget } from "../lib/recovery-observation-budget.mjs";
 import { processSnapshot } from "../lib/process-snapshot.mjs";
+import { setTimeout as delay } from "node:timers/promises";
 
 async function fixture(t) {
   const temp = await realpath(await mkdtemp(path.join(os.tmpdir(), "eval-retirement090-")));
@@ -136,6 +137,47 @@ test("native settlement alone cannot complete an inline local retirement", async
   assert.equal(result.result.physical_stopped, false);
   const attempt = JSON.parse(await readFile(path.join(f.root, "runner-attempts", sha256("native-only"), "attempt.json")));
   assert.equal(attempt.status, "settling");
+});
+
+test("failed inline cleanup persists spent observation budget and cannot restart it", async t => {
+  const f = await fixture(t), requestId = "failed-observation";
+  const input = { evalRoot: f.root, kind: "cleanup", requestId, inlineCleanup: true };
+  await requestRunnerContinuation({ ...input, inlineCleanup: false, deferSpawn: true });
+  const file = path.join(f.root, "runner-attempts", sha256(requestId), "attempt.json");
+  const previous = JSON.parse(await readFile(file));
+  const result = { physical_stopped: false, native_settled: false, cleanup_state: "pending" };
+  const retainedBudget = { ...recoveryObservationBudget(null).state(), observer_started: false };
+  await writeJsonAtomic(file, { ...previous, result, recovery_observation: retainedBudget });
+  let calls = 0;
+  const failure = Object.assign(new Error("fixture observation lost"), { code: "fixture_observation_lost" });
+  await assert.rejects(requestRunnerContinuation({ ...input, cleanupCall: async () => { calls++; await delay(10); throw failure; } }), { code: failure.code });
+  const saved = JSON.parse(await readFile(file));
+  assert.deepEqual(saved.intent, previous.intent); assert.deepEqual(saved.result, result);
+  assert.equal(saved.error.code, failure.code); assert.equal(saved.status, "settling");
+  assert.ok(saved.recovery_observation.remaining_ms < retainedBudget.remaining_ms);
+  assert.equal(saved.recovery_observation.observer_started, false);
+  // Exhaustion is policy state, not a 50ms race against a loaded scheduler.
+  await writeJsonAtomic(file, { ...saved, recovery_observation: { ...saved.recovery_observation, remaining_ms: 0 } });
+  await assert.rejects(requestRunnerContinuation({ ...input, cleanupCall: async () => { calls++; } }), { code: "recovery_observation_budget_exhausted" });
+  assert.equal(JSON.parse(await readFile(file)).status, "recovery_blocked");
+  assert.equal(calls, 1, "the same request cannot acquire another observation budget");
+});
+
+test("failed cleanup receipt publication preserves the original observation cause", async t => {
+  const f = await fixture(t), requestId = "failed-publication";
+  const input = { evalRoot: f.root, kind: "cleanup", requestId };
+  await requestRunnerContinuation({ ...input, deferSpawn: true });
+  const file = path.join(f.root, "runner-attempts", sha256(requestId), "attempt.json");
+  const cause = Object.assign(new Error("native observation failed"), { code: "fixture_observation_lost" });
+  await assert.rejects(requestRunnerContinuation({ ...input, inlineCleanup: true, cleanupCall: async () => {
+    await rename(file, `${file}.previous`); await mkdir(file); throw cause;
+  } }), error => {
+    assert.equal(error, cause);
+    const diagnostic = failureDiagnostic(error);
+    assert.equal(diagnostic.code, cause.code);
+    assert.equal(diagnostic.cleanup_error.code, "EISDIR");
+    return true;
+  });
 });
 
 test("diagnostic retains bounded operational evidence; exact integrity classification needs issued authority", () => {
