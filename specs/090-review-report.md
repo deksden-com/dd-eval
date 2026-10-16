@@ -139,6 +139,28 @@ New verified installed snapshot checksum:
 `a9d2c0f80d9a11c6710e8d342d9893f758d0b894ccfb72de6f960b9bda7a23c5`.
 Its `dist` matches the new frozen source build byte-for-byte.
 
+## Final fixture transport follow-up
+
+After the reboot, the complete integration group finished with 2814 PASS and
+five failures in `run-controller-stages.test.ts` (167 other files PASS,
+4461.05 seconds). All eleven full-cycle/overload/terminal-cleanup scenarios
+passed. The five failures share one test-only cause: `observed-shell-command`
+retained structured CLI diagnostics but normalized every nonzero child exit to
+1, hiding the expected input-refusal exit 2. The helper now preserves actual
+integer child exit codes 1–255 and keeps the existing fallback for observation
+loss/cancellation. Regression covers exit 2 and 17 with unchanged typed
+no-effect refusal; quiet-window and signal cleanup checks also pass (4/4).
+This does not change production error classification or relax assertions.
+
+Final source after this correction:
+`130fce2bba68640599f6def6c0b8012f5e07d907`, tree
+`fd332a77f9ee104aef65ff35bfe47a74d7c4c280`.
+Typecheck/lint PASS. A new build and isolated `home-verified` snapshot replace
+neither global installation nor the earlier retained acceptance artifacts.
+The entire `pnpm test` chain is rerun on this single frozen candidate, followed
+sequentially by installed/native mock/paired EVAL checks. No partial prior
+integration receipt is presented as a green full gate.
+
 ## Repository cleanup boundaries
 
 Merged refs are checked against actual origin/main ancestry or exact merged PR
