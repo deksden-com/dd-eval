@@ -45,6 +45,12 @@ focused tests are development evidence, not a substitute.
   verification, as documented in the storage runbook.
 - Old cleanup intents retain native-settlement semantics. Unknown contract
   versions refuse; repeated request IDs cannot change their meaning.
+- Local retirement completion always requires `physical_stopped=true`, including
+  the recovery-budget boundary. A legacy Subject/Judge settlement receipt cannot
+  substitute for all-role process proof. Missing proof stays `recovery_blocked`.
+- Replaying an exactly applied resume after terminal retirement returns a bound
+  historical ACK with `dispatch_blocked=true` and `release.current=false`; it
+  neither appends the captured journal nor reopens the scope.
 - Status tolerates an attempt directory before atomic receipt publication but
   rejects corrupt/foreign receipts. Cleanup environment forwards no Decisions keys.
 
@@ -56,5 +62,29 @@ historical EVAL files/processes were not changed.
 
 ## Acceptance
 
-Pending completion of the frozen engine full gate and final paired EVAL suite.
-No completion or live qualification is inferred from focused checks.
+EVAL executable candidate: `139ac6c6a533f2636a40e65ff4ef8e8d15b93188`,
+tree `79141a70ef7f517c4462c8a57de082e9af9fbc0d` (subsequent report-only edits
+do not change executable inputs).
+
+- Final complete paired `npm test`: exit 0; 912 tests, 907 PASS, zero failures,
+  five explicitly gated external-fixture skips; 776.339 seconds. Required paired
+  real-CLI resume/fork, installed capacity/clock and operational runtime targets
+  executed. Private registry and the frozen engine source/dist/installed snapshot
+  were passed explicitly as documented in `runbooks/flow-test-suite-verification.md`.
+- Skipped optional fixtures: private complete Memory template; native installed
+  owner proof; pinned dd-tasks zero checkpoint; authenticated external/native
+  semantic selection; installed setup/Console observation. They are NOT RUN,
+  not evidence of live qualification.
+- Final focused retirement/recovery: 75/75 PASS. Historical fenced ACK and its
+  negative bindings, qualification ownership and reliable continuation checks
+  also passed.
+- Engine build/typecheck/lint: PASS. Installed E2: 2/2 PASS. Final complete frozen
+  engine `pnpm test` remains pending; no completion is inferred from focused checks.
+- Earlier failed development runs are retained: unpaired EVAL lacked required
+  bindings; paired iterations exposed private-registry/schema fixture gaps and
+  terminal-retirement ACK semantics, all corrected before the final full run.
+  An initial engine invocation omitted `DD_FLOW_E3_CANON_ROOT`; it is not the
+  acceptance run. The final invocation explicitly selects the clean canon.
+
+PRs: [engine #78](https://github.com/deksden-com/dd-flow-cli/pull/78),
+[EVAL #97](https://github.com/deksden-com/dd-eval/pull/97). Merge pending engine gate.

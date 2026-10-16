@@ -1,7 +1,8 @@
 # 090 — Актуальный workspace, сохранение native outcome и очистка EVAL
 
-Дата: 2026-10-16. Статус: план, повторная readiness-проверка завершена;
-реализация не начата. Уточнения проверки — раздел 7.
+Дата: 2026-10-16. Статус: P1–P9 реализованы; финальная приёмка и merge выполняются.
+Результаты и границы проверки — [implementation receipt](090-implementation-report.md).
+Уточнения readiness-проверки — раздел 7.
 Ponytail: full. Исправляем FLOW/адаптеры/EVAL tooling, не оцениваемый продукт.
 
 Audit base: dd-flow-cli origin/main a3a65214979e72aecb25817c527d60e80b0d1838;
@@ -375,11 +376,11 @@ operational refusal fields пропадают; оба hook-integrity кода и
 
 ## 5. Порядок реализации и проверяемый результат
 
-- [ ] P1–P3: свежий SDLC route, bundle compatibility, atomic rebind и projections.
-- [ ] P4–P5: OpenCode outcome/progress/owned cleanup.
-- [ ] P6–P7: AGY terminal retention, typed admission/correction во всех consumers.
-- [ ] P8: EVAL evidence/classification.
-- [ ] P9: автоматический cleanup lifecycle, deferral и prelaunch barrier.
+- [x] P1–P3: свежий SDLC route, bundle compatibility, atomic rebind и projections.
+- [x] P4–P5: OpenCode outcome/progress/owned cleanup.
+- [x] P6–P7: AGY terminal retention, typed admission/correction во всех consumers.
+- [x] P8: EVAL evidence/classification.
+- [x] P9: автоматический cleanup lifecycle, deferral и prelaunch barrier.
 - [ ] Regression/gate, проверка patch inventory, короткий implementation receipt.
 - [ ] Коммиты/PR/merge по runbooks/git-workflow.md только при поручении реализации;
   release/pins/hooks/scored EVAL — отдельный operational шаг, не скрытая часть tests.
