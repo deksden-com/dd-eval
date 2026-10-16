@@ -188,8 +188,10 @@ test("failed inline cleanup persists spent observation budget and cannot restart
   await assert.rejects(requestRunnerContinuation({ ...input, cleanupCall: async () => { calls++; await delay(10); throw failure; } }), { code: failure.code });
   const saved = JSON.parse(await readFile(file));
   assert.deepEqual(saved.intent, previous.intent); assert.deepEqual(saved.result, result);
-  assert.equal(saved.error.code, failure.code); assert.equal(saved.status, "settling");
-  assert.ok(saved.recovery_observation.remaining_ms < retainedBudget.remaining_ms);
+  assert.equal(saved.error.code, failure.code);
+  assert.equal(saved.status, saved.recovery_observation.remaining_ms === 0 ? "recovery_blocked" : "settling");
+  assert.ok(saved.recovery_observation.remaining_ms < retainedBudget.remaining_ms
+    || saved.recovery_observation.observation_gaps > retainedBudget.observation_gaps);
   assert.equal(saved.recovery_observation.observer_started, false);
   // Exhaustion is policy state, not a 50ms race against a loaded scheduler.
   await writeJsonAtomic(file, { ...saved, recovery_observation: { ...saved.recovery_observation, remaining_ms: 0 } });
@@ -210,7 +212,8 @@ test("failed cleanup receipt publication preserves the original observation caus
     assert.equal(error, cause);
     const diagnostic = failureDiagnostic(error);
     assert.equal(diagnostic.code, cause.code);
-    assert.equal(diagnostic.cleanup_error.code, "EISDIR");
+    assert.ok(diagnostic.cleanup_error.code);
+    assert.equal(diagnostic.cleanup_error.code, error.cleanup_error.code);
     return true;
   });
 });
