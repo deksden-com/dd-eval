@@ -195,7 +195,11 @@ test("failed inline cleanup persists spent observation budget and cannot restart
   assert.equal(saved.recovery_observation.observer_started, false);
   // Exhaustion is policy state, not a 50ms race against a loaded scheduler.
   await writeJsonAtomic(file, { ...saved, recovery_observation: { ...saved.recovery_observation, remaining_ms: 0 } });
-  await assert.rejects(requestRunnerContinuation({ ...input, cleanupCall: async () => { calls++; } }), { code: "recovery_observation_budget_exhausted" });
+  for (let retry = 0; retry < 2; retry++) await assert.rejects(requestRunnerContinuation({ ...input, cleanupCall: async () => { calls++; } }), error => {
+    assert.equal(error.code, "recovery_observation_budget_exhausted");
+    assert.equal(failureDiagnostic(error).cause.code, failure.code);
+    return true;
+  });
   assert.equal(JSON.parse(await readFile(file)).status, "recovery_blocked");
   assert.equal(calls, 1, "the same request cannot acquire another observation budget");
 });
