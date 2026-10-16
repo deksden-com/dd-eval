@@ -80,13 +80,14 @@ do not change executable inputs).
   also passed.
 - Engine build/typecheck/lint: PASS. Installed E2: 2/2 PASS. Final complete frozen
   engine `pnpm test`: exit 0, no filters/retries/bail or ignored unhandled errors.
-  Hybrid 66/66; E2 133 PASS/one gated skip; E3 462 PASS/five gated skips;
+  Hybrid 66/66; E2 133 PASS/one unavailable-shell skip; E3 462 PASS/five gated skips;
   release build checks 2/2 plus release Vitest 8/8; integration 166 files,
   2807/2807; runtime-sensitive 2 files, 48/48. No failed/cancelled tests.
   E3 skips are explicit old/new package pairing, installed init negatives,
   retained correction replay, and two installed real-linter qualification cells.
-  They are NOT RUN, not live qualification. The E2 gated installed capability
-  remains separate from the additional installed E2 2/2 result.
+  They are NOT RUN, not live qualification. E2 fish execution is NOT RUN because
+  fish is absent; Bash/Zsh execution and completion generation ran. The additional
+  installed E2 result is independently 2/2 PASS.
 - Post-gate source tree remains `a4ebcc7689a3be0d76bdb13c6b0ad1f3d5bb6482`,
   clean; `dist` matches the independently installed snapshot byte-for-byte.
   `dist/build-info.json` SHA-256 before/after:
