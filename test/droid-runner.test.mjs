@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertObservedRuntime, assertProfileCapacity, callDriver, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, judgeRuntimeEnvironment, loadProfile } from '../lib/runner.mjs';
+import { qualificationProbeEnvironment } from '../lib/qualification-owner.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 
@@ -35,6 +36,14 @@ test('config-only adapter processes cannot inherit ambient Flow ownership', asyn
   assert.equal(owner.role, 'judge'); assert.equal(owner.adapter_executable, adapter);
   assert.equal(judge.env.DD_FLOW_RESOURCE_HOME, owned.DD_FLOW_RESOURCE_HOME);
   for (const key of ['DD_FLOW_HOME', 'DD_FLOW_RUNTIME_BUDGET', 'DD_FLOW_ENGINE_HOME']) assert.equal(judge.env[key], undefined);
+  const probeScope = { resourceHome: path.join(home, 'resources'), budget: { schema_id: 'dd-flow/runtime-budget@1', scope_id: 'QUAL-probe', per_harness: { 'droid-cli': 16 } } };
+  const probeEnv = qualificationProbeEnvironment({ owner: probeScope, runtimeRoot: home, stateDir: path.join(home, 'probe') });
+  const probe = await callDriver(profile, ['doctor'], { cwd: home, env: probeEnv, validateRuntime: false });
+  const probeOwner = JSON.parse(probe.env.DD_FLOW_RUNTIME_OWNER);
+  assert.equal(probeOwner.role, 'probe'); assert.equal(probeOwner.adapter_executable, adapter);
+  assert.deepEqual(probeOwner.budget, probeScope.budget);
+  assert.equal(probeOwner.dd_flow_home, home);
+  for (const key of ['DD_FLOW_HOME', 'DD_FLOW_RUNTIME_BUDGET', 'DD_FLOW_ENGINE_HOME']) assert.equal(probe.env[key], undefined);
 });
 
 test('Droid profile pins native/protocol versions and requires capacity qualification', async () => {
@@ -81,6 +90,10 @@ test('Droid technical capacity launches without flow integration', async () => {
   const helper = source.match(/export async function harnessCapacityCheck[\s\S]*?\n}/)[0];
   assert.match(helper, /\["grok-acp", "antigravity-cli", "opencode-server", "droid-cli", "droid"\]\.includes\(profile.harness\) \? \["--no-flow"\]/);
   assert.doesNotMatch(helper, /DD_FLOW_HOME/);
+  assert.match(helper, /prepareQualificationOwner/);
+  assert.match(helper, /qualificationProbeEnvironment/);
+  assert.match(helper, /conformance:\$\{profile.id\}/);
+  assert.match(helper, /perHarness: \{ \[harnessConfigKey\(profile.harness\)\]: max \+ 1 \}/);
   const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   assert.deepEqual(pkg.bin, { 'dd-eval': './bin/dd-eval.mjs' });
 });

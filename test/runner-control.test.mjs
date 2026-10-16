@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, readFile, rm, chmod } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile, rm, chmod, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { spawn } from 'node:child_process';
@@ -15,6 +15,19 @@ import { processSnapshot } from '../lib/process-snapshot.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { installMaintenanceFixture } from './fixtures/maintenance-runtime.mjs';
 import { resolveExecutionContract } from '../lib/execution-contract.mjs';
+
+// Admission now discovers previous owners. These contract fixtures must never
+// read, register in, or retire the operator's real EVAL/resource registry.
+test.beforeEach(async t => {
+  const home = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-control-private-')));
+  const values = { DD_EVAL_HOME: home, DD_EVAL_REGISTRY_FILE: path.join(home, 'homes.json'), DD_FLOW_RESOURCE_HOME: path.join(home, 'resources') };
+  const prior = Object.fromEntries(Object.keys(values).map(key => [key, process.env[key]]));
+  Object.assign(process.env, values);
+  t.after(async () => {
+    for (const [key, value] of Object.entries(prior)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
+    await rm(home, { recursive: true, force: true });
+  });
+});
 
 async function initialRunProfile(caseId, t) {
   const runProfile = { value: { schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: caseId, subject: { profile_id: 'fixture' },

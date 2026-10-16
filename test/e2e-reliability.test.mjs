@@ -33,6 +33,7 @@ test('direct resume rejects malformed productive input without recording executi
   await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ schema_id: 'dd-eval/runner-manifest@1', run_id: 'EVAL', case_id: 'absent', executions: [{ id: 'subject', mode: 'unknown', stage: 'specify', terminal_stage: 'merge' }] }));
   await assert.rejects(runnerResume({ evalRoot: root }), { code: 'control_input_invalid' });
   assert.equal((await readEvents(path.join(root, 'events.jsonl'))).length, 0);
+  await assert.rejects(readFile(path.join(root, 'launch-reservation.json')), { code: 'ENOENT' });
 });
 
 for (const status of ['failed', 'recovery_blocked']) test(`terminal observer receipt repairs its missing root event without executing (${status})`, async t => {
@@ -81,6 +82,7 @@ test('started reattach checks definition before any engine call; untracked case 
   await appendEvent(path.join(root, 'events.jsonl'), { source: 'fixture', runId: 'EVAL', executionId: 'subject', type: 'dev.dd.eval.operation.started', data: { operation_id: 'EVAL:subject:launch', operation: 'launch', status: 'started' } });
   await assert.rejects(runnerResume({ evalRoot: root }), { code: 'runner_definition_drift' });
   assert.equal((await readEvents(path.join(root, 'events.jsonl'))).length, 1);
+  await assert.rejects(readFile(path.join(root, 'launch-reservation.json')), { code: 'ENOENT' });
   manifest.input_checkpoint.sha256 = loaded.inputCheckpoint.sha256;
   manifest.executions[0].terminal_stage = 'specify';
   const { interactionFixtureManifest } = await import('../lib/runner.mjs');

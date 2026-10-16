@@ -7,6 +7,9 @@ alone does not authorize paid qualification, provider calls or scored launches.
 
 1. Perform [preparation cleanup](eval-storage.md#before-every-campaign): retire old
    owned daemons, close investigation deferrals and remove disposable old data/DBs.
+   Authorized prepare/run performs the registered-owner retirement barrier;
+   preflight only reports it. An unresolved conflicting owner blocks dispatch,
+   not a reason to stop unrelated active EVALs. Data GC remains separate.
 2. Select a committed run profile and its case/input checkpoint. Keep the pinned
    product baseline; do not substitute current product `main`. Record the selected
    Subject, worker/Judge models, reasoning, decisions policy and completion scope.

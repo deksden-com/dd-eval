@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, cp, readFile, writeFile, chmod, rm, stat } from 'node:fs/promises';
+import { mkdtemp, mkdir, cp, readFile, writeFile, chmod, rm, stat, realpath } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import os from 'node:os';
@@ -20,6 +20,9 @@ async function waitForState(runner, evalRoot, expected, timeoutMs = 60_000, read
   for (;;) {
     const status = await runner.runnerStatus({ evalRoot });
     if (expected.includes(status.state) && await ready(status)) return status;
+    if (['failed', 'recovery_blocked'].includes(status.state) && status.runner_attempts?.some(attempt => ['failed', 'recovery_blocked'].includes(attempt.last_recorded_status))) {
+      throw new Error(`Detached fixture owner failed before ${expected.join(', ')}: ${JSON.stringify(status.runner_attempts)}`);
+    }
     if (Date.now() >= deadline) throw new Error(`Timed out waiting for ${expected.join(', ')}; got ${status.state}; attempts=${JSON.stringify(status.runner_attempts)}`);
     await delay(50);
   }
@@ -32,7 +35,7 @@ const write = async (file, value) => {
 };
 
 async function setup(t, fault = null) {
-  const temp = await mkdtemp(path.join(os.tmpdir(), 'eval-fork-'));
+  const temp = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-fork-')));
   // Detached continuation observers can finish one final attempt journal
   // write after publishing their terminal state. Retry only this test-owned
   // temporary cleanup; production cleanup remains fail-closed.
@@ -94,6 +97,12 @@ const runtimeProcess = () => { const pid=Number(a.includes('--pid')?get('--pid')
 const controller = {controller_id:'DRV-fake',run_id:'RUN-fake',request_id:fs.existsSync(c.output+'/launch')?fs.readFileSync(c.output+'/launch','utf8'):'none',stage:c.stopAfter||'code',status:'stop_target_reached',sessions:[],runtime_budget:fs.existsSync(managedFile)?JSON.parse(fs.readFileSync(managedFile)).runtime_budget:null};
 const captured = stage => {const file=c.output+'/capture-'+stage+'/snapshot.json';write(file,{purpose:'stage_entry',stage_entry:stage==='plan-review'?'code':'code-review'});return {stage,manifest:file,manifest_sha256:require('node:crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex')};};
 if(a[0]==='engine') out(a[1]==='resolve'?{selection:{selected:c.engine}}:{engine:c.engine});
+else if(a[0]==='runtime' && a[1]==='scope') {
+  const scope_id=get('--scope-id');
+  if(a[2]==='status') out({scope_id,dispatch_blocked:false,processes:[],provider_turns:[]});
+  else if(a[2]==='stop') out({scope_id,settled:true,physical_stopped:true,nodes:[]});
+  else throw Error('unexpected fixture scope operation '+a[2]);
+}
 else if(a[0]==='runtime' && a[1]==='process') out(a[2]==='status'?{processes:[]}:a[2]==='heartbeat'?{ok:true,process_id:'PROC-fake',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)}:a[2]==='check-admission'?{ok:true,admitted:true,process_id:'PROC-fake'}:a[2]==='finish'?{ok:true}:{process:runtimeProcess()});
 else if(a[0]==='run' && a[1]==='fork') {
   fs.mkdirSync(project,{recursive:true});fs.mkdirSync(runHome,{recursive:true});execFileSync('git',['init','--quiet'],{cwd:project});
@@ -127,7 +136,8 @@ else throw Error('unexpected command '+JSON.stringify(a));
   await write(configFile, { output, engine, calls: callsFile, fault, fixture: path.join(caseRoot, 'entry-pack-source/interactions/plan-review.json') });
   const configHome = path.join(temp, 'config');
   await write(path.join(configHome, 'harnesses.json'), { schema_id: 'dd-flow/harness-config@1', harnesses: {} });
-  for (const [key, value] of Object.entries({ HOME: temp, DD_FLOW_BIN: cli, DD_FLOW_CONFIG_HOME: configHome, DD_EVAL_HOME: path.join(temp, 'home') })) {
+  for (const [key, value] of Object.entries({ HOME: temp, DD_FLOW_BIN: cli, DD_FLOW_CONFIG_HOME: configHome, DD_EVAL_HOME: path.join(temp, 'home'),
+    DD_EVAL_REGISTRY_FILE: path.join(temp, 'registry', 'homes.json'), DD_FLOW_RESOURCE_HOME: path.join(temp, 'resources') })) {
     const prior = process.env[key]; process.env[key] = value;
     t.after(() => { if(prior===undefined) delete process.env[key]; else process.env[key]=prior; });
   }
