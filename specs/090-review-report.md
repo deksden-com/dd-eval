@@ -52,12 +52,27 @@ EVAL processes is part of this review.
    a unique operation binding, distinct startup/quiet windows and its composed
    finite CI envelope. Wiring/abort regressions supplement existing real
    progress and subtree-cleanup tests; no test outcome assertion is weakened.
+   The admitted-command executor had the same defect at 120/600 seconds. A small
+   test-only Node observer now applies those same durations as quiet windows,
+   forwards diagnostics, and joins its owned command on SIGTERM/SIGINT. Existing
+   synchronous memory-fixture callbacks and stdout/error contracts are retained.
+   Regression covers distinct progress markers beyond the quiet duration,
+   subsequent silence, signal cancellation and physical child join.
 
-Frozen running engine source: `a098266d33162b328247616dcda989cb8314d145`, tree
+Previous failed engine source: `a098266d33162b328247616dcda989cb8314d145`, tree
 `7f82f9d8e5aea988fd5afca79aec23c17108def3`.
 Additional reviewed candidate: `02c0d90d833f753573f2a1c2f3de68e65cf74938`,
-published to engine PR #79. This candidate is not yet built/tested: the prior
-frozen complete suite must finish its remaining cases and owned teardown first.
+published to engine PR #79 after preserving the prior failed gate and teardown.
+Follow-up fixture candidate: `658d746920da4c1b5c3d053eaa5e0b5b7f2ec09e`,
+tree `604f659d8936ba19429fa6c312024d16300e3021`; acceptance artifacts will be in
+`/Users/deksden/Documents/_Projects/_artifacts/plan-090-review-acceptance.kzQjaG/`.
+Final frozen candidate after test-cleanup corrections:
+`b1bb5a9fc8a957778b7770709986fd2cf67e0515`, tree
+`53cdd9c2905eb9d043208b68939c4f52591d6695`.
+Typecheck, lint and strict-canon build PASS; focused new regressions 41/41 in
+four files PASS (14.75 seconds). The first lint attempt is retained separately;
+its fixture teardown could mask a primary assertion and was corrected before
+freezing this candidate.
 EVAL executable source: `b683fb1d3a517f8ff1a06e1253fa1f5dc469f028`.
 Final paired acceptance must include the subsequent original-cause retention
 regression and scheduler/platform-independent assertions, not just the earlier
@@ -88,17 +103,24 @@ paired receipt below.
   Tested checkout `407a902075e70939d2bc3d33dd14ea7b60028143` adds report-only
   commits to the executable source above. Private registry, source CLI/fixture
   adapter and the verified installed operational snapshot were explicit.
-- Final complete engine rerun: in progress; not PASS. Under severe host load it
+- Previous complete engine rerun: FAIL. Under severe host load it
   exposed two additional issues: a resource-open timeout escaping read-only
-  owner confirmation as a fatal unknown-effect error, and the controller fixture's
-  raw fixed 60-second CLI timeout bypassing the shared observed subprocess
-  transport. Boundary-specific fixes and regressions are being prepared in a
-  separate checkout; the running candidate remains frozen.
+  owner confirmation as a fatal unknown-effect error, and controller fixtures'
+  raw fixed CLI/shell timeouts bypassing the shared observed subprocess
+  transport. Boundary-specific fixes and regressions are included in the final
+  frozen candidate above.
   ZCode exceeded its 1440-second whole-scenario envelope; Luna same-session
   reached completed MERGE Work but exceeded the same overall envelope while
   controller settlement remained pending. Host load reached 180.16. These are
   failures, not successful live EVALs or proof of green acceptance. No broad
   timeout increase, test retry, neighboring-process stop or merge was used.
+  This prior run has now exited 1: integration 2802 PASS/five failures in one
+  file, 165 other files PASS; 7899.08 seconds. Its runtime-sensitive group is
+  NOT RUN because the chain stopped at integration. The failures are preserved.
+  The fresh complete run on final candidate `b1bb5a9f` is in progress: hybrid
+  66/66, E2 133 PASS/one unavailable fish skip, E3 462 PASS/five external-input
+  skips and release 2/2 plus 8/8 PASS. Integration and runtime-sensitive groups,
+  installed checks and latest paired EVAL acceptance still require completion.
 
 Artifacts: `/Users/deksden/Documents/_Projects/_artifacts/plan-090-review.Lh1WVr/`.
 Final rerun: `/Users/deksden/Documents/_Projects/_artifacts/plan-090-review-final.q0N3CM/`.
@@ -106,6 +128,11 @@ Frozen build-info SHA-256:
 `4a26a31b0fe804a91cb1b490ae0027332ba921fbb218b5b89ed6cf8e6f8e85d7`.
 Installed snapshot full-content checksum:
 `08d92cdf3d07f5e31b3e395395f881b598437f7dc80578cb029ce7d6e4fb981e`.
+New frozen acceptance build-info SHA-256:
+`244d447643a891d8701fad7523247055b9394bc98b371bd47f98be21c10c7deb`.
+New verified installed snapshot checksum:
+`a9d2c0f80d9a11c6710e8d342d9893f758d0b894ccfb72de6f960b9bda7a23c5`.
+Its `dist` matches the new frozen source build byte-for-byte.
 
 ## Repository cleanup boundaries
 
