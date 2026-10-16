@@ -56,9 +56,17 @@ executable inputs).
   rejects automatic retirement before native inspection/stop.
 - Typecheck, lint and strict-canon build: PASS. Frozen canon v4.1.2,
   `1ddedf9d3f086e046f8e7b194c739ec386e7c8b9`.
-- Full engine and paired EVAL acceptance: in progress; not yet PASS.
+- Initial full engine run: hybrid 66/66, E2 133 PASS/one unavailable fish skip,
+  E3 462 PASS/five explicit external-input skips, release 2/2 plus 8/8 PASS.
+  Integration completed with 2803 PASS/four failures: two remaining test-double
+  callers returned the old hook identity shape. Both callers now return the
+  authoritative Session response and explicitly reject redundant SDK reads;
+  assertions were not weakened. Affected files rerun: 256/256 PASS. The failed
+  complete run is retained, not relabelled PASS. A fresh full gate and paired
+  EVAL acceptance remain required.
 
 Artifacts: `/Users/deksden/Documents/_Projects/_artifacts/plan-090-review.Lh1WVr/`.
+Final rerun: `/Users/deksden/Documents/_Projects/_artifacts/plan-090-review-final.q0N3CM/`.
 Frozen build-info SHA-256:
 `0ffce145d741700677c0b7260c5dd0b5edc3e3b8455357c7d8ad049fdc958a00`.
 Installed snapshot full-content checksum:
