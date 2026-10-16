@@ -37,12 +37,28 @@ EVAL processes is part of this review.
    canonical paths remain supported. Absolute paths are normalized before
    deduplication/order so equivalent `..` spellings cannot recursively acquire
    the same lock and spuriously time out.
+5. **Maintenance preparation delay was confused with an unknown mutation.**
+   The generic storage deadline correctly defaults to unknown effects, but lease
+   renewal preparation had not started its lease writer. That specific boundary
+   now retains a retryable no-effect result. Writer/rollback/close uncertainty
+   remains fatal; shared retry classification rejects all retained cleanup-error
+   forms. The synchronous physical-owner guard no longer adds a redundant
+   five-second wall cutoff before its isolated read: SQLite contention remains
+   bounded, and the freshly observed token/PID/state/expiry still gate dispatch.
+   This is not a retry wrapper around native or productive operations.
+6. **Controller fixtures bypassed the observed subprocess transport.** Raw
+   `execFile(timeout=60000)` killed a CLI during cold startup without inspecting
+   its setup progress. The fixture now uses the existing shared transport with
+   a unique operation binding, distinct startup/quiet windows and its composed
+   finite CI envelope. Wiring/abort regressions supplement existing real
+   progress and subtree-cleanup tests; no test outcome assertion is weakened.
 
-Engine source: `f83e5175405fadd54310b839c9c0941873abb039`, tree
-`91a4cd66eba9f50b29447f43d75d048bbad5eb47`.
-EVAL executable source: `7e3192e017bcf813781dfcabc07c2a7cbe8f0d8e`, tree
-`7fcc7b52bea125eeda666eb326f00bf50c280941` (report-only follow-ups do not change
-executable inputs).
+Final engine source: `a098266d33162b328247616dcda989cb8314d145`, tree
+`7f82f9d8e5aea988fd5afca79aec23c17108def3`.
+EVAL executable source: `b683fb1d3a517f8ff1a06e1253fa1f5dc469f028`.
+Final paired acceptance must include the subsequent original-cause retention
+regression and scheduler/platform-independent assertions, not just the earlier
+paired receipt below.
 
 ## Verification
 
@@ -63,14 +79,25 @@ executable inputs).
   authoritative Session response and explicitly reject redundant SDK reads;
   assertions were not weakened. Affected files rerun: 256/256 PASS. The failed
   complete run is retained, not relabelled PASS. A fresh full gate and paired
-  EVAL acceptance remain required.
+  EVAL acceptance were selected on the new frozen build.
+- Full paired EVAL acceptance: exit 0; 917 tests, 912 PASS, zero failures or
+  cancellations, five explicitly gated external-input skips, 358.754 seconds.
+  Tested checkout `407a902075e70939d2bc3d33dd14ea7b60028143` adds report-only
+  commits to the executable source above. Private registry, source CLI/fixture
+  adapter and the verified installed operational snapshot were explicit.
+- Final complete engine rerun: in progress; not PASS. Under severe host load it
+  exposed two additional issues: a resource-open timeout escaping read-only
+  owner confirmation as a fatal unknown-effect error, and the controller fixture's
+  raw fixed 60-second CLI timeout bypassing the shared observed subprocess
+  transport. Boundary-specific fixes and regressions are being prepared in a
+  separate checkout; the running candidate remains frozen.
 
 Artifacts: `/Users/deksden/Documents/_Projects/_artifacts/plan-090-review.Lh1WVr/`.
 Final rerun: `/Users/deksden/Documents/_Projects/_artifacts/plan-090-review-final.q0N3CM/`.
 Frozen build-info SHA-256:
-`0ffce145d741700677c0b7260c5dd0b5edc3e3b8455357c7d8ad049fdc958a00`.
+`4a26a31b0fe804a91cb1b490ae0027332ba921fbb218b5b89ed6cf8e6f8e85d7`.
 Installed snapshot full-content checksum:
-`dbfdb3a7f6e875c3331344d7feb0965035c4a3a365d6b9d70ff966b4b5eadbff`.
+`08d92cdf3d07f5e31b3e395395f881b598437f7dc80578cb029ce7d6e4fb981e`.
 
 ## Repository cleanup boundaries
 
