@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import os from "node:os";
-import { mkdtemp, mkdir, readFile, writeFile, rm, realpath, symlink, rename } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, readdir, writeFile, rm, realpath, symlink, rename } from "node:fs/promises";
 import { cleanupBinding, cleanupInventory, maintenanceEnvironment, retireEval, withPriorEvalRetirement } from "../lib/eval-retirement.mjs";
 import { requestRunnerContinuation } from "../lib/eval-resume-worker.mjs";
 import { appendEvent, hashJson, sha256, writeJsonAtomic } from "../lib/runner-events.mjs";
@@ -125,6 +125,41 @@ test("prelaunch fence covers changed resource homes, revalidates and blocks unkn
   let count = 0;
   await assert.rejects(withPriorEvalRetirement(options, () => actionCalls++, { discover: async () => ++count === 1 ? [] : [candidate], call }), { code: "prior_cleanup_pending" });
   assert.equal(actionCalls, 0);
+});
+
+test("prelaunch validates symlink boundaries before creating lock directories", async t => {
+  const f = await fixture(t), foreign = path.join(f.temp, "foreign"); await mkdir(foreign);
+  const alias = path.join(f.temp, "alias"); await symlink(foreign, alias);
+  let admissions = 0;
+  const prepare = resourceHome => withPriorEvalRetirement({ caseId: "fixture", resourceHome }, () => admissions++, { discover: async () => [] });
+  for (const resource of [alias, path.join(alias, "fresh-resource")]) {
+    await assert.rejects(prepare(resource), { code: "runtime_scope_identity_missing" });
+    await assert.rejects(readFile(path.join(foreign, "locks")), { code: "ENOENT" });
+    await assert.rejects(realpath(path.join(foreign, "fresh-resource")), { code: "ENOENT" });
+  }
+  const owned = path.join(f.temp, "owned"); await mkdir(owned); await symlink(foreign, path.join(owned, "locks"));
+  await assert.rejects(prepare(owned), { code: "runtime_scope_identity_missing" });
+  assert.deepEqual(await readdir(foreign), []);
+  assert.equal(admissions, 0);
+  const fresh = path.join(f.temp, "fresh", "resource");
+  await prepare(fresh);
+  assert.equal(await realpath(path.join(fresh, "locks")), path.join(fresh, "locks"));
+  assert.equal(admissions, 1);
+});
+
+test("prelaunch takes one lock for normalized aliases of the same resource home", async t => {
+  const f = await fixture(t), manifest = { ...f.manifest, runtime_resource_home: `${f.resource}/../resources` };
+  await writeJsonAtomic(path.join(f.root, "manifest.json"), manifest);
+  await writeFile(path.join(f.root, "events.jsonl"), "");
+  await appendEvent(path.join(f.root, "events.jsonl"), { source: "dd-eval://runner", runId: manifest.run_id,
+    type: "dev.dd.eval.control.requested", data: { mode: "stop", request_id: "fixture-stop" } });
+  let admissions = 0;
+  await withPriorEvalRetirement({ caseId: "fixture", resourceHome: f.resource }, () => admissions++, {
+    discover: async () => [{ root: f.root, manifest }],
+    call: async (_bin, args) => args[2] === "status" ? { scope_id: manifest.run_id, processes: [], provider_turns: [] }
+      : { scope_id: manifest.run_id, nodes: [], settled: true, physical_stopped: true }
+  });
+  assert.equal(admissions, 1);
 });
 
 test("native settlement alone cannot complete an inline local retirement", async t => {
