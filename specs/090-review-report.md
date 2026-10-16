@@ -1,5 +1,10 @@
 # 090 — Implementation review
 
+Review complete. Full frozen engine and paired EVAL gates PASS.
+Engine PR #79 squash merge: `176c6e19df10774372eb624aefbd5c36de5cb7cf`;
+the merged tree exactly equals the tested final tree below. EVAL integration
+is through PR #98; only this report changes after its paired tested commit.
+
 Scope: review P1–P9 and readiness contracts R1–R7, fix substantial defects,
 integrate through reviewed PRs, remove only obsolete recoverable checkouts/refs.
 No release, global hook/pin changes, scored EVAL launches or control of working
@@ -157,9 +162,44 @@ Final source after this correction:
 `fd332a77f9ee104aef65ff35bfe47a74d7c4c280`.
 Typecheck/lint PASS. A new build and isolated `home-verified` snapshot replace
 neither global installation nor the earlier retained acceptance artifacts.
-The entire `pnpm test` chain is rerun on this single frozen candidate, followed
-sequentially by installed/native mock/paired EVAL checks. No partial prior
-integration receipt is presented as a green full gate.
+The entire `pnpm test` chain was rerun on this single frozen candidate, followed
+sequentially by installed/native mock/paired EVAL checks. All completed with
+exit 0. No partial prior integration receipt is presented as a green full gate.
+
+## Final acceptance
+
+| Check | Final result |
+| --- | --- |
+| Typecheck, lint, strict clean-canon build | PASS |
+| Hybrid | 66 PASS |
+| E2 | 133 PASS; one skip because fish is unavailable |
+| E3 | 462 PASS; five explicit external-input skips; 1389.768 seconds |
+| Release | 2 + 8 PASS |
+| Integration | 2821/2821 PASS; 168/168 files; 2310.75 seconds |
+| Runtime-sensitive | 48/48 PASS; two files; 189.70 seconds |
+| Installed E2 | 2/2 PASS; 22.740 seconds |
+| Real native OpenCode against local mock provider | 1/1 PASS; 4.378 seconds |
+| Full paired EVAL | 912 PASS, zero failures/cancellations, five gated external-input skips; 326.150 seconds |
+
+All eleven full-cycle/overload/terminal-cleanup scenarios PASS. Main server
+cycles completed in 61.358s (Luna), 57.529s (Grok), 55.642s (AGY), 58.975s
+(ZCode); Luna same-session 64.647s and repair 76.763s. These are local fixture
+checks, not scored provider EVAL acceptance. Required real-CLI lifecycle,
+operational and capacity tests ran; optional external-input skips are not PASS.
+
+Paired EVAL tested commit: `1ef64fd3a4d06d438bab33691725f3a686295fc6`,
+retained at `archive/20261017-plan090-paired-eval`. Its executable source remains
+`b683fb1d3a517f8ff1a06e1253fa1f5dc469f028`; subsequent changes are report-only.
+The engine candidate is retained at `archive/20261017-plan090-reviewed-engine`.
+
+Final build-info SHA-256:
+`a7594ed68c5f9e52dbff363e862e55d257f9d2fa35a1262d11436d5a26cfc198`.
+Final isolated `home-verified` engine checksum:
+`2db25be47ce1d31fe945bc3c3b82fae3e70a748716f4b139f2897e1f41067de4`.
+Both were checked again after the gates; source build and installed `dist`
+match, source/canon checkouts stayed clean. The final entire gate exit receipt
+is `engine-gate-verified.exit`; each installed/native/paired gate has its own
+zero exit receipt. Historical failed/interrupted logs remain unchanged.
 
 ## Repository cleanup boundaries
 
@@ -172,13 +212,30 @@ before checkout removal:
 - EVAL `archive/20261016-early-luna-decisions`: early standalone experiment.
 - Engine `archive/20261016-cp189-installed-probes`: historical installed tests.
 
-Parallel Memorybank E4, release snapshots and source paths retained by historical
-EVAL definitions remain. `dd-flow-089` remains because two live fixture daemons
-reference its code. Unique unintegrated E0 and HITL-renewal work is not discarded
-or silently merged into this review. Remote deletions use exact-ref leases;
-already absent remote branches are removed only from stale tracking metadata.
+Parallel Memorybank E4 and source paths retained by nonterminal EVAL definitions
+remain: OpenCode cp229, Grok cp230 and the cp211 comparison with awaiting_provider.
+Unique unintegrated E0 and HITL-renewal work is not discarded or silently merged.
+Primary user checkouts are not reset or switched. Their main branches may still
+be older than origin/main; integration is verified against the actual remote
+squash tree, not a local branch label.
 
-Cleanup so far: 18 obsolete checkouts, 18 local branches and seven actually
-existing remote branches removed; five nonexistent temporary checkout metadata
-registrations pruned. Current review/candidate checkouts remain necessary until
-acceptance and integration complete. Engine PR #79 and EVAL PR #98 remain draft.
+After the host reboot there were no remaining process references to the old
+`dd-flow-089` mock daemons or retired release trees. No historical PID was
+signalled: its numeric identity could have been reused. Those checkouts were
+removed after exact source preservation. The beta133 candidate has an existing
+archive tag; beta134/beta138 sources are retained by release refs/merged history.
+The old 089 source also has `archive/20261017-plan089-source`. Terminal cp225 and
+cp228 definition sources are retained at `archive/20261016-cp225-eval-source`
+and `archive/20261016-cp228-eval-source`. Ignored `.env` and `.tasks` from release
+trees were freshly archived under the private artifact root before removal;
+symlinks were preserved without following them. Generated dist/dependencies
+are disposable. Restoration uses the retained Git refs and local archives.
+
+Cleanup before this report's merge: 27 obsolete checkouts, 24 local branches
+and eleven actually existing remote branches removed; five nonexistent
+temporary checkout metadata registrations pruned. The final EVAL review
+checkout/branch is removed after PR #98 merges (final expected totals: 28
+checkouts, 25 local branches, twelve remote branches). Remote deletions use
+exact-ref leases; already absent remote branches do not count as deletions.
+No EVAL runtime artifacts, databases or working EVAL processes were changed,
+and no new scored EVAL, release or global hook/pin update was performed.
