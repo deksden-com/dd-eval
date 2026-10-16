@@ -39,7 +39,7 @@ Usage:
   dd-eval runner control reconcile --eval <path> --from <request-id>
   dd-eval runner control resume --eval <path> --from <control-request-id> --request-id <id> [--wait-ms <0..60000>]
   dd-eval runner resume --eval <path>
-  dd-eval runner cleanup --eval <path> --request-id <id>
+  dd-eval runner cleanup --eval <path> --request-id <id> [--defer-reason <text>] [--maintenance-home <path> --maintenance-bin <path>]
   dd-eval runner recover --eval <path> --from <recovery-id> [--execution <id>]
   dd-eval runner recovery inspect --eval <path> [--execution <id>]
   dd-eval runner checkpoints --eval <path> [--execution <id>]
@@ -131,7 +131,7 @@ try {
     result = await requestEvalResume({ evalRoot: required(options, "eval"), requestId: required(options, "request-id"), fromRequestId: required(options, "from"), ...(options["wait-ms"] !== undefined ? { waitMs: Number(options["wait-ms"]) } : {}) });
   }
   else if (family === "runner" && command === "resume") result = await requestRunnerContinuation({ evalRoot: required(options, "eval") });
-  else if (family === "runner" && command === "cleanup") result = await requestRunnerContinuation({ evalRoot: required(options, "eval"), kind: "cleanup", requestId: required(options, "request-id") });
+  else if (family === "runner" && command === "cleanup") result = await requestRunnerContinuation({ evalRoot: required(options, "eval"), kind: "cleanup", requestId: required(options, "request-id"), deferReason: options["defer-reason"], maintenanceHome: options["maintenance-home"], maintenanceBin: options["maintenance-bin"] });
   else if (family === "runner" && command === "recover") result = await runnerRecover({ evalRoot: required(options, "eval"), fromRecoveryId: required(options, "from"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "recovery" && positional[2] === "inspect") result = await runnerRecoveryInspect({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "checkpoints") result = await runnerCheckpoints({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });

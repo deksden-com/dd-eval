@@ -56,13 +56,25 @@ node bin/dd-eval.mjs runner control stop --eval <absolute-eval-root> --request-i
 node bin/dd-eval.mjs runner control status --eval <absolute-eval-root>
 ~~~
 
-For an already failed EVAL with an existing stop control or a retained Final
-Judge verdict, `runner cleanup --eval <root> --request-id <new-id>` reconciles
-owned shutdown; it is **not** a general daemon sweep. Interaction/qualification
-Judges need their own retained adapter's scoped `daemon stop`, bound to their
-state directory, runtime and owner configuration. Do not invent ownership or
-use a global replacement adapter. Unknown ownership or an unreachable live
-endpoint needs scoped investigation, not `pkill`, a PID-only kill or a restart.
+`runner cleanup --eval <root> --request-id <new-id>` retires every registered
+role in that EVAL scope, including workers and Judges, even before RUN creation.
+Terminal/failure observers hand off this cleanup automatically. Requests and
+results live in `runner-attempts/`, never in an already captured journal.
+Physical stop, native settlement and capture are separate: `physical_stopped`
+does not make an unknown outcome successful or disposable.
+
+To retain live processes for an actual investigation, request
+`runner cleanup --eval <root> --request-id <new-id> --defer-reason <reason>`.
+An already accepted stop cannot be deferred. The next authorized prepare/run
+closes eligible deferrals in the selected registry before provider dispatch;
+active neighbours are excluded. Use the same `DD_EVAL_REGISTRY_FILE` throughout.
+Preflight/status report old owners without stopping them.
+
+If the pinned control runtime cannot retire its owner, explicitly select a
+verified private maintenance installation with `--maintenance-home <absolute>`
+and, if needed, `--maintenance-bin <absolute-cli>`. The old resource home stays
+bound; do not replace its engine, repair its DB, use `pkill` or kill by PID alone.
+Legacy unregistered owners still require scoped investigation, not name scans.
 Preserve the original failure/verdict; cleanup never sends a productive prompt.
 
 If a historical pinned CLI cannot retire its failed native owner, use a checked
