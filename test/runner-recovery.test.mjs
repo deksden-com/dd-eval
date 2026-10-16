@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { cp, mkdtemp, mkdir, writeFile, readFile, open, utimes, readdir, rename, rm, chmod, symlink } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, writeFile, readFile, open, utimes, readdir, rename, rm, chmod, symlink, realpath } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -7,6 +7,7 @@ import { spawnSync } from "node:child_process";
 import { withRunnerLock } from "../lib/runner-lock.mjs";
 import { appendEvent, recordOperation, completeOperation, readEvents, reduceEvents, writeJsonAtomic, sha256, hashJson } from "../lib/runner-events.mjs";
 import { requestRunnerContinuation } from "../lib/eval-resume-worker.mjs";
+import { cleanupBinding } from "../lib/eval-retirement.mjs";
 import { setTimeout as delay } from "node:timers/promises";
 
 test("public cleanup retry retains an exhausted attempt and a new identity runs cleanup only", { timeout: 15000 }, async () => {
@@ -190,29 +191,44 @@ test("cleanup leaves queued executions and Judge undispatched", async () => {
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-test("exhausted cleanup worker accepts an already published exact terminal receipt without a grant", { timeout: 15000 }, async t => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "eval-cleanup-terminal-"));
+for (const goal of [undefined, "local_retirement"]) test(`exhausted cleanup worker ${goal ?? "native_settlement"} only accepts its own settlement proof`, { timeout: 15000 }, async t => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), "eval-cleanup-terminal-")));
   t.after(() => rm(root, { recursive: true, force: true }));
   const manifest = { run_id: "EVAL-terminal", executions: [{ id: "e" }], profile: { judge: { enabled: false } } };
+  if (goal) {
+    manifest.runtime_resource_home = path.join(root, "resources");
+    manifest.runtime_control_bin = process.execPath;
+    await mkdir(manifest.runtime_resource_home);
+    await mkdir(path.join(root, "control-runtime"));
+  }
   const manifestFile = path.join(root, "manifest.json"), eventsFile = path.join(root, "events.jsonl");
   await writeJsonAtomic(manifestFile, manifest);
   for (const type of ["started", "failed"]) await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: `${manifest.run_id}:e:launch`, error: { code: "preflight_failed", message: "before session" } } });
   assert.equal((await runnerCleanup({ evalRoot: root })).cleanup_state, "settled");
   const before = await readFile(eventsFile), manifestHash = sha256(await readFile(manifestFile));
   const file = path.join(root, "runner-attempts", sha256("spent-unpublished"), "attempt.json");
-  await writeJsonAtomic(file, { schema_id: "dd-eval/resume-worker@1", intent: { eval_root: root, run_id: manifest.run_id, request_id: "spent-unpublished", kind: "cleanup", manifest_sha256: manifestHash }, status: "observing", recovery_observation: { policy_id: "settlement-inactivity@1", remaining_ms: 0, observer_started: true, observation_gaps: 1, progress_markers: [] } });
+  const intent = { eval_root: root, run_id: manifest.run_id, request_id: "spent-unpublished", kind: "cleanup", manifest_sha256: manifestHash };
+  if (goal) {
+    const binding = await cleanupBinding(root, manifest);
+    Object.assign(intent, { goal, origin: "operator", mode: "reconcile", target_binding_digest: hashJson(binding), maintenance_home: binding.maintenance_home, maintenance_bin: binding.maintenance_bin });
+  }
+  await writeJsonAtomic(file, { schema_id: "dd-eval/resume-worker@1", intent, status: "observing", recovery_observation: { policy_id: "settlement-inactivity@1", remaining_ms: 0, observer_started: true, observation_gaps: 1, progress_markers: [] } });
   await requestRunnerContinuation({ evalRoot: root, kind: "cleanup", requestId: "spent-unpublished" });
   const deadline = performance.now() + 10000;
   let saved;
   do {
     saved = JSON.parse(await readFile(file));
-    assert.ok(!["failed", "recovery_blocked"].includes(saved.status), JSON.stringify(saved.error));
+    assert.ok(!["failed", ...(goal ? [] : ["recovery_blocked"])].includes(saved.status), JSON.stringify(saved.error));
     assert.ok(performance.now() < deadline, "exhausted terminal observer did not exit");
     await delay(25);
-  } while (saved.status !== "completed" || (await processSnapshot()).some(item => item.pid === saved.owner_pid && !item.zombie));
-  assert.equal(saved.result.cleanup_state, "settled");
+  } while (saved.status !== (goal ? "recovery_blocked" : "completed") || (await processSnapshot()).some(item => item.pid === saved.owner_pid && !item.zombie));
+  if (goal) {
+    assert.equal(saved.error.code, "recovery_observation_budget_exhausted");
+    assert.equal(saved.result?.physical_stopped, undefined);
+  } else assert.equal(saved.result.cleanup_state, "settled");
   assert.equal(saved.recovery_observation.remaining_ms, 0);
   assert.deepEqual(await readFile(eventsFile), before);
+  if (goal) return;
   // A later generation cannot borrow the old completed projection.
   await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: "dev.dd.eval.operation.requested", data: { operation_id: `${manifest.run_id}:e:launch:recover:next` } });
   assert.equal(await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: manifestHash, signal: AbortSignal.timeout(10000) }), null);

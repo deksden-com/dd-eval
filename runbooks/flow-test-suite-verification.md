@@ -24,7 +24,8 @@ pnpm typecheck
 pnpm lint
 DD_MEMORYBANK="$CANON_ROOT" DD_FLOW_BUILD_CANON_ROOT="$CANON_ROOT" \
   DD_FLOW_BUILD_STRICT_CANON=1 pnpm build
-pnpm test
+DD_MEMORYBANK="$CANON_ROOT" DD_FLOW_E3_CANON_ROOT="$CANON_ROOT" \
+  DD_FLOW_E3_WT="$(command -v wt)" pnpm test
 ```
 
 `CANON_ROOT` is the explicit clean canon checkout. If the checks use mb-lint,

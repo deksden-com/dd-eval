@@ -13,6 +13,9 @@ leases/process start identities and primary error together. Status is read-only;
 do not resume, repair, launch Judge or send a model prompt to obtain diagnostics.
 Stay quiet on unchanged healthy work; report actual Stage/repair transitions,
 HITL, confirmed blockers, dead owners or completion, with harness and EVAL ID.
+Read `cleanup_maintenance` separately from historical execution outcome. Terminal
+observers hand off owner-scoped retirement; investigation deferral is explicit
+and must close before the next campaign. See [cleanup commands](eval-storage.md#stop-leftover-daemons).
 
 ## Determine the current stage
 
