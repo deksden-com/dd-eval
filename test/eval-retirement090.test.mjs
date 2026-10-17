@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import os from "node:os";
-import { mkdtemp, mkdir, readFile, writeFile, rm, realpath, symlink } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, readdir, writeFile, rm, realpath, symlink, rename } from "node:fs/promises";
 import { cleanupBinding, cleanupInventory, maintenanceEnvironment, retireEval, withPriorEvalRetirement } from "../lib/eval-retirement.mjs";
 import { requestRunnerContinuation } from "../lib/eval-resume-worker.mjs";
 import { appendEvent, hashJson, sha256, writeJsonAtomic } from "../lib/runner-events.mjs";
@@ -10,6 +10,7 @@ import { failureDiagnostic, isInfrastructureFailure } from "../lib/runner.mjs";
 import { engineArtifactDigest } from "../lib/engine-admission.mjs";
 import { recoveryObservationBudget } from "../lib/recovery-observation-budget.mjs";
 import { processSnapshot } from "../lib/process-snapshot.mjs";
+import { setTimeout as delay } from "node:timers/promises";
 
 async function fixture(t) {
   const temp = await realpath(await mkdtemp(path.join(os.tmpdir(), "eval-retirement090-")));
@@ -58,6 +59,15 @@ test("foreign inventory and changed manifest cannot authorize physical stop", as
   await assert.rejects(cleanupInventory(f.root, f.manifest, {}, async () => ({ scope_id: "foreign", processes: [], provider_turns: [] })), { code: "runtime_scope_inventory_invalid" });
   await assert.rejects(retireEval({ evalRoot: f.root, intent: { ...f.intent, manifest_sha256: "0".repeat(64) } }), { code: "runner_definition_drift" });
   await assert.rejects(cleanupInventory(f.root, f.manifest, {}, async () => ({ scope_id: "EVAL-test", processes: [{ ...f.process, metadata_json: '{}' }], provider_turns: [] })), { code: "runtime_scope_inventory_invalid" });
+});
+
+test("automatic cleanup rechecks eligibility after a new execution starts", async t => {
+  const f = await fixture(t); let stops = 0;
+  await writeFile(path.join(f.root, "events.jsonl"), "");
+  await appendEvent(path.join(f.root, "events.jsonl"), { source: "dd-eval://runner", runId: f.manifest.run_id,
+    executionId: "e2e", type: "dev.dd.eval.operation.started", data: { operation_id: "EVAL-test:e2e:launch" } });
+  await assert.rejects(retireEval({ evalRoot: f.root, intent: { ...f.intent, origin: "automatic" }, call: async () => { stops++; } }), { code: "prior_cleanup_pending" });
+  assert.equal(stops, 0, "an automatic finalizer never inherits operator stop authority");
 });
 
 test("maintenance fallback uses verified payload, never a shim that redirects old resource home", async t => {
@@ -117,6 +127,41 @@ test("prelaunch fence covers changed resource homes, revalidates and blocks unkn
   assert.equal(actionCalls, 0);
 });
 
+test("prelaunch validates symlink boundaries before creating lock directories", async t => {
+  const f = await fixture(t), foreign = path.join(f.temp, "foreign"); await mkdir(foreign);
+  const alias = path.join(f.temp, "alias"); await symlink(foreign, alias);
+  let admissions = 0;
+  const prepare = resourceHome => withPriorEvalRetirement({ caseId: "fixture", resourceHome }, () => admissions++, { discover: async () => [] });
+  for (const resource of [alias, path.join(alias, "fresh-resource")]) {
+    await assert.rejects(prepare(resource), { code: "runtime_scope_identity_missing" });
+    await assert.rejects(readFile(path.join(foreign, "locks")), { code: "ENOENT" });
+    await assert.rejects(realpath(path.join(foreign, "fresh-resource")), { code: "ENOENT" });
+  }
+  const owned = path.join(f.temp, "owned"); await mkdir(owned); await symlink(foreign, path.join(owned, "locks"));
+  await assert.rejects(prepare(owned), { code: "runtime_scope_identity_missing" });
+  assert.deepEqual(await readdir(foreign), []);
+  assert.equal(admissions, 0);
+  const fresh = path.join(f.temp, "fresh", "resource");
+  await prepare(fresh);
+  assert.equal(await realpath(path.join(fresh, "locks")), path.join(fresh, "locks"));
+  assert.equal(admissions, 1);
+});
+
+test("prelaunch takes one lock for normalized aliases of the same resource home", async t => {
+  const f = await fixture(t), manifest = { ...f.manifest, runtime_resource_home: `${f.resource}/../resources` };
+  await writeJsonAtomic(path.join(f.root, "manifest.json"), manifest);
+  await writeFile(path.join(f.root, "events.jsonl"), "");
+  await appendEvent(path.join(f.root, "events.jsonl"), { source: "dd-eval://runner", runId: manifest.run_id,
+    type: "dev.dd.eval.control.requested", data: { mode: "stop", request_id: "fixture-stop" } });
+  let admissions = 0;
+  await withPriorEvalRetirement({ caseId: "fixture", resourceHome: f.resource }, () => admissions++, {
+    discover: async () => [{ root: f.root, manifest }],
+    call: async (_bin, args) => args[2] === "status" ? { scope_id: manifest.run_id, processes: [], provider_turns: [] }
+      : { scope_id: manifest.run_id, nodes: [], settled: true, physical_stopped: true }
+  });
+  assert.equal(admissions, 1);
+});
+
 test("native settlement alone cannot complete an inline local retirement", async t => {
   const f = await fixture(t);
   const result = await requestRunnerContinuation({ evalRoot: f.root, kind: "cleanup", requestId: "native-only", inlineCleanup: true,
@@ -127,6 +172,54 @@ test("native settlement alone cannot complete an inline local retirement", async
   assert.equal(result.result.physical_stopped, false);
   const attempt = JSON.parse(await readFile(path.join(f.root, "runner-attempts", sha256("native-only"), "attempt.json")));
   assert.equal(attempt.status, "settling");
+});
+
+test("failed inline cleanup persists spent observation budget and cannot restart it", async t => {
+  const f = await fixture(t), requestId = "failed-observation";
+  const input = { evalRoot: f.root, kind: "cleanup", requestId, inlineCleanup: true };
+  await requestRunnerContinuation({ ...input, inlineCleanup: false, deferSpawn: true });
+  const file = path.join(f.root, "runner-attempts", sha256(requestId), "attempt.json");
+  const previous = JSON.parse(await readFile(file));
+  const result = { physical_stopped: false, native_settled: false, cleanup_state: "pending" };
+  const retainedBudget = { ...recoveryObservationBudget(null).state(), observer_started: false };
+  await writeJsonAtomic(file, { ...previous, result, recovery_observation: retainedBudget });
+  let calls = 0;
+  const failure = Object.assign(new Error("fixture observation lost"), { code: "fixture_observation_lost" });
+  await assert.rejects(requestRunnerContinuation({ ...input, cleanupCall: async () => { calls++; await delay(10); throw failure; } }), { code: failure.code });
+  const saved = JSON.parse(await readFile(file));
+  assert.deepEqual(saved.intent, previous.intent); assert.deepEqual(saved.result, result);
+  assert.equal(saved.error.code, failure.code);
+  assert.equal(saved.status, saved.recovery_observation.remaining_ms === 0 ? "recovery_blocked" : "settling");
+  assert.ok(saved.recovery_observation.remaining_ms < retainedBudget.remaining_ms
+    || saved.recovery_observation.observation_gaps > retainedBudget.observation_gaps);
+  assert.equal(saved.recovery_observation.observer_started, false);
+  // Exhaustion is policy state, not a 50ms race against a loaded scheduler.
+  await writeJsonAtomic(file, { ...saved, recovery_observation: { ...saved.recovery_observation, remaining_ms: 0 } });
+  for (let retry = 0; retry < 2; retry++) await assert.rejects(requestRunnerContinuation({ ...input, cleanupCall: async () => { calls++; } }), error => {
+    assert.equal(error.code, "recovery_observation_budget_exhausted");
+    assert.equal(failureDiagnostic(error).cause.code, failure.code);
+    return true;
+  });
+  assert.equal(JSON.parse(await readFile(file)).status, "recovery_blocked");
+  assert.equal(calls, 1, "the same request cannot acquire another observation budget");
+});
+
+test("failed cleanup receipt publication preserves the original observation cause", async t => {
+  const f = await fixture(t), requestId = "failed-publication";
+  const input = { evalRoot: f.root, kind: "cleanup", requestId };
+  await requestRunnerContinuation({ ...input, deferSpawn: true });
+  const file = path.join(f.root, "runner-attempts", sha256(requestId), "attempt.json");
+  const cause = Object.assign(new Error("native observation failed"), { code: "fixture_observation_lost" });
+  await assert.rejects(requestRunnerContinuation({ ...input, inlineCleanup: true, cleanupCall: async () => {
+    await rename(file, `${file}.previous`); await mkdir(file); throw cause;
+  } }), error => {
+    assert.equal(error, cause);
+    const diagnostic = failureDiagnostic(error);
+    assert.equal(diagnostic.code, cause.code);
+    assert.ok(diagnostic.cleanup_error.code);
+    assert.equal(diagnostic.cleanup_error.code, error.cleanup_error.code);
+    return true;
+  });
 });
 
 test("diagnostic retains bounded operational evidence; exact integrity classification needs issued authority", () => {
