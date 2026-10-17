@@ -11,7 +11,7 @@
   "reasoning": "high",
   "mode": "bypassPermissions",
   "runtime": {
-    "grok": "1.0.60",
+    "grok": "1.0.63",
     "acp": 1,
     "dd_harness_contract": "dd-grok-harness@1"
   },
