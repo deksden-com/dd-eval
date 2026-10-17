@@ -814,3 +814,16 @@ detached-child regression: startup 20/20 PASS; native Grok 13/13, AGY/Droid/Open
 skip; EVAL diagnostic/baseline/proof-limit 14/14 PASS; engine observer 2/2 PASS.
 Существенных дефектов P1/P3–P8 дополнительное ревью не выявило. Product, live EVAL,
 исторические receipts, pins и installed runtime не менялись.
+
+Полный повторный gate выполняется на точном review commit с strict-canon build,
+`DD_FLOW_E3_CANON_ROOT` и `DD_FLOW_E3_WT`, без изменения сборки между группами.
+Hybrid 66/66; E2 133 PASS + 1 optional skip; E3 462 PASS + 5 optional skips,
+0 failures (aggregate exit0); release Node 2/2 + Vitest 8/8 PASS.
+Integration на review-кандидате: 171/171 files, 2887/2887 PASS, 0 skips/failures
+(3351.43 s), включая пять добавленных startup-regressions.
+Runtime-sensitive: 2/2 files, 48/48 PASS (424.15 s). Все группы полного `pnpm test`
+завершились успешно на одном неизменном review-кандидате; optional skips явно
+отражены выше, обязательные входы gate не пропускались.
+2026-10-18 полная последовательность `typecheck → strict-canon build → pnpm test →
+lint` завершилась exit0. Review fixes интегрируются engine PR #88; этот отчёт —
+dd-eval PR #107. Установленные hooks/pins/runtime и живые EVAL не менялись.
