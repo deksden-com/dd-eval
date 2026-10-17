@@ -24,7 +24,7 @@ test('public background EVAL resume continues a real retained RUN through its ne
   const resources = process.env.DD_EVAL_TEST_RESOURCE_HOME ?? path.join(root, 'resources');
   const budget = { schema_id: 'dd-flow/runtime-budget@1', scope_id: evalId, per_harness: {} };
   const registry = process.env.DD_EVAL_TEST_REGISTRY_FILE ?? path.join(root, 'private-registry', 'homes.json'), ambientRegistry = path.join(root, 'ambient-registry.json');
-  const env = { DD_EVAL_REGISTRY_FILE: registry, DD_FLOW_HOME: home, DD_FLOW_CONFIG_HOME: home, DD_FLOW_RESOURCE_HOME: resources, DD_FLOW_RECOVERY_HOME: path.join(root, 'recovery'), DD_FLOW_ENGINE_MODE: '1', DD_FLOW_RUNTIME_BUDGET: JSON.stringify(budget), CODEX_HOME: path.join(root, 'codex-home'), DD_FLOW_TEST_ROOT: root, DD_FLOW_TEST_UNCLEAN_STOP: '0', DD_FLOW_TEST_CAPTURE_FAILURE: '0' };
+  const env = { DD_EVAL_REGISTRY_FILE: registry, DD_FLOW_HOME: home, DD_FLOW_CONFIG_HOME: home, DD_FLOW_RESOURCE_HOME: resources, DD_FLOW_RECOVERY_HOME: path.join(root, 'recovery'), DD_FLOW_RUNTIME_BUDGET: JSON.stringify(budget), CODEX_HOME: path.join(root, 'codex-home'), DD_FLOW_TEST_ROOT: root, DD_FLOW_TEST_UNCLEAN_STOP: '0', DD_FLOW_TEST_CAPTURE_FAILURE: '0' };
   const write = async (file, value) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); return file; };
   const json = async file => JSON.parse(await readFile(file, 'utf8'));
   const invoke = args => commandText(process.execPath, [path.join(definition, 'bin', 'dd-eval.mjs'), 'runner', ...args], { cwd: definition, env: { ...env, DD_EVAL_REGISTRY_FILE: ambientRegistry } });
@@ -50,8 +50,8 @@ test('public background EVAL resume continues a real retained RUN through its ne
     // The paired target may be a guarded executable, not an importable module.
     const quote = value => `'${value.replaceAll("'", "'\\''")}'`;
     const launcher = await write(path.join(home, 'bin', 'dd-flow'), /\.[cm]?js$/.test(cli)
-      ? `#!${process.execPath}\nimport(${JSON.stringify(pathToFileURL(cli).href)});\n`
-      : `#!/bin/sh\nexec ${quote(cli)} "$@"\n`);
+      ? `#!${process.execPath}\ndelete process.env.DD_FLOW_ENGINE_MODE;\nimport(${JSON.stringify(pathToFileURL(cli).href)});\n`
+      : `#!/bin/sh\nunset DD_FLOW_ENGINE_MODE\nexec ${quote(cli)} "$@"\n`);
     await chmod(launcher, 0o700);
     const git = args => commandText('git', args, { cwd: project });
     await git(['init', '--quiet', '-b', 'main']); await git(['add', '.']); await git(['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.test', 'commit', '--quiet', '-m', 'fixture']);
@@ -128,7 +128,11 @@ test('public background EVAL resume continues a real retained RUN through its ne
       assert.notEqual(worker.status, 'failed', JSON.stringify(worker));
       assert.notEqual(worker.status, 'superseded', JSON.stringify(worker));
       if (worker.status === 'completed' && !(await processSnapshot()).some(item => item.pid === worker.owner_pid)) { workerExited = true; break; }
-      assert.ok(performance.now() < resumeDeadline, JSON.stringify(worker)); await delay(100);
+      if (performance.now() >= resumeDeadline) {
+        const controller = await commandJson(cli, ['run', 'drive', 'status', '--run', runId, '--project-root', project], { cwd: project, env });
+        assert.fail(JSON.stringify({ worker, controller, stderr: await readFile(worker.stderr, 'utf8').catch(() => null) }));
+      }
+      await delay(100);
     }
     assert.equal(worker.result.state, 'completed');
     const registered = await json(registry);

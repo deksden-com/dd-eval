@@ -7,6 +7,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
 import { setupMemoryRuntime } from '../lib/memory-runtime-setup.mjs';
+import { commandJson } from '../lib/process-json.mjs';
 
 const bindings = ['DD_EVAL_TEST_SETUP_CLI', 'DD_EVAL_TEST_SETUP_CANON_ARCHIVE',
   'DD_EVAL_TEST_SETUP_ENGINE_ARCHIVE', 'DD_EVAL_TEST_SETUP_CONSOLE_ROOT'];
@@ -20,7 +21,8 @@ const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // qualification. No public signing key, release, model or account is used.
 // Several bounded setup/replay commands precede asynchronous Console startup
 // and owned shutdown. The outer guard must not cancel that cleanup mid-flight;
-// individual command and HTTP deadlines below remain unchanged.
+// Cold installation uses the existing progress-aware CLI observer, not the
+// native-call 30s wall clock. Read-only, negative and HTTP bounds stay unchanged.
 test('installed setup and Console observation preserve isolated producer boundaries', { skip: !configured, timeout: 600_000 }, async t => {
   const cli = fs.realpathSync(process.env.DD_EVAL_TEST_SETUP_CLI);
   const packageRoot = path.dirname(path.dirname(cli));
@@ -81,9 +83,13 @@ test('installed setup and Console observation preserve isolated producer boundar
     [...(args[0] === 'setup' && args[1] === 'status' ? ['--permission', `--allow-fs-read=${root}`,
       `--allow-fs-read=${path.dirname(path.dirname(packageRoot))}`] : []), cli, ...args],
     { cwd, env: { ...env, DD_FLOW_HOME: selectedHome }, encoding: 'utf8', timeout: 30_000 });
-  const accepted = args => { const result = invoke(args); assert.equal(result.status, 0,
-    JSON.stringify({command:args,error:result.error?.code??null,signal:result.signal,stderr:result.stderr})); return JSON.parse(result.stdout); };
-  assert.equal(accepted(['setup', 'status', '--json']).installation_readiness, 'not_installed');
+  const accepted = async (args, selectedHome = home) => {
+    if (args[1] !== 'status') return await commandJson(cli, args.filter(arg => arg !== '--json'),
+      { cwd, env: { ...env, DD_FLOW_HOME: selectedHome }, signal: t.signal });
+    const result = invoke(args, selectedHome); assert.equal(result.status, 0,
+      JSON.stringify({command:args,error:result.error?.code??null,signal:result.signal,stderr:result.stderr})); return JSON.parse(result.stdout);
+  };
+  assert.equal((await accepted(['setup', 'status', '--json'])).installation_readiness, 'not_installed');
   assert.equal(fs.existsSync(home), false);
   const args = ['--canon-source', source, '--trust-file', trust, '--channel', 'development', '--skip-agent-setup', '--non-interactive', '--json'];
   const headlessHome = path.join(root, 'headless-home');
@@ -91,7 +97,7 @@ test('installed setup and Console observation preserve isolated producer boundar
   assert.equal(missingExecutor.status, 1);
   assert.equal(JSON.parse(missingExecutor.stderr).error.code, 'agent_profile_missing');
   assert.equal(fs.existsSync(headlessHome), false);
-  const installed = accepted(['setup', ...args, '--request-id', 'install']);
+  const installed = await accepted(['setup', ...args, '--request-id', 'install']);
   assert.equal(installed.installation_readiness, 'installed'); assert.equal(installed.executor.profile_id, null);
   const memoryHome = path.join(root, 'memory-eval-home');
   const checkpoint = { flow_pack: { delivery: 'installed_canon', commit: manifest.canon.commit,
@@ -119,8 +125,7 @@ test('installed setup and Console observation preserve isolated producer boundar
     }
     const memoryEnv = { ...env, PATH: process.env.PATH, DD_FLOW_HOME: memoryHome, DD_FLOW_CONFIG_HOME: memoryHome };
     for (const command of [['engine', 'install', '--force', '--json'], ['run', 'snapshot', 'bootstrap', 'create', '--flow', 'mb-init', '--project-root', product, '--output', snapshot, '--json']]) {
-      const result = spawnSync(process.execPath, [cli, ...command], { cwd: product, env: memoryEnv, encoding: 'utf8', timeout: 30_000 });
-      assert.equal(result.status, 0, JSON.stringify({ command, error: result.error?.message, signal: result.signal, stderr: result.stderr }));
+      await commandJson(cli, command.filter(arg => arg !== '--json'), { cwd: product, env: memoryEnv, signal: t.signal });
     }
     const bootstrap = JSON.parse(fs.readFileSync(path.join(snapshot, 'bootstrap.json'), 'utf8'));
     assert.equal(bootstrap.schema_id, 'dd-eval/bootstrap-snapshot@2');
@@ -144,9 +149,9 @@ test('installed setup and Console observation preserve isolated producer boundar
     assert.deepEqual(fs.readFileSync(path.join(cachedPackage, name)), fs.readFileSync(path.join(packageRoot, name)), `Installed and archived ${name} must be the same bytes`);
   }
   const selectionFile = path.join(home, 'installation.json'), before = fs.readFileSync(selectionFile);
-  assert.equal(accepted(['setup', ...args, '--request-id', 'install']).replayed, true);
+  assert.equal((await accepted(['setup', ...args, '--request-id', 'install'])).replayed, true);
   assert.deepEqual(fs.readFileSync(selectionFile), before);
-  assert.equal(accepted(['setup', 'update', ...args, '--request-id', 'update']).installation_readiness, 'installed');
+  assert.equal((await accepted(['setup', 'update', ...args, '--request-id', 'update'])).installation_readiness, 'installed');
   for (const name of ['db.sqlite', 'projects', 'agent-profiles', 'profile-settings.json']) assert.equal(fs.existsSync(path.join(home, name)), false);
   assert.deepEqual(fs.readdirSync(cwd), []);
   assert.equal(fs.readFileSync(registry, 'utf8'), canary);
@@ -155,11 +160,7 @@ test('installed setup and Console observation preserve isolated producer boundar
   fs.mkdirSync(path.dirname(frozen), { recursive: true });
   const frozenBytes = Buffer.from('unrelated frozen RUN binding'), databaseBytes = Buffer.from('incompatible storage must not be opened or migrated');
   fs.writeFileSync(frozen, frozenBytes); fs.writeFileSync(path.join(existingHome, 'db.sqlite'), databaseBytes);
-  const existing = invoke(['setup', ...args, '--request-id', 'existing'], existingHome);
-  assert.equal(existing.status, 0, JSON.stringify({
-    error: existing.error?.code ?? null, signal: existing.signal, stderr: existing.stderr
-  }));
-  const existingStatus = JSON.parse(existing.stdout);
+  const existingStatus = await accepted(['setup', ...args, '--request-id', 'existing'], existingHome);
   assert.equal(existingStatus.storage_readiness, 'unknown_requires_diagnostic');
   assert.equal(existingStatus.next_action, 'dd-flow migration plan --help');
   assert.deepEqual(existingStatus.storage_continuation, { kind: 'storage_admission', status: 'requires_diagnostic',
@@ -214,7 +215,7 @@ test('installed setup and Console observation preserve isolated producer boundar
   fs.writeFileSync(path.join(source, 'canon.tgz'), canon);
   const cachedCli = path.join(cachedPackage, 'dist/cli.js'), tampered = Buffer.from('retained cache canary');
   fs.writeFileSync(cachedCli, tampered);
-  assert.equal(accepted(['setup', 'status', '--json']).installation_readiness, 'degraded');
+  assert.equal((await accepted(['setup', 'status', '--json'])).installation_readiness, 'degraded');
   assert.equal(invoke(['setup', ...args, '--request-id', 'install']).status, 1);
   assert.deepEqual(fs.readFileSync(cachedCli), tampered, 'Corrupt immutable cache must not be silently replaced');
   assert.equal(fs.readFileSync(registry, 'utf8'), canary);
