@@ -6,9 +6,9 @@
   "model": "glm-5.3-flash",
   "reasoning": "max",
   "mode": "build",
-  "notes": "OpenCode 2.0.28 reports the selected model and native max variant; candidate pending scored E2E.",
+  "notes": "OpenCode 2.0.31 passed native compatibility and two-child capacity qualification for CP231; full scored E2E remains pending.",
   "runtime": {
-    "opencode": "2.0.29"
+    "opencode": "2.0.31"
   },
   "subagent_capacity": 2
 }
