@@ -119,7 +119,7 @@ test('installed setup and Console observation preserve isolated producer boundar
     const memoryEnv = { ...env, PATH: process.env.PATH, DD_FLOW_HOME: memoryHome, DD_FLOW_CONFIG_HOME: memoryHome };
     for (const command of [['engine', 'install', '--force', '--json'], ['run', 'snapshot', 'bootstrap', 'create', '--flow', 'mb-init', '--project-root', product, '--output', snapshot, '--json']]) {
       const result = spawnSync(process.execPath, [cli, ...command], { cwd: product, env: memoryEnv, encoding: 'utf8', timeout: 30_000 });
-      assert.equal(result.status, 0, result.stderr);
+      assert.equal(result.status, 0, JSON.stringify({ command, error: result.error?.message, signal: result.signal, stderr: result.stderr }));
     }
     const bootstrap = JSON.parse(fs.readFileSync(path.join(snapshot, 'bootstrap.json'), 'utf8'));
     assert.equal(bootstrap.schema_id, 'dd-eval/bootstrap-snapshot@2');
