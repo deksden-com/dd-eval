@@ -1,7 +1,7 @@
 # 091 — Readiness, исполняемые prerequisites, наблюдение проверок и диагностика
 
-Дата: 2026-10-17. Статус: план после повторной readiness-проверки; реализация и
-live acceptance не выполнялись. Изолированный public-API probe описан в разделе 8.
+Дата: 2026-10-17. Статус: реализован и интегрирован; результаты проверок и граница
+live acceptance описаны в разделе 9. Изолированный public-API probe — в разделе 8.
 Ponytail: full. Цель — устранить подтверждённые причины остановки пяти E2E и
 аналогичные дефекты общих механизмов, не исправляя оцениваемый продукт вручную.
 
@@ -790,3 +790,40 @@ dd-tasks main выполнен cherry-pick только tooling diff. Сохра
 
 Интеграция: dd-flow PR #87, dd-eval PR #106; tooling PR #12/#13/#14.
 Следующая operational фаза (release/pins/hooks/new EVAL) намеренно не выполнялась.
+
+## 10. Независимое ревью реализации
+
+Перепроверены P1–P8 по общим callers и producer/consumer цепочкам. В P2 найдены
+оставшиеся существенные startup-пропуски:
+
+- Grok повторно записывал raw startup error после общей безопасной публикации,
+  теряя redaction; вторичная ошибка записи могла маскировать native cause.
+- AGY/Droid могли заменить native cause ошибкой cleanup/publication; resource
+  cleanup details записывались недостаточно надёжно. Теперь cleanup ошибки
+  вторичны, snapshot сохраняется после cleanup и `cleanup_failed` не выдаётся за
+  подтверждённое завершение. Publication failure имеет redacted log fallback.
+- OpenCode parent использовал daemon-only cleanup, хотя provider имеет отдельную
+  process group. Подключён существующий owner/record-bound cleanup обоих процессов;
+  PID-only signal authority не добавлялась.
+- Общий bridge startup сохраняет `cleanup_failed` при неизвестном физическом
+  завершении; Grok читает retained primary и в этом состоянии.
+
+Engine review candidate: `f165752f`. Actual serve failure injections и owned
+detached-child regression: startup 20/20 PASS; native Grok 13/13, AGY/Droid/OpenCode
+53/53 PASS. Независимые progress/cleanup/wrapper проверки 33 PASS + 1 optional DB
+skip; EVAL diagnostic/baseline/proof-limit 14/14 PASS; engine observer 2/2 PASS.
+Существенных дефектов P1/P3–P8 дополнительное ревью не выявило. Product, live EVAL,
+исторические receipts, pins и installed runtime не менялись.
+
+Полный повторный gate выполняется на точном review commit с strict-canon build,
+`DD_FLOW_E3_CANON_ROOT` и `DD_FLOW_E3_WT`, без изменения сборки между группами.
+Hybrid 66/66; E2 133 PASS + 1 optional skip; E3 462 PASS + 5 optional skips,
+0 failures (aggregate exit0); release Node 2/2 + Vitest 8/8 PASS.
+Integration на review-кандидате: 171/171 files, 2887/2887 PASS, 0 skips/failures
+(3351.43 s), включая пять добавленных startup-regressions.
+Runtime-sensitive: 2/2 files, 48/48 PASS (424.15 s). Все группы полного `pnpm test`
+завершились успешно на одном неизменном review-кандидате; optional skips явно
+отражены выше, обязательные входы gate не пропускались.
+2026-10-18 полная последовательность `typecheck → strict-canon build → pnpm test →
+lint` завершилась exit0. Review fixes интегрируются engine PR #88; этот отчёт —
+dd-eval PR #107. Установленные hooks/pins/runtime и живые EVAL не менялись.
