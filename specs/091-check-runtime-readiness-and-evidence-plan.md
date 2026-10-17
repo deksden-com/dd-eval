@@ -744,6 +744,10 @@ SIGKILL worker: main `pnpm test:tooling` 39/39 PASS, 0 skips; scoped outer guard
 Source coverage commit `a64c432a91274d6a9421805e623467a5b0c8d9ec`, tag
 `eval/plan-091-tooling-coverage`; production bytes совпадают с verified-tooling.
 dd-tasks PR #12 / #13 смержены, main `16e6231175cad8414845ae60ca41d57e86714ddd`.
+Финальная сверка P6 добавила отдельное подтверждение native `trace.zip` при
+missing locator и private `outputDir`; Chromium + scoped DB regression PASS.
+Tests-only tag `eval/plan-091-native-trace` (`c92bb80`), PR #14 смержен:
+`3272e46cc4954c20a855eb35eb3fca12f9bed0e1`. Production tooling не изменён.
 Existing `repair-continuation.test.ts` aggregate/replay/concurrent/reply-loss
 регрессии повторно PASS 2/2: один repair intent и один Work. Новая browser rule
 проверяется на том же source-repair guard, специальной harness ветки после него нет.
@@ -758,6 +762,10 @@ Engine full-gate environment: explicit `DD_FLOW_E3_CANON_ROOT` на canon
 `1ddedf9d3f086e046f8e7b194c739ec386e7c8b9` (4.1.2), strict-canon build до tests.
 Первый E3 запуск без этого fixture input отказал в Memory tests; исправлено
 окружение и инструкция operations, не ослаблены тесты/продуктовый контракт.
+Native Worktrunk E3 отдельно выполнен с `DD_FLOW_E3_WT=/opt/homebrew/bin/wt`:
+PASS; абсолютный путь также добавлен в инструкцию gate. Compact redactor EVAL
+использует тот же безопасный key boundary, что engine: длинная цепочка дефисов
+не вызывает повторный поиск с каждой позиции; targeted suite PASS 5/5.
 
 Tooling source — отдельный commit на pinned `f361454`, а перенос в актуальный
 dd-tasks main выполнен cherry-pick только tooling diff. Сохранены main product
