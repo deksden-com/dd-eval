@@ -156,7 +156,9 @@ test('installed setup and Console observation preserve isolated producer boundar
   const frozenBytes = Buffer.from('unrelated frozen RUN binding'), databaseBytes = Buffer.from('incompatible storage must not be opened or migrated');
   fs.writeFileSync(frozen, frozenBytes); fs.writeFileSync(path.join(existingHome, 'db.sqlite'), databaseBytes);
   const existing = invoke(['setup', ...args, '--request-id', 'existing'], existingHome);
-  assert.equal(existing.status, 0, existing.stderr);
+  assert.equal(existing.status, 0, JSON.stringify({
+    error: existing.error?.code ?? null, signal: existing.signal, stderr: existing.stderr
+  }));
   const existingStatus = JSON.parse(existing.stdout);
   assert.equal(existingStatus.storage_readiness, 'unknown_requires_diagnostic');
   assert.equal(existingStatus.next_action, 'dd-flow migration plan --help');
