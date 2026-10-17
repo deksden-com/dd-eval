@@ -737,11 +737,27 @@ immutable tag `eval/plan-091-verified-tooling`. Integration PR dd-tasks #12 пе
 и Chromium. `format:check`, `lint`, `typecheck`, `build`, `docs:check` — PASS на
 main-transfer; созданные регрессионные БД удалены адресно.
 
+Финальный tests-only follow-up добавил реальные beforeAll/afterAll hangs и
+SIGKILL worker: main `pnpm test:tooling` 39/39 PASS, 0 skips; scoped outer guard
+подтверждает cleanup и не создаёт source proof при неизвестном native outcome.
+В afterAll hang marker выполненного body не заменяет отсутствующий final report.
+Source coverage commit `a64c432a91274d6a9421805e623467a5b0c8d9ec`, tag
+`eval/plan-091-tooling-coverage`; production bytes совпадают с verified-tooling.
+dd-tasks PR #12 / #13 смержены, main `16e6231175cad8414845ae60ca41d57e86714ddd`.
+Existing `repair-continuation.test.ts` aggregate/replay/concurrent/reply-loss
+регрессии повторно PASS 2/2: один repair intent и один Work. Новая browser rule
+проверяется на том же source-repair guard, специальной harness ветки после него нет.
+
 EVAL full suite с `DD_FLOW_SOURCE_ROOT` на изолированную сборку engine:
 924 tests, 909 PASS, 15 explicit optional skips, 0 failures. Первоначальный запуск
 без обязательного source-root отказал в соответствующих fixture tests и не
 считается зелёным; повтор выполнен с правильным окружением. Последующие isolated
 compact/redaction/proof-limit regressions также PASS; Judge prompt не менялся.
+
+Engine full-gate environment: explicit `DD_FLOW_E3_CANON_ROOT` на canon
+`1ddedf9d3f086e046f8e7b194c739ec386e7c8b9` (4.1.2), strict-canon build до tests.
+Первый E3 запуск без этого fixture input отказал в Memory tests; исправлено
+окружение и инструкция operations, не ослаблены тесты/продуктовый контракт.
 
 Tooling source — отдельный commit на pinned `f361454`, а перенос в актуальный
 dd-tasks main выполнен cherry-pick только tooling diff. Сохранены main product
