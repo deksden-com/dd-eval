@@ -1,13 +1,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { failureDiagnostic, executionEvidence } from "../lib/runner.mjs";
+import { failureDiagnostic, executionEvidence, isInfrastructureFailure } from "../lib/runner.mjs";
 import { compactCheckDiagnostic } from "../lib/check-diagnostic.mjs";
 
+test("compact diagnostic retains safe hashed locators without granting repair authority", () => {
+  const ref = { relative_path: "diagnostics/failure.json", sha256: "a".repeat(64) };
+  const result = compactCheckDiagnostic({ runner_evidence: { failures: [{ category: "tooling", diagnostic_artifact: ref, repair_evidence: { arbitrary: true } }] }, execution_failures: [{ diagnostic_artifact: { ...ref, relative_path: "../escape" } }] });
+  assert.deepEqual(result.runner_evidence.failures[0].diagnostic_artifact, ref);
+  assert.equal(result.runner_evidence.failures[0].repair_evidence, undefined);
+  assert.equal(result.execution_failures[0].diagnostic_artifact, undefined);
+  for (const code of ["runner_progress_invalid", "lint_gate_tool_failed", "lint_gate_invalid_output", "lint_gate_unavailable", "protocolize_draft_cleanup_failed", "opencode_auth_rejected", "opencode_configuration_invalid", "opencode_plugin_failed"]) assert.equal(isInfrastructureFailure({ code: "wrapper", cause: { code } }), true, code);
+  assert.equal(isInfrastructureFailure("lint_gate_failed"), false, "valid findings do not establish infrastructure provenance");
+});
+
 test("compact native and engine failures redact Bearer and credential variants", () => {
-  const message = `Authorization: Bearer SECRET api-key = SECRET api_key: SECRET password : SECRET token=SECRET secret: SECRET postgres://u:SECRET@host/db {"api_key":"SECRET"}`;
+  const message = `Authorization: Bearer SECRET Authorization: Basic SECRET api-key = SECRET api_key: SECRET password : SECRET token=SECRET access_token=SECRET client-secret:SECRET secret: SECRET postgres://u:SECRET@host/db {"api_key":"SECRET"}`;
   const result = compactCheckDiagnostic({ runner_evidence: { failures: [{ message }] }, execution_failures: [{ message }] });
   assert.ok(!JSON.stringify(result).includes("SECRET"));
   assert.match(result.execution_failures[0].message, /Authorization/);
+  assert.equal(compactCheckDiagnostic({ execution_failures: [{ message: "token".repeat(250000) }] }).execution_failures[0].message.length, 1024);
+  assert.equal(compactCheckDiagnostic({ execution_failures: [{ message: "token-".repeat(50000) }] }).execution_failures[0].message.length, 1024);
 });
 
 test("failed check presentation retains cause identity and refs, not raw reports or stacks", () => {

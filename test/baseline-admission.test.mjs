@@ -20,13 +20,13 @@ test("baseline consumes selected engine runner evidence without turning tooling 
 export const runnerContractsValid=()=>true;
 export function runnerContractForArgv(p,c,a){const alias=Object.keys(p.runner_evidence_by_alias).find(k=>p.aliases[k]===[c,...a].join(' '));return alias?{alias,command:p.aliases[alias],contract:p.runner_evidence_by_alias[alias]}:null;}
 export function readRunnerEvidence(r,c,b){try{const e=JSON.parse(fs.readFileSync(path.join(r,c.path)));return JSON.stringify(e.binding)===JSON.stringify(b)?e:null;}catch{return null;}}
-export const readRunnerProgress=()=>[];
+export const readRunnerProgress=()=>{if(fs.readFileSync(${JSON.stringify(categoryFile)},'utf8')==='progress-invalid')throw Object.assign(new Error('unsafe progress'),{code:'runner_progress_invalid'});return [];};
 export const runnerObservationDurations=()=>({startupMs:1500,executionMs:2500});
 export const runnerEvidencePass=e=>!!e?.completed&&!e.observation_unknown&&e.counts.failed===0&&e.failures.length===0;
 export function checkRepairDisposition(r){if(r.status==='passed')return 'passed';if(r.status==='aborted')return 'settlement_required';if(!r.runner_evidence?.failures?.length||r.exit_code===0)return 'unclassified';return ({tooling:'tooling_blocker',assertion:'source_repair'})[r.runner_evidence.failures[0].category]??'unclassified';}
 `);
   await writeFile(script, `const fs=require('node:fs'),e=process.env,category=fs.readFileSync(${JSON.stringify(categoryFile)},'utf8');
-if(category==='noise'){setInterval(()=>console.log('logging is not runner progress'),100);return;}
+if(category==='noise'||category==='progress-invalid'){setInterval(()=>console.log('logging is not runner progress'),100);return;}
 if(category!=='missing')fs.writeFileSync(e.DD_FLOW_CHECK_RUNNER_EVIDENCE_PATH,JSON.stringify({schema_id:'dd-flow/check-runner-evidence@1',binding:{invocation_id:e.DD_FLOW_CHECK_INVOCATION_ID,check_id:e.DD_FLOW_CHECK_ID,command:e.DD_FLOW_CHECK_COMMAND,input_hash:e.DD_FLOW_CHECK_INPUT_HASH,verification_epoch:e.DD_FLOW_CHECK_VERIFICATION_EPOCH},runner:{name:'synthetic',version:'1'},completed:true,counts:{passed:category==='pass'?1:0,failed:category==='pass'?0:1,skipped:0},failures:category==='pass'?[]:[{category}]}));
 process.exit(category==='pass'||category==='missing'?0:1);`);
   const command = `${process.execPath} ${script}`;
@@ -57,6 +57,12 @@ process.exit(category==='pass'||category==='missing'?0:1);`);
     assert.equal(receipt.checks[0].runner_binding.command, command);
   }
   await assert.rejects(runBaselineAdmission({ caseRoot: root, definition, projectRoot, outputRoot: path.join(root, "unselected-engine"), checkpoint }), { code: "baseline_runner_abi_missing" });
+  await writeFile(categoryFile, "progress-invalid");
+  const outputRoot = path.join(root, "progress-invalid");
+  await assert.rejects(runBaselineAdmission({ caseRoot: root, definition, projectRoot, outputRoot, checkpoint, engineRuntime: { bin: cli, home: engine } }), { code: "runner_progress_invalid" });
+  const invalid = JSON.parse(await readFile(path.join(outputRoot, "receipt.json")));
+  assert.equal(invalid.status, "failed");
+  assert.equal(invalid.error.code, "runner_progress_invalid");
 });
 
 test("task-priority baseline provisions its locked Playwright browser before browser checks", async () => {
