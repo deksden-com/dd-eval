@@ -18,6 +18,7 @@ test("compact native and engine failures redact Bearer and credential variants",
   const result = compactCheckDiagnostic({ runner_evidence: { failures: [{ message }] }, execution_failures: [{ message }] });
   assert.ok(!JSON.stringify(result).includes("SECRET"));
   assert.match(result.execution_failures[0].message, /Authorization/);
+  assert.equal(compactCheckDiagnostic({ execution_failures: [{ message: "token".repeat(250000) }] }).execution_failures[0].message.length, 1024);
 });
 
 test("failed check presentation retains cause identity and refs, not raw reports or stacks", () => {
