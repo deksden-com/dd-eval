@@ -1,7 +1,7 @@
 # 091 — Readiness, исполняемые prerequisites, наблюдение проверок и диагностика
 
-Дата: 2026-10-17. Статус: план после повторной readiness-проверки; реализация и
-live acceptance не выполнялись. Изолированный public-API probe описан в разделе 8.
+Дата: 2026-10-17. Статус: реализован и интегрирован; результаты проверок и граница
+live acceptance описаны в разделе 9. Изолированный public-API probe — в разделе 8.
 Ponytail: full. Цель — устранить подтверждённые причины остановки пяти E2E и
 аналогичные дефекты общих механизмов, не исправляя оцениваемый продукт вручную.
 
@@ -790,3 +790,27 @@ dd-tasks main выполнен cherry-pick только tooling diff. Сохра
 
 Интеграция: dd-flow PR #87, dd-eval PR #106; tooling PR #12/#13/#14.
 Следующая operational фаза (release/pins/hooks/new EVAL) намеренно не выполнялась.
+
+## 10. Независимое ревью реализации
+
+Перепроверены P1–P8 по общим callers и producer/consumer цепочкам. В P2 найдены
+оставшиеся существенные startup-пропуски:
+
+- Grok повторно записывал raw startup error после общей безопасной публикации,
+  теряя redaction; вторичная ошибка записи могла маскировать native cause.
+- AGY/Droid могли заменить native cause ошибкой cleanup/publication; resource
+  cleanup details записывались недостаточно надёжно. Теперь cleanup ошибки
+  вторичны, snapshot сохраняется после cleanup и `cleanup_failed` не выдаётся за
+  подтверждённое завершение. Publication failure имеет redacted log fallback.
+- OpenCode parent использовал daemon-only cleanup, хотя provider имеет отдельную
+  process group. Подключён существующий owner/record-bound cleanup обоих процессов;
+  PID-only signal authority не добавлялась.
+- Общий bridge startup сохраняет `cleanup_failed` при неизвестном физическом
+  завершении; Grok читает retained primary и в этом состоянии.
+
+Engine review candidate: `f165752f`. Actual serve failure injections и owned
+detached-child regression: startup 20/20 PASS; native Grok 13/13, AGY/Droid/OpenCode
+53/53 PASS. Независимые progress/cleanup/wrapper проверки 33 PASS + 1 optional DB
+skip; EVAL diagnostic/baseline/proof-limit 14/14 PASS; engine observer 2/2 PASS.
+Существенных дефектов P1/P3–P8 дополнительное ревью не выявило. Product, live EVAL,
+исторические receipts, pins и installed runtime не менялись.
