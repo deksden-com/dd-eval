@@ -3,7 +3,50 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import { setupMemoryRuntime, validateMemorySetup, resolveMemoryExecutionExpectation } from '../lib/memory-runtime-setup.mjs';
+import { setupMemoryRuntime, setupMemoryUpgradeRuntime, validateMemorySetup, resolveMemoryExecutionExpectation } from '../lib/memory-runtime-setup.mjs';
+
+test('upgrade setup populates pinned old canon before target using separate public setup requests',async t=>{
+  const root=await mkdtemp(path.join(os.tmpdir(),'upgrade-setup-'));t.after(()=>rm(root,{recursive:true,force:true}));
+  const projectRoot=path.join(root,'project');await mkdir(projectRoot);await writeFile(path.join(projectRoot,'old-fact.md'),'Original facts.');
+  const runtimeRoot=path.join(root,'runtime'),bin=path.join(root,'cli.mjs'),calls=path.join(root,'calls.jsonl');
+  const declaration={canonSource:path.join(root,'target'),trustFile:path.join(root,'target-trust.json'),channel:'development',
+    baseline:{canonSource:path.join(root,'old'),trustFile:path.join(root,'old-trust.json'),channel:'development'}};
+  const pack=(commit,version)=>({delivery:'installed_canon',commit:commit.repeat(40),memory_bank_version:version,engine:{version:`engine-${version}`}});
+  const checkpoint={flow_pack:pack('a','2'),baseline_flow_pack:pack('b','1')};
+  const receipt=selected=>({installation_readiness:'installed',installation:{manifest_sha256:selected.commit.padEnd(64,'0'),
+    manifest:{canon:{commit:selected.commit,version:selected.memory_bank_version},engine:{version:selected.engine.version}}}});
+  const old=receipt(checkpoint.baseline_flow_pack),target=receipt(checkpoint.flow_pack);
+  const script=(baseline=old,next=target)=>`import fs from 'node:fs';const args=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify({args,home:process.env.DD_FLOW_HOME,config:process.env.DD_FLOW_CONFIG_HOME})+'\\n');console.log(JSON.stringify(args[args.indexOf('--canon-source')+1]===${JSON.stringify(declaration.baseline.canonSource)}?${JSON.stringify(baseline)}:${JSON.stringify(next)}));`;
+  await writeFile(bin,script());const input={bin,projectRoot,runtimeRoot,declaration,checkpoint,requestId:'upgrade-setup',env:{DD_FLOW_HOME:'/not-used'}};
+  const result=await setupMemoryUpgradeRuntime(input);assert.deepEqual(result.installation,target.installation);assert.deepEqual(result.baseline_installation,old.installation);
+  const observed=(await readFile(calls,'utf8')).trim().split('\n').map(JSON.parse);
+  assert.equal(observed.length,2);
+  assert.equal(observed[0].args[1],'--canon-source','The baseline is a cold installation');
+  assert.equal(observed[1].args[1],'update','The target updates the existing installation');
+  for(const call of observed) {assert.equal(call.args[0],'setup');assert.equal(call.home,runtimeRoot);assert.equal(call.config,runtimeRoot);assert(call.args.includes('--skip-agent-setup'));}
+  const option=(call,key)=>call.args[call.args.indexOf(`--${key}`)+1];
+  assert.equal(option(observed[0],'canon-source'),declaration.baseline.canonSource);assert.equal(option(observed[0],'request-id'),'upgrade-setup.baseline');
+  assert.equal(option(observed[1],'canon-source'),declaration.canonSource);assert.equal(option(observed[1],'request-id'),'upgrade-setup');
+  await writeFile(bin,script({...target,request_installation:old.installation}));
+  const replay=await setupMemoryUpgradeRuntime(input);
+  assert.deepEqual(replay.baseline_installation,old.installation,'Bind the replayed request, not the newer active installation');
+  assert.deepEqual(replay.installation,target.installation);
+  await rm(calls);
+  for(const change of [{checkpoint:{flow_pack:checkpoint.flow_pack}},{checkpoint:{...checkpoint,flow_pack:{}}},{declaration:{...declaration,baseline:undefined}},{runtimeRoot:projectRoot}]) {
+    await assert.rejects(setupMemoryUpgradeRuntime({...input,...change}),{code:'memory_setup_invalid'});await assert.rejects(readFile(calls),{code:'ENOENT'});
+  }
+  await writeFile(bin,script({...old,installation_readiness:'degraded'}));
+  await assert.rejects(setupMemoryUpgradeRuntime(input),{code:'memory_setup_invalid'});
+  assert.equal((await readFile(calls,'utf8')).trim().split('\n').length,1,'No target installation after unresolved baseline');await rm(calls);
+  await writeFile(bin,script(old,{...target,installation_readiness:'degraded'}));
+  await assert.rejects(setupMemoryUpgradeRuntime(input),error=>error.details.effect==='partial' && error.details.target_effect==='unknown' && error.details.baseline_manifest_sha256===old.installation.manifest_sha256);
+  assert.equal(await readFile(path.join(projectRoot,'old-fact.md'),'utf8'),'Original facts.');
+});
+
+test('Memory expectation refuses a foreign workflow before importing installed code',async()=>{
+  await assert.rejects(resolveMemoryExecutionExpectation({flow:'sdlc'}),{code:'memory_setup_invalid'});
+  await assert.rejects(resolveMemoryExecutionExpectation({flow:'unknown'}),{code:'memory_setup_invalid'});
+});
 
 test('exact authenticated installed CLI resolves external and native semantic selection without a physical receipt', { skip: !process.env.DD_EVAL_MEMORY_DELIVERY_ROOT }, async () => {
   const root = process.env.DD_EVAL_MEMORY_DELIVERY_ROOT;

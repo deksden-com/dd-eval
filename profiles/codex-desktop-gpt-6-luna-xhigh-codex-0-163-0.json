@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-6-luna-xhigh-codex-0-163-0",
+  "harness": "codex-desktop",
+  "model": "gpt-6-luna",
+  "reasoning": "xhigh",
+  "runtime": {
+    "codex_cli": "0.163.0",
+    "dd_harness_contract": "dd-codex-harness@1"
+  }
+}

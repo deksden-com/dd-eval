@@ -21,7 +21,7 @@ test("real CLI restores a captured RUN before provisioning its pinned engine", {
     const git = args => commandText("git", args, { cwd: project });
     await git(["init", "--quiet", "-b", "main"]); await git(["add", "."]);
     await git(["-c", "user.name=Fixture", "-c", "user.email=fixture@example.test", "commit", "--quiet", "-m", "fixture"]);
-    const env = { DD_FLOW_HOME: runtime, DD_FLOW_RESOURCE_HOME: runtime, DD_FLOW_ENGINE_MODE: "1" };
+    const env = { DD_FLOW_HOME: runtime, DD_FLOW_RESOURCE_HOME: runtime };
     const started = await commandJson(cli, ["run", "start", "--project-root", project, "--flow-kind", "custom", "--subject-type", "test", "--subject-id", "restore", "--slug", "restore"], { cwd: project, env });
     const snapshot = path.join(home, "snapshot");
     await commandJson(cli, ["run", "snapshot", "create", started.run.id, "--stage-entry", "protocolize", "--project-root", project, "--output", snapshot], { cwd: project, env });

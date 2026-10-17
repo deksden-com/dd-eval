@@ -5,6 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { interactionFixtureManifest, launchEvalExecution, prepareFocusedEntries } from '../lib/runner.mjs';
 import { contractProfile, resolveExecutionContract } from '../lib/execution-contract.mjs';
+import { stages } from '../lib/entry-pack.mjs';
 
 test('focused memory entries consume the declared catalog and reject foreign stages before launch', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-memory-focus-'));
@@ -34,7 +35,7 @@ test('focused launch rejects its entry before recording an operation and uses pr
   await mkdir(path.join(root, 'config', 'agent-profiles'), { recursive: true });
   const execution = { id: 'focus-merge', entry: 'merge', stage: 'merge', terminal_stage: 'merge', mode: 'focused' };
   const pack = { entries: { merge: 'merge.json' } }, file = path.join(root, 'merge.json');
-  const loaded = { root: path.join(root, 'case') };
+  const loaded = { root: path.join(root, 'case'), value: { flow: { id: 'sdlc', contour: stages } } };
   const manifest = { run_id: 'EVAL-fixture', kind: 'scored', executions: [execution], subject_profile: { id: 'fixture' }, profile: { concurrency: { global: 1 }, failure_policy: { stop_run_on_infrastructure_error: true } }, runtime_resource_home: path.join(root, 'resources') };
   manifest.interaction_fixtures = await interactionFixtureManifest(loaded.root, [execution]);
   manifest.profile.subject = { profile_id: 'fixture' };

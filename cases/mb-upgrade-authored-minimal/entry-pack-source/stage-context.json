@@ -1,0 +1,263 @@
+{
+  "schema_id": "dd-eval/stage-context-blueprint@1",
+  "stages": {
+    "preflight": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "preflight",
+      "objective": "Validate current/target provenance, accepted scope and readiness before content edits.",
+      "task_input": [
+        {
+          "role": "initial_user_request",
+          "path": ".dd-eval/upgrade.md",
+          "source": "upgrade.md",
+          "sha256": "6eebbb33234707b69f4b96fc480ff1b365791dbd8bd1d7ff9820eb79658b042e"
+        }
+      ],
+      "sources": [
+        {
+          "role": "existing_memory",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Existing project-owned memory to preserve; not an expected answer."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Current implemented behavior versus plans."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Declared executable checks."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI supplies bounded retained context, work scope and completion contract."
+        }
+      ]
+    },
+    "diff-analysis": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "diff-analysis",
+      "objective": "Assess actual target delta and local divergences; define finite affected work and preservation checks.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "existing_memory",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Existing project-owned memory to preserve; not an expected answer."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Current implemented behavior versus plans."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Declared executable checks."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "01-preflight",
+          "required": true,
+          "reason": "Accepted predecessor of this execution, not an expected answer."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI supplies bounded retained context, work scope and completion contract."
+        }
+      ]
+    },
+    "upgrade": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "upgrade",
+      "objective": "Apply only accepted affected changes, preserving project facts and intentional local extensions.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "existing_memory",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Existing project-owned memory to preserve; not an expected answer."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Current implemented behavior versus plans."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Declared executable checks."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "02-diff-analysis",
+          "required": true,
+          "reason": "Accepted predecessor of this execution, not an expected answer."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI supplies bounded retained context, work scope and completion contract."
+        }
+      ]
+    },
+    "verify": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "verify",
+      "objective": "Execute applicable checks and verify old-tree preservation, links, metadata and modes.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "existing_memory",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Existing project-owned memory to preserve; not an expected answer."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Current implemented behavior versus plans."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Declared executable checks."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "03-upgrade",
+          "required": true,
+          "reason": "Accepted predecessor of this execution, not an expected answer."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI supplies bounded retained context, work scope and completion contract."
+        }
+      ]
+    },
+    "review": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "review",
+      "objective": "Independently review actual changed scope, factual preservation and evidence; report material losses.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "existing_memory",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Existing project-owned memory to preserve; not an expected answer."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Current implemented behavior versus plans."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Declared executable checks."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "04-verify",
+          "required": true,
+          "reason": "Accepted predecessor of this execution, not an expected answer."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI supplies bounded retained context, work scope and completion contract."
+        }
+      ]
+    },
+    "finish": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "finish",
+      "objective": "Integrate reviewed Memory Bank locally and retain evidence and ordinary SDLC readiness.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "existing_memory",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Existing project-owned memory to preserve; not an expected answer."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Current implemented behavior versus plans."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Declared executable checks."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "05-review",
+          "required": true,
+          "reason": "Accepted predecessor of this execution, not an expected answer."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI supplies bounded retained context, work scope and completion contract."
+        }
+      ]
+    }
+  }
+}
