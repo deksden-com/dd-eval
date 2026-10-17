@@ -90,6 +90,9 @@ owner; never substitute a PID-only kill. Retain the stop receipt and verify exit
 `physical_stopped=true` permits a fresh isolated campaign after resource-conflict
 checks; `settled=false` still records unresolved native shutdown, not clean PASS
 or permission to resume/delete the old evidence.
+For legacy owners without provider registration, a verified maintenance engine
+may prove local exit across a host reboot. Keep `native_settled=false` and the
+original error; never rewrite daemon state or manufacture a clean shutdown.
 
 ## Database rules
 

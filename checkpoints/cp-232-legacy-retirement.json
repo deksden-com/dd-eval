@@ -1,0 +1,34 @@
+{
+  "id": "cp-232-legacy-retirement",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "f36145464688040a81fd218520b1426710091e79",
+    "tag": "eval/plan-088-clean-isolation"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-232-verification-matrix-qualification.json",
+      "sha256": "f5d58b90ede99c5a3f3ef0b41b118f9b182ba948287f79fb0129c4edf4176bc6",
+      "canon_commit": "1ddedf9d3f086e046f8e7b194c739ec386e7c8b9"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "6366517213be1a6ef3c8f691fed5ffac4edfc41d",
+      "version": "0.9.0-beta.140",
+      "artifact_sha256": "5347e9ded5afaca2b248e027f768f7cb7e18b8b13a48ade254063cfb7d1c1321"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Pinned product source unchanged; beta.140 adds physical retirement of validated pre-reboot legacy owners without claiming native success. Installed full-cycle matrix publication passed. Public artifact and complete release gate must be verified before launch.",
+    "world_isolation": "Retained product isolation contract; per-execution baseline remains mandatory.",
+    "baseline": "Each scored execution must run its own full baseline before Subject dispatch."
+  }
+}
