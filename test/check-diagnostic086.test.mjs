@@ -14,7 +14,7 @@ test("compact diagnostic retains safe hashed locators without granting repair au
 });
 
 test("compact native and engine failures redact Bearer and credential variants", () => {
-  const message = `Authorization: Bearer SECRET Authorization: Basic SECRET api-key = SECRET api_key: SECRET password : SECRET token=SECRET secret: SECRET postgres://u:SECRET@host/db {"api_key":"SECRET"}`;
+  const message = `Authorization: Bearer SECRET Authorization: Basic SECRET api-key = SECRET api_key: SECRET password : SECRET token=SECRET access_token=SECRET client-secret:SECRET secret: SECRET postgres://u:SECRET@host/db {"api_key":"SECRET"}`;
   const result = compactCheckDiagnostic({ runner_evidence: { failures: [{ message }] }, execution_failures: [{ message }] });
   assert.ok(!JSON.stringify(result).includes("SECRET"));
   assert.match(result.execution_failures[0].message, /Authorization/);
