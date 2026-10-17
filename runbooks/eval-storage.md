@@ -75,6 +75,8 @@ verified private maintenance installation with `--maintenance-home <absolute>`
 and, if needed, `--maintenance-bin <absolute-cli>`. The old resource home stays
 bound; do not replace its engine, repair its DB, use `pkill` or kill by PID alone.
 Legacy unregistered owners still require scoped investigation, not name scans.
+The automatic barrier considers retained scope bindings/control runtimes only;
+an old unregistered journal is not a cleanup candidate or proof of settlement.
 Preserve the original failure/verdict; cleanup never sends a productive prompt.
 
 If a historical pinned CLI cannot retire its failed native owner, use a checked
