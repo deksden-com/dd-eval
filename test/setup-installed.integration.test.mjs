@@ -81,7 +81,8 @@ test('installed setup and Console observation preserve isolated producer boundar
     [...(args[0] === 'setup' && args[1] === 'status' ? ['--permission', `--allow-fs-read=${root}`,
       `--allow-fs-read=${path.dirname(path.dirname(packageRoot))}`] : []), cli, ...args],
     { cwd, env: { ...env, DD_FLOW_HOME: selectedHome }, encoding: 'utf8', timeout: 30_000 });
-  const accepted = args => { const result = invoke(args); assert.equal(result.status, 0, result.stderr); return JSON.parse(result.stdout); };
+  const accepted = args => { const result = invoke(args); assert.equal(result.status, 0,
+    JSON.stringify({command:args,error:result.error?.code??null,signal:result.signal,stderr:result.stderr})); return JSON.parse(result.stdout); };
   assert.equal(accepted(['setup', 'status', '--json']).installation_readiness, 'not_installed');
   assert.equal(fs.existsSync(home), false);
   const args = ['--canon-source', source, '--trust-file', trust, '--channel', 'development', '--skip-agent-setup', '--non-interactive', '--json'];
