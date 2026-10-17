@@ -32,6 +32,12 @@ test('late sealed capture is visible independently of report; foreign proof neve
   const normal = { ...input, results: [{ ...input.results[0], state: 'candidate_ready', candidate: { manifest: normalFile, manifest_sha256: createHash('sha256').update(normalBytes).digest('hex') } }],
     live: { executions: [{ ...input.live.executions[0], receipt: { scope: { run_id: 'RUN-1' }, settled: true, control: null } }] } };
   assert.equal((await cleanupObservation(normal)).capture, 'ready', 'normal completion needs no recovery control');
+  const unrequested = { ...normal, live: { executions: [{ ...normal.live.executions[0], receipt: {
+    scope: { run_id: 'RUN-1' }, settled: false, control: null, state: 'not_requested', unsettled_reasons: ['control_not_requested']
+  } }] } };
+  const unrequestedObservation = await cleanupObservation(unrequested);
+  assert.equal(unrequestedObservation.physical, 'unknown', 'absence of operator control is not evidence of a live process');
+  assert.equal(unrequestedObservation.capture, 'pending', 'absence of control must not manufacture settlement or ready capture');
   const sha = bytes => createHash('sha256').update(bytes).digest('hex');
   for (const dir of ['project', 'runtime']) await mkdir(path.join(capture, dir));
   await writeFile(path.join(capture, 'project/README.md'), 'Original source');
