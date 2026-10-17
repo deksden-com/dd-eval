@@ -722,6 +722,26 @@ Readiness verdict: обязательные проектные решения в
 - Redaction покрывает Basic/Bearer и составные credential keys, без квадратичного
   поиска URL на длинных документах. Compact EVAL сохраняет безопасный locator,
   но не переносит raw stack или repair authority.
+- Health probe использует одну прогретую probe-only PostgreSQL session с server
+  statement timeout; per-poll force-close и discarded cancel Promise убраны.
+  Неизвестное здоровье не выдаёт proof. Публикация reporter имеет отдельный drain,
+  не расширяющий freshness; mixed native errors не стираются timeout proof.
+- Vitest hook error может повторно прийти сериализованным clone в result/suite
+  projection. Дедупликация ограничена native trace + entity/phase + occurrence;
+  различные ошибки, beforeAll/afterAll и runner errors не объединяются по message.
+
+Проверенный tooling-only source: `1d7f8b2397704f51f9b919d4ce4deac741b657a4`,
+immutable tag `eval/plan-091-verified-tooling`. Integration PR dd-tasks #12 переносит
+только tooling на актуальный main. Для этого exact source и main-transfer отдельно
+прошли `pnpm test:tooling`: 36/36 PASS без skips, включая свежую собственную БД
+и Chromium. `format:check`, `lint`, `typecheck`, `build`, `docs:check` — PASS на
+main-transfer; созданные регрессионные БД удалены адресно.
+
+EVAL full suite с `DD_FLOW_SOURCE_ROOT` на изолированную сборку engine:
+924 tests, 909 PASS, 15 explicit optional skips, 0 failures. Первоначальный запуск
+без обязательного source-root отказал в соответствующих fixture tests и не
+считается зелёным; повтор выполнен с правильным окружением. Последующие isolated
+compact/redaction/proof-limit regressions также PASS; Judge prompt не менялся.
 
 Tooling source — отдельный commit на pinned `f361454`, а перенос в актуальный
 dd-tasks main выполнен cherry-pick только tooling diff. Сохранены main product
