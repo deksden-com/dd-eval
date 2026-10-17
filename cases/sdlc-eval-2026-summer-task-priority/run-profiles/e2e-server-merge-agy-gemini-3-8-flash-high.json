@@ -28,7 +28,7 @@
     "exception": {
       "reason": "Scored E2E uses local target integration without remote push/tag/deploy; retain the execution-owned source checkout for frozen evidence and investigation.",
       "owner": "EVAL run-profile operator",
-      "review_at": "2026-10-14"
+      "review_at": "2026-10-24"
     }
   },
   "subject": {

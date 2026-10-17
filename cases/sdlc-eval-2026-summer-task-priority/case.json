@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-231-owned-runtime",
-    "sha256": "0d2d81a5566f1559f6e54c58d9110d15afc3629a0a4c63452206e11e630c98eb"
+    "id": "cp-232-legacy-retirement",
+    "sha256": "b5e7d1c1069d12fe97dddc2bb0f67dba0a171e43122ab3f75e0f5995ddce212f"
   },
   "entry_pack": null,
   "hitl_qualification": {
