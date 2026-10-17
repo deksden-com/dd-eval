@@ -1,0 +1,40 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "65fe4bc78d28f2b4172eeb9a12ff2c54ea395602b0ffba2c2db891f7192f0784",
+  "verification_epoch": "6fb0f492797f8a5e0aceaeeb94ae23c87f646e966baec074227bcb1af82c1d7e",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-231-verification-matrix/dd-flow-protocolize-heDGhn/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-231-verification-matrix/dd-flow-protocolize-heDGhn/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-231-verification-matrix/dd-flow-protocolize-heDGhn/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-231-verification-matrix/dd-flow-protocolize-heDGhn/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "ad5225674c75aade090efcb6d5a31b1e047c7755ce1363cc3c331e23f8d36373",
+  "before_fingerprint": "ad5225674c75aade090efcb6d5a31b1e047c7755ce1363cc3c331e23f8d36373",
+  "after_fingerprint": "ad5225674c75aade090efcb6d5a31b1e047c7755ce1363cc3c331e23f8d36373",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-17T08:20:21.375Z",
+  "finished_at": "2026-10-17T08:20:21.471Z",
+  "candidate_root": "/Users/deksden/.dd-eval/qualification/cp-231-verification-matrix/dd-flow-protocolize-heDGhn/project",
+  "candidate_files": [],
+  "execution_failures": []
+}
