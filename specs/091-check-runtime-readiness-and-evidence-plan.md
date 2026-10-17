@@ -767,6 +767,20 @@ PASS; абсолютный путь также добавлен в инстру�
 использует тот же безопасный key boundary, что engine: длинная цепочка дефисов
 не вызывает повторный поиск с каждой позиции; targeted suite PASS 5/5.
 
+Engine runtime source `9c7aa01e` прошёл strict-canon build, typecheck/lint и release
+(Node 2/2, Vitest 8/8). Hybrid 66/66, E2 133 PASS + 1 optional skip. Финальный E3:
+467 cases, 461 PASS, 5 optional skips, один missing-input refusal для Worktrunk;
+весь его файл повторно PASS 5/5 с явным `DD_FLOW_E3_WT`. Таким образом все
+462 обязательных E3 cases проверены; первый aggregate exit1 не называется PASS.
+Последующие engine commits меняют только gate documentation и regression tests,
+не production runtime bytes. Integration/runtime-sensitive результаты ниже.
+Полный engine integration: 171/171 files, 2882/2882 PASS, без skips/failures,
+включая все семь stages четырёх server cells, same-session, repair, overload и
+три негативных terminal-cleanup сценария (4727.86 s).
+Runtime-sensitive: 2/2 files, 48/48 PASS (269.19 s), включая bundled native
+adapter/daemon fixtures и owned cleanup. Полная release/integration/runtime цепь
+завершилась exit0. Существенных незакрытых пунктов P1–P8 финальная сверка не выявила.
+
 Tooling source — отдельный commit на pinned `f361454`, а перенос в актуальный
 dd-tasks main выполнен cherry-pick только tooling diff. Сохранены main product
 и его browser assertions; разрешены лишь imports общей fixture. Старые checkpoint
@@ -774,5 +788,5 @@ dd-tasks main выполнен cherry-pick только tooling diff. Сохра
 этот source с выпущенными новыми engine bytes, проверить ABI/pins и лишь затем
 создавать новый checkpoint/launch. Старый beta.140 для нового producer не выбирать.
 
-Полный repository gate и окончательные commit/PR refs фиксируются ниже после
-их завершения; текущие целевые результаты не подменяют этот gate.
+Интеграция: dd-flow PR #87, dd-eval PR #106; tooling PR #12/#13/#14.
+Следующая operational фаза (release/pins/hooks/new EVAL) намеренно не выполнялась.
