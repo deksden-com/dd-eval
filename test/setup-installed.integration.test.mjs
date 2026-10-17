@@ -18,7 +18,10 @@ const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 
 // Private fixture authority tests installation mechanics, not native route
 // qualification. No public signing key, release, model or account is used.
-test('installed setup and Console observation preserve isolated producer boundaries', { skip: !configured, timeout: 60_000 }, async t => {
+// Several bounded setup/replay commands precede asynchronous Console startup
+// and owned shutdown. The outer guard must not cancel that cleanup mid-flight;
+// individual command and HTTP deadlines below remain unchanged.
+test('installed setup and Console observation preserve isolated producer boundaries', { skip: !configured, timeout: 600_000 }, async t => {
   const cli = fs.realpathSync(process.env.DD_EVAL_TEST_SETUP_CLI);
   const packageRoot = path.dirname(path.dirname(cli));
   assert.equal(path.basename(packageRoot), 'dd-flow-cli');
@@ -78,7 +81,8 @@ test('installed setup and Console observation preserve isolated producer boundar
     [...(args[0] === 'setup' && args[1] === 'status' ? ['--permission', `--allow-fs-read=${root}`,
       `--allow-fs-read=${path.dirname(path.dirname(packageRoot))}`] : []), cli, ...args],
     { cwd, env: { ...env, DD_FLOW_HOME: selectedHome }, encoding: 'utf8', timeout: 30_000 });
-  const accepted = args => { const result = invoke(args); assert.equal(result.status, 0, result.stderr); return JSON.parse(result.stdout); };
+  const accepted = args => { const result = invoke(args); assert.equal(result.status, 0,
+    JSON.stringify({command:args,error:result.error?.code??null,signal:result.signal,stderr:result.stderr})); return JSON.parse(result.stdout); };
   assert.equal(accepted(['setup', 'status', '--json']).installation_readiness, 'not_installed');
   assert.equal(fs.existsSync(home), false);
   const args = ['--canon-source', source, '--trust-file', trust, '--channel', 'development', '--skip-agent-setup', '--non-interactive', '--json'];
@@ -116,7 +120,7 @@ test('installed setup and Console observation preserve isolated producer boundar
     const memoryEnv = { ...env, PATH: process.env.PATH, DD_FLOW_HOME: memoryHome, DD_FLOW_CONFIG_HOME: memoryHome };
     for (const command of [['engine', 'install', '--force', '--json'], ['run', 'snapshot', 'bootstrap', 'create', '--flow', 'mb-init', '--project-root', product, '--output', snapshot, '--json']]) {
       const result = spawnSync(process.execPath, [cli, ...command], { cwd: product, env: memoryEnv, encoding: 'utf8', timeout: 30_000 });
-      assert.equal(result.status, 0, result.stderr);
+      assert.equal(result.status, 0, JSON.stringify({ command, error: result.error?.message, signal: result.signal, stderr: result.stderr }));
     }
     const bootstrap = JSON.parse(fs.readFileSync(path.join(snapshot, 'bootstrap.json'), 'utf8'));
     assert.equal(bootstrap.schema_id, 'dd-eval/bootstrap-snapshot@2');

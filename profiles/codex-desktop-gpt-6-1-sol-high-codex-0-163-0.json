@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-6-1-sol-high-codex-0-163-0",
+  "harness": "codex-desktop",
+  "model": "gpt-6.1-sol",
+  "reasoning": "high",
+  "runtime": {
+    "codex_cli": "0.163.0",
+    "dd_harness_contract": "dd-codex-harness@1"
+  }
+}

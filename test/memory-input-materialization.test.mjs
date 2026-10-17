@@ -1,10 +1,55 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, writeFile, rm, symlink } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, rm, symlink,readlink,chmod,stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { commandText } from '../lib/process-json.mjs';
 import { assertBlankMemoryProject, materializeCanonicalInput, prepareCanonicalFlowSource, prepareE2EInput } from '../lib/runner.mjs';
+
+test('upgrade materialization retains the exact old bank instead of installing its target canon',async t=>{
+  const root=await mkdtemp(path.join(os.tmpdir(),'upgrade-input-'));t.after(()=>rm(root,{recursive:true,force:true}));
+  const product=path.join(root,'product'),canon=path.join(root,'canon'),flowPath='.memory-bank/dd-flow';
+  const git=(directory,args)=>commandText('git',args,{cwd:directory});
+  const commit=async directory=>{
+    await git(directory,['add','.']);await git(directory,['-c','user.name=Fixture','-c','user.email=fixture@localhost','commit','--quiet','-m','fixture']);
+    return git(directory,['rev-parse','HEAD']);
+  };
+  await mkdir(path.join(product,flowPath),{recursive:true});await mkdir(path.join(product,'.memory-bank/defs'));
+  await writeFile(path.join(product,'.gitattributes'),'* -text\n');
+  const oldManifest='{"canon_version":"old","identity":"original"}\r\n',oldFact='Preserve implemented async JSONL; no HTTP.\r\n';
+  await writeFile(path.join(product,flowPath,'manifest.json'),oldManifest);
+  await writeFile(path.join(product,flowPath,'custom.sh'),'#!/bin/sh\necho custom\n');await chmod(path.join(product,flowPath,'custom.sh'),0o755);
+  await writeFile(path.join(product,'.memory-bank/index.md'),oldFact);
+  await writeFile(path.join(product,'.memory-bank/defs/DEF-KEPT.md'),'Accepted decision DEF-KEPT.\n');
+  await symlink('../defs/DEF-KEPT.md',path.join(product,flowPath,'decision-link'));
+  await git(product,['init','--quiet','--initial-branch=main']);const sourceCommit=await commit(product);
+  await writeFile(path.join(product,'future.txt'),'Do not leak future facts.');const futureCommit=await commit(product);
+  await git(product,['checkout','--quiet','--detach',sourceCommit]);
+  await mkdir(path.join(canon,flowPath,'mb-upgrade'),{recursive:true});
+  await writeFile(path.join(canon,flowPath,'mb-upgrade/flow-descriptor.json'),JSON.stringify({schema_id:'dd-flow/flow-descriptor@1',id:'mb-upgrade',origin:'canon'}));
+  await writeFile(path.join(canon,flowPath,'target-only.md'),'Target guidance, not old project facts.');
+  await git(canon,['init','--quiet','--initial-branch=main']);const flowCommit=await commit(canon);
+  const checkpoint={value:{id:'upgrade-fixture',source:{repository:product,commit:sourceCommit},flow_pack:{repository:canon,commit:flowCommit,path:flowPath,delivery:'installed_canon'}}};
+  const flowSource=await prepareCanonicalFlowSource(canon,checkpoint,'mb-upgrade');
+  const output=path.join(root,'canonical');await mkdir(output);
+  const integrationBranch='fixture/integration';
+  const canonical=await materializeCanonicalInput({root:output,sourceProjectRoot:product,flowSource,inputCheckpoint:checkpoint,flowId:'mb-upgrade',integrationBranch});
+  const e2e=await prepareE2EInput({projectRoot:path.join(root,'e2e'),inputCheckpoint:checkpoint,flowId:'mb-upgrade',integrationBranch});
+  for(const directory of [canonical.project_root,e2e.project_root]) {
+    assert.equal(await readFile(path.join(directory,flowPath,'manifest.json'),'utf8'),oldManifest);
+    assert.equal(await readFile(path.join(directory,'.memory-bank/index.md'),'utf8'),oldFact);
+    assert.equal(await readlink(path.join(directory,flowPath,'decision-link')),'../defs/DEF-KEPT.md');
+    assert.equal((await stat(path.join(directory,flowPath,'custom.sh'))).mode&0o777,0o755);
+    assert.equal(await git(directory,['rev-parse','HEAD']),sourceCommit);assert.equal(await git(directory,['status','--porcelain']),'');
+    assert.equal(await git(directory,['branch','--show-current']),integrationBranch);
+    await assert.rejects(readFile(path.join(directory,flowPath,'target-only.md')),{code:'ENOENT'});
+    await assert.rejects(git(directory,['cat-file','-e',futureCommit]),{code:'command_failed'});
+  }
+  await assert.rejects(prepareCanonicalFlowSource(canon,checkpoint,'mb-init'),{code:'ENOENT'});
+  await rm(path.join(product,'.memory-bank'),{recursive:true});
+  await mkdir(path.join(root,'missing'));
+  await assert.rejects(materializeCanonicalInput({root:path.join(root,'missing'),sourceProjectRoot:product,flowSource,inputCheckpoint:checkpoint,flowId:'mb-upgrade'}),{code:'input_checkpoint_memory_missing'});
+});
 
 test('Memory canonical and E2E materialization preserve blank product bytes without a flow overlay', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'memory-input-'));

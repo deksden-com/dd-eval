@@ -1,0 +1,34 @@
+{
+  "id": "cp-mb-upgrade-authored-mature-e4-dev14",
+  "source": {
+    "repository": "test/fixtures/memory-upgrade/mature-v2.bundle",
+    "commit": "7f5fabdd0874935e8e6f6733c2ab5662cdaaee7b"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "a85ec01e24b5d797218bf25e56a042f1d28917fd",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.3-e4.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "1754ec8feb0f5dc41addfb52df59ffe33c4a46da",
+      "version": "0.9.0-beta.138-e4.14",
+      "artifact_sha256": "ae1b402da9920b2fca44451e41d44baabea7a448781108a64f2ab94763ca7eb1"
+    }
+  },
+  "baseline_flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "01aa693d12d7e36a0a3ebb0002333cad3ce77120",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "f9d25ae0e7b694fb5e5a7ff586be06aacb12c08f",
+      "version": "0.9.0-beta.137",
+      "artifact_sha256": "5d6ac6448a2ec176af781cbcc4b21631811f831848fa5e77619da0845e8c9f07"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
