@@ -1,0 +1,26 @@
+{
+  "schema_id": "dd-eval/check-proof-limit-regressions@1",
+  "cases": [
+    {
+      "id": "green-empty-layout",
+      "review_question": "Does green geometry prove the expected task surface was exercised?",
+      "source_facts": { "matched_elements": 0, "intersections": 0, "expectation": "expect(intersections).toEqual([])" },
+      "check": { "id": "browser-layout", "status": "passed", "exit_code": 0, "semantic_adequacy": true, "runner_evidence": { "completed": true, "counts": { "passed": 1, "failed": 0, "skipped": 0 }, "failures": [] } },
+      "expected_review": "Green receipt is mechanically valid but empty surface does not establish semantic layout coverage. Inspect the cited test/DOM evidence; do not manually repair the product."
+    },
+    {
+      "id": "six-passed-cleanup-unknown",
+      "review_question": "Did six passing tests make the check successful or establish a candidate assertion failure?",
+      "source_facts": { "native_outcome": "completed", "cleanup_error": { "code": "EPERM", "syscall": "kill" } },
+      "check": { "id": "browser", "status": "failed", "disposition": "settlement_required", "exit_code": 1, "runner_evidence": { "completed": false, "observation_unknown": true, "counts": { "passed": 6, "failed": 0, "skipped": 0 }, "failures": [{ "category": "tooling", "origin": "tooling", "phase": "teardown", "code": "cleanup_unconfirmed", "native_code": "EPERM", "message": "Owned process group settlement is unconfirmed", "diagnostic_artifact": { "relative_path": "runner-diagnostics-example.json", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" } }] } },
+      "expected_review": "Native tests passed, but cleanup is unknown and blocks success. This is not a product assertion and gives no product-repair authority."
+    },
+    {
+      "id": "prose-order-is-not-executable-prerequisite",
+      "review_question": "Did the sentence in purpose guarantee that migration ran before inspection?",
+      "source_facts": { "actual_order": ["db:check", "db:migrate"], "check_time": "2026-10-17T15:06:54Z", "migration_time": "2026-10-17T15:06:58Z" },
+      "check": { "id": "db-check", "status": "failed", "exit_code": 1, "purpose": "Run after the migration declared earlier", "prerequisites_satisfied": true, "runner_evidence": { "completed": false, "counts": { "passed": 0, "failed": 0, "skipped": 0 }, "failures": [{ "category": "unclassified", "origin": "unknown", "phase": "setup", "code": "DATABASE_OPERATION_FAILED" }] } },
+      "expected_review": "The actual order contradicts prose. Purpose has no execution authority; absence of a preserved SQL cause cannot prove a product defect. Use the self-contained guarded DB verification contract."
+    }
+  ]
+}
