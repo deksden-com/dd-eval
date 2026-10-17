@@ -75,6 +75,10 @@ verified private maintenance installation with `--maintenance-home <absolute>`
 and, if needed, `--maintenance-bin <absolute-cli>`. The old resource home stays
 bound; do not replace its engine, repair its DB, use `pkill` or kill by PID alone.
 Legacy unregistered owners still require scoped investigation, not name scans.
+The automatic barrier considers retained scope bindings/control runtimes only;
+an old unregistered journal is not a cleanup candidate or proof of settlement.
+Retained resource aliases bind their resolved target; changing that target blocks
+cleanup. New campaign resource paths must still be canonical.
 Preserve the original failure/verdict; cleanup never sends a productive prompt.
 
 If a historical pinned CLI cannot retire its failed native owner, use a checked
@@ -86,6 +90,9 @@ owner; never substitute a PID-only kill. Retain the stop receipt and verify exit
 `physical_stopped=true` permits a fresh isolated campaign after resource-conflict
 checks; `settled=false` still records unresolved native shutdown, not clean PASS
 or permission to resume/delete the old evidence.
+For legacy owners without provider registration, a verified maintenance engine
+may prove local exit across a host reboot. Keep `native_settled=false` and the
+original error; never rewrite daemon state or manufacture a clean shutdown.
 
 ## Database rules
 

@@ -1,0 +1,40 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "f679900f4c8198485fafe7943f1aa1d27c777cae02e840a6caa2dbb4ba7c0c29",
+  "verification_epoch": "58814d2dcff22fa3ddd978b464afaaf2fa922c7d3f0481f81c5216e87e945f8d",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_artifacts/cp233-legacy-retirement-final.OiPgjV/final-verification/installed-matrix/dd-flow-protocolize-T1lf9G/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_artifacts/cp233-legacy-retirement-final.OiPgjV/final-verification/installed-matrix/dd-flow-protocolize-T1lf9G/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_artifacts/cp233-legacy-retirement-final.OiPgjV/final-verification/installed-matrix/dd-flow-protocolize-T1lf9G/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_artifacts/cp233-legacy-retirement-final.OiPgjV/final-verification/installed-matrix/dd-flow-protocolize-T1lf9G/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "86e879992bc351f7987cc597cd2bf7d8c99a686fdc2e1065158a260a48933761",
+  "before_fingerprint": "86e879992bc351f7987cc597cd2bf7d8c99a686fdc2e1065158a260a48933761",
+  "after_fingerprint": "86e879992bc351f7987cc597cd2bf7d8c99a686fdc2e1065158a260a48933761",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-17T10:14:39.484Z",
+  "finished_at": "2026-10-17T10:14:39.546Z",
+  "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/cp233-legacy-retirement-final.OiPgjV/final-verification/installed-matrix/dd-flow-protocolize-T1lf9G/project",
+  "candidate_files": [],
+  "execution_failures": []
+}

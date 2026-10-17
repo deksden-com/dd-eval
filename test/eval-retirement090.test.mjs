@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import os from "node:os";
-import { mkdtemp, mkdir, readFile, readdir, writeFile, rm, realpath, symlink, rename } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, readdir, writeFile, rm, realpath, symlink, rename, unlink } from "node:fs/promises";
 import { cleanupBinding, cleanupInventory, maintenanceEnvironment, retireEval, withPriorEvalRetirement } from "../lib/eval-retirement.mjs";
 import { requestRunnerContinuation } from "../lib/eval-resume-worker.mjs";
 import { appendEvent, hashJson, sha256, writeJsonAtomic } from "../lib/runner-events.mjs";
@@ -125,6 +125,58 @@ test("prelaunch fence covers changed resource homes, revalidates and blocks unkn
   let count = 0;
   await assert.rejects(withPriorEvalRetirement(options, () => actionCalls++, { discover: async () => ++count === 1 ? [] : [candidate], call }), { code: "prior_cleanup_pending" });
   assert.equal(actionCalls, 0);
+});
+
+test("retained shared resource aliases retire only their canonical scope without rewriting the manifest", async t => {
+  const f = await fixture(t), alias = path.join(f.temp, "shared-resource-alias"), next = path.join(f.temp, "next-resources");
+  await symlink(f.resource, alias);
+  f.manifest.runtime_resource_home = alias;
+  await writeJsonAtomic(path.join(f.root, "manifest.json"), f.manifest);
+  await writeFile(path.join(f.root, "events.jsonl"), "");
+  for (const phase of ["started", "failed"]) await appendEvent(path.join(f.root, "events.jsonl"), { source: "dd-eval://runner", runId: "EVAL-test", executionId: "e2e", type: `dev.dd.eval.operation.${phase}`, data: { operation_id: "EVAL-test:e2e:launch", error: { code: "fixture_failure" } } });
+  const journal = await readFile(path.join(f.root, "events.jsonl"), "utf8");
+  let admitted = 0;
+  await withPriorEvalRetirement({ caseId: "fixture", resourceHome: next }, () => admitted++, {
+    discover: async () => [{ root: f.root, manifest: f.manifest }],
+    call: async (_bin, args, options) => {
+      assert.equal(options.env.DD_FLOW_RESOURCE_HOME, f.resource);
+      return args[2] === "status" ? { scope_id: "EVAL-test", processes: [], provider_turns: [] }
+        : { scope_id: "EVAL-test", physical_stopped: true, settled: true, nodes: [] };
+    }
+  });
+  assert.equal(admitted, 1);
+  assert.equal(JSON.parse(await readFile(path.join(f.root, "manifest.json"))).runtime_resource_home, alias);
+  assert.equal(await readFile(path.join(f.root, "events.jsonl"), "utf8"), journal);
+});
+
+test("retargeting a retained alias cannot reuse its cleanup intent to stop another registry", async t => {
+  const f = await fixture(t), alias = path.join(f.temp, "alias"), foreign = path.join(f.temp, "foreign");
+  await mkdir(foreign); await symlink(f.resource, alias);
+  f.manifest.runtime_resource_home = alias;
+  const bytes = JSON.stringify(f.manifest); await writeFile(path.join(f.root, "manifest.json"), bytes);
+  const binding = await cleanupBinding(f.root, f.manifest);
+  const intent = { ...f.intent, manifest_sha256: sha256(bytes), target_binding_digest: hashJson(binding) };
+  await unlink(alias); await symlink(foreign, alias);
+  let stops = 0;
+  await assert.rejects(retireEval({ evalRoot: f.root, intent, call: async (_bin, args) => {
+    if (args[2] !== "status") stops++;
+    return { scope_id: "EVAL-test", processes: [], provider_turns: [] };
+  } }), { code: "control_request_conflict" });
+  assert.equal(stops, 0);
+});
+
+test("prelaunch rejects a changed retained alias even when both target registries are already locked", async t => {
+  const f = await fixture(t), alias = path.join(f.temp, "alias"), foreign = path.join(f.temp, "foreign");
+  await mkdir(foreign); await symlink(f.resource, alias);
+  f.manifest.runtime_resource_home = alias;
+  let discoveries = 0, calls = 0, admissions = 0;
+  await assert.rejects(withPriorEvalRetirement({ caseId: "fixture", resourceHome: foreign }, () => admissions++, {
+    discover: async () => {
+      if (++discoveries === 2) { await unlink(alias); await symlink(foreign, alias); }
+      return [{ root: f.root, manifest: f.manifest }];
+    }, call: async () => { calls++; }
+  }), { code: "prior_cleanup_pending" });
+  assert.equal(calls, 0); assert.equal(admissions, 0);
 });
 
 test("prelaunch validates symlink boundaries before creating lock directories", async t => {

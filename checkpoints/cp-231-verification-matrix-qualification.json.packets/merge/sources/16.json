@@ -1,0 +1,40 @@
+{
+  "id": "WRK-006-merge/RCP-003",
+  "local_id": "RCP-003",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-NEW",
+    "PRT-001-task-priority/CHK-P1-TEST",
+    "PRT-001-task-priority/CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "e9ae099128ae1c83bafb7dea47b8119f33c5678047c574a5eb598a2e2f0f24d7",
+  "verification_epoch": "bb9bfac88a6766f9092e61c337cdd0882067552a003a36d02347238573ff26f0",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-231-verification-matrix/dd-flow-protocolize-heDGhn/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-231-verification-matrix/dd-flow-protocolize-heDGhn/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-231-verification-matrix/dd-flow-protocolize-heDGhn/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-231-verification-matrix/dd-flow-protocolize-heDGhn/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "97c1ab9290a206f5b6d45a2a6b5fd7584f3f549ea676c655715a39eb87392026",
+  "before_fingerprint": "97c1ab9290a206f5b6d45a2a6b5fd7584f3f549ea676c655715a39eb87392026",
+  "after_fingerprint": "97c1ab9290a206f5b6d45a2a6b5fd7584f3f549ea676c655715a39eb87392026",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-17T08:20:22.497Z",
+  "finished_at": "2026-10-17T08:20:22.564Z",
+  "candidate_root": "/Users/deksden/.dd-eval/qualification/cp-231-verification-matrix/dd-flow-protocolize-heDGhn/project",
+  "candidate_files": [],
+  "execution_failures": []
+}

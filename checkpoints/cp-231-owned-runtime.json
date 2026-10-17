@@ -1,0 +1,34 @@
+{
+  "id": "cp-231-owned-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "f36145464688040a81fd218520b1426710091e79",
+    "tag": "eval/plan-088-clean-isolation"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-231-verification-matrix-qualification.json",
+      "sha256": "b4e093f22cb264ebaab87b771413db05108dd2a63b03ea96a219203ed233ab92",
+      "canon_commit": "1ddedf9d3f086e046f8e7b194c739ec386e7c8b9"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "bf550ff8ffdc8ce96dac783d0cfb0000a3b83e74",
+      "version": "0.9.0-beta.139",
+      "artifact_sha256": "4e9d55d56e1949ca1730ed3cad5c50953b5db7672bbfb234f5e6d0655940aeb5"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Pinned product source unchanged from CP230; beta.139 release gate and installed matrix publication passed.",
+    "world_isolation": "Retained CP230 product isolation contract; per-execution baseline remains mandatory.",
+    "baseline": "Each scored execution must run its own full baseline before Subject dispatch."
+  }
+}

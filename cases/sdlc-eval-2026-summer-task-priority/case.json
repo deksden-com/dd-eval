@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-230-isolated-world-observation",
-    "sha256": "96c3ff9bb3bcc28237daa178bd4bbfbbe3a38051d4b6fa3f90f47afb31bb8887"
+    "id": "cp-233-final-runtime",
+    "sha256": "97d410c93c7b232af5b1b90be0720032dc4661f878687b8730251fe99b344ab6"
   },
   "entry_pack": null,
   "hitl_qualification": {
