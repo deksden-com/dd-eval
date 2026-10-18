@@ -1,0 +1,34 @@
+{
+  "id": "cp-236-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "c92bb80240c98eb10d2e7a2626bef4778ea800b1",
+    "tag": "eval/plan-091-native-trace"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-236-final-installed-matrix-qualification.json",
+      "sha256": "fa69fd8b75101d9b7f48a2d3df36b4346bfe22ee5c2e2c9863be89e0cf6227ed",
+      "canon_commit": "1ddedf9d3f086e046f8e7b194c739ec386e7c8b9"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "a5b068e5cc52809ac0ea0687e40a49f9379bb198",
+      "version": "0.9.0-beta.142",
+      "artifact_sha256": "07281dd85f5b6e4c75a1bbd7deafb602b6d8c5e4795e8acea1ffac1d8f7dab03"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Normalized OpenCode readiness, fresh fenced retirement-proof reuse and bounded no-effect confirmation on held command startup; product baseline unchanged.",
+    "world_isolation": "Per-execution isolated test worlds and cleanup receipts.",
+    "baseline": "Each scored execution runs its own full baseline before Subject dispatch."
+  }
+}
