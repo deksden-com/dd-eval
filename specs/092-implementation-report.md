@@ -36,11 +36,17 @@ No scored EVAL, release, global installation or historical runtime was changed.
 - New accepted-source contracts could be omitted from the frozen matrix:
   independently reconstruct the exact inventory from frozen SQL Stage packets.
 - Scoped artifact metadata now agrees with frozen SQL, not only receipt JSON.
+- The E3 source-reference regression still expected three proof files. It now
+  checks the exact receipt/completion/input-manifest/declared-artifact inventory;
+  the added manifest is not silently ignored or accepted by count alone.
+- Canon schema mirrors and exact reviewed source inventory were synchronized;
+  shared prompt/schema parity is verified rather than waived.
 
 ## Source references
 
-- Engine candidate: `ec2d85a618d92a2147c58afc62ba6369c449caf0`.
-- Canon candidate: `7c97f36`.
+- Engine candidate: `08427dd4` (runtime implementation `ec2d85a6`, final commit
+  updates the E3 expectation for the new scoped manifest).
+- Canon candidate: `a1cfe8b06329c691c314064b6ea6a3da6628cceb`.
 - Task check policy: `1c728b32700d4a09565d2dd4adc7d4e132ba0821`, integrated
   into `deksden-com/dd-tasks` main. No product files changed.
 - EVAL runtime changes: `a40d577`, `2387952`, `bcc6901`.
