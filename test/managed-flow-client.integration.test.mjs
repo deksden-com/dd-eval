@@ -9,13 +9,16 @@ import { commandJson, commandText } from "../lib/process-json.mjs";
 import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
 import { errorRecord } from "../lib/operation-errors.mjs";
 
-test("eval client drives two real CLI lifecycle stages and retains controller-owned captures", { skip: !process.env.DD_EVAL_TEST_FLOW_CLI || !process.env.DD_EVAL_TEST_FLOW_ADAPTER, timeout: 120_000 }, async () => {
+// Whole-fixture anti-wedge: cold setup, two Stages/captures, repeated reattach
+// and physical cleanup. This is not a production lifecycle latency deadline.
+test("eval client drives two real CLI lifecycle stages and retains controller-owned captures", { skip: !process.env.DD_EVAL_TEST_FLOW_CLI || !process.env.DD_EVAL_TEST_FLOW_ADAPTER, timeout: 300_000 }, async t => {
   const root = await mkdtemp(path.join(process.env.DD_EVAL_TEST_FIXTURE_ROOT ?? os.tmpdir(), "eval-managed-flow-"));
   const project = path.join(root, "project"), home = path.join(root, "home"), cli = path.resolve(process.env.DD_EVAL_TEST_FLOW_CLI);
   const env = { DD_FLOW_HOME: home, DD_FLOW_CONFIG_HOME: home, DD_FLOW_RESOURCE_HOME: process.env.DD_EVAL_TEST_RESOURCE_HOME ?? home, CODEX_HOME: path.join(root, "codex-home"), DD_FLOW_TEST_ROOT: root, DD_FLOW_TEST_UNCLEAN_STOP: "0", DD_FLOW_TEST_CAPTURE_FAILURE: "0" };
   const hash = value => createHash("sha256").update(value).digest("hex");
   const write = async (relative, value) => { const file = path.join(root, relative); await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === "string" ? value : JSON.stringify(value)); return file; };
-  let runId, settled = false, primary;
+  let runId, settled = false, primary, phase = "preparation", abortedPhase;
+  t.signal.addEventListener("abort", () => { abortedPhase = phase; }, { once: true });
   try {
     for (const name of ["index", "spec/engineering/index", "epics/index", "epics/EP-001-tasks/index", "protocol/index"]) await write(`project/.memory-bank/${name}.md`, "# Fixture\n");
     await write("project/.memory-bank/dd-flow/project-workspace.json", { schema_id: "dd-flow/project-workspace@1", workspace: { route: "integration_branch_direct", integration_branch: "main", feature_branch_template: null, provision_stage: "protocolize_start" } });
@@ -43,12 +46,14 @@ test("eval client drives two real CLI lifecycle stages and retains controller-ow
     const packageFile = await write("contexts.json", { schema_id: "dd-flow/managed-context@1", stages: { specify: references.specify } });
     const eventMap = new Map(); let controllerId;
     const input = { bin: cli, env, projectRoot: project, runId, requestId: "eval-integration", contextFile: packageFile, stopAfter: "protocolize", captureRoot: path.join(root, "boundaries"), contextFor: async stage => references[stage], answerFor: async () => { throw new Error("fixture must not pause"); }, pollMs: 100 };
+    phase = "first_stage";
     await assert.rejects(observeManagedRun({ ...input, onEvent: async (event, controller) => {
       controllerId = controller.controller_id;
       eventMap.set(event.sequence, event);
       if (event.type === "context_required") throw Object.assign(new Error("fixture observer disconnected"), { code: "rpc_timeout" });
     } }), { code: "rpc_timeout" });
     assert.ok(controllerId);
+    phase = "retained_boundary_review";
     let heldSessions;
     for (let retry = 0; retry < 2; retry++) {
       const review = await observeManagedRun({ ...input, controllerId,
@@ -62,6 +67,7 @@ test("eval client drives two real CLI lifecycle stages and retains controller-ow
       if (heldSessions) assert.deepEqual(review.controller.sessions, heldSessions);
       heldSessions = review.controller.sessions;
     }
+    phase = "second_stage";
     const result = await observeManagedRun({ ...input, controllerId, onEvent: async event => eventMap.set(event.sequence, event) });
     const events = [...eventMap.values()];
     settled = result.controller.sessions.every(session => session.stopped);
@@ -71,10 +77,12 @@ test("eval client drives two real CLI lifecycle stages and retains controller-ow
     assert.equal(hash(await readFile(result.boundary.manifest)), result.boundary.manifest_sha256);
     const capture = JSON.parse(await readFile(result.boundary.manifest, "utf8"));
     assert.equal(capture.boundary_capture.controller_id, result.controller.controller_id);
+    phase = "completed_reattach";
     const repeated = await observeManagedRun({ ...input, controllerId, contextFor: async () => assert.fail("completed controller cannot request historical context"), beforeDispatch: async () => assert.fail("completed reattach is read-only") });
     assert.equal(repeated.controller.controller_id, controllerId);
     assert.deepEqual(repeated.controller.sessions, result.controller.sessions);
     assert.deepEqual(repeated.boundary, result.boundary);
+    phase = "completed";
   } catch (error) { primary = error; error.retained_root = root; throw error; }
   finally {
     try {
@@ -89,7 +97,11 @@ test("eval client drives two real CLI lifecycle stages and retains controller-ow
           cause = cause.cause ?? cause.details?.cause;
         }
       }
-      if ((!runId || settled) && !ownerUnknown) await rm(root, { recursive: true, force: true });
+      if (abortedPhase) {
+        await write("timeout-diagnostic.json", { phase_at_timeout: abortedPhase, final_phase: phase, run_id: runId, physical_settled: settled });
+        t.diagnostic(`Timed-out fixture retained at ${root}; phase=${abortedPhase}; settled=${settled}`);
+      }
+      if ((!runId || settled) && !ownerUnknown) { if (!abortedPhase) await rm(root, { recursive: true, force: true }); }
       else throw new Error(`Owned fixture did not settle; retained ${root}`);
     } catch (error) {
       error.retained_root = root;

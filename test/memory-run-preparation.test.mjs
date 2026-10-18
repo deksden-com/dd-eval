@@ -105,7 +105,9 @@ for(const flowId of ['mb-init','mb-upgrade']) test(`${flowId} case preparation b
     await assert.rejects(readFile(calls), { code: 'ENOENT' });
   }
   assert.equal((await prepareCaseManagedRun(input)).run_id, 'RUN-memory');
-  assert.deepEqual((await readFile(setupCalls,'utf8')).trim().split('\n'),flowId==='mb-init'?['setup']:['setup','setup','register']);
+  // Public upgrade owns registration after preparing both stores. An early
+  // register creates only the RUN DB and breaks a cold resource Home.
+  assert.deepEqual((await readFile(setupCalls,'utf8')).trim().split('\n'),flowId==='mb-init'?['setup']:['setup','setup']);
   const args = JSON.parse(await readFile(calls)), option = key => args[args.indexOf(`--${key}`)+1];
   assert.equal(args[0], flowId==='mb-init'?'init':'upgrade'); assert.equal(option('intake-file'), intakeFile); assert.equal(option('intake-sha256'), sha);
   assert.equal(option('workspace-root'), projectRoot); assert.equal(option('integration-branch'), 'main');

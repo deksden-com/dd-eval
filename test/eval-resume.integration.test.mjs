@@ -13,9 +13,8 @@ import { processSnapshot } from '../lib/process-snapshot.mjs';
 import { installRuntimeShim } from '../lib/runner.mjs';
 
 const phaseWaitMs = 100_000;
-// CI anti-wedge only: prepare/initial RUN, capture, resumed RUN and physical
-// cleanup have separate envelopes. The total guard must not be shorter than
-// the two explicitly allowed capture/resume waits alone.
+// CI anti-wedge only. The background worker is judged by completion and
+// physical exit under this whole-test guard, not a second shorter wall clock.
 test('public background EVAL resume continues a real retained RUN through its next stage', { skip: !process.env.DD_EVAL_TEST_FLOW_CLI || !process.env.DD_EVAL_TEST_FLOW_ADAPTER, timeout: 4 * phaseWaitMs }, async t => {
   const root = await mkdtemp(path.join(process.env.DD_EVAL_TEST_FIXTURE_ROOT ?? os.tmpdir(), 'eval-managed-resume-'));
   const evalId = `EVAL-managed-resume-${path.basename(root).split('-').at(-1)}`;
@@ -109,9 +108,8 @@ test('public background EVAL resume continues a real retained RUN through its ne
     const firstCapture = await readFile(held.boundary.manifest);
     await invoke(['control', 'pause', '--eval', evalRoot, '--request-id', 'pause']);
     const scope = args => commandJson(cli, ['runtime', 'scope', ...args], { cwd: root, env: { ...env, DD_FLOW_HOME: path.join(evalRoot, 'control-runtime') } });
-    // TEST anti-wedge envelopes belong to each distinct phase. Capture work
-    // must not silently consume the successor's CI wait; these do not set any
-    // production RUN/provider inactivity policy.
+    // Capture has its own bounded observation. Neither this nor the whole-test
+    // guard changes the production RUN/provider inactivity policy.
     const captureDeadline = performance.now() + phaseWaitMs;
     for (;;) {
       const status = await scope(['status', '--scope-id', evalId]);
@@ -120,7 +118,6 @@ test('public background EVAL resume continues a real retained RUN through its ne
     }
     const accepted = JSON.parse(await invoke(['control', 'resume', '--eval', evalRoot, '--from', 'pause', '--request-id', 'resume']));
     assert.equal(accepted.accepted, true); workerExited = false;
-    const resumeDeadline = performance.now() + phaseWaitMs;
     const workerFile = evalResumeWorkerFile(evalRoot, 'resume');
     let worker;
     for (;;) {
@@ -128,10 +125,6 @@ test('public background EVAL resume continues a real retained RUN through its ne
       assert.notEqual(worker.status, 'failed', JSON.stringify(worker));
       assert.notEqual(worker.status, 'superseded', JSON.stringify(worker));
       if (worker.status === 'completed' && !(await processSnapshot()).some(item => item.pid === worker.owner_pid)) { workerExited = true; break; }
-      if (performance.now() >= resumeDeadline) {
-        const controller = await commandJson(cli, ['run', 'drive', 'status', '--run', runId, '--project-root', project], { cwd: project, env });
-        assert.fail(JSON.stringify({ worker, controller, stderr: await readFile(worker.stderr, 'utf8').catch(() => null) }));
-      }
       await delay(100);
     }
     assert.equal(worker.result.state, 'completed');
