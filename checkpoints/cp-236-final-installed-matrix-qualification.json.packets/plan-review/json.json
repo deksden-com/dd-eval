@@ -70,7 +70,7 @@
     "project_id": "PRJ-001-project",
     "role": "output",
     "run_id": "RUN-001-tasks",
-    "source_fingerprint": "5c83aa88dd248c1b73b9de6d6367774a41c25d8aa8cd17053e2b9f42ca9f1fa0",
+    "source_fingerprint": "3734d751a85adb7440aa3c3f5b3bb46d10200b51e6891149ea850eee108a235b",
     "stage": "plan-review",
     "stage_attempt": "try-001"
   },
@@ -121,7 +121,7 @@
       "path": "02-protocolize/stage-report.json",
       "role": "protocolize_report",
       "root": "run",
-      "sha256": "f95db1ac96de20e32719faa31fe67fa2ba661efc39b260c856f73a72f8f27e2d"
+      "sha256": "f75cb2f5d1b8cb58a7857850843d0ccb3be1381f29481f1418ea6be5929cc942"
     },
     {
       "path": "04-plan-review/decision.json",

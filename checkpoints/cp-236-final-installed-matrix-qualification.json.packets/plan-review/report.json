@@ -2,7 +2,7 @@
   "schema_id": "dd-flow/stage-report@2",
   "run_id": "RUN-001-tasks",
   "stage": "plan-review",
-  "generated_at": "2026-10-18T09:49:40.617Z",
+  "generated_at": "2026-10-18T10:23:26.914Z",
   "verdict": "done",
   "semantic": {
     "result": "Independent PLAN review accepted the plan.",
@@ -85,30 +85,30 @@
       "contract": "dd-flow/verification-matrix@1",
       "role": "output",
       "completeness": "declared",
-      "source_fingerprint": "5c83aa88dd248c1b73b9de6d6367774a41c25d8aa8cd17053e2b9f42ca9f1fa0",
+      "source_fingerprint": "3734d751a85adb7440aa3c3f5b3bb46d10200b51e6891149ea850eee108a235b",
       "json": {
-        "path": "04-plan-review/verification/5c83aa88dd248c1b73b9de6d6367774a41c25d8aa8cd17053e2b9f42ca9f1fa0/verification-matrix.json",
-        "sha256": "9f3d170196cc5574caa40f77581fabc881ebc3960230a2afd95d6a26002fe474"
+        "path": "04-plan-review/verification/3734d751a85adb7440aa3c3f5b3bb46d10200b51e6891149ea850eee108a235b/verification-matrix.json",
+        "sha256": "c5e9ec208b24caf44a3042eafbb2b5613e0e509c61bad39183ca7c117cd61fe5"
       },
       "markdown": {
-        "path": "04-plan-review/verification/5c83aa88dd248c1b73b9de6d6367774a41c25d8aa8cd17053e2b9f42ca9f1fa0/verification-matrix.md",
-        "sha256": "9563473ece3f1138c8f21add88dcf6bcdbd7b52908795587f2e793326321fd06"
+        "path": "04-plan-review/verification/3734d751a85adb7440aa3c3f5b3bb46d10200b51e6891149ea850eee108a235b/verification-matrix.md",
+        "sha256": "3fa34ede64612e115c48d8acd40e2e7b7909672313b9f3970c1add60f31dc3f5"
       },
       "coverage_contract": "dd-flow/final-check-coverage@1"
     }
   },
   "mechanical": {
-    "started_at": "2026-10-18T09:49:33.751Z",
-    "finished_at": "2026-10-18T09:49:40.617Z",
-    "wall_clock_ms": 6866,
+    "started_at": "2026-10-18T10:23:23.011Z",
+    "finished_at": "2026-10-18T10:23:26.914Z",
+    "wall_clock_ms": 3903,
     "git": {
       "branch": "main",
-      "head": "7584cc029664077447e0b474515aaa7715b3b989",
+      "head": "da47107270f215d9a595765411de32394218598b",
       "status": "dirty"
     },
-    "session_stats_command": "DD_FLOW_HOME=\"/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/home\" \"/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/home/bin/dd-flow\" stat run sessions ls --run RUN-001-tasks --project-root \"/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/project\" --json",
-    "usage_stats_command": "DD_FLOW_HOME=\"/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/home\" \"/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/home/bin/dd-flow\" stat usage --run RUN-001-tasks --project-root \"/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/project\" --json",
-    "next_command": "DD_FLOW_HOME=\"/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/home\" \"/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/home/bin/dd-flow\" stage start RUN-001-tasks --stage code --project-root \"/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/project\" --json"
+    "session_stats_command": "DD_FLOW_HOME=\"/Users/deksden/Documents/_Projects/_artifacts/cp236-release-verified.D3GqAV/installed-matrix/dd-flow-protocolize-zACfiI/home\" \"/Users/deksden/Documents/_Projects/_artifacts/cp236-release-verified.D3GqAV/installed-matrix/dd-flow-protocolize-zACfiI/home/bin/dd-flow\" stat run sessions ls --run RUN-001-tasks --project-root \"/Users/deksden/Documents/_Projects/_artifacts/cp236-release-verified.D3GqAV/installed-matrix/dd-flow-protocolize-zACfiI/project\" --json",
+    "usage_stats_command": "DD_FLOW_HOME=\"/Users/deksden/Documents/_Projects/_artifacts/cp236-release-verified.D3GqAV/installed-matrix/dd-flow-protocolize-zACfiI/home\" \"/Users/deksden/Documents/_Projects/_artifacts/cp236-release-verified.D3GqAV/installed-matrix/dd-flow-protocolize-zACfiI/home/bin/dd-flow\" stat usage --run RUN-001-tasks --project-root \"/Users/deksden/Documents/_Projects/_artifacts/cp236-release-verified.D3GqAV/installed-matrix/dd-flow-protocolize-zACfiI/project\" --json",
+    "next_command": "DD_FLOW_HOME=\"/Users/deksden/Documents/_Projects/_artifacts/cp236-release-verified.D3GqAV/installed-matrix/dd-flow-protocolize-zACfiI/home\" \"/Users/deksden/Documents/_Projects/_artifacts/cp236-release-verified.D3GqAV/installed-matrix/dd-flow-protocolize-zACfiI/home/bin/dd-flow\" stage start RUN-001-tasks --stage code --project-root \"/Users/deksden/Documents/_Projects/_artifacts/cp236-release-verified.D3GqAV/installed-matrix/dd-flow-protocolize-zACfiI/project\" --json"
   },
   "artifacts": {
     "json": "stage-report.json",

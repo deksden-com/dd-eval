@@ -13,14 +13,14 @@
     "verification_matrix": {
       "contract": "dd-flow/verification-matrix@1",
       "file": "cp-236-final-installed-matrix-qualification.json",
-      "sha256": "de863efa62caf9be076093c65504ffbc0bc4479eb91eda6496a865e63123ea5e",
+      "sha256": "fa69fd8b75101d9b7f48a2d3df36b4346bfe22ee5c2e2c9863be89e0cf6227ed",
       "canon_commit": "1ddedf9d3f086e046f8e7b194c739ec386e7c8b9"
     },
     "engine": {
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
-      "commit": "9564a980fe1973fba62465e62d20e4ac2cfe54e3",
+      "commit": "a5b068e5cc52809ac0ea0687e40a49f9379bb198",
       "version": "0.9.0-beta.142",
-      "artifact_sha256": "2be21ab89835e881b528fd17ccec22328ec57684dda3802e35db4285d79030a5"
+      "artifact_sha256": "07281dd85f5b6e4c75a1bbd7deafb602b6d8c5e4795e8acea1ffac1d8f7dab03"
     }
   },
   "state": "candidate_pending_preflight",

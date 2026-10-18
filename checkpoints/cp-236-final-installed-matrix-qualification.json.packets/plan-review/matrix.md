@@ -24,6 +24,6 @@ This generated view is not semantic acceptance. A retained passed check proves o
 - code_work_batch: run:04-plan-review/verification/sources/77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da/code-work-batch.json (77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da)
 - plan:PRT-001-task-priority: run:04-plan-review/verification/sources/aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7/plan.json (aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7)
 - protocolize: run:02-protocolize/protocolize-result.json (e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead)
-- protocolize_report: run:02-protocolize/stage-report.json (f95db1ac96de20e32719faa31fe67fa2ba661efc39b260c856f73a72f8f27e2d)
+- protocolize_report: run:02-protocolize/stage-report.json (f75cb2f5d1b8cb58a7857850843d0ccb3be1381f29481f1418ea6be5929cc942)
 - semantic_assessment: run:04-plan-review/decision.json (492846573f426109bdb030918167f4435992308fed97b2aa06021c338d83d321)
 - specify: run:01-specify/specify.json (00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa)

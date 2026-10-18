@@ -19,11 +19,11 @@
           "disposition": "retained",
           "id": "CHK-P1-TEST",
           "result": {
-            "after_fingerprint": "bcef5e4fd91b1bf22bb8fa08c8c5b4e11a6053cea2985b8367b3256f9ef4769c",
+            "after_fingerprint": "245b2b97243148c98ce814b2751c84d85cf8e13bf020d77a120c56fd6bc54f7f",
             "artifacts": [],
-            "before_fingerprint": "bcef5e4fd91b1bf22bb8fa08c8c5b4e11a6053cea2985b8367b3256f9ef4769c",
+            "before_fingerprint": "245b2b97243148c98ce814b2751c84d85cf8e13bf020d77a120c56fd6bc54f7f",
             "candidate_files": [],
-            "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/project",
+            "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/cp236-release-verified.D3GqAV/installed-matrix/dd-flow-protocolize-zACfiI/project",
             "check_refs": [
               "CHK-NEW",
               "CHK-P1-TEST",
@@ -34,10 +34,10 @@
             "declaration_id": "CHK-NEW",
             "execution_failures": [],
             "exit_code": 0,
-            "finished_at": "2026-10-18T09:49:49.299Z",
+            "finished_at": "2026-10-18T10:23:31.528Z",
             "gate": "readiness",
             "id": "RUN-001-tasks/RCP-002",
-            "input_hash": "4f17626f18e5da6134c168620542b90ea34b1b1b8d0678df79e3e64c0984a3c5",
+            "input_hash": "b188534d34b61d9d65b5ff8819e35d6b663eefba69bc96e7ffdd7241acaa2fb2",
             "inputs": [],
             "local_id": "RCP-002",
             "mutation_paths": [],
@@ -50,13 +50,13 @@
             "retry_of_receipt_id": null,
             "retry_reason": null,
             "scope": "aggregate",
-            "started_at": "2026-10-18T09:49:48.970Z",
+            "started_at": "2026-10-18T10:23:31.297Z",
             "status": "passed",
             "stderr_path": "05-code/checks/RCP-002/stderr.log",
             "stdout_path": "05-code/checks/RCP-002/stdout.log",
-            "verification_epoch": "e0195b1081a7e335d97a5b85ee597be882fd48e99aa0baf8b110afa81fdcf58c",
+            "verification_epoch": "7437f4769e43dd7967989a6a210d45ab72c9a9590263d4762ea8407a54760af4",
             "work_id": null,
-            "workspace_fingerprint": "bcef5e4fd91b1bf22bb8fa08c8c5b4e11a6053cea2985b8367b3256f9ef4769c"
+            "workspace_fingerprint": "245b2b97243148c98ce814b2751c84d85cf8e13bf020d77a120c56fd6bc54f7f"
           }
         },
         {
@@ -72,11 +72,11 @@
           "disposition": "retained",
           "id": "CHK-READY",
           "result": {
-            "after_fingerprint": "bcef5e4fd91b1bf22bb8fa08c8c5b4e11a6053cea2985b8367b3256f9ef4769c",
+            "after_fingerprint": "245b2b97243148c98ce814b2751c84d85cf8e13bf020d77a120c56fd6bc54f7f",
             "artifacts": [],
-            "before_fingerprint": "bcef5e4fd91b1bf22bb8fa08c8c5b4e11a6053cea2985b8367b3256f9ef4769c",
+            "before_fingerprint": "245b2b97243148c98ce814b2751c84d85cf8e13bf020d77a120c56fd6bc54f7f",
             "candidate_files": [],
-            "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/project",
+            "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/cp236-release-verified.D3GqAV/installed-matrix/dd-flow-protocolize-zACfiI/project",
             "check_refs": [
               "CHK-NEW",
               "CHK-P1-TEST",
@@ -87,10 +87,10 @@
             "declaration_id": "CHK-NEW",
             "execution_failures": [],
             "exit_code": 0,
-            "finished_at": "2026-10-18T09:49:49.299Z",
+            "finished_at": "2026-10-18T10:23:31.528Z",
             "gate": "readiness",
             "id": "RUN-001-tasks/RCP-002",
-            "input_hash": "4f17626f18e5da6134c168620542b90ea34b1b1b8d0678df79e3e64c0984a3c5",
+            "input_hash": "b188534d34b61d9d65b5ff8819e35d6b663eefba69bc96e7ffdd7241acaa2fb2",
             "inputs": [],
             "local_id": "RCP-002",
             "mutation_paths": [],
@@ -103,13 +103,13 @@
             "retry_of_receipt_id": null,
             "retry_reason": null,
             "scope": "aggregate",
-            "started_at": "2026-10-18T09:49:48.970Z",
+            "started_at": "2026-10-18T10:23:31.297Z",
             "status": "passed",
             "stderr_path": "05-code/checks/RCP-002/stderr.log",
             "stdout_path": "05-code/checks/RCP-002/stdout.log",
-            "verification_epoch": "e0195b1081a7e335d97a5b85ee597be882fd48e99aa0baf8b110afa81fdcf58c",
+            "verification_epoch": "7437f4769e43dd7967989a6a210d45ab72c9a9590263d4762ea8407a54760af4",
             "work_id": null,
-            "workspace_fingerprint": "bcef5e4fd91b1bf22bb8fa08c8c5b4e11a6053cea2985b8367b3256f9ef4769c"
+            "workspace_fingerprint": "245b2b97243148c98ce814b2751c84d85cf8e13bf020d77a120c56fd6bc54f7f"
           }
         }
       ],
@@ -148,7 +148,7 @@
     "project_id": "PRJ-001-project",
     "role": "output",
     "run_id": "RUN-001-tasks",
-    "source_fingerprint": "166ad32cbfcbb7b31e52ddfab9f0d79098ce56956d4d8ec69ae348faf791e27d",
+    "source_fingerprint": "b72043c1d516a5de26aaebc43803fca16dc980c75b76b1f38ec39dc0e416e4f8",
     "stage": "code",
     "stage_attempt": "try-001"
   },
@@ -189,19 +189,19 @@
       "path": "05-code/checks/RCP-002/completion.json",
       "role": "completion:PRT-001-task-priority/CHK-NEW",
       "root": "run",
-      "sha256": "e521fa470dcca2b34e89d314bd4ce0a504b96f5f0873ce31af2924c4d6eb282a"
+      "sha256": "c4136c21a11c32b440849d1b7446fc55e617d08e4e9358db93332724e65c7cb7"
     },
     {
       "path": "05-code/checks/RCP-002/completion.json",
       "role": "completion:PRT-001-task-priority/CHK-P1-TEST",
       "root": "run",
-      "sha256": "e521fa470dcca2b34e89d314bd4ce0a504b96f5f0873ce31af2924c4d6eb282a"
+      "sha256": "c4136c21a11c32b440849d1b7446fc55e617d08e4e9358db93332724e65c7cb7"
     },
     {
       "path": "05-code/checks/RCP-002/completion.json",
       "role": "completion:PRT-001-task-priority/CHK-READY",
       "root": "run",
-      "sha256": "e521fa470dcca2b34e89d314bd4ce0a504b96f5f0873ce31af2924c4d6eb282a"
+      "sha256": "c4136c21a11c32b440849d1b7446fc55e617d08e4e9358db93332724e65c7cb7"
     },
     {
       "path": "05-code/verification/sources/aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7/plan.json",
@@ -219,25 +219,25 @@
       "path": "02-protocolize/stage-report.json",
       "role": "protocolize_report",
       "root": "run",
-      "sha256": "f95db1ac96de20e32719faa31fe67fa2ba661efc39b260c856f73a72f8f27e2d"
+      "sha256": "f75cb2f5d1b8cb58a7857850843d0ccb3be1381f29481f1418ea6be5929cc942"
     },
     {
       "path": "05-code/checks/RCP-002/receipt.json",
       "role": "receipt:PRT-001-task-priority/CHK-NEW",
       "root": "run",
-      "sha256": "4415eb59d58bb6224728ff7c0be26cdb5a05cf66a2c2cb60aa1b7a9f90a41afd"
+      "sha256": "27e0e78de7ffe996f6f759dd428114ed3df5a02b1dc9b4984f85e23fa2773352"
     },
     {
       "path": "05-code/checks/RCP-002/receipt.json",
       "role": "receipt:PRT-001-task-priority/CHK-P1-TEST",
       "root": "run",
-      "sha256": "4415eb59d58bb6224728ff7c0be26cdb5a05cf66a2c2cb60aa1b7a9f90a41afd"
+      "sha256": "27e0e78de7ffe996f6f759dd428114ed3df5a02b1dc9b4984f85e23fa2773352"
     },
     {
       "path": "05-code/checks/RCP-002/receipt.json",
       "role": "receipt:PRT-001-task-priority/CHK-READY",
       "root": "run",
-      "sha256": "4415eb59d58bb6224728ff7c0be26cdb5a05cf66a2c2cb60aa1b7a9f90a41afd"
+      "sha256": "27e0e78de7ffe996f6f759dd428114ed3df5a02b1dc9b4984f85e23fa2773352"
     },
     {
       "path": "05-code/code-verification.json",

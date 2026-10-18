@@ -2,7 +2,7 @@
   "schema_id": "dd-flow/stage-report@2",
   "run_id": "RUN-001-tasks",
   "stage": "protocolize",
-  "generated_at": "2026-10-18T09:49:27.753Z",
+  "generated_at": "2026-10-18T10:23:15.800Z",
   "verdict": "done",
   "semantic": {
     "result": "Materialized 1 executable protocol.",
@@ -22,7 +22,7 @@
       "stage-report schema"
     ],
     "evidence": [
-      "/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/home/projects/PRJ-001-project/runs/RUN-001-tasks/02-protocolize/protocolize-result.json"
+      "/Users/deksden/Documents/_Projects/_artifacts/cp236-release-verified.D3GqAV/installed-matrix/dd-flow-protocolize-zACfiI/home/projects/PRJ-001-project/runs/RUN-001-tasks/02-protocolize/protocolize-result.json"
     ],
     "next_action": "start_plan",
     "materialization": {
@@ -76,18 +76,18 @@
     }
   },
   "mechanical": {
-    "started_at": "2026-10-18T09:49:25.534Z",
-    "finished_at": "2026-10-18T09:49:27.753Z",
-    "wall_clock_ms": 2219,
+    "started_at": "2026-10-18T10:23:14.560Z",
+    "finished_at": "2026-10-18T10:23:15.800Z",
+    "wall_clock_ms": 1240,
     "git": {
       "branch": "main",
-      "head": "7584cc029664077447e0b474515aaa7715b3b989",
+      "head": "da47107270f215d9a595765411de32394218598b",
       "status": "dirty"
     },
     "workspace_route": {
       "route": "integration_branch_direct",
       "integration_branch": "main",
-      "base_ref": "7584cc029664077447e0b474515aaa7715b3b989",
+      "base_ref": "da47107270f215d9a595765411de32394218598b",
       "feature_branch": null,
       "worktree_path": null,
       "reason": "Project workspace configuration explicitly selects the integration checkout.",

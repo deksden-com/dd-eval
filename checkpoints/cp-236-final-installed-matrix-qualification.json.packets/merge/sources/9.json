@@ -19,7 +19,7 @@
         "PRT-001-task-priority/CHK-P1-TEST",
         "PRT-001-task-priority/CHK-READY"
       ],
-      "input_hash": "425b0c434337cc59d5ba7dbd52d6d9f4313a4041901ceddfa4ce5535b5d7273b"
+      "input_hash": "6e2cb767b2a5621efc5a07e99f702dad1db95f8f9b43b78eb2f00d87788b326f"
     },
     {
       "id": "WRK-006-merge/RCP-004",
@@ -29,7 +29,7 @@
       "binding_refs": [
         "PRT-001-task-priority/CHK-MERGE"
       ],
-      "input_hash": "514d87e96d935f44ef490bd8809607c1cd19ee321179b529242f85da0b007450"
+      "input_hash": "a1dfc2cddbb8fdb67bf04b265e7568546f14c5bbd7676d47fe10249cad86c568"
     }
   ]
 }
