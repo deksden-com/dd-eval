@@ -1,0 +1,40 @@
+{
+  "id": "WRK-006-merge/RCP-003",
+  "local_id": "RCP-003",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-NEW",
+    "PRT-001-task-priority/CHK-P1-TEST",
+    "PRT-001-task-priority/CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "425b0c434337cc59d5ba7dbd52d6d9f4313a4041901ceddfa4ce5535b5d7273b",
+  "verification_epoch": "fd14039610f5a8c72e0bf8f7554d2c58ad0d38ac8cef3d6ee066720f234294a6",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "13d7d2b6801eee86ae0bd03a7f2011eed8b29c1eaac062c8f9bea991752434a1",
+  "before_fingerprint": "13d7d2b6801eee86ae0bd03a7f2011eed8b29c1eaac062c8f9bea991752434a1",
+  "after_fingerprint": "13d7d2b6801eee86ae0bd03a7f2011eed8b29c1eaac062c8f9bea991752434a1",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-18T09:49:52.705Z",
+  "finished_at": "2026-10-18T09:49:52.952Z",
+  "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/cp236-held-verified.WAiM34/installed-matrix/dd-flow-protocolize-nGOCsD/project",
+  "candidate_files": [],
+  "execution_failures": []
+}

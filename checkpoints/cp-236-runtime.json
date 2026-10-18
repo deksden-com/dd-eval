@@ -12,22 +12,22 @@
     "memory_bank_version": "4.1.2",
     "verification_matrix": {
       "contract": "dd-flow/verification-matrix@1",
-      "file": "cp-236-installed-matrix-qualification.json",
-      "sha256": "bdafa12a9b4f10a715ca528d0df77f2947d7c8bae61ff0809000465ff293bad0",
+      "file": "cp-236-final-installed-matrix-qualification.json",
+      "sha256": "de863efa62caf9be076093c65504ffbc0bc4479eb91eda6496a865e63123ea5e",
       "canon_commit": "1ddedf9d3f086e046f8e7b194c739ec386e7c8b9"
     },
     "engine": {
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
-      "commit": "c69ebc6dc65a4c8ac5537cbde108c5dbfa58b82b",
+      "commit": "9564a980fe1973fba62465e62d20e4ac2cfe54e3",
       "version": "0.9.0-beta.142",
-      "artifact_sha256": "247512b4ab80b0871520acaa87b233fa3c4bdd6a81aee30a1074ba9bcf49eddc"
+      "artifact_sha256": "2be21ab89835e881b528fd17ccec22328ec57684dda3802e35db4285d79030a5"
     }
   },
   "state": "candidate_pending_preflight",
   "preparation": {
     "launchable": true,
     "product_base": "26bf561f175450337a999fdb114580e641c99cde",
-    "tooling": "Normalized OpenCode readiness and fresh fenced retirement-proof reuse; product baseline unchanged.",
+    "tooling": "Normalized OpenCode readiness, fresh fenced retirement-proof reuse and bounded no-effect confirmation on held command startup; product baseline unchanged.",
     "world_isolation": "Per-execution isolated test worlds and cleanup receipts.",
     "baseline": "Each scored execution runs its own full baseline before Subject dispatch."
   }
