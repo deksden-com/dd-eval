@@ -1,0 +1,40 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "8cae8a71a652cf48cf17585a9c0d0eb98de2bd8772a08dfaea94af3171dd1481",
+  "verification_epoch": "1438c0660a9f78a0133df17e1108831e5ab66604cafdabafce5311eb4c5b5f47",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_artifacts/dd-flow-beta141-acceptance.JRWaA5/matrix-publication/dd-flow-protocolize-hzvfbO/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_artifacts/dd-flow-beta141-acceptance.JRWaA5/matrix-publication/dd-flow-protocolize-hzvfbO/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_artifacts/dd-flow-beta141-acceptance.JRWaA5/matrix-publication/dd-flow-protocolize-hzvfbO/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_artifacts/dd-flow-beta141-acceptance.JRWaA5/matrix-publication/dd-flow-protocolize-hzvfbO/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "d44d4b7f4065d032901cc772a3b584d40f840f506eef511b1f5eb48b7dc9d3f4",
+  "before_fingerprint": "d44d4b7f4065d032901cc772a3b584d40f840f506eef511b1f5eb48b7dc9d3f4",
+  "after_fingerprint": "d44d4b7f4065d032901cc772a3b584d40f840f506eef511b1f5eb48b7dc9d3f4",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-18T06:03:52.595Z",
+  "finished_at": "2026-10-18T06:03:52.928Z",
+  "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/dd-flow-beta141-acceptance.JRWaA5/matrix-publication/dd-flow-protocolize-hzvfbO/project",
+  "candidate_files": [],
+  "execution_failures": []
+}

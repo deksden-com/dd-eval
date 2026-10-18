@@ -1,0 +1,34 @@
+{
+  "id": "cp-235-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "c92bb80240c98eb10d2e7a2626bef4778ea800b1",
+    "tag": "eval/plan-091-native-trace"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-235-verification-matrix-qualification.json",
+      "sha256": "4775f41b0db3587809b473477ea57afd6b14bff1d84d23f6ffd047721eec6fb5",
+      "canon_commit": "1ddedf9d3f086e046f8e7b194c739ec386e7c8b9"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "c370c6e9beaefba2216bbf5bbadac02e4827768f",
+      "version": "0.9.0-beta.141",
+      "artifact_sha256": "52b3e3c1f0a7285241a16ee7ddcfa8ebf773545bafcf142b821606be63a24fdf"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Plan 091 strict diagnostics, owned readiness, native browser trace and cleanup contracts; product baseline unchanged.",
+    "world_isolation": "Per-execution isolated test worlds and cleanup receipts.",
+    "baseline": "Each scored execution runs its own full baseline before Subject dispatch."
+  }
+}
