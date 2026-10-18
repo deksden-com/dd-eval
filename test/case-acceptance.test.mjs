@@ -52,7 +52,7 @@ test("scoped receipt authority cannot be changed or downgraded in presentation J
     db.prepare(`INSERT INTO check_receipts VALUES(${columns.map(() => "?").join(",")})`).run(...Object.values(receipt)); db.close();
     const authority = await validateFrozenReceiptScope(root, receipt, receipt);
     assert.equal(authority.path, "runtime/db.sqlite");
-    for (const mutation of [{ fingerprint_scope: null }, { fingerprint_scope: "unsupported" }, { before_fingerprint: "foreign" }, { command: "false" }])
+    for (const mutation of [{ fingerprint_scope: null }, { fingerprint_scope: "unsupported" }, { before_fingerprint: "foreign" }, { command: "false" }, {artifacts:[{path:"forged.json",sha256:"f".repeat(64)}]}])
       await assert.rejects(validateFrozenReceiptScope(root, receipt, { ...receipt, ...mutation }), /scope|authority/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
@@ -337,7 +337,7 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     await put(f.runtime, manifestRelative, manifestBytes);
     await put(f.runtime, nativeRelative, JSON.stringify(nativeReceipt));
     await put(f.runtime, completionRelativeScoped, JSON.stringify({ exit_code: 0, finished_at: completedAt, fingerprint_scope: "check_inputs", id: nativeReceipt.id, input_hash: nativeReceipt.input_hash, verification_epoch: nativeReceipt.verification_epoch, before_fingerprint: nativeReceipt.before_fingerprint, after_fingerprint: nativeReceipt.after_fingerprint, input_manifest: nativeReceipt.input_manifest }));
-    const storedNative = { ...nativeReceipt, project_id: "PRJ-001", run_id: "RUN-001", input_manifest_json: JSON.stringify(nativeReceipt.input_manifest), execution_failures_json: "[]" };
+    const storedNative = { ...nativeReceipt, project_id: "PRJ-001", run_id: "RUN-001", input_manifest_json: JSON.stringify(nativeReceipt.input_manifest), execution_failures_json: "[]", artifacts_json:JSON.stringify(nativeReceipt.artifacts) };
     const storedColumns = Object.keys(storedNative).filter(key => storedNative[key] === null || ["string", "number"].includes(typeof storedNative[key]));
     const scopeDb = new DatabaseSync(path.join(f.snapshot, "runtime/db.sqlite"));
     scopeDb.exec(`CREATE TABLE check_receipts(${storedColumns.map(key => `${key} ${key === "exit_code" ? "INTEGER" : "TEXT"}`).join(",")})`);
