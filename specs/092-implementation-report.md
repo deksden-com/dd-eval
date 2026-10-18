@@ -58,11 +58,11 @@ No scored EVAL, release, global installation or historical runtime was changed.
 ## Source references
 
 - Engine implementation: `ec2d85a6`, E3 manifest expectation `08427dd4`,
-  diagnostic-authority/concurrency correction `75a75051`.
+  diagnostic-authority/concurrency correction `b1816f1c`.
 - Canon candidate: `a1cfe8b06329c691c314064b6ea6a3da6628cceb`.
 - Task check policy: `1c728b32700d4a09565d2dd4adc7d4e132ba0821`, integrated
   into `deksden-com/dd-tasks` main. No product files changed.
-- EVAL runtime changes: `a40d577`, `2387952`, `bcc6901`, `3a2e78d`.
+- EVAL runtime changes: `a40d577`, `2387952`, `bcc6901`, `0c186fa`.
 
 ## Verification boundary
 
