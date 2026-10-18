@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import os from "node:os";
 import { mkdtemp, mkdir, readFile, readdir, writeFile, rm, realpath, symlink, rename, unlink } from "node:fs/promises";
-import { cleanupBinding, cleanupInventory, maintenanceEnvironment, retireEval, withPriorEvalRetirement } from "../lib/eval-retirement.mjs";
+import { cleanupBinding, cleanupInventory, maintenanceEnvironment, retireEval, retirementProofMatches, withPriorEvalRetirement } from "../lib/eval-retirement.mjs";
 import { requestRunnerContinuation } from "../lib/eval-resume-worker.mjs";
 import { appendEvent, hashJson, sha256, writeJsonAtomic } from "../lib/runner-events.mjs";
 import { failureDiagnostic, isInfrastructureFailure } from "../lib/runner.mjs";
@@ -59,6 +59,35 @@ test("foreign inventory and changed manifest cannot authorize physical stop", as
   await assert.rejects(cleanupInventory(f.root, f.manifest, {}, async () => ({ scope_id: "foreign", processes: [], provider_turns: [] })), { code: "runtime_scope_inventory_invalid" });
   await assert.rejects(retireEval({ evalRoot: f.root, intent: { ...f.intent, manifest_sha256: "0".repeat(64) } }), { code: "runner_definition_drift" });
   await assert.rejects(cleanupInventory(f.root, f.manifest, {}, async () => ({ scope_id: "EVAL-test", processes: [{ ...f.process, metadata_json: '{}' }], provider_turns: [] })), { code: "runtime_scope_inventory_invalid" });
+});
+
+test("repeated admission reuses a bound physical proof only against fresh fenced inventory", async t => {
+  const f = await fixture(t);
+  await writeFile(path.join(f.root, "events.jsonl"), "");
+  await appendEvent(path.join(f.root, "events.jsonl"), { source: "dd-eval://runner", runId: f.manifest.run_id,
+    type: "dev.dd.eval.control.requested", data: { mode: "stop", request_id: "fixture-stop" } });
+  let stops = 0, batches = 0, admissions = 0;
+  let inventory = { scope_id: f.manifest.run_id, dispatch_blocked: true, fence: { scope_id: f.manifest.run_id }, processes: [f.process], provider_turns: [] };
+  const call = async (_bin, args) => {
+    if (args.includes("--scope-ids-json")) { batches++; return { scopes: [inventory] }; }
+    if (args[2] === "status") return inventory;
+    stops++; return { scope_id: f.manifest.run_id, settled: false, physical_stopped: true, nodes: [{ process_id: f.process.id, settled: false, physical_stopped: true }] };
+  };
+  const options = { caseId: "fixture", resourceHome: f.resource, maintenanceHome: f.home, maintenanceBin: f.bin };
+  const dependencies = { discover: async () => [{ root: f.root, manifest: f.manifest }], call };
+  await withPriorEvalRetirement(options, () => admissions++, dependencies);
+  await withPriorEvalRetirement(options, () => admissions++, dependencies);
+  assert.equal(stops, 1); assert.equal(batches, 1); assert.equal(admissions, 2);
+  inventory = { ...inventory, processes: [{ ...f.process, lease_token: "new-incarnation" }] };
+  await withPriorEvalRetirement(options, () => admissions++, dependencies);
+  assert.equal(stops, 2, "a changed registry cannot reuse physical-stop proof");
+  inventory = { ...inventory, dispatch_blocked: false, fence: null };
+  await withPriorEvalRetirement(options, () => admissions++, dependencies);
+  assert.equal(stops, 3, "a released scope must be retired again");
+  const { cleanupSidecars } = await import("../lib/eval-retirement.mjs");
+  const saved = (await cleanupSidecars(f.root)).at(-1);
+  assert.equal(retirementProofMatches(saved, { root: f.root, manifest: f.manifest, manifestSha256: f.intent.manifest_sha256,
+    resourceHome: path.join(f.resource, "foreign"), inventory }), false);
 });
 
 test("automatic cleanup rechecks eligibility after a new execution starts", async t => {

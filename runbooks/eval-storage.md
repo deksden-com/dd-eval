@@ -46,6 +46,13 @@ node bin/dd-eval.mjs gc apply --plan <reviewed-plan-file>
 Run each command with the selected `DD_EVAL_HOME`. GC rechecks runtime ownership;
 never recursively delete the home or remove a live daemon's state/socket files.
 
+Repeated admission revalidates retained physical-stop proofs against fresh,
+fenced scope inventories in bounded batches. It must not issue another stop merely
+because a new EVAL has a different maintenance home. A changed manifest, resource
+target, process registration or released fence invalidates reuse. Legacy receipts
+without a bound inventory require one normal retirement before reuse. Physical
+retirement does not upgrade an unknown native outcome to success.
+
 ## Stop leftover daemons
 
 Use the retained EVAL's pinned engine, configuration and resource home:
