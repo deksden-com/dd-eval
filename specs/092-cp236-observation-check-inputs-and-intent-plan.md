@@ -73,8 +73,11 @@ EVAL final acceptance и failure evidence. Закрепить этот пере�
 `src/services/run-control.ts` и перечисленные A02 callers; существующие tests.
 
 1. Один локальный builder/merge для root/child Session record в describe и cancelTree.
-   Всегда сохранять adapter_session_id и проверенную ancestry/root/cwd;
-   несовместимую authoritative identity отвергать, не маскировать spread старой записи.
+   Всегда сохранять adapter_session_id и проверенную ancestry/root;
+   несовместимую ownership identity отвергать, не маскировать spread старой записи.
+   Cwd — изменяемый наблюдаемый routing fact, не неизменный ключ ownership:
+   перемещённая owned Session остаётся доступна для inspect/cancel, смена cwd
+   меняет inventory version, а productive dispatch блокирует route conformance.
 2. nativeInventoryVersion нормализует множества Session/descendants/owned processes
    по стабильной identity и включает значимые authority поля. Порядок элементов,
    observation bookkeeping и производные presentation поля не версия владения.

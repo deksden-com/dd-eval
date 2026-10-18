@@ -54,6 +54,11 @@ No scored EVAL, release, global installation or historical runtime was changed.
   metadata-phase export. Its inspection barrier hid the immediate daemon error
   behind a timeout. The mock now retains real exports; the barrier also surfaces
   early failures, with an explicit no-dispatch regression. No timeout increase.
+- Runtime-sensitive coverage exposed an ownership/routing conflation in OpenCode:
+  an owned Session that moved cwd must remain inspectable/cancellable. Immutable
+  Session/parent/root/adapter identity is still checked; observed cwd changes the
+  inventory version and the existing route guard blocks productive dispatch.
+  The dispatch-fence RPC fake also now supplies the required native Thread id.
 
 ## Source references
 
