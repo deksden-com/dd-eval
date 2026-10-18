@@ -11,7 +11,7 @@ Typecheck, lint, strict-canon build, hybrid 66, release contracts, complete
 integration inventory (171 files / 2887 cases) and runtime-sensitive (48 cases)
 passed before accepting and publishing the frozen candidate. Public registry
 bytes and immutable release tag were read back by the standard publisher.
-Technical published-byte matrix lifecycle: PLAN/CODE/MERGE passed; owning Stage
+Technical installed-CLI matrix lifecycle: PLAN/CODE/MERGE passed; owning Stage
 packets are retained beside the qualification receipt. CODE-REVIEW was explicitly
 off in this technical fixture, not in the scored profiles.
 
@@ -36,3 +36,9 @@ Private local gate/qualification receipts:
 Fresh homes: `~/.dd-eval/qualification/cp-235-<harness>-full`.
 Compatibility/capacity, definition admission, preflight and actual launch remain
 separate checks; this record does not claim they all completed.
+
+Preflight rejected the first preparation pin before Subject dispatch: the direct
+source fixture had captured a development snapshot. Replaced it with the standard
+`scripts/qualify-verification-matrix.mjs` installed-CLI fixture and its actual
+registry snapshot checksum. Initial source evidence remains only in Git history
+and private artifacts; it is not selected as qualification.
