@@ -41,15 +41,28 @@ No scored EVAL, release, global installation or historical runtime was changed.
   the added manifest is not silently ignored or accepted by count alone.
 - Canon schema mirrors and exact reviewed source inventory were synchronized;
   shared prompt/schema parity is verified rather than waived.
+- The complete integration gate exposed a diagnostic-authority regression:
+  mutable receipt annotations could falsely block source repair. Engine and
+  frozen EVAL consumers now derive failures from SQL and verify the independently
+  hashed/bound execution outcome. Dropping a JSON obligation cannot hide that
+  outcome; forged mutation/missing-output annotations cannot grant a failed
+  result or invent Judge facts. Legacy receipt behavior is retained.
+- The stale-input successor had a duplicate annotation-equality guard. It now
+  reuses the shared evidence validator without relaxing the single-successor,
+  deterministic-contract or real-drift requirements.
+- The Codex concurrency test mocked an entire module and omitted the new
+  metadata-phase export. Its inspection barrier hid the immediate daemon error
+  behind a timeout. The mock now retains real exports; the barrier also surfaces
+  early failures, with an explicit no-dispatch regression. No timeout increase.
 
 ## Source references
 
-- Engine candidate: `08427dd4` (runtime implementation `ec2d85a6`, final commit
-  updates the E3 expectation for the new scoped manifest).
+- Engine implementation: `ec2d85a6`, E3 manifest expectation `08427dd4`,
+  diagnostic-authority/concurrency correction `75a75051`.
 - Canon candidate: `a1cfe8b06329c691c314064b6ea6a3da6628cceb`.
 - Task check policy: `1c728b32700d4a09565d2dd4adc7d4e132ba0821`, integrated
   into `deksden-com/dd-tasks` main. No product files changed.
-- EVAL runtime changes: `a40d577`, `2387952`, `bcc6901`.
+- EVAL runtime changes: `a40d577`, `2387952`, `bcc6901`, `3a2e78d`.
 
 ## Verification boundary
 
