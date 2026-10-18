@@ -52,9 +52,43 @@ test("scoped receipt authority cannot be changed or downgraded in presentation J
     db.prepare(`INSERT INTO check_receipts VALUES(${columns.map(() => "?").join(",")})`).run(...Object.values(receipt)); db.close();
     const authority = await validateFrozenReceiptScope(root, receipt, receipt);
     assert.equal(authority.path, "runtime/db.sqlite");
+    const annotated = await validateFrozenReceiptScope(root, receipt, {...receipt, execution_failures:[{code:"forged",message:"mutable annotation"}]});
+    assert.deepEqual(annotated.receipt.execution_failures, [], "annotation cannot poison SQL-owned execution failures");
     for (const mutation of [{ fingerprint_scope: null }, { fingerprint_scope: "unsupported" }, { before_fingerprint: "foreign" }, { command: "false" }, {artifacts:[{path:"forged.json",sha256:"f".repeat(64)}]}])
       await assert.rejects(validateFrozenReceiptScope(root, receipt, { ...receipt, ...mutation }), /scope|authority/);
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("scoped execution diagnostics use SQL and hashed outcome rather than mutable annotations",async()=>{
+  const root=await realpath(await mkdtemp(path.join(os.tmpdir(),"eval-diagnostic-authority-")));
+  const relative="runtime/projects/PRJ-001/runs/RUN-001/works/WRK-001/checks/RCP-001/receipt.json";
+  const outcomePath=path.posix.join(path.posix.dirname(relative),"artifacts/engine-outcome.json");
+  const receipt={id:"WRK-001/RCP-001",project_id:"PRJ-001",run_id:"RUN-001",work_id:"WRK-001",scope:"work",gate:"work",command:"test",input_hash:"input",verification_epoch:"epoch",fingerprint_scope:"check_inputs",execution_contract_hash:"contract",input_manifest:null,status:"failed",exit_code:0,workspace_fingerprint:"audit",before_fingerprint:"before",after_fingerprint:"after",profile_hash:null,started_at:"start",finished_at:"finish",required_artifacts:["engine-outcome.json"],execution_failures:[{code:"forged",message:"mutable annotation"}]};
+  const failures=[{code:"check_inputs_changed",message:"actual.sql"}];
+  const outcome={schema_id:"dd-flow/check-execution-outcome@1",id:receipt.id,command:receipt.command,input_hash:receipt.input_hash,verification_epoch:receipt.verification_epoch,fingerprint_scope:receipt.fingerprint_scope,execution_contract_hash:receipt.execution_contract_hash,input_manifest:null,execution_failures:failures};
+  const bytes=JSON.stringify(outcome);receipt.artifacts=[{path:"engine-outcome.json",sha256:sha(bytes)}];
+  try {
+    await put(root,outcomePath,bytes);
+    const row={...Object.fromEntries(Object.entries(receipt).filter(([,value])=>value===null || ["string","number"].includes(typeof value))),input_manifest_json:"null",artifacts_json:JSON.stringify(receipt.artifacts),execution_failures_json:JSON.stringify(failures)};
+    const columns=Object.keys(row),db=new DatabaseSync(path.join(root,"runtime/db.sqlite"));
+    db.exec(`CREATE TABLE check_receipts(${columns.map(key=>`${key} ${key==="exit_code"?"INTEGER":"TEXT"}`).join(",")})`);
+    db.prepare(`INSERT INTO check_receipts VALUES(${columns.map(()=>"?").join(",")})`).run(...Object.values(row));db.close();
+    const projected=await validateFrozenReceiptScope(root,receipt,receipt,relative);
+    assert.deepEqual(projected.receipt.execution_failures,failures);
+    const conflicting=new DatabaseSync(path.join(root,"runtime/db.sqlite"));conflicting.prepare("UPDATE check_receipts SET execution_failures_json=?").run("[]");conflicting.close();
+    await assert.rejects(validateFrozenReceiptScope(root,receipt,receipt,relative),/conflicts with SQL/);
+    await assert.rejects(validateFrozenReceiptScope(root,receipt,{...receipt,required_artifacts:[]},relative),/conflicts with SQL/,"removing mutable obligation cannot hide a retained sidecar");
+    const repaired=new DatabaseSync(path.join(root,"runtime/db.sqlite"));repaired.prepare("UPDATE check_receipts SET execution_failures_json=?").run(JSON.stringify(failures));repaired.close();
+    await put(root,outcomePath,JSON.stringify({...outcome,execution_failures:[]}));
+    await assert.rejects(validateFrozenReceiptScope(root,receipt,receipt,relative),/retained artifact authority/);
+    await put(root,outcomePath,bytes);
+    // No-runner checks have no outcome file. Their zero-exit drift must still
+    // use SQL, never a forged check_inputs_changed annotation.
+    const noRunner={...receipt,required_artifacts:[],artifacts:[]};
+    const clean=new DatabaseSync(path.join(root,"runtime/db.sqlite"));clean.prepare("UPDATE check_receipts SET execution_failures_json=?,artifacts_json=?").run("[]","[]");clean.close();
+    const noDrift=await validateFrozenReceiptScope(root,noRunner,{...noRunner,execution_failures:failures},relative);
+    assert.deepEqual(noDrift.receipt.execution_failures,[]);
+  } finally {await rm(root,{recursive:true,force:true});}
 });
 
 test("native receipt indexing preserves logical gates independent of stage and includes root Works", async () => {
@@ -484,4 +518,35 @@ test("reached failed check distinguishes missing expected output from corrupt cl
     await put(f.runtime, "05-code/checks/RCP-001/receipt.json", JSON.stringify(receipt)); await capture();
     assert.equal((await read()).status, "unavailable", "claimed artifact bytes remain mandatory even for a failed execution");
   } finally { await rm(f.root, { recursive: true, force: true }); }
+});
+
+test("scoped zero-exit failure consumer rejects forged mutation and missing-output annotations",async()=>{
+  const f=await fixture();
+  try {
+    const before="e".repeat(64),after="f".repeat(64),finished="2026-10-18T14:00:00Z";
+    const manifestBytes=JSON.stringify({fingerprint_scope:"check_inputs",before_fingerprint:before,files:[]});
+    const receipt={id:"RUN-001/RCP-001",local_id:"RCP-001",work_id:null,scope:"aggregate",gate:"code",command:"test",input_hash:"input",verification_epoch:sha(`code\0${before}`),fingerprint_scope:"check_inputs",execution_contract_hash:"contract",input_manifest:{path:"inputs-before.json",sha256:sha(manifestBytes),truncated:false},status:"failed",exit_code:0,workspace_fingerprint:"audit",before_fingerprint:before,after_fingerprint:after,profile_hash:null,started_at:finished,finished_at:finished,required_artifacts:[],artifacts:[],mutation_paths:[],execution_failures:[]};
+    const row={...Object.fromEntries(Object.entries(receipt).filter(([,value])=>value===null || ["string","number"].includes(typeof value))),project_id:"PRJ-001",run_id:"RUN-001",input_manifest_json:JSON.stringify(receipt.input_manifest),execution_failures_json:"[]",artifacts_json:"[]"};
+    const columns=Object.keys(row),database=path.join(f.snapshot,"runtime/db.sqlite"),db=new DatabaseSync(database);
+    db.exec(`CREATE TABLE check_receipts(${columns.map(key=>`${key} ${key==="exit_code"?"INTEGER":"TEXT"}`).join(",")})`);db.prepare(`INSERT INTO check_receipts VALUES(${columns.map(()=>"?").join(",")})`).run(...Object.values(row));db.close();
+    await put(f.runtime,"05-code/checks/RCP-001/inputs-before.json",manifestBytes);
+    await put(f.runtime,"05-code/checks/RCP-001/completion.json",JSON.stringify({exit_code:0,finished_at:finished,fingerprint_scope:"check_inputs",id:receipt.id,input_hash:receipt.input_hash,verification_epoch:receipt.verification_epoch,before_fingerprint:before,after_fingerprint:after,input_manifest:receipt.input_manifest}));
+    const result={state:"failed",stage:"code",run_id:"RUN-001",code:"code_gate_failed",details:{failures:[receipt]},recovery:{manifest:path.join(f.snapshot,"snapshot.json"),recovery_id:"REC-001"}};
+    const publish=async annotation=>{
+      await put(f.runtime,"05-code/checks/RCP-001/receipt.json",JSON.stringify({...receipt,...annotation}));
+      const bytes=JSON.stringify({schema_id:"dd-flow/eval-run-snapshot@5",purpose:"recovery",stage_entry:null,recovery_id:"REC-001",consistency:"sealed_writer_barrier_required",run_id:"RUN-001",project_id:"PRJ-001",workspace:{sha256:snapshotTreeHash(f.workspace)},runtime_sha256:snapshotTreeHash(path.join(f.snapshot,"runtime"))});
+      await put(f.snapshot,"snapshot.json",bytes);result.recovery.manifest_sha256=sha(bytes);
+    };
+    const read=()=>checkCaseAcceptance({evalRoot:f.root,execution:"e2e",result,policy:{...policy,checker:"task-priority@3"}});
+    for(const annotation of [{execution_failures:[{code:"check_inputs_changed",message:"forged"}]},{mutation_paths:["forged.sql"]},{required_artifacts:["invented.json"]}]) {
+      await publish(annotation);const checked=await read();assert.equal(checked.status,"unavailable",JSON.stringify(checked));assert.match(checked.evidence_error.message,/no proven contract violation/);
+    }
+    const retained=new DatabaseSync(database);retained.prepare("UPDATE check_receipts SET execution_failures_json=?").run(JSON.stringify([{code:"check_inputs_changed",message:"actual.sql"}]));retained.close();
+    await publish({execution_failures:[{code:"forged",message:"ignore advisory annotation"}]});
+    assert.equal((await read()).status,"failed","actual SQL-owned input drift remains a valid failed check");
+    await publish({required_artifacts:["invented.json"]});
+    const checked=await read();assert.equal(checked.status,"failed");
+    assert.deepEqual(checked.facts.failed_checks[0].expected_output_gaps,[]);
+    assert.equal(checked.gaps.some(gap=>gap.includes("check_expected_output_missing")),false);
+  } finally {await rm(f.root,{recursive:true,force:true});}
 });
