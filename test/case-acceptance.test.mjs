@@ -5,7 +5,7 @@ import { mkdtemp, mkdir, readFile, realpath, rm, symlink, writeFile } from "node
 import os from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { checkCaseAcceptance, snapshotTreeHash, validateCaseAcceptancePolicy, selectFailedCheckGate, finalReceiptIndex, validateFrozenReceiptScope } from "../lib/case-acceptance.mjs";
+import { checkCaseAcceptance, snapshotTreeHash, validateCaseAcceptancePolicy, selectFailedCheckGate, finalReceiptIndex, validateFrozenReceiptScope, validateFinalCheckReceipts } from "../lib/case-acceptance.mjs";
 
 const sha = value => createHash("sha256").update(value).digest("hex");
 const policy = { checker: "task-priority@1", case_id: "sdlc-eval-2026-summer-task-priority" };
@@ -20,6 +20,26 @@ test("case acceptance policy rejects a typo before runner admission", () => {
   assert.throws(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@5" }), /unsupported case acceptance policy/);
 });
 async function put(root, name, value) { const file = path.join(root, name); await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, value); return file; }
+
+test("final native receipt contract resolves runner enrichment from trusted profile or declaration",()=>{
+  // Sanitized AGY CP236 RCP-013 shape: PLAN declares no artifacts, native alias
+  // resolution adds db-verify.runner.json and engine-outcome.json.
+  for(const fromProfile of [true,false]) {
+    const runner={schema_id:"dd-flow/check-runner-evidence@1",path:"db-verify.runner.json"};
+    const check={id:"CHK-DB-VERIFY",canonical_ref:"PRT-007/CHK-DB-VERIFY",command:"@check/db-verify-local",run_at:"merge",...(fromProfile?{}:{runner_evidence:runner})};
+    const profile={aliases:{"@check/db-verify-local":"pnpm db:verify"},...(fromProfile?{runner_evidence_by_alias:{"@check/db-verify-local":runner}}:{})};
+    const directory="07-merge/works/WRK-014-merge/checks/RCP-013",fingerprint="e".repeat(64),id="WRK-014-merge/RCP-013";
+    const native={id,status:"passed",scope:"aggregate",exit_code:0,gate:"merge",command:"pnpm db:verify",profile_hash:"profile",input_hash:"input",before_fingerprint:fingerprint,after_fingerprint:fingerprint,verification_epoch:sha(`merge\0${fingerprint}`),mutation_paths:[],check_refs:[check.canonical_ref],inputs:[],resources:{ports:{}},finished_at:"2026-10-18T14:00:00Z",required_artifacts:[runner.path,"engine-outcome.json"],runner_evidence_required:runner,artifacts:[runner.path,"engine-outcome.json"].map(path=>({path,sha256:sha(path)}))};
+    const matrix={header:{run_id:"RUN-001"},sources:[{root:"run",role:"check_profile_target",path:"profile.json"},{root:"run",role:"receipt:db",path:`${directory}/receipt.json`},{root:"run",role:"completion:db",path:`${directory}/completion.json`},...native.artifacts.map(artifact=>({root:"run",role:`artifact:db:${artifact.path}`,path:`${directory}/artifacts/${artifact.path}`,sha256:artifact.sha256}))]};
+    const gate={checks:[check],acceptance_refs:[],profile_hash:"profile"};
+    const decoded=new Map([["run:07-merge/merge-gate-acceptance.json",{receipts:[{id,input_hash:"input",binding_refs:[check.canonical_ref],execution_refs:[check.canonical_ref]}]}],["run:profile.json",{profile}],[`run:${directory}/receipt.json`,native],[`run:${directory}/completion.json`,{exit_code:0,finished_at:native.finished_at}]]);
+    assert.doesNotThrow(()=>validateFinalCheckReceipts(matrix,gate,decoded));
+    for(const mutation of [{required_artifacts:[runner.path]},{required_artifacts:[runner.path,"engine-outcome.json","forged.json"]},{runner_evidence_required:{...runner,path:"foreign.json"}}]) {
+      decoded.set(`run:${directory}/receipt.json`,{...native,...mutation});
+      assert.throws(()=>validateFinalCheckReceipts(matrix,gate,decoded),/execution contract differs/);
+    }
+  }
+});
 
 test("scoped receipt authority cannot be changed or downgraded in presentation JSON", async () => {
   const root = await realpath(await mkdtemp(path.join(os.tmpdir(), "eval-scoped-authority-")));
