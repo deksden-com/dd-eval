@@ -152,7 +152,9 @@ test("coverage corpus freezes calibration and balanced holdout, separating seman
   const runProfile = await loadRunProfile("cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-luna-coverage-shadow.json");
   runProfile.qualificationJudgeProfile = { ...JSON.parse(await readFile(path.join('profiles', `${runProfile.value.interaction_judge.profile_id}.json`))), provider: 'openai', mode: 'agent', permission: 'allow' };
   const loaded = await loadCase(runProfile.value.case_id), qualified = await hitlQualificationInputs({ loaded, runProfile, definition: {} });
-  assert.equal(qualified.corpus.items.length, 44); assert.equal(qualified.compact, true);
+  assert.equal(qualified.corpus.items.length, 46); assert.equal(qualified.compact, true);
+  assert.equal(qualified.corpus.items.find(item => item.id === "cp236-create-display-optional").coverage_expectation.status, "covered");
+  assert.equal(qualified.corpus.items.find(item => item.id === "cp236-create-display-and-independent-gap").coverage_expectation.status, "uncovered");
   const preliminary = qualified.corpus.items.find(item => item.id === "cp205-preliminary-archive-background");
   assert.equal(preliminary.coverage_expectation.status, "covered");
   assert.match(preliminary.question, /Зафиксированное ограничение/);

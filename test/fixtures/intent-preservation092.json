@@ -1,0 +1,22 @@
+{
+  "schema_id": "dd-eval/semantic-regression-corpus@1",
+  "cases": [
+    {
+      "id": "agy-cp236-ui-api-narrowed-to-patch",
+      "provenance": "EVAL-20261018125928-ce01c5d5: delivered canonical answer section 5, SPECIFY R010 and final frozen workspace",
+      "accepted_source": "Owner и member активного проекта могут через существующее редактирование и API явно закрыть задачу или снова открыть её.",
+      "specify": "В активном проекте роли owner и member могут переключать status между 'open' и 'closed' отдельным обновлением (PATCH).",
+      "observed": { "api_close_reopen": true, "ui_close_reopen": false, "structural_coverage_passed": true },
+      "expected": { "kind": "agent_quality", "severity": "material", "missing_surface": "ui_close_reopen", "infrastructure_invalid_due_to_omission": false }
+    },
+    {
+      "id": "ui-api-complete-positive",
+      "provenance": "Authored positive contrast, not a claim about the historical AGY product",
+      "accepted_source": "Owner и member активного проекта могут через существующее редактирование и API явно закрыть задачу или снова открыть её.",
+      "specify": "Owner и member активного проекта закрывают и повторно открывают задачи через UI и API, сохраняя priority.",
+      "observed": { "api_close_reopen": true, "ui_close_reopen": true, "structural_coverage_passed": true },
+      "expected": { "kind": "no_omission", "severity": null, "missing_surface": null, "infrastructure_invalid_due_to_omission": false }
+    }
+  ],
+  "proof_limit": "Authored semantic expectations for Judge replay, not a deterministic entailment classifier and not proof that a future model detects every omission."
+}

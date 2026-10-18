@@ -5,7 +5,7 @@ import { mkdtemp, mkdir, readFile, realpath, rm, symlink, writeFile } from "node
 import os from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { checkCaseAcceptance, snapshotTreeHash, validateCaseAcceptancePolicy, selectFailedCheckGate } from "../lib/case-acceptance.mjs";
+import { checkCaseAcceptance, snapshotTreeHash, validateCaseAcceptancePolicy, selectFailedCheckGate, finalReceiptIndex, validateFrozenReceiptScope } from "../lib/case-acceptance.mjs";
 
 const sha = value => createHash("sha256").update(value).digest("hex");
 const policy = { checker: "task-priority@1", case_id: "sdlc-eval-2026-summer-task-priority" };
@@ -20,6 +20,52 @@ test("case acceptance policy rejects a typo before runner admission", () => {
   assert.throws(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@5" }), /unsupported case acceptance policy/);
 });
 async function put(root, name, value) { const file = path.join(root, name); await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, value); return file; }
+
+test("scoped receipt authority cannot be changed or downgraded in presentation JSON", async () => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), "eval-scoped-authority-")));
+  const receipt = { id: "RUN-001/RCP-001", project_id: "PRJ-001", run_id: "RUN-001", fingerprint_scope: "check_inputs", work_id: null, scope: "aggregate", gate: "code", command: "true", input_hash: "input", verification_epoch: "epoch", status: "passed", exit_code: 0, workspace_fingerprint: "global", before_fingerprint: "selected", after_fingerprint: "selected", profile_hash: null, started_at: "start", finished_at: "finish" };
+  try {
+    await mkdir(path.join(root, "runtime"));
+    const db = new DatabaseSync(path.join(root, "runtime/db.sqlite"));
+    const columns = Object.keys(receipt);
+    db.exec(`CREATE TABLE check_receipts(${columns.map(key => `${key} ${key === "exit_code" ? "INTEGER" : "TEXT"}`).join(",")})`);
+    db.prepare(`INSERT INTO check_receipts VALUES(${columns.map(() => "?").join(",")})`).run(...Object.values(receipt)); db.close();
+    const authority = await validateFrozenReceiptScope(root, receipt, receipt);
+    assert.equal(authority.path, "runtime/db.sqlite");
+    for (const mutation of [{ fingerprint_scope: null }, { fingerprint_scope: "unsupported" }, { before_fingerprint: "foreign" }, { command: "false" }])
+      await assert.rejects(validateFrozenReceiptScope(root, receipt, { ...receipt, ...mutation }), /scope|authority/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("native receipt indexing preserves logical gates independent of stage and includes root Works", async () => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), "eval-receipt-index-")));
+  const runtime = "runtime/projects/PRJ-001/runs/RUN-001";
+  const entries = [
+    ["05-code/checks/RCP-003", null, "readiness", "aggregate"],
+    ["07-merge/works/WRK-014-merge/checks/RCP-014", "WRK-014-merge", "work", "aggregate"],
+    ["07-merge/works/WRK-014-merge/checks/RCP-015", "WRK-014-merge", "code", "aggregate"],
+    ["07-merge/works/WRK-014-merge/checks/RCP-017", "WRK-014-merge", "readiness", "aggregate"],
+    ["works/WRK-006/checks/RCP-001", "WRK-006", "work", "work"]
+  ];
+  try {
+    for (const [relative, work_id, gate, scope] of entries) {
+      const local_id = path.basename(relative);
+      await put(root, `${runtime}/${relative}/receipt.json`, JSON.stringify({ id: `${work_id ?? "RUN-001"}/${local_id}`, local_id, work_id, gate, scope }));
+    }
+    const indexed = await finalReceiptIndex(root, runtime);
+    assert.equal(indexed.size, entries.length);
+    assert.match(indexed.get("WRK-006/RCP-001"), /\/works\/WRK-006\/checks\//);
+    const file = `${runtime}/${entries[1][0]}/receipt.json`;
+    const receipt = JSON.parse(await readFile(path.join(root, file), "utf8"));
+    for (const delta of [{ work_id: "WRK-foreign" }, { gate: "anything" }, { fingerprint_scope: "unsupported" }]) {
+      await put(root, file, JSON.stringify({ ...receipt, ...delta }));
+      await assert.rejects(finalReceiptIndex(root, runtime), /namespace, gate or owning path/);
+    }
+    await put(root, file, JSON.stringify(receipt));
+    await put(root, `${runtime}/06-code-review/checks/RCP-003/receipt.json`, await readFile(path.join(root, `${runtime}/${entries[0][0]}/receipt.json`)));
+    await assert.rejects(finalReceiptIndex(root, runtime), /duplicate final receipt/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 
 test("V4 selects reached gates before touching captures and preserves enclosing receipts", async () => {
   const v4 = { ...policy, checker: "task-priority@4" };
@@ -68,7 +114,9 @@ test("V4 frozen native gate proof handles aborted, readiness, wrappers and names
     failed.code = "repair_registration_rejected"; failed.details = { failures: [native], cause: { code: "code_gate_failed" } };
     assert.equal((await read()).status, "failed");
     native.id = "RUN-999/RCP-002"; await capture(); assert.equal((await read()).status, "unavailable");
-    native.id = "RUN-001/RCP-002"; native.gate = "merge"; await capture(); assert.equal((await read()).status, "unavailable");
+    native.id = "RUN-001/RCP-002"; native.gate = "merge"; await capture();
+    assert.equal((await read()).status, "failed", "a non-readiness wrapper consumes the recorded logical gate, not the directory name");
+    native.gate = "unknown"; await capture(); assert.equal((await read()).status, "unavailable");
     native.gate = "readiness"; native.status = "running"; await capture(); assert.equal((await read()).status, "unavailable");
     native.status = "aborted"; await capture();
     const authority = new DatabaseSync(path.join(f.snapshot, "runtime", "db.sqlite"));
@@ -245,6 +293,45 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     assert.equal(current.status, "passed", JSON.stringify(current.evidence_error));
     assert.equal(current.facts.consumed_source.purpose, "candidate");
     assert.equal(current.facts.consumed_source.manifest_sha256, f.result.candidate.manifest_sha256);
+    const unused = "05-code/checks/RCP-999/receipt.json";
+    await put(f.runtime, unused, JSON.stringify({ id: "RUN-001/RCP-999", local_id: "RCP-999", work_id: null, scope: "aggregate", gate: "readiness" }));
+    await seal(f);
+    assert.equal((await generatedRead()).status, "passed", "an unconsumed native readiness receipt is not an invalid final gate");
+    await rm(path.join(f.runtime, "05-code/checks/RCP-999"), { recursive: true });
+    const intakePath = "07-merge/verification/sources/intake/accepted-input.md";
+    await put(f.runtime, intakePath, "Original accepted user request, not JSON\n");
+    sources.push({ role: "accepted_intake", root: "run", path: intakePath, sha256: "" });
+    sources.sort((a, b) => `${a.role}:${a.root}:${a.path}` < `${b.role}:${b.root}:${b.path}` ? -1 : 1);
+    await publish();
+    const intakeResult = await generatedRead();
+    assert.equal(intakeResult.status, "passed", JSON.stringify(intakeResult.evidence_error));
+    sources.splice(sources.findIndex(source => source.role === "accepted_intake"), 1);
+    await rm(path.join(f.runtime, intakePath)); await publish();
+
+    const legacyNative = { ...nativeReceipt };
+    const manifestBytes = JSON.stringify({ fingerprint_scope: "check_inputs", before_fingerprint: nativeReceipt.before_fingerprint, files: [] });
+    Object.assign(nativeReceipt, { fingerprint_scope: "check_inputs", execution_contract_hash: sha("execution contract"), execution_failures: [], input_manifest: { path: "inputs-before.json", sha256: sha(manifestBytes), truncated: false } });
+    const nativeRelative = sourceNames.find(item => item.role === `receipt:${binding}`).path;
+    const completionRelativeScoped = sourceNames.find(item => item.role === `completion:${binding}`).path;
+    const manifestRelative = path.posix.join(path.posix.dirname(nativeRelative), "inputs-before.json");
+    await put(f.runtime, manifestRelative, manifestBytes);
+    await put(f.runtime, nativeRelative, JSON.stringify(nativeReceipt));
+    await put(f.runtime, completionRelativeScoped, JSON.stringify({ exit_code: 0, finished_at: completedAt, fingerprint_scope: "check_inputs", id: nativeReceipt.id, input_hash: nativeReceipt.input_hash, verification_epoch: nativeReceipt.verification_epoch, before_fingerprint: nativeReceipt.before_fingerprint, after_fingerprint: nativeReceipt.after_fingerprint, input_manifest: nativeReceipt.input_manifest }));
+    const storedNative = { ...nativeReceipt, project_id: "PRJ-001", run_id: "RUN-001", input_manifest_json: JSON.stringify(nativeReceipt.input_manifest), execution_failures_json: "[]" };
+    const storedColumns = Object.keys(storedNative).filter(key => storedNative[key] === null || ["string", "number"].includes(typeof storedNative[key]));
+    const scopeDb = new DatabaseSync(path.join(f.snapshot, "runtime/db.sqlite"));
+    scopeDb.exec(`CREATE TABLE check_receipts(${storedColumns.map(key => `${key} ${key === "exit_code" ? "INTEGER" : "TEXT"}`).join(",")})`);
+    scopeDb.prepare(`INSERT INTO check_receipts VALUES(${storedColumns.map(() => "?").join(",")})`).run(...storedColumns.map(key => storedNative[key])); scopeDb.close();
+    await publish();
+    assert.equal((await generatedRead()).status, "passed", "scoped native proof binds SQL, input manifest and completion");
+    delete nativeReceipt.fingerprint_scope;
+    await put(f.runtime, nativeRelative, JSON.stringify(nativeReceipt)); await publish();
+    assert.equal((await generatedRead()).status, "unavailable", "JSON cannot downgrade scoped SQL authority to legacy");
+    for (const key of Object.keys(nativeReceipt)) if (!(key in legacyNative)) delete nativeReceipt[key];
+    Object.assign(nativeReceipt, legacyNative);
+    await put(f.runtime, nativeRelative, JSON.stringify(nativeReceipt));
+    await put(f.runtime, completionRelativeScoped, JSON.stringify({ exit_code: 0, finished_at: completedAt }));
+    await rm(path.join(f.snapshot, "runtime/db.sqlite")); await rm(path.join(f.runtime, manifestRelative)); await publish();
     await rm(path.join(f.runtime, artifactRelative)); await seal(f);
     assert.equal((await generatedRead()).status, "unavailable", "missing claimed binary bytes are unavailable authority");
     await put(f.runtime, artifactRelative, "corrupt claimed binary"); await publish();
