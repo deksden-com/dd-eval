@@ -98,15 +98,22 @@ test("signal-terminated leader does not authorize signaling its remaining group"
   }
 });
 
-test("leader exit during SIGTERM grace prevents SIGKILL of its remaining helper", { skip: process.platform === "win32" }, async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "dd-grace-exit-"));
-  const marker = path.join(root, "finished");
-  const helper = `process.on("SIGTERM",()=>{});setTimeout(()=>{require("node:fs").writeFileSync(${JSON.stringify(marker)},"natural exit");process.exit(0);},300);process.send("ready");`;
-  const script = `const {spawn}=require("node:child_process");const helper=spawn(process.execPath,["-e",${JSON.stringify(helper)}],{stdio:["ignore","ignore","ignore","ipc"]});helper.once("message",()=>process.stdout.write("ready"));setInterval(()=>{},1000);`;
-  const child = spawn(process.execPath, ["-e", script], { detached: true, stdio: ["ignore", "pipe", "ignore"] });
-  try {
-    await new Promise(resolve => child.stdout.once("data", resolve));
-    await stopProcessGroup(child, 50);
-    assert.equal(await readFile(marker, "utf8"), "natural exit");
-  } finally { child.kill(); await new Promise(resolve => setTimeout(resolve, 350)); await rm(root, { recursive: true, force: true }); }
+test("confirmed leader exit during SIGTERM grace prevents SIGKILL of its remaining helper", { skip: process.platform === "win32" }, async t => {
+  const child = { pid: 424242, signalCode: null }, signals = [];
+  let helperChecks = 0;
+  t.mock.method(process, "kill", (target, signal) => {
+    assert.equal(target, -child.pid);
+    if (signal === 0) {
+      if (child.signalCode && ++helperChecks > 3) throw Object.assign(new Error("naturally drained"), { code: "ESRCH" });
+      return true;
+    }
+    signals.push(signal);
+    if (signal === "SIGTERM") child.signalCode = "SIGTERM";
+    return true;
+  });
+  // A 50ms real-process fixture could reach SIGKILL before the leader was
+  // scheduled to exit. Establish the promised precondition, not host speed.
+  await stopProcessGroup(child, 0);
+  assert.deepEqual(signals, ["SIGTERM"]);
+  assert.ok(helperChecks > 3);
 });
