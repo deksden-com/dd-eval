@@ -1,0 +1,38 @@
+{
+  "id": "WRK-006-merge/RCP-004",
+  "local_id": "RCP-004",
+  "declaration_id": "CHK-MERGE",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-MERGE"
+  ],
+  "gate": "merge",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "true",
+  "input_hash": "fc13f7c58372b896a4cae6fd2f0df77f33458f42338fc5bfbb692e6e2c1737ef",
+  "verification_epoch": "8b5b98d965cd66944a67a947fd0fb32aebf3db56fd1931e6f305368d0476e58b",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_artifacts/cp236-verified.MHDctb/installed-matrix/dd-flow-protocolize-jV1XEA/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_artifacts/cp236-verified.MHDctb/installed-matrix/dd-flow-protocolize-jV1XEA/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_artifacts/cp236-verified.MHDctb/installed-matrix/dd-flow-protocolize-jV1XEA/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_artifacts/cp236-verified.MHDctb/installed-matrix/dd-flow-protocolize-jV1XEA/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "workspace_fingerprint": "75757dfbdbd10a2c32aebb9c0eefa658311a0e3423c4fbf1113eaf879cd7fbdc",
+  "before_fingerprint": "75757dfbdbd10a2c32aebb9c0eefa658311a0e3423c4fbf1113eaf879cd7fbdc",
+  "after_fingerprint": "75757dfbdbd10a2c32aebb9c0eefa658311a0e3423c4fbf1113eaf879cd7fbdc",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-18T08:19:04.263Z",
+  "finished_at": "2026-10-18T08:19:04.728Z",
+  "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/cp236-verified.MHDctb/installed-matrix/dd-flow-protocolize-jV1XEA/project",
+  "candidate_files": [],
+  "execution_failures": []
+}
