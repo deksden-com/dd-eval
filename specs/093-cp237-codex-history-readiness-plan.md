@@ -63,6 +63,7 @@ EVAL, restart/resume/правка истории старых запусков. 
 | D04 | Fakes моделировали пустую успешную историю, но не временно недоступную; doctor проверяет version/initialize. Полный gate не упражнял этот lifecycle. | P5 |
 | A05 | CodexBridge.onMessage compact-journal для любого ответа thread/read строит result.thread, даже если message.error задан: ошибка в журнале превращается в пустую успешную структуру. Promise при этом правильно rejected. Это самостоятельный дефект evidence, не причина принятого решения runtime. | P4 |
 | A06 | EVAL runner Judge finally выбирает --cancel-tree для primaryError, не признанного isObservationLoss. Сырой rpc_error туда не входит; вспомогательное чтение поэтому приводит к отмене уже принятого Turn. | P1/P4 |
+| A07 | При реализации/сверке E4: paged history unavailable не означает, что полная история тоже недоступна. Stale active Thread и tree settlement требуют узкого hydrated fallback; свежий active из hydrated ответа важнее предыдущего notLoaded. | P1/P3 |
 
 Проверенные общие consumers: setup/start, prompt polling, terminal reconciliation,
 post-turn output, child enrichment, direct inspect/cancel, tree inspect/cancel,
@@ -122,6 +123,11 @@ operation-errors/daemon-observation. Они используют другие na
   противоречивого interrupted snapshot. History unavailable не подтверждает terminal.
 - Сохранить persisted проверку stale-active interrupted Turn: удаление этого
   источника возвращает исправленный ранее дефект.
+- Если paged read unavailable, попробовать full history через тот же helper даже
+  при compact active; не ждать idle как условия fallback. Оба unavailable остаются
+  unknown. В tree settlement full history допускается как доказательство только
+  при реально полученном массиве turns; отсутствие turns не равно пустому массиву,
+  явно неверный тип — schema error. Свежий hydrated active запрещает settlement.
 - Не расширять synthetic final-message fallback. Недоступность истории не даёт
   новых оснований считать message или Thread idle завершением принятого Turn.
 
