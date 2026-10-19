@@ -64,6 +64,7 @@ EVAL, restart/resume/правка истории старых запусков. 
 | A05 | CodexBridge.onMessage compact-journal для любого ответа thread/read строит result.thread, даже если message.error задан: ошибка в журнале превращается в пустую успешную структуру. Promise при этом правильно rejected. Это самостоятельный дефект evidence, не причина принятого решения runtime. | P4 |
 | A06 | EVAL runner Judge finally выбирает --cancel-tree для primaryError, не признанного isObservationLoss. Сырой rpc_error туда не входит; вспомогательное чтение поэтому приводит к отмене уже принятого Turn. | P1/P4 |
 | A07 | При реализации/сверке E4: paged history unavailable не означает, что полная история тоже недоступна. Stale active Thread и tree settlement требуют узкого hydrated fallback; свежий active из hydrated ответа важнее предыдущего notLoaded. | P1/P3 |
+| A08 | Живая проверка смежной E4 нашла -32603 empty rollout metadata после accepted start, до turn/started/hook. Это отдельная readiness-гонка обязательного compact read, не unsupported history и не любой internal error. | P1/P5 |
 
 Проверенные общие consumers: setup/start, prompt polling, terminal reconciliation,
 post-turn output, child enrichment, direct inspect/cancel, tree inspect/cancel,
@@ -115,6 +116,12 @@ operation-errors/daemon-observation. Они используют другие na
 
 - Добавить одну узкую проверку известной недоступности истории и reuse в обоих
   history helpers. readCodexRpc сохраняет валидацию и bounded transient retries.
+- Дополнить существующую transient read policy точной empty-rollout ошибкой:
+  только thread/read, есть accepted current Turn без Turn event и current native
+  hook, native code -32603, оба пути в native сообщении совпадают и оканчиваются
+  на точный Thread ID. Использовать прежние максимум три чтения/backoff/общий
+  owner budget, не новый цикл и не повтор turn/start. После событий, для чужого
+  пути, paged метода или другого internal error — прежний фатальный отказ.
 - waitForTurn продолжает обработку native events при history unavailable;
   повторное read-only наблюдение по существующему cadence, без busy loop.
 - Проверять актуальный terminal event также после await/ошибки snapshot: snapshot
