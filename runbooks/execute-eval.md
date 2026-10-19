@@ -57,6 +57,10 @@ alone does not authorize paid qualification, provider calls or scored launches.
    questions affect their tasks, shared Judge prompt/model changes affect all tasks.
    Corrupt evidence, unknown paid outcomes or unconfirmed cleanup require resolution,
    not a replacement call. Qualification is regression evidence, not infallibility.
+   Codex history may be unavailable before its SQLite view is ready. Observe the
+   accepted Turn; do not resend it or classify a history-read refusal as provider
+   outage. An unresolved outcome/cleanup uses the retained operation's recovery,
+   never deletion of qualification failure evidence.
 7. Check host prerequisites. Task Priority uses project PostgreSQL on loopback
    `55433` by default; reuse its service/volume, never create a competing container.
    If that port belongs to another project, do not stop or use its server. With
