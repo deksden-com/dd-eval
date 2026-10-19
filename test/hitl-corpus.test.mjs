@@ -11,6 +11,25 @@ const corpus = JSON.parse(await readFile(new URL('entry-pack-source/interactions
 const covered = 'covered_by_canonical_response';
 const { responses } = JSON.parse(await readFile(new URL('entry-pack-source/interactions/specify.json', caseRoot)));
 const options = { responses, coverageRequired: true };
+test('CP236 optional create display is covered without answering an independent new decision', async () => {
+  const coverage = JSON.parse(await readFile(new URL('entry-pack-source/interactions/qualification-coverage.json', caseRoot)));
+  const item = coverage.items.find(item => item.id === 'cp236-create-display-optional');
+  const mixed = coverage.items.find(item => item.id === 'cp236-create-display-and-independent-gap');
+  const answerQuote = 'Подпись приоритета на форме создания задачи допустима, но необязательна.';
+  for (const stage of ['specify', 'plan']) {
+    const fixture = JSON.parse(await readFile(new URL(`entry-pack-source/interactions/${stage}.json`, caseRoot)));
+    assert.ok(fixture.responses[0].answer.includes(answerQuote));
+    const packet = await buildHitlPacket({ stage, question: item.question, responses: fixture.responses });
+    const grounded = { schema_id: 'dd-eval/hitl-match@3', atoms: [{ source_quote: item.question, decision: 'create display optional', classification: covered, reference_bindings: [], scope_evidence: [], answer_evidence: [{ response_id: responses[0].id, answer_quote: answerQuote }], rationale: 'Explicit accepted optionality' }] };
+    assert.doesNotThrow(() => validateGroundedHitl(grounded, packet));
+    const verdict = { schema_id: hitlCoverageContract, status: 'covered', response_ids: [responses[0].id], uncovered_questions: [] };
+    assert.equal(compareCoverageExpectation(item, verdict, { responses }).passed, true);
+    assert.equal(compareCoverageExpectation(mixed, verdict, { responses }).passed, false);
+    const beforePolicy = structuredClone(packet);
+    beforePolicy.responses[0].answer = beforePolicy.responses[0].answer.split('\n\n## 6.')[0];
+    assert.throws(() => validateGroundedHitl(grounded, beforePolicy));
+  }
+});
 test('canonical state headings cannot identify an unresolved approved-state reference', async () => {
   const coverage = JSON.parse(await readFile(new URL('entry-pack-source/interactions/qualification-coverage.json', caseRoot)));
   const item = coverage.items.find(item => item.id === 'heldout-indicators-refusal');

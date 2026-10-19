@@ -826,6 +826,43 @@
           }
         ]
       }
+    },
+    {
+      "id": "cp236-create-display-optional",
+      "question": "Должен ли экран создания задачи показывать понятный текст приоритета?",
+      "context_file": "entry-pack-source/interactions/qualification-specify.json",
+      "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
+      "partition": "calibration",
+      "classification": "covered_by_canonical_response",
+      "response_ids": [
+        "clarification-task-priority"
+      ],
+      "coverage_expectation": {
+        "status": "covered",
+        "response_ids": [
+          "clarification-task-priority"
+        ],
+        "remaining_decisions": []
+      }
+    },
+    {
+      "id": "cp236-create-display-and-independent-gap",
+      "question": "Обязательна ли подпись приоритета на форме создания и кто может экспортировать журнал изменений приоритета?",
+      "context_file": "entry-pack-source/interactions/qualification-specify.json",
+      "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
+      "partition": "calibration",
+      "classification": "out_of_scope",
+      "response_ids": [],
+      "coverage_expectation": {
+        "status": "uncovered",
+        "response_ids": [],
+        "remaining_decisions": [
+          {
+            "id": "priority-audit-export",
+            "description": "Priority change log export is independent of optional display and is not settled by the canonical package."
+          }
+        ]
+      }
     }
   ]
 }

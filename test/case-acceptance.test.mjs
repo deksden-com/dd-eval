@@ -5,7 +5,7 @@ import { mkdtemp, mkdir, readFile, realpath, rm, symlink, writeFile } from "node
 import os from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { checkCaseAcceptance, snapshotTreeHash, validateCaseAcceptancePolicy, selectFailedCheckGate } from "../lib/case-acceptance.mjs";
+import { checkCaseAcceptance, snapshotTreeHash, validateCaseAcceptancePolicy, selectFailedCheckGate, finalReceiptIndex, validateFrozenReceiptScope, validateFinalCheckReceipts } from "../lib/case-acceptance.mjs";
 
 const sha = value => createHash("sha256").update(value).digest("hex");
 const policy = { checker: "task-priority@1", case_id: "sdlc-eval-2026-summer-task-priority" };
@@ -20,6 +20,106 @@ test("case acceptance policy rejects a typo before runner admission", () => {
   assert.throws(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@5" }), /unsupported case acceptance policy/);
 });
 async function put(root, name, value) { const file = path.join(root, name); await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, value); return file; }
+
+test("final native receipt contract resolves runner enrichment from trusted profile or declaration",()=>{
+  // Sanitized AGY CP236 RCP-013 shape: PLAN declares no artifacts, native alias
+  // resolution adds db-verify.runner.json and engine-outcome.json.
+  for(const fromProfile of [true,false]) {
+    const runner={schema_id:"dd-flow/check-runner-evidence@1",path:"db-verify.runner.json"};
+    const check={id:"CHK-DB-VERIFY",canonical_ref:"PRT-007/CHK-DB-VERIFY",command:"@check/db-verify-local",run_at:"merge",...(fromProfile?{}:{runner_evidence:runner})};
+    const profile={aliases:{"@check/db-verify-local":"pnpm db:verify"},...(fromProfile?{runner_evidence_by_alias:{"@check/db-verify-local":runner}}:{})};
+    const directory="07-merge/works/WRK-014-merge/checks/RCP-013",fingerprint="e".repeat(64),id="WRK-014-merge/RCP-013";
+    const native={id,status:"passed",scope:"aggregate",exit_code:0,gate:"merge",command:"pnpm db:verify",profile_hash:"profile",input_hash:"input",before_fingerprint:fingerprint,after_fingerprint:fingerprint,verification_epoch:sha(`merge\0${fingerprint}`),mutation_paths:[],check_refs:[check.canonical_ref],inputs:[],resources:{ports:{}},finished_at:"2026-10-18T14:00:00Z",required_artifacts:[runner.path,"engine-outcome.json"],runner_evidence_required:runner,artifacts:[runner.path,"engine-outcome.json"].map(path=>({path,sha256:sha(path)}))};
+    const matrix={header:{run_id:"RUN-001"},sources:[{root:"run",role:"check_profile_target",path:"profile.json"},{root:"run",role:"receipt:db",path:`${directory}/receipt.json`},{root:"run",role:"completion:db",path:`${directory}/completion.json`},...native.artifacts.map(artifact=>({root:"run",role:`artifact:db:${artifact.path}`,path:`${directory}/artifacts/${artifact.path}`,sha256:artifact.sha256}))]};
+    const gate={checks:[check],acceptance_refs:[],profile_hash:"profile"};
+    const decoded=new Map([["run:07-merge/merge-gate-acceptance.json",{receipts:[{id,input_hash:"input",binding_refs:[check.canonical_ref],execution_refs:[check.canonical_ref]}]}],["run:profile.json",{profile}],[`run:${directory}/receipt.json`,native],[`run:${directory}/completion.json`,{exit_code:0,finished_at:native.finished_at}]]);
+    assert.doesNotThrow(()=>validateFinalCheckReceipts(matrix,gate,decoded));
+    for(const mutation of [{required_artifacts:[runner.path]},{required_artifacts:[runner.path,"engine-outcome.json","forged.json"]},{runner_evidence_required:{...runner,path:"foreign.json"}}]) {
+      decoded.set(`run:${directory}/receipt.json`,{...native,...mutation});
+      assert.throws(()=>validateFinalCheckReceipts(matrix,gate,decoded),/execution contract differs/);
+    }
+  }
+});
+
+test("scoped receipt authority cannot be changed or downgraded in presentation JSON", async () => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), "eval-scoped-authority-")));
+  const receipt = { id: "RUN-001/RCP-001", project_id: "PRJ-001", run_id: "RUN-001", fingerprint_scope: "check_inputs", work_id: null, scope: "aggregate", gate: "code", command: "true", input_hash: "input", verification_epoch: "epoch", status: "passed", exit_code: 0, workspace_fingerprint: "global", before_fingerprint: "selected", after_fingerprint: "selected", profile_hash: null, started_at: "start", finished_at: "finish" };
+  try {
+    await mkdir(path.join(root, "runtime"));
+    const db = new DatabaseSync(path.join(root, "runtime/db.sqlite"));
+    const columns = Object.keys(receipt);
+    db.exec(`CREATE TABLE check_receipts(${columns.map(key => `${key} ${key === "exit_code" ? "INTEGER" : "TEXT"}`).join(",")})`);
+    db.prepare(`INSERT INTO check_receipts VALUES(${columns.map(() => "?").join(",")})`).run(...Object.values(receipt)); db.close();
+    const authority = await validateFrozenReceiptScope(root, receipt, receipt);
+    assert.equal(authority.path, "runtime/db.sqlite");
+    const annotated = await validateFrozenReceiptScope(root, receipt, {...receipt, execution_failures:[{code:"forged",message:"mutable annotation"}]});
+    assert.deepEqual(annotated.receipt.execution_failures, [], "annotation cannot poison SQL-owned execution failures");
+    for (const mutation of [{ fingerprint_scope: null }, { fingerprint_scope: "unsupported" }, { before_fingerprint: "foreign" }, { command: "false" }, {artifacts:[{path:"forged.json",sha256:"f".repeat(64)}]}])
+      await assert.rejects(validateFrozenReceiptScope(root, receipt, { ...receipt, ...mutation }), /scope|authority/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("scoped execution diagnostics use SQL and hashed outcome rather than mutable annotations",async()=>{
+  const root=await realpath(await mkdtemp(path.join(os.tmpdir(),"eval-diagnostic-authority-")));
+  const relative="runtime/projects/PRJ-001/runs/RUN-001/works/WRK-001/checks/RCP-001/receipt.json";
+  const outcomePath=path.posix.join(path.posix.dirname(relative),"artifacts/engine-outcome.json");
+  const receipt={id:"WRK-001/RCP-001",project_id:"PRJ-001",run_id:"RUN-001",work_id:"WRK-001",scope:"work",gate:"work",command:"test",input_hash:"input",verification_epoch:"epoch",fingerprint_scope:"check_inputs",execution_contract_hash:"contract",input_manifest:null,status:"failed",exit_code:0,workspace_fingerprint:"audit",before_fingerprint:"before",after_fingerprint:"after",profile_hash:null,started_at:"start",finished_at:"finish",required_artifacts:["engine-outcome.json"],execution_failures:[{code:"forged",message:"mutable annotation"}]};
+  const failures=[{code:"check_inputs_changed",message:"actual.sql"}];
+  const outcome={schema_id:"dd-flow/check-execution-outcome@1",id:receipt.id,command:receipt.command,input_hash:receipt.input_hash,verification_epoch:receipt.verification_epoch,fingerprint_scope:receipt.fingerprint_scope,execution_contract_hash:receipt.execution_contract_hash,input_manifest:null,execution_failures:failures};
+  const bytes=JSON.stringify(outcome);receipt.artifacts=[{path:"engine-outcome.json",sha256:sha(bytes)}];
+  try {
+    await put(root,outcomePath,bytes);
+    const row={...Object.fromEntries(Object.entries(receipt).filter(([,value])=>value===null || ["string","number"].includes(typeof value))),input_manifest_json:"null",artifacts_json:JSON.stringify(receipt.artifacts),execution_failures_json:JSON.stringify(failures)};
+    const columns=Object.keys(row),db=new DatabaseSync(path.join(root,"runtime/db.sqlite"));
+    db.exec(`CREATE TABLE check_receipts(${columns.map(key=>`${key} ${key==="exit_code"?"INTEGER":"TEXT"}`).join(",")})`);
+    db.prepare(`INSERT INTO check_receipts VALUES(${columns.map(()=>"?").join(",")})`).run(...Object.values(row));db.close();
+    const projected=await validateFrozenReceiptScope(root,receipt,receipt,relative);
+    assert.deepEqual(projected.receipt.execution_failures,failures);
+    const conflicting=new DatabaseSync(path.join(root,"runtime/db.sqlite"));conflicting.prepare("UPDATE check_receipts SET execution_failures_json=?").run("[]");conflicting.close();
+    await assert.rejects(validateFrozenReceiptScope(root,receipt,receipt,relative),/conflicts with SQL/);
+    await assert.rejects(validateFrozenReceiptScope(root,receipt,{...receipt,required_artifacts:[]},relative),/conflicts with SQL/,"removing mutable obligation cannot hide a retained sidecar");
+    const repaired=new DatabaseSync(path.join(root,"runtime/db.sqlite"));repaired.prepare("UPDATE check_receipts SET execution_failures_json=?").run(JSON.stringify(failures));repaired.close();
+    await put(root,outcomePath,JSON.stringify({...outcome,execution_failures:[]}));
+    await assert.rejects(validateFrozenReceiptScope(root,receipt,receipt,relative),/retained artifact authority/);
+    await put(root,outcomePath,bytes);
+    // No-runner checks have no outcome file. Their zero-exit drift must still
+    // use SQL, never a forged check_inputs_changed annotation.
+    const noRunner={...receipt,required_artifacts:[],artifacts:[]};
+    const clean=new DatabaseSync(path.join(root,"runtime/db.sqlite"));clean.prepare("UPDATE check_receipts SET execution_failures_json=?,artifacts_json=?").run("[]","[]");clean.close();
+    const noDrift=await validateFrozenReceiptScope(root,noRunner,{...noRunner,execution_failures:failures},relative);
+    assert.deepEqual(noDrift.receipt.execution_failures,[]);
+  } finally {await rm(root,{recursive:true,force:true});}
+});
+
+test("native receipt indexing preserves logical gates independent of stage and includes root Works", async () => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), "eval-receipt-index-")));
+  const runtime = "runtime/projects/PRJ-001/runs/RUN-001";
+  const entries = [
+    ["05-code/checks/RCP-003", null, "readiness", "aggregate"],
+    ["07-merge/works/WRK-014-merge/checks/RCP-014", "WRK-014-merge", "work", "aggregate"],
+    ["07-merge/works/WRK-014-merge/checks/RCP-015", "WRK-014-merge", "code", "aggregate"],
+    ["07-merge/works/WRK-014-merge/checks/RCP-017", "WRK-014-merge", "readiness", "aggregate"],
+    ["works/WRK-006/checks/RCP-001", "WRK-006", "work", "work"]
+  ];
+  try {
+    for (const [relative, work_id, gate, scope] of entries) {
+      const local_id = path.basename(relative);
+      await put(root, `${runtime}/${relative}/receipt.json`, JSON.stringify({ id: `${work_id ?? "RUN-001"}/${local_id}`, local_id, work_id, gate, scope }));
+    }
+    const indexed = await finalReceiptIndex(root, runtime);
+    assert.equal(indexed.size, entries.length);
+    assert.match(indexed.get("WRK-006/RCP-001"), /\/works\/WRK-006\/checks\//);
+    const file = `${runtime}/${entries[1][0]}/receipt.json`;
+    const receipt = JSON.parse(await readFile(path.join(root, file), "utf8"));
+    for (const delta of [{ work_id: "WRK-foreign" }, { gate: "anything" }, { fingerprint_scope: "unsupported" }]) {
+      await put(root, file, JSON.stringify({ ...receipt, ...delta }));
+      await assert.rejects(finalReceiptIndex(root, runtime), /namespace, gate or owning path/);
+    }
+    await put(root, file, JSON.stringify(receipt));
+    await put(root, `${runtime}/06-code-review/checks/RCP-003/receipt.json`, await readFile(path.join(root, `${runtime}/${entries[0][0]}/receipt.json`)));
+    await assert.rejects(finalReceiptIndex(root, runtime), /duplicate final receipt/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 
 test("V4 selects reached gates before touching captures and preserves enclosing receipts", async () => {
   const v4 = { ...policy, checker: "task-priority@4" };
@@ -68,7 +168,9 @@ test("V4 frozen native gate proof handles aborted, readiness, wrappers and names
     failed.code = "repair_registration_rejected"; failed.details = { failures: [native], cause: { code: "code_gate_failed" } };
     assert.equal((await read()).status, "failed");
     native.id = "RUN-999/RCP-002"; await capture(); assert.equal((await read()).status, "unavailable");
-    native.id = "RUN-001/RCP-002"; native.gate = "merge"; await capture(); assert.equal((await read()).status, "unavailable");
+    native.id = "RUN-001/RCP-002"; native.gate = "merge"; await capture();
+    assert.equal((await read()).status, "failed", "a non-readiness wrapper consumes the recorded logical gate, not the directory name");
+    native.gate = "unknown"; await capture(); assert.equal((await read()).status, "unavailable");
     native.gate = "readiness"; native.status = "running"; await capture(); assert.equal((await read()).status, "unavailable");
     native.status = "aborted"; await capture();
     const authority = new DatabaseSync(path.join(f.snapshot, "runtime", "db.sqlite"));
@@ -245,6 +347,45 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     assert.equal(current.status, "passed", JSON.stringify(current.evidence_error));
     assert.equal(current.facts.consumed_source.purpose, "candidate");
     assert.equal(current.facts.consumed_source.manifest_sha256, f.result.candidate.manifest_sha256);
+    const unused = "05-code/checks/RCP-999/receipt.json";
+    await put(f.runtime, unused, JSON.stringify({ id: "RUN-001/RCP-999", local_id: "RCP-999", work_id: null, scope: "aggregate", gate: "readiness" }));
+    await seal(f);
+    assert.equal((await generatedRead()).status, "passed", "an unconsumed native readiness receipt is not an invalid final gate");
+    await rm(path.join(f.runtime, "05-code/checks/RCP-999"), { recursive: true });
+    const intakePath = "07-merge/verification/sources/intake/accepted-input.md";
+    await put(f.runtime, intakePath, "Original accepted user request, not JSON\n");
+    sources.push({ role: "accepted_intake", root: "run", path: intakePath, sha256: "" });
+    sources.sort((a, b) => `${a.role}:${a.root}:${a.path}` < `${b.role}:${b.root}:${b.path}` ? -1 : 1);
+    await publish();
+    const intakeResult = await generatedRead();
+    assert.equal(intakeResult.status, "passed", JSON.stringify(intakeResult.evidence_error));
+    sources.splice(sources.findIndex(source => source.role === "accepted_intake"), 1);
+    await rm(path.join(f.runtime, intakePath)); await publish();
+
+    const legacyNative = { ...nativeReceipt };
+    const manifestBytes = JSON.stringify({ fingerprint_scope: "check_inputs", before_fingerprint: nativeReceipt.before_fingerprint, files: [] });
+    Object.assign(nativeReceipt, { fingerprint_scope: "check_inputs", execution_contract_hash: sha("execution contract"), execution_failures: [], input_manifest: { path: "inputs-before.json", sha256: sha(manifestBytes), truncated: false } });
+    const nativeRelative = sourceNames.find(item => item.role === `receipt:${binding}`).path;
+    const completionRelativeScoped = sourceNames.find(item => item.role === `completion:${binding}`).path;
+    const manifestRelative = path.posix.join(path.posix.dirname(nativeRelative), "inputs-before.json");
+    await put(f.runtime, manifestRelative, manifestBytes);
+    await put(f.runtime, nativeRelative, JSON.stringify(nativeReceipt));
+    await put(f.runtime, completionRelativeScoped, JSON.stringify({ exit_code: 0, finished_at: completedAt, fingerprint_scope: "check_inputs", id: nativeReceipt.id, input_hash: nativeReceipt.input_hash, verification_epoch: nativeReceipt.verification_epoch, before_fingerprint: nativeReceipt.before_fingerprint, after_fingerprint: nativeReceipt.after_fingerprint, input_manifest: nativeReceipt.input_manifest }));
+    const storedNative = { ...nativeReceipt, project_id: "PRJ-001", run_id: "RUN-001", input_manifest_json: JSON.stringify(nativeReceipt.input_manifest), execution_failures_json: "[]", artifacts_json:JSON.stringify(nativeReceipt.artifacts) };
+    const storedColumns = Object.keys(storedNative).filter(key => storedNative[key] === null || ["string", "number"].includes(typeof storedNative[key]));
+    const scopeDb = new DatabaseSync(path.join(f.snapshot, "runtime/db.sqlite"));
+    scopeDb.exec(`CREATE TABLE check_receipts(${storedColumns.map(key => `${key} ${key === "exit_code" ? "INTEGER" : "TEXT"}`).join(",")})`);
+    scopeDb.prepare(`INSERT INTO check_receipts VALUES(${storedColumns.map(() => "?").join(",")})`).run(...storedColumns.map(key => storedNative[key])); scopeDb.close();
+    await publish();
+    assert.equal((await generatedRead()).status, "passed", "scoped native proof binds SQL, input manifest and completion");
+    delete nativeReceipt.fingerprint_scope;
+    await put(f.runtime, nativeRelative, JSON.stringify(nativeReceipt)); await publish();
+    assert.equal((await generatedRead()).status, "unavailable", "JSON cannot downgrade scoped SQL authority to legacy");
+    for (const key of Object.keys(nativeReceipt)) if (!(key in legacyNative)) delete nativeReceipt[key];
+    Object.assign(nativeReceipt, legacyNative);
+    await put(f.runtime, nativeRelative, JSON.stringify(nativeReceipt));
+    await put(f.runtime, completionRelativeScoped, JSON.stringify({ exit_code: 0, finished_at: completedAt }));
+    await rm(path.join(f.snapshot, "runtime/db.sqlite")); await rm(path.join(f.runtime, manifestRelative)); await publish();
     await rm(path.join(f.runtime, artifactRelative)); await seal(f);
     assert.equal((await generatedRead()).status, "unavailable", "missing claimed binary bytes are unavailable authority");
     await put(f.runtime, artifactRelative, "corrupt claimed binary"); await publish();
@@ -377,4 +518,35 @@ test("reached failed check distinguishes missing expected output from corrupt cl
     await put(f.runtime, "05-code/checks/RCP-001/receipt.json", JSON.stringify(receipt)); await capture();
     assert.equal((await read()).status, "unavailable", "claimed artifact bytes remain mandatory even for a failed execution");
   } finally { await rm(f.root, { recursive: true, force: true }); }
+});
+
+test("scoped zero-exit failure consumer rejects forged mutation and missing-output annotations",async()=>{
+  const f=await fixture();
+  try {
+    const before="e".repeat(64),after="f".repeat(64),finished="2026-10-18T14:00:00Z";
+    const manifestBytes=JSON.stringify({fingerprint_scope:"check_inputs",before_fingerprint:before,files:[]});
+    const receipt={id:"RUN-001/RCP-001",local_id:"RCP-001",work_id:null,scope:"aggregate",gate:"code",command:"test",input_hash:"input",verification_epoch:sha(`code\0${before}`),fingerprint_scope:"check_inputs",execution_contract_hash:"contract",input_manifest:{path:"inputs-before.json",sha256:sha(manifestBytes),truncated:false},status:"failed",exit_code:0,workspace_fingerprint:"audit",before_fingerprint:before,after_fingerprint:after,profile_hash:null,started_at:finished,finished_at:finished,required_artifacts:[],artifacts:[],mutation_paths:[],execution_failures:[]};
+    const row={...Object.fromEntries(Object.entries(receipt).filter(([,value])=>value===null || ["string","number"].includes(typeof value))),project_id:"PRJ-001",run_id:"RUN-001",input_manifest_json:JSON.stringify(receipt.input_manifest),execution_failures_json:"[]",artifacts_json:"[]"};
+    const columns=Object.keys(row),database=path.join(f.snapshot,"runtime/db.sqlite"),db=new DatabaseSync(database);
+    db.exec(`CREATE TABLE check_receipts(${columns.map(key=>`${key} ${key==="exit_code"?"INTEGER":"TEXT"}`).join(",")})`);db.prepare(`INSERT INTO check_receipts VALUES(${columns.map(()=>"?").join(",")})`).run(...Object.values(row));db.close();
+    await put(f.runtime,"05-code/checks/RCP-001/inputs-before.json",manifestBytes);
+    await put(f.runtime,"05-code/checks/RCP-001/completion.json",JSON.stringify({exit_code:0,finished_at:finished,fingerprint_scope:"check_inputs",id:receipt.id,input_hash:receipt.input_hash,verification_epoch:receipt.verification_epoch,before_fingerprint:before,after_fingerprint:after,input_manifest:receipt.input_manifest}));
+    const result={state:"failed",stage:"code",run_id:"RUN-001",code:"code_gate_failed",details:{failures:[receipt]},recovery:{manifest:path.join(f.snapshot,"snapshot.json"),recovery_id:"REC-001"}};
+    const publish=async annotation=>{
+      await put(f.runtime,"05-code/checks/RCP-001/receipt.json",JSON.stringify({...receipt,...annotation}));
+      const bytes=JSON.stringify({schema_id:"dd-flow/eval-run-snapshot@5",purpose:"recovery",stage_entry:null,recovery_id:"REC-001",consistency:"sealed_writer_barrier_required",run_id:"RUN-001",project_id:"PRJ-001",workspace:{sha256:snapshotTreeHash(f.workspace)},runtime_sha256:snapshotTreeHash(path.join(f.snapshot,"runtime"))});
+      await put(f.snapshot,"snapshot.json",bytes);result.recovery.manifest_sha256=sha(bytes);
+    };
+    const read=()=>checkCaseAcceptance({evalRoot:f.root,execution:"e2e",result,policy:{...policy,checker:"task-priority@3"}});
+    for(const annotation of [{execution_failures:[{code:"check_inputs_changed",message:"forged"}]},{mutation_paths:["forged.sql"]},{required_artifacts:["invented.json"]}]) {
+      await publish(annotation);const checked=await read();assert.equal(checked.status,"unavailable",JSON.stringify(checked));assert.match(checked.evidence_error.message,/no proven contract violation/);
+    }
+    const retained=new DatabaseSync(database);retained.prepare("UPDATE check_receipts SET execution_failures_json=?").run(JSON.stringify([{code:"check_inputs_changed",message:"actual.sql"}]));retained.close();
+    await publish({execution_failures:[{code:"forged",message:"ignore advisory annotation"}]});
+    assert.equal((await read()).status,"failed","actual SQL-owned input drift remains a valid failed check");
+    await publish({required_artifacts:["invented.json"]});
+    const checked=await read();assert.equal(checked.status,"failed");
+    assert.deepEqual(checked.facts.failed_checks[0].expected_output_gaps,[]);
+    assert.equal(checked.gaps.some(gap=>gap.includes("check_expected_output_missing")),false);
+  } finally {await rm(f.root,{recursive:true,force:true});}
 });
