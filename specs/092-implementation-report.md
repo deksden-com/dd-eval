@@ -4,6 +4,9 @@ Implementation P1–P6 is complete and the final offline gate passed.
 Integration is tracked in engine PR #95, EVAL PR #115 and canon PR #6.
 No scored EVAL, release, global installation or historical runtime was changed.
 
+Independent review found and corrected two remaining contract gaps; the new full
+offline gate and cleanup are recorded in [review report](092-review-report.md).
+
 ## Changes
 
 - OpenCode inspection and cancellation preserve one Session identity and stable

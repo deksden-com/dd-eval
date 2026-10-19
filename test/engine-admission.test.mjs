@@ -102,6 +102,51 @@ test("frozen native contracts preserve normalized inputs, resolved prompts and c
   assert.doesNotThrow(() => validateVerificationMatrixAuthority(matrix, proofs));
 });
 
+test("final matrix authority preserves profile@7 planned runner aliases and canonical hashes", () => {
+  const hash = value => createHash("sha256").update(value).digest("hex");
+  const canonical = value => JSON.stringify(value, (_key, item) => item && typeof item === "object" && !Array.isArray(item) ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b))) : item);
+  const runner = { schema_id: "dd-flow/check-runner-evidence@1", path: "runner.json" };
+  const baseline = { schema_id: "dd-flow/code-check-profile@7", aliases: { "@check/old": "true" }, require_alias_for: {}, mandatory_by_gate: {}, runner_evidence_by_alias: { "@check/old": runner } };
+  const source = { ...baseline, aliases: { ...baseline.aliases, "@check/new": "true" }, runner_evidence_by_alias: { ...baseline.runner_evidence_by_alias, "@check/new": runner } };
+  const declaration = { id: "CHK-new", command: "@check/new", run_at: "merge", availability: "planned" };
+  const plan = { protocol_id: "PRT-001", plan_id: "PLAN-001", revision: 1, items: [], acceptance: [], checks: [declaration] };
+  const check = { ...declaration, canonical_ref: "PRT-001/CHK-new" }, planHash = hash(JSON.stringify(plan));
+  const batch = { sources: [{ protocol_id: plan.protocol_id, plan_id: plan.plan_id, revision: 1, sha256: planHash }] }, batchHash = hash(JSON.stringify(batch));
+  const gate = { checks: [check], acceptance_refs: [], profile_hash: hash(canonical({ ...baseline, ports_by_alias: {}, inputs_by_alias: {} })) };
+  const fingerprint = "e".repeat(64), native = { id: "RCP-native", status: "passed", scope: "aggregate", exit_code: 0, profile_hash: gate.profile_hash, command: "true", gate: "merge", input_hash: "bound", verification_epoch: hash(`merge\0${fingerprint}`), before_fingerprint: fingerprint, after_fingerprint: fingerprint, mutation_paths: [], inputs: [], resources: { ports: {} }, required_artifacts: [runner.path, "engine-outcome.json"], artifacts: [runner.path, "engine-outcome.json"].map(path => ({ path, sha256: hash(path) })), runner_evidence_required: runner, finished_at: "2026-10-19T00:00:00Z", check_refs: [check.canonical_ref] };
+  const values = [
+    ["specify", "01-specify/specify.json", { requirements: [], acceptance_criteria: [] }],
+    ["protocolize", "02-protocolize/protocolize-result.json", { delivery: { members: [{ key: "main" }] }, obligation_ownership: [] }],
+    ["protocolize_report", "02-protocolize/stage-report.json", { semantic: { acceptance: [plan.protocol_id] } }],
+    ["plan:PRT-001", `07-merge/verification/sources/${planHash}/plan.json`, plan],
+    ["code_work_batch", `07-merge/verification/sources/${batchHash}/code-work-batch.json`, batch],
+    ["batch", "03-plan/code-work-batch.json", batch], ["gate", "07-merge/merge-gate.json", gate],
+    ["acceptance", "07-merge/merge-gate-acceptance.json", { receipts: [{ id: native.id, input_hash: native.input_hash, execution_refs: native.check_refs, binding_refs: native.check_refs }] }],
+    ["receipt:new", "07-merge/checks/RCP-native/receipt.json", native],
+    ["completion:new", "07-merge/checks/RCP-native/completion.json", { exit_code: 0, finished_at: native.finished_at }],
+    ...native.artifacts.map(artifact => [`artifact:new:${artifact.path}`, `07-merge/checks/RCP-native/artifacts/${artifact.path}`, {}]),
+    ...["baseline", "source", "target"].map(role => {
+      const profile = role === "baseline" ? baseline : source, bytes = JSON.stringify(profile);
+      return [`check_profile_${role}`, `07-merge/check-profile-${role}.json`, { schema_id: "dd-flow/retained-check-profile@1", profile, profile_bytes: bytes, profile_sha256: hash(bytes) }];
+    })
+  ];
+  const proofs = values.map(([role, path, value]) => ({ role, root: "run", path, sha256: role.startsWith("artifact:") ? native.artifacts.find(artifact => path.endsWith(`/${artifact.path}`)).sha256 : hash(JSON.stringify(value)), value }));
+  const matrix = { schema_id: "dd-flow/verification-matrix@1", header: { project_id: "PRJ-1", run_id: "RUN-1", stage: "merge", stage_attempt: "try-001", role: "output", completeness: "final", source_fingerprint: "" }, sources: [], requirements: [], criteria: [], policy_checks: [{ id: check.id, canonical_ref: check.canonical_ref, declaration: check, result: native, disposition: "retained" }] };
+  const validate = () => {
+    for (const proof of proofs.filter(item => item.role.startsWith("check_profile_"))) {
+      proof.value.profile_bytes = JSON.stringify(proof.value.profile); proof.value.profile_sha256 = hash(proof.value.profile_bytes); proof.sha256 = hash(JSON.stringify(proof.value));
+    }
+    matrix.sources = proofs.map(({ value, ...source }) => source); matrix.header.source_fingerprint = verificationMatrixFingerprint(matrix);
+    return validateVerificationMatrixAuthority(matrix, proofs);
+  };
+  assert.doesNotThrow(validate);
+  // Reordering transport keys must preserve the engine's canonical @7 hash.
+  for (const proof of proofs.filter(item => item.role.startsWith("check_profile_"))) proof.value.profile = Object.fromEntries(Object.entries(proof.value.profile).reverse());
+  assert.doesNotThrow(validate);
+  for (const role of ["source", "target"]) proofs.find(proof => proof.role === `check_profile_${role}`).value.profile.runner_evidence_by_alias["@check/old"] = { ...runner, path: "foreign.json" };
+  assert.throws(validate, /source changes baseline policy/);
+});
+
 test("checkpoint admission verifies bytes, rejects same-version substitutions and requires a new pin", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "engine-admission-"));
   try {

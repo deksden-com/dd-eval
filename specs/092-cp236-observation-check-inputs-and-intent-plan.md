@@ -1,7 +1,8 @@
 # 092 — Наблюдение native Session, границы check inputs и сохранение принятого намерения
 
-Дата: 2026-10-18. Статус: готов к реализации после readiness review;
-реализация и новые E2E не выполнялись.
+Дата: 2026-10-18. Статус: реализован; независимое ревью и полный offline gate
+завершены 2026-10-19. См. [implementation report](092-implementation-report.md)
+и [review report](092-review-report.md). Новые E2E в рамках ревью не запускались.
 Ponytail: full. Основание — расследование CP235/CP236 и аудит общих callers,
 адаптеров, receipt consumers и инструкций этапов. Цель: убрать ложные blockers,
 не ослабить ownership/evidence и не исправлять оцениваемый продукт вручную.
