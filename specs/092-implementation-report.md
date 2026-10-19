@@ -1,6 +1,7 @@
 # Plan 092 implementation
 
-Implementation is complete; final offline verification and integration are pending.
+Implementation P1–P6 is complete and the final offline gate passed.
+Integration is tracked in engine PR #95, EVAL PR #115 and canon PR #6.
 No scored EVAL, release, global installation or historical runtime was changed.
 
 ## Changes
@@ -63,15 +64,48 @@ No scored EVAL, release, global installation or historical runtime was changed.
 ## Source references
 
 - Engine implementation: `ec2d85a6`, E3 manifest expectation `08427dd4`,
-  diagnostic-authority/concurrency correction `b1816f1c`.
+  diagnostic-authority/concurrency correction `b1816f1c`, ownership/routing
+  correction and final tested candidate `73d8087f2f7a4ddd6e65012f3618f5ba53cb332a`.
 - Canon candidate: `a1cfe8b06329c691c314064b6ea6a3da6628cceb`.
 - Task check policy: `1c728b32700d4a09565d2dd4adc7d4e132ba0821`, integrated
   into `deksden-com/dd-tasks` main. No product files changed.
 - EVAL runtime changes: `a40d577`, `2387952`, `bcc6901`, `0c186fa`.
+  Final tested EVAL revision: `7fd5796e3e3175e32ea8c2345a15bbae22edab13`;
+  this report is a documentation-only follow-up.
+
+## Final offline gate — 2026-10-19
+
+The complete chain exited **0** on the refs above. Receipts and every earlier
+attempt are retained in
+`/Users/deksden/Documents/_Projects/_artifacts/plan092-verification.380bYJ/`;
+the final script/log is `final-gate-6.sh` / `final-gate-6.log`, receipts `attempt-6/`.
+No test filters, automatic test retries or snapshot updates authorized acceptance.
+
+| Check | Result |
+| --- | --- |
+| Typecheck, ESLint, strict canon build | PASS |
+| Release-build verifier / release contracts | 2 / 8 PASS |
+| Integration, all four standard shards | 174 files, 2918 PASS, no skips |
+| Runtime-sensitive native/control contracts | 48 PASS, no skips |
+| Hybrid / hybrid canon | 66 / 51 PASS |
+| E2 / installed E2 | 133 PASS + 1 platform skip / 2 PASS |
+| E3 / E3 canon | 473 PASS + 1 supplemental-fixture skip / 15 PASS |
+| Complete paired EVAL suite | 941 PASS, 5 explicit optional-fixture skips |
+
+The inventory verifier checked exact shard coverage, runner exits, absence of
+failures/unfinished suites and unchanged source/build provenance. EVAL used the
+same source CLI and an actually installed private engine snapshot, not a manually
+edited engine manifest. Both real mb-lint E3 cases ran and passed.
+
+Explicit skips: fish is unavailable; the optional retained completed-correction
+fixture is absent. EVAL's five unconfigured optional cells require an authenticated
+Memory delivery root (three tests), the pinned dd-tasks source binding (one), or
+the separate setup CLI/canon/engine/Console fixture tuple (one). These are not
+claimed as passed, nor as live qualification of a released runtime.
 
 ## Verification boundary
 
-Focused regressions pass. Final gate results will be recorded after completion.
+Focused regressions and the complete configured offline gates pass.
 Canon lint was run: its 27 errors concern unchanged files; no changed file is
 reported. The configured linter excludes shared dd-flow prompt files, so their
 validation relies on behavioral/copy-parity tests, not that lint result.
