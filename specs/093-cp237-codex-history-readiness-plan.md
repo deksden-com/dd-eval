@@ -1,6 +1,6 @@
 # 093 — Codex: готовность истории не равна готовности выполнения
 
-Дата: 2026-10-19. Статус: план готов к реализации; runtime в этой задаче не менялся.
+Дата: 2026-10-19. Статус: реализация внесена; полная приёмка и интеграция ещё не завершены.
 Ponytail: full. Цель: убрать ложный отказ принятого native Turn, не ослабить
 ownership, полноту результата, settlement и запрет повторной отправки при неизвестном исходе.
 
@@ -65,6 +65,7 @@ EVAL, restart/resume/правка истории старых запусков. 
 | A06 | EVAL runner Judge finally выбирает --cancel-tree для primaryError, не признанного isObservationLoss. Сырой rpc_error туда не входит; вспомогательное чтение поэтому приводит к отмене уже принятого Turn. | P1/P4 |
 | A07 | При реализации/сверке E4: paged history unavailable не означает, что полная история тоже недоступна. Stale active Thread и tree settlement требуют узкого hydrated fallback; свежий active из hydrated ответа важнее предыдущего notLoaded. | P1/P3 |
 | A08 | Живая проверка смежной E4 нашла -32603 empty rollout metadata после accepted start, до turn/started/hook. Это отдельная readiness-гонка обязательного compact read, не unsupported history и не любой internal error. | P1/P5 |
+| A09 | Полный integration выявил нагрузочную гонку command-progress.test.ts: холодный реальный Node обязан выдать output за тестовые 1000ms. Actual: operation_observation_lost, без подтверждённого progress. Проверять скользящий budget управляемым spawn/streams и fake Date/performance/timers, не увеличивать production timeout и не маскировать падение повтором. | P5 |
 
 Проверенные общие consumers: setup/start, prompt polling, terminal reconciliation,
 post-turn output, child enrichment, direct inspect/cancel, tree inspect/cancel,
@@ -290,4 +291,5 @@ qualification recovery/Judge cleanup tests. Receipt фиксирует selected 
   cancellation ID, settlement unknown, clock/progress, ошибках и интеграции приняты.
 - Остаточная неопределённость native materialization не блокирует реализацию:
   оба её варианта требуют одинакового корректного observation контракта.
-- Реализация ещё не выполнена; план не выдаёт запланированные проверки за PASS.
+- Реализация внесена; итоговый implementation report должен отдельно подтвердить
+  обязательные проверки и integration. Неуспешные/прерванные попытки не являются PASS.
