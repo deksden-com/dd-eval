@@ -4,6 +4,7 @@
 План: [093](093-cp237-codex-history-readiness-plan.md).
 Интеграционные PR: [engine #97](https://github.com/deksden-com/dd-flow-cli/pull/97),
 [EVAL #118](https://github.com/deksden-com/dd-eval/pull/118).
+Последующее [ревью](093-review-report.md) фиксирует дополнительные исправления и новую приёмку; receipts ниже остаются историей первоначального кандидата.
 
 ## Проверенный кандидат
 
@@ -22,9 +23,9 @@ registry beta.142: источник и checksum указаны выше; пуб�
 
 | Пакет / найденные места | Реализовано |
 | --- | --- |
-| P1, A01/A07/A08 | Общий `readCodexHistory` различает unavailable и доступную пустую историю. Нет permanent capability cache. Paged → hydrated fallback работает и при stale active. Узкий empty-rollout metadata retry использует прежние три read attempts/backoff/owner budget только до native Turn/hook evidence. |
-| P2, A02 | Native completed и exact retained Turn/items сохраняются независимо от истории. При fallback обязательны текущий output, item evidence и наблюдённый профиль. Неполный результат — typed observation failure с известным native outcome, не пустой success. Известные child failure/ancestry не исчезают. |
-| P3, A03/A04/A07 | Cancel сохраняет exact Turn ID; unavailable без ID не становится turn_not_active. Interrupt ACK не равен settlement. notLoaded/systemError/idle не скрывают известный принятый незавершённый Turn; реально пустая история допускается только при фактическом массиве turns. |
+| P1, D01/A04/A07/A08 | Общий `readCodexHistory` различает unavailable и доступную пустую историю. Нет permanent capability cache. Paged → hydrated fallback работает и при stale active. Узкий empty-rollout metadata retry использует прежние три read attempts/backoff/owner budget только до native Turn/hook evidence. |
+| P2, D02/A01 | Native completed и exact retained Turn/items сохраняются независимо от истории. При fallback обязательны текущий output, item evidence и наблюдённый профиль. Неполный результат — typed observation failure с известным native outcome, не пустой success. Известные child failure/ancestry не исчезают. |
+| P3, A02/A03/A07 | Cancel сохраняет exact Turn ID; unavailable без ID не становится turn_not_active. Interrupt ACK не равен settlement. notLoaded/systemError/idle не скрывают известный принятый незавершённый Turn; реально пустая история допускается только при фактическом массиве turns. |
 | P4, A05/A06 | Compact journal сокращает только успешные reads, сохраняет RPC error. EVAL классифицирует operation_observation_lost как инфраструктуру и не запускает Judge cancel-tree/replay из-за этого envelope. Matrix producer/consumer используют общий text-source decoder при прежних authority/hash/JSON guards. |
 | P5, A09 | Регрессии, non-generative packaged probe, краткие runbooks и doctor scope. Найденная при полном gate 1000ms гонка реального child startup заменена управляемыми spawn/streams/fake Date/performance/timers, без увеличения runtime timeout или ослабления assertions. |
 
