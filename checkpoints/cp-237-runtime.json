@@ -1,0 +1,33 @@
+{
+  "id": "cp-237-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fc6fac469a3666a693d382d418f466f934e05ac"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "98245526073f38066326bbaf0c698181d9ed4aa4",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-237-installed-matrix-qualification.json",
+      "sha256": "7ddc9f959e62fb30fa2e24bdf85ad0d6a59a4fb922d714ca103cbb9141af21f4",
+      "canon_commit": "a1cfe8b06329c691c314064b6ea6a3da6628cceb"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "19ca01d60193f96acf002246cfe7eb4d98b00ae1",
+      "version": "0.9.0-beta.142",
+      "artifact_sha256": "e13087f1515758dc6cfa9106ce3c7a534b1cb9e6145273c1c938fc6ae1370a4b"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Reviewed Plan092 private frozen package; scoped check inputs overlay only, accepted-intent flow instructions, unchanged product baseline. Not a new npm release.",
+    "world_isolation": "Per-execution isolated test worlds and cleanup receipts.",
+    "baseline": "Each scored execution runs its own full baseline before Subject dispatch."
+  }
+}

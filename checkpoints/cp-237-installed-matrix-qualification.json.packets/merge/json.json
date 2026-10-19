@@ -1,0 +1,480 @@
+{
+  "criteria": [
+    {
+      "check_refs": [
+        "CHK-P1-TEST",
+        "CHK-READY"
+      ],
+      "checks": [
+        {
+          "canonical_ref": "PRT-001-task-priority/CHK-P1-TEST",
+          "declaration": {
+            "availability": "available",
+            "canonical_ref": "PRT-001-task-priority/CHK-P1-TEST",
+            "command": "test -f apps/api/src/core/service.ts",
+            "id": "CHK-P1-TEST",
+            "purpose": "Proves the changed task service exists.",
+            "run_at": "work"
+          },
+          "disposition": "retained",
+          "id": "CHK-P1-TEST",
+          "result": {
+            "after_fingerprint": "1ae78c0e7087e498fbd9e11fc59c6758ed51a92168ca5a0f2a7f306c3e07a0c0",
+            "artifacts": [],
+            "artifacts_json": "[]",
+            "before_fingerprint": "1ae78c0e7087e498fbd9e11fc59c6758ed51a92168ca5a0f2a7f306c3e07a0c0",
+            "check_refs": [
+              "PRT-001-task-priority/CHK-NEW",
+              "PRT-001-task-priority/CHK-P1-TEST",
+              "PRT-001-task-priority/CHK-READY"
+            ],
+            "check_refs_json": "[\"PRT-001-task-priority/CHK-NEW\",\"PRT-001-task-priority/CHK-P1-TEST\",\"PRT-001-task-priority/CHK-READY\"]",
+            "command": "test -f apps/api/src/core/service.ts",
+            "completion_path": "07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+            "declaration_id": "CHK-NEW",
+            "execution_contract_hash": "729b8b75d330a89bfb5444a89add42de0fc459e837da7f8b3866640fcba906a8",
+            "execution_failures": [],
+            "execution_failures_json": "[]",
+            "exit_code": 0,
+            "fingerprint_scope": "check_inputs",
+            "finished_at": "2026-10-19T08:07:27.575Z",
+            "gate": "readiness",
+            "id": "WRK-006-merge/RCP-003",
+            "input_hash": "3061f7589501f77b2a09f0be6763f16ba358355aabd4c31855df869f97be3c29",
+            "input_manifest": {
+              "path": "inputs-before.json",
+              "sha256": "b2436162a02f810a0a5f0da40335fc757aafc4f685518a6a8d1192a3bf161f65",
+              "truncated": false
+            },
+            "input_manifest_json": "{\"path\":\"inputs-before.json\",\"sha256\":\"b2436162a02f810a0a5f0da40335fc757aafc4f685518a6a8d1192a3bf161f65\",\"truncated\":false}",
+            "inputs": [],
+            "local_id": "RCP-003",
+            "mutation_paths": [],
+            "mutation_paths_json": "[]",
+            "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+            "project_id": "PRJ-001-project",
+            "receipt_path": "07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+            "required_artifacts": [],
+            "reservation_sequence": 3,
+            "resources": {
+              "ports": {}
+            },
+            "retry_of_receipt_id": null,
+            "retry_reason": null,
+            "run_id": "RUN-001-tasks",
+            "scope": "aggregate",
+            "started_at": "2026-10-19T08:07:27.461Z",
+            "status": "passed",
+            "stderr_path": "07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+            "stdout_path": "07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+            "verification_epoch": "137b5f0854343c1f887e2bd69c7e12f0dc75914a8c1bb119a9ddd290d360f0f7",
+            "work_id": "WRK-006-merge",
+            "workspace_fingerprint": "59721f29234d37bfa1ff8dead45acc072752be915a6402dac34fe4cbd944738a"
+          }
+        },
+        {
+          "canonical_ref": "PRT-001-task-priority/CHK-READY",
+          "declaration": {
+            "availability": "available",
+            "canonical_ref": "PRT-001-task-priority/CHK-READY",
+            "command": "test -f apps/api/src/core/service.ts",
+            "id": "CHK-READY",
+            "purpose": "Confirms the prepared workspace contains the service.",
+            "run_at": "readiness"
+          },
+          "disposition": "retained",
+          "id": "CHK-READY",
+          "result": {
+            "after_fingerprint": "1ae78c0e7087e498fbd9e11fc59c6758ed51a92168ca5a0f2a7f306c3e07a0c0",
+            "artifacts": [],
+            "artifacts_json": "[]",
+            "before_fingerprint": "1ae78c0e7087e498fbd9e11fc59c6758ed51a92168ca5a0f2a7f306c3e07a0c0",
+            "check_refs": [
+              "PRT-001-task-priority/CHK-NEW",
+              "PRT-001-task-priority/CHK-P1-TEST",
+              "PRT-001-task-priority/CHK-READY"
+            ],
+            "check_refs_json": "[\"PRT-001-task-priority/CHK-NEW\",\"PRT-001-task-priority/CHK-P1-TEST\",\"PRT-001-task-priority/CHK-READY\"]",
+            "command": "test -f apps/api/src/core/service.ts",
+            "completion_path": "07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+            "declaration_id": "CHK-NEW",
+            "execution_contract_hash": "729b8b75d330a89bfb5444a89add42de0fc459e837da7f8b3866640fcba906a8",
+            "execution_failures": [],
+            "execution_failures_json": "[]",
+            "exit_code": 0,
+            "fingerprint_scope": "check_inputs",
+            "finished_at": "2026-10-19T08:07:27.575Z",
+            "gate": "readiness",
+            "id": "WRK-006-merge/RCP-003",
+            "input_hash": "3061f7589501f77b2a09f0be6763f16ba358355aabd4c31855df869f97be3c29",
+            "input_manifest": {
+              "path": "inputs-before.json",
+              "sha256": "b2436162a02f810a0a5f0da40335fc757aafc4f685518a6a8d1192a3bf161f65",
+              "truncated": false
+            },
+            "input_manifest_json": "{\"path\":\"inputs-before.json\",\"sha256\":\"b2436162a02f810a0a5f0da40335fc757aafc4f685518a6a8d1192a3bf161f65\",\"truncated\":false}",
+            "inputs": [],
+            "local_id": "RCP-003",
+            "mutation_paths": [],
+            "mutation_paths_json": "[]",
+            "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+            "project_id": "PRJ-001-project",
+            "receipt_path": "07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+            "required_artifacts": [],
+            "reservation_sequence": 3,
+            "resources": {
+              "ports": {}
+            },
+            "retry_of_receipt_id": null,
+            "retry_reason": null,
+            "run_id": "RUN-001-tasks",
+            "scope": "aggregate",
+            "started_at": "2026-10-19T08:07:27.461Z",
+            "status": "passed",
+            "stderr_path": "07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+            "stdout_path": "07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+            "verification_epoch": "137b5f0854343c1f887e2bd69c7e12f0dc75914a8c1bb119a9ddd290d360f0f7",
+            "work_id": "WRK-006-merge",
+            "workspace_fingerprint": "59721f29234d37bfa1ff8dead45acc072752be915a6402dac34fe4cbd944738a"
+          }
+        }
+      ],
+      "criterion_id": "AC-001",
+      "declaration": {
+        "changed_surfaces": [
+          "apps/api/src/core/service.ts"
+        ],
+        "check_refs": [
+          "CHK-P1-TEST",
+          "CHK-READY"
+        ],
+        "cleanup": "No persistent fixture.",
+        "criterion_id": "AC-001",
+        "environment": "Local tests.",
+        "expected_evidence": [
+          "Focused test passes."
+        ],
+        "fixtures": [],
+        "gate": "work",
+        "path": "Set priority through the task service.",
+        "plan_item_ids": [
+          "P1"
+        ],
+        "proof_limits": [
+          "No production claim."
+        ]
+      },
+      "gate": "work",
+      "protocol_id": "PRT-001-task-priority",
+      "statement": "A member changes a task priority."
+    }
+  ],
+  "header": {
+    "completeness": "final",
+    "merge": {
+      "acceptance_ref": {
+        "path": "07-merge/merge-gate-acceptance.json",
+        "root": "run",
+        "sha256": "9c429477e686defa124429e8b783c49bb42f8249c14f3d72d987af4160ce85bf"
+      },
+      "accepted_tree": "77d5782f381146383c68eb289fa770c9b3b2406f",
+      "gate_hash": "a3baa37f4aa2923846e69edff09f5f75595d48ccd997db01ca36b84fc794b420",
+      "merge_request_id": "MRG-001",
+      "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+      "work_id": "WRK-006-merge"
+    },
+    "project_id": "PRJ-001-project",
+    "role": "output",
+    "run_id": "RUN-001-tasks",
+    "source_fingerprint": "2d6430d0b6adba38650d57f8f84b6049f0bc75a43c9ebd83f7e8492c23cb728a",
+    "stage": "merge",
+    "stage_attempt": "try-001"
+  },
+  "policy_checks": [
+    {
+      "canonical_ref": "PRT-001-task-priority/CHK-MERGE",
+      "declaration": {
+        "availability": "available",
+        "canonical_ref": "PRT-001-task-priority/CHK-MERGE",
+        "command": "true",
+        "id": "CHK-MERGE",
+        "purpose": "Confirms the integrated target is executable.",
+        "run_at": "merge"
+      },
+      "disposition": "retained",
+      "id": "CHK-MERGE",
+      "result": {
+        "after_fingerprint": "1ae78c0e7087e498fbd9e11fc59c6758ed51a92168ca5a0f2a7f306c3e07a0c0",
+        "artifacts": [],
+        "artifacts_json": "[]",
+        "before_fingerprint": "1ae78c0e7087e498fbd9e11fc59c6758ed51a92168ca5a0f2a7f306c3e07a0c0",
+        "check_refs": [
+          "PRT-001-task-priority/CHK-MERGE"
+        ],
+        "check_refs_json": "[\"PRT-001-task-priority/CHK-MERGE\"]",
+        "command": "true",
+        "completion_path": "07-merge/works/WRK-006-merge/checks/RCP-004/completion.json",
+        "declaration_id": "CHK-MERGE",
+        "execution_contract_hash": "138f8dc71f4632281bd62e7708bd28dffca89486c3e1e5aa883d5aa15336ca8a",
+        "execution_failures": [],
+        "execution_failures_json": "[]",
+        "exit_code": 0,
+        "fingerprint_scope": "check_inputs",
+        "finished_at": "2026-10-19T08:07:27.709Z",
+        "gate": "merge",
+        "id": "WRK-006-merge/RCP-004",
+        "input_hash": "170bdbd6ba6a748497c2c16aa92f52b3b710cf2f07bfa97a78afd3431ebcbf33",
+        "input_manifest": {
+          "path": "inputs-before.json",
+          "sha256": "b2436162a02f810a0a5f0da40335fc757aafc4f685518a6a8d1192a3bf161f65",
+          "truncated": false
+        },
+        "input_manifest_json": "{\"path\":\"inputs-before.json\",\"sha256\":\"b2436162a02f810a0a5f0da40335fc757aafc4f685518a6a8d1192a3bf161f65\",\"truncated\":false}",
+        "inputs": [],
+        "local_id": "RCP-004",
+        "mutation_paths": [],
+        "mutation_paths_json": "[]",
+        "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+        "project_id": "PRJ-001-project",
+        "receipt_path": "07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+        "required_artifacts": [],
+        "reservation_sequence": 4,
+        "resources": {
+          "ports": {}
+        },
+        "retry_of_receipt_id": null,
+        "retry_reason": null,
+        "run_id": "RUN-001-tasks",
+        "scope": "aggregate",
+        "started_at": "2026-10-19T08:07:27.600Z",
+        "status": "passed",
+        "stderr_path": "07-merge/works/WRK-006-merge/checks/RCP-004/stderr.log",
+        "stdout_path": "07-merge/works/WRK-006-merge/checks/RCP-004/stdout.log",
+        "verification_epoch": "3daa08fc6ce991fcd48ffe9ab13fbd159d573e0c505d6de7187bb200f4ba4833",
+        "work_id": "WRK-006-merge",
+        "workspace_fingerprint": "59721f29234d37bfa1ff8dead45acc072752be915a6402dac34fe4cbd944738a"
+      }
+    },
+    {
+      "canonical_ref": "PRT-001-task-priority/CHK-NEW",
+      "declaration": {
+        "availability": "planned",
+        "canonical_ref": "PRT-001-task-priority/CHK-NEW",
+        "command": "@check/priority-contract",
+        "definition": "test -f apps/api/src/core/service.ts",
+        "id": "CHK-NEW",
+        "provided_by": "P1",
+        "purpose": "Will prove the new priority contract.",
+        "run_at": "work"
+      },
+      "disposition": "retained",
+      "id": "CHK-NEW",
+      "result": {
+        "after_fingerprint": "1ae78c0e7087e498fbd9e11fc59c6758ed51a92168ca5a0f2a7f306c3e07a0c0",
+        "artifacts": [],
+        "artifacts_json": "[]",
+        "before_fingerprint": "1ae78c0e7087e498fbd9e11fc59c6758ed51a92168ca5a0f2a7f306c3e07a0c0",
+        "check_refs": [
+          "PRT-001-task-priority/CHK-NEW",
+          "PRT-001-task-priority/CHK-P1-TEST",
+          "PRT-001-task-priority/CHK-READY"
+        ],
+        "check_refs_json": "[\"PRT-001-task-priority/CHK-NEW\",\"PRT-001-task-priority/CHK-P1-TEST\",\"PRT-001-task-priority/CHK-READY\"]",
+        "command": "test -f apps/api/src/core/service.ts",
+        "completion_path": "07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+        "declaration_id": "CHK-NEW",
+        "execution_contract_hash": "729b8b75d330a89bfb5444a89add42de0fc459e837da7f8b3866640fcba906a8",
+        "execution_failures": [],
+        "execution_failures_json": "[]",
+        "exit_code": 0,
+        "fingerprint_scope": "check_inputs",
+        "finished_at": "2026-10-19T08:07:27.575Z",
+        "gate": "readiness",
+        "id": "WRK-006-merge/RCP-003",
+        "input_hash": "3061f7589501f77b2a09f0be6763f16ba358355aabd4c31855df869f97be3c29",
+        "input_manifest": {
+          "path": "inputs-before.json",
+          "sha256": "b2436162a02f810a0a5f0da40335fc757aafc4f685518a6a8d1192a3bf161f65",
+          "truncated": false
+        },
+        "input_manifest_json": "{\"path\":\"inputs-before.json\",\"sha256\":\"b2436162a02f810a0a5f0da40335fc757aafc4f685518a6a8d1192a3bf161f65\",\"truncated\":false}",
+        "inputs": [],
+        "local_id": "RCP-003",
+        "mutation_paths": [],
+        "mutation_paths_json": "[]",
+        "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+        "project_id": "PRJ-001-project",
+        "receipt_path": "07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+        "required_artifacts": [],
+        "reservation_sequence": 3,
+        "resources": {
+          "ports": {}
+        },
+        "retry_of_receipt_id": null,
+        "retry_reason": null,
+        "run_id": "RUN-001-tasks",
+        "scope": "aggregate",
+        "started_at": "2026-10-19T08:07:27.461Z",
+        "status": "passed",
+        "stderr_path": "07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+        "stdout_path": "07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+        "verification_epoch": "137b5f0854343c1f887e2bd69c7e12f0dc75914a8c1bb119a9ddd290d360f0f7",
+        "work_id": "WRK-006-merge",
+        "workspace_fingerprint": "59721f29234d37bfa1ff8dead45acc072752be915a6402dac34fe4cbd944738a"
+      }
+    }
+  ],
+  "requirements": [
+    {
+      "id": "R-001",
+      "plan_items": [
+        {
+          "check_refs": [
+            "CHK-NEW",
+            "CHK-P1-TEST"
+          ],
+          "id": "P1",
+          "work_ids": [
+            "WRK-005-prt-001-task-priority-p1"
+          ]
+        }
+      ],
+      "protocol_id": "PRT-001-task-priority",
+      "statement": "Priority field."
+    }
+  ],
+  "schema_id": "dd-flow/verification-matrix@1",
+  "semantic_assessment": {
+    "path": "07-merge/works/WRK-006-merge/result.json",
+    "root": "run",
+    "sha256": "ff9c50911b3e9db3ab9b10bd03f9c5066362d5b0e23b25a9e039e9325d181f91"
+  },
+  "sources": [
+    {
+      "path": "07-merge/verification/sources/e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd/accepted-input.md",
+      "role": "accepted_intake",
+      "root": "run",
+      "sha256": "e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd"
+    },
+    {
+      "path": "07-merge/check-profile-baseline.json",
+      "role": "check_profile_baseline",
+      "root": "run",
+      "sha256": "1c0ff3551f961e377f66732b45807b9b85dee91a7c596fc9e30eab3744dfac35"
+    },
+    {
+      "path": "07-merge/check-profile-source.json",
+      "role": "check_profile_source",
+      "root": "run",
+      "sha256": "1c0ff3551f961e377f66732b45807b9b85dee91a7c596fc9e30eab3744dfac35"
+    },
+    {
+      "path": "07-merge/check-profile-target.json",
+      "role": "check_profile_target",
+      "root": "run",
+      "sha256": "1c0ff3551f961e377f66732b45807b9b85dee91a7c596fc9e30eab3744dfac35"
+    },
+    {
+      "path": "07-merge/verification/sources/77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da/code-work-batch.json",
+      "role": "code_work_batch",
+      "root": "run",
+      "sha256": "77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da"
+    },
+    {
+      "path": "03-plan/code-work-batch.json",
+      "role": "code_work_batch_current",
+      "root": "run",
+      "sha256": "77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da"
+    },
+    {
+      "path": "07-merge/works/WRK-006-merge/checks/RCP-004/completion.json",
+      "role": "completion:PRT-001-task-priority/CHK-MERGE",
+      "root": "run",
+      "sha256": "ccd898180160447351d9a40a8279874003d98b02b895d5e6b718503a48576c17"
+    },
+    {
+      "path": "07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+      "role": "completion:PRT-001-task-priority/CHK-NEW",
+      "root": "run",
+      "sha256": "d084412f947bf132d512893211eb3e805c4c2340d03a4b9dfe4c2364a08343af"
+    },
+    {
+      "path": "07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+      "role": "completion:PRT-001-task-priority/CHK-P1-TEST",
+      "root": "run",
+      "sha256": "d084412f947bf132d512893211eb3e805c4c2340d03a4b9dfe4c2364a08343af"
+    },
+    {
+      "path": "07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+      "role": "completion:PRT-001-task-priority/CHK-READY",
+      "root": "run",
+      "sha256": "d084412f947bf132d512893211eb3e805c4c2340d03a4b9dfe4c2364a08343af"
+    },
+    {
+      "path": "07-merge/merge-gate-acceptance.json",
+      "role": "merge_acceptance",
+      "root": "run",
+      "sha256": "9c429477e686defa124429e8b783c49bb42f8249c14f3d72d987af4160ce85bf"
+    },
+    {
+      "path": "07-merge/merge-gate.json",
+      "role": "merge_gate",
+      "root": "run",
+      "sha256": "f9148ea17ac00d7497e65b740c5412fa7e1d7f4aa70a5cd47334c93780eb37cb"
+    },
+    {
+      "path": "07-merge/verification/sources/aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7/plan.json",
+      "role": "plan:PRT-001-task-priority",
+      "root": "run",
+      "sha256": "aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7"
+    },
+    {
+      "path": "02-protocolize/protocolize-result.json",
+      "role": "protocolize",
+      "root": "run",
+      "sha256": "e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead"
+    },
+    {
+      "path": "02-protocolize/stage-report.json",
+      "role": "protocolize_report",
+      "root": "run",
+      "sha256": "4cdbd83bced154333fa5b1da7afc1d49abdaa3c55c5be603cb4e20972c2cd5c4"
+    },
+    {
+      "path": "07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+      "role": "receipt:PRT-001-task-priority/CHK-MERGE",
+      "root": "run",
+      "sha256": "574fa486fe5c5a6c6314cda71e330e16e1125ccc8e9c7f7f4c5285487593d25d"
+    },
+    {
+      "path": "07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+      "role": "receipt:PRT-001-task-priority/CHK-NEW",
+      "root": "run",
+      "sha256": "e3fb72f2239dc034b8177bce36926e123bb566b22c8029e01051b03c15f24905"
+    },
+    {
+      "path": "07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+      "role": "receipt:PRT-001-task-priority/CHK-P1-TEST",
+      "root": "run",
+      "sha256": "e3fb72f2239dc034b8177bce36926e123bb566b22c8029e01051b03c15f24905"
+    },
+    {
+      "path": "07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+      "role": "receipt:PRT-001-task-priority/CHK-READY",
+      "root": "run",
+      "sha256": "e3fb72f2239dc034b8177bce36926e123bb566b22c8029e01051b03c15f24905"
+    },
+    {
+      "path": "07-merge/works/WRK-006-merge/result.json",
+      "role": "semantic_assessment",
+      "root": "run",
+      "sha256": "ff9c50911b3e9db3ab9b10bd03f9c5066362d5b0e23b25a9e039e9325d181f91"
+    },
+    {
+      "path": "01-specify/specify.json",
+      "role": "specify",
+      "root": "run",
+      "sha256": "00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa"
+    }
+  ]
+}

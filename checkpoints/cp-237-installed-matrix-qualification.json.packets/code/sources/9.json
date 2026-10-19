@@ -1,0 +1,47 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "dc80fbe7b16e4dd45d88c37853d7c75d1cacd5fc0693890439ca718f7892e0fc",
+  "verification_epoch": "0a89802721e6cebdb252a881473847b5fe1f33176bf3eaca7c35ffb06cde850e",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_artifacts/cp237-launch.nF52bO/matrix-installed/dd-flow-protocolize-2kazwc/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_artifacts/cp237-launch.nF52bO/matrix-installed/dd-flow-protocolize-2kazwc/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_artifacts/cp237-launch.nF52bO/matrix-installed/dd-flow-protocolize-2kazwc/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_artifacts/cp237-launch.nF52bO/matrix-installed/dd-flow-protocolize-2kazwc/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "fingerprint_scope": "check_inputs",
+  "input_manifest": {
+    "path": "inputs-before.json",
+    "sha256": "46afd0ed6bf57d8f7a613c8a5a231f84cfcdd3e2ccb525198e99b1e8a1243f19",
+    "truncated": false
+  },
+  "execution_contract_hash": "729b8b75d330a89bfb5444a89add42de0fc459e837da7f8b3866640fcba906a8",
+  "workspace_fingerprint": "cadc34458b262d80b59a28d96c5238390a2c83651e4b8bf3a9f6d7fb2c84edb6",
+  "before_fingerprint": "a65e236051797312ded79cad1a5bc9d422ce5386585a033690e7da155cc8a214",
+  "after_fingerprint": "a65e236051797312ded79cad1a5bc9d422ce5386585a033690e7da155cc8a214",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-19T08:07:26.012Z",
+  "finished_at": "2026-10-19T08:07:26.086Z",
+  "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/cp237-launch.nF52bO/matrix-installed/dd-flow-protocolize-2kazwc/project",
+  "candidate_files": [],
+  "execution_failures": []
+}
