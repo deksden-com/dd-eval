@@ -10,7 +10,7 @@
 - Engine: `f449e64664c9178675042185416c16405010b14a`, tree `23675b1e670938c86c63dc0569b928de604b2239`.
 - EVAL: `80a23cc1c96362a9a6c4a49645b44a25f2426c89`. Последующие изменения этого отчёта/статуса плана — только документация, не новый runtime.
 - Frozen canon: `a1cfe8b06329c691c314064b6ea6a3da6628cceb`, версия 4.1.2.
-- Node 26.8.2, pnpm 10.23.0; один worker, без test filters/retries.
+- Node 26.8.2, pnpm 10.23.0; integration/native maxWorkers=1, E3 test-concurrency=1, без test filters/retries.
 - Source SHA256: `d2efee46d7831f0c8dd9fef1913c309b8035fc1f727a572091a85a18e138f934`.
 - Dist SHA256: `599778707737383e375e188b408a3b85f16b878166b6b4a4baa45b4fc37bcf08`.
 - Private tarball SHA256: `13821060e6e39675f033629cf135b84105a64ed8992969385332cd9b65e685cd`.
