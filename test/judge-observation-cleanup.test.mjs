@@ -57,7 +57,7 @@ else if(kind==='daemon.stop'){
   return { home, profileFile, calls, contract, profileId: declaration.id };
 }
 
-for (const caller of ['interaction', 'final']) for (const code of ['subject_liveness_timeout', 'operation_output_limit', 'judge_result_invalid']) test(`${caller} Judge cleanup distinguishes ${code} from cancellation authority`, async t => {
+for (const caller of ['interaction', 'final']) for (const code of ['subject_liveness_timeout', 'operation_output_limit', 'operation_observation_lost', 'judge_result_invalid']) test(`${caller} Judge cleanup distinguishes ${code} from cancellation authority`, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-judge-observation-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const runtime = await offlineRuntime(root, code), project = path.join(root, 'executions/e/project');

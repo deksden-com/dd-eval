@@ -1,5 +1,11 @@
 # Updating harness integrations
 
+Codex doctor proves version/initialize, not readiness of persisted history.
+When changing its history contract, run the engine's explicit non-generative
+`tools/probe-codex-history.mjs /absolute/native/codex` probe in a disposable home.
+An unavailable history read is not an empty history or proof of a failed Turn;
+never use it to authorize prompt replay or successful cleanup.
+
 Use this procedure for a native harness, transport bridge or adapter update.
 Provider-specific details live in [update-zcode.md](update-zcode.md).
 Git integration and release rules live in [git-workflow.md](git-workflow.md).

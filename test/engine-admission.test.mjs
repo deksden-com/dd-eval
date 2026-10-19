@@ -7,7 +7,7 @@ import { promisify } from "node:util";
 import os from "node:os";
 import path from "node:path";
 import { assertCheckpointEngine, assertVerificationMatrixQualification, engineArtifactDigest, verifyEngineArtifact } from "../lib/engine-admission.mjs";
-import { verificationMatrixFingerprint, validateVerificationMatrixAuthority } from "../lib/case-acceptance.mjs";
+import { verificationMatrixFingerprint, validateVerificationMatrixAuthority, isVerificationMatrixTextSource } from "../lib/case-acceptance.mjs";
 import { operationalDecisionFor, materializeOperationalDecision, loadOperationalContract } from "../lib/operational-decision.mjs";
 import { runBaselineAdmission } from "../lib/baseline-admission.mjs";
 
@@ -234,6 +234,10 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
       const ref = await put(`proof-${refs.length}.json`, value); refs.push({ ...ref, root: "run", source_path, ...(source_path.endsWith("/receipt.json") ? { role: "receipt:PRT-001/CHK-1" } : source_path.endsWith("/completion.json") ? { role: "completion:PRT-001/CHK-1" } : {}) });
     }
     refs.push(...baseProofs);
+    for (const role of ["accepted_intake", "accepted_hitl:000000000001:pause:0-question", "accepted_hitl:000000000001:pause:1-answer"]) {
+      const ref = await put(`accepted-${refs.length}.md`, `Plain text ${role}; not JSON.\n`);
+      refs.push({ ...ref, root: "run", source_path: `07-merge/verification/sources/${ref.sha256}/accepted-input.md`, role });
+    }
     refs.push({ ...await put("proof.bin", artifactBytes), root: "run", source_path: "07-merge/checks/RCP-1/artifacts/proof.bin", role: "artifact:PRT-001/CHK-1:proof.bin" });
     for (const role of ["baseline", "source", "target"]) {
       const profile = role === "baseline" ? baselineProfile : sourceProfile;
@@ -287,6 +291,8 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
     assert.equal(publishedQualification.schema_id, "dd-eval/verification-matrix-qualification@3");
     const publishedArtifact = publishedQualification.packets.at(-1).sources.find(source => source.source_path.endsWith("/artifacts/proof.bin"));
     assert.deepEqual(await readFile(path.join(root, publishedArtifact.path)), Buffer.from(artifactBytes), "producer qualification retains non-JSON native bytes exactly");
+    const publishedIntake = publishedQualification.packets.at(-1).sources.find(source => source.sha256 === hash("Plain text accepted_intake; not JSON.\n"));
+    assert.equal(await readFile(path.join(root, publishedIntake.path), "utf8"), "Plain text accepted_intake; not JSON.\n");
     const blocked = path.join(root, "atomic-blocked.json"); await writeFile(blocked, "existing pin\n");
     await assert.rejects(qualify(blocked), error => error.stderr.includes("EEXIST"));
     assert.equal(await readFile(blocked, "utf8"), "existing pin\n");
@@ -343,7 +349,7 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
     const mergePacket = receipt.packets.at(-1);
     const mergeValue = JSON.parse(await readFile(path.join(root, mergePacket.json.path), "utf8"));
     // A gate and its projected matrix cannot jointly define their own completeness.
-    const exactProofs = await Promise.all(mergePacket.sources.map(async source => ({ root: source.root, path: source.source_path, sha256: source.sha256, value: source.role?.startsWith("artifact:") ? {} : JSON.parse(await readFile(path.join(root, source.path))) })));
+    const exactProofs = await Promise.all(mergePacket.sources.map(async source => ({ root: source.root, path: source.source_path, sha256: source.sha256, value: source.role?.startsWith("artifact:") ? {} : source.role && isVerificationMatrixTextSource(source) ? { text: await readFile(path.join(root, source.path), "utf8") } : JSON.parse(await readFile(path.join(root, source.path))) })));
     const changedMetadata = structuredClone(mergeValue), metadataProofs = structuredClone(exactProofs);
     for (const role of ["source", "target"]) {
       const proof = metadataProofs.find(item => item.path === `07-merge/check-profile-${role}.json`);

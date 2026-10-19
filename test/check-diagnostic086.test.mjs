@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { failureDiagnostic, executionEvidence, isInfrastructureFailure } from "../lib/runner.mjs";
+import { failureDiagnostic, executionEvidence, isInfrastructureFailure, classifyInterruption } from "../lib/runner.mjs";
 import { compactCheckDiagnostic } from "../lib/check-diagnostic.mjs";
 
 test("compact diagnostic retains safe hashed locators without granting repair authority", () => {
@@ -20,6 +20,21 @@ test("compact native and engine failures redact Bearer and credential variants",
   assert.match(result.execution_failures[0].message, /Authorization/);
   assert.equal(compactCheckDiagnostic({ execution_failures: [{ message: "token".repeat(250000) }] }).execution_failures[0].message.length, 1024);
   assert.equal(compactCheckDiagnostic({ execution_failures: [{ message: "token-".repeat(50000) }] }).execution_failures[0].message.length, 1024);
+});
+
+test("CP237 accepted Turn observation loss is tooling failure, never overload or product failure", () => {
+  const cause = { code: "operation_observation_lost", details: { native_dispatch_started: true,
+    provider_session_id: "thread", turn_id: "turn", native_outcome: "unknown",
+    observation_error: { code: "rpc_error", details: { code: -32601, message: "list_turns is not supported yet" } } } };
+  for (const error of [cause, { code: "driver_failed", cause }]) {
+    assert.equal(isInfrastructureFailure(error), true);
+    const classified = classifyInterruption(error);
+    assert.equal(classified.category, "execution_failure");
+    assert.equal(classified.source, "runner");
+    assert.equal(classified.retryable, false);
+  }
+  assert.equal(isInfrastructureFailure("rpc_error"), false);
+  assert.equal(isInfrastructureFailure("product_check_failed"), false);
 });
 
 test("failed check presentation retains cause identity and refs, not raw reports or stacks", () => {
