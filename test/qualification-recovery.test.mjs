@@ -124,6 +124,11 @@ for (const boundary of ["heartbeat", "admission"]) test(`pre-model ${boundary} r
   const { writeFile } = await import("node:fs/promises");
   const writeJournal = () => writeFile(path.join(root, "events.jsonl"), journal.map(JSON.stringify).join("\n") + "\n");
   await writeJournal();
+  for (const result of [null, false, 0]) {
+    await writeJsonAtomic(path.join(root, "result.json"), result);
+    await assert.rejects(reconcile(), { code: "definition_qualification_outcome_unknown" });
+    await rm(path.join(root, "result.json"));
+  }
   const terminalReceipt = await reconcile();
   assert.equal(terminalReceipt.status, "retired_without_verdict");
   assert.equal(await verify(), true);
