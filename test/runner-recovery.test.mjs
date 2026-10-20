@@ -556,7 +556,7 @@ for (const invalid of ["foreign", "missing", "malformed"]) test(`invalid settled
   assert.deepEqual(await readFile(eventsFile), restoredEvents, "repeated current completion remains idempotent");
   if (invalid === "foreign") {
     const before = await readFile(eventsFile), controller = new AbortController(), marker = path.join(root, "status-child.json");
-    await writeFile(bin, `#!${process.execPath}\nrequire('node:fs').writeFileSync(${JSON.stringify(marker)},JSON.stringify({pid:process.pid}));setInterval(()=>{},1000);\n`);
+    await writeFile(bin, `#!${process.execPath}\nconst fs=require('node:fs');const marker=${JSON.stringify(marker)};fs.writeFileSync(marker+'.tmp',JSON.stringify({pid:process.pid}));fs.renameSync(marker+'.tmp',marker);setInterval(()=>{},1000);\n`);
     const reading = runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true, signal: controller.signal });
     const rejected = assert.rejects(reading, { name: "AbortError" });
     let child;
