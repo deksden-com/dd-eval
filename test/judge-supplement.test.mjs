@@ -72,8 +72,13 @@ test('typed selection rejects conflicting publications and ignores arbitrary nes
   assert.throws(() => selectedSnapshots(candidate, { executions: [{ execution: 'one', recovery: checkpoint }] }), /conflicting/);
 });
 
-test('frozen recovery binding survives live resume and another generation but rejects foreign scope', async t => {
+for(const version of [5,7]) test(`frozen v${version} recovery binding survives live resume and another generation but rejects foreign scope`, async t => {
   const f = await fixture(t), checkpoint = await recoveryFixture(f);
+  if(version===7) {
+    const data=JSON.parse(await readFile(checkpoint.manifest));
+    data.schema_id='dd-flow/eval-run-snapshot@7';data.workspace.kind='git_repository';
+    await put(checkpoint.snapshot,'snapshot.json',data);checkpoint.manifest_sha256=sha(await readFile(checkpoint.manifest));
+  }
   const input = { evalRoot: f.root, execution: 'e2e', result: { run_id: 'RUN-fixture' }, checkpoint, purpose: 'recovery' };
   await put(f.root, 'executions/e2e/dd-flow-home/live-control.json', { status: 'recovered', generation: 2 });
   assert.equal((await resolveBoundSnapshot(input)).data.recovery_id, checkpoint.recovery_id);
@@ -96,7 +101,7 @@ test('unborn v6 recovery accepts only scoped Memory custody and exact Git payloa
   await put(snapshot, 'project/README.md', 'Original zero-project source');
   await put(snapshot, 'project.index.patch', '[]'); await put(snapshot, 'project.index.pack', '');
   const original = JSON.parse(await readFile(checkpoint.manifest));
-  const data = { ...original, schema_id: 'dd-flow/eval-run-snapshot@6', workspace: { ...original.workspace, kind: 'project' },
+  const data = { ...original, schema_id: 'dd-flow/eval-run-snapshot@6', workspace: { kind: 'project' },
     runtime_sha256: snapshotTreeHash(path.join(snapshot, 'runtime')), project_sha256: snapshotTreeHash(path.join(snapshot, 'project')),
     project_git: { state: 'unborn', branch: 'main', head: null, bundle_sha256: null, index_format: 'entries@1',
       index_sha256: sha(await readFile(path.join(snapshot, 'project.index.patch'))), index_objects_sha256: sha(await readFile(path.join(snapshot, 'project.index.pack'))) } };

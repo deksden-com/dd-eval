@@ -57,9 +57,12 @@ cannot mix Memory mutation profiles, SDLC execution routing or native delegation
 Preparation calls public `flow <id> --prepare-only`; normal managed drive owns
 execution. Original product checkpoints are cloned without a flow-pack overlay,
 whether their Memory Bank exists, is legacy or is absent. No Git mutation route
-is sent to the diagnostic CLI. This extension is not yet case acceptance:
-snapshot-version integration, authored rubrics/cases and complete qualification
-remain required before promoting either diagnostic family.
+is sent to the diagnostic CLI. Shared snapshot readers accept committed-project
+formats `@5` and `@7` (independent diagnostic workspace); `@6` remains exclusively
+unborn-project Memory recovery. SDLC-specific result checks are not widened.
+This extension is not yet case acceptance: installed restored-RUN checks,
+authored rubrics/cases and complete qualification remain required before
+promoting either diagnostic family.
 
 Factory Droid integration uses `dd-droid`, native JSON-RPC and the pinned
 `droid-cli-openai-gpt-5-6-sol-high` profile. Native close/reload and child identity

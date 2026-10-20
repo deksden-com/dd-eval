@@ -32,6 +32,12 @@ test('late sealed capture is visible independently of report; foreign proof neve
   const normal = { ...input, results: [{ ...input.results[0], state: 'candidate_ready', candidate: { manifest: normalFile, manifest_sha256: createHash('sha256').update(normalBytes).digest('hex') } }],
     live: { executions: [{ ...input.live.executions[0], receipt: { scope: { run_id: 'RUN-1' }, settled: true, control: null } }] } };
   assert.equal((await cleanupObservation(normal)).capture, 'ready', 'normal completion needs no recovery control');
+  const diagnosticBytes=JSON.stringify({...snapshot,schema_id:'dd-flow/eval-run-snapshot@7',purpose:'candidate',workspace:{kind:'git_repository'}});
+  await writeFile(normalFile,diagnosticBytes);
+  normal.results[0].candidate.manifest_sha256=createHash('sha256').update(diagnosticBytes).digest('hex');
+  assert.equal((await cleanupObservation(normal)).capture,'ready','diagnostic candidate uses the same physical settlement owner');
+  await writeFile(path.join(capture,'snapshot.json'),JSON.stringify({...snapshot,schema_id:'dd-flow/eval-run-snapshot@7',workspace:{kind:'git_repository'}}));
+  assert.equal((await cleanupObservation(input)).capture,'ready','diagnostic recovery retains the existing sealed-control gate');
   const unrequested = { ...normal, live: { executions: [{ ...normal.live.executions[0], receipt: {
     scope: { run_id: 'RUN-1' }, settled: false, control: null, state: 'not_requested', unsettled_reasons: ['control_not_requested']
   } }] } };
@@ -64,7 +70,7 @@ test('late sealed capture is visible independently of report; foreign proof neve
   assert.equal((await cleanupObservation(input)).capture, 'unknown', 'v6 SDLC is not Memory recovery');
   await writeFile(normalFile, JSON.stringify({ ...snapshot, schema_id: 'dd-flow/eval-run-snapshot@6', purpose: 'candidate' }));
   normal.results[0].candidate.manifest_sha256 = sha(await readFile(normalFile));
-  assert.equal((await cleanupObservation(normal)).capture, 'unknown', 'candidate remains v5-only');
+  assert.equal((await cleanupObservation(normal)).capture, 'unknown', 'unborn-project recovery is not a candidate');
   control.current = false;
   assert.equal((await cleanupObservation(input)).physical, 'unknown');
   control.current = true;
