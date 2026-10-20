@@ -6,7 +6,32 @@ import { createHash } from "node:crypto";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { writeJsonAtomic, hashJson, sha256 } from "../lib/runner-events.mjs";
 import { profileSemanticHash } from "../lib/execution-contract.mjs";
-import { assertQualificationPreparationRecovery, reconcileQualificationPreparation } from "../lib/qualification-recovery.mjs";
+import { assertQualificationPreparationRecovery, reconcileQualificationPreparation, assertTerminalQualificationTurns } from "../lib/qualification-recovery.mjs";
+
+test("terminal non-verdict recovery binds every paid request, Turn and original prompt", () => {
+  const chain = { schema_id: "dd-eval/capacity-chain@2", session_id: "session", turns: [{ operation_id: "paid", state: "dispatched", prompt_sha256: sha256("task") }] };
+  const ledger = [{ operation: "session.prompt", operation_id: "paid", state: "failed" }];
+  const journal = [
+    { order: 1, kind: "outbound", payload: { id: 5, method: "turn/start", params: { threadId: "session", input: [{ text: "task" }] } } },
+    { order: 2, kind: "native_dispatch", payload: { operation_id: "paid", provider_session_id: "session", native_request_id: 5 } },
+    { order: 3, kind: "inbound", payload: { id: 5, result: { turn: { id: "native", status: "inProgress" } } } },
+    { order: 4, kind: "inbound", payload: { method: "turn/completed", params: { threadId: "session", turn: { id: "native", status: "interrupted" } } } }
+  ];
+  const verify = (c = chain, l = ledger, j = journal) => assertTerminalQualificationTurns(c, l, j, "session");
+  verify();
+  for (const status of ["failed", "cancelled"]) { const j = structuredClone(journal); j[3].payload.params.turn.status = status; verify(chain, ledger, j); }
+  for (const mutate of [
+    j => j.pop(), j => { j[3].payload.params.turn.status = "completed"; },
+    j => { j[3].payload.params.threadId = "foreign"; }, j => { j[3].payload.params.turn.id = "foreign"; },
+    j => { j[0].payload.params.input[0].text = "other task"; }, j => { j[1].payload.operation_id = "foreign"; },
+    j => { j[2].payload.id = 99; }, j => { j[3].order = 2; },
+    j => j.push({ ...structuredClone(j[0]), order: 5 }),
+    j => j.push({ ...structuredClone(j[2]), order: 5 }),
+    j => j.push({ order: 5, kind: "inbound", payload: { method: "turn/started", params: { threadId: "session", turn: { id: "native" } } } }),
+    j => j.push({ order: 5, kind: "inbound", payload: { method: "turn/completed", params: { threadId: "child", turn: { id: "child", status: "completed" } } } })
+  ]) { const j = structuredClone(journal); mutate(j); assert.throws(() => verify(chain, ledger, j), { code: "definition_qualification_outcome_unknown" }); }
+  assert.throws(() => verify(chain, [{ ...ledger[0], state: "running" }]), { code: "definition_qualification_outcome_unknown" });
+});
 
 for (const boundary of ["heartbeat", "admission"]) test(`pre-model ${boundary} reconciliation stops only exact owned resources and never rewrites native evidence`, async t => {
   const home = await mkdtemp(path.join(os.tmpdir(), "qualification-reconciliation-"));
@@ -35,9 +60,9 @@ for (const boundary of ["heartbeat", "admission"]) test(`pre-model ${boundary} r
   await writeJsonAtomic(intentFile, intent); await writeJsonAtomic(path.join(root, "packet.json"), packet);
   await writeJsonAtomic(path.join(root, "native-intent.json"), { profile_id: profile.id, profile_sha256: profileSemanticHash(profile), profile_snapshot: profile, packet_sha256: hashJson(packet) });
   await writeJsonAtomic(stateFile, state);
-  const saveOperation = async (id, kind, result) => {
+  const saveOperation = async (id, kind, result, sessionId = null) => {
     const dir = path.join(stateDir, "operations", sha256(id));
-    await writeJsonAtomic(path.join(dir, "requested.json"), { operation_id: id, operation: kind, daemon_id: kind === "daemon.start" ? null : "incarnation", session_id: null });
+    await writeJsonAtomic(path.join(dir, "requested.json"), { operation_id: id, operation: kind, owner_id: owner.owner_id, daemon_id: kind === "daemon.start" ? null : "incarnation", session_id: sessionId });
     await writeJsonAtomic(path.join(dir, "result.json"), result);
   };
   const failedCreate = { state: "failed", error: { code: "process_ownership_unknown", details: { process_id: records[0].id,
@@ -81,4 +106,27 @@ for (const boundary of ["heartbeat", "admission"]) test(`pre-model ${boundary} r
   await writeJsonAtomic(stateFile, { ...state, pid: process.pid }); await assert.rejects(verify(), { code: "definition_qualification_outcome_unknown" }); await writeJsonAtomic(stateFile, state);
   await writeJsonAtomic(path.join(root, "packet.json"), { ...packet, question: "Changed?" }); await assert.rejects(verify(), { code: "definition_qualification_outcome_unknown" }); await writeJsonAtomic(path.join(root, "packet.json"), packet);
   await saveOperation("new-turn", "session.prompt", { state: "completed" }); await assert.rejects(verify(), { code: "definition_qualification_outcome_unknown" });
+  // Sealed post-dispatch failure is recoverable too, but never as a verdict.
+  await rm(`${intentFile}.reconciliation.json`);
+  state.sessions = ["session"];
+  await writeJsonAtomic(stateFile, state);
+  await saveOperation("create", "session.create", { state: "completed", result: { provider_session_id: "session" } });
+  await saveOperation("new-turn", "session.prompt", { state: "failed", error: { code: "rpc_error" } }, "session");
+  await writeJsonAtomic(path.join(root, `capacity-${"b".repeat(64)}.json`), {
+    schema_id: "dd-eval/capacity-chain@2", session_id: "session", turns: [{ operation_id: "new-turn", state: "dispatched", prompt_sha256: sha256("task") }]
+  });
+  const journal = [
+    { order: 1, kind: "outbound", payload: { id: 5, method: "turn/start", params: { threadId: "session", input: [{ text: "task" }] } } },
+    { order: 2, kind: "native_dispatch", payload: { operation_id: "new-turn", provider_session_id: "session", native_request_id: 5 } },
+    { order: 3, kind: "inbound", payload: { id: 5, result: { turn: { id: "native", status: "inProgress" } } } },
+    { order: 4, kind: "inbound", payload: { method: "turn/completed", params: { threadId: "session", turn: { id: "native", status: "interrupted" } } } }
+  ];
+  const { writeFile } = await import("node:fs/promises");
+  const writeJournal = () => writeFile(path.join(root, "events.jsonl"), journal.map(JSON.stringify).join("\n") + "\n");
+  await writeJournal();
+  const terminalReceipt = await reconcile();
+  assert.equal(terminalReceipt.status, "retired_without_verdict");
+  assert.equal(await verify(), true);
+  journal[3].payload.params.turn.status = "completed"; await writeJournal();
+  await assert.rejects(verify(), { code: "definition_qualification_outcome_unknown" });
 });

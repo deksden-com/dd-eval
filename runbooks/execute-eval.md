@@ -61,6 +61,11 @@ alone does not authorize paid qualification, provider calls or scored launches.
    accepted Turn; do not resend it or classify a history-read refusal as provider
    outage. An unresolved outcome/cleanup uses the retained operation's recovery,
    never deletion of qualification failure evidence.
+   For a sealed failed qualification, `runner definition reconcile --intent
+   <absolute-native-intent.json>` can record a proven terminal non-verdict after
+   exact owned-process retirement. This preserves the paid request and native
+   journal, does not manufacture PASS, and permits a fresh qualification attempt
+   only when every dispatched Turn is conclusively failed/interrupted/cancelled.
 7. Check host prerequisites. Task Priority uses project PostgreSQL on loopback
    `55433` by default; reuse its service/volume, never create a competing container.
    If that port belongs to another project, do not stop or use its server. With

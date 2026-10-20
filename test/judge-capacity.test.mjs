@@ -88,6 +88,26 @@ test("Judge preserves the overload chain after three failed turns", async () => 
   assert.equal(fixture.calls.length, 3);
 });
 
+test("exact failed Turn with unloaded items retains completed-tool evidence for continuation", async () => {
+  const fixture = harness({ outcomes: ["overload", "overload", { assistant_text: "{}" }], inspect: last => ({
+    provider_session_id: "session-1", settled: true, terminal_turn_id: `turn-${fixture.calls.length}`,
+    terminal_status: "failed", native_turn_items: { observed: false },
+    settlement: { state: "settled", operation_ids: [last.capacity.operation_id] }
+  }) });
+  fixture.input.requireSettlement = true;
+  const dispatch = fixture.input.dispatch;
+  fixture.input.dispatch = async (...args) => {
+    try { return await dispatch(...args); }
+    catch (error) {
+      error.details.native_turn_items = { observed: true, possible_effects: true, pending: false,
+        items: [{ id: "exec", type: "commandExecution", status: "completed" }] };
+      throw error;
+    }
+  };
+  assert.deepEqual(await promptJudgeWithCapacity(fixture.input), { assistant_text: "{}" });
+  assert.equal(fixture.calls.length, 3);
+});
+
 test("retained over-budget intent never dispatches a fourth attempt", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'judge-over-budget-'));
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -364,10 +384,10 @@ test('overflow Retry-After metadata cannot dispatch a successor', async () => {
   assert.equal(fixture.calls.length, 1);
 });
 
-test('exact native inspection overrides cached items, including with custom validation', async () => {
+test('conflicting or missing exact native inspection overrides cached items, including with custom validation', async () => {
   for (const custom of [false, true]) for (const observation of [
     { terminal_turn_id: 'turn-1', terminal_status: 'failed', native_turn_items: { observed: true, possible_effects: true, pending: true } },
-    { terminal_turn_id: 'turn-1', terminal_status: 'failed', native_turn_items: { observed: false } },
+    { terminal_turn_id: 'turn-1', terminal_status: 'failed', native_turn_items: { observed: false, pending: true } },
     { terminal_turn_id: 'turn-1', terminal_status: 'failed' },
     { terminal_turn_id: 'foreign-turn', terminal_status: 'failed' },
     { terminal_turn_id: 'turn-1', terminal_status: 'completed' }
