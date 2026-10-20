@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
+import {pathToFileURL} from 'node:url';
+import {verifyEngineArtifact} from '../lib/engine-admission.mjs';
 import { setupMemoryRuntime, setupMemoryUpgradeRuntime, validateMemorySetup, resolveMemoryExecutionExpectation } from '../lib/memory-runtime-setup.mjs';
 
 test('upgrade setup populates pinned old canon before target using separate public setup requests',async t=>{
@@ -46,6 +48,26 @@ test('upgrade setup populates pinned old canon before target using separate publ
 test('Memory expectation refuses a foreign workflow before importing installed code',async()=>{
   await assert.rejects(resolveMemoryExecutionExpectation({flow:'sdlc'}),{code:'memory_setup_invalid'});
   await assert.rejects(resolveMemoryExecutionExpectation({flow:'unknown'}),{code:'memory_setup_invalid'});
+});
+
+test('installed diagnostic expectations explicitly match public managed/new-session launch defaults', {
+  skip:!process.env.DD_EVAL_E5_CANDIDATE_ROOT || !process.env.DD_EVAL_E5_EXPECTATION_CELL
+},async()=>{
+  const candidate=process.env.DD_EVAL_E5_CANDIDATE_ROOT,cell=process.env.DD_EVAL_E5_EXPECTATION_CELL;
+  assert(path.isAbsolute(candidate));assert(path.isAbsolute(cell));
+  const runtimeRoot=path.join(cell,'dd-flow-home');
+  const engine=JSON.parse(await readFile(path.join(runtimeRoot,'engines/@deksden-com_dd-flow-cli/0.9.0-beta.144/engine.json')));
+  await verifyEngineArtifact(engine);
+  const {readSetupStatus}=await import(pathToFileURL(path.join(engine.snapshot_root,'dist/services/setup.js')));
+  const installation=readSetupStatus(runtimeRoot).installation;assert(installation);
+  for(const flow of ['mb-audit','project-review']) {
+    const expected=await resolveMemoryExecutionExpectation({runtimeRoot,configHome:path.join(candidate,'router-home'),engine,installation,flow,
+      selection:{profileFile:path.join(candidate,'operator-subject.json'),maxParallel:2},
+      scope:{requestId:'diagnostic-expectation-test',projectRoot:path.join(cell,'project'),workspace:path.join(cell,'project')}});
+    assert.equal(expected.settings.execution,'managed');assert.equal(expected.settings.stage_session_mode,'new_session');
+    assert.deepEqual(expected.settings.delegation,{mode:'external',max_parallel:2,native_capacity_receipt:null});
+    assert.deepEqual(expected.contour,['preflight',flow==='mb-audit'?'audit':'analyze','review','report']);
+  }
 });
 
 test('exact authenticated installed CLI resolves external and native semantic selection without a physical receipt', { skip: !process.env.DD_EVAL_MEMORY_DELIVERY_ROOT }, async () => {
