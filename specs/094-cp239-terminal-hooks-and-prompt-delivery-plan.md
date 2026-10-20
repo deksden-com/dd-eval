@@ -443,3 +443,31 @@ gate-команды engine: `pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm t
 положительные/отрицательные traces проходят, полный gate зелёный. Это НЕ гарантия
 успеха любой модели или доступности провайдера. Свежая живая приёмка и публикация
 отдельно разрешаются пользователем; без неё не утверждать «все пять E2E прошли».
+
+### 6.7. Подтверждённые дополнения полного implementation gate
+
+- Повторные реальные checksum scans одного engine/native binary должны иметь
+  разные scan identities. Один и тот же phase/step остаётся дубликатом; лимиты
+  observer и startup не увеличиваются.
+- Fixture RUN observer учитывает реальные дочерние Stage/Work transitions и
+  settled controller operations, строго в собственном project/RUN. Heartbeats,
+  чужой RUN с тем же ID и повторное чтение не продлевают окно.
+- SDK `pending` после bounded wait не является ошибкой admission: тест ждёт
+  реальную регистрацию существующего владельца, не запускает второго.
+- Подтверждён новый production-аналог: self-start control worker завершился
+  после однократной недоступности physical observation; другой запуск сохранил
+  `pid_started_at=null` в claim. Проверить controller/control/scope self-serve.
+  Доказать birth до claim; birth и confirmation используют один существующий
+  startup horizon, меньший inherited deadline и исходную resource lease.
+  Повторять только typed physical observation с доказанным no-effect, проверяя
+  owner/token/generation/cancellation до и после. Нельзя повторять spawn,
+  ремонтировать неизвестную stored identity или возобновлять lease до admission.
+  Поздний committed результат не объявлять no-effect. Проверки отмены,
+  смены владельца, истечения бюджета и unknown effect обязательны.
+- Recovery fixture публикует bound progress только после законченных реальных
+  отрицательных admission proofs. До нового запуска сохраняет диагностический
+  срез на любом failure, включая ошибку invoke до polling. Ненужные тяжёлые
+  imports переносятся в использующую их ветку; timeout не заменяется большим.
+
+Это расширяет регрессии на реально найденные аналоги; не разрешает новые EVAL,
+изменение старых результатов или ослабление identity/settlement проверок.
