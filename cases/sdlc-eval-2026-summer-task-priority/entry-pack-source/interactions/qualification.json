@@ -704,6 +704,7 @@
             ],
             "witness_ids": [
               "q2-optional",
+              "q2-create-default",
               "q2-bundle"
             ]
           },

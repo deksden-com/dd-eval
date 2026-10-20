@@ -166,6 +166,17 @@ test('CP190 native short create/edit requests retain two independent operation o
   }
 });
 
+test('CP239 omitted-priority choice also resolves field optionality without quoting every variant', async () => {
+  const native = JSON.parse(await readFile(new URL('./fixtures/hitl-cp239-omitted-priority.json', import.meta.url)));
+  const item = itemBy('luna-cp190-exact');
+  assertExpectedAtoms(item, native, options);
+  const withoutOmission = { atoms: native.atoms.filter(atom => !atom.source_quote.startsWith('При создании без приоритета')) };
+  assert.ok(compareHitlExpectation(item, withoutOmission, options).missing_obligation_ids.includes('q2-optional'));
+  const withoutUpdate = { atoms: native.atoms.filter(atom => !atom.source_quote.includes('редактировании')) };
+  // Creation/optionality must not hide the separate editing decision.
+  assert.ok(compareHitlExpectation(item, withoutUpdate, options).missing_obligation_ids.includes('q2-update'));
+});
+
 test('native archive owner/member splits are legal without hiding missing independent decisions', async () => {
   const native = JSON.parse(await readFile(new URL('./fixtures/hitl-canonical-archive-permissions.json', import.meta.url)));
   const item = itemBy('luna-cp190-exact');
