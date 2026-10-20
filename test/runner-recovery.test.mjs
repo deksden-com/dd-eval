@@ -55,8 +55,20 @@ test("fork checkpoint listing advertises only sealed stage-entry snapshots", asy
     await writeJsonAtomic(path.join(boundaries, "plan-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "stage_entry", stage_entry: "plan", run_id: "RUN-1", created_at: "2026-09-14T00:00:00.000Z" });
     await writeJsonAtomic(path.join(boundaries, "recovery-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", stage_entry: "plan" });
     await writeFile(path.join(boundaries, "broken-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "snapshot.json"), "{");
+    for (const [id, schema, kind, purpose] of [
+      ["audit-diagnostic", "dd-flow/eval-run-snapshot@7", "git_repository", "stage_entry"],
+      ["audit-invalid-workspace", "dd-flow/eval-run-snapshot@7", "project", "stage_entry"],
+      ["audit-recovery", "dd-flow/eval-run-snapshot@7", "git_repository", "recovery"],
+      ["memory-recovery", "dd-flow/eval-run-snapshot@6", "git_repository", "stage_entry"]
+    ]) {
+      await mkdir(path.join(boundaries, id));
+      await writeJsonAtomic(path.join(boundaries, id, "snapshot.json"), { schema_id: schema,
+        workspace: { kind, state: "unborn" }, purpose, stage_entry: "audit", run_id: "RUN-audit" });
+    }
     const result = await runnerCheckpoints({ evalRoot: root });
-    assert.deepEqual(result.checkpoints.map(item => [item.id, item.stage, item.run_id]), [["plan-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "plan", "RUN-1"]]);
+    assert.deepEqual(result.checkpoints.map(item => [item.id, item.stage, item.run_id]), [
+      ["audit-diagnostic", "audit", "RUN-audit"],
+      ["plan-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "plan", "RUN-1"]]);
     assert.match(result.checkpoints[0].manifest_sha256, /^[a-f0-9]{64}$/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
