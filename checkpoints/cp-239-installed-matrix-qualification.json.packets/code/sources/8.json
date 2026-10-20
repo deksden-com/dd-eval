@@ -1,0 +1,47 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "dea655c2fe674f806a0978868c6c537742972e0dc60e7845a3390da733bbb957",
+  "verification_epoch": "67e81b7ddf108c8e03f186f84691fafaf3ee3c568292e41baa3e97e474dd570a",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_artifacts/cp239-release.aF0Qvi/matrix-fixture/dd-flow-protocolize-YrRrbe/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_artifacts/cp239-release.aF0Qvi/matrix-fixture/dd-flow-protocolize-YrRrbe/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_artifacts/cp239-release.aF0Qvi/matrix-fixture/dd-flow-protocolize-YrRrbe/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_artifacts/cp239-release.aF0Qvi/matrix-fixture/dd-flow-protocolize-YrRrbe/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "fingerprint_scope": "check_inputs",
+  "input_manifest": {
+    "path": "inputs-before.json",
+    "sha256": "11e2a7db7789397a32c2ddf4eb0b1c39197d94d320660d930c437b97d2ac5088",
+    "truncated": false
+  },
+  "execution_contract_hash": "cb6b94e42d8c6f29b5854e91c81f6b94ebc2b05626c0f749137084f094ddedac",
+  "workspace_fingerprint": "ad7117ef543b87cebc1e6ce76f39e89343bc33bf6c14b8a5e162da2f86022c30",
+  "before_fingerprint": "e078c586e37a07a2da11e7a9c3eff83d7dd5db9cda56bb90da8d740baaccfa44",
+  "after_fingerprint": "e078c586e37a07a2da11e7a9c3eff83d7dd5db9cda56bb90da8d740baaccfa44",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-20T07:38:35.141Z",
+  "finished_at": "2026-10-20T07:38:35.230Z",
+  "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/cp239-release.aF0Qvi/matrix-fixture/dd-flow-protocolize-YrRrbe/project",
+  "candidate_files": [],
+  "execution_failures": []
+}

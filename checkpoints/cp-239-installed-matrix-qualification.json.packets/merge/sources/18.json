@@ -1,0 +1,47 @@
+{
+  "id": "WRK-006-merge/RCP-003",
+  "local_id": "RCP-003",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-NEW",
+    "PRT-001-task-priority/CHK-P1-TEST",
+    "PRT-001-task-priority/CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "e7751d8854348b7b555a46c7f92e620e825aa98f22d54b4c98e4da3fe83eb95b",
+  "verification_epoch": "eaca0af0c034c372fb210247512571b41b5d341b9e664784815ada4834b6b258",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_artifacts/cp239-release.aF0Qvi/matrix-fixture/dd-flow-protocolize-YrRrbe/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_artifacts/cp239-release.aF0Qvi/matrix-fixture/dd-flow-protocolize-YrRrbe/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_artifacts/cp239-release.aF0Qvi/matrix-fixture/dd-flow-protocolize-YrRrbe/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_artifacts/cp239-release.aF0Qvi/matrix-fixture/dd-flow-protocolize-YrRrbe/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "fingerprint_scope": "check_inputs",
+  "input_manifest": {
+    "path": "inputs-before.json",
+    "sha256": "20f144fc97df77497239e755abe6cbe1cdccfd4ea7991c7115291a1bc6803ed6",
+    "truncated": false
+  },
+  "execution_contract_hash": "cb6b94e42d8c6f29b5854e91c81f6b94ebc2b05626c0f749137084f094ddedac",
+  "workspace_fingerprint": "a9b9daf9fa8991c8b9654c273111218160e25212585c9ff9f154bbb0c2f45ff7",
+  "before_fingerprint": "9421303ba1667186f0c560b6973d7b4d880cffaad836b5d95786cdba7d0a2200",
+  "after_fingerprint": "9421303ba1667186f0c560b6973d7b4d880cffaad836b5d95786cdba7d0a2200",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-20T07:38:37.498Z",
+  "finished_at": "2026-10-20T07:38:37.604Z",
+  "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/cp239-release.aF0Qvi/matrix-fixture/dd-flow-protocolize-YrRrbe/project",
+  "candidate_files": [],
+  "execution_failures": []
+}

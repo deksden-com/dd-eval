@@ -1,0 +1,34 @@
+{
+  "id": "cp-239-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "c92bb80240c98eb10d2e7a2626bef4778ea800b1",
+    "tag": "eval/plan-091-native-trace"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-239-installed-matrix-qualification.json",
+      "sha256": "1ed52a37ecc9164e359e3aa2bb1d44fd77bbf2b79cdf21941e7d5d81cb806caf",
+      "canon_commit": "a1cfe8b06329c691c314064b6ea6a3da6628cceb"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "fc729af5d6f9865bab178e40b34dd9b0a99a0318",
+      "version": "0.9.0-beta.144",
+      "artifact_sha256": "98b523ecb27bd284f2efe9dda32af31ab5a65cec1181a5c6dece543ddadf6ba8"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Same-Session overload continuation preserves loaded native evidence; sealed terminal qualification failures reconcile without discarding verdicts. Released beta.144; product baseline and flow pack unchanged.",
+    "world_isolation": "Per-execution test worlds; isolated campaign PostgreSQL on loopback 55438.",
+    "baseline": "Each scored workspace runs its own full baseline before Subject dispatch."
+  }
+}
