@@ -48,6 +48,19 @@ blank product checkpoint and independent focused/E2E case qualification remain
 required before a Memory case may become accepted. Existing task-priority packs
 are not blank-init evidence.
 
+The E5 diagnostic extension uses case `flow.id: "mb-audit"` or
+`"project-review"` and `subject.diagnostic` (one `profile` or `profileFile`,
+optional stage/Work assignments and `maxParallel` up to 64). It reuses
+`subject.memory_setup` solely for installed-canon delivery into the private
+runtime Home; it grants no project mutation authority. Diagnostic selection
+cannot mix Memory mutation profiles, SDLC execution routing or native delegation.
+Preparation calls public `flow <id> --prepare-only`; normal managed drive owns
+execution. Original product checkpoints are cloned without a flow-pack overlay,
+whether their Memory Bank exists, is legacy or is absent. No Git mutation route
+is sent to the diagnostic CLI. This extension is not yet case acceptance:
+snapshot-version integration, authored rubrics/cases and complete qualification
+remain required before promoting either diagnostic family.
+
 Factory Droid integration uses `dd-droid`, native JSON-RPC and the pinned
 `droid-cli-openai-gpt-5-6-sol-high` profile. Native close/reload and child identity
 are verified; the profile has measured capacity 15. Scored E2E remains a separate
