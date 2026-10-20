@@ -72,3 +72,37 @@ Complete provider-free preflight, real scored E2E and canonical focused cells,
 installed restoration checks, relevant complete regressions, semantic review
 and normal cross-repository integration. Do not qualify from fake harness
 results, lint, successful setup or runtime completion alone.
+
+## Current observations (20 October)
+
+The v3 scored audit `EVAL-20261020165158-cd5e02e2` is **failed**, not accepted.
+Its analytical Work reached the final skills aspect before a managed Codex
+PreToolUse hook failed on Work finish (`native_hook_failed`, `effect=unknown`).
+The saved Finish command parses correctly and its submitted JSON is valid;
+neither fact proves the hook failure harmless. Public control status confirms
+the observer/controller stopped and physical child settlement completed.
+No Subject replay or successful final Judge is claimed.
+
+The independently installed v4 candidate has CLI source
+`2eb9df339a16da7cb08f5118c8ac6cfedbb77ede`, canon
+`759572a0b4ad09aa1abd79b3ebcd667162403b39`, archive digest
+`c11c777aabd0af2ef6b724a90a1abd5ab03a6f83f70f9bc392b0db15c5e0f5e7`
+and verified runtime engine digest
+`d395f3a28471d6fc6ceedd4bd8af776f0e8641efe371dc0d04a05d646518eff0`.
+Its private signed setup and engine installation passed, but it has no scored
+acceptance or qualified native route.
+
+Two installed fixture attempts failed at the preparation observation limit,
+before lifecycle acceptance. A separate owned prepare-only invocation did
+eventually return a valid `flow_mb_audit_prepared` receipt after approximately
+eleven minutes on the heavily loaded host. Read-only measurements showed
+release-cache verification taking 22–31 seconds and one engine digest taking
+about six seconds. These observations do not convert the failed fixtures to
+PASS. Source now adds actual diagnostic preparation milestones using the
+existing setup-progress mechanism; that successor still requires installed
+qualification. Existing v3 case/checkpoint pins are unchanged.
+
+The checkpoint listing regression now covers sealed diagnostic `@7`
+stage-entry snapshots and rejects memory-recovery `@6`, diagnostic recovery
+captures and invalid workspace variants. This is a listing test only, not
+installed restore/continuation or real-model evidence.
