@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-diagnostic-authored-mature-e5-installed",
-    "sha256": "2fae172d95c2de96a907c9c61e436ecbe50db02b31f2eee3a2d822757983ffec"
+    "id": "cp-diagnostic-authored-mature-e5-citations",
+    "sha256": "a09fb7206422c22a4f3b1b360cc3204e50490b01d10aed5efae38a5255441b54"
   },
   "entry_pack": null,
   "baseline_admission": {
