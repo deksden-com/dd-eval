@@ -3,7 +3,40 @@ import assert from "node:assert/strict";
 import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { createHash } from 'node:crypto';
 import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
+
+test('diagnostic preparation reuses public managed RUNs without mutation-route selectors', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-diagnostic-'));
+  t.after(() => rm(root, {recursive:true,force:true}));
+  const bin=path.join(root,'cli.mjs'),calls=path.join(root,'calls.json'),intakeFile=path.join(root,'intake.md');
+  const raw='Review actual implementation without repairs.\n';await writeFile(intakeFile,raw);
+  for(const flow of ['mb-audit','project-review']) {
+    const diagnostic={requestId:'diagnostic-request',intakeFile,intakeSha256:createHash('sha256').update(raw).digest('hex'),
+      profile:'subject',stageProfiles:['review=critic'],workProfiles:['worker'],maxParallel:2};
+    const receipt={run_id:'RUN-diagnostic',flow_id:flow,action:`flow_${flow.replaceAll('-','_')}_prepared`,request_id:diagnostic.requestId};
+    const script=value=>`import fs from 'node:fs';fs.writeFileSync(${JSON.stringify(calls)},JSON.stringify(process.argv.slice(2)));console.log(JSON.stringify(${JSON.stringify(value)}));`;
+    await writeFile(bin,script(receipt));
+    const input={bin,projectRoot:root,flow,diagnostic};
+    assert.deepEqual(await prepareManagedRun(input),receipt);
+    const args=JSON.parse(await readFile(calls));
+    assert.deepEqual(args.slice(0,2),['flow',flow]);
+    for(const flag of ['--prepare-only','--non-interactive','--request-id','--intake-file','--stage-profile','--work-profile'])assert(args.includes(flag));
+    for(const flag of ['--git-route','--workspace-root','--integration-branch','--intake-sha256','launch','init','upgrade'])assert(!args.includes(flag));
+    await rm(calls);
+    for(const change of [{diagnostic:undefined},{memoryInit:{}},{memoryUpgrade:{}},{executionRoutingFile:'routing.json'},
+      {flow:'sdlc'},{flow:'mb-init'},{diagnostic:{...diagnostic,gitRoute:'feature_worktree'}},
+      {diagnostic:{...diagnostic,profileFile:'other'}},{diagnostic:{...diagnostic,intakeSha256:'0'.repeat(64)}},
+      ...[0,65,1.5,null].map(maxParallel=>({diagnostic:{...diagnostic,maxParallel}}))]) {
+      await assert.rejects(prepareManagedRun({...input,...change}),{code:'managed_flow_input_invalid'});
+      await assert.rejects(readFile(calls),{code:'ENOENT'});
+    }
+    for(const change of [{flow_id:'sdlc'},{action:'flow_mb_init_prepared'},{request_id:'foreign'},{controller:{}}]) {
+      await writeFile(bin,script({...receipt,...change}));
+      await assert.rejects(prepareManagedRun(input),{code:'controller_receipt_invalid'});
+    }
+  }
+});
 
 test('Memory reconciles only an explicitly allocated original request, once, without replacement or dispatch', async t => {
   const root=await mkdtemp(path.join(os.tmpdir(),'memory-reconcile-'));
