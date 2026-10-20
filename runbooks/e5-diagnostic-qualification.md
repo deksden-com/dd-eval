@@ -100,9 +100,33 @@ release-cache verification taking 22–31 seconds and one engine digest taking
 about six seconds. These observations do not convert the failed fixtures to
 PASS. Source now adds actual diagnostic preparation milestones using the
 existing setup-progress mechanism; that successor still requires installed
-qualification. Existing v3 case/checkpoint pins are unchanged.
+qualification. At that observation the cases still selected the v3 checkpoint.
 
 The checkpoint listing regression now covers sealed diagnostic `@7`
 stage-entry snapshots and rejects memory-recovery `@6`, diagnostic recovery
 captures and invalid workspace variants. This is a listing test only, not
 installed restore/continuation or real-model evidence.
+
+## V5 successor
+
+Cases now select `cp-diagnostic-authored-mature-e5-work-admission`, SHA-256
+`5f7c5b31dc3db7905abe834f2250868368aecf42be3d1c879066513b8e6b7805`.
+It pins CLI `eea935eff8b89df3a60ea6e125dfea54a475e333`, canon
+`759572a0b4ad09aa1abd79b3ebcd667162403b39`, and independently verified
+installed engine digest
+`0461c92837d7dea8293aa0f9a404bc0c24337b572520260b2a935dfe3dc8281f`.
+The npm archive digest is
+`86461522115062f57afb1ea81c15f97a227c66291031b3050ce7d8ba9340affd`.
+Public setup and engine installation passed in `eval-candidate-v5.5qEuXD`;
+installed lifecycle, snapshot continuation and scored acceptance remain pending.
+
+The successor includes frozen diagnostic Work-result admission before
+settlement, retained local Git excludes in snapshots, diagnostic `@7` fork
+support, relocated coordinator snapshot lookup and real preparation milestones.
+The fake adapter now applies the existing native-work deadline ownership to
+diagnostics too: the outer RUN observer owns their deadline rather than an
+independent utility timer. This is fixture behavior, not native qualification.
+The v4 bounded preflight capture attempt failed at that utility observation
+limit and is retained as failed. A terminal-only v3 Eval continuation was
+refused by its existing stop fence (`runtime_scope_stopped`); no Subject or
+Judge dispatch occurred and that fence was not removed.

@@ -1,0 +1,21 @@
+{
+  "id": "cp-diagnostic-authored-mature-e5-work-admission",
+  "source": {
+    "repository": "test/fixtures/diagnostic/mature-conformance-v1.bundle",
+    "commit": "fc3edfee4d6dc8b27a664bb5ee5e08cc58387817"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "759572a0b4ad09aa1abd79b3ebcd667162403b39",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "eea935eff8b89df3a60ea6e125dfea54a475e333",
+      "version": "0.9.0-beta.144",
+      "artifact_sha256": "0461c92837d7dea8293aa0f9a404bc0c24337b572520260b2a935dfe3dc8281f"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
