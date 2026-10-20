@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-diagnostic-authored-mature-e5-work-admission",
-    "sha256": "5f7c5b31dc3db7905abe834f2250868368aecf42be3d1c879066513b8e6b7805"
+    "id": "cp-diagnostic-authored-mature-e5-progress",
+    "sha256": "348e04fb516f0911ec25d568178927fa5456c469ae0a139eeecb02650a707c51"
   },
   "entry_pack": null,
   "baseline_admission": {

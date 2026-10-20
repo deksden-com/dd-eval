@@ -109,7 +109,7 @@ installed restore/continuation or real-model evidence.
 
 ## V5 successor
 
-Cases now select `cp-diagnostic-authored-mature-e5-work-admission`, SHA-256
+The previous v5 cases selected `cp-diagnostic-authored-mature-e5-work-admission`, SHA-256
 `5f7c5b31dc3db7905abe834f2250868368aecf42be3d1c879066513b8e6b7805`.
 It pins CLI `eea935eff8b89df3a60ea6e125dfea54a475e333`, canon
 `759572a0b4ad09aa1abd79b3ebcd667162403b39`, and independently verified
@@ -146,3 +146,27 @@ block passed, but E2 had reported failures in the public version-probe and
 Droid-doctor fixtures before interruption. This is a partial failed run, not
 a complete regression PASS; those failures require focused diagnosis/rerun
 and the final candidate still requires the complete suite.
+
+## V6 current candidate
+
+Cases now select `cp-diagnostic-authored-mature-e5-progress`, SHA-256
+`348e04fb516f0911ec25d568178927fa5456c469ae0a139eeecb02650a707c51`.
+CLI source is `4e82383a2ac3726b7a3658d6558fe6462701c7d6`; canon remains
+`759572a0b4ad09aa1abd79b3ebcd667162403b39`. Independent verification of
+the installed runtime returned engine content digest
+`5b020b3a4177dc0e1b44f79dc10124a84d870c271d3e313b561cf43197128c53`;
+the npm archive digest is
+`7c3b901c748acb8cea767941bc9fc5d21dbdba2f4b0b6b831b0d0ae4a568509b`.
+Private setup and engine installation passed. Both case-definition checks
+passed after selecting this checkpoint. Installed lifecycle and real-model
+acceptance remain pending; no qualified native route is claimed.
+
+Repeated physical engine/cache verification now has distinct progress-pass
+identities without relaxing digest or inactivity checks. The source CLI
+version-probe fixture uses the existing progress observer instead of a fixed
+total deadline; its assertions passed. The installed diagnostic fixture now
+consumes authenticated delivered canon rather than regenerating a producer Git
+archive (harness commit `a4546485`, outside packaged runtime bytes). The first
+v6 attempt failed before fixture RUN creation on that producer-Git dependency;
+its failed receipt remains retained. The successor attempt uses a new fixture
+namespace and must finish before any lifecycle PASS is claimed.
