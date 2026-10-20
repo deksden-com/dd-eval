@@ -1,0 +1,34 @@
+{
+  "id": "cp-238-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "c92bb80240c98eb10d2e7a2626bef4778ea800b1",
+    "tag": "eval/plan-091-native-trace"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-238-installed-matrix-qualification.json",
+      "sha256": "a0f51b9b694e2f6e520902703d10c51de499576401b842bbe8752a38ffe670c4",
+      "canon_commit": "a1cfe8b06329c691c314064b6ea6a3da6628cceb"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "2294710b9c9b678193798301d5a81048506d672d",
+      "version": "0.9.0-beta.143",
+      "artifact_sha256": "aefdc436fbdce558c54201b7b11f3963891bd98711f65592314d2c50ad9a86c8"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Plan 093 reviewed Codex history readiness and AGY startup refusal drain; immutable beta.143 candidate. Product baseline and flow pack unchanged.",
+    "world_isolation": "Per-execution test worlds; isolated campaign PostgreSQL on loopback 55438.",
+    "baseline": "Each scored workspace runs its own full baseline before Subject dispatch."
+  }
+}

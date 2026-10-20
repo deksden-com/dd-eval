@@ -1,0 +1,19 @@
+{
+  "schema_id": "dd-flow/run-engine-binding@1",
+  "run_id": "RUN-001-tasks",
+  "project_root": "/Users/deksden/Documents/_Projects/_artifacts/cp238-release.8u8Y8u/matrix-fixture/dd-flow-protocolize-I5XurI/project",
+  "bound_at": "2026-10-20T02:56:22.152Z",
+  "source": "run_creation",
+  "reason": "RUN created by the selected execution engine.",
+  "engine": {
+    "package_name": "@deksden-com/dd-flow-cli",
+    "package_version": "0.9.0-beta.143",
+    "engine_version": "0.9.0-beta.143",
+    "integrity_checksum": "aefdc436fbdce558c54201b7b11f3963891bd98711f65592314d2c50ad9a86c8",
+    "snapshot_root": "/Users/deksden/Documents/_Projects/_artifacts/cp238-release.8u8Y8u/matrix-fixture/dd-flow-protocolize-I5XurI/home/engines/@deksden-com_dd-flow-cli/0.9.0-beta.143"
+  },
+  "probe": {
+    "status": "not_required",
+    "command": null
+  }
+}
