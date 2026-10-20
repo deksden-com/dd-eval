@@ -25,6 +25,8 @@ test("terminal non-verdict recovery binds every paid request, Turn and original 
     j => { j[3].payload.params.threadId = "foreign"; }, j => { j[3].payload.params.turn.id = "foreign"; },
     j => { j[0].payload.params.input[0].text = "other task"; }, j => { j[1].payload.operation_id = "foreign"; },
     j => { j[2].payload.id = 99; }, j => { j[3].order = 2; },
+    j => j.push({ ...structuredClone(j[0]), order: 5 }),
+    j => j.push({ ...structuredClone(j[2]), order: 5 }),
     j => j.push({ order: 5, kind: "inbound", payload: { method: "turn/started", params: { threadId: "session", turn: { id: "native" } } } }),
     j => j.push({ order: 5, kind: "inbound", payload: { method: "turn/completed", params: { threadId: "child", turn: { id: "child", status: "completed" } } } })
   ]) { const j = structuredClone(journal); mutate(j); assert.throws(() => verify(chain, ledger, j), { code: "definition_qualification_outcome_unknown" }); }
