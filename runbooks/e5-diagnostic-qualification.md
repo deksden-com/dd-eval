@@ -59,6 +59,15 @@ Definition tests passed for both cases. Real-model qualification remains pending
 
 ## Remaining acceptance
 
+The next candidate `eval-candidate-v3.6SOmVR` fixes stale descriptor references.
+Active checkpoint: `cp-diagnostic-authored-mature-e5-descriptor`; canon
+`dde0faf6240458507aa3f3c37d0ac7ece9f266f7`, CLI
+`4c0e38d8aca008e6f10b5ea5d6333a23f9a07ce1`, verified runtime snapshot
+`69d58e0f335f167d0c26eb510360a158bd3759b85394229bad55fe7e8e990dc3`.
+Its retained inspect-runtime-identity.mjs verifies actual installed engine bytes
+and matching canon/build metadata before returning the checkpoint digest.
+Public setup and all 15 canonical checks passed; model acceptance is pending.
+
 Complete provider-free preflight, real scored E2E and canonical focused cells,
 installed restoration checks, relevant complete regressions, semantic review
 and normal cross-repository integration. Do not qualify from fake harness
