@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import Ajv2020 from 'ajv/dist/2020.js';
 import {loadCase,initialFlowBoundary,validateCaseBlueprint} from '../lib/runner.mjs';
+import {readBaselineAdmissionPolicy} from '../lib/baseline-admission.mjs';
 
 for(const [id,flow,analysis] of [['mb-audit-authored-mature','mb-audit','audit'],['project-review-authored-mature','project-review','analyze']]) {
   test(`${id} separates pinned product input, stage context and hidden assessment`,async()=>{
@@ -20,6 +21,9 @@ for(const [id,flow,analysis] of [['mb-audit-authored-mature','mb-audit','audit']
     assert.equal(checkpoint.source.commit,'fc3edfee4d6dc8b27a664bb5ee5e08cc58387817');
     assert.equal(checkpoint.flow_pack.delivery,'installed_canon');assert.equal(checkpoint.state,'candidate_pending_preflight');
     assert.match(checkpoint.flow_pack.engine.artifact_sha256,/^[a-f0-9]{64}$/);
+    const baseline=await readBaselineAdmissionPolicy({caseRoot:loaded.root,definition:value.baseline_admission});
+    assert.equal(baseline.commands.length,1);assert.equal(baseline.commands[0].id,'pinned-read-only-product');
+    assert(!baseline.commands[0].args.includes('--test'),'diagnostic admission must not execute product tests');
     const blueprint=JSON.parse(await readFile(path.join(loaded.root,'entry-pack-source/stage-context.json')));
     validateCaseBlueprint(blueprint,loaded);
     for(const [index,stage] of value.flow.contour.entries()) {

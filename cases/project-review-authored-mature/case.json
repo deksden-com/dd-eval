@@ -15,12 +15,16 @@
     "sha256": "2e6881b36432365dc5fc8b411008102507e5e04d439cf51e833ee861e8e51d62"
   },
   "entry_pack": null,
+  "baseline_admission": {
+    "file": "baseline-admission.json",
+    "sha256": "52089f08b53bf68d6e504b8d9747e8bbffdcd14694d22fddb81c3aa9078eb955"
+  },
   "profiles": {
     "subject": [
-      "codex-desktop-gpt-6-luna-xhigh-codex-0-162-1"
+      "codex-desktop-gpt-6-luna-xhigh-codex-0-163-0"
     ],
     "judge": [
-      "codex-desktop-gpt-6-1-sol-high-codex-0-162-1"
+      "codex-desktop-gpt-6-1-sol-high-codex-0-163-0"
     ]
   },
   "flow": {
