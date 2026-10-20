@@ -130,3 +130,19 @@ The v4 bounded preflight capture attempt failed at that utility observation
 limit and is retained as failed. A terminal-only v3 Eval continuation was
 refused by its existing stop fence (`runtime_scope_stopped`); no Subject or
 Judge dispatch occurred and that fence was not removed.
+
+V5 observations are not acceptance: both installed preparations stopped at
+the 120-second inactivity policy, and provider-free audit preflight stopped
+at the 30-second control inactivity policy before model dispatch. Retained
+stderr shows later physical checksum passes still emitting increasing event
+sequences, while the observer discarded their repeated `phase/step` markers
+(189 emitted events versus 33 admitted transitions in one fixture). The CLI
+successor assigns distinct pass identities and reports verified cache batches;
+it does not relax byte checks, replay rejection or inactivity durations.
+
+The v5 complete CLI suite was deliberately interrupted before editing these
+shared helpers (verified owned process group, exit 130). Its 66-test hybrid
+block passed, but E2 had reported failures in the public version-probe and
+Droid-doctor fixtures before interruption. This is a partial failed run, not
+a complete regression PASS; those failures require focused diagnosis/rerun
+and the final candidate still requires the complete suite.
