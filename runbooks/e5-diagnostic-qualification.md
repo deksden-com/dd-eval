@@ -43,10 +43,14 @@ The first real audit attempt `EVAL-20261020161436-a807f100` failed at
 preflight evidence validation. Its final Judge completed; no downstream
 audit/review/report acceptance is claimed. Original artifacts remain retained.
 
-Cases now select `cp-diagnostic-authored-mature-e5-citations`: canon
+Cases now select `cp-diagnostic-authored-mature-e5-citations-installed`: canon
 `0ff6ccdab7eb0655a499ec2ed964626b03302b6a`, CLI
 `13eb553832c0f36c46b24b4f1feb330ce71e031d`, installed engine content digest
-`7cd9c4632689be2e9388e19b68ab0bcf2fa55b83e026dbc25d84383f9346b918`.
+`65454171e397da287fe9346447ff25b7919058a09a467869cb7737bd957d251d`.
+This digest was independently verified on the actual retained engine snapshot
+created by installed preflight, with matching build metadata. The preceding
+citations checkpoint measured the npm consumer directory instead; preflight
+rejected it before provider dispatch. That failed checkpoint remains retained.
 The new npm archive digest is
 `ea300e980448437f4c87d28b5542d6950cb95272362ed09c11109a0799c2d5b5`.
 The separate `eval-candidate-v2.g7IqV8` installation passed public setup;
