@@ -1,0 +1,373 @@
+{
+  "schema_id": "dd-eval/stage-context-blueprint@1",
+  "stages": {
+    "preflight": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "preflight",
+      "objective": "Определить read-only scope, источники и applicability; не выдавать предположения за уже выполненный анализ.",
+      "task_input": [
+        {
+          "role": "initial_user_request",
+          "path": ".dd-eval/request.md",
+          "source": "request.md",
+          "sha256": "fcda8805c393a4ad0723f02de51bab2dc902d392499ca237cb34495a1b76a0b7"
+        }
+      ],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/architecture.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/decisions.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/ledger.mjs",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/ledger.test.mjs",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/index.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/FEAT-001-safe-ledger.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/DEF-UPGRADE-001.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI supplies current stage input, frozen criteria, Work ownership and exact completion commands."
+        }
+      ]
+    },
+    "analyze": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "analyze",
+      "objective": "Сопоставить утверждения спецификаций и проекта с фактической реализацией; зарегистрировать проверяемые conformance candidates.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/architecture.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/decisions.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/ledger.mjs",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/ledger.test.mjs",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/index.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/FEAT-001-safe-ledger.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/DEF-UPGRADE-001.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "01-preflight",
+          "required": true,
+          "reason": "Accepted predecessor from this execution, not reference answers."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI supplies current stage input, frozen criteria, Work ownership and exact completion commands."
+        }
+      ]
+    },
+    "review": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "review",
+      "objective": "Независимо проверить все candidates, evidence, ограничения и dispositions без ремонта проекта.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/architecture.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/decisions.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/ledger.mjs",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/ledger.test.mjs",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/index.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/FEAT-001-safe-ledger.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/DEF-UPGRADE-001.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "02-analyze",
+          "required": true,
+          "reason": "Accepted predecessor from this execution, not reference answers."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI supplies current stage input, frozen criteria, Work ownership and exact completion commands."
+        }
+      ]
+    },
+    "report": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "report",
+      "objective": "Опубликовать согласованные результаты независимого review и честные границы покрытия в области RUN.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/architecture.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/decisions.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/ledger.mjs",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/ledger.test.mjs",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/index.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/FEAT-001-safe-ledger.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/DEF-UPGRADE-001.md",
+          "required": true,
+          "reason": "Original project evidence; declarations may disagree with implementation and require verification."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "03-review",
+          "required": true,
+          "reason": "Accepted predecessor from this execution, not reference answers."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "CLI supplies current stage input, frozen criteria, Work ownership and exact completion commands."
+        }
+      ]
+    }
+  }
+}

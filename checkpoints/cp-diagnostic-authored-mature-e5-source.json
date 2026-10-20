@@ -1,0 +1,21 @@
+{
+  "id": "cp-diagnostic-authored-mature-e5-source",
+  "source": {
+    "repository": "test/fixtures/diagnostic/mature-conformance-v1.bundle",
+    "commit": "fc3edfee4d6dc8b27a664bb5ee5e08cc58387817"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "231b5fbafc0151646cffd3f1bbbde5d5fc6a6ce0",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "f62cd3b1825b624235ea4412abb796ed9677e01e",
+      "version": "0.9.0-beta.144",
+      "artifact_sha256": "2acbbeca06680c7e197cb89c162d9130e5dea4770fc4fadc4f7dbae9971e0793"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}

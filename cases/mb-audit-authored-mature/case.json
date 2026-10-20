@@ -1,0 +1,36 @@
+{
+  "schema_id": "dd-eval/case@7",
+  "suite_id": "diagnostic-flow-e5",
+  "id": "mb-audit-authored-mature",
+  "assessment": "assessment.json",
+  "input": [
+    {
+      "role": "initial_user_request",
+      "source": "entry-pack-source/request.md",
+      "sha256": "326f4ff5a2b314450fca7154cea3cb2e9b6dab71507cfd62410cebcf36d01387"
+    }
+  ],
+  "input_checkpoint": {
+    "id": "cp-diagnostic-authored-mature-e5-source",
+    "sha256": "2e6881b36432365dc5fc8b411008102507e5e04d439cf51e833ee861e8e51d62"
+  },
+  "entry_pack": null,
+  "profiles": {
+    "subject": [
+      "codex-desktop-gpt-6-luna-xhigh-codex-0-162-1"
+    ],
+    "judge": [
+      "codex-desktop-gpt-6-1-sol-high-codex-0-162-1"
+    ]
+  },
+  "flow": {
+    "id": "mb-audit",
+    "contour": [
+      "preflight",
+      "audit",
+      "review",
+      "report"
+    ],
+    "terminal_stage": "report"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schema_id": "dd-eval/case@7",
+  "suite_id": "diagnostic-flow-e5",
+  "id": "project-review-authored-mature",
+  "assessment": "assessment.json",
+  "input": [
+    {
+      "role": "initial_user_request",
+      "source": "entry-pack-source/request.md",
+      "sha256": "fcda8805c393a4ad0723f02de51bab2dc902d392499ca237cb34495a1b76a0b7"
+    }
+  ],
+  "input_checkpoint": {
+    "id": "cp-diagnostic-authored-mature-e5-source",
+    "sha256": "2e6881b36432365dc5fc8b411008102507e5e04d439cf51e833ee861e8e51d62"
+  },
+  "entry_pack": null,
+  "profiles": {
+    "subject": [
+      "codex-desktop-gpt-6-luna-xhigh-codex-0-162-1"
+    ],
+    "judge": [
+      "codex-desktop-gpt-6-1-sol-high-codex-0-162-1"
+    ]
+  },
+  "flow": {
+    "id": "project-review",
+    "contour": [
+      "preflight",
+      "analyze",
+      "review",
+      "report"
+    ],
+    "terminal_stage": "report"
+  }
+}

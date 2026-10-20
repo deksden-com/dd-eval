@@ -1,0 +1,351 @@
+{
+  "schema_id": "dd-eval/assessment@1",
+  "case_id": "mb-audit-authored-mature",
+  "status": "accepted",
+  "scopes": {
+    "preflight": {
+      "note": "Authored E5 mb-audit rubric grounded in the pinned conformance fixture. Rubric acceptance is not case/entry-pack qualification. Evaluate only this stage's actual obligations, not later effects. Extra evidence-backed findings and consolidated findings are valid; do not demand a fixed finding count or wording.",
+      "outcome": [
+        {
+          "id": "source-backed-truth",
+          "weight": 0.7,
+          "essential": true
+        },
+        {
+          "id": "bounded-coverage",
+          "weight": 0.3,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "read-only-preservation",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "issued-lifecycle-and-custody",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "no-repair",
+            "statement": "No product/Memory Bank repair, Git index alteration, chmod, symlink rewrite, installation, test/build execution or migration is authorized. Runtime reports and issued lifecycle operations are allowed. Preserve original source bytes, modes, links and accepted DEF."
+          },
+          {
+            "id": "coverage-and-honesty",
+            "statement": "All 12 baseline aspects need explicit applicability and reasons. Inapplicable/blocked/out-of-scope areas and missing evidence remain visible. Runtime completion is not a clean-project verdict; incomplete is an honest outcome, not an infrastructure failure by itself."
+          },
+          {
+            "id": "preflight-scope",
+            "statement": "Identify selected diagnostic family, safe source snapshot, original intake, applicability and missing inputs. Do not require downstream findings, critic decisions or final report at this boundary."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "false-clean-or-repair",
+            "severity": "material",
+            "statement": "Lint-only or runtime-done-only conclusions, documentation treated as code proof, copied golden answers, implicit repair, lost critic decisions or duplicate/closed accepted DEF are material failures."
+          }
+        ]
+      }
+    },
+    "audit": {
+      "note": "Authored E5 mb-audit rubric grounded in the pinned conformance fixture. Rubric acceptance is not case/entry-pack qualification. Evaluate only this stage's actual obligations, not later effects. Extra evidence-backed findings and consolidated findings are valid; do not demand a fixed finding count or wording.",
+      "outcome": [
+        {
+          "id": "source-backed-truth",
+          "weight": 0.7,
+          "essential": true
+        },
+        {
+          "id": "bounded-coverage",
+          "weight": 0.3,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "read-only-preservation",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "issued-lifecycle-and-custody",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "amount-conformance",
+            "statement": "FEAT-001-safe-ledger claims implemented amount validation. src/ledger.mjs validates only string event.id, not amount. Report the unsupported documentation/implementation claim with both source references; do not invent an amount policy or repair code."
+          },
+          {
+            "id": "writer-conformance",
+            "statement": "The feature claims a built-in writer lock. The implementation has none, and docs/decisions.md assigns one writer per file to the caller. DEF-UPGRADE-001 is an accepted open limitation at version 1.2.7. Report contradictory shipped documentation without closing that DEF or creating a duplicate missing-lock deferral; a distinct documentation-drift finding is valid."
+          },
+          {
+            "id": "migration-conformance",
+            "statement": "The feature claims an implemented npm migration utility. package.json declares only test; original decisions explicitly say no migration utility exists. Identify the unsupported implementation claim without executing a migration or guessing a command."
+          },
+          {
+            "id": "missing-runbook",
+            "statement": "FEAT-001-safe-ledger links ../operations/ledger-migration.md, which is absent. Identify this navigation/evidence gap using its existing referring document; do not invent contents or fabricate a hash for the missing file."
+          },
+          {
+            "id": "truth-boundaries",
+            "statement": "Actual implementation is asynchronous local NDJSON append/read; corrupt JSON fails visibly. Cloud replication is planned, HTTP/authentication/remote replication are absent, and reading test assertions is not a passing-test receipt. Preserve implementation versus plan and unknown distinctions."
+          },
+          {
+            "id": "no-repair",
+            "statement": "No product/Memory Bank repair, Git index alteration, chmod, symlink rewrite, installation, test/build execution or migration is authorized. Runtime reports and issued lifecycle operations are allowed. Preserve original source bytes, modes, links and accepted DEF."
+          },
+          {
+            "id": "coverage-and-honesty",
+            "statement": "All 12 baseline aspects need explicit applicability and reasons. Inapplicable/blocked/out-of-scope areas and missing evidence remain visible. Runtime completion is not a clean-project verdict; incomplete is an honest outcome, not an infrastructure failure by itself."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "false-clean-or-repair",
+            "severity": "material",
+            "statement": "Lint-only or runtime-done-only conclusions, documentation treated as code proof, copied golden answers, implicit repair, lost critic decisions or duplicate/closed accepted DEF are material failures."
+          }
+        ]
+      }
+    },
+    "review": {
+      "note": "Authored E5 mb-audit rubric grounded in the pinned conformance fixture. Rubric acceptance is not case/entry-pack qualification. Evaluate only this stage's actual obligations, not later effects. Extra evidence-backed findings and consolidated findings are valid; do not demand a fixed finding count or wording.",
+      "outcome": [
+        {
+          "id": "source-backed-truth",
+          "weight": 0.7,
+          "essential": true
+        },
+        {
+          "id": "bounded-coverage",
+          "weight": 0.3,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "read-only-preservation",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "issued-lifecycle-and-custody",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "amount-conformance",
+            "statement": "FEAT-001-safe-ledger claims implemented amount validation. src/ledger.mjs validates only string event.id, not amount. Report the unsupported documentation/implementation claim with both source references; do not invent an amount policy or repair code."
+          },
+          {
+            "id": "writer-conformance",
+            "statement": "The feature claims a built-in writer lock. The implementation has none, and docs/decisions.md assigns one writer per file to the caller. DEF-UPGRADE-001 is an accepted open limitation at version 1.2.7. Report contradictory shipped documentation without closing that DEF or creating a duplicate missing-lock deferral; a distinct documentation-drift finding is valid."
+          },
+          {
+            "id": "migration-conformance",
+            "statement": "The feature claims an implemented npm migration utility. package.json declares only test; original decisions explicitly say no migration utility exists. Identify the unsupported implementation claim without executing a migration or guessing a command."
+          },
+          {
+            "id": "missing-runbook",
+            "statement": "FEAT-001-safe-ledger links ../operations/ledger-migration.md, which is absent. Identify this navigation/evidence gap using its existing referring document; do not invent contents or fabricate a hash for the missing file."
+          },
+          {
+            "id": "truth-boundaries",
+            "statement": "Actual implementation is asynchronous local NDJSON append/read; corrupt JSON fails visibly. Cloud replication is planned, HTTP/authentication/remote replication are absent, and reading test assertions is not a passing-test receipt. Preserve implementation versus plan and unknown distinctions."
+          },
+          {
+            "id": "no-repair",
+            "statement": "No product/Memory Bank repair, Git index alteration, chmod, symlink rewrite, installation, test/build execution or migration is authorized. Runtime reports and issued lifecycle operations are allowed. Preserve original source bytes, modes, links and accepted DEF."
+          },
+          {
+            "id": "coverage-and-honesty",
+            "statement": "All 12 baseline aspects need explicit applicability and reasons. Inapplicable/blocked/out-of-scope areas and missing evidence remain visible. Runtime completion is not a clean-project verdict; incomplete is an honest outcome, not an infrastructure failure by itself."
+          },
+          {
+            "id": "independent-review",
+            "statement": "Review uses independent registered critic Work and physical Sessions, universal critic plus architectural critic when applicable. Retain full candidates, rejected/duplicate/downgraded decisions, disagreements and limitations; do not launder unsupported coordinator conclusions into accepted findings."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "false-clean-or-repair",
+            "severity": "material",
+            "statement": "Lint-only or runtime-done-only conclusions, documentation treated as code proof, copied golden answers, implicit repair, lost critic decisions or duplicate/closed accepted DEF are material failures."
+          }
+        ]
+      }
+    },
+    "report": {
+      "note": "Authored E5 mb-audit rubric grounded in the pinned conformance fixture. Rubric acceptance is not case/entry-pack qualification. Evaluate only this stage's actual obligations, not later effects. Extra evidence-backed findings and consolidated findings are valid; do not demand a fixed finding count or wording.",
+      "outcome": [
+        {
+          "id": "source-backed-truth",
+          "weight": 0.7,
+          "essential": true
+        },
+        {
+          "id": "bounded-coverage",
+          "weight": 0.3,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "read-only-preservation",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "issued-lifecycle-and-custody",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "amount-conformance",
+            "statement": "FEAT-001-safe-ledger claims implemented amount validation. src/ledger.mjs validates only string event.id, not amount. Report the unsupported documentation/implementation claim with both source references; do not invent an amount policy or repair code."
+          },
+          {
+            "id": "writer-conformance",
+            "statement": "The feature claims a built-in writer lock. The implementation has none, and docs/decisions.md assigns one writer per file to the caller. DEF-UPGRADE-001 is an accepted open limitation at version 1.2.7. Report contradictory shipped documentation without closing that DEF or creating a duplicate missing-lock deferral; a distinct documentation-drift finding is valid."
+          },
+          {
+            "id": "migration-conformance",
+            "statement": "The feature claims an implemented npm migration utility. package.json declares only test; original decisions explicitly say no migration utility exists. Identify the unsupported implementation claim without executing a migration or guessing a command."
+          },
+          {
+            "id": "missing-runbook",
+            "statement": "FEAT-001-safe-ledger links ../operations/ledger-migration.md, which is absent. Identify this navigation/evidence gap using its existing referring document; do not invent contents or fabricate a hash for the missing file."
+          },
+          {
+            "id": "truth-boundaries",
+            "statement": "Actual implementation is asynchronous local NDJSON append/read; corrupt JSON fails visibly. Cloud replication is planned, HTTP/authentication/remote replication are absent, and reading test assertions is not a passing-test receipt. Preserve implementation versus plan and unknown distinctions."
+          },
+          {
+            "id": "no-repair",
+            "statement": "No product/Memory Bank repair, Git index alteration, chmod, symlink rewrite, installation, test/build execution or migration is authorized. Runtime reports and issued lifecycle operations are allowed. Preserve original source bytes, modes, links and accepted DEF."
+          },
+          {
+            "id": "coverage-and-honesty",
+            "statement": "All 12 baseline aspects need explicit applicability and reasons. Inapplicable/blocked/out-of-scope areas and missing evidence remain visible. Runtime completion is not a clean-project verdict; incomplete is an honest outcome, not an infrastructure failure by itself."
+          },
+          {
+            "id": "independent-review",
+            "statement": "Review uses independent registered critic Work and physical Sessions, universal critic plus architectural critic when applicable. Retain full candidates, rejected/duplicate/downgraded decisions, disagreements and limitations; do not launder unsupported coordinator conclusions into accepted findings."
+          },
+          {
+            "id": "report-custody",
+            "statement": "Final JSON, human summary and HTML represent the same reviewed information, source map, coverage, provenance, critic pass and dispositions. Findings and repair candidates grant no repair authority. Reports belong to the RUN, not project dashboards or source files."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "false-clean-or-repair",
+            "severity": "material",
+            "statement": "Lint-only or runtime-done-only conclusions, documentation treated as code proof, copied golden answers, implicit repair, lost critic decisions or duplicate/closed accepted DEF are material failures."
+          }
+        ]
+      }
+    },
+    "e2e": {
+      "note": "Authored E5 mb-audit rubric grounded in the pinned conformance fixture. Rubric acceptance is not case/entry-pack qualification. Evaluate only this stage's actual obligations, not later effects. Extra evidence-backed findings and consolidated findings are valid; do not demand a fixed finding count or wording.",
+      "outcome": [
+        {
+          "id": "source-backed-truth",
+          "weight": 0.7,
+          "essential": true
+        },
+        {
+          "id": "bounded-coverage",
+          "weight": 0.3,
+          "essential": true
+        }
+      ],
+      "flow": [
+        {
+          "id": "read-only-preservation",
+          "weight": 0.6,
+          "essential": true
+        },
+        {
+          "id": "issued-lifecycle-and-custody",
+          "weight": 0.4,
+          "essential": true
+        }
+      ],
+      "golden": {
+        "required_outcomes": [
+          {
+            "id": "amount-conformance",
+            "statement": "FEAT-001-safe-ledger claims implemented amount validation. src/ledger.mjs validates only string event.id, not amount. Report the unsupported documentation/implementation claim with both source references; do not invent an amount policy or repair code."
+          },
+          {
+            "id": "writer-conformance",
+            "statement": "The feature claims a built-in writer lock. The implementation has none, and docs/decisions.md assigns one writer per file to the caller. DEF-UPGRADE-001 is an accepted open limitation at version 1.2.7. Report contradictory shipped documentation without closing that DEF or creating a duplicate missing-lock deferral; a distinct documentation-drift finding is valid."
+          },
+          {
+            "id": "migration-conformance",
+            "statement": "The feature claims an implemented npm migration utility. package.json declares only test; original decisions explicitly say no migration utility exists. Identify the unsupported implementation claim without executing a migration or guessing a command."
+          },
+          {
+            "id": "missing-runbook",
+            "statement": "FEAT-001-safe-ledger links ../operations/ledger-migration.md, which is absent. Identify this navigation/evidence gap using its existing referring document; do not invent contents or fabricate a hash for the missing file."
+          },
+          {
+            "id": "truth-boundaries",
+            "statement": "Actual implementation is asynchronous local NDJSON append/read; corrupt JSON fails visibly. Cloud replication is planned, HTTP/authentication/remote replication are absent, and reading test assertions is not a passing-test receipt. Preserve implementation versus plan and unknown distinctions."
+          },
+          {
+            "id": "no-repair",
+            "statement": "No product/Memory Bank repair, Git index alteration, chmod, symlink rewrite, installation, test/build execution or migration is authorized. Runtime reports and issued lifecycle operations are allowed. Preserve original source bytes, modes, links and accepted DEF."
+          },
+          {
+            "id": "coverage-and-honesty",
+            "statement": "All 12 baseline aspects need explicit applicability and reasons. Inapplicable/blocked/out-of-scope areas and missing evidence remain visible. Runtime completion is not a clean-project verdict; incomplete is an honest outcome, not an infrastructure failure by itself."
+          },
+          {
+            "id": "independent-review",
+            "statement": "Review uses independent registered critic Work and physical Sessions, universal critic plus architectural critic when applicable. Retain full candidates, rejected/duplicate/downgraded decisions, disagreements and limitations; do not launder unsupported coordinator conclusions into accepted findings."
+          },
+          {
+            "id": "report-custody",
+            "statement": "Final JSON, human summary and HTML represent the same reviewed information, source map, coverage, provenance, critic pass and dispositions. Findings and repair candidates grant no repair authority. Reports belong to the RUN, not project dashboards or source files."
+          }
+        ],
+        "accepted_strong_decisions": [],
+        "accepted_alternatives": [],
+        "known_risks": [
+          {
+            "id": "false-clean-or-repair",
+            "severity": "material",
+            "statement": "Lint-only or runtime-done-only conclusions, documentation treated as code proof, copied golden answers, implicit repair, lost critic decisions or duplicate/closed accepted DEF are material failures."
+          }
+        ]
+      }
+    }
+  }
+}
