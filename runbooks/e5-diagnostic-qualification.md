@@ -170,3 +170,42 @@ archive (harness commit `a4546485`, outside packaged runtime bytes). The first
 v6 attempt failed before fixture RUN creation on that producer-Git dependency;
 its failed receipt remains retained. The successor attempt uses a new fixture
 namespace and must finish before any lifecycle PASS is claimed.
+
+## V8 role-correction candidate
+
+Cases now select `cp-diagnostic-authored-mature-e5-role-correction`, checkpoint
+SHA-256 `f2a803c02a95c36488ce3f8a501ee991f450a63598110447c49229edabc88e4d`.
+It pins CLI `e779d4d85a5d542ad9b76190039a8f3b16b83c46`, canon
+`65fc860ea8a10c973c9ff590d1cfcbc8906e27f5`, installed engine content digest
+`336476ddc564c921dcf69529437dd91aa844ad845898962fd23dbdb73519e459`,
+and npm archive digest
+`6cf862b627407425fd49fdbd4a1de7b7c2dee483114a70b2b6dada6f555dfcae`.
+Private signed setup, engine installation and independent installed-content
+verification passed. This does not qualify model routes.
+
+V6 installed positive and forged-source negative lifecycle checks both passed
+for both flows; actual Console detail/summary API and targeted browser checks
+also passed. Real V6 audit `EVAL-20261020214528-34d1461c` failed because an
+analyst put review decisions in its result: the aspect ID was correct, but the
+old schema allowed that field combination before a fatal `foreign_aspect`
+guard. The V8 schema expresses the already-required role restriction, routing
+invalid combinations through existing correctable schema handling. No result
+or self-review was accepted by relaxing the validator.
+
+Real V6 project review `EVAL-20261020215855-01e9e8f9` failed with expired
+provider authority. Its last heartbeat ACK was 22:21:57 UTC with expiry
+22:26:57; no further heartbeat request appeared before cleanup after 22:37.
+The reason for the scheduling gap remains unproven. Lease limits were not
+relaxed. Public control observations confirmed both failed Eval process trees
+stopped and dispatch fenced; unresolved outcomes are not silently replayed.
+
+A V6 installed fork restored the snapshot but native continuation selected
+the historical engine root. V8 adds verified same-content engine relocation
+without rewriting retained bundle bytes. A regression removes the old root,
+executes the actual new launcher, and rejects semantic metadata/code changes;
+source readback of the real fork also selects its own root. Installed
+successor continuation and semantic acceptance remain pending.
+
+The next private run profiles use one concurrent Work and sequential flow
+qualification to reduce host pressure, retaining every applicable aspect and
+independent physical review. V7 was a private intermediate build, not accepted.
