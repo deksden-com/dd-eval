@@ -1,6 +1,22 @@
 # E5 diagnostic qualification — in progress
 
-## Current V14 candidate
+## Current V15 candidate
+
+Both cases select `cp-diagnostic-authored-mature-e5-project-source-boundary`.
+CLI `b765022abf35b630d7bd8a6cc9b6cc05e6780227`, unchanged canon
+`a0db7db213a37c0a09b48d85ff51033d5a41896c`; verified installed engine
+`e12be7634dc3c0f2c8738fe3b66b463b8f7e5d457cc8701c2904cddb12627efe`.
+Archive SHA-256:
+`3ee35cdd6b5f7abb46a412e22f6ac6ee691718d9d14de603225ad32f96729a39`.
+V14 audit cited generated working-copy review observations absent from the
+original project snapshot. V15 explicitly excludes these from project citations
+and permits bounded no-effect correction of missing citation paths. Containment,
+non-file and access failures remain fatal; no invalid evidence is accepted.
+Targeted diagnostic tests pass 56/56. Private setup and actual installed identity
+verification pass. Full and installed regressions are running; native/scored
+acceptance and integration remain pending. Product/rubric/blueprint unchanged.
+
+## Historical V14 candidate
 
 Both cases select `cp-diagnostic-authored-mature-e5-citation-correction`.
 CLI `709f281f1ab98c0183816964e687b647818f13c6`, unchanged canon
