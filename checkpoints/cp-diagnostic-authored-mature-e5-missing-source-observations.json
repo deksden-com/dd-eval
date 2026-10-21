@@ -1,0 +1,21 @@
+{
+  "id": "cp-diagnostic-authored-mature-e5-missing-source-observations",
+  "source": {
+    "repository": "test/fixtures/diagnostic/mature-conformance-v1.bundle",
+    "commit": "fc3edfee4d6dc8b27a664bb5ee5e08cc58387817"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "a0db7db213a37c0a09b48d85ff51033d5a41896c",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "da5bbf08e737ad7e369279f3b4ef8f8e57a5d869",
+      "version": "0.9.0-beta.144",
+      "artifact_sha256": "cfaf00d07c0fb665421ac19f95b136a207db3e2ce26661d03a6f31c53a82d9b1"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}

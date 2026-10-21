@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-diagnostic-authored-mature-e5-restored-settlement",
-    "sha256": "29b536c38903bb0fecff8273b60aaba0dc3227ac77543ba84a45e6ad7da24b55"
+    "id": "cp-diagnostic-authored-mature-e5-missing-source-observations",
+    "sha256": "059475cf21b53727ce2a0b7a88bde64c360c544eb19c19df83edd49ca59a5df3"
   },
   "entry_pack": null,
   "baseline_admission": {

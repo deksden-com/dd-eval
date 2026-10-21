@@ -1,6 +1,20 @@
 # E5 diagnostic qualification — in progress
 
-## Current V16 candidate
+## Current V17 candidate
+
+Both definitions select `cp-diagnostic-authored-mature-e5-missing-source-observations`,
+checkpoint SHA-256 `059475cf21b53727ce2a0b7a88bde64c360c544eb19c19df83edd49ca59a5df3`.
+CLI `da5bbf08e737ad7e369279f3b4ef8f8e57a5d869`; canon remains
+`a0db7db213a37c0a09b48d85ff51033d5a41896c`. Verified installed engine:
+`cfaf00d07c0fb665421ac19f95b136a207db3e2ce26661d03a6f31c53a82d9b1`;
+archive SHA-256 `cdedb54888aa620e709c72414594cf14270a29a4d7cf938bf827dd939d26c630`.
+V16 audit proposals preserved focus and coverage but added or rephrased
+missing-source observations. V17 retains prior observations and permits additions,
+without permitting execution-scope changes. Both case-definition tests pass;
+installed/full regression and current scored/native acceptance remain pending.
+Original product, intake, blueprint and assessment bytes are unchanged.
+
+## Historical V16 candidate
 
 Both cases select `cp-diagnostic-authored-mature-e5-restored-settlement`.
 CLI `5bea245cfe297a0a43a1e6cc67ad8bd3949ebd31`, unchanged canon
