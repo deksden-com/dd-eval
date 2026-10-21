@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-diagnostic-authored-mature-e5-missing-source-observations",
-    "sha256": "059475cf21b53727ce2a0b7a88bde64c360c544eb19c19df83edd49ca59a5df3"
+    "id": "cp-diagnostic-authored-mature-e5-immediate-predecessor",
+    "sha256": "2528925bf15e2186e5eb2b7983ddcfdcdd2031ede2d273c79187b8b32bea944a"
   },
   "entry_pack": null,
   "baseline_admission": {

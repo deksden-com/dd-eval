@@ -1,6 +1,32 @@
 # E5 diagnostic qualification — in progress
 
-## Current V17 candidate
+## Current V18 candidate
+
+Both definitions select `cp-diagnostic-authored-mature-e5-immediate-predecessor`,
+checkpoint SHA-256 `2528925bf15e2186e5eb2b7983ddcfdcdd2031ede2d273c79187b8b32bea944a`.
+CLI `1b315bf37476629e1b6c370c1fcfd3a3454865d6`, canon `35e6feae7b6ec2912abf6080ab737dc5caf0dcb9`.
+Verified engine `0d27cb36d788e6520c6b4ffccd98a90a0dba5f933476373c09178fdf2d24e49c`;
+archive `f371a27a655fc673f36637ce96a62b2907c3048d1057809b5d03204c4ae4792d`.
+V17 audit supplied both historical preflight and immediate audit predecessors.
+Its schema permitted three entries while runtime required exactly the immediate
+binding, causing a fatal no-effect refusal. V18 issues the exact predecessor list
+in the CLI-owned binding and limits the frozen schema to one entry. Transitive
+history is rejected as a correctable shape error; foreign direct hashes, paths
+and stages remain fatal. The original failed proposal remains unchanged.
+Source diagnostic suites pass 49/49, canon/inventory 38/38, typecheck and affected
+lint pass. Private build, pack, install, setup and engine identity pass.
+Installed positive/negative and real scored acceptance are pending.
+
+V17 scored review completed valid/settled with Judge scores 4/4/4/4, no findings
+and all nine golden outcomes covered. That evidence belongs to V17, not V18.
+V17's full CLI invocation failed one explicitly enabled real-lint probe because
+the selected 0.4.0 executable lacked temporary --config support: E3 536 pass,
+one fail, five skips. Later chained families did not run. A clean isolated build
+of accepted mb-lint commit f4aa6f59d2c02cc23bfaffd0eba94fa7d6c1d88e passes the
+same real capability probe 1/1 with no skips; this does not turn the old full
+invocation into PASS. Global tools and dirty primary checkouts were not changed.
+
+## Historical V17 candidate
 
 Both definitions select `cp-diagnostic-authored-mature-e5-missing-source-observations`,
 checkpoint SHA-256 `059475cf21b53727ce2a0b7a88bde64c360c544eb19c19df83edd49ca59a5df3`.
