@@ -1,6 +1,62 @@
 # E5 diagnostic qualification — in progress
 
-## Current V24 candidate — not qualified
+## Accepted semantic evidence and integration verification — 2026-10-21
+
+This section supersedes the historical pending observations below. It accepts
+only the two diagnostic families and the exact tested routes, not E5 repair or
+delivery families, E6 publication, global cutover or arbitrary engine migration.
+
+The immutable V24 tuple below completed real audit
+`EVAL-20261021160945-31421895`, project-review
+`EVAL-20261021160947-6068a33a` and same-engine report-only restoration
+`EVAL-20261021171329-d55e2ac4`. All reports are completed, cleanup settled,
+Judge valid. Scores are respectively 4/3/4/4, 4/4/4/3 and 3/4/4/4, with no missed
+listed golden outcomes. Subject: Codex 0.163.0, gpt-6-luna/xhigh; Judge:
+gpt-6.1-sol/high. Minor inherited temporal disclaimers and partial Russian
+localization remain disclosed. Independent PID/birth observations confirm all
+41/39/6 physical process records stopped, with no live or unconfirmed identity.
+
+The original V24 positive fixture's missing source-loader after-hook remains
+FAIL. A separate loader-corrected full repeat passed 3/3 with cleanup; forged
+source negatives passed 3/3. Console's merged producer consumer passed 1/1 on
+the corrected positive reports without mutating them. No failed raw proposal,
+accepted result, product, intake, blueprint or rubric was rewritten.
+
+Fresh integration verification pairs CLI
+`def3c5088cc7eb38a7d0e309bcb99c9a5839fb29`, canon
+`48f4b9d09f572af94cf370d147efce9588b193d5` and installed engine content
+`c573c91474331fb6baf3b97985d47161eaf6569be456da1a18dcf018fa785d35`.
+Diagnostic runtime/schema/prompt behavior is unchanged from V24; incoming CLI
+changes are accepted-main Git locale/fixture fixes and documentation. Canon
+delta is local verification policy. These newer bytes have installed positive
+and negative 3/3 each, zero skips, not a new native semantic qualification.
+
+On Eval source `0d8d72765fb2c462487a71f5a261fb3c317d1f27`, the fresh complete
+paired suite passed 965/971, zero failures, six explicit opt-in skips. Four
+installed-contract/dd-tasks opt-in followups passed 4/4; installed diagnostic
+defaults passed separately for both flows. Synthetic native-owner checks are
+not provider qualification. Setup/Console boundaries have separate actual
+private setup and merged Console proofs; skipped entries remain skipped.
+The matching complete ordinary CLI passed 4339/4344, zero failures, five explicit
+skips, including 3383/3383 integration and 52/52 runtime-sensitive, plus final
+inventory verification. Genuine old/new-engine storage qualification passed
+1/1 separately. Historical complete-suite failures remain failed.
+
+Accepted main `023305e` was merged afterwards as `1a525cc6`. Its delta contains
+CP240 baseline checkpoint/proof packets, the baseline case pin and two harness
+profile updates, with no runtime changes or E5 definition/rubric change. These
+metadata inputs passed focused checks:19PASS/0FAIL/1explicit pinned-dd-tasks SKIP,
+plus read-only штатные loaders for CP240 and both changed profiles (capacity1,
+zero provider calls or new RUN). The earlier complete result is not relabelled
+as a full test of this later commit. The published beta145 baseline
+belongs to CLI main `52851c6a` and engine `ae1c4489`, not the private E5 package
+which happens to have the same version. No E5 publication occurred.
+
+Raw evidence is retained under campaign `SPC-014-E5.DLkGVh`, especially
+`eval-candidate-v24.TxZDbZ` and `integration-verification.4n8O5l`.
+Final normal PR integration and actual main readback remain required.
+
+## Historical V24 candidate preparation
 
 Both definitions select `cp-diagnostic-authored-mature-e5-critic-report-carry`,
 checkpoint SHA-256 `e99ae3bfa9098683f61bb447edb4f947e8293d994d55ed3050402700b1477735`.
