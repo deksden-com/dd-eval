@@ -1,6 +1,26 @@
 # E5 diagnostic qualification — in progress
 
-## Current V22 candidate
+## Current V23 candidate
+
+Both definitions select `cp-diagnostic-authored-mature-e5-architecture-critic`,
+checkpoint SHA-256 `f2b1c6c93b6fad9b8b9cf0c4c96c351f18893425097dae1ac2f5e2b5b6ff9b1c`.
+CLI `acee37436ad4063f001693dd300739943a232480`, canon
+`f154e5ed7369ee7cb4168f4bd6b4229ff2890b57`, installed engine
+`74e2bdef53c8c45210ee81b30742982204d7cf26a21011101b933c06c03ecfe4`.
+V19 Judge additionally identified missing applicable architectural criticism in
+mb-audit: aspect05 is architectural but runtime enabled that critic only for
+project-review. V23 uses accepted applicability for both flow-specific aspect
+IDs. RED/green batch, fanout, independence and result tests pass20/20; typecheck,
+lint and merge gate765fast/66hybrid pass. The installed fixture now requires both
+universal and architecture critic Work for both flows. Installed and scored V23
+acceptance remain pending. Product, intake, stage context and rubrics unchanged.
+
+V22 installed lifecycle passed3/3, but its scored attempt was superseded after
+this finding, not accepted. V19 review retry is stopped/fenced/settled. The early
+V22 abort has no live runner owner and its cleanup continuation completed, but
+aggregate cleanup_state remains pending; do not describe it as settled.
+
+## Historical V22 candidate
 
 Both definitions select `cp-diagnostic-authored-mature-e5-report-uncertainty`,
 checkpoint SHA-256 `f88b2859727fa9ec261f95f0b42680b9dd52de00d802281f700b472bca492dd8`.
