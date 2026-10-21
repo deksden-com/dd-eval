@@ -25,14 +25,14 @@ No original assertion deleted or weaker outcome substituted.
 
 | Old location / cases | New location / preparation | Preserved guarantee |
 | --- | --- | --- |
-| memory-layer: prepared targets retain version proofs… | e3-memory-target, same body | No extra tool launches; source/executable identity |
-| memory-layer: prepared tool identity checks… (3 tool variants) | e3-memory-target, same body | Changed lint/WT/Git rejected |
-| memory-layer: shared lint qualification… (2 routes) | e3-memory-target, same body | Existing bank preserved; no init/tool reselection |
-| memory-layer: upgrade lint qualification rejects… | e3-memory-target, same body | Ignored temporary config rejected |
-| memory-layer: lint capability requires actual JSON… (4 variants) | e3-memory-target, same body | Version alone insufficient; malformed acceptance rejected |
-| memory-layer: lint probe cleanup preserves primary… | e3-memory-target, same body | Original error retained; only owned scratch removed |
-| memory-layer: real explicitly selected mb-lint… | e3-memory-target, same opt-in | Real tool capability; missing prerequisite remains SKIP |
-| memory-layer: target preflight negative matrix… (7 cells) | e3-memory-target, same body | Exact files preserved; no store/publication effect |
+| prepared targets retain version proofs while rechecking source and executable identity without launching tools | e3-memory-layer → e3-memory-target, same body | No extra tool launches; source/executable identity |
+| prepared tool identity checks still reject changed lint, Worktrunk and Git executables | same move/body; mb-lint, wt, git | All three changed executables rejected |
+| shared lint qualification supports an existing upgrade bank without init or tool reselection | same move/body; supported and unsupported lint | Existing bank preserved; no init/tool reselection |
+| upgrade lint qualification rejects a linter that ignores temporary configuration | same move/body | Ignored temporary config rejected |
+| lint capability requires actual JSON acceptance and invalid-YAML rejection, not a version response | same move/body; good, version-only, invalid-json, always-success | Version alone insufficient; malformed acceptance rejected |
+| lint probe cleanup preserves primary failure and reports only its own retained scratch | same move/body | Original error retained; only owned scratch removed |
+| real explicitly selected mb-lint passes isolated positive and negative capability probes | same move/body and opt-in | Real tool capability; missing prerequisite remains SKIP |
+| target preflight negative matrix preserves exact files without publication or store effects | same move/body; empty-memory, partial-memory, linked-memory, missing-wt, missing-lint, no-git, foreign-workspace | Exact files preserved; no store/publication effect |
 | Default full-engine bootstrap/upgrade payload assembly | One private process-local prepared archive | Actual installRelease, checksums, authority, SQL, controller and drift assertions unchanged; custom roots uncached |
 | Five integration hotspot initial schemas | Prepared closed empty schema; independent regular DB files | Existing cases/SQL CAS/independent writers/WAL/recovery/publication races unchanged; project/RUN/Session/lease freshly created |
 | Ownership/admission seed INSERTs | One fixture-only SQL transaction | Same rows; no FS/provider/CLI operation moved under writer |
@@ -58,6 +58,11 @@ assertions. No provider retry/timeout policy changed for test speed.
 - External load differed; these observed timings do not establish a precise
   causal speedup. Reduced SQL commits/archive assembly/install counts are the
   auditable improvement; no repeated full baseline for benchmarking.
+- A one-second read-only sample of the final memory-layer process observed
+  748/837 main-thread samples under Node fsync/fcntl. This is only a local sample,
+  not a whole-gate attribution. It shows a remaining physical durable-I/O cost;
+  durability was not disabled or mocked to make the optimized gate appear fast.
+  Sample: `_artifacts/plan095/development/final-memory-layer-sample.txt`.
 - Droid daemon targeted: 6/6 PASS, 12.36 s, including real teardown. Historical
   failed `ps` observation remains unclean, not rewritten to PASS. It does not
   prove a deterministic runtime defect; physical absence cannot be inferred
@@ -134,6 +139,29 @@ The 286 profile finished hybrid/canon/E2 with valid receipts, then its dispatch
 shell was terminated between families before starting E3. Exit143 is intentional;
 it is not a complete release PASS. No source was edited during either profile.
 Final coherent acceptance is being prepared from c9c7b0cd.
+
+## Final frozen profile (c9c7b0cd, in progress)
+
+Artifacts: `_artifacts/plan095/release-c9c7b0cd`, outer log adjacent `.log`.
+Build, full typecheck and full lint PASS. No source/dist mutation during the run.
+
+| Family | Collected | PASS | Explicit skip | FAIL | Verified exit |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| hybrid | 66 | 66 | 0 | 0 | 0 |
+| canon | 71 | 71 | 0 | 0 | 0 |
+| E2 | 136 | 135 | 1 | 0 | 0 |
+| E3 | 533 | 524 | 9 | 0 | 0 |
+| E4 | 80 | 79 | 1 | 0 | 0 |
+| build contracts | 2 | 2 | 0 | 0 | 0 |
+| release contracts | 8 | 8 | 0 | 0 | 0 |
+
+E3 wall 3959.51 s is an observed loaded-host run, not a speedup claim. Its
+memory-layer counters show 141 real installs, 141 fixture-specific canon archives,
+75 engine archive assemblies including custom variants, and only two engine
+payload scans. The shared default engine payload was prepared once, copied 68
+times into independent consumers and boundary-verified once. Custom fixture
+variants are intentionally not folded into a shared mutable cache.
+Integration/native and exact installed-package acceptance remain pending.
 
 PR stack: FLOW [094 #101](https://github.com/deksden-com/dd-flow-cli/pull/101) →
 [095 #103](https://github.com/deksden-com/dd-flow-cli/pull/103), canon
