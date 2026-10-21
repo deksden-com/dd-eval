@@ -58,7 +58,12 @@ The separate current installed-init admission/preservation script also passed
 8/8, zero skips, in a full repeat on the unchanged package and180s call bound.
 Its first ignored-input timeout remains FAIL; retained original source/index
 was unchanged and all owned calls drained. No provider Sessions were launched.
-Final normal PR integration and actual main readback remain required.
+Normal PR integration and actual main readback completed: CLI PR102/main
+`535f3e1952a6dcea927abffca5ab8946aa120eb4`, canon PR8/main
+`6b9d7d4b607d13414b898d08685fbfc229704518`, Eval PR126/main
+`f78bd03cdd94abeba91689f734ec95c218210da4`. Fetched main trees equal the
+accepted heads; subsequent closure records are documentation only. Canonical
+SPC-014 owns completed E5.01–E5.02 status. Other E5 families/E6 remain separate.
 
 ## Historical V24 candidate preparation
 
