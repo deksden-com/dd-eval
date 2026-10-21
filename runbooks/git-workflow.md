@@ -14,7 +14,10 @@ tasks in worktrees and preserve existing uncommitted work. No permanent develop
 branch is needed.
 
 Before merging, inspect the diff, run checks appropriate to the change and record
-their results in a PR/review receipt. CI-required gates must pass. Documentation
+their results in a PR/review receipt. Required gates run locally: do not dispatch
+or rerun GitHub CI, including release workflows (operator decision 2026-10-21).
+Git/PR/tag operations remain permitted. Existing workflow files do not authorize
+execution; re-enabling CI requires explicit operator instruction. Documentation
 changes need link/command review, not an unrelated full runtime suite. Runtime,
 prompt and canon changes require behavioral checks. Prefer PRs into main with
 required checks/review enforced by repository settings when configured. Routine
