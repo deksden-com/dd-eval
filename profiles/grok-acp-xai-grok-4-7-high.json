@@ -11,10 +11,10 @@
   "reasoning": "high",
   "mode": "bypassPermissions",
   "runtime": {
-    "grok": "1.0.64",
+    "grok": "1.0.66",
     "acp": 1,
     "dd_harness_contract": "dd-grok-harness@1"
   },
-  "notes": "Controlled Grok Build ACP profile. dd-grok owns an execution-scoped direct ACP daemon and records hook, topology, cancellation, and usage evidence.",
-  "subagent_capacity": 4
+  "notes": "Grok 1.0.66 compatibility passed for CP240 with one completed direct child and settled native/physical cleanup. Pin capacity conservatively to 1; this does not claim four-child throughput or completed scored E2E.",
+  "subagent_capacity": 1
 }
