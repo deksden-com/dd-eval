@@ -1,6 +1,26 @@
 # E5 diagnostic qualification — in progress
 
-## Current V15 candidate
+## Current V16 candidate
+
+Both cases select `cp-diagnostic-authored-mature-e5-restored-settlement`.
+CLI `5bea245cfe297a0a43a1e6cc67ad8bd3949ebd31`, unchanged canon
+`a0db7db213a37c0a09b48d85ff51033d5a41896c`; verified installed engine
+`0b6c2af29454f32998c7d38d31e05c3101a2837ce763b716e2734ac7620ec77b`.
+Archive SHA-256:
+`fafc087d8704d0f96099eb46412588111e52a173a54a3ddd9adac7246bfe5867`.
+Restored V14 completed 12 analysts but Stage finish queried its historical
+project root instead of the fork's current registry. Shared Stage/terminal
+settlement now uses verified current RUN project/workspace paths. Frozen
+provenance, ownership, Git-drift and uncertainty guards remain unchanged.
+The exact failure was reproduced, five Stage/terminal tests passed, and a
+relocated terminal variant passed current-workspace Git facts and replay.
+Private setup/engine verification, typecheck and full lint pass. Current full
+and installed regressions are running; scored/native acceptance and integration
+remain pending. Both stopped native forks are settled, original PIDs absent.
+No oracle, blueprint or product fixture changed; historical attempts remain
+separate and unpromoted.
+
+## Historical V15 candidate
 
 Both cases select `cp-diagnostic-authored-mature-e5-project-source-boundary`.
 CLI `b765022abf35b630d7bd8a6cc9b6cc05e6780227`, unchanged canon
