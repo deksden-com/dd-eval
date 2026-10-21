@@ -56,7 +56,9 @@ test('installed diagnostic expectations explicitly match public managed/new-sess
   const candidate=process.env.DD_EVAL_E5_CANDIDATE_ROOT,cell=process.env.DD_EVAL_E5_EXPECTATION_CELL;
   assert(path.isAbsolute(candidate));assert(path.isAbsolute(cell));
   const runtimeRoot=path.join(cell,'dd-flow-home');
-  const engine=JSON.parse(await readFile(path.join(runtimeRoot,'engines/@deksden-com_dd-flow-cli/0.9.0-beta.144/engine.json')));
+  const delivery=JSON.parse(await readFile(path.join(candidate,'setup-result.json')));
+  const engineVersion=delivery.installation.manifest.engine.version;
+  const engine=JSON.parse(await readFile(path.join(runtimeRoot,'engines/@deksden-com_dd-flow-cli',engineVersion,'engine.json')));
   await verifyEngineArtifact(engine);
   const {readSetupStatus}=await import(pathToFileURL(path.join(engine.snapshot_root,'dist/services/setup.js')));
   const installation=readSetupStatus(runtimeRoot).installation;assert(installation);
