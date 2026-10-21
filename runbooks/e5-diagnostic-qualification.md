@@ -209,3 +209,33 @@ successor continuation and semantic acceptance remain pending.
 The next private run profiles use one concurrent Work and sequential flow
 qualification to reduce host pressure, retaining every applicable aspect and
 independent physical review. V7 was a private intermediate build, not accepted.
+
+## V9 restored controller workspace — partial case selection
+
+V9 uses CLI `759138b92632651b3e2003b56c5ddb29f915c991` and canon
+`642c6779978d56f96c66fcb2778cdf755c6e3bb1`. Its installed engine digest is
+`4da264c8fdde8a6770abbaf086ab08c7e5770e1db0b78fc6ce98fb15d9101d52`;
+archive digest is `ebd6482d4f0bf561b59fca613a25922497ee1970c3490a753e7f85345a70461a`.
+The new immutable checkpoint is
+`cp-diagnostic-authored-mature-e5-restored-cwd`, SHA-256
+`8e58234aaccfe855a857914d7a47ea7e186b533b8eb6bb77633eabded03b09a4`.
+
+Only project-review selects V9 for now. The active V8 audit definition and its
+checkpoint remain unchanged. Both products, original intake, blueprints and
+accepted assessment rubrics retain their previous bytes. The case-definition
+tests explicitly preserve this temporary per-case distinction; neither case is
+an accepted focused entry or a semantic PASS by metadata alone.
+
+V9 fixes coordinator cwd after restoration using current admitted RUN workspace,
+not historical frozen scope. The source regression first failed on the old
+path and then the complete routing suite passed 12/12. Strict build, private
+pack/install, public setup/engine install and independent identity passed.
+Installed positive and forged-source negative fixtures both passed 3/3 with
+no skips; Console producer integration also passed against the V9 reports.
+Native restored-stage completion and scored project-review remain pending.
+
+The complete Eval suite passed 952 tests with zero failures and 16 explicit
+opt-in skips using the built CLI source checkout as `DD_FLOW_SOURCE_ROOT`.
+Earlier runs missing that variable or pointing it at an npm package are failed
+preparation evidence, not reusable full-suite qualification. The two changed
+case-definition checks passed separately after this checkpoint selection change.
