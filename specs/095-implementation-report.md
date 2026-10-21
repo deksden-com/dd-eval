@@ -163,6 +163,32 @@ times into independent consumers and boundary-verified once. Custom fixture
 variants are intentionally not folded into a shared mutable cache.
 Integration/native and exact installed-package acceptance remain pending.
 
+Integration has exposed four runtime-budget failures; this profile cannot be
+declared PASS. Three cleanup fixtures predate the intentional custody changes
+in FLOW `5fc08230`: they omit the real scope-control intent and worker token, so
+startup returns superseded before reaching the intended injected failure.
+The persistence fixture also incorrectly expects finish after uncertain state
+persistence, which the retained-metadata custody guard intentionally prohibits.
+They are being corrected in a separate checkout; production guards are unchanged.
+The fourth crash-atomicity case expected child exit89 after INSERT but observed a
+different error. Its precise exit/stderr must be examined before choosing a fix;
+no timeout increase or blanket retry has been applied. The frozen integration
+run continues to collect the remaining actual results.
+
+A fifth failure is the runtime-scope-resume `cached-fenced` case; its precise
+actual result is being investigated separately. The user explicitly approved
+targeted acceptance and candidate merge instead of another full profile after
+the fixes (plan §10). No historical receipt will be reassigned to a new source;
+no release-accepted status will be produced by this implementation task.
+
+A sixth failure is the scope-stop physical-owner fixture: confirmation cannot
+observe process birth under host load. Its normal setup bypasses the existing
+bounded `retryPhysical` used by adjacent fixtures. The setup confirmations are
+being aligned with that helper, retaining the same IDs, leases and assertions;
+no production ownership policy or whole-test retry is introduced. The observer
+crash test and cached-fence test now retain full phase-specific diagnostics so
+an unreached faultpoint cannot be mistaken for a rollback/fencing defect.
+
 PR stack: FLOW [094 #101](https://github.com/deksden-com/dd-flow-cli/pull/101) →
 [095 #103](https://github.com/deksden-com/dd-flow-cli/pull/103), canon
 [#7](https://github.com/deksden/dd-memorybank/pull/7), EVAL
