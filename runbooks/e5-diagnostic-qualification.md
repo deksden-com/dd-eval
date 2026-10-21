@@ -1,6 +1,34 @@
 # E5 diagnostic qualification — in progress
 
-## Current V18 candidate
+## Current V19 candidate
+
+Both definitions select `cp-diagnostic-authored-mature-e5-focus-correction`,
+checkpoint SHA-256 `a9b571eab32f199ab30ba9b53381d69092cebcf4fd18b2a9e265a93c7c33a43e`.
+CLI `7457963fdacfe21fd60cfbba068d50e97d3fd8f5`, unchanged canon
+`35e6feae7b6ec2912abf6080ab737dc5caf0dcb9`; installed engine content
+`41bf6934c64a1609d4115afc636ff31c2a6894e1509652a11efc946bc9886861`,
+archive `722890a4d7ffcaeaab9951cf1fc81c80bdb3557a5f237d0998cd0cee55f6eb11`.
+V18 audit failed at review after replacing accepted focus prose with a stage
+heading; exact coverage and all 14 candidates were retained. V19 still rejects
+changed focus but permits bounded correction by copying the exact predecessor.
+Foreign mode, applicability, source and ownership guards remain fatal. The
+regression first failed, then 46 result/evidence/report tests, typecheck and
+affected lint passed. Build, pack, install, private setup and installed identity
+passed; installed forged-evidence negative passed 3/3 without skips. Positive
+lifecycle, complete current regression and real V19 semantics remain pending.
+Product fixture, intake, stage context, hidden rubric and golden outcomes are
+unchanged. Historical V18 success does not qualify V19 automatically.
+
+V18 review `EVAL-20261021091140-68ddbe3b` completed valid/settled, Judge 4/4/4/4,
+all nine goldens covered and no findings. Its final control inventory is fenced,
+all 41 processes stopped and physically absent, with zero provider turns.
+V18 failed audit `EVAL-20261021091139-06cef2f1` is also fenced and settled:
+35 processes stopped, no same-identity live processes (one PID reused by an
+unrelated later test), zero provider turns. Neither failed audit nor its cleanup
+is semantic acceptance. V18 CLI regression passed E3 537/0/5 skips and E4
+79/0/1 skip, build checks 2/2 and release 8/8; integration remains running.
+
+## Historical V18 candidate
 
 Both definitions select `cp-diagnostic-authored-mature-e5-immediate-predecessor`,
 checkpoint SHA-256 `2528925bf15e2186e5eb2b7983ddcfdcdd2031ede2d273c79187b8b32bea944a`.
