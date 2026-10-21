@@ -54,6 +54,10 @@ which happens to have the same version. No E5 publication occurred.
 
 Raw evidence is retained under campaign `SPC-014-E5.DLkGVh`, especially
 `eval-candidate-v24.TxZDbZ` and `integration-verification.4n8O5l`.
+The separate current installed-init admission/preservation script also passed
+8/8, zero skips, in a full repeat on the unchanged package and180s call bound.
+Its first ignored-input timeout remains FAIL; retained original source/index
+was unchanged and all owned calls drained. No provider Sessions were launched.
 Final normal PR integration and actual main readback remain required.
 
 ## Historical V24 candidate preparation
