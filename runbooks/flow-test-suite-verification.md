@@ -109,6 +109,13 @@ one; more concurrency needs separate isolation and measurement review.
 
 When FLOW/EVAL plumbing changes, use the same frozen build and installed snapshot:
 
+Run from a fresh private Eval Home/registry without campaign-level `DD_FLOW_BIN`,
+`DD_FLOW_HOME`, `DD_FLOW_CONFIG_HOME`, `DD_FLOW_RESOURCE_HOME` or
+`DD_FLOW_RECOVERY_HOME`. Individual fixtures own their Flow routing and registries;
+an inherited launcher or resource home can turn an offline fixture into an
+unrelated managed admission. `INSTALLED_ENGINE_ROOT` is the content-verified
+installed snapshot containing `engine.json`, not the npm package directory.
+
 ```sh
 DD_FLOW_SOURCE_ROOT="$FLOW_ROOT" \
 DD_EVAL_TEST_FLOW_CLI="$FLOW_ROOT/dist/cli.js" \

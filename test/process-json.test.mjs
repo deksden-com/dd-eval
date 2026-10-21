@@ -21,10 +21,10 @@ test("unvalidated operation diagnostics do not renew CLI silence", async t => {
   await assert.rejects(commandJson(executable, [], { timeoutMs: 150 }), { code: "operation_observation_lost" });
 });
 
-test("public Memory prepare-only uses the existing build budget without widening ordinary controls", () => {
-  for(const command of [["init"],["upgrade"],["flow","mb-init"],["flow","mb-upgrade"]])
+test("public built-in prepare-only uses the existing build budget without widening ordinary controls", () => {
+  for(const command of [["init"],["upgrade"],["flow","mb-init"],["flow","mb-upgrade"],["flow","mb-audit"],["flow","project-review"]])
     assert.equal(commandObservationTimeout([...command,"--prepare-only","--non-interactive"]),commandObservationTimeout(["build"]));
-  for (const args of [["init"], ["upgrade"], ["flow","mb-upgrade"], ["flow","sdlc","--prepare-only"], ["run", "status"], ["run", "prepare-vnext-specify"], ["status", "--prepare-only"]])
+  for (const args of [["init"], ["upgrade"], ["flow","mb-upgrade"], ["flow","mb-audit"], ["flow","project-review"], ["flow","sdlc","--prepare-only"], ["run", "status"], ["run", "prepare-vnext-specify"], ["status", "--prepare-only"]])
     assert.equal(commandObservationTimeout(args), 30_000);
 });
 

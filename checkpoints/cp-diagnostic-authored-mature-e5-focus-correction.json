@@ -1,0 +1,21 @@
+{
+  "id": "cp-diagnostic-authored-mature-e5-focus-correction",
+  "source": {
+    "repository": "test/fixtures/diagnostic/mature-conformance-v1.bundle",
+    "commit": "fc3edfee4d6dc8b27a664bb5ee5e08cc58387817"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "35e6feae7b6ec2912abf6080ab737dc5caf0dcb9",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "7457963fdacfe21fd60cfbba068d50e97d3fd8f5",
+      "version": "0.9.0-beta.144",
+      "artifact_sha256": "41bf6934c64a1609d4115afc636ff31c2a6894e1509652a11efc946bc9886861"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}

@@ -1,0 +1,14 @@
+{
+  "schema_id": "dd-eval/baseline-admission-policy@2",
+  "commands": [
+    {
+      "id": "pinned-read-only-product",
+      "command": "node",
+      "args": [
+        "-e",
+        "const assert=require('node:assert/strict'),fs=require('node:fs'),{execFileSync}=require('node:child_process');const env={...process.env,GIT_OPTIONAL_LOCKS:'0'};assert.equal(execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8',env}).trim(),'fc3edfee4d6dc8b27a664bb5ee5e08cc58387817');execFileSync('git',['diff','--exit-code','HEAD','--','.'],{env});assert(fs.statSync('scripts/check-local.sh').mode&0o111);assert.equal(fs.readlinkSync('scripts/check-current'),'check-local.sh');console.log('Pinned fixture and original modes/links admitted; no project checks executed.');"
+      ],
+      "inactivity_timeout_ms": 30000
+    }
+  ]
+}

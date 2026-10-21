@@ -1,0 +1,21 @@
+{
+  "id": "cp-diagnostic-authored-mature-e5-role-correction",
+  "source": {
+    "repository": "test/fixtures/diagnostic/mature-conformance-v1.bundle",
+    "commit": "fc3edfee4d6dc8b27a664bb5ee5e08cc58387817"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "65fc860ea8a10c973c9ff590d1cfcbc8906e27f5",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "e779d4d85a5d542ad9b76190039a8f3b16b83c46",
+      "version": "0.9.0-beta.144",
+      "artifact_sha256": "336476ddc564c921dcf69529437dd91aa844ad845898962fd23dbdb73519e459"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
