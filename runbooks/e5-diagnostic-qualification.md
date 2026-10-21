@@ -1,6 +1,24 @@
 # E5 diagnostic qualification — in progress
 
-## Current V12 candidate
+## Current V13 candidate
+
+Both cases select `cp-diagnostic-authored-mature-e5-retained-limitations`.
+CLI `9939c8759938a3e2710410c474277714b658a6dd`, unchanged canon
+`a0db7db213a37c0a09b48d85ff51033d5a41896c`; verified installed engine
+`2a0c996efd01dbe1eefca902c6db30e28f2cf11682293dd4b0b7d379081334fd`.
+Archive SHA-256:
+`47ebc022feaca4b80cc3923fc7d949e87388b358e3f7a535723f66ffedf39a84`.
+Both V12 analytical graphs completed their 12 children but failed Stage
+settlement because all 33 original limitations had coordinator-added labels.
+V13 carries accepted predecessor/Work limitations in the CLI, preserving raw
+proposals and extra annotations. Installed replay of both original proposals
+passes the finding/scope/schema checks with no required limitation missing;
+this is artifact replay, not accepted Stage or scored completion.
+Targeted tests passed 38/38; strict build, private setup and engine verification
+passed. Installed positive/negative, full regressions and real acceptance are
+in progress. No rubric, golden, source product or stage blueprint changed.
+
+## Historical V12 candidate
 
 Both cases select `cp-diagnostic-authored-mature-e5-proposal-sealing`.
 CLI `18b059317e9c01501922aba973b50c1b94b8c758`, canon unchanged at

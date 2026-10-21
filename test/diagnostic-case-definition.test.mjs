@@ -18,7 +18,7 @@ for(const [id,flow,analysis] of [['mb-audit-authored-mature','mb-audit','audit']
     assert.deepEqual(initialFlowBoundary(loaded),{stage:'preflight',flow});
     assert.deepEqual(value.flow.contour,['preflight',analysis,'review','report']);assert.equal(value.flow.terminal_stage,'report');
     const checkpoint=loaded.inputCheckpoint.value;
-    assert.equal(checkpoint.id,'cp-diagnostic-authored-mature-e5-proposal-sealing');
+    assert.equal(checkpoint.id,'cp-diagnostic-authored-mature-e5-retained-limitations');
     assert.equal(checkpoint.source.commit,'fc3edfee4d6dc8b27a664bb5ee5e08cc58387817');
     assert.equal(checkpoint.flow_pack.delivery,'installed_canon');assert.equal(checkpoint.state,'candidate_pending_preflight');
     assert.match(checkpoint.flow_pack.engine.artifact_sha256,/^[a-f0-9]{64}$/);
