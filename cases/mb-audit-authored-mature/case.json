@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-diagnostic-authored-mature-e5-focus-correction",
-    "sha256": "a9b571eab32f199ab30ba9b53381d69092cebcf4fd18b2a9e265a93c7c33a43e"
+    "id": "cp-diagnostic-authored-mature-e5-report-uncertainty",
+    "sha256": "f88b2859727fa9ec261f95f0b42680b9dd52de00d802281f700b472bca492dd8"
   },
   "entry_pack": null,
   "baseline_admission": {

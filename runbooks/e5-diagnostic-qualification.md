@@ -1,5 +1,28 @@
 # E5 diagnostic qualification — in progress
 
+## Current V22 candidate
+
+Both definitions select `cp-diagnostic-authored-mature-e5-report-uncertainty`,
+checkpoint SHA-256 `f88b2859727fa9ec261f95f0b42680b9dd52de00d802281f700b472bca492dd8`.
+CLI `6825b7634522c86a6722608d7601f953b785cee8`, canon
+`f154e5ed7369ee7cb4168f4bd6b4229ff2890b57`, installed engine
+`b3958be25755ede17148df9ca9db25c626b21033d1bbd112efe54dc6833aaf30`.
+V19 audit retained all 14 findings, 14 decisions and 40 accepted limitations but
+failed report settlement after adding one honest uncertainty observation. V22
+allows additive report limitations only; changed reviewed facts/decisions/sources
+and dropped uncertainty still fail. The saved proposal passes the corrected
+guard, not lifecycle acceptance. RED/green, 91 diagnostic tests, typecheck, lint
+and merge gate (765 fast plus 66 hybrid tests) pass. Installed acceptance and
+fresh scored completion remain pending. Product, intake and rubric are unchanged.
+
+Cross-engine generic Eval fork is not qualified: a V22 preparation from V19
+refused `profile_contract_mismatch` because its execution contract still pins
+the original engine. The refusal was not bypassed; no model was dispatched.
+Changing Eval implementation also correctly refuses the original dependency
+identity before target creation. Use fresh scored definitions for this candidate
+and qualify same-engine restoration separately. A future cross-engine acceptance
+requires explicit execution-contract migration, not manual manifest/hash edits.
+
 ## Current V19 candidate
 
 Both definitions select `cp-diagnostic-authored-mature-e5-focus-correction`,
