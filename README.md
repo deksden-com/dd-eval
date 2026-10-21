@@ -4,6 +4,9 @@ Harness upgrades follow the [common upgrade runbook](runbooks/update-harnesses.m
 with [ZCode-specific operations](runbooks/update-zcode.md) and the
 [cross-repository Git workflow](runbooks/git-workflow.md).
 
+Verification and guarded publication are local-only: do not run GitHub CI.
+See the [operational verification policy](runbooks/flow-test-suite-verification.md).
+
 This package exposes only `dd-eval`. The six harness adapter commands belong to
 `@deksden-com/dd-flow-cli`; execution and qualification use the adapters bundled
 with their selected engine runtime. Missing bundles are errors, not a reason to
