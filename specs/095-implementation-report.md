@@ -140,7 +140,7 @@ shell was terminated between families before starting E3. Exit143 is intentional
 it is not a complete release PASS. No source was edited during either profile.
 Final coherent acceptance is being prepared from c9c7b0cd.
 
-## Final frozen profile (c9c7b0cd, in progress)
+## Frozen full profile (c9c7b0cd, failed and interrupted)
 
 Artifacts: `_artifacts/plan095/release-c9c7b0cd`, outer log adjacent `.log`.
 Build, full typecheck and full lint PASS. No source/dist mutation during the run.
@@ -161,7 +161,12 @@ memory-layer counters show 141 real installs, 141 fixture-specific canon archive
 payload scans. The shared default engine payload was prepared once, copied 68
 times into independent consumers and boundary-verified once. Custom fixture
 variants are intentionally not folded into a shared mutable cache.
-Integration/native and exact installed-package acceptance remain pending.
+Integration found six failures and was subsequently stopped through its exact
+owned wrapper after the user's targeted-acceptance decision. Receipt exit1 and
+`interrupted_cleanup_unconfirmed` are retained. At interruption all observed
+descendants belonged to its PGID2655; wrapper2420, runner2655/2752, worker49700
+and the process group were subsequently absent. This is not a claim that every
+past fixture teardown completed. Native was not dispatched by that failed chain.
 
 Integration has exposed four runtime-budget failures; this profile cannot be
 declared PASS. Three cleanup fixtures predate the intentional custody changes
@@ -172,8 +177,8 @@ persistence, which the retained-metadata custody guard intentionally prohibits.
 They are being corrected in a separate checkout; production guards are unchanged.
 The fourth crash-atomicity case expected child exit89 after INSERT but observed a
 different error. Its precise exit/stderr must be examined before choosing a fix;
-no timeout increase or blanket retry has been applied. The frozen integration
-run continues to collect the remaining actual results.
+no timeout increase or blanket retry has been applied. A diagnostic selected
+run passed both crash phases; the original cause is not proven by that rerun.
 
 A fifth failure is the runtime-scope-resume `cached-fenced` case; its precise
 actual result is being investigated separately. The user explicitly approved
@@ -189,12 +194,71 @@ no production ownership policy or whole-test retry is introduced. The observer
 crash test and cached-fence test now retain full phase-specific diagnostics so
 an unreached faultpoint cannot be mistaken for a rollback/fencing defect.
 
+Engine follow-up `2df88d75` changes only these three test files. Full typecheck
+and targeted lint passed on its tree in the isolated review checkout; the
+production build then passed at the final commit. Diagnostic selections:
+cleanup3/3, crash-atomicity2/2, cached-fenced1/1 PASS. The latter has no proven
+production fix; its original failure remains explicit. Whole affected files,
+fast baseline, hybrid and the missing native group are being checked with
+separate receipts at `_artifacts/plan095/merge-2df88d75`. No old receipt is
+promoted to the new source.
+
+That selected run finished with 835 PASS / 1 FAIL across 17 files. Its single failure is
+now proven by the retained stack: `registerManagedProcess:141`, observer
+registration, `physical_identity_unavailable`, `effect:no_effect`, in the
+scope-resume fixture's direct registration. The other 16 files passed, including the
+fast baseline, receipt policy, scope-stop and scope-budget cases. A further
+test-only follow-up aligns analogous ordinary registrations/confirmations with
+the existing bounded observation helper. Generated scripts use one startup
+horizon and the same retained process/lease, never a whole-test retry or respawn.
+The crash child's former 10 s guard is replaced by the existing fixture startup
+plus cleanup budget; exit 89 and actual rollback assertions remain mandatory.
+Unsuccessful fixture startup now joins its owned daemon/provider before
+handoff. Only the two changed files need another run; the unchanged 835 results
+remain evidence at their original source, not a fabricated final profile.
+
 PR stack: FLOW [094 #101](https://github.com/deksden-com/dd-flow-cli/pull/101) →
 [095 #103](https://github.com/deksden-com/dd-flow-cli/pull/103), canon
 [#7](https://github.com/deksden/dd-memorybank/pull/7), EVAL
 [094 #125](https://github.com/deksden-com/dd-eval/pull/125) →
 [095 #127](https://github.com/deksden-com/dd-eval/pull/127).
 
-Final frozen identities, complete gate receipt locations, package smoke and
-integration PRs will be added after verification. Current development checks
-are not full release evidence and do not authorize publication.
+## Targeted candidate acceptance (user-approved plan §10)
+
+Final engine source: `9c3ecc183b026a26e35eb225dc77ec99371826d5`, tree
+`208fdf5fc3dda971bb32290ba9c24a07c07bb74b`. Canon: `c46098d6`, tree
+`28360b42108042f4d91b01a2450cc57e054bb217`. Node26.8.2 / SQLite3.53.4,
+macOS arm64; concurrent host load, no wall-time speedup claim.
+
+- Full typecheck and affected lint PASS on the identical tracked tree in the
+  isolated review checkout; production build PASS on the final source.
+- Hybrid 66/66 PASS at `2df88d75`; the subsequent delta changes only two tests.
+- The selected baseline at `2df88d75` retained 835 PASS / 1 FAIL. All unchanged
+  16 files passed, including the fast baseline, scope-stop and receipt policy.
+- Final changed files: 43/43 PASS; final missing native group: 52/52 PASS.
+  Both verified receipts are in `_artifacts/plan095/merge-9c3ecc18`, scope `merge`.
+  Source hash `39b7009e1f9b7be37d1eb1a87b9ead18af2ef2aac996baf9ac67e33b49c81e2e`;
+  tested dist hash `1c9071fc73a44aea786f866a098c934f79261234d7a714dae2ef7d7f3b19bdf9`.
+- First package smoke correctly rejected missing canon build metadata before
+  packing. The standard generator then changed only `dist/build-info.json`,
+  with strict canon enabled; release-build contracts passed 2/2. Runtime bytes
+  were not rebuilt or changed. Earlier receipt identities were not rewritten.
+- Regular isolated npm installation of the exact final tarball passed
+  version/install/resolve/status and consumer tuple/checksum verification.
+  Tarball SHA256 `9d96234561bcd53f2dc343e024135245928112b77296056ebcf08ff9d90c836a`;
+  engine snapshot `7e812772fb569eff913a8f736bd945114b16500a732503a90ba71978712cbe5f`.
+  Smoke log: `merge-9c3ecc18-package-smoke-b.log`; manifest remains `built` with
+  empty suites, `release_accepted:false`. No install-script policy was weakened;
+  npm's warnings about unapproved native build scripts remain in the log.
+
+This is targeted implementation acceptance, not a coherent full release PASS.
+Original failed/interrupted attempts and the unresolved exact cause of their
+nonreproduced crash/fence failures remain visible. No release, EVAL, pins or
+installed hooks were changed. Neighbour V19 timeout and two-homes launch-gap
+failures are independent evidence, not claimed covered by this acceptance.
+Related EVAL capacity/supplement tests passed 50/50 with the explicit
+`DD_FLOW_SOURCE_ROOT` pointing to this engine. An initial command omitted that
+required fixture input and failed eight preconditions before native scenarios;
+both attempts remain in `eval-094-affected*.log`, without changing test guards.
+Integration is through the PR stack above; its merged commit identities are
+recorded in GitHub PR status and the final handoff, not as release qualification.
