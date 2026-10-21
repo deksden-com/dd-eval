@@ -21,8 +21,19 @@ list in both review stages, observes a correctable schema refusal, then complete
 using the CLI-issued exact binding. Actual Console producer integration and
 installed Eval defaults pass 1/1 each without skips. Full lint, active-schema and
 CLI/canon mb-lint pass. Complete Eval regression passes 952 tests, zero failures,
-16 explicit opt-in skips. Full CLI regression and real scored/native acceptance
+16 explicit opt-in skips. Full CLI regression and real scored acceptance
 remain pending; those completed gates do not qualify the pending model routes.
+
+V18 restored native audit completed its bounded target on the same engine:
+controller `DRV-65c14308-f2df-4918-b493-bd841b97d4c8` reached
+`stop_target_reached`; SQL readback shows preflight and audit both `done`.
+The public control request `e5-v18-restored-completed-cleanup` reached
+`stopped`, `settled: true`, no unsettled reasons and worker `completed`.
+All 27 recorded controller/provider/cleanup PIDs were physically absent.
+Evidence is retained in V18 `native-fork-final-control.json`. This qualifies
+bounded same-engine Stage restoration, not a complete scored fork or universal
+cross-version/provider migration. Both scored V18 runs have reached independent
+review; their report, Judge verdict and final settlement remain pending.
 
 V17 scored review completed valid/settled with Judge scores 4/4/4/4, no findings
 and all nine golden outcomes covered. That evidence belongs to V17, not V18.
