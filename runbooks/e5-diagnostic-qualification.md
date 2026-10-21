@@ -15,7 +15,14 @@ history is rejected as a correctable shape error; foreign direct hashes, paths
 and stages remain fatal. The original failed proposal remains unchanged.
 Source diagnostic suites pass 49/49, canon/inventory 38/38, typecheck and affected
 lint pass. Private build, pack, install, setup and engine identity pass.
-Installed positive/negative and real scored acceptance are pending.
+Installed positive and forged-source negative lifecycle suites pass 3/3 each,
+without skips. The positive fixture deliberately submits a transitive predecessor
+list in both review stages, observes a correctable schema refusal, then completes
+using the CLI-issued exact binding. Actual Console producer integration and
+installed Eval defaults pass 1/1 each without skips. Full lint, active-schema and
+CLI/canon mb-lint pass. Complete Eval regression passes 952 tests, zero failures,
+16 explicit opt-in skips. Full CLI regression and real scored/native acceptance
+remain pending; those completed gates do not qualify the pending model routes.
 
 V17 scored review completed valid/settled with Judge scores 4/4/4/4, no findings
 and all nine golden outcomes covered. That evidence belongs to V17, not V18.
