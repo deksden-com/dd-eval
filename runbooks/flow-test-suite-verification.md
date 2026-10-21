@@ -5,6 +5,12 @@ in FLOW's `vitest.config.ts` (Vitest) and `package.json` (Node families).
 Required release receipt IDs live in `scripts/release-candidate.mjs`.
 Do not copy file lists or treat a filtered run as full acceptance.
 
+Operator policy (2026-10-21): checks and guarded publication run locally only.
+Do not dispatch or rerun GitHub Actions, including npm-publish; retained workflows
+are inactive references. Git/PR/tag operations remain permitted. Required gates,
+immutable candidate evidence and registry readback are unchanged. Re-enabling CI
+requires explicit operator instruction.
+
 ## Development and merge
 
 For code, run `pnpm gate:merge`, then affected contracts below. Documentation
@@ -39,7 +45,8 @@ A merge receipt cannot authorize release. Do not rebuild during a suite.
 
 Freeze engine/canon revisions. Use an isolated checkout if another task owns source
 or dist. Run one local heavy chain at a time, including other worktrees. Never stop
-foreign tests or working EVALs. CI may shard across independent VMs.
+foreign tests or working EVALs. An explicit operator exception may allow parallel
+chains in isolated checkouts; do not treat their timings as benchmarks.
 
 ```sh
 pnpm typecheck
@@ -57,12 +64,12 @@ All roots and WORKTRUNK_BIN are absolute; REPORT_ROOT is a fresh external direct
 attempt. Canon/mb-lint source roots identify reviewed inputs. Set MB_LINT_BIN and
 DD_FLOW_E3_MB_LINT when qualifying real tools. Signed/old-engine/retained-run
 qualifications require their documented explicit inputs: skipped is not qualified.
-The ordinary E3 real-Worktrunk check is mandatory, not an optional skip. CI uses
-the pinned checksum-verified executable declared in the publish workflow.
+The ordinary E3 real-Worktrunk check is mandatory, not an optional skip. Use the
+explicit verified executable; the retained workflow documents its reference pin.
 Offline fixtures must not inherit operator provider credentials or production homes.
 
 Release includes hybrid/canon, E2/E3/E4, release, integration and native guarantees.
-CI proves the same logical set against the exact restored artifact; publish does
+Local acceptance proves the required set against the exact artifact; publish does
 not rebuild. Receipts retain source/dist/build identity, Node/SQLite/OS/architecture,
 real file/case events, multiplicity, exit/signal and duration. Node case inventory
 comes from execution, not a second execution for discovery. Missing/foreign/duplicate,
