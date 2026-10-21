@@ -1,157 +1,107 @@
-# FLOW test-suite verification
+# FLOW verification
 
-Use this procedure for offline FLOW changes. Group membership is defined only
-in FLOW's `vitest.config.ts`; do not copy its file lists into commands or docs.
-Implementation and measurements are recorded in [plan 066's report](../specs/066-implementation-report.md).
+Use the smallest check that proves the changed property. File membership lives
+in FLOW's `vitest.config.ts` (Vitest) and `package.json` (Node families).
+Required release receipt IDs live in `scripts/release-candidate.mjs`.
+Do not copy file lists or treat a filtered run as full acceptance.
 
-## Development
+## Development and merge
 
-From the FLOW checkout, use `pnpm test:fast`, then the affected `pnpm test:core`,
-`pnpm test:flow` or `pnpm test:runtime-sensitive`. Related file/name filtering is
-allowed for development only. Changed-file selection does not understand all
-fixture, schema, canon and built-asset dependencies and is not acceptance.
-Fast cases are not removed or rewritten for speed. New test files default to
-core-serial; parallel promotion requires an isolation audit and measurements.
+For code, run `pnpm gate:merge`, then affected contracts below. Documentation
+without executable/canonical instructions needs link/command review, not runtime.
+Record targets and reasons in the PR receipt. Combine rows; use their union when
+impact is uncertain. Tests invoking compiled CLI require the current frozen dist.
+
+| Change | Additional evidence |
+| --- | --- |
+| Policy/parser/state | Positive/negative cases and affected callers |
+| Adapter mapping | Shared policy, real event shapes, wiring |
+| Hook/identity/lease/cancel | All boundary consumers; physical owner/late-ACK/cleanup |
+| Storage/restore | SQLite/CAS/rollback, independent writer, affected init/recovery |
+| Stage/prompt/controller | Packet contracts, lifecycle/replay, relevant system path |
+| Canon/schema | Hybrid/canon consistency, consumers, installed assets |
+| Packaging/loader/dependencies | Strict build, isolated installed package, cold path |
+| Gate selection/reporting | Complete inventory and final release profile |
+| EVAL plumbing | Affected offline EVAL and paired FLOW contracts, not unchanged live Judge |
+
+Example partial receipt (replace example file and reason with actual affected targets):
+
+```sh
+node scripts/run-test-receipt.mjs integration "$REPORT_ROOT/affected" \
+  --scope=merge --files=test/example.test.ts --reason='changed shared admission boundary'
+node scripts/verify-test-inventory.mjs "$REPORT_ROOT/affected/discovery.json" \
+  "$REPORT_ROOT/affected" --scope=merge
+```
+
+A merge receipt cannot authorize release. Do not rebuild during a suite.
 
 ## Full offline acceptance
 
-Freeze the FLOW and canon revisions, record Node/pnpm versions and platform,
-and build before any release test. Use a separate checkout when another task
-owns source, config or `dist`. Never rebuild between groups or benchmark modes.
+Freeze engine/canon revisions. Use an isolated checkout if another task owns source
+or dist. Run one local heavy chain at a time, including other worktrees. Never stop
+foreign tests or working EVALs. CI may shard across independent VMs.
 
 ```sh
 pnpm typecheck
 pnpm lint
 DD_MEMORYBANK="$CANON_ROOT" DD_FLOW_BUILD_CANON_ROOT="$CANON_ROOT" \
   DD_FLOW_BUILD_STRICT_CANON=1 pnpm build
-DD_MEMORYBANK="$CANON_ROOT" DD_FLOW_E3_CANON_ROOT="$CANON_ROOT" \
-  DD_FLOW_E3_WT="$(command -v wt)" pnpm test
+DD_MEMORYBANK="$CANON_ROOT" DD_FLOW_E1_CANON_ROOT="$CANON_ROOT" \
+  DD_FLOW_E1_MB_LINT_ROOT="$MB_LINT_SOURCE_ROOT" \
+  DD_FLOW_E3_CANON_ROOT="$CANON_ROOT" \
+  DD_FLOW_E3_WT="$WORKTRUNK_BIN" \
+  DD_FLOW_GATE_REPORT_ROOT="$REPORT_ROOT" pnpm gate:release
 ```
 
-`CANON_ROOT` is the explicit clean canon checkout. If the checks use mb-lint,
-set `MB_LINT_BIN` to the installed executable. `pnpm test` preserves the order
-release → integration → runtime-sensitive; the release gate includes
-`node --test scripts/verify-release-build.test.mjs`. Verify source and `dist`
-digests are unchanged after tests. A receipt must identify the exact source
-revision/tree, dirty delta if any, canon tuple and frozen build bytes.
+All roots and WORKTRUNK_BIN are absolute; REPORT_ROOT is a fresh external directory. Preserve every
+attempt. Canon/mb-lint source roots identify reviewed inputs. Set MB_LINT_BIN and
+DD_FLOW_E3_MB_LINT when qualifying real tools. Signed/old-engine/retained-run
+qualifications require their documented explicit inputs: skipped is not qualified.
+The ordinary E3 real-Worktrunk check is mandatory, not an optional skip. CI uses
+the pinned checksum-verified executable declared in the publish workflow.
+Offline fixtures must not inherit operator provider credentials or production homes.
 
-For detailed evidence, create a fresh directory outside tracked source for each
-run and use the stdlib receipt wrapper (no automatic retry):
+Release includes hybrid/canon, E2/E3/E4, release, integration and native guarantees.
+CI proves the same logical set against the exact restored artifact; publish does
+not rebuild. Receipts retain source/dist/build identity, Node/SQLite/OS/architecture,
+real file/case events, multiplicity, exit/signal and duration. Node case inventory
+comes from execution, not a second execution for discovery. Missing/foreign/duplicate,
+TODO, unexpected skip, interrupted or incomplete evidence is NOT PASS. Candidate
+mutation invalidates evidence. Actual GitHub execution is separate from local
+workflow checks; macOS is not Linux/Windows qualification.
 
-```sh
-node --test scripts/verify-release-build.test.mjs
-node scripts/run-test-receipt.mjs release "$REPORT_ROOT/release"
-node scripts/run-test-receipt.mjs integration "$REPORT_ROOT/integration"
-node scripts/run-test-receipt.mjs runtime-sensitive "$REPORT_ROOT/native"
-node scripts/verify-test-inventory.mjs "$REPORT_ROOT/release/discovery.json" "$REPORT_ROOT/release"
-node scripts/verify-test-inventory.mjs "$REPORT_ROOT/integration/discovery.json" "$REPORT_ROOT/integration"
-node scripts/verify-test-inventory.mjs "$REPORT_ROOT/native/discovery.json" "$REPORT_ROOT/native"
-```
+Installed-package smoke runs outside the checkout with isolated HOME/config and
+the exact local artifact. No model calls, releases or scored EVALs belong here.
 
-The wrapper removes inherited `VITEST_MAX_WORKERS`, keeps verbose logs, JSON
-results, actual exit status and elapsed time. It rejects test filters/retries.
-Receipt elapsed time includes discovery; Vitest's own duration remains in JSON.
-Receipts must be outside the source checkout. The wrapper freezes source/build
-identity before discovery, then rejects any discovery or test mutation. The
-checker compares every receipt with the current source revision, source/dist
-hashes, build-info and runner selection; verifying historical reports requires
-their exact frozen checkout/build, not a newer checkout with the same test names.
-`DD_FLOW_TEST_REPORT_DIR` activates built-in Node TAP destinations for all
-nested native fixtures, avoiding an unbounded stdout buffer. Report-write or
-collection failures fail acceptance. JSON `success` alone is insufficient:
-Vitest can report it while also returning nonzero for unhandled errors.
-The native event reporter additionally rejects empty fixtures, TODO and
-unexpected nested skips after native teardown finishes. Only the exact existing
-Windows-specific skip identities in that reporter are permitted; outer Vitest
-PASS cannot hide missing native assertions.
+## Fixtures, cleanup and measurements
 
-Full acceptance forbids `.only`, changed/file/name filters, retries, bail,
-snapshot updates, `passWithNoTests` and ignored unhandled errors. Missing
-receipts or required targets are NOT RUN, not PASS. Only explicitly identified
-platform skips (FIFO on Windows, missing Bash/Zsh binaries) are permitted and
-must be reported. Preserve parameterized cases and duplicate-name multiplicity.
+Reuse immutable preparation only: closed empty schemas and payload/archive bytes.
+Each world owns separate writable files, paths, IDs, owners and leases. Real
+migration/open-WAL/install/process/race checks stay physical. No cross-commit PASS
+cache, whole-test retry or global fake time.
 
-## Paired EVAL checks
+On failure let teardown finish. Stop new dispatch, drain exact owned processes and
+handles, join before removing roots. Unknown observation/cleanup retains evidence
+and is never clean. SIGKILL cannot guarantee cleanup; retain owned identities for
+recovery, never kill all similar processes. Framework guards cover setup/body/drain
+without changing provider policy.
 
-After the same FLOW build, run from EVAL:
+Fixture summaries under fixture-costs count preparation/copies/scans. Compare
+frozen inputs, fixture shape, platform and the same warm/cold mode. Do not sum
+nested durations or claim speedup from noisy load. One paired hotspot measurement
+suffices unless ambiguous; never double each full gate. Local worker count stays
+one; more concurrency needs separate isolation and measurement review.
+
+## Paired EVAL contracts
+
+When FLOW/EVAL plumbing changes, use the same frozen build and installed snapshot:
 
 ```sh
 DD_FLOW_SOURCE_ROOT="$FLOW_ROOT" \
 DD_EVAL_TEST_FLOW_CLI="$FLOW_ROOT/dist/cli.js" \
 DD_EVAL_TEST_FLOW_ADAPTER="$FLOW_ROOT/test/fixtures/controller-stage-adapter.mjs" \
-DD_EVAL_TEST_OPERATIONAL_RUNTIME="$INSTALLED_ENGINE_ROOT/dist" \
-npm test
+DD_EVAL_TEST_OPERATIONAL_RUNTIME="$INSTALLED_ENGINE_ROOT/dist" npm test
 ```
 
-`FLOW_ROOT` is an absolute path to that tested checkout; `INSTALLED_ENGINE_ROOT`
-is its content-verified installed snapshot containing `engine.json`. Run `npm ci`
-first. The package's test command selects `test/*.test.mjs`, not executable
-fixture modules. These targets enable
-the installed capacity/clock contracts and disposable real-CLI lifecycle,
-restore and resume fixtures. A skip of a required paired target does not close
-acceptance. This procedure never calls a paid provider.
-
-## Worker limits and measurement
-
-Current default is one worker for every group. Plan 066's two-worker candidate
-passed all cases but its measured full-chain median was 3.3% slower, not the
-required 10% faster. The `integration-core-parallel` name identifies audited
-candidate membership, not currently enabled concurrency.
-
-Files may run in separate forked workers with isolation enabled; cases within
-each file remain sequential. Runtime-sensitive and release groups remain one
-worker. Unknown files stay serial. Never use `it.concurrent` to accelerate
-process/env/SQLite fixtures. `--maxWorkers=1` alone may not override project
-limits; the full serial fallback is:
-
-```sh
-pnpm test:integration --no-file-parallelism --maxWorkers=1
-```
-
-The receipt wrapper accepts `--serial` for the same override. Avoid inherited
-`VITEST_MAX_WORKERS`: it can override explicitly serial project settings.
-Run only one local suite/benchmark chain at a time; do not compete with another
-acceptance on the same machine or mutate its checkout. CLI workers are not
-harness-native child capacity.
-
-To qualify two workers, audit unique roots, DBs, sockets/ports, resources,
-native config, birth identities and cleanup barriers first. Freeze the final
-candidate config with two workers only for the audited projects and one for
-all other projects; a global `--maxWorkers=2` is not that candidate. The normal
-candidate run measures this policy, and `--serial` measures its override.
-Source/build must then stay frozen. Report initial system load; warm both modes, then measure two
-pairs in alternating serial/parallel order with identical inputs. Compare the
-median of the complete release/integration/native chain, not summed test body
-durations. Retain every attempt. Promote only with at least 10% improvement,
-no new failures/skips/unhandled errors or unconfirmed owned resources. Otherwise
-keep serial as default. This benchmark is a one-time qualification, not an
-automatic doubling of ordinary acceptance.
-
-Policy-only timeout assertions can use instance-local ObservationClock inputs
-after real admission closure and physical child settlement. Never use global
-fake time or synthetic progress as lease authority or absence proof. Real
-signal, native lifecycle, ownership and physical joins keep their real clocks.
-Test framework cleanup guards must cover the sum of sequential handoff and
-physical-drain envelopes, including clock-gap recovery; a framework timeout
-must not cut off the inner cleanup proof. Failed handoff retains the root.
-
-## CI shards and failures
-
-CI runs four integration shards, one worker per VM. Shard the full integration
-selection once, not every group separately. Each shard saves discovery, results
-and exit code through the chosen artifact/cache transport even on failure.
-Candidate acceptance compares their actual union against fresh unsharded
-discovery: every file exactly once, no foreign project, no empty or partial
-report. `vitest list --filesOnly --shard` does not prove a partition. Preserve
-the source/build provenance of the four distinct shard identities. Before
-accepting, the candidate job restores the same immutable dist and verifies both
-integration and native receipts against it, through the selected transport.
-Keep the fixed release required-suite set and the separate native job. Actual GitHub
-execution is reported separately from local workflow contract checks.
-
-On failure let the suite finish its remaining cases and owned teardown. Do not
-retry automatically for green, kill neighboring processes, close user apps,
-delete uncertain diagnostic roots or resume/restart EVAL. Only an exactly
-identified owned hung process may be stopped, with primary and cleanup evidence
-retained. Mocked seven-stage controller cycles are not scored live E2E; the
-integration case count is neither the whole suite nor the nested Node count.
+Missing required paired targets remain NOT RUN, not PASS. This never launches
+scored EVALs, changes active runtimes or qualifies an unchanged live Judge.
