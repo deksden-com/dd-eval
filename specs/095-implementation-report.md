@@ -9,6 +9,7 @@ No new EVAL, engine release, pins or installed hooks changed.
 - Dependent FLOW branch: `fix/plan095-gate-cost`, separate checkout `dd-flow-plan095`;
   first frozen diagnostic candidate `a03ff6a4bf3f8d3f9db75f9496088089ebaed90f`.
   Reporter/cost follow-up `286648a8` is isolated in `dd-flow-plan095-report-review`.
+  Final offline-home isolation follow-up `c9c7b0cd` is integrated into the task branch.
 - Canon companion: `c46098d65c4b4c317682de36503f0e531052ab92`, version 4.1.2.
 - EVAL parent receipt: `b7fe1d1`; reviewed plan095: `407ae81`.
 - Frozen mb-lint source `5cc35eb4f28fc97f5bb52211373281b258381e08`,
@@ -122,6 +123,17 @@ the complete receipt contract file is 8/8 PASS. The fixture-cost regression is
 without retaining arguments. These are cost observations, not physical drain proof.
 This candidate's partial results remain diagnostic evidence, not final acceptance
 of the corrected reporter. Final policy evidence must identify the corrected source.
+
+Final offline-env sweep found a concrete operator-home dependency in the E3
+project target helper and the external Work launch helper: real managed-home
+preparation could read operator Codex config/auth links before invoking a fake
+adapter. Both now use an empty fixture-owned CODEX_HOME; sensitive home-policy
+tests retain their explicit source homes. Invalid operator TOML/auth sentinel
+regression: 1/1 PASS; external Work launch: 56/56 PASS; full lint PASS.
+The 286 profile finished hybrid/canon/E2 with valid receipts, then its dispatch
+shell was terminated between families before starting E3. Exit143 is intentional;
+it is not a complete release PASS. No source was edited during either profile.
+Final coherent acceptance is being prepared from c9c7b0cd.
 
 PR stack: FLOW [094 #101](https://github.com/deksden-com/dd-flow-cli/pull/101) →
 [095 #103](https://github.com/deksden-com/dd-flow-cli/pull/103), canon
