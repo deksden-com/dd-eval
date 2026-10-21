@@ -1,0 +1,112 @@
+{
+  "schema_id": "dd-flow/stage-report@2",
+  "run_id": "RUN-001-tasks",
+  "stage": "protocolize",
+  "generated_at": "2026-10-21T20:31:57.774Z",
+  "verdict": "done",
+  "semantic": {
+    "result": "Materialized 1 executable protocol.",
+    "acceptance": [
+      "PRT-001-task-priority"
+    ],
+    "changed_files": [
+      ".memory-bank/epics/EP-001-tasks/features/FT-001-task-priority/index.md",
+      ".memory-bank/epics/EP-001-tasks/index.md",
+      ".memory-bank/protocol/PRT-001-task-priority/index.md",
+      ".memory-bank/protocol/PRT-001-task-priority/intake/user-input.md",
+      ".memory-bank/protocol/PRT-001-task-priority/summary.md",
+      ".memory-bank/protocol/index.md"
+    ],
+    "checks": [
+      "result contract",
+      "stage-report schema"
+    ],
+    "evidence": [
+      "/Users/deksden/Documents/_Projects/_artifacts/release-beta145-52851c6a/matrix-installed/dd-flow-protocolize-BiChkg/home/projects/PRJ-001-project/runs/RUN-001-tasks/02-protocolize/protocolize-result.json"
+    ],
+    "next_action": "start_plan",
+    "materialization": {
+      "schema_id": "dd-flow/protocolize-materialization@1",
+      "run_id": "RUN-001-tasks",
+      "stage": "protocolize",
+      "action": "create",
+      "feature_path": ".memory-bank/epics/EP-001-tasks/features/FT-001-task-priority/index.md",
+      "protocol_ids": [
+        "PRT-001-task-priority"
+      ],
+      "authored_result": {
+        "role": "authored_input",
+        "run_relative_path": "02-protocolize/protocolize-result.json",
+        "sha256": "e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead"
+      },
+      "documents": [
+        {
+          "path": ".memory-bank/epics/EP-001-tasks/features/FT-001-task-priority/index.md",
+          "sha256": "4f3565988285726b1723224de5afd75b795e5cc9aba326d99ff3bfff9f7d1a21"
+        },
+        {
+          "path": ".memory-bank/epics/EP-001-tasks/index.md",
+          "sha256": "a979311fa027fc9236c18e18407cfb6be94f98afce567eea5b38cd24a3d2c187"
+        },
+        {
+          "path": ".memory-bank/protocol/PRT-001-task-priority/index.md",
+          "sha256": "a5a140cbb0bfd40633f30165f414c529ac1aef6a65a266e2c83bd13d0e0a5ef1"
+        },
+        {
+          "path": ".memory-bank/protocol/PRT-001-task-priority/intake/user-input.md",
+          "sha256": "5688f21365a8037235723c6f47c8c5d912e1e142f11d54bf63e6fc4db27971be"
+        },
+        {
+          "path": ".memory-bank/protocol/PRT-001-task-priority/summary.md",
+          "sha256": "27251efe5c36fd16bb2c1541f948258308609dacd5482fe22499afe81a930928"
+        },
+        {
+          "path": ".memory-bank/protocol/index.md",
+          "sha256": "8f026503ef73271984903e4b6525d0f5d1b797843eaa9e05fe423833ab980b62"
+        }
+      ],
+      "owned_links": [
+        {
+          "feature_path": ".memory-bank/epics/EP-001-tasks/features/FT-001-task-priority/index.md",
+          "protocol_id": "PRT-001-task-priority",
+          "protocol_path": ".memory-bank/protocol/PRT-001-task-priority/summary.md"
+        }
+      ],
+      "status": "passed"
+    }
+  },
+  "mechanical": {
+    "started_at": "2026-10-21T20:31:56.792Z",
+    "finished_at": "2026-10-21T20:31:57.774Z",
+    "wall_clock_ms": 982,
+    "git": {
+      "branch": "main",
+      "head": "898d01a75057ea2ea3b129312b22c203ec91d5a7",
+      "status": "dirty"
+    },
+    "workspace_route": {
+      "route": "integration_branch_direct",
+      "integration_branch": "main",
+      "base_ref": "898d01a75057ea2ea3b129312b22c203ec91d5a7",
+      "feature_branch": null,
+      "worktree_path": null,
+      "reason": "Project workspace configuration explicitly selects the integration checkout.",
+      "provision_stage": "protocolize_start",
+      "stage_session_mode": "same_session",
+      "provisioned": true,
+      "bootstrap_status": "not_applicable"
+    },
+    "observability": "query dd-flow stat after all RUN sessions have settled"
+  },
+  "artifacts": {
+    "json": "stage-report.json",
+    "markdown": "stage-report.md",
+    "html": "stage-report.html"
+  },
+  "validation": {
+    "permission_scope": "known_targets_only",
+    "memory_bank_scope": "changed_files_and_links_only",
+    "status": "passed"
+  },
+  "summary": "Materialized 1 executable protocol."
+}

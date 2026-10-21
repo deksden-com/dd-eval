@@ -1,0 +1,47 @@
+{
+  "id": "WRK-006-merge/RCP-003",
+  "local_id": "RCP-003",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-NEW",
+    "PRT-001-task-priority/CHK-P1-TEST",
+    "PRT-001-task-priority/CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "c2f456e79b253952ec5a4778845db34f8a55f0db0f88f2e14a9d504958147fce",
+  "verification_epoch": "5ebec0b93fe985c5bc6198cee2a7b854fd9ddc9ac1d8032f64fad92166cf88fb",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta145-52851c6a/matrix-installed/dd-flow-protocolize-BiChkg/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta145-52851c6a/matrix-installed/dd-flow-protocolize-BiChkg/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta145-52851c6a/matrix-installed/dd-flow-protocolize-BiChkg/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta145-52851c6a/matrix-installed/dd-flow-protocolize-BiChkg/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "fingerprint_scope": "check_inputs",
+  "input_manifest": {
+    "path": "inputs-before.json",
+    "sha256": "40b95a9524100e3b06efed8e8e462a2f0dc8fc18d93c145a62369fb65a3957b1",
+    "truncated": false
+  },
+  "execution_contract_hash": "0ab328b2f3a939e76c43b5d244cbde1ba452ac009d46417f2be41db702a6bc57",
+  "workspace_fingerprint": "40e3f821d83e5ce4b64ad2b9d18a172815d9620a91f55dad87ac73d53ae20863",
+  "before_fingerprint": "2ef897df973ef6dbea54532da5466e26dd61ad17be46d9731b7da26dfb4edcd0",
+  "after_fingerprint": "2ef897df973ef6dbea54532da5466e26dd61ad17be46d9731b7da26dfb4edcd0",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-21T20:32:32.414Z",
+  "finished_at": "2026-10-21T20:32:32.602Z",
+  "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/release-beta145-52851c6a/matrix-installed/dd-flow-protocolize-BiChkg/project",
+  "candidate_files": [],
+  "execution_failures": []
+}

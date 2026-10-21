@@ -1,0 +1,47 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "121dc54ab24f91bbf22130902b05a42f0d69abc22af6d2ed1d30e4484537a3cc",
+  "verification_epoch": "7fb7c7b18d37bc8a9675742dd7a27adfe28e7fcc0bcd57241bc4730e6ea42814",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta145-52851c6a/matrix-installed/dd-flow-protocolize-BiChkg/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta145-52851c6a/matrix-installed/dd-flow-protocolize-BiChkg/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta145-52851c6a/matrix-installed/dd-flow-protocolize-BiChkg/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta145-52851c6a/matrix-installed/dd-flow-protocolize-BiChkg/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "fingerprint_scope": "check_inputs",
+  "input_manifest": {
+    "path": "inputs-before.json",
+    "sha256": "b5961d0740a30ecbb9d1c6d31f4e30d4e0f28fea04a108d2d5fec65e5e0795b8",
+    "truncated": false
+  },
+  "execution_contract_hash": "0ab328b2f3a939e76c43b5d244cbde1ba452ac009d46417f2be41db702a6bc57",
+  "workspace_fingerprint": "48383ab3a9450f1b6860d492a550cf27f7eff70f2785b91a5ec4efa05ab87435",
+  "before_fingerprint": "c1d6387a298889fbcd90a77f6b2464cbb5052df2d6c47c94e91ac9c420ee5bfc",
+  "after_fingerprint": "c1d6387a298889fbcd90a77f6b2464cbb5052df2d6c47c94e91ac9c420ee5bfc",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-21T20:32:27.657Z",
+  "finished_at": "2026-10-21T20:32:27.731Z",
+  "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/release-beta145-52851c6a/matrix-installed/dd-flow-protocolize-BiChkg/project",
+  "candidate_files": [],
+  "execution_failures": []
+}
