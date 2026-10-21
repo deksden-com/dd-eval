@@ -1,5 +1,22 @@
 # E5 diagnostic qualification — in progress
 
+## Current V11 candidate
+
+Both cases now select `cp-diagnostic-authored-mature-e5-retained-input-roles`.
+CLI `249e5e32a63b001d81f916989d74046327c3f8b9`, canon
+`a0db7db213a37c0a09b48d85ff51033d5a41896c`, verified installed engine
+`e7c17c2d05c2024da4136e024711594592f0104873c20e808c4f3251c4dfd794`.
+The private package archive is
+`f66b6269d96984beb5681a0cb005c54fc506dc99e74170d129c3bece5e14f204`.
+This successor fixes retained predecessor input lookup and coordinator result
+roles, including exact descriptor schema references. V8 audit failed on an
+analysis-stage independent-review claim; it is terminal and physically settled,
+not accepted or resumed. V9 review had preflight only. V10 was withheld after
+the canon gate detected stale descriptor references. Historical sections below
+retain their original candidate context, not current qualification claims.
+V11 setup, engine verification, 75 canon checks and two case-definition checks
+passed; real semantic acceptance and restored native continuation remain pending.
+
 Cases `mb-audit-authored-mature` and `project-review-authored-mature` use the
 separate conformance product fixture at `fc3edfee4d6dc8b27a664bb5ee5e08cc58387817`.
 Their hidden rubrics require evidence-backed identification of unsupported
