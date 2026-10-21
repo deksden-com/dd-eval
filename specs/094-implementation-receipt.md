@@ -5,7 +5,8 @@ integration uses the repositories' PR/squash workflow. This receipt records
 implementation, not a newly published engine or successful live E2E acceptance.
 The canonical schema copy and generated inventory are synchronized in
 dd-memorybank `c46098d`; no prompt behavior or qualification identity was changed
-there. Engine, canon and EVAL are integrated as one coordinated source change.
+there. Engine, canon and EVAL are prepared for coordinated source integration;
+the final gate and PR merges are still pending.
 
 ## Scope closure
 
@@ -40,11 +41,40 @@ The SDK fixture now waits for actual admission after a legal bounded `pending`
 response instead of treating it as synchronous failure. Recovery admission probes
 publish existing request-bound progress only after each completed negative proof;
 ordinary maintenance diagnostics do not count as native activity.
+Its persistent synthetic daemon now maintains its actual managed lease instead
+of leaving an idle timer while tests perform several minutes of real admissions.
+Shutdown cancels and physically drains the same owned heartbeat transport; the
+existing helper accepts an optional initially bound lifetime signal, leaving
+ordinary callers and TTL unchanged. Maintenance cleanup uncertainty is retained,
+not turned into a clean fixture receipt.
 
 Repeated real engine/native-binary checksum scans also reused progress markers.
 The setup observer correctly rejected duplicates, but consequently ignored later
 completed scans. Scan-local ordinal markers fix both producers without changing
 observer limits or timeouts; repeated notifications within one scan stay duplicates.
+
+The gate also reproduced a real pre-dispatch owner-startup defect: one unavailable
+physical observation failed the worker immediately, and another self-claim retained
+a null birth. Controller/control/scope serving now prove birth before claiming and
+retry only typed effect-free physical observations within one original startup,
+inherited-deadline and resource-lease horizon. Ownership/cancellation remain fenced;
+unknown effects, launch and unconfirmed-lease renewal are never retried by this helper.
+Its focused positive/negative controls pass 13/13; full rebuilt verification is pending.
+Startup birth/confirmation also now runs inside the existing failure/cleanup boundary.
+A losing duplicate cannot persist failure or finish a winning owner's resource,
+even when both deliveries carry the same token. Control uses exact owner/resource
+CAS; scope publication uses the retained metadata CAS; controller failure effects
+recheck the physical binding inside the existing writer transaction.
+
+Setup progress retains the original operation identity and additionally identifies
+each reporter. Multiple owned CLI processes can therefore restart their local
+sequence without losing genuine progress. Legacy single-reporter messages remain
+supported; duplicate/stale/foreign messages and maintenance timestamps still do
+not renew observation, and the total marker bound remains 4096.
+
+Terminal journal replay is identity-bound projection recovery, not permission to
+restart an unproven native tree. A crashed daemon with retained active/unproven
+state remains blocked; no fresh daemon identity is allowed to settle its old tree.
 
 ## Verification
 
@@ -59,6 +89,12 @@ Final gate results will be completed here before integration. Already verified:
 - AGY actual handler/SQLite/settlement regressions: 20/20 PASS.
 - Current delivery regressions: 6/6 PASS; Grok fixture contracts: 27/27 PASS;
   terminal projection regressions: 6/6 PASS.
+- Exact control-owner startup/settlement controls: 6/6 PASS; scope-owner races:
+  4/4 PASS, including same-token competing owners.
+- Native adapter progress fixture: 12/12 PASS; qualified CLI reporter/schedule:
+  2/2 PASS; deterministic concurrent daemon stop: 1/1 PASS.
+- Stateful admission controls: 4/4 PASS; multi-command SPECIFY lifecycle: 2/2
+  PASS; concurrent publication races: 2/2 PASS.
 
 The Grok fixture correction preserves the stronger runtime guarantee: returned
 task objects, root idle, cancel ACK and an empty running list are not exact child
