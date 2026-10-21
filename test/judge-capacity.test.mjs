@@ -5,7 +5,7 @@ import { mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { judgeTurnText } from "../lib/runner.mjs";
+import { judgeTurnText, failureDiagnostic } from "../lib/runner.mjs";
 import { successfulPolicy } from "./fixtures/capacity-policy.mjs";
 const policy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, "src/harness-runtime/lib/provider-overload-policy.mjs")).href) : null;
 const test = (name, run) => nodeTest(name, { skip: !policy && "set DD_FLOW_SOURCE_ROOT to test the selected engine policy" }, run);
@@ -49,6 +49,54 @@ function overload(operationId, turnId = "turn-1", sessionId = "session-1", provi
     operation_id: operationId, provider_session_id: sessionId, turn_id: turnId, native_turn_id: turnId, terminal_status: "failed", provider_error: providerError, native_turn_items: { observed: true, possible_effects: false, pending: false }
   } });
 }
+
+test("AGY stream proof is inspected without a fabricated native Turn ID and retained safely", async () => {
+  let now = 0, calls = 0, latest;
+  const inspections = [];
+  const input = { policy, sessionId: "agy-session", originalPrompt: "task", clock: () => now,
+    wait: async ms => { now += ms; }, random: () => 0,
+    inspect: async selector => {
+      inspections.push(selector);
+      return { provider_session_id: "agy-session", settled: true, settlement: { state: "not_required" }, terminal_metadata: { request_proof: latest.details.request_proof } };
+    },
+    dispatch: async (_text, capacity, authorize) => {
+      await authorize(); calls++;
+      if (calls === 2) return { assistant_text: "confirmed" };
+      latest = Object.assign(new Error("native 503"), { code: "provider_capacity_transient", details: {
+        native_source: "agy.result", terminal_status: "failed", provider_session_id: "agy-session", operation_id: capacity.operation_id,
+        provider_error: { status: 503 }, native_turn_items: { observed: true, possible_effects: true, pending: false },
+        request_proof: { kind: "stream_request", daemon_instance: "daemon", connection_id: "connection", operation_id: capacity.operation_id,
+          turn_generation: 1, session_id: "agy-session", outbound_position: 3, terminal_position: 9 }
+      } });
+      throw latest;
+    } };
+  assert.deepEqual(await promptJudgeWithCapacity(input), { assistant_text: "confirmed" });
+  assert.ok(inspections.length > 0); assert.ok(inspections.every(selector => selector === undefined));
+  const projected = failureDiagnostic({ ...latest, details: { ...latest.details, request_proof: { ...latest.details.request_proof, token: "secret" } } });
+  assert.equal(projected.details.request_proof.kind, "stream_request");
+  assert.equal(projected.details.native_turn_id, undefined);
+  assert.equal(JSON.stringify(projected).includes("secret"), false);
+});
+
+test("AGY missing or foreign stream inspection cannot authorize continuation", async () => {
+  for (const changed of [null, { operation_id: "foreign" }, { turn_generation: 2 }, { connection_id: "foreign" }]) {
+    let calls = 0, failure;
+    await assert.rejects(promptJudgeWithCapacity({ policy, sessionId: "agy-session", originalPrompt: "task",
+      inspect: async () => ({ provider_session_id: "agy-session", settled: true, settlement: { state: "not_required" },
+        terminal_metadata: { request_proof: changed && { ...failure.details.request_proof, ...changed } } }),
+      dispatch: async (_text, capacity, authorize) => {
+        await authorize(); calls++;
+        failure = Object.assign(new Error("native 503"), { code: "provider_capacity_transient", details: {
+          native_source: "agy.result", terminal_status: "failed", provider_session_id: "agy-session", operation_id: capacity.operation_id,
+          provider_error: { status: 503 }, native_turn_items: { observed: true, possible_effects: true, pending: false },
+          request_proof: { kind: "stream_request", daemon_instance: "daemon", connection_id: "connection", operation_id: capacity.operation_id,
+            turn_generation: 1, session_id: "agy-session", outbound_position: 3, terminal_position: 9 }
+        } });
+        throw failure;
+      } }), { code: "judge_capacity_settlement_unproven" });
+    assert.equal(calls, 1);
+  }
+});
 
 function harness({ outcomes, inspect = call => ({ provider_session_id: "session-1", settled: true, settlement: { state: "settled", operation_ids: [call.capacity.operation_id] } }), admit = () => {}, pauses = [5_000, 15_000], deadline = null } = {}) {
   let time = 0;
