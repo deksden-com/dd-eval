@@ -71,7 +71,10 @@ mutation invalidates evidence. Actual GitHub execution is separate from local
 workflow checks; macOS is not Linux/Windows qualification.
 
 Installed-package smoke runs outside the checkout with isolated HOME/config and
-the exact local artifact. No model calls, releases or scored EVALs belong here.
+the exact local artifact. Candidate and registry consumers use the shared
+`isolatedConsumerEnvironment`: no inherited engine routing or provider homes;
+npm authentication and script restrictions remain separate and unchanged.
+No model calls, releases or scored EVALs belong here.
 
 ## Fixtures, cleanup and measurements
 
@@ -85,6 +88,9 @@ handles, join before removing roots. Unknown observation/cleanup retains evidenc
 and is never clean. SIGKILL cannot guarantee cleanup; retain owned identities for
 recovery, never kill all similar processes. Framework guards cover setup/body/drain
 without changing provider policy.
+Discovery is executable too: the receipt wrapper owns both discovery and runner
+phases, retaining their PID/PGID history. Interrupted discovery must not start
+the test body or produce PASS, even if its child exits zero.
 
 Fixture summaries under fixture-costs count preparation/copies/scans. Compare
 frozen inputs, fixture shape, platform and the same warm/cold mode. Do not sum
