@@ -36,13 +36,14 @@ async function recoveryFixture(f) {
     control_id: 'CTL-one', generation: 1, settlement: { settled: true } };
 }
 async function put(root, name, value) { const file = path.join(root, name); await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); return file; }
-async function fixture(t) {
+async function fixture(t, proofBundle = null) {
   const directory = await realpath(await mkdtemp(path.join(os.tmpdir(), 'judge-supplement-')));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const root = path.join(directory, 'historical'), outputRoot = path.join(directory, 'assessment');
   const boundary = path.join(root, 'executions', 'e2e', 'boundaries', 'merge-frozen');
   await put(boundary, 'workspace/src/proof.sql', 'CREATE TYPE example AS ENUM (\'one\');\n');
   await put(boundary, 'runtime/receipt.json', { status: 'passed', proof_limits: ['fresh isolated world only'] });
+  if (proofBundle) await put(boundary, 'workspace/evidence/migration.json', proofBundle);
   const snapshot = { schema_id: 'dd-flow/eval-run-snapshot@5', purpose: 'candidate', stage_entry: null, run_id: 'RUN-fixture', workspace: { sha256: snapshotTreeHash(path.join(boundary, 'workspace')) }, runtime_sha256: snapshotTreeHash(path.join(boundary, 'runtime')) };
   const snapshotFile = await put(boundary, 'snapshot.json', snapshot);
   const manifest = { run_id: 'EVAL-ORIGINAL', state: 'cancelled', case_id: 'original-case' };
@@ -373,6 +374,28 @@ test('independent supplemental preparation freezes original rubric and all sourc
   await writeFile(nested.file, 'mutated copy');
   await assert.rejects(assertSupplementalEvidence(first), { code: 'judge_packet_changed' });
   assert.equal(snapshotTreeHash(f.root), original);
+});
+
+test('CP239 weak and strong migration bundles retain obligations, equal PASS receipts and distinct proof limits for semantic review', async t => {
+  const corpus = JSON.parse(await readFile(new URL('./fixtures/migration-proof094.json', import.meta.url)));
+  const assessment = JSON.parse(await readFile(new URL('../cases/sdlc-eval-2026-summer-task-priority/assessment.json', import.meta.url)));
+  assert.match(JSON.stringify(assessment.scopes.plan), /row created under the pre-change schema/);
+  const hashes = [];
+  for (const item of corpus.cases) {
+    // This checks delivery, not whether an LLM reaches the expected verdict.
+    const bundle = { obligation: corpus.obligation, receipt: item.receipt, source: item.source };
+    const f = await fixture(t, bundle), before = snapshotTreeHash(f.root);
+    const prepared = await prepareSupplementalJudge(f.input);
+    const source = prepared.sourceFiles.find(file => file.file.endsWith('evidence/migration.json'));
+    assert.ok(source, 'review input must include evidence even when it is not a supplement claim');
+    assert.deepEqual(JSON.parse(await readFile(source.file, 'utf8')), bundle);
+    assert.equal(bundle.receipt.status, 'passed');
+    assert.ok(bundle.source.proof_limitations.length);
+    assert.equal(snapshotTreeHash(f.root), before);
+    hashes.push(source.sha256);
+    await assertSupplementalEvidence(prepared);
+  }
+  assert.notEqual(hashes[0], hashes[1], 'equal PASS receipts must not collapse different proof contours');
 });
 
 test('supplement source, candidate and frozen boundary mismatches fail before dispatch', async t => {

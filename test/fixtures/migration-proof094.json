@@ -1,0 +1,17 @@
+{
+  "obligation": "Prove upgrade with a row created under the pre-change schema, then verify backfill, preserved data and ordering after migration.",
+  "cases": [
+    {
+      "id": "fresh-world-default-only",
+      "receipt": { "status": "passed", "exit_code": 0 },
+      "source": { "steps": ["apply full migration chain", "seed current schema", "insert omitting priority", "assert default"], "proof_limitations": ["Fresh disposable world: no retained pre-migration row was upgraded."] },
+      "expected_review": "Accepted upgrade obligation remains unproven; disclosed limitation does not discharge it. This is not evidence that the migration SQL is wrong."
+    },
+    {
+      "id": "retained-row-upgrade",
+      "receipt": { "status": "passed", "exit_code": 0 },
+      "source": { "steps": ["apply pre-change schema", "insert task with retained id, text and ordering", "apply candidate migration", "assert same id, text and ordering plus priority backfill"], "proof_limitations": ["Covers retained-row migration, not unrelated authorization or concurrent mutation."] },
+      "expected_review": "Direct evidence covers the named retained-row upgrade obligation only; do not infer universal product correctness."
+    }
+  ]
+}
