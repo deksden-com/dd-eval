@@ -1,5 +1,24 @@
 # E5 diagnostic qualification — in progress
 
+## Current V12 candidate
+
+Both cases select `cp-diagnostic-authored-mature-e5-proposal-sealing`.
+CLI `18b059317e9c01501922aba973b50c1b94b8c758`, canon unchanged at
+`a0db7db213a37c0a09b48d85ff51033d5a41896c`; verified installed engine
+`2527073b3590a7a580165cfc99d961d314c7c1eeebaf166bc87626c4d963e51f`.
+Archive SHA-256:
+`2c6ea5fab42743f3bae4141d5a16bf13d3ab677752c6f8a2f2bfb1b0c74156b2`.
+V11 analyses completed their children but failed coordinator settlement:
+review modified only coverage annotations, while audit retained all 14 exact
+original findings with Work-local rather than CLI-global IDs. Neither is PASS.
+V12 permits correcting only unchanged-scope annotations and seals global IDs
+only from exact ordered admitted Work results; content/scope guards remain.
+V11 final statuses are fenced and physically stopped, with zero provider Turns;
+the independent native probe was stopped as superseded, not promoted to PASS.
+V12 setup, engine verification, 75 canon checks and complete typecheck/lint
+passed. Installed lifecycle, restored continuation and real semantics remain
+pending. Historical sections below retain their own candidate context.
+
 ## Current V11 candidate
 
 Both cases now select `cp-diagnostic-authored-mature-e5-retained-input-roles`.

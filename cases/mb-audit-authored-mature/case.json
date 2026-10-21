@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-diagnostic-authored-mature-e5-retained-input-roles",
-    "sha256": "5e9edc72a31c67ba06a2a62eb1ae7a2ea22450f897488b648bc4d0d32dbee737"
+    "id": "cp-diagnostic-authored-mature-e5-proposal-sealing",
+    "sha256": "97d2e9b5a32f31020041404a4d472e7772183baa2519fa4421bdb9c2eb856cf0"
   },
   "entry_pack": null,
   "baseline_admission": {

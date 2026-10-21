@@ -1,0 +1,21 @@
+{
+  "id": "cp-diagnostic-authored-mature-e5-proposal-sealing",
+  "source": {
+    "repository": "test/fixtures/diagnostic/mature-conformance-v1.bundle",
+    "commit": "fc3edfee4d6dc8b27a664bb5ee5e08cc58387817"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "a0db7db213a37c0a09b48d85ff51033d5a41896c",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "18b059317e9c01501922aba973b50c1b94b8c758",
+      "version": "0.9.0-beta.144",
+      "artifact_sha256": "2527073b3590a7a580165cfc99d961d314c7c1eeebaf166bc87626c4d963e51f"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
