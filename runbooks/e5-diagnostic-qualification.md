@@ -22,8 +22,18 @@ Current scored attempts are `EVAL-20261021073358-7ee34a86` (audit) and
 `EVAL-20261021073359-d22bce47` (review). Both preflights passed without provider
 sessions; both scored controllers have reached analytical stages. A public
 same-engine fork of the V17 audit stage-entry snapshot is running under
-`DRV-8849d0d6-6c41-4328-a91b-f1dc0e8c5a01`; Stage acceptance and physical
-settlement are not yet proven. No pending attempt is promoted to PASS.
+`DRV-8849d0d6-6c41-4328-a91b-f1dc0e8c5a01`. Its audit Stage is now accepted
+(`audit: done`) after all 12 analysts; the controller reached its explicit
+`stop-after audit` target without an error. Public control stop completed
+with `state: stopped`, `settled: true`, no unsettled reasons and a completed
+worker. All 27 recorded controller/provider PIDs were physically absent.
+This qualifies bounded same-engine native Stage restoration, not a completed
+scored fork, universal migration or a new provider/version route.
+The original scored audit Stage is also accepted with unchanged focus/coverage
+and all five prior missing-source observations retained. Scored review has
+accepted analysis and both independent critics completed; final review/report,
+Judge and full CLI regression remain pending. No pending attempt is promoted
+to PASS.
 
 ## Historical V16 candidate
 
