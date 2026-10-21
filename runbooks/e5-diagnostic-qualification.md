@@ -1,6 +1,34 @@
 # E5 diagnostic qualification — in progress
 
-## Current V23 candidate
+## Current V24 candidate — not qualified
+
+Both definitions select `cp-diagnostic-authored-mature-e5-critic-report-carry`,
+checkpoint SHA-256 `e99ae3bfa9098683f61bb447edb4f947e8293d994d55ed3050402700b1477735`.
+CLI `49185fd6e57a5d9ff4161c2ee578126efdadd2a9`, unchanged canon
+`f154e5ed7369ee7cb4168f4bd6b4229ff2890b57`, installed engine
+`a28e79be2b5083f5e44fdac7886a1b59a51d4b80cb6ae1c97397a46cbf210834`,
+package `0.9.0-beta.145`. Product, intake, blueprints and accepted rubrics are
+unchanged. New metadata does not grant case, focused-entry or release acceptance.
+
+V23 real audit completed valid/settled with Judge 3/4/4/4, all nine goldens and
+one minor historical-limitations contradiction. Its review failed when supported
+`duplicate/major` and `downgraded/minor` criticism was combined as `duplicate/minor`.
+V24 permits supported field synthesis only for non-accepting duplicate/rejected
+trace; positive outcomes still require joint critic support. Unsupported proposals
+remain refused through bounded no-effect correction. V23's same-engine report
+fork then failed after removing four superseded phase caveats while adding a
+historical clarification. Report now inherits exact predecessor limitations using
+the same CLI-owned sealing as analysis/review. Neither failed RUN is rewritten.
+
+Successor source checks pass: typecheck/full lint,765fast+66hybrid and51diagnostic/
+evidence/report/publication tests. Saved real proposals pass read-only successor
+guards without changing their original files; that is not lifecycle acceptance.
+Private strict build, package install, setup and installed identity passed.
+Installed positive/negative, new real semantics, accepted restoration and full
+clean paired Eval remain pending. Heavy local acceptance is coordinated with the
+other release task; no GitHub CI or global installation change is authorized.
+
+## Historical V23 candidate
 
 Both definitions select `cp-diagnostic-authored-mature-e5-architecture-critic`,
 checkpoint SHA-256 `f2b1c6c93b6fad9b8b9cf0c4c96c351f18893425097dae1ac2f5e2b5b6ff9b1c`.

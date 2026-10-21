@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-diagnostic-authored-mature-e5-architecture-critic",
-    "sha256": "f2b1c6c93b6fad9b8b9cf0c4c96c351f18893425097dae1ac2f5e2b5b6ff9b1c"
+    "id": "cp-diagnostic-authored-mature-e5-critic-report-carry",
+    "sha256": "e99ae3bfa9098683f61bb447edb4f947e8293d994d55ed3050402700b1477735"
   },
   "entry_pack": null,
   "baseline_admission": {
