@@ -1,6 +1,33 @@
 # E5 diagnostic qualification — in progress
 
-## Current V13 candidate
+## Current V14 candidate
+
+Both cases select `cp-diagnostic-authored-mature-e5-citation-correction`.
+CLI `709f281f1ab98c0183816964e687b647818f13c6`, unchanged canon
+`a0db7db213a37c0a09b48d85ff51033d5a41896c`; verified installed engine
+`fc17fdfecbb41a188f7fadfaac100e7b7bb894f26407f2627911fb81a0a621e0`.
+Archive SHA-256:
+`d4e5636f25ca8dece904d1bb3ef78fe6d0976f295b57b2816a464acc7f5152c9`.
+V13 first audit and restored audit rejected invalid citation digests on their
+second Work; the latter transposed two characters while source/copy bytes
+remained unchanged. V14 still rejects mismatched hashes but permits existing
+bounded no-effect lifecycle correction, with the relative source path and actual
+digest in the rejection. Snapshot mutation/custody/assignment guards remain
+fatal. Installed replay rejects both original bad proposals, classifies them
+correctable and validates corrected references without rewriting originals.
+Targeted tests passed 46/46, including fatal actual source/copy mutation.
+Strict build, private setup/engine and identity verification passed. Installed
+positive now deliberately exercises rejection then correction through actual
+issued commands; uncorrected negative must still refuse. Full regressions and
+new native acceptance remain pending; no oracle/product/blueprint changed.
+
+V13 review and an additional audit were stopped explicitly as superseded, not
+promoted to PASS. All three V13 Eval scopes are fenced with stopped resources
+and zero provider Turns; restored control is settled/stopped. Previous V13
+installed/consumer/regression results remain historical evidence, not V14
+semantic acceptance.
+
+## Historical V13 candidate
 
 Both cases select `cp-diagnostic-authored-mature-e5-retained-limitations`.
 CLI `9939c8759938a3e2710410c474277714b658a6dd`, unchanged canon

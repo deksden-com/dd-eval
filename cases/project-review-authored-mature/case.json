@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-diagnostic-authored-mature-e5-retained-limitations",
-    "sha256": "99a9ca1dbb774bfc12452060e990d2cd92a2ee678c1d962ff87cc07e3ca108fe"
+    "id": "cp-diagnostic-authored-mature-e5-citation-correction",
+    "sha256": "88f148568234e4d12579102653365a4d8b371833167fd370d5f590599bdcd35d"
   },
   "entry_pack": null,
   "baseline_admission": {
