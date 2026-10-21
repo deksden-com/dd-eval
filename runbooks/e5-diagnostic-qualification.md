@@ -11,8 +11,19 @@ archive SHA-256 `cdedb54888aa620e709c72414594cf14270a29a4d7cf938bf827dd939d26c63
 V16 audit proposals preserved focus and coverage but added or rephrased
 missing-source observations. V17 retains prior observations and permits additions,
 without permitting execution-scope changes. Both case-definition tests pass;
-installed/full regression and current scored/native acceptance remain pending.
+installed positive and forged-source negative lifecycle suites pass 3/3 each,
+without skips. Actual Console producer integration and installed Eval launch
+expectations pass 1/1 each without skips. The complete Eval suite passes
+952 tests with zero failures and 16 explicit opt-in skips. Full CLI regression
+and current scored/native acceptance remain pending.
 Original product, intake, blueprint and assessment bytes are unchanged.
+
+Current scored attempts are `EVAL-20261021073358-7ee34a86` (audit) and
+`EVAL-20261021073359-d22bce47` (review). Both preflights passed without provider
+sessions; both scored controllers have reached analytical stages. A public
+same-engine fork of the V17 audit stage-entry snapshot is running under
+`DRV-8849d0d6-6c41-4328-a91b-f1dc0e8c5a01`; Stage acceptance and physical
+settlement are not yet proven. No pending attempt is promoted to PASS.
 
 ## Historical V16 candidate
 
