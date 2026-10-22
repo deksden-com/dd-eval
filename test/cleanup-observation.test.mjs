@@ -2,12 +2,37 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import os from 'node:os';
-import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile, realpath, rm } from 'node:fs/promises';
 import { cleanupObservation } from '../lib/cleanup-observation.mjs';
 import { workerCleanupFailure } from '../lib/eval-resume-worker.mjs';
 import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { snapshotTreeHash } from '../lib/case-acceptance.mjs';
+import { hashJson } from '../lib/runner-events.mjs';
+
+test('actual RUN status uses only a current fenced EVAL retirement proof for physical stop', async t => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'cleanup-retired-')));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const attempt = path.join(root, 'executions/e'), project = path.join(attempt, 'project'), runtime = path.join(attempt, 'dd-flow-home'), resource = path.join(root, 'resources');
+  for (const dir of [project, runtime, resource]) await mkdir(dir, { recursive: true });
+  await writeFile(path.join(attempt, 'managed-runtime.json'), JSON.stringify({ schema_id: 'dd-eval/managed-runtime@1', project_root: project, runtime_root: runtime, run_id: 'RUN-1' }));
+  const manifest = { run_id: 'EVAL-096', executions: [{ id: 'e' }], runtime_resource_home: resource };
+  const bytes = JSON.stringify(manifest); await writeFile(path.join(root, 'manifest.json'), bytes);
+  const binding = { eval_root: root, run_id: manifest.run_id, manifest_sha256: createHash('sha256').update(bytes).digest('hex'), resource_home: resource };
+  const inventory = { scope_id: manifest.run_id, dispatch_blocked: true, fence: { scope_id: manifest.run_id, generation: 1 }, processes: [], provider_turns: [] };
+  const saved = { status: 'completed', intent: { kind: 'cleanup', mode: 'reconcile', manifest_sha256: binding.manifest_sha256, target_binding_digest: hashJson(binding) },
+    result: { binding, inventory: structuredClone(inventory), physical_stopped: true, native_settled: false, receipt: { scope_id: manifest.run_id } } };
+  const input = { root, manifest, results: [{ execution: 'e', state: 'failed', run_id: 'RUN-1' }], maintenance: [saved],
+    live: { inventory, executions: [{ execution: 'e', run_id: 'RUN-1', receipt: { schema_id: 'dd-flow/run-control-receipt@1', scope: { run_id: 'RUN-1' }, settled: false,
+      control: { current: true, control_id: 'CTL-1', recovery_id: 'REC-1', generation: 1, admission: 'draining' } } }] } };
+  const stopped = await cleanupObservation(input);
+  assert.equal(stopped.physical, 'settled'); assert.equal(stopped.capture, 'pending');
+  assert.equal(stopped.executions[0].reason, 'native_settlement_pending', 'RUN receipt itself has no physical_stopped field');
+  for (const replacement of [{ ...inventory, processes: [{ id: 'new-owner' }] }, { ...inventory, fence: { ...inventory.fence, generation: 2 } }, { ...inventory, unavailable: true }]) {
+    input.live.inventory = replacement;
+    assert.equal((await cleanupObservation(input)).physical, 'unknown', 'changed or missing inventory cannot reuse an old stop proof');
+  }
+});
 
 test('late sealed capture is visible independently of report; foreign proof never completes cleanup', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'cleanup-observation-'));
@@ -44,6 +69,16 @@ test('late sealed capture is visible independently of report; foreign proof neve
   const unrequestedObservation = await cleanupObservation(unrequested);
   assert.equal(unrequestedObservation.physical, 'unknown', 'absence of operator control is not evidence of a live process');
   assert.equal(unrequestedObservation.capture, 'pending', 'absence of control must not manufacture settlement or ready capture');
+  const nativeUnknown = { ...input, live: { executions: [{ ...input.live.executions[0], receipt: { scope: { run_id: 'RUN-1' }, settled: false, physical_stopped: true, control } }] } };
+  const stopped = await cleanupObservation(nativeUnknown);
+  assert.equal(stopped.physical, 'settled', 'physical shutdown need not prove native outcome');
+  assert.equal(stopped.capture, 'pending', 'unclean native outcome cannot manufacture a sealed capture');
+  assert.equal(stopped.executions[0].reason, 'native_settlement_pending');
+  delete nativeUnknown.live.executions[0].receipt.physical_stopped;
+  assert.equal((await cleanupObservation(nativeUnknown)).physical, 'unknown', 'unsettled control does not prove live owners');
+  nativeUnknown.live.executions[0].receipt.physical_stopped = true;
+  nativeUnknown.live.executions[0].receipt.control = { ...control, current: false };
+  assert.equal((await cleanupObservation(nativeUnknown)).physical, 'unknown', 'stopped receipt needs current generation binding');
   const sha = bytes => createHash('sha256').update(bytes).digest('hex');
   for (const dir of ['project', 'runtime']) await mkdir(path.join(capture, dir));
   await writeFile(path.join(capture, 'project/README.md'), 'Original source');
