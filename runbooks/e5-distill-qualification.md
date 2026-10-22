@@ -172,3 +172,15 @@ the wrong nested `run` shape; after inspecting the reader contract, flat-field
 assertions passed. No producer data was changed. This proves basic consumption
 by that payload only, not a complete current Console source/browser acceptance.
 Console checkout was unchanged and no source/server/global registry was added.
+
+The corrected installed invocation completed in
+`e5-distill-candidate.XAACfz/diagnostic-preparation-L28QTa`: 2/2 PASS, zero
+failures/skips, including its owner-scoped cleanup after-hook (482.60s).
+All six stages reached done and the controller completed. Scoped destination,
+selected-before custody, independent verification/report, source/index
+preservation and exact publication intent/replay assertions passed. This is
+authored installed mechanics, not a model semantic verdict. The earlier n8vZGz
+parent invocation remains failed; it is not overwritten by this successor.
+The installed forged-source negative and complete distill source regression
+are still running. The real native Subject remains on preflight without a
+controller error; its journal continues to show completed provider tool calls.
