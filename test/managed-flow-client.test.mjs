@@ -40,6 +40,40 @@ test('source-snapshot preparation reuses public managed RUNs without mutation-ro
   }
 });
 
+test('repair prepares its public CLI with exact accepted source selectors and no implicit source discovery',async t => {
+  const root=await mkdtemp(path.join(os.tmpdir(),'managed-repair-'));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const bin=path.join(root,'cli.mjs'),calls=path.join(root,'calls.json'),intakeFile=path.join(root,'intake.md');
+  const raw='Repair only selected memory documents. No code changes.\r\n'; await writeFile(intakeFile,raw);
+  const memoryFix={requestId:'repair-request',sourceRunId:'RUN-001-audit',findingIds:['FIND-2','FIND-1'],intakeFile,
+    intakeSha256:createHash('sha256').update(raw).digest('hex'),gitRoute:'feature_worktree',integrationBranch:'main',
+    profile:'subject',stageProfiles:['verify=critic'],maxParallel:1};
+  const receipt={run_id:'RUN-002-mb-fix',flow_id:'mb-fix',action:'flow_mb_fix_prepared',request_id:memoryFix.requestId};
+  const script=value=>`import fs from 'node:fs';fs.writeFileSync(${JSON.stringify(calls)},JSON.stringify(process.argv.slice(2)));console.log(JSON.stringify(${JSON.stringify(value)}));`;
+  await writeFile(bin,script(receipt));
+  const input={bin,projectRoot:root,flow:'mb-fix',memoryFix};
+  assert.deepEqual(await prepareManagedRun(input),receipt);
+  const args=JSON.parse(await readFile(calls));
+  assert.deepEqual(args.slice(0,2),['flow','mb-fix']);
+  assert.deepEqual(args.flatMap((value,index)=>value==='--finding'?[args[index+1]]:[]),memoryFix.findingIds);
+  for(const [flag,value] of [['--source-run',memoryFix.sourceRunId],['--git-route','feature_worktree'],['--integration-branch','main'],['--intake-file',intakeFile]])
+    assert.equal(args[args.indexOf(flag)+1],value);
+  for(const flag of ['--prepare-only','--non-interactive'])assert(args.includes(flag));
+  for(const flag of ['--workspace-root','--intake-sha256','--execution-routing-file','launch'])assert(!args.includes(flag));
+  await rm(calls);
+  for(const change of [{memoryFix:undefined},{flow:'mb-audit'},{flow:'sdlc'},{memoryInit:{}},{diagnostic:{}},{distillation:{}},
+    {executionRoutingFile:'routing'},...[{sourceRunId:'latest'},{findingIds:[]},{findingIds:['FIND-1','FIND-1']},
+      {findingIds:['bad\nselector']},{gitRoute:'implicit'},{integrationBranch:''},{profileFile:'also-selected'},
+      {maxParallel:65},{delegation:'native'},{intakeSha256:'0'.repeat(64)}].map(patch=>({memoryFix:{...memoryFix,...patch}}))]) {
+    await assert.rejects(prepareManagedRun({...input,...change}),{code:'managed_flow_input_invalid'});
+    await assert.rejects(readFile(calls),{code:'ENOENT'});
+  }
+  for(const change of [{flow_id:'mb-audit'},{request_id:'other'},{controller:{}}]) {
+    await writeFile(bin,script({...receipt,...change}));
+    await assert.rejects(prepareManagedRun(input),{code:'controller_receipt_invalid'});
+  }
+});
+
 test('Memory reconciles only an explicitly allocated original request, once, without replacement or dispatch', async t => {
   const root=await mkdtemp(path.join(os.tmpdir(),'memory-reconcile-'));
   t.after(()=>rm(root,{recursive:true,force:true}));
