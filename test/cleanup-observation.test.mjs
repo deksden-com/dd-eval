@@ -44,6 +44,16 @@ test('late sealed capture is visible independently of report; foreign proof neve
   const unrequestedObservation = await cleanupObservation(unrequested);
   assert.equal(unrequestedObservation.physical, 'unknown', 'absence of operator control is not evidence of a live process');
   assert.equal(unrequestedObservation.capture, 'pending', 'absence of control must not manufacture settlement or ready capture');
+  const nativeUnknown = { ...input, live: { executions: [{ ...input.live.executions[0], receipt: { scope: { run_id: 'RUN-1' }, settled: false, physical_stopped: true, control } }] } };
+  const stopped = await cleanupObservation(nativeUnknown);
+  assert.equal(stopped.physical, 'settled', 'physical shutdown need not prove native outcome');
+  assert.equal(stopped.capture, 'pending', 'unclean native outcome cannot manufacture a sealed capture');
+  assert.equal(stopped.executions[0].reason, 'native_settlement_pending');
+  delete nativeUnknown.live.executions[0].receipt.physical_stopped;
+  assert.equal((await cleanupObservation(nativeUnknown)).physical, 'unknown', 'unsettled control does not prove live owners');
+  nativeUnknown.live.executions[0].receipt.physical_stopped = true;
+  nativeUnknown.live.executions[0].receipt.control = { ...control, current: false };
+  assert.equal((await cleanupObservation(nativeUnknown)).physical, 'unknown', 'stopped receipt needs current generation binding');
   const sha = bytes => createHash('sha256').update(bytes).digest('hex');
   for (const dir of ['project', 'runtime']) await mkdir(path.join(capture, dir));
   await writeFile(path.join(capture, 'project/README.md'), 'Original source');

@@ -91,6 +91,13 @@ own baseline before Subject dispatch, including locked Playwright prerequisites;
 never share baseline PASS across workspaces. Stagger CPU-heavy baseline admission
 before allowing parallel productive runs on one host.
 
+New runs retain one absolute Playwright cache in `manifest.check_resources`:
+explicit `PLAYWRIGHT_BROWSERS_PATH`, otherwise
+`<DD_FLOW_RESOURCE_HOME>/browser-cache/playwright`. Install, baseline and productive
+checks use that selection despite harness HOME changes. Resume/fork inherits it;
+do not replace it from the current shell or delete it during daemon cleanup.
+Legacy runs without this field do not gain the guarantee retroactively.
+
 ## Run
 
 New definition receipts bind executable tooling and selected case/profile inputs,
