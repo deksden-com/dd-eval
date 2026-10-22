@@ -1,0 +1,34 @@
+{
+  "id": "cp-242-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "bc75b3948b2ba5e81f35a893ecf85504e0258278",
+    "tag": "eval/cp242-tooling-baseline"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-241-installed-matrix-qualification.json",
+      "sha256": "8cafcd13b9c651883d32498a7611344bbe58514a574070563b63beca648a689a",
+      "canon_commit": "925ef10ecc0b683f7feba6f74913e15560842500"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "ec625cbe88749b7561a92ff9bc1f72f508b8e1cb",
+      "version": "0.9.0-beta.146",
+      "artifact_sha256": "cb0ac18a00b806636f3c81b6bf109feebc4dd40fbbb2d3124a1686db6332d3e9"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Reviewed plan096 tooling plus the mechanical Biome correction for scripts/check-inputs.test.mjs. Product behavior, engine candidate, project flow pack and installed V3 qualification are unchanged. Operator authorized experimental E2E on this fixed local beta.146 candidate while the full local release gate continues; no public release acceptance is claimed.",
+    "world_isolation": "Per-execution test worlds; isolated campaign PostgreSQL on loopback 55439.",
+    "baseline": "Each scored workspace runs its own full baseline before Subject dispatch."
+  }
+}
