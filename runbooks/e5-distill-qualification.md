@@ -133,3 +133,13 @@ setup completed there, without executor defaults or global changes. Installed
 six-stage regression is running. The first successor preflight refused the
 uncommitted definition as expected; commit before repeating. No successor native
 quality or full E5 acceptance is claimed.
+
+Successor preflight subsequently passed at
+`eval/conformance/e2e-preflight/1792672928970-8d840a33/mb-distill-mature-luna-sol`
+under FKtHtL. It matched engine/checkpoint and both requested profiles, prepared
+the public RUN and passed version/initialize doctors; no provider Session was
+created by preflight. Definition/baseline tests passed2/2 without skips.
+The actual model request was accepted as `EVAL-20261022124345-d362dcb2`, attempt
+`c62e52c1519acad0547b4d539a633b5238272c35de9e3cc45a140e37d7078f0b`.
+Its first status is awaiting_provider, not completion or a quality verdict.
+Observe this exact existing attempt instead of replacing it on timeout.
