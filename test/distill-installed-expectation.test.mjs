@@ -6,11 +6,14 @@ import { pathToFileURL } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import { resolveMemoryExecutionExpectation, readMemoryExecutionSnapshot } from '../lib/memory-runtime-setup.mjs';
 
-test('installed distill expectation matches its completed six-stage RUN without allocating runtime state', {
-  skip: !process.env.DD_EVAL_DISTILL_INSTALLED_CELL
+for (const {flow,cell,receiptFile,contour} of [
+  {flow:'mb-distill',cell:process.env.DD_EVAL_DISTILL_INSTALLED_CELL,receiptFile:'mb-distill-receipt.json',contour:['preflight','extract','review','promote','verify','finish']},
+  {flow:'mb-fix',cell:process.env.DD_EVAL_REPAIR_INSTALLED_CELL,receiptFile:'mb-fix-preparation-receipt.json',contour:['intake','repair','verify','review','finish']}
+]) test(`installed ${flow} expectation matches its completed RUN without allocating runtime state`, {
+  skip: !cell
 }, async () => {
-  const cell = process.env.DD_EVAL_DISTILL_INSTALLED_CELL; assert(path.isAbsolute(cell));
-  const receipt = JSON.parse(await readFile(path.join(cell, 'mb-distill-receipt.json')));
+  assert(path.isAbsolute(cell));
+  const receipt = JSON.parse(await readFile(path.join(cell, receiptFile)));
   assert.equal(receipt.execution, 'fixture_lifecycle_completed');
   const runtimeRoot = path.join(cell, 'home'), projectRoot = path.join(cell, 'project');
   const bundle = JSON.parse(await readFile(path.join(receipt.first.run_root, 'execution-bundle/manifest.json')));
@@ -25,11 +28,11 @@ test('installed distill expectation matches its completed six-stage RUN without 
     finally { db.close(); }
   };
   const before = counts();
-  const expected = await resolveMemoryExecutionExpectation({ runtimeRoot, configHome: runtimeRoot, engine, installation, flow: 'mb-distill',
+  const expected = await resolveMemoryExecutionExpectation({ runtimeRoot, configHome: runtimeRoot, engine, installation, flow,
     selection: { profileFile: path.join(cell, 'profile.json') },
     scope: { requestId: receipt.first.request_id, projectRoot, workspace: receipt.first.workspace_root } });
   const observed = await readMemoryExecutionSnapshot({ runtimeRoot, resourceHome: runtimeRoot, projectRoot, runId: receipt.first.run_id, engine });
-  assert.deepEqual(expected.contour, ['preflight', 'extract', 'review', 'promote', 'verify', 'finish']);
+  assert.deepEqual(expected.contour, contour);
   assert.deepEqual(observed.settings, expected.settings);
   assert.deepEqual(observed.profiles, expected.profiles);
   assert.equal(expected.native_capacity, 'not_required');
