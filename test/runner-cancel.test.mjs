@@ -103,16 +103,34 @@ test('cancel projects terminal results without loading case or starting configur
   for (const args of commands.filter(args => args[2] === 'fence')) assert.deepEqual(args.slice(0, 7), ['runtime', 'scope', 'fence', '--scope-id', manifest.run_id, '--request-id', `eval-cancel:${manifest.run_id}`]);
   await writeFile(bin, `#!${process.execPath}\nconsole.log(JSON.stringify({scope_id:'EVAL-cancel',dispatch_blocked:true,settled:false,nodes:[{process_id:'judge-still-owned',settled:false}]}));\n`);
   const activeJudge = await runnerCancel({ evalRoot: root });
-  assert.equal(activeJudge.state, 'cancelling');
+  assert.equal(activeJudge.state, 'cancellation_unconfirmed');
   assert.equal(activeJudge.scope_inventory.nodes[0].process_id, 'judge-still-owned');
   await writeFile(bin, `#!${process.execPath}\nprocess.exit(1);\n`);
   const failedFence = await runnerCancel({ evalRoot: root });
-  assert.equal(failedFence.state, 'cancelling');
+  assert.equal(failedFence.state, 'cancellation_unconfirmed');
   assert.equal(failedFence.scope_fence.dispatch_blocked, false);
   assert.equal(failedFence.cancelled[0].settled, true);
-  assert.equal((await runnerStatus({ evalRoot: root })).state, 'cancelling');
+  assert.equal((await runnerStatus({ evalRoot: root })).state, 'cancellation_unconfirmed');
   await appendEvent(eventsFile, { source: 'dd-eval://runner', runId: manifest.run_id,
     type: 'dev.dd.eval.completed', data: { state: 'completed' } });
-  assert.equal((await runnerStatus({ evalRoot: root })).state, 'cancelling');
-  assert.equal((await runnerCancel({ evalRoot: root, executionId: 'e2e' })).state, 'cancelled');
+  assert.equal((await runnerStatus({ evalRoot: root })).state, 'cancellation_unconfirmed');
+  const partial = await runnerCancel({ evalRoot: root, executionId: 'e2e' });
+  assert.equal(partial.state, 'cancellation_unconfirmed');
+  assert.equal(partial.code, 'scope_settlement_required');
+  assert.equal(partial.cancelled[0].settled, true);
+});
+
+test('single-execution cancellation never finalizes the EVAL or stops unrelated scope resources', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'eval-single-cancel-scope-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'must-not-run');
+  await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ run_id: 'EVAL-single', runtime_control_bin: bin, runtime_resource_home: path.join(root, 'resources'), executions: [{ id: 'e' }] }));
+  const result = await runnerCancel({ evalRoot: root, executionId: 'e' });
+  assert.equal(result.cancelled[0].settled, true, 'no native dispatch is a legitimate per-execution cancellation');
+  assert.equal(result.state, 'cancellation_unconfirmed');
+  assert.equal(result.code, 'scope_settlement_required');
+  const events = await readEvents(path.join(root, 'events.jsonl'));
+  assert.equal(events.filter(event => event.type === 'dev.dd.eval.execution.cancelled').length, 1);
+  assert.equal(events.some(event => event.type === 'dev.dd.eval.completed'), false);
+  assert.equal(reduceEvents(events).state, 'cancellation_unconfirmed');
 });

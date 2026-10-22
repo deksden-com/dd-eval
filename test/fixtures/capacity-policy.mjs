@@ -15,6 +15,11 @@ export const refusalObservation = () => { throw Error('fixture has no refusal');
 export const overloadExhausted = () => null;
 `;
 export const successfulPolicy = await import(`data:text/javascript,${encodeURIComponent(successfulPolicyFixture)}`);
+// Settlement double for scheduler-only tests. The contract regressions use the
+// real pinned native module and explicit tree observations.
+export const settledTreeContracts = { native_tree_settlement_contract: "native-tree-settlement@1", nativeTreeReadiness(receipt, { sessionId }) {
+  return (receipt.provider_session_id ?? receipt.session_id) === sessionId && receipt.settled === true && receipt.settlement?.state !== "pending" ? "ready" : "unproven";
+} };
 export const selectedPolicy = process.env.DD_FLOW_SOURCE_ROOT
   ? await import(new URL(`file://${process.env.DD_FLOW_SOURCE_ROOT}/src/harness-runtime/lib/provider-overload-policy.mjs`))
   : { ...successfulPolicy, capacityBackoff(error, ordinal) {

@@ -16,7 +16,7 @@ async function offlineRuntime(root, failureCode) {
   const errors = pathToFileURL(path.resolve('lib/operation-errors.mjs')).href;
   for (const [file, source] of [
     ['provider-overload-policy.mjs', successfulPolicyFixture],
-    ['native-children.mjs', "export const NATIVE_CHILD_CONTRACT_VERSION='native-children@1';export const normalizeNativeChildren=()=>[];"],
+    ['native-children.mjs', "export const NATIVE_CHILD_CONTRACT_VERSION='native-children@2';export const NATIVE_TREE_SETTLEMENT_CONTRACT='native-tree-settlement@1';export const nativeTreeReadiness=()=> 'unproven';export const normalizeNativeChildren=()=>[];"],
     ['operation-errors.mjs', `export {OPERATION_ERROR_CONTRACT_VERSION,isObservationLoss} from ${JSON.stringify(errors)};`],
     ['dd-agy.mjs', 'export const agyTerminalFailure=()=>null;'],
     ['observation-clock.mjs', "export const OBSERVATION_CLOCK_CONTRACT_VERSION='operation-progress@1';"],

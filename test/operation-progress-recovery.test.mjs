@@ -5,7 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { writeJsonAtomic } from '../lib/runner-events.mjs';
-import { recoverDriverReply, reconcileDriverReplies } from '../lib/driver-recovery.mjs';
+import { recoverDriverReply, reconcileDriverReplies, driverObservationClock } from '../lib/driver-recovery.mjs';
+import { settledTreeContracts } from './fixtures/capacity-policy.mjs';
 import { inspectDaemonOperation, daemonOperationReady } from '../lib/daemon-operations.mjs';
 import { commandJson } from '../lib/process-json.mjs';
 import { pathToFileURL } from 'node:url';
@@ -47,6 +48,24 @@ async function driverFixture(t) {
   await rm(path.join(retained.root, 'client-operations', `${createHash('sha256').update(retained.id).digest('hex')}.json`));
   return retained;
 }
+
+test('capacity observation follows only bound native execution progress, never inspect ticks', async t => {
+  const { root, id, directory, requested } = await fixture(t);
+  const file = path.join(root, 'client-operations', `${createHash('sha256').update(id).digest('hex')}.json`);
+  const snapshot = new ObservationClock({ timeoutMs: 30000 }).state();
+  snapshot.started_at = Date.parse(requested.requested_at) - 1;
+  await writeJsonAtomic(file, { operation_id: id, state: 'failed', observation_clock: snapshot, observation_progress_sequence: 1, expected_daemon_id: 'daemon' });
+  for (const phase of ['settlement_pending', 'native_progress']) {
+    const progress = { ...requested, schema_id: 'dd-flow/operation-progress@1', sequence: 2, phase, observed_at: new Date().toISOString() };
+    await writeJsonAtomic(path.join(directory, 'progress.json'), progress);
+    const seen = await driverObservationClock(root, id);
+    assert.equal(seen.started_at, snapshot.started_at);
+    assert.equal(seen.cursor, phase === 'native_progress' ? 'daemon:2' : snapshot.cursor);
+    if (phase === 'native_progress') assert.equal(seen.observed_at, Date.parse(progress.observed_at));
+  }
+  await writeJsonAtomic(file, { operation_id: id, observation_clock: snapshot, expected_daemon_id: 'foreign' });
+  await assert.rejects(driverObservationClock(root, id), { code: 'operation_binding_conflict' });
+});
 
 test('retained native success does not authorize work before settlement', async t => {
   const { root, id, directory } = await fixture(t);
@@ -130,7 +149,7 @@ for(;;){if(JSON.parse(await readFile(${JSON.stringify(clientFile)})).observation
 for(;;){await writeJsonAtomic(directory+'/progress.json',{...requested,schema_id:'dd-flow/operation-progress@1',sequence:sequence===4?sequence--:sequence++,phase:'native_progress',observed_at:new Date().toISOString()});await new Promise(resolve=>setTimeout(resolve,100));}`);
   const abort = new AbortController();
   const invocation = callDriver({ harness: 'droid-cli' }, ['session', 'create', '--state-dir', root], {
-    cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: id, signal: abort.signal, timeoutMs: 30000
+    cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, nativeContracts: settledTreeContracts, operationId: id, signal: abort.signal, timeoutMs: 30000
   });
   invocation.catch(() => {});
   t.after(() => abort.abort());
@@ -174,7 +193,7 @@ test('outer observation freezes caller incarnation before its first progress rea
   await mkdir(path.dirname(executable), { recursive: true });
   await writeFile(executable, 'setInterval(()=>{},1000);');
   await assert.rejects(callDriver({ harness: 'droid-cli' }, ['session', 'create', '--state-dir', root], {
-    cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: id, timeoutMs: 1000
+    cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, nativeContracts: settledTreeContracts, operationId: id, timeoutMs: 1000
   }), { code: 'operation_binding_conflict' });
   const client = JSON.parse(await readFile(path.join(root, 'client-operations', `${createHash('sha256').update(id).digest('hex')}.json`)));
   assert.equal(client.daemon_binding, undefined);
@@ -190,7 +209,7 @@ await writeJsonAtomic(${JSON.stringify(path.join(directory, 'settlement.json'))}
 console.log('lost native reply');`);
   await assert.rejects(callDriver({ harness: 'droid-cli' }, ['session', 'create', '--state-dir', root], {
     cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: id,
-    nativeContracts: { retainedDaemonReply: async () => { throw Object.assign(new Error('fenced'), { code: 'operation_cancelled' }); } }
+    nativeContracts: { ...settledTreeContracts, retainedDaemonReply: async () => { throw Object.assign(new Error('fenced'), { code: 'operation_cancelled' }); } }
   }), error => error.code === 'operation_cancelled' && error.details.observation_error.code === 'harness_adapter_invalid');
   const client = JSON.parse(await readFile(path.join(root, 'client-operations', `${createHash('sha256').update(id).digest('hex')}.json`)));
   assert.equal(client.state, 'requested');
@@ -207,7 +226,7 @@ await writeJsonAtomic(${JSON.stringify(path.join(directory, 'result.json'))},{st
 await writeJsonAtomic(${JSON.stringify(path.join(directory, 'settlement.json'))},{state:'settled'});console.log('lost reply');`);
   assert.deepEqual(await callDriver({ harness: 'droid-cli' }, ['session', 'resume', '--session-id', 'native', '--state-dir', root], {
     cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: id,
-    nativeContracts: { canonicalNativeOperation: (_h, operation) => operation, nativeOperationWait: () => 'control' }
+    nativeContracts: { ...settledTreeContracts, canonicalNativeOperation: (_h, operation) => operation, nativeOperationWait: () => 'control' }
   }), { provider_session_id: 'native', resumed: true });
   assert.equal(await readFile(calls, 'utf8'), `${id}\n`);
 });

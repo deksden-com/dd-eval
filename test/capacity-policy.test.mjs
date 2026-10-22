@@ -9,6 +9,14 @@ import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { successfulPolicyFixture } from './fixtures/capacity-policy.mjs';
 import { directNativeChildren } from '../lib/runner.mjs';
 
+test('historical child diagnostics never rank terminal above contradictory running facts', () => {
+  for (const descendants of [
+    [{ session_id: 'child', parent_session_id: 'root', status: 'completed' }, { session_id: 'child', parent_session_id: 'root', status: 'running' }],
+    [{ session_id: 'child', parent_session_id: 'root', status: 'running' }, { session_id: 'child', parent_session_id: 'root', status: 'completed' }]
+  ]) assert.throws(() => directNativeChildren({ descendants }, 'root'), { code: 'native_child_outcome_conflict' });
+  assert.throws(() => directNativeChildren({ descendants: [{ session_id: 'child', parent_session_id: 'root', status: 'completed' }], tree_observations: [{ provider_session_id: 'child', settled: false }] }, 'root'), { code: 'native_child_outcome_conflict' });
+});
+
 test('all-harness native contracts execute from exact installed bytes with conservative bootstrap parity', { skip: !process.env.DD_FLOW_SOURCE_ROOT && 'set DD_FLOW_SOURCE_ROOT for built runtime proof' }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-built-native-'));
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -17,13 +25,16 @@ test('all-harness native contracts execute from exact installed bytes with conse
   await cp(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'dist/harness-runtime'), path.join(engine, 'dist/harness-runtime'), { recursive: true });
   await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
   await symlink('engines/selected/dist/harness-runtime', path.join(root, 'harness-runtime'));
-  const contracts = await loadNativeContracts(root, { requireProgress: true });
+  const contracts = await loadNativeContracts(root, { requireProgress: true, requireTreeSettlement: true });
   const readOnly = await loadNativeContracts(root);
   for (const selected of [contracts, readOnly]) {
     assert.equal(selected.canonicalNativeOperation('grok-acp', 'session.resume'), 'session.inspect');
     for (const harness of ['codex-desktop', 'zcode-acp']) assert.equal(selected.canonicalNativeOperation(harness, 'session.resume'), 'session.resume');
   }
   assert.equal(contracts.native_wait_contract, 'native-operation-wait@1');
+  assert.equal(contracts.native_child_contract, 'native-children@2');
+  assert.equal(contracts.native_tree_settlement_contract, 'native-tree-settlement@1');
+  assert.equal(contracts.nativeTreeReadiness({ provider_session_id: 'root', settled: true }, { sessionId: 'root', operationId: 'op' }), 'unproven');
   assert.equal(contracts.nativeOperationWait('droid-cli', 'session.start'), 'native-work');
   assert.equal(contracts.nativeOperationWait('codex-desktop', 'session.start'), 'control');
   assert.equal(contracts.progress_contract, 'operation-progress@1');
@@ -97,6 +108,7 @@ test('productive native and capacity imports reject unhashed symlink assets whil
   await symlink('engines/selected/dist/harness-runtime', path.join(root, 'harness-runtime'));
   assert.equal((await loadNativeContracts(root)).engine_artifact_sha256, checksum);
   assert.equal((await loadNativeContracts(root)).canonicalNativeOperation, undefined, 'historical reads may predate the optional wait module');
+  await assert.rejects(loadNativeContracts(root, { requireTreeSettlement: true }), { code: 'native_contract_unsupported' });
   await assert.rejects(loadNativeContracts(root, { requireProgress: true }), { code: 'native_contract_unsupported' });
   assert.equal((await loadCapacityPolicy(root)).engine_artifact_sha256, checksum);
   await writeFile(path.join(lib, 'adapter-timeouts.mjs'), "import './missing-dependency.mjs';");
