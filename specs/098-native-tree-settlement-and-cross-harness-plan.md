@@ -3,6 +3,7 @@
 Дата: 2026-10-23. Статус: реализация candidate выполнена; native-приёмка AGY P3
 частичная, production qualification не выдана. Результаты и границы:
 [implementation receipt](098-implementation-report.md). Release и новые scored EVAL не запускались.
+Результат последующего ревью и исправлений: [review receipt](098-review-report.md).
 
 ## 1. Цель и границы
 

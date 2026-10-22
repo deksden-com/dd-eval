@@ -48,7 +48,7 @@ test("compact native and engine failures redact Bearer and credential variants",
   assert.match(result.execution_failures[0].message, /Authorization/);
   assert.equal(compactCheckDiagnostic({ execution_failures: [{ message: "token".repeat(250000) }] }).execution_failures[0].message.length, 1024);
   assert.equal(compactCheckDiagnostic({ execution_failures: [{ message: "token-".repeat(50000) }] }).execution_failures[0].message.length, 1024);
-  const allScalars = failureDiagnostic({ code: 'Bearer SECRET', details: { uncovered_questions: ['token=SECRET'], checks: [{ log: 'https://example.test?token=SECRET', runner_evidence: { failures: [{ classification_reason: 'Bearer SECRET', file: 'token=SECRET' }] } }] } });
+  const allScalars = failureDiagnostic({ code: 'Bearer SECRET', details: { violations: ['Bearer SECRET', 'https://example.test?token=SECRET'], uncovered_questions: ['token=SECRET'], checks: [{ log: 'https://example.test?token=SECRET', runner_evidence: { failures: [{ classification_reason: 'Bearer SECRET', file: 'token=SECRET' }] } }] } });
   assert.ok(!JSON.stringify(allScalars).includes('SECRET'));
   assert.equal(compactCheckDiagnostic({ execution_failures: [{ diagnostic_artifact: { relative_path: 'logs/token=SECRET.json', sha256: 'a'.repeat(64) } }] }).execution_failures[0].diagnostic_artifact, undefined, 'secret-bearing locators are omitted, not rewritten into a nonexistent proof path');
 });

@@ -4,6 +4,8 @@
 EVAL `fix/098-native-tree-consumers`. Базы: engine `6aa020e8`, EVAL `610e3ef`;
 097 остаётся явной зависимостью, это не уже интегрированный или выпущенный main.
 Engine implementation commit: `047a48c5` (candidate, не release-accepted).
+Последующий [review receipt](098-review-report.md) фиксирует найденные дефекты,
+исправления и integration status; исходные результаты ниже не подменяются P3 PASS.
 
 ## Реализовано
 
