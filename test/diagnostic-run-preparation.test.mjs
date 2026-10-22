@@ -9,10 +9,10 @@ import Ajv2020 from 'ajv/dist/2020.js';
 import {initialFlowBoundary,prepareCaseManagedRun,prepareE2EInput,validateRunProfile} from '../lib/runner.mjs';
 import {materializeOperationalDecision} from '../lib/operational-decision.mjs';
 
-test('diagnostic profiles reuse installed canon setup without Memory mutation/native routing',async()=>{
+for (const selectionKey of ['diagnostic', 'distillation']) test(`${selectionKey} profiles reuse installed canon setup without source mutation/native routing`,async()=>{
   const schema=new Ajv2020({strict:false}).compile(JSON.parse(await readFile(new URL('../schemas/run-profile.v1.schema.json',import.meta.url))));
   const profile={schema_id:'dd-eval/run-profile@1',id:'diagnostic',case_id:'diagnostic-case',subject:{profile_id:'subject',
-    memory_setup:{canonSource:'/release',trustFile:'/trust'},diagnostic:{profile:'local',maxParallel:64}},
+    memory_setup:{canonSource:'/release',trustFile:'/trust'},[selectionKey]:{profile:'local',maxParallel:64}},
     selection:{focused_stages:[],segment:null,e2e:true,repetitions:1},judge:{enabled:false},concurrency:{global:1},
     failure_policy:{stop_execution_on_unexpected_hitl:true,stop_execution_on_unmatched_hitl:true}};
   assert(schema(profile),JSON.stringify(schema.errors));assert.equal(validateRunProfile(profile),profile);
@@ -21,15 +21,17 @@ test('diagnostic profiles reuse installed canon setup without Memory mutation/na
   assert(modern({...profile,schema_id:'dd-eval/run-profile@2'}),JSON.stringify(modern.errors));
   for(const subject of [{...profile.subject,memory_init:{profile:'local'}},{...profile.subject,memory_upgrade:{profile:'local'}},
     {...profile.subject,execution:{}},{...profile.subject,memory_setup:undefined},
+    {...profile.subject,[selectionKey==='diagnostic'?'distillation':'diagnostic']:{profile:'local'}},
+    {...profile.subject,memory_setup:{...profile.subject.memory_setup,baseline:{canonSource:'/old',trustFile:'/trust'}}},
     ...[{maxParallel:65},{delegation:'native'},{allowLiveProbe:true},{nativeConfigHome:'/native'},{profileFile:'/other'}]
-      .map(change=>({...profile.subject,diagnostic:{...profile.subject.diagnostic,...change}}))]) {
+      .map(change=>({...profile.subject,[selectionKey]:{...profile.subject[selectionKey],...change}}))]) {
     const changed=JSON.parse(JSON.stringify({...profile,subject}));
     assert.equal(schema(changed),false,JSON.stringify(changed));assert.throws(()=>validateRunProfile(changed));
     assert.equal(modern({...changed,schema_id:'dd-eval/run-profile@2'}),false);
   }
 });
 
-for(const flow of ['mb-audit','project-review']) for(const withBank of [false,true]) test(`${flow} materializes original product without a flow overlay (bank: ${withBank})`,async t=>{
+for(const flow of ['mb-audit','project-review','mb-distill']) for(const withBank of [false,true]) test(`${flow} materializes original product without a flow overlay (bank: ${withBank})`,async t=>{
   const root=await mkdtemp(path.join(os.tmpdir(),'diagnostic-materialize-'));t.after(()=>rm(root,{recursive:true,force:true}));
   const source=path.join(root,'source'),target=path.join(root,'project');await mkdir(source);
   const git=(...args)=>execFileSync('git',['-C',source,...args],{encoding:'utf8'}).trim();
@@ -47,7 +49,7 @@ for(const flow of ['mb-audit','project-review']) for(const withBank of [false,tr
   } else await assert.rejects(readFile(path.join(target,'.memory-bank/index.md')),{code:'ENOENT'});
 });
 
-for(const flow of ['mb-audit','project-review']) test(`${flow} case prepares original intake without a Git mutation policy or SDLC materialization`,async t=>{
+for(const flow of ['mb-audit','project-review','mb-distill']) test(`${flow} case prepares original intake without a Git mutation policy or SDLC materialization`,async t=>{
   const root=await mkdtemp(path.join(os.tmpdir(),'case-diagnostic-'));t.after(()=>rm(root,{recursive:true,force:true}));
   const source=path.join(root,'entry-pack-source'),projectRoot=path.join(root,'project');await mkdir(source);await mkdir(projectRoot);
   const intake=Buffer.from('Inspect actual code. Do not repair the project.\r\n'),intakeFile=path.join(source,'request.txt');await writeFile(intakeFile,intake);
@@ -58,14 +60,15 @@ for(const flow of ['mb-audit','project-review']) test(`${flow} case prepares ori
   const setup={installation_readiness:'installed',installation:{manifest:{canon:{commit:flowPack.commit,version:'fixture'},engine:{version:'fixture'}}}};
   await writeFile(bin,`import fs from 'node:fs';const args=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify(args)+'\\n');
 console.log(JSON.stringify(args[0]==='setup'?${JSON.stringify(setup)}:{run_id:'RUN-diagnostic',flow_id:${JSON.stringify(flow)},action:${JSON.stringify(`flow_${flow.replaceAll('-','_')}_prepared`)},request_id:args[args.indexOf('--request-id')+1]}));`);
-  const contour=flow==='mb-audit'?['preflight','audit','review','report']:['preflight','analyze','review','report'];
-  const loaded={root,inputCheckpoint:{value:{flow_pack:flowPack}},value:{flow:{id:flow,contour,terminal_stage:'report'}}};
+  const contour=flow==='mb-distill'?['preflight','extract','review','promote','verify','finish']:flow==='mb-audit'?['preflight','audit','review','report']:['preflight','analyze','review','report'];
+  const loaded={root,inputCheckpoint:{value:{flow_pack:flowPack}},value:{flow:{id:flow,contour,terminal_stage:contour.at(-1)}}};
   assert.deepEqual(initialFlowBoundary(loaded),{flow,stage:'preflight'});
   const blueprint={stages:{preflight:{task_input:[{role:'initial_user_request',source:'request.txt',path:'.dd-eval/request.txt',sha256:digest}]}}};
-  const runProfile={value:{subject:{memory_setup:{canonSource:path.join(root,'release'),trustFile:path.join(root,'trust')},diagnostic:{profile:'local'}}}};
+  const selectionKey=flow==='mb-distill'?'distillation':'diagnostic';
+  const runProfile={value:{subject:{memory_setup:{canonSource:path.join(root,'release'),trustFile:path.join(root,'trust')},[selectionKey]:{profile:'local'}}}};
   const input={loaded,blueprint,runProfile,scopeId:'owned-execution',projectRoot,bin,env:{DD_FLOW_HOME:path.join(root,'runtime')},executionRoutingFile:path.join(root,'unused-routing')};
   for(const change of [{maxParallel:65},{delegation:'native'},{allowLiveProbe:true}]) {
-    await assert.rejects(prepareCaseManagedRun({...input,runProfile:{value:{subject:{...runProfile.value.subject,diagnostic:{profile:'local',...change}}}}}));
+    await assert.rejects(prepareCaseManagedRun({...input,runProfile:{value:{subject:{...runProfile.value.subject,[selectionKey]:{profile:'local',...change}}}}}));
     await assert.rejects(readFile(calls),{code:'ENOENT'});
   }
   assert.equal(await materializeOperationalDecision({flowId:flow,projectRoot,runtimeRoot:path.join(root,'runtime')}),null);
