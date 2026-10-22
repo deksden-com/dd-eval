@@ -24,8 +24,8 @@ async function put(root, name, value) { const file = path.join(root, name); awai
 test("final native receipt contract resolves runner enrichment from trusted profile or declaration",()=>{
   // Sanitized AGY CP236 RCP-013 shape: PLAN declares no artifacts, native alias
   // resolution adds db-verify.runner.json and engine-outcome.json.
-  for(const fromProfile of [true,false]) {
-    const runner={schema_id:"dd-flow/check-runner-evidence@1",path:"db-verify.runner.json"};
+  for(const fromProfile of [true,false]) for(const schema_id of ["dd-flow/check-runner-evidence@1", "dd-flow/check-runner-evidence@2"]) {
+    const runner={schema_id,path:"db-verify.runner.json"};
     const check={id:"CHK-DB-VERIFY",canonical_ref:"PRT-007/CHK-DB-VERIFY",command:"@check/db-verify-local",run_at:"merge",...(fromProfile?{}:{runner_evidence:runner})};
     const profile={aliases:{"@check/db-verify-local":"pnpm db:verify"},...(fromProfile?{runner_evidence_by_alias:{"@check/db-verify-local":runner}}:{})};
     const directory="07-merge/works/WRK-014-merge/checks/RCP-013",fingerprint="e".repeat(64),id="WRK-014-merge/RCP-013";

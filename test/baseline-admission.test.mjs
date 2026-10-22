@@ -55,6 +55,23 @@ process.exit(category==='pass'||category==='missing'?0:1);`);
     assert.equal(receipt.checks[0].outcome, outcome);
     assert.equal(receipt.status, category === "pass" ? "passed" : "failed");
     assert.equal(receipt.checks[0].runner_binding.command, command);
+    if (category === "pass") {
+      const file = path.join(outputRoot, "receipt.json");
+      const reference = { file, sha256: createHash("sha256").update(await readFile(file)).digest("hex") };
+      await verifyBaselineAdmission({ reference, definition, checkpoint, caseRoot: root });
+      for (const version of [1, 2]) {
+        const partial = structuredClone(receipt);
+        const runner = partial.checks[0].runner_evidence;
+        runner.schema_id = `dd-flow/check-runner-evidence@${version}`;
+        runner.failure_projection = { state: "partial", reason: "count_bound", represented: 0, omitted: 100 };
+        assert.equal(runner.completed, true);
+        assert.equal(runner.counts.failed, 0);
+        assert.deepEqual(runner.failures, []);
+        const changed = JSON.stringify(partial); await writeFile(file, changed);
+        await assert.rejects(verifyBaselineAdmission({ reference: { file, sha256: createHash("sha256").update(changed).digest("hex") }, definition, checkpoint, caseRoot: root }), { code: "baseline_admission_unconfirmed" });
+      }
+      await writeFile(file, JSON.stringify(receipt));
+    }
   }
   await assert.rejects(runBaselineAdmission({ caseRoot: root, definition, projectRoot, outputRoot: path.join(root, "unselected-engine"), checkpoint }), { code: "baseline_runner_abi_missing" });
   await writeFile(categoryFile, "progress-invalid");
