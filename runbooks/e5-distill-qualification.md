@@ -184,3 +184,13 @@ parent invocation remains failed; it is not overwritten by this successor.
 The installed forged-source negative and complete distill source regression
 are still running. The real native Subject remains on preflight without a
 controller error; its journal continues to show completed provider tool calls.
+
+Later results: complete distill source regression passed89/89 in11 files with
+zero skips. Installed forged-source negative passed2/2, including cleanup, in
+`diagnostic-preparation-zT9eUP` (261.68s); source evidence refused at extract
+before destination publication. The actual model completed preflight and its
+controller committed the automatic boundary snapshot before creating a fresh
+extract Session (`01a163ad-e833-7932-8990-ffa4d8a266b8`). Boundary manifest SHA:
+`ad6d91ff907affa97bbf9aaad07f50277135b227887757df0134a73153778c5e`.
+This proves the original capture failure is corrected on the real path, not
+that extract or the remaining model lifecycle/Judge has passed.
