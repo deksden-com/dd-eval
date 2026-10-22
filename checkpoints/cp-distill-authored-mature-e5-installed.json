@@ -1,0 +1,21 @@
+{
+  "id": "cp-distill-authored-mature-e5-installed",
+  "source": {
+    "repository": "test/fixtures/diagnostic/mature-conformance-v1.bundle",
+    "commit": "fc3edfee4d6dc8b27a664bb5ee5e08cc58387817"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "0f934217dd60340193d44f026fc3d3f61046006b",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "f6dd596ded5a13d7ad076d59b81f746a40b96e0f",
+      "version": "0.9.0-beta.145",
+      "artifact_sha256": "8f7df86d42f7a36dcd9aca464019bbc4699a78eb7bc20a987b18d3ec69c0a9cf"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
