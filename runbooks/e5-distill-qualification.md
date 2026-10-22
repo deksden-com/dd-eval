@@ -143,3 +143,18 @@ The actual model request was accepted as `EVAL-20261022124345-d362dcb2`, attempt
 `c62e52c1519acad0547b4d539a633b5238272c35de9e3cc45a140e37d7078f0b`.
 Its first status is awaiting_provider, not completion or a quality verdict.
 Observe this exact existing attempt instead of replacing it on timeout.
+
+The first XAACfz installed lifecycle reached all six stages and passed its
+child checks in `diagnostic-preparation-n8vZGz`, but the parent test failed:
+operator invocation used strip-types without the owning source-test loader,
+so the after-hook could not resolve cleanup helper's source `.js` imports.
+This is not a full installed PASS. Run owner-scoped drain for that exact Home
+using the existing loader and repeat the complete test with:
+
+```sh
+DD_FLOW_E5_INSTALLED_ROOT=/Users/deksden/Documents/_Projects/_artifacts/e5-distill-candidate.XAACfz DD_FLOW_E5_DISTILL_PREPARATION=1 DD_FLOW_E5_LIFECYCLE=1 node --import ./scripts/source-test-loader.mjs --test scripts/e5-installed-diagnostic-preparation.test.mjs
+```
+
+The corrected invocation is running in a fresh child fixture; installed engine
+bytes and the original failed receipt are unchanged. The native successor has
+an actual owned controller and an admitted provider turn; no quality verdict yet.
