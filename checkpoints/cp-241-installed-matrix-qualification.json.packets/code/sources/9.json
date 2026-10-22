@@ -1,0 +1,48 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "54e810da90c751d06895eb1f55e9e5b09d4b78e703c572ded004f7ca868ee179",
+  "verification_epoch": "98f213cce2a030d2dd5c728bc05eccaf39862227da57e0431562eb1f119d0c6e",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta146-ec625cbe/matrix-installed/dd-flow-protocolize-8lmzJs/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta146-ec625cbe/matrix-installed/dd-flow-protocolize-8lmzJs/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta146-ec625cbe/matrix-installed/dd-flow-protocolize-8lmzJs/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta146-ec625cbe/matrix-installed/dd-flow-protocolize-8lmzJs/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "fingerprint_scope": "check_inputs",
+  "input_manifest": {
+    "path": "inputs-before.json",
+    "sha256": "c12bfeb68724b4e855e8994ba75748a42005da9c311c0cb23ff955602ff63425",
+    "truncated": false
+  },
+  "execution_contract_hash": "c1d97d6c8db88527518349a0ac92855cbfda6cd0d9840cb7d7d4b231eca3c6fe",
+  "workspace_fingerprint": "c33330c15ed759ac656099545a00f57afe086483b7e1de9771f1e11d3fb14a72",
+  "before_fingerprint": "20e686572ce693778424fb4c96e2ed237b498ac231a4c60b3e6137b451ac6ef7",
+  "after_fingerprint": "20e686572ce693778424fb4c96e2ed237b498ac231a4c60b3e6137b451ac6ef7",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-22T08:40:05.461Z",
+  "finished_at": "2026-10-22T08:40:05.627Z",
+  "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/release-beta146-ec625cbe/matrix-installed/dd-flow-protocolize-8lmzJs/project",
+  "candidate_files": [],
+  "candidate_absences": [],
+  "execution_failures": []
+}
