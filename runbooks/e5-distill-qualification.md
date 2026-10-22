@@ -90,3 +90,21 @@ temporary development trust; no qualified production route was claimed. Native
 preflight is running with separate Eval/config/resources/registry and the frozen
 expanded canon. No real Subject/Judge call has been started yet; there is no
 native quality PASS at this checkpoint.
+
+The successor installed lifecycle subsequently passed2/2, zero failures/skips,
+in `e5-distill-candidate.XpCWEe/diagnostic-preparation-I8Eo8I`: all six stages
+completed, and every aspect/critic Work checked its issued inputs command and
+original request reference against retained bytes. This is authored transport,
+not model quality. The actual native preflight also passed, at
+`eval/conformance/e2e-preflight/1792671363238-e6895d25/mb-distill-mature-luna-sol`
+under the private native root. It matched the frozen engine/profiles, prepared
+the public RUN and completed version/initialize doctors for both requested
+models and the operational Subject alias. provider_sessions_created was0;
+baseline admission is deliberately deferred to the actual execution.
+
+The real run request was then accepted as `EVAL-20261022121916-ea0d3410`, root
+`eval/runs/EVAL-20261022121916-ea0d3410` under the same native root. Its initial
+runner attempt is `b7cfe4eff3669dfa0043b4c116c76ad76e6cc11102594b3bed4abc1919358d76`.
+Acceptance/requested is not proof of Subject dispatch or completion. Observe
+that exact existing EVAL; do not launch a replacement on observation loss.
+No real model quality, final Judge or E5 completion verdict exists yet.
