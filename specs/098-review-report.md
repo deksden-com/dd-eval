@@ -98,6 +98,14 @@ Frozen engine candidate: `7b9f6daf` (reviewed source, не release-accepted).
 native-capacity fixture (child отсутствовал в её tree IDs) не скрывается: после
 исправления тестовых данных затронутый файл повторно полностью PASS.
 
+## Интеграция
+
+Engine [PR113](https://github.com/deksden-com/dd-flow-cli/pull/113) squash-merged:
+`a5461c99262f3d21252b9cef1c62213b1a52d94d`. Tracked tree совпадает с проверенным
+`7b9f6daf`; зависимости 097 включены. EVAL integration:
+[PR137](https://github.com/deksden-com/dd-eval/pull/137), reviewed runtime diff
+`33b2f12` плюс этот документационный integration receipt.
+
 ## Очистка
 
 Удаляются только собственные завершённые task/campaign checkout и branch refs.
