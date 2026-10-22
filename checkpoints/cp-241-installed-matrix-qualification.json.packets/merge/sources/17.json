@@ -1,0 +1,48 @@
+{
+  "id": "WRK-006-merge/RCP-003",
+  "local_id": "RCP-003",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-NEW",
+    "PRT-001-task-priority/CHK-P1-TEST",
+    "PRT-001-task-priority/CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "9450fa92112bcdd5b84213f7da1b1360bd1a8c0a8cb9bc13dfea5afa07a8d486",
+  "verification_epoch": "ab03277ad8f22deee55956eef14abcbaabbe18c24b4fb36ce068b3fb19280f06",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta146-ec625cbe/matrix-installed/dd-flow-protocolize-8lmzJs/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta146-ec625cbe/matrix-installed/dd-flow-protocolize-8lmzJs/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta146-ec625cbe/matrix-installed/dd-flow-protocolize-8lmzJs/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_artifacts/release-beta146-ec625cbe/matrix-installed/dd-flow-protocolize-8lmzJs/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "fingerprint_scope": "check_inputs",
+  "input_manifest": {
+    "path": "inputs-before.json",
+    "sha256": "8c5a5ec31f3f6f9cb209b8042f41e1318ef22292cdefdf458404f913b7124f78",
+    "truncated": false
+  },
+  "execution_contract_hash": "c1d97d6c8db88527518349a0ac92855cbfda6cd0d9840cb7d7d4b231eca3c6fe",
+  "workspace_fingerprint": "86699111b3045c04870151b4bc7f5c4776868b2ce53159feda4895b693846097",
+  "before_fingerprint": "1e805d3f323e4f3cb746a845fbeeeb030b1680cc7dfed371a0b8faedb01a699f",
+  "after_fingerprint": "1e805d3f323e4f3cb746a845fbeeeb030b1680cc7dfed371a0b8faedb01a699f",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-22T08:40:13.128Z",
+  "finished_at": "2026-10-22T08:40:13.293Z",
+  "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/release-beta146-ec625cbe/matrix-installed/dd-flow-protocolize-8lmzJs/project",
+  "candidate_files": [],
+  "candidate_absences": [],
+  "execution_failures": []
+}
