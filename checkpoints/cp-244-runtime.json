@@ -1,0 +1,34 @@
+{
+  "id": "cp-244-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "dc4ae3be860549101d814651b09255a265d70a23",
+    "tag": "eval/cp243-native-typecheck"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-244-installed-matrix-qualification.json",
+      "sha256": "f9663fc5027e1a13ab8674ff052ca50d4dc0b52bab2740262b601f6cfe63a2f8",
+      "canon_commit": "925ef10ecc0b683f7feba6f74913e15560842500"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "2f3d3f0bf4f4ff59acea46ca83b9baefc19d1f7d",
+      "version": "0.9.0-beta.147",
+      "artifact_sha256": "e927558a2bb28bcc05c57a7af9c16fcd350a05f99ef21b053b3e6d1ae25e5a77"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Same CP243 product/tooling/flow inputs. Experimental immutable beta.147 adds one bounded same-session provider overload continuation (2 to 3 retries), requested by operator. 68 targeted tests PASS; no release-accepted or public publication claim. Prior Luna EVAL retained unchanged.",
+    "world_isolation": "Per-execution test worlds; isolated campaign PostgreSQL on loopback 55439.",
+    "baseline": "Each scored workspace runs its own full baseline before Subject dispatch."
+  }
+}

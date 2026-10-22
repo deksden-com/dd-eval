@@ -1,0 +1,48 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "2e930ccfe9ed176b5395956fcfe6259cbff3b394c4505ed0f793a11628ba2a57",
+  "verification_epoch": "3d79c5e3a00c4531692076e615476952865da499d850fc2d2204f425c242f92c",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/Documents/_Projects/_artifacts/retry147-matrix/dd-flow-protocolize-q0piJh/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/Documents/_Projects/_artifacts/retry147-matrix/dd-flow-protocolize-q0piJh/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/Documents/_Projects/_artifacts/retry147-matrix/dd-flow-protocolize-q0piJh/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/Documents/_Projects/_artifacts/retry147-matrix/dd-flow-protocolize-q0piJh/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "fingerprint_scope": "check_inputs",
+  "input_manifest": {
+    "path": "inputs-before.json",
+    "sha256": "3b2bccb6c0e7ac1555792d0c3129466705207cff8e73416f2ae5d6bc6d5bc668",
+    "truncated": false
+  },
+  "execution_contract_hash": "bf4662a5496a86a77e0c728ae683e416ed8626c6a5d58a2768bacf9568383e9e",
+  "workspace_fingerprint": "3e926d6e80108a5bea46ac5c9942eb2f87c34db2df7fc9d16095cd29d0b01362",
+  "before_fingerprint": "f16bf826ef879cb40b7518f4a1fa5f59f964ef0efa6b88fed204426c5a16b8c6",
+  "after_fingerprint": "f16bf826ef879cb40b7518f4a1fa5f59f964ef0efa6b88fed204426c5a16b8c6",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-22T11:20:16.948Z",
+  "finished_at": "2026-10-22T11:20:17.302Z",
+  "candidate_root": "/Users/deksden/Documents/_Projects/_artifacts/retry147-matrix/dd-flow-protocolize-q0piJh/project",
+  "candidate_files": [],
+  "candidate_absences": [],
+  "execution_failures": []
+}

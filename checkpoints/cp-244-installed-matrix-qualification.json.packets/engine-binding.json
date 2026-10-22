@@ -1,0 +1,19 @@
+{
+  "schema_id": "dd-flow/run-engine-binding@1",
+  "run_id": "RUN-001-tasks",
+  "project_root": "/Users/deksden/Documents/_Projects/_artifacts/retry147-matrix/dd-flow-protocolize-q0piJh/project",
+  "bound_at": "2026-10-22T11:13:42.448Z",
+  "source": "run_creation",
+  "reason": "RUN created by the selected execution engine.",
+  "engine": {
+    "package_name": "@deksden-com/dd-flow-cli",
+    "package_version": "0.9.0-beta.147",
+    "engine_version": "0.9.0-beta.147",
+    "integrity_checksum": "2b2db33cb77d7e672fbd481ea6bd651785f84f06da3fd124a87bb3b99cf8c84a",
+    "snapshot_root": "/Users/deksden/Documents/_Projects/_artifacts/retry147-matrix/dd-flow-protocolize-q0piJh/home/engines/@deksden-com_dd-flow-cli/0.9.0-beta.147"
+  },
+  "probe": {
+    "status": "not_required",
+    "command": null
+  }
+}
