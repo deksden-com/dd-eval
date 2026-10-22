@@ -12,7 +12,7 @@
   ],
   "input_checkpoint": {
     "id": "cp-distill-authored-mature-e5-installed",
-    "sha256": "8738ab01867aba21d86e6f5a8dc9ffd5e23d60484774a955e8da0650d74d12da"
+    "sha256": "759e73963eb396a767fad753255df71a55e97173d5001a52951c4c5a8cacc339"
   },
   "entry_pack": null,
   "baseline_admission": {

@@ -108,3 +108,28 @@ runner attempt is `b7cfe4eff3669dfa0043b4c116c76ad76e6cc11102594b3bed4abc1919358
 Acceptance/requested is not proof of Subject dispatch or completion. Observe
 that exact existing EVAL; do not launch a replacement on observation loss.
 No real model quality, final Judge or E5 completion verdict exists yet.
+
+## Boundary-capture correction candidate
+
+The first actual run reached a real Subject preflight result, then failed in
+automatic snapshot capture: `snapshot_workspace_invalid` required Git HEAD in
+distill's intentionally unborn private source workspace. No HITL was requested
+and Judge did not run. The EVAL is recovery_blocked; owner cleanup reported
+physical/native settlement but capture remains pending. Retain the old run,
+profile, frozen inputs and XpCWEe installed bytes unchanged.
+
+CLI `b57c363d` reuses the source-snapshot predicate in the existing copier and
+restore admission. Full snapshot regression passed44/44, no skips; typecheck,
+targeted ESLint and diff checks passed. New immutable installed candidate is
+`e5-distill-candidate.XAACfz`, canon `97f2e630`, full-content engine
+`664c425c9275c7433621b381540560b9fbc69ad0ac1b8462824741c36d1cdee2`.
+The selected checkpoint/case binding advances only for a new attempt; source
+fixture, request, baseline and accepted assessment are unchanged. The old tuple
+remains in Git and the retained EVAL definition snapshot.
+
+Successor native campaign root is `e5-distill-native.FKtHtL`, with fresh private
+router/config/resources/Eval/registry. Engine installation and signed development
+setup completed there, without executor defaults or global changes. Installed
+six-stage regression is running. The first successor preflight refused the
+uncommitted definition as expected; commit before repeating. No successor native
+quality or full E5 acceptance is claimed.
