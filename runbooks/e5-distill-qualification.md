@@ -158,3 +158,17 @@ DD_FLOW_E5_INSTALLED_ROOT=/Users/deksden/Documents/_Projects/_artifacts/e5-disti
 The corrected invocation is running in a fresh child fixture; installed engine
 bytes and the original failed receipt are unchanged. The native successor has
 an actual owned controller and an admitted provider turn; no quality verdict yet.
+
+Owner-scoped drain of `diagnostic-preparation-n8vZGz` subsequently completed
+using the existing source loader. This does not erase the parent invocation FAIL.
+The installed expectation consumer on that completed RUN passed1/1 with zero
+skips, matching its frozen engine/settings/profiles without allocating runtime.
+
+An additional read-only Console observation used its existing payload revision
+`0.4.0+1791754658104-67039eb3`, not a newly built current-source candidate.
+`flowDetail` read all six done stages,4 Work and9 Sessions with empty diagnostics;
+RUN/Work/Session/audit counts were unchanged. The initial ad-hoc assertion used
+the wrong nested `run` shape; after inspecting the reader contract, flat-field
+assertions passed. No producer data was changed. This proves basic consumption
+by that payload only, not a complete current Console source/browser acceptance.
+Console checkout was unchanged and no source/server/global registry was added.
