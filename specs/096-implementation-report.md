@@ -153,3 +153,28 @@ Final review checks and merge/cleanup readback are recorded below. No GitHub CI,
 release, new E2E, provider call or historical EVAL modification is authorized by
 this receipt. The exact historical CP240 snapshot-loss branch remains unprovable;
 the native reproduction establishes a concrete mechanism, not missing history.
+
+### Final verification and integration readback
+
+- Engine reviewed head `646c9ece`: build and `gate:merge` PASS (typecheck/lint,
+  fast and hybrid); affected eight suites **243/243**, native request-proof
+  **4/4**. [PR #110](https://github.com/deksden-com/dd-flow-cli/pull/110) squash
+  merged as `a8d1318a`; its Git tree equals the verified head's tree.
+- Main-based tooling head `7fadf5b`: all eight source/native suites **26/26**,
+  zero skips, using the final built engine ABI. This includes real disposable
+  PostgreSQL, browser, mixed native diagnostics and relocated API packaging.
+  API typecheck/build PASS. [PR #15](https://github.com/deksden-com/dd-tasks/pull/15)
+  squash merged as `dc7b322`; its tree equals the verified integration head's tree.
+- EVAL: affected baseline/resource/status/diagnostic/retirement sets **46/46**,
+  fork/recovery set **19/19**, syntax and diff checks PASS. No full release profile
+  or unchanged live Judge qualification was repeated.
+
+Historical unmerged experiments are retained under
+`archive/cleanup-20261022/*`, not silently merged into the current implementation.
+The scored-source archive points to `5270b26`; the CP237 flow-pack archive retains
+`9824552`. Needed ignored local data (`.env`, `.tasks`, test observations) and
+the checked engine dist were copied before worktree removal to private local
+`/Users/deksden/Documents/_Projects/_artifacts/plan096-cleanup-20261022.KYCMIn`.
+Generated dependency/build directories need not be retained in worktrees.
+The active E5 worktree and the user's primary `eval/cp162-flow-pack` checkout are
+outside cleanup; their uncommitted/unpublished work remains unchanged.
