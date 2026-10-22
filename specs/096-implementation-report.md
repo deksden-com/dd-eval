@@ -105,3 +105,51 @@ budget or reinterpret the historical failure. Likewise AGY's unclean native
 settlement remains unknown even after confirmed physical shutdown.
 
 This is not a release-acceptance or full-E2E success receipt.
+
+## Independent review and integration (2026-10-22)
+
+The follow-up review found and corrected substantial gaps rather than treating
+the original green merge profile as proof of completeness:
+
+1. Valid incomplete child evidence was discarded by the recursive reader. The
+   producer and reader now retain its primary error and artifact tree, propagate
+   unknown observation (including empty reports and zero native exit), and stop
+   the remaining pipeline. No PASS/source-repair is granted by partial evidence.
+2. A static repository-tooling import made the relocated/deployed API fail on
+   module load. Migration diagnostics now load only on an observed test failure;
+   production imports do not depend on repository scripts. SQL behavior is unchanged.
+3. An invalid setup sidecar without an operation ID could suppress unrelated
+   native errors through `undefined === undefined`. Deduplication now requires an
+   actual retained operation identity.
+4. Browser terminal/snapshot/diagnostic publication failures could erase the
+   native timeout. Primary failures survive; a separate publication failure
+   blocks source attribution. Refusals at four publication boundaries are tested.
+5. Native scope restart/load did not retain the browser cache even though normal
+   controller dispatch did. Producer, recovery consumer and native request
+   fingerprint now share the additive cache input, preserving legacy contracts.
+6. An actual missing pinned Playwright executable was left unclassified. Only the
+   exact native expected-path/ENOENT case becomes a tooling diagnostic, not all
+   browser launch errors.
+7. Direct live-root classifier calls checked file ownership but not the new
+   migration/tool proof checksum. Both live entry paths now validate the checksum;
+   retained capture-time attribution remains unchanged after a later source edit.
+8. Compact aggregate diagnostics exposed native refs relative to the wrong root.
+   They now retain the immediate child-report locator, from which nested proof
+   refs can be followed, without copying repair authority into EVAL.
+9. RUN-control status has no `physical_stopped` field. Status now also consumes the
+   existing scoped retirement proof, only when its manifest/resource binding and
+   fresh fenced inventory still match. A new owner/generation invalidates it;
+   native outcome and capture remain pending independently of physical stop.
+10. Fatal docs/value I/O refusals lost their structured primary cause. A shared
+    native-error observation boundary preserves it without intercepting the
+    process's default fatal exit or granting candidate repair.
+
+Integration of dd-tasks uses a new branch from current `origin/main` and only the
+reviewed tooling commits, not a merge of the old scored-source product tree.
+In particular, current product migration options/reset behavior are preserved.
+The scored-source lineage is retained separately for reproducibility.
+
+Final review checks and merge/cleanup readback are recorded below. No GitHub CI,
+release, new E2E, provider call or historical EVAL modification is authorized by
+this receipt. The exact historical CP240 snapshot-loss branch remains unprovable;
+the native reproduction establishes a concrete mechanism, not missing history.

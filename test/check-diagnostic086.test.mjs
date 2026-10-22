@@ -22,6 +22,20 @@ test("compact native and engine failures redact Bearer and credential variants",
   assert.equal(compactCheckDiagnostic({ execution_failures: [{ message: "token-".repeat(50000) }] }).execution_failures[0].message.length, 1024);
 });
 
+test("aggregate diagnostics locate the child report instead of rebasing native refs incorrectly", () => {
+  const report = { relative_path: "steps/format/report.json", sha256: "b".repeat(64) };
+  const failure = { category: "unclassified", native_code: "format", message: "original format error", diagnostic_artifact: { relative_path: "native.json", sha256: "a".repeat(64) },
+    child_evidence: { step_id: "format", report, binding: { command: "secret" } } };
+  const compact = compactCheckDiagnostic({ runner_evidence: { completed: true, failures: [failure] } }).runner_evidence.failures[0];
+  assert.deepEqual(compact.child_evidence, { step_id: "format", report });
+  assert.equal(compact.diagnostic_artifact, undefined, "native.json is not relative to the aggregate root");
+  assert.equal(compact.message, "original format error");
+  failure.child_evidence.report = { ...report, relative_path: "../foreign/report.json" };
+  const invalid = compactCheckDiagnostic({ execution_failures: [failure] }).execution_failures[0];
+  assert.equal(invalid.child_evidence, undefined);
+  assert.equal(invalid.diagnostic_artifact, undefined, "invalid child cannot turn a native ref into a root ref");
+});
+
 test("CP237 accepted Turn observation loss is tooling failure, never overload or product failure", () => {
   const cause = { code: "operation_observation_lost", details: { native_dispatch_started: true,
     provider_session_id: "thread", turn_id: "turn", native_outcome: "unknown",
