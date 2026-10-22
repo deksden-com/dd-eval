@@ -3,6 +3,19 @@ import assert from "node:assert/strict";
 import { failureDiagnostic, executionEvidence, isInfrastructureFailure, classifyInterruption } from "../lib/runner.mjs";
 import { compactCheckDiagnostic } from "../lib/check-diagnostic.mjs";
 
+test("partial @2 diagnostics retain bounded child locators without becoming complete or native pending", () => {
+  const report = { relative_path: "steps/tests/report.json", sha256: "a".repeat(64) };
+  const projection = { state: "partial", reason: "count_bound", represented: 63, omitted: 1 };
+  const result = compactCheckDiagnostic({ runner_evidence_required: { schema_id: "dd-flow/check-runner-evidence@2", path: "quality.runner.json" }, runner_evidence: { schema_id: "dd-flow/check-runner-evidence@2", completed: true, counts: { failed: 100 }, failure_projection: projection, failures: [{ category: "unclassified", native_code: "TypeError", repair_evidence: { rule: "candidate_test_runtime_error" } }], steps: [{ id: "tests", state: "failed", report, binding: { secret: "SECRET" } }, { id: "bad", report: { ...report, relative_path: "../escape" } }] } });
+  assert.equal(result.runner_evidence.completed, false);
+  assert.equal(result.runner_evidence.observation_unknown, undefined);
+  assert.deepEqual(result.runner_evidence.failure_projection, projection);
+  assert.deepEqual(result.runner_evidence.steps, [{ id: "tests", state: "failed", report }]);
+  assert.equal(result.runner_evidence.failures[0].native_code, "TypeError");
+  assert.equal(result.runner_evidence.failures[0].repair_evidence, undefined);
+  assert.ok(!JSON.stringify(result).includes("SECRET"));
+});
+
 test("compact diagnostic retains safe hashed locators without granting repair authority", () => {
   const ref = { relative_path: "diagnostics/failure.json", sha256: "a".repeat(64) };
   const result = compactCheckDiagnostic({ runner_evidence: { failures: [{ category: "tooling", diagnostic_artifact: ref, repair_evidence: { arbitrary: true } }] }, execution_failures: [{ diagnostic_artifact: { ...ref, relative_path: "../escape" } }] });
