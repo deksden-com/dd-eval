@@ -11,9 +11,9 @@
   "reasoning": "high",
   "mode": "accept-edits",
   "runtime": {
-    "agy": "1.4.4",
+    "agy": "1.4.5",
     "dd_harness_contract": "dd-agy-harness@1"
   },
-  "notes": "CP240 AGY 1.4.4 compatibility passed with the encoded Gemini reasoning fix: one direct child started and settled_by_root (not an inferred child Work success). Physical/native cleanup settled. Native model attribution remains incomplete. Pin capacity conservatively to 1; full scored E2E remains pending.",
-  "subagent_capacity": 1
+  "subagent_capacity": 1,
+  "notes": "CP243 AGY 1.4.5 compatibility qualified after restored access; native capacity smoke retained at /Users/deksden/.dd-eval/qualification/cp-243-agy-compatibility/conformance/harness-compatibility/20261022092902509/antigravity-cli-google-gemini-3-8-flash-high/receipt.json. One direct child observed; native model attribution limitation remains. Conservative capacity 1; scored E2E pending."
 }
