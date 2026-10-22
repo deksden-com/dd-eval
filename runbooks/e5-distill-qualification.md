@@ -194,3 +194,18 @@ extract Session (`01a163ad-e833-7932-8990-ffa4d8a266b8`). Boundary manifest SHA:
 `ad6d91ff907affa97bbf9aaad07f50277135b227887757df0134a73153778c5e`.
 This proves the original capture failure is corrected on the real path, not
 that extract or the remaining model lifecycle/Judge has passed.
+
+Paired installed regression subsequently passed2/2 without skips (146.44s):
+`test/managed-flow-client.integration.test.mjs` and
+`test/eval-resume.integration.test.mjs`, sequentially, with the XAACfz installed
+CLI and matching source fixture adapter. Private root:
+`_artifacts/e5-distill-paired.mos1E5`; private Eval/registry/resources overrides
+were explicit and campaign Flow routing variables were unset. Both ordinary
+SDLC stages/captures and background continuation of a retained RUN completed.
+This is the affected paired integration gate, not the complete paired npm suite
+or real-provider conformance. No tests or source/dist were rebuilt during it.
+
+Actual Subject's two extract Work units completed with their expected result
+schemas: domain-04 proposes one candidate; process-09 proposes none and retains
+limitations. These are author proposals, not independent critic acceptance.
+The controller is still collecting the extract result, without reported error.
