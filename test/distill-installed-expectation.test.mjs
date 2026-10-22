@@ -8,7 +8,8 @@ import { resolveMemoryExecutionExpectation, readMemoryExecutionSnapshot } from '
 
 for (const {flow,cell,receiptFile,contour} of [
   {flow:'mb-distill',cell:process.env.DD_EVAL_DISTILL_INSTALLED_CELL,receiptFile:'mb-distill-receipt.json',contour:['preflight','extract','review','promote','verify','finish']},
-  {flow:'mb-fix',cell:process.env.DD_EVAL_REPAIR_INSTALLED_CELL,receiptFile:'mb-fix-preparation-receipt.json',contour:['intake','repair','verify','review','finish']}
+  {flow:'mb-fix',cell:process.env.DD_EVAL_REPAIR_INSTALLED_CELL,receiptFile:'mb-fix-preparation-receipt.json',contour:['intake','repair','verify','review','finish']},
+  {flow:'review-fix',cell:process.env.DD_EVAL_REVIEW_FIX_INSTALLED_CELL,receiptFile:'review-fix-preparation-receipt.json',contour:['intake','scope-review','handoff']}
 ]) test(`installed ${flow} expectation matches its completed RUN without allocating runtime state`, {
   skip: !cell
 }, async () => {
