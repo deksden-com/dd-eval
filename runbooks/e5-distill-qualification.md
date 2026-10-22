@@ -60,3 +60,33 @@ original inputs/results and distinguish model quality, physical settlement and
 publication effects. Then complete paired regressions, applicable Console
 consumer proof, review, project-policy integration/readback and owned cleanup.
 No production publication, global install or migration is implied.
+
+## Native case preparation — 2026-10-22
+
+Case/checkpoint/rubric commit: `89e0e3c`. The source remains the exact authored
+ledger bundle `fc3edfee4d6dc8b27a664bb5ee5e08cc58387817`. The original request
+selects domain-04 and process-09, explicitly excludes other aspects and permits
+only one document in a separate fixture-owned peer destination. Baseline setup
+is idempotent only before publication; changed output or a foreign owner refuses
+without reset. The assessment is not exposed as Subject input. It accepts
+evidence-backed alternatives and honest no-promotion, but not fictitious
+implementation guarantees, repairs, criticism or executed checks.
+
+Current checkpoint selects CLI `f6dd596ded5a13d7ad076d59b81f746a40b96e0f`, canon
+`0f934217dd60340193d44f026fc3d3f61046006b` and full-content engine
+`8f7df86d42f7a36dcd9aca464019bbc4699a78eb7bc20a987b18d3ec69c0a9cf`.
+This successor explicitly supplies each Work with its original request reference
+and the issued current-user-input command. It has a new immutable installed
+candidate, `e5-distill-candidate.XpCWEe`; the earlier GK9y5S proof is not relabelled
+as proof of the added context. The successor's full installed fixture is running.
+
+Case/baseline plus existing preparation/client regression passed46/46, zero
+failures/skips. The private actual-model root is
+`/Users/deksden/Documents/_Projects/_artifacts/e5-distill-native.SHQwQX`.
+Its operation-only Subject profile, Judge runtime template and Codex harness
+configuration contain no copied credentials. The existing installed Codex reports
+0.163.0. Router engine/setup completed only in the private router Home, using the
+temporary development trust; no qualified production route was claimed. Native
+preflight is running with separate Eval/config/resources/registry and the frozen
+expanded canon. No real Subject/Judge call has been started yet; there is no
+native quality PASS at this checkpoint.
