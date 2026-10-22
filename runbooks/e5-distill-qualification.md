@@ -209,3 +209,42 @@ Actual Subject's two extract Work units completed with their expected result
 schemas: domain-04 proposes one candidate; process-09 proposes none and retains
 limitations. These are author proposals, not independent critic acceptance.
 The controller is still collecting the extract result, without reported error.
+
+## Native candidate completed and independently judged
+
+`EVAL-20261022124345-d362dcb2` completed all six stages on the unchanged XAACfz
+engine/canon tuple. Both critics recommended adapt; one optional compact
+assertion-index example was published to the single agreed destination file.
+The original destination boundary remains, and original project Git status was
+clean. Promotion and verification used distinct physical Codex Sessions. Actual
+VERIFY read retained before text and published output; FINISH retained the
+origins, critic decisions and limitations. No HITL exchange was needed because
+the original request already supplied the selected scope and destination.
+
+Final Judge `gpt-6.1-sol/high` returned run_validity:valid, scores3/4 for
+evidence-fidelity and4/4 for portable-value, bounded-authority and independent-
+lifecycle. One minor finding remains: research did not explicitly reconcile the
+contradictory shipped-safety documentation against implementation/accepted DEF.
+Judge confirms none of those false guarantees entered the transferred example;
+the gap does not invalidate this run. Preserve the original assessment/result,
+do not rewrite them or claim zero findings. This is exact Codex0.163.0/Luna-xhigh
+Subject/Sol-high Judge case evidence, not qualification of other routes or E6.
+
+Judge cleanup is settled. Owner cleanup request
+`e5-distill-final-owned-cleanup` completed with physical_stopped:true,
+native_settled:true, cleanup_state:settled and no live registered processes.
+Initial status nevertheless reported native_settlement_pending: the observer
+used the unrequested RUN-control receipt and ignored the independently current,
+native-settled EVAL retirement proof. Corrected observation now uses that proof
+only with matching manifest/resource/scope/fenced inventory, no provider turns,
+settled cleanup receipt and all native nodes settled. Physical-only flags do not
+authorize native settlement; candidate path/version/hash checks remain intact.
+
+Cleanup/status regression passed10/10 and retirement reuse/sidecar regression
+passed3/3, zero skips; syntax/diff checks passed. The first added test supplied an
+incomplete @7 snapshot fixture and failed; adding the required independent-Git
+workspace shape corrected the fixture without relaxing the version gate. Actual
+readback now reports physical:settled, capture:ready, finalization:completed,
+state:completed and zero live processes. No Subject/Judge or frozen report was
+rerun or edited for this observer correction. Whole E5 review/integration and
+the remaining workflow families are still open.

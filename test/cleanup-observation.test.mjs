@@ -32,6 +32,33 @@ test('actual RUN status uses only a current fenced EVAL retirement proof for phy
     input.live.inventory = replacement;
     assert.equal((await cleanupObservation(input)).physical, 'unknown', 'changed or missing inventory cannot reuse an old stop proof');
   }
+  input.live.inventory = inventory;
+  input.live.executions[0].receipt.control = null;
+  const snapshotFile = path.join(root, 'candidate.json');
+  const snapshot = JSON.stringify({ schema_id: 'dd-flow/eval-run-snapshot@7', purpose: 'candidate', run_id: 'RUN-1', project_root: project, dd_flow_home: runtime, workspace: { kind: 'git_repository' } });
+  await writeFile(snapshotFile, snapshot);
+  input.results[0] = { execution: 'e', state: 'candidate_ready', run_id: 'RUN-1', candidate: {
+    manifest: snapshotFile, manifest_sha256: createHash('sha256').update(snapshot).digest('hex') } };
+  saved.result.native_settled = true;
+  saved.result.cleanup_state = 'settled';
+  assert.equal((await cleanupObservation(input)).capture, 'pending', 'native flag alone cannot override an unrequested RUN control');
+  saved.result.receipt.settled = true;
+  saved.result.receipt.nodes = [{ settled: false }];
+  assert.equal((await cleanupObservation(input)).capture, 'pending', 'every native node must actually settle');
+  saved.result.receipt.nodes = [{ settled: true }];
+  const retiredCandidate = await cleanupObservation(input);
+  assert.equal(retiredCandidate.physical, 'settled');
+  assert.equal(retiredCandidate.capture, 'ready', 'bound EVAL retirement proves native settlement without creating a RUN control');
+  assert.equal(retiredCandidate.executions[0].reason, 'settled_candidate_verified');
+  inventory.provider_turns.push({ operation_id: 'still-active' });
+  saved.result.inventory.provider_turns.push({ operation_id: 'still-active' });
+  assert.equal((await cleanupObservation(input)).capture, 'pending', 'even a matching retirement record cannot hide a current provider turn');
+  inventory.provider_turns.pop(); saved.result.inventory.provider_turns.pop();
+  saved.result.native_settled = false;
+  assert.equal((await cleanupObservation(input)).capture, 'pending');
+  saved.result.native_settled = true;
+  input.results[0].candidate.manifest_sha256 = '0'.repeat(64);
+  assert.equal((await cleanupObservation(input)).capture, 'unknown', 'settlement never blesses changed candidate bytes');
 });
 
 test('late sealed capture is visible independently of report; foreign proof never completes cleanup', async t => {
