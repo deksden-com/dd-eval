@@ -54,7 +54,7 @@ test('interactive preparation uses managed public ingress with original intake a
   const bin = path.join(root, 'cli.mjs'), calls = path.join(root, 'calls.json'), intakeFile = path.join(root, 'intake.md');
   const raw = 'Change only the selected source; preserve unrelated staged edits.\r\n'; await writeFile(intakeFile, raw);
   const interactive = { requestId: 'interactive-request', intakeFile, intakeSha256: createHash('sha256').update(raw).digest('hex'),
-    profile: 'subject', gitRoute: 'integration_branch_direct', integrationBranch: 'main', stageProfiles: ['review=critic'], maxParallel: 1 };
+    profile: 'subject', workspaceRoot: root, gitRoute: 'integration_branch_direct', integrationBranch: 'main', stageProfiles: ['review=critic'], maxParallel: 1 };
   const receipt = { run_id: 'RUN-001-interactive', flow_id: 'interactive', action: 'flow_interactive_prepared', request_id: interactive.requestId };
   const script = value => `import fs from 'node:fs';fs.writeFileSync(${JSON.stringify(calls)},JSON.stringify(process.argv.slice(2)));console.log(JSON.stringify(${JSON.stringify(value)}));`;
   await writeFile(bin, script(receipt));
@@ -65,6 +65,7 @@ test('interactive preparation uses managed public ingress with original intake a
   for (const [flag, value] of [['--execution', 'managed'], ['--git-route', 'integration_branch_direct'], ['--integration-branch', 'main'], ['--intake-file', intakeFile]])
     assert.equal(args[args.indexOf(flag) + 1], value);
   assert(args.includes('--prepare-only')); assert(args.includes('--non-interactive')); assert(!args.includes('--intake-sha256'));
+  assert.equal(args[args.indexOf('--workspace') + 1], root); assert(!args.includes('--workspace-root'));
   assert.equal(await readFile(intakeFile, 'utf8'), raw);
   await rm(calls);
   for (const change of [{ interactive: undefined }, { flow: 'sdlc' }, { flow: 'mb-init' }, { memoryInit: {} }, { diagnostic: {} }, { memoryFix: {} },
