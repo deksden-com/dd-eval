@@ -1,5 +1,9 @@
 # 098 P3 — Native acceptance attempt, 2026-10-23
 
+Current status after access repair/update:
+[AGY1.4.6 native result](098-agy-p3-native-146-result.md). The account failure
+below is historical, not the current blocker.
+
 Outcome: **BLOCKED, not qualified**. New EVAL were not launched. This attempt
 does not replace the [review receipt](098-review-report.md) or promote AGY.
 
