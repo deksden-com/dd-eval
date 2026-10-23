@@ -1,0 +1,312 @@
+{
+  "schema_id": "dd-eval/stage-context-blueprint@1",
+  "stages": {
+    "preflight": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "preflight",
+      "objective": "Bind one interactive RUN, the exact original request, project pack and local main integration policy. Preserve source before scope admission.",
+      "task_input": [
+        {
+          "role": "initial_user_request",
+          "path": ".dd-eval/request.md",
+          "source": "request.md",
+          "sha256": "c74973370aebe326e5db7347baa18581773239279bcf854e8a25d68236cc5081"
+        }
+      ],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "actual.ts",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "unrelated.txt",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/actual.test.mjs",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI supplies exact lifecycle commands, retained user inputs and assigned scope. Agent judgments do not replace runtime receipts."
+        }
+      ]
+    },
+    "interactive": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "interactive",
+      "objective": "Retain scope actual.ts before editing. Change actual from 2 to 3 while preserving the exact existing comment, then genuinely pause for explicit finish. Do not begin consolidation before the canonical finish answer is issued.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "actual.ts",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "unrelated.txt",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/actual.test.mjs",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI supplies exact lifecycle commands, retained user inputs and assigned scope. Agent judgments do not replace runtime receipts."
+        }
+      ]
+    },
+    "consolidation": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "consolidation",
+      "objective": "Consolidate the retained actual.ts-only delta after genuine finish. Preserve original request, finish answer, file scope and existing local commit authority without inventing new requirements.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "actual.ts",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "unrelated.txt",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/actual.test.mjs",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI supplies exact lifecycle commands, retained user inputs and assigned scope. Agent judgments do not replace runtime receipts."
+        }
+      ]
+    },
+    "hardening": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "hardening",
+      "objective": "A physically separate author examines the actual bounded output. Retain genuine current check evidence; original integer-only test does not establish the requested exact value.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "actual.ts",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "unrelated.txt",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/actual.test.mjs",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI supplies exact lifecycle commands, retained user inputs and assigned scope. Agent judgments do not replace runtime receipts."
+        }
+      ]
+    },
+    "review": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "review",
+      "objective": "A fresh independent read-only critic examines actual output and checks. Do not substitute writer claims for acceptance. Material findings must be corrected and independently re-reviewed before integration.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "actual.ts",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "unrelated.txt",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/actual.test.mjs",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI supplies exact lifecycle commands, retained user inputs and assigned scope. Agent judgments do not replace runtime receipts."
+        }
+      ]
+    },
+    "integration": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "integration",
+      "objective": "After accepted hardening/review and checks, make exactly the already authorized local main commit containing only actual.ts. Preserve every other file. No push, publication or deployment.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "actual.ts",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "unrelated.txt",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/actual.test.mjs",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original project context and preservation boundary; inspect actual bytes."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI supplies exact lifecycle commands, retained user inputs and assigned scope. Agent judgments do not replace runtime receipts."
+        }
+      ]
+    }
+  }
+}

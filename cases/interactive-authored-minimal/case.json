@@ -1,0 +1,12 @@
+{
+  "schema_id":"dd-eval/case@7",
+  "suite_id":"interactive-flow-e5",
+  "id":"interactive-authored-minimal",
+  "assessment":"assessment.json",
+  "input":[{"role":"initial_user_request","source":"entry-pack-source/request.md","sha256":"c74973370aebe326e5db7347baa18581773239279bcf854e8a25d68236cc5081"}],
+  "input_checkpoint":{"id":"cp-interactive-authored-minimal-e5-installed","sha256":"25c7aa8325ac7f9b22dd1c7f813cde7cdb9fd3b908673a60900d73127d627234"},
+  "entry_pack":null,
+  "baseline_admission":{"file":"baseline-admission.json","sha256":"c6edec0e2b69057612ad78a806458b6b28b6781bc2d6b5e5ac49cb68f80cbc98"},
+  "profiles":{"subject":["codex-desktop-gpt-6-luna-xhigh-codex-0-163-0"],"judge":["codex-desktop-gpt-6-1-sol-high-codex-0-163-0"]},
+  "flow":{"id":"interactive","contour":["preflight","interactive","consolidation","hardening","review","integration"],"terminal_stage":"integration","git_policy":{"route":"integration_branch_direct","integration_branch":"main"}}
+}
