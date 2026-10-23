@@ -6,6 +6,48 @@ import path from "node:path";
 import { createHash } from 'node:crypto';
 import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
 
+for (const mode of ['turn', 'finish', 'missing', 'pending', 'foreign', 'controlled', 'invalid']) test(`interactive observer uses public input custody: ${mode}`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'observe-interactive-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), callsFile = path.join(root, 'calls.jsonl'), intakeFile = path.join(root, 'input.md');
+  const raw = 'Original authorized user input.\r\n'; await writeFile(intakeFile, raw);
+  const sha256 = 'a'.repeat(64);
+  await writeFile(bin, `import fs from 'node:fs';
+const args=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(callsFile)},JSON.stringify(args)+'\\n');
+let result;
+if(args[0]==='run' && args[1]==='drive' && args[2]==='status') result={controller:{controller_id:'DRV',status:fs.existsSync(${JSON.stringify(path.join(root, 'controlled'))})?'control_requested':'waiting_for_user',stage:'interactive'},events:[]};
+else if(args[0]==='run' && args[1]==='status') result={index:{stage_runs:[{stage:'interactive',status:'paused',pause:{id:'HITL-1'}}]}};
+else if(args[0]==='interactive' && args[1]==='inputs') result={run_id:'RUN-001-interactive',sha256:${JSON.stringify(sha256)}};
+else if(args[0]==='interactive' && ['turn','finish'].includes(args[1])) {
+  if(fs.readFileSync(args[args.indexOf('--intake-file')+1],'utf8')!==${JSON.stringify(raw)}) throw new Error('Original input bytes changed');
+  result={delivery:{kind:${JSON.stringify(mode === 'pending' ? 'controller_answer_pending' : 'controller_answer')},pause_id:${JSON.stringify(mode === 'foreign' ? 'HITL-foreign' : 'HITL-1')},operation_id:'DRV:answer:original'}};
+} else throw new Error('Unexpected command or direct native dispatch: '+JSON.stringify(args));
+console.log(JSON.stringify(result));`);
+  const input = { bin, projectRoot: root, runId: 'RUN-001-interactive', controllerId: 'DRV', requestId: 'execution-one', flow: 'interactive',
+    observeOnce: true, pollMs: 0, answerFor: () => assert.fail('Interactive must not bypass retained turn/finish with generic answer'),
+    interactiveInputFor: async (stage, run, controller, inputs) => {
+      assert.equal(stage.pause.id, 'HITL-1'); assert.equal(controller.controller_id, 'DRV'); assert.equal(inputs.sha256, sha256);
+      if (mode === 'controlled') await writeFile(path.join(root, 'controlled'), 'stop');
+      return mode === 'missing' ? null : { kind: mode === 'finish' ? 'finish' : mode === 'invalid' ? 'answer' : 'turn', intakeFile };
+    } };
+  if (mode === 'foreign') await assert.rejects(observeManagedRun(input), { code: 'controller_receipt_invalid' });
+  else if (mode === 'controlled') await assert.rejects(observeManagedRun(input), { code: 'managed_run_controlled' });
+  else if (mode === 'invalid') await assert.rejects(observeManagedRun(input), { code: 'managed_flow_input_invalid' });
+  else {
+    const result = await observeManagedRun(input);
+    if (mode === 'missing') assert.equal(result.pending_answer.pause_id, 'HITL-1');
+    else if (mode === 'pending') assert.equal(result.pending_input.receipt.delivery.kind, 'controller_answer_pending');
+    assert.equal(result.controller.status, 'waiting_for_user');
+  }
+  const calls = (await readFile(callsFile, 'utf8')).trim().split('\n').map(JSON.parse);
+  const delivered = calls.filter(args => args[0] === 'interactive' && ['turn', 'finish'].includes(args[1]));
+  assert.equal(delivered.length, ['missing', 'controlled', 'invalid'].includes(mode) ? 0 : 1);
+  if (delivered.length) {
+    assert.equal(delivered[0][delivered[0].indexOf('--expected-inputs-sha256') + 1], sha256);
+    assert.match(delivered[0][delivered[0].indexOf('--request-id') + 1], /^input-[a-f0-9]{64}$/);
+  }
+});
+
 test('interactive preparation uses managed public ingress with original intake and explicit Git policy', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'managed-interactive-'));
   t.after(() => rm(root, { recursive: true, force: true }));
