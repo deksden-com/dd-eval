@@ -6,6 +6,37 @@ import path from "node:path";
 import { createHash } from 'node:crypto';
 import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
 
+test('interactive preparation uses managed public ingress with original intake and explicit Git policy', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-interactive-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), calls = path.join(root, 'calls.json'), intakeFile = path.join(root, 'intake.md');
+  const raw = 'Change only the selected source; preserve unrelated staged edits.\r\n'; await writeFile(intakeFile, raw);
+  const interactive = { requestId: 'interactive-request', intakeFile, intakeSha256: createHash('sha256').update(raw).digest('hex'),
+    profile: 'subject', gitRoute: 'integration_branch_direct', integrationBranch: 'main', stageProfiles: ['review=critic'], maxParallel: 1 };
+  const receipt = { run_id: 'RUN-001-interactive', flow_id: 'interactive', action: 'flow_interactive_prepared', request_id: interactive.requestId };
+  const script = value => `import fs from 'node:fs';fs.writeFileSync(${JSON.stringify(calls)},JSON.stringify(process.argv.slice(2)));console.log(JSON.stringify(${JSON.stringify(value)}));`;
+  await writeFile(bin, script(receipt));
+  const input = { bin, projectRoot: root, flow: 'interactive', interactive };
+  assert.deepEqual(await prepareManagedRun(input), receipt);
+  const args = JSON.parse(await readFile(calls));
+  assert.deepEqual(args.slice(0, 2), ['flow', 'interactive']);
+  for (const [flag, value] of [['--execution', 'managed'], ['--git-route', 'integration_branch_direct'], ['--integration-branch', 'main'], ['--intake-file', intakeFile]])
+    assert.equal(args[args.indexOf(flag) + 1], value);
+  assert(args.includes('--prepare-only')); assert(args.includes('--non-interactive')); assert(!args.includes('--intake-sha256'));
+  assert.equal(await readFile(intakeFile, 'utf8'), raw);
+  await rm(calls);
+  for (const change of [{ interactive: undefined }, { flow: 'sdlc' }, { flow: 'mb-init' }, { memoryInit: {} }, { diagnostic: {} }, { memoryFix: {} },
+    { executionRoutingFile: 'foreign' }, ...[{ gitRoute: 'implicit' }, { integrationBranch: '' }, { profileFile: 'also-selected' },
+      { maxParallel: 0 }, { intakeSha256: '0'.repeat(64) }, { execution: 'attached' }].map(patch => ({ interactive: { ...interactive, ...patch } }))]) {
+    await assert.rejects(prepareManagedRun({ ...input, ...change }), { code: 'managed_flow_input_invalid' });
+    await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  }
+  for (const change of [{ flow_id: 'mb-init' }, { action: 'flow_interactive_attached' }, { request_id: 'foreign' }, { controller: {} }]) {
+    await writeFile(bin, script({ ...receipt, ...change }));
+    await assert.rejects(prepareManagedRun(input), { code: 'controller_receipt_invalid' });
+  }
+});
+
 test('source-snapshot preparation reuses public managed RUNs without mutation-route selectors', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'managed-diagnostic-'));
   t.after(() => rm(root, {recursive:true,force:true}));
