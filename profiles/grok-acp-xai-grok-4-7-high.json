@@ -11,10 +11,10 @@
   "reasoning": "high",
   "mode": "bypassPermissions",
   "runtime": {
-    "grok": "1.0.66",
+    "grok": "1.0.69",
     "acp": 1,
     "dd_harness_contract": "dd-grok-harness@1"
   },
-  "notes": "Grok 1.0.66 compatibility passed for CP240 with one completed direct child and settled native/physical cleanup. Pin capacity conservatively to 1; this does not claim four-child throughput or completed scored E2E.",
-  "subagent_capacity": 1
+  "subagent_capacity": 1,
+  "notes": "CP246 Grok 1.0.69 compatibility passed with one completed direct child and native/physical cleanup confirmed. Receipt: /Users/deksden/.dd-eval/qualification/cp-246-grok-compatibility-r2/conformance/harness-compatibility/20261023171231073/grok-acp-xai-grok-4-7-high/receipt.json. Conservative capacity 1; scored E2E pending."
 }
