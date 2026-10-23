@@ -1,0 +1,21 @@
+{
+  "id": "cp-interactive-authored-minimal-e5-issued-basis",
+  "source": {
+    "repository": "test/fixtures/interactive/minimal-v5.bundle",
+    "commit": "03a220a5416f40638746ecc7c743114d02642bf2"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "49e45882f6e529e0173252574eaaa07b43bdc9c2",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "c78bb2a045203a796274ec19c46afb44e4d60316",
+      "version": "0.9.0-beta.145",
+      "artifact_sha256": "e9f9805645af116720a7ec9146fce424fcb84753aff615a31f20cbf28befe34d"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
