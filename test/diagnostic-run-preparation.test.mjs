@@ -76,8 +76,8 @@ console.log(JSON.stringify(args[0]==='setup'?${JSON.stringify(setup)}:{run_id:'R
   assert.equal(await materializeOperationalDecision({flowId:flow,projectRoot,runtimeRoot:path.join(root,'runtime')}),null);
   assert.equal((await prepareCaseManagedRun(input)).run_id,'RUN-diagnostic');
   const commands=(await readFile(calls,'utf8')).trim().split('\n').map(value=>JSON.parse(value));
-  assert.equal(commands.length,flow==='interactive'?3:2);assert.equal(commands[0][0],'setup');
-  if(flow==='interactive') assert.deepEqual(commands[1],['project','register','--root',projectRoot,'--json']);
+  assert.equal(commands.length,flow==='interactive'||delivery?3:2);assert.equal(commands[0][0],'setup');
+  if(flow==='interactive'||delivery) assert.deepEqual(commands[1],['project','register','--root',projectRoot,'--json']);
   const args=commands.at(-1);assert.deepEqual(args.slice(0,2),['flow',flow]);assert.equal(args[args.indexOf('--intake-file')+1],intakeFile);
   assert(args[args.indexOf('--request-id')+1].startsWith(delivery?'delivery-':flow==='interactive'?'interactive-':'diagnostic-'));
   if(delivery) assert.equal(args[args.indexOf('--workspace')+1],projectRoot);
