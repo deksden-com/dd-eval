@@ -1,7 +1,8 @@
 # 099 — Implementation and acceptance
 
 Subsequent review/native probes: [099 review result](099-review-and-native-p3-result.md).
-The original implementation evidence below remains historical; P3 is still blocked.
+The original implementation evidence below remains historical. P3 subsequently
+passed for an exact AGY/client tuple: [completion receipt](099-agy-p3-completion.md).
 
 Дата: 2026-10-23. Code implementation; not a release or live AGY qualification.
 

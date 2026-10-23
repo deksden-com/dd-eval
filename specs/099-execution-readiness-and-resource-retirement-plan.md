@@ -1,8 +1,8 @@
 # 099 — Execution readiness отдельно от resource retirement
 
 Статус: код реализован; детерминированная приёмка описана в
-[implementation report](099-implementation-report.md). Live AGY P3 остаётся
-отдельным непрошедшим gate; qualification blocker не снят.
+[implementation report](099-implementation-report.md). Live AGY P3 затем завершён
+для exact AGY 1.4.6/client tuple: [приёмка PASS](099-agy-p3-completion.md).
 Дата: 2026-10-23. Новые EVAL, native-пробы, release и изменения hooks/pins
 в рамках подготовки этого плана запрещены.
 
