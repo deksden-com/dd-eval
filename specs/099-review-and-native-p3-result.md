@@ -1,5 +1,7 @@
 # 099 — Review and native P3 result
 
+Historical review/partial captures. Subsequent P3 completion: [099 AGY P3 PASS](099-agy-p3-completion.md).
+
 2026-10-23. Review of engine `b90bcdce` and EVAL `b175844d`, including their
 unmerged 098 followups. No EVAL, release, pins/hooks update or GitHub CI.
 
