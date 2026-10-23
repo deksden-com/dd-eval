@@ -29,9 +29,20 @@ for(const flow of ['release','deploy','publish']) test(`authored ${flow} case pr
   const head=git('rev-parse','HEAD'),index=await readFile(path.join(project,'.git/index'));
   const baseline=await readBaselineAdmissionPolicy({caseRoot:loaded.root,definition:loaded.value.baseline_admission});
   const env={...process.env,DD_EVAL_DELIVERY_TARGET:target};delete env.NODE_TEST_CONTEXT;
+  const policy=JSON.parse(await readFile(path.join(project,`delivery-policy-${flow}.json`)));
+  for(const procedure of Object.values(policy.bindings[0].procedures).filter(Boolean)) {
+    // Productive delivery intentionally strips ambient environment. A bare
+    // executable must explicitly retain PATH; ordinary shell tests hid this.
+    if(!path.isAbsolute(procedure.argv[0])) assert(procedure.permitted_environment_variables.includes('PATH'),
+      `${flow}/${procedure.id}: bare executable requires explicitly permitted PATH`);
+  }
   execFileSync(baseline.commands[0].command,baseline.commands[0].args,{cwd:project,env});
   // This is provider-program qualification only, not CLI authority/model proof.
-  const call=action=>JSON.parse(execFileSync('node',['delivery.mjs',action,flow],{cwd:project,env,encoding:'utf8',stdio:['ignore','pipe','pipe']})||'null');
+  const call=action=>{
+    const procedure=policy.bindings[0].procedures[action==='execute'?'execute':'result_readback'];
+    const permitted=Object.fromEntries(procedure.permitted_environment_variables.filter(name=>env[name]!==undefined).map(name=>[name,env[name]]));
+    return JSON.parse(execFileSync(procedure.argv[0],procedure.argv.slice(1),{cwd:project,env:permitted,encoding:'utf8',stdio:['ignore','pipe','pipe']})||'null');
+  };
   assert.equal(call('result').status,'absent');
   call('execute');
   const observed=call('result');

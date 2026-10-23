@@ -1,8 +1,8 @@
 {
   "id": "cp-deploy-authored-minimal-e5-installed",
   "source": {
-    "repository": "test/fixtures/delivery/minimal-v1.bundle",
-    "commit": "25a851c962e401953d6e5e1e223ec4d12a304655"
+    "repository": "test/fixtures/delivery/minimal-v2.bundle",
+    "commit": "69e6840d31f35c6cab3cc441350c066b1cf8f697"
   },
   "flow_pack": {
     "repository": "https://github.com/deksden/dd-memorybank.git",
