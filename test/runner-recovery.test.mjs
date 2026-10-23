@@ -9,6 +9,7 @@ import { appendEvent, recordOperation, completeOperation, readEvents, reduceEven
 import { requestRunnerContinuation } from "../lib/eval-resume-worker.mjs";
 import { cleanupBinding } from "../lib/eval-retirement.mjs";
 import { setTimeout as delay } from "node:timers/promises";
+import { successfulNativeFixture } from './fixtures/capacity-policy.mjs';
 
 test("public cleanup retry retains an exhausted attempt and a new identity runs cleanup only", { timeout: 15000 }, async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-cleanup-worker-"));
@@ -404,12 +405,18 @@ const a=process.argv.slice(2),id=process.env.DD_EVAL_OPERATION_ID,state=a[a.inde
 if(a[0]!=='daemon'||a[1]!=='stop'||!a.includes('--cancel-tree'))throw Error('productive action forbidden');
 fs.appendFileSync(${JSON.stringify(calls)},id+'\\n');
 const put=(file,value)=>{fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,JSON.stringify(value));};
-const s=JSON.parse(fs.readFileSync(state+'/daemon.json'));put(state+'/daemon.json',{...s,shutdown_state:'clean',active_tree:false,shutdown:{schema_id:'dd-flow/daemon-shutdown@1',daemon_id:s.daemon_id,result:{clean:true},required_phases:['tree','provider_close','daemon_resource'],phases:{tree:true,provider_close:true,daemon_resource:true}}});
-const result={stopped:true,clean:true,shutdown_contract:'dd-flow/daemon-shutdown@1'},o=path.join(state,'operations',createHash('sha256').update(id).digest('hex'));
+put(state+'/operation-fence.json',{daemon_id:'owned-judge',generation:1});
+const s=JSON.parse(fs.readFileSync(state+'/daemon.json'));put(state+'/daemon.json',{...s,shutdown_state:'clean',active_tree:false,shutdown:{schema_id:'dd-flow/daemon-shutdown@2',daemon_id:s.daemon_id,generation:1,result:{daemon_id:s.daemon_id,shutdown_contract:'dd-flow/daemon-shutdown@2',stopped:true,physical_stopped:true,settled:true,native_settled:true,clean:true},required_phases:['execution', 'owned_resources','provider','daemon_resource'],phases:{execution:true,owned_resources:true,provider:true,daemon_resource:true}}});
+const result={stopped:true,clean:true,shutdown_contract:'dd-flow/daemon-shutdown@2'},o=path.join(state,'operations',createHash('sha256').update(id).digest('hex'));
 put(o+'/requested.json',{operation_id:id,operation:'daemon.stop',daemon_id:s.daemon_id});put(o+'/result.json',{state:'completed',result});console.log(JSON.stringify(result));`;
   await writeJsonAtomic(path.join(engineRoot, 'marker.json'), { fixture: true });
   const sourceAdapter = path.join(engineRoot, 'dist/harness-runtime/bin/dd-codex.mjs');
   await mkdir(path.dirname(sourceAdapter), { recursive: true }); await writeFile(sourceAdapter, adapterSource);
+  const lib = path.join(engineRoot, 'dist/harness-runtime/lib');
+  await mkdir(lib, { recursive: true });
+  await writeFile(path.join(lib, 'native-children.mjs'), successfulNativeFixture);
+  await writeFile(path.join(lib, 'operation-errors.mjs'), "export const OPERATION_ERROR_CONTRACT_VERSION='operation-errors@1';export const isObservationLoss=()=>false;");
+  await writeFile(path.join(lib, 'dd-agy.mjs'), "export const agyTerminalFailure=()=>null;");
   const checksum = await engineArtifactDigest(engineRoot), engine = { schema_id: 'dd-flow/engine-manifest@1', package_name: 'fixture', package_version: '1', engine_version: '1', integrity: { checksum }, snapshot_root: engineRoot };
   await writeJsonAtomic(path.join(engineRoot, 'engine.json'), engine);
   await cp(path.join(engineRoot, 'dist/harness-runtime'), path.join(home, 'harness-runtime'), { recursive: true });
@@ -495,7 +502,7 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
     assert.equal(pending.execution_state, "failed");
     assert.equal(pending.cleanup_state, "pending");
     const capture = path.join(runtime, "recovery", "REC-test"); await mkdir(capture, { recursive: true }); await writeJsonAtomic(path.join(capture, "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed" });
-    await writeJsonAtomic(statusFile, { ok: true, settled: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
+    await writeJsonAtomic(statusFile, { ok: true, settled: true, physical_stopped: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
     const final = await runnerResume({ evalRoot: root });
     assert.equal(final.state, "completed_with_failures");
     assert.equal(final.executions[0].incomplete_evidence, null);
@@ -537,7 +544,7 @@ for (const invalid of ["foreign", "missing", "malformed"]) test(`invalid settled
   const snapshot = { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed" };
   if (invalid === "foreign") await writeJsonAtomic(snapshotFile, { ...snapshot, run_id: "FOREIGN-RUN" });
   if (invalid === "malformed") await writeFile(snapshotFile, "{");
-  await writeJsonAtomic(statusFile, { ok: true, settled: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
+  await writeJsonAtomic(statusFile, { ok: true, settled: true, physical_stopped: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
   const blocked = await runnerResume({ evalRoot: root });
   assert.equal(blocked.state, "recovery_blocked"); assert.equal(blocked.cleanup_state, "blocked");
   assert.equal(blocked.executions[0].recovery.capture_error.code, "recovery_evidence_invalid");
@@ -642,7 +649,7 @@ for (const [owner, capture, receiptRun, statusRun = "RUN-test"] of [["absent", "
     if (blocked) assert.deepEqual(result.executions[0].recovery.finalization, finalization);
     if (blocked && capture === "recorded") {
       const sealed = path.join(runtime, "recovery", "REC-test"); await mkdir(sealed, { recursive: true }); await writeJsonAtomic(path.join(sealed, "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed" });
-      await writeJsonAtomic(statusFile, { scope: { run_id: "RUN-test" }, run_status: "done", settled: true, finalization,
+      await writeJsonAtomic(statusFile, { scope: { run_id: "RUN-test" }, run_status: "done", settled: true, physical_stopped: true, finalization,
         worker: { status: "completed" }, control: { current: true, admission: "sealed", capture_path: sealed, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
       const settled = await runnerResume({ evalRoot: root });
       assert.equal(settled.state, "completed_with_failures");

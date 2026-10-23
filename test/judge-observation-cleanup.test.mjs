@@ -8,7 +8,7 @@ import { interactionJudge, evalJudge } from '../lib/runner.mjs';
 import { appendEvent, writeJsonAtomic } from '../lib/runner-events.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { resolveExecutionContract } from '../lib/execution-contract.mjs';
-import { successfulPolicyFixture } from './fixtures/capacity-policy.mjs';
+import { successfulPolicyFixture, successfulNativeFixture } from './fixtures/capacity-policy.mjs';
 
 async function offlineRuntime(root, failureCode) {
   const home = path.join(root, 'executions/e/dd-flow-home'), engine = path.join(home, 'engines/offline'), native = path.join(engine, 'dist/harness-runtime'), lib = path.join(native, 'lib'), calls = path.join(root, 'calls.jsonl');
@@ -16,7 +16,7 @@ async function offlineRuntime(root, failureCode) {
   const errors = pathToFileURL(path.resolve('lib/operation-errors.mjs')).href;
   for (const [file, source] of [
     ['provider-overload-policy.mjs', successfulPolicyFixture],
-    ['native-children.mjs', "export const NATIVE_CHILD_CONTRACT_VERSION='native-children@2';export const NATIVE_TREE_SETTLEMENT_CONTRACT='native-tree-settlement@1';export const nativeTreeReadiness=()=> 'unproven';export const normalizeNativeChildren=()=>[];"],
+    ['native-children.mjs', successfulNativeFixture],
     ['operation-errors.mjs', `export {OPERATION_ERROR_CONTRACT_VERSION,isObservationLoss} from ${JSON.stringify(errors)};`],
     ['dd-agy.mjs', 'export const agyTerminalFailure=()=>null;'],
     ['observation-clock.mjs', "export const OBSERVATION_CLOCK_CONTRACT_VERSION='operation-progress@1';"],
@@ -33,7 +33,7 @@ const args=process.argv.slice(2),state=args[args.indexOf('--state-dir')+1],id=pr
 const put=(file,value)=>{fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,JSON.stringify(value));};
 const ledger=path.join(state,'operations',createHash('sha256').update(id).digest('hex'));
 fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify({kind,args,id,state})+'\\n');
-if(kind==='daemon.start'){put(state+'/daemon.json',{daemon_id:'offline-daemon',pid:2147483647,shutdown_state:'running',active_tree:true,config:{cwd:args[args.indexOf('--cwd')+1]}});console.log('{}');}
+if(kind==='daemon.start'){put(state+'/daemon.json',{daemon_id:'offline-daemon',pid:2147483647,shutdown_state:'running',active_tree:true,config:{cwd:args[args.indexOf('--cwd')+1],ddFlowHome:${JSON.stringify(home)}}});console.log('{}');}
 else if(kind==='session.create')console.log(JSON.stringify({provider_session_id:'offline-session'}));
 else if(kind==='session.prompt'){
  put(ledger+'/requested.json',{operation_id:id,operation:kind,session_id:'offline-session',daemon_id:'offline-daemon'});
@@ -41,8 +41,9 @@ else if(kind==='session.prompt'){
  else{const client=path.join(state,'client-operations',createHash('sha256').update(id).digest('hex')+'.json'),saved=JSON.parse(fs.readFileSync(client));put(client,{...saved,recovery_observation_clock:{policy:'operation-progress@1',timeout_ms:30000,started_at:Date.now(),cursor:0,observed_at:null,elapsed_ms:0,uncertainty_elapsed_ms:120000,gaps:1,observation_lost:true}});console.log(JSON.stringify({ok:false,error:{code,message:'offline observer lost'}}));}
 }
 else if(kind==='daemon.stop'){
+ put(state+'/operation-fence.json',{daemon_id:'offline-daemon',generation:1});
  if(!args.includes('--cancel-tree'))console.log(JSON.stringify({ok:false,error:{code:'tree_not_settled',message:'original operation is still unknown'}}));
- else{const saved=JSON.parse(fs.readFileSync(state+'/daemon.json'));put(state+'/daemon.json',{...saved,shutdown_state:'clean',active_tree:false,shutdown:{schema_id:'dd-flow/daemon-shutdown@1',daemon_id:saved.daemon_id,result:{clean:true},required_phases:['tree','provider_close','daemon_resource'],phases:{tree:true,provider_close:true,daemon_resource:true}}});const result={stopped:true,clean:true,shutdown_contract:'dd-flow/daemon-shutdown@1'};put(ledger+'/requested.json',{operation_id:id,operation:kind,daemon_id:saved.daemon_id});put(ledger+'/result.json',{state:'completed',result});console.log(JSON.stringify(result));}
+ else{const saved=JSON.parse(fs.readFileSync(state+'/daemon.json'));put(state+'/daemon.json',{...saved,shutdown_state:'clean',active_tree:false,shutdown:{schema_id:'dd-flow/daemon-shutdown@2',daemon_id:saved.daemon_id,generation:1,result:{daemon_id:saved.daemon_id,shutdown_contract:'dd-flow/daemon-shutdown@2',stopped:true,physical_stopped:true,settled:true,native_settled:true,clean:true},required_phases:['execution', 'owned_resources','provider','daemon_resource'],phases:{execution:true,owned_resources:true,provider:true,daemon_resource:true}}});const result={stopped:true,clean:true,shutdown_contract:'dd-flow/daemon-shutdown@2'};put(ledger+'/requested.json',{operation_id:id,operation:kind,daemon_id:saved.daemon_id});put(ledger+'/result.json',{state:'completed',result});console.log(JSON.stringify(result));}
 }else throw Error('unexpected offline action '+kind);
 `);
   await writeJsonAtomic(path.join(engine, 'engine.json'), { integrity: { checksum: await engineArtifactDigest(engine) } });

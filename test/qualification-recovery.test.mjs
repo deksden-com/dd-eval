@@ -55,8 +55,8 @@ for (const boundary of ["heartbeat", "admission"]) test(`pre-model ${boundary} r
     config: { cwd: root, resourceHome: owner.resource_home, runtime_owner: owner },
     resource_process: { id: records[0].id, lease_token: records[0].lease_token, registration_sha256: binding(records[0]) },
     provider_process: { id: records[1].id, lease_token: records[1].lease_token, registration_sha256: binding(records[1]) },
-    shutdown: { schema_id: "dd-flow/daemon-shutdown@1", daemon_id: "incarnation", result: { clean: true }, tree_observed_at: new Date().toISOString(),
-      required_phases: ["tree", "provider", "provider_resource", "daemon_resource"], phases: { tree: true, provider: true, provider_resource: true } } };
+    shutdown: { schema_id: "dd-flow/daemon-shutdown@2", daemon_id: "incarnation", result: { clean: true }, tree_observed_at: new Date().toISOString(),
+      required_phases: ["execution", "owned_resources", "provider", "provider_resource", "daemon_resource"], phases: { execution: true, owned_resources: true, provider: true, provider_resource: true } } };
   await writeJsonAtomic(intentFile, intent); await writeJsonAtomic(path.join(root, "packet.json"), packet);
   await writeJsonAtomic(path.join(root, "native-intent.json"), { profile_id: profile.id, profile_sha256: profileSemanticHash(profile), profile_snapshot: profile, packet_sha256: hashJson(packet) });
   await writeJsonAtomic(stateFile, state);
