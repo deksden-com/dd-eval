@@ -1,5 +1,8 @@
 # 099 — Implementation and acceptance
 
+Subsequent review/native probes: [099 review result](099-review-and-native-p3-result.md).
+The original implementation evidence below remains historical; P3 is still blocked.
+
 Дата: 2026-10-23. Code implementation; not a release or live AGY qualification.
 
 Engine commit: `b90bcdce`, branch `fix/099-execution-resource-boundaries`.

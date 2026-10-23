@@ -19,6 +19,9 @@ test('settled cancellation and replacement ignore only PIDs born after retained 
   await writeJsonAtomic(path.join(root, 'daemon.json'), state);
   await writeJsonAtomic(path.join(root, 'operation-fence.json'), { daemon_id: 'daemon', generation: 1 });
   await assertDaemonReplaceable(root, { nativeContracts });
+  await writeJsonAtomic(path.join(root, 'operation-fence.json'), { daemon_id: 'daemon', generation: 2 });
+  await assert.rejects(assertDaemonReplaceable(root, { nativeContracts }), { code: 'operation_observation_lost' });
+  await writeJsonAtomic(path.join(root, 'operation-fence.json'), { daemon_id: 'daemon', generation: 1 });
   assert.equal((await cancelOwnedDaemon({ stateDir: root, projectRoot: root, sessionId: 'owned', stop: offline, nativeContracts })).settled, true);
   for (const patch of [{ stopped_at: undefined }, { stopped_at: 'corrupt' }, { shutdown_state: 'running' }, { active_tree: true }]) {
     await writeJsonAtomic(path.join(root, 'daemon.json'), { ...state, ...patch });
