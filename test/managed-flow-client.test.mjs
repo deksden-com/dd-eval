@@ -80,6 +80,38 @@ test('interactive preparation uses managed public ingress with original intake a
   }
 });
 
+for (const flow of ['release', 'deploy', 'publish']) test(`delivery preparation preserves ${flow} identity and raw authority without launching it`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-delivery-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), calls = path.join(root, 'calls.json'), intakeFile = path.join(root, 'intake.md');
+  const raw = 'Only the exact private preview target is authorized.\r\n'; await writeFile(intakeFile, raw);
+  const delivery = { requestId: 'delivery-request', intakeFile, intakeSha256: createHash('sha256').update(raw).digest('hex'),
+    profile: 'subject', workspaceRoot: root, stageProfiles: ['verify=critic'], workProfiles: ['worker'], maxParallel: 1 };
+  const receipt = { run_id: 'RUN-001-delivery', flow_id: flow, action: `flow_${flow}_prepared`, request_id: delivery.requestId };
+  const script = value => `import fs from 'node:fs';fs.writeFileSync(${JSON.stringify(calls)},JSON.stringify(process.argv.slice(2)));console.log(JSON.stringify(${JSON.stringify(value)}));`;
+  await writeFile(bin, script(receipt));
+  const input = { bin, projectRoot: root, flow, delivery };
+  assert.deepEqual(await prepareManagedRun(input), receipt);
+  const args = JSON.parse(await readFile(calls));
+  assert.deepEqual(args.slice(0, 2), ['flow', flow]);
+  for (const [flag, value] of [['--workspace', root], ['--intake-file', intakeFile], ['--profile', 'subject'], ['--stage-profile', 'verify=critic']])
+    assert.equal(args[args.indexOf(flag) + 1], value);
+  assert(args.includes('--prepare-only')); assert(args.includes('--non-interactive'));
+  for (const flag of ['--workspace-root', '--git-route', '--integration-branch', '--intake-sha256', '--detach']) assert(!args.includes(flag));
+  assert.equal(await readFile(intakeFile, 'utf8'), raw);
+  await rm(calls);
+  for (const change of [{ delivery: undefined }, { flow: 'sdlc' }, { flow: 'mb-init' }, { memoryInit: {} }, { diagnostic: {} }, { interactive: {} },
+    { executionRoutingFile: 'foreign' }, ...[{ profileFile: 'ambiguous' }, { maxParallel: 65 }, { intakeSha256: '0'.repeat(64) },
+      { gitRoute: 'integration_branch_direct' }, { rollback: true }].map(patch => ({ delivery: { ...delivery, ...patch } }))]) {
+    await assert.rejects(prepareManagedRun({ ...input, ...change }), { code: 'managed_flow_input_invalid' });
+    await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  }
+  for (const change of [{ flow_id: 'mb-init' }, { action: 'flow_publish_attached' }, { request_id: 'foreign' }, { controller: {} }]) {
+    await writeFile(bin, script({ ...receipt, ...change }));
+    await assert.rejects(prepareManagedRun(input), { code: 'controller_receipt_invalid' });
+  }
+});
+
 test('source-snapshot preparation reuses public managed RUNs without mutation-route selectors', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'managed-diagnostic-'));
   t.after(() => rm(root, {recursive:true,force:true}));
