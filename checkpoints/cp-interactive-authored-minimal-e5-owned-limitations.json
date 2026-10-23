@@ -1,0 +1,21 @@
+{
+  "id": "cp-interactive-authored-minimal-e5-owned-limitations",
+  "source": {
+    "repository": "test/fixtures/interactive/minimal-v6.bundle",
+    "commit": "56dd04723dd8d8ffad945e6d2cc1b29ee6ceaf3b"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "590e9d3cb5329419da71a60f905335a75d9bda8f",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "2f05e9af9d63a21f140b8d23d34833d55e527778",
+      "version": "0.9.0-beta.145",
+      "artifact_sha256": "f29626fcd0c441feded50c5adf60b124e9aac86a9018a1467a2606115dcfdcda"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
