@@ -1,0 +1,46 @@
+{
+  "schema_id": "dd-eval/case@7",
+  "suite_id": "delivery-flow-e5",
+  "id": "release-authored-minimal",
+  "assessment": "assessment.json",
+  "input": [
+    {
+      "role": "initial_user_request",
+      "source": "entry-pack-source/request.md",
+      "sha256": "cb33184e855e029409a2ee6505174ad2be71cddf727925995ddf498acf863099"
+    }
+  ],
+  "input_checkpoint": {
+    "id": "cp-release-authored-minimal-e5-installed",
+    "sha256": "bce95d4e4bd077ea4f4a69903cd5c7f3f8eb8f28ea63188e4405d43e0373d178"
+  },
+  "entry_pack": null,
+  "baseline_admission": {
+    "file": "baseline-admission.json",
+    "sha256": "6807135d75c9c20a00753592c6225750911b559b86e44fe349e9fc541e43e929"
+  },
+  "profiles": {
+    "subject": [
+      "codex-desktop-gpt-6-luna-xhigh-codex-0-163-0"
+    ],
+    "judge": [
+      "codex-desktop-gpt-6-1-sol-high-codex-0-163-0"
+    ]
+  },
+  "flow": {
+    "id": "release",
+    "contour": [
+      "preflight",
+      "version-decision",
+      "prepare",
+      "verify",
+      "publish",
+      "finish"
+    ],
+    "terminal_stage": "finish",
+    "git_policy": {
+      "route": "integration_branch_direct",
+      "integration_branch": "main"
+    }
+  }
+}

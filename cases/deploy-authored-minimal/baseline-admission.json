@@ -1,0 +1,14 @@
+{
+  "schema_id": "dd-eval/baseline-admission-policy@2",
+  "commands": [
+    {
+      "id": "original-fixture",
+      "command": "node",
+      "args": [
+        "--test",
+        "test/fixture.test.mjs"
+      ],
+      "inactivity_timeout_ms": 30000
+    }
+  ]
+}

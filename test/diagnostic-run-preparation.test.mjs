@@ -9,7 +9,7 @@ import Ajv2020 from 'ajv/dist/2020.js';
 import {initialFlowBoundary,prepareCaseManagedRun,prepareE2EInput,validateRunProfile} from '../lib/runner.mjs';
 import {materializeOperationalDecision} from '../lib/operational-decision.mjs';
 
-for (const selectionKey of ['diagnostic', 'distillation', 'interactive']) test(`${selectionKey} profiles reuse installed canon setup without source mutation/native routing`,async()=>{
+for (const selectionKey of ['diagnostic', 'distillation', 'interactive', 'delivery']) test(`${selectionKey} profiles reuse installed canon setup without source mutation/native routing`,async()=>{
   const schema=new Ajv2020({strict:false}).compile(JSON.parse(await readFile(new URL('../schemas/run-profile.v1.schema.json',import.meta.url))));
   const profile={schema_id:'dd-eval/run-profile@1',id:'diagnostic',case_id:'diagnostic-case',subject:{profile_id:'subject',
     memory_setup:{canonSource:'/release',trustFile:'/trust'},[selectionKey]:{profile:'local',maxParallel:64}},
@@ -31,7 +31,7 @@ for (const selectionKey of ['diagnostic', 'distillation', 'interactive']) test(`
   }
 });
 
-for(const flow of ['mb-audit','project-review','mb-distill','interactive']) for(const withBank of flow==='interactive'?[true]:[false,true]) test(`${flow} materializes original product without a flow overlay (bank: ${withBank})`,async t=>{
+for(const flow of ['mb-audit','project-review','mb-distill','interactive','release','deploy','publish']) for(const withBank of flow==='interactive'?[true]:[false,true]) test(`${flow} materializes original product without a flow overlay (bank: ${withBank})`,async t=>{
   const root=await mkdtemp(path.join(os.tmpdir(),'diagnostic-materialize-'));t.after(()=>rm(root,{recursive:true,force:true}));
   const source=path.join(root,'source'),target=path.join(root,'project');await mkdir(source);
   const git=(...args)=>execFileSync('git',['-C',source,...args],{encoding:'utf8'}).trim();
@@ -50,7 +50,8 @@ for(const flow of ['mb-audit','project-review','mb-distill','interactive']) for(
   } else await assert.rejects(readFile(path.join(target,'.memory-bank/index.md')),{code:'ENOENT'});
 });
 
-for(const flow of ['mb-audit','project-review','mb-distill','interactive']) test(`${flow} case prepares original intake through its selected public workflow`,async t=>{
+for(const flow of ['mb-audit','project-review','mb-distill','interactive','release','deploy','publish']) test(`${flow} case prepares original intake through its selected public workflow`,async t=>{
+  const delivery = ['release','deploy','publish'].includes(flow);
   const root=await mkdtemp(path.join(os.tmpdir(),'case-diagnostic-'));t.after(()=>rm(root,{recursive:true,force:true}));
   const source=path.join(root,'entry-pack-source'),projectRoot=path.join(root,'project');await mkdir(source);await mkdir(projectRoot);
   const intake=Buffer.from('Inspect actual code. Do not repair the project.\r\n'),intakeFile=path.join(source,'request.txt');await writeFile(intakeFile,intake);
@@ -61,11 +62,11 @@ for(const flow of ['mb-audit','project-review','mb-distill','interactive']) test
   const setup={installation_readiness:'installed',installation:{manifest:{canon:{commit:flowPack.commit,version:'fixture'},engine:{version:'fixture'}}}};
   await writeFile(bin,`import fs from 'node:fs';const args=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify(args)+'\\n');
 console.log(JSON.stringify(args[0]==='setup'?${JSON.stringify(setup)}:{run_id:'RUN-diagnostic',flow_id:${JSON.stringify(flow)},action:${JSON.stringify(`flow_${flow.replaceAll('-','_')}_prepared`)},request_id:args[args.indexOf('--request-id')+1]}));`);
-  const contour=flow==='interactive'?['preflight','interactive','consolidation','hardening','review','integration']:flow==='mb-distill'?['preflight','extract','review','promote','verify','finish']:flow==='mb-audit'?['preflight','audit','review','report']:['preflight','analyze','review','report'];
-  const loaded={root,inputCheckpoint:{value:{flow_pack:flowPack}},value:{flow:{id:flow,contour,terminal_stage:contour.at(-1),...(flow==='interactive'?{git_policy:{route:'integration_branch_direct',integration_branch:'main'}}:{})}}};
+  const contour=delivery ? {release:['preflight','version-decision','prepare','verify','publish','finish'],deploy:['preflight','target-decision','prepare','deploy','verify','finish'],publish:['preflight','target-decision','prepare','verify','publish','finish']}[flow] : flow==='interactive'?['preflight','interactive','consolidation','hardening','review','integration']:flow==='mb-distill'?['preflight','extract','review','promote','verify','finish']:flow==='mb-audit'?['preflight','audit','review','report']:['preflight','analyze','review','report'];
+  const loaded={root,inputCheckpoint:{value:{flow_pack:flowPack}},value:{flow:{id:flow,contour,terminal_stage:contour.at(-1),...(flow==='interactive'||delivery?{git_policy:{route:'integration_branch_direct',integration_branch:'main'}}:{})}}};
   assert.deepEqual(initialFlowBoundary(loaded),{flow,stage:'preflight'});
   const blueprint={stages:{preflight:{task_input:[{role:'initial_user_request',source:'request.txt',path:'.dd-eval/request.txt',sha256:digest}]}}};
-  const selectionKey=flow==='interactive'?'interactive':flow==='mb-distill'?'distillation':'diagnostic';
+  const selectionKey=delivery?'delivery':flow==='interactive'?'interactive':flow==='mb-distill'?'distillation':'diagnostic';
   const runProfile={value:{subject:{memory_setup:{canonSource:path.join(root,'release'),trustFile:path.join(root,'trust')},[selectionKey]:{profile:'local'}}}};
   const input={loaded,blueprint,runProfile,scopeId:'owned-execution',projectRoot,bin,env:{DD_FLOW_HOME:path.join(root,'runtime')},executionRoutingFile:path.join(root,'unused-routing')};
   for(const change of [{maxParallel:65},{delegation:'native'},{allowLiveProbe:true}]) {
@@ -78,7 +79,8 @@ console.log(JSON.stringify(args[0]==='setup'?${JSON.stringify(setup)}:{run_id:'R
   assert.equal(commands.length,flow==='interactive'?3:2);assert.equal(commands[0][0],'setup');
   if(flow==='interactive') assert.deepEqual(commands[1],['project','register','--root',projectRoot,'--json']);
   const args=commands.at(-1);assert.deepEqual(args.slice(0,2),['flow',flow]);assert.equal(args[args.indexOf('--intake-file')+1],intakeFile);
-  assert(args[args.indexOf('--request-id')+1].startsWith(flow==='interactive'?'interactive-':'diagnostic-'));
+  assert(args[args.indexOf('--request-id')+1].startsWith(delivery?'delivery-':flow==='interactive'?'interactive-':'diagnostic-'));
+  if(delivery) assert.equal(args[args.indexOf('--workspace')+1],projectRoot);
   if(flow==='interactive') {
     assert.equal(args[args.indexOf('--execution')+1],'managed'); assert.equal(args[args.indexOf('--git-route')+1],'integration_branch_direct');
     assert.equal(args[args.indexOf('--integration-branch')+1],'main');
