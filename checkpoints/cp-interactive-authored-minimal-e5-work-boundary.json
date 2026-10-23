@@ -1,0 +1,21 @@
+{
+  "id": "cp-interactive-authored-minimal-e5-work-boundary",
+  "source": {
+    "repository": "test/fixtures/interactive/minimal-v9.bundle",
+    "commit": "49c362eea1ccddadad658daf3d6757db77354cdf"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "320b3f9085b74ef9ba0acca6a52825823c9d64e3",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "6bc021e0a76f1480db5fcb966aae7458733f5ac5",
+      "version": "0.9.0-beta.145",
+      "artifact_sha256": "69c0062a7e40c49596687d8f08216bcfca74d714136a73059a36204f82cf9652"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}

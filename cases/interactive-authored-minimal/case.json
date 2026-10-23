@@ -4,7 +4,7 @@
   "id":"interactive-authored-minimal",
   "assessment":"assessment.json",
   "input":[{"role":"initial_user_request","source":"entry-pack-source/request.md","sha256":"c74973370aebe326e5db7347baa18581773239279bcf854e8a25d68236cc5081"}],
-  "input_checkpoint":{"id":"cp-interactive-authored-minimal-e5-critic-checks","sha256":"4a8549ff7c0a0a5aba0a1d44535e7a598f3c470dddf51692991fa1e9b59697f7"},
+  "input_checkpoint":{"id":"cp-interactive-authored-minimal-e5-work-boundary","sha256":"51c1731d0af2b4c1f18c59be075770d7488f0afd4018b9fb4e708aa7f9a47940"},
   "entry_pack":null,
   "baseline_admission":{"file":"baseline-admission.json","sha256":"c6edec0e2b69057612ad78a806458b6b28b6781bc2d6b5e5ac49cb68f80cbc98"},
   "profiles":{"subject":["codex-desktop-gpt-6-luna-xhigh-codex-0-163-0"],"judge":["codex-desktop-gpt-6-1-sol-high-codex-0-163-0"]},
