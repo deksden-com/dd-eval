@@ -75,8 +75,9 @@ console.log(JSON.stringify(args[0]==='setup'?${JSON.stringify(setup)}:{run_id:'R
   assert.equal(await materializeOperationalDecision({flowId:flow,projectRoot,runtimeRoot:path.join(root,'runtime')}),null);
   assert.equal((await prepareCaseManagedRun(input)).run_id,'RUN-diagnostic');
   const commands=(await readFile(calls,'utf8')).trim().split('\n').map(value=>JSON.parse(value));
-  assert.equal(commands.length,2);assert.equal(commands[0][0],'setup');assert.deepEqual(commands[1].slice(0,2),['flow',flow]);
-  const args=commands[1];assert.equal(args[args.indexOf('--intake-file')+1],intakeFile);
+  assert.equal(commands.length,flow==='interactive'?3:2);assert.equal(commands[0][0],'setup');
+  if(flow==='interactive') assert.deepEqual(commands[1],['project','register','--root',projectRoot,'--json']);
+  const args=commands.at(-1);assert.deepEqual(args.slice(0,2),['flow',flow]);assert.equal(args[args.indexOf('--intake-file')+1],intakeFile);
   assert(args[args.indexOf('--request-id')+1].startsWith(flow==='interactive'?'interactive-':'diagnostic-'));
   if(flow==='interactive') {
     assert.equal(args[args.indexOf('--execution')+1],'managed'); assert.equal(args[args.indexOf('--git-route')+1],'integration_branch_direct');
