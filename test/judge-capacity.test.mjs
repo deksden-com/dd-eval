@@ -64,10 +64,10 @@ test('bound AGY pending waits read-only, then fresh items permit the same-sessio
       inspect: async () => {
         reads++;
         const proof = original.details.request_proof;
-        const bound = { provider_session_id: 'agy', terminal_metadata: { request_proof: proof } };
+        const bound = { provider_session_id: 'agy', terminal_metadata: { request_proof: proof }, native_settlement: { contract: nativeTree.NATIVE_TREE_SETTLEMENT_CONTRACT, scope: 'required_execution' } };
         if (scenario !== 'expired' && reads >= 3) return { ...bound, settled: true, tree_session_ids: ['agy'], unsettled_sessions: [], tree_observations: [{ provider_session_id: 'agy', settled: true }], native_turn_items: { observed: true, pending: false, possible_effects: false } };
         return { ...bound, settled: false, native_turn_items: { observed: true, pending: true, possible_effects: true },
-          native_settlement: { state: 'inspection_pending', confirmed: false, provider_session_id: 'agy', operation_id: scenario === 'foreign' ? 'foreign' : proof.operation_id,
+          native_settlement: { ...bound.native_settlement, state: 'inspection_pending', confirmed: false, provider_session_id: 'agy', operation_id: scenario === 'foreign' ? 'foreign' : proof.operation_id,
             request_key: policy.streamRequestKey(proof), observation_clock: { policy: 'operation-progress@1', started_at: 0, cursor: 'dispatch', observed_at: 0,
               timeout_ms: scenario === 'expired' ? 300 : 10000, elapsed_ms: time, gaps: scenario === 'producer-restarted' ? 1 : 0, uncertain: scenario === 'producer-restarted', observation_lost: false, uncertainty_elapsed_ms: 0 } } };
       },
@@ -103,7 +103,7 @@ test('owned-child waits follow native progress high-water, not repeated or rolle
     const fixture = harness({ outcomes: ['overload', {}], inspect: () => {
       reads++;
       const settled = reads >= 7;
-      return { provider_session_id: 'session-1', settled, native_turn_items: { observed: true, possible_effects: false, pending: false },
+      return { provider_session_id: 'session-1', settled, native_settlement: { contract: nativeTree.NATIVE_TREE_SETTLEMENT_CONTRACT, scope: 'required_execution' }, native_turn_items: { observed: true, possible_effects: false, pending: false },
         tree_session_ids: ['session-1', 'child'], unsettled_sessions: settled ? [] : ['child'],
         tree_observations: [{ provider_session_id: 'session-1', settled: true }, { provider_session_id: 'child', settled, status: settled ? 'idle' : 'running' }] };
     } });
