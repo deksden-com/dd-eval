@@ -11,11 +11,11 @@
   "reasoning": "max",
   "mode": "yolo",
   "runtime": {
-    "zcode": "0.16.9",
+    "zcode": "0.17.0",
     "zcode_acp": "0.52.0",
     "zcode_acp_commit": "9c5ca6cc81c4eb5065e43f8b7ab6b7cc5ab7ae47",
     "dd_harness_contract": "dd-zcode-harness@2"
   },
-  "notes": "Controlled ZCode Flash subject at the requested maximum reasoning level.",
-  "subagent_capacity": 2
+  "notes": "Controlled ZCode Flash subject at maximum reasoning. ZCode 0.17.0 qualified on beta.148: /Users/deksden/.dd-eval/qualification/cp-246-zcode-compatibility/conformance/harness-compatibility/20261023172817027/zcode-acp-zai-glm-5-3-flash-max/receipt.json. One native child completed; native and physical cleanup confirmed. Capacity is conservatively limited to the observed fan-out.",
+  "subagent_capacity": 1
 }
