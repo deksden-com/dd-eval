@@ -17,6 +17,7 @@ import { buildReport } from "../lib/runner.mjs";
 import { capacityCodexChildren, qualifiedCapacityProbe, harnessCapacityCheck } from "../lib/runner.mjs";
 import { errorRecord, terminalProviderOverload, providerLimitMetadata } from "../lib/operation-errors.mjs";
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
+import { settledTreeContracts } from './fixtures/capacity-policy.mjs';
 const capacityPolicy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'src/harness-runtime/lib/provider-overload-policy.mjs')).href) : null;
 
 const caseId = "sdlc-eval-2026-summer-task-priority";
@@ -763,7 +764,7 @@ test("quota reset comes from the matching structured native error, not Retry-Aft
 test("capacity continuation keeps one native tree and refuses sequential child waves", { skip: !capacityPolicy && 'set DD_FLOW_SOURCE_ROOT for pinned policy' }, async () => {
   const overload = { code: "turn_interrupted", details: { provider_session_id: "root", turn_id: "turn-1", native_turn_id: "turn-1", terminal_status: "failed", provider_error: { codexErrorInfo: "serverOverloaded" }, native_turn_items: { observed: true, possible_effects: false, pending: false } } };
   let dispatched = 0, time = 0; const waits = [];
-  const base = { random: () => 0, policy: capacityPolicy, originalPrompt: 'actual probe', continuationPrompt: 'continue actual probe', sessionId: "root", clock: () => time, inspect: async () => ({ provider_session_id: "root", settled: true, settlement: { state: "settled" } }), pause: async ms => { waits.push(ms); time += ms; } };
+  const base = { random: () => 0, policy: capacityPolicy, nativeContracts: settledTreeContracts, originalPrompt: 'actual probe', continuationPrompt: 'continue actual probe', sessionId: "root", clock: () => time, inspect: async () => ({ provider_session_id: "root", settled: true, settlement: { state: "settled" } }), pause: async ms => { waits.push(ms); time += ms; } };
   const result = await boundedCapacityContinuation({ ...base, children: async () => [], attempt: async (_ordinal, _capacity, authorizeDispatch) => { await authorizeDispatch(); if (++dispatched === 1) throw overload; return { ok: true }; } });
   assert.deepEqual(result, { ok: true });
   assert.equal(dispatched, 2);
@@ -772,7 +773,7 @@ test("capacity continuation keeps one native tree and refuses sequential child w
   await assert.rejects(boundedCapacityContinuation({ ...base, children: async () => [{ session_id: "child" }], attempt: async (_ordinal, _capacity, authorizeDispatch) => { await authorizeDispatch(); dispatched++; throw overload; } }), error => error === overload);
   assert.equal(dispatched, 1);
   dispatched = 0;
-  await assert.rejects(boundedCapacityContinuation({ ...base, inspect: async () => ({ provider_session_id: "root", settled: false }), children: async () => [], attempt: async (_ordinal, _capacity, authorizeDispatch) => { await authorizeDispatch(); dispatched++; throw overload; } }), error => error === overload);
+  await assert.rejects(boundedCapacityContinuation({ ...base, inspect: async () => ({ provider_session_id: "root", settled: false }), children: async () => [], attempt: async (_ordinal, _capacity, authorizeDispatch) => { await authorizeDispatch(); dispatched++; throw overload; } }), { code: 'judge_capacity_settlement_unproven' });
   assert.equal(dispatched, 1);
 });
 
@@ -780,7 +781,7 @@ test("capacity native children appearing after backoff or permit prevent another
   for (const during of ['backoff', 'permit']) {
     let time = 0, calls = 0, appeared = false;
     const error = { code: 'turn_interrupted', details: { provider_session_id: 'root', turn_id: 't1', native_turn_id: 't1', terminal_status: 'failed', provider_error: { codexErrorInfo: 'serverOverloaded' }, native_turn_items: { observed: true, possible_effects: false, pending: false } } };
-    await assert.rejects(boundedCapacityContinuation({ policy: capacityPolicy, originalPrompt: 'actual probe', continuationPrompt: 'continue actual probe', sessionId: 'root', clock: () => time,
+    await assert.rejects(boundedCapacityContinuation({ policy: capacityPolicy, nativeContracts: settledTreeContracts, originalPrompt: 'actual probe', continuationPrompt: 'continue actual probe', sessionId: 'root', clock: () => time,
       pause: async ms => { time += ms; if (during === 'backoff') appeared = true; },
       inspect: async () => ({ provider_session_id: 'root', settled: true }), children: async () => appeared ? [{ session_id: 'child' }] : [],
       attempt: async (ordinal, _capacity, beforeDispatch) => {

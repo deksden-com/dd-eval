@@ -3,6 +3,34 @@ import assert from "node:assert/strict";
 import { failureDiagnostic, executionEvidence, isInfrastructureFailure, classifyInterruption } from "../lib/runner.mjs";
 import { compactCheckDiagnostic } from "../lib/check-diagnostic.mjs";
 
+test('a whole failure diagnostic has one UTF-8 budget and retains native uncertainty', () => {
+  const native = { physical_stopped: true, native_settled: false, settled: false,
+    native_settlement: { confirmed: false, reason: 'native_tree_inspection_unavailable', capability: 'private_rpc', operation_id: 'op', proof_sha256: 'a'.repeat(64), headers: { authorization: 'SECRET' }, payload: 'SECRET' } };
+  const child = { code: 'failed_check', message: '🧵'.repeat(5000), details: { checks: Array.from({ length: 64 }, (_, index) => ({ id: `check-${index}`, runner_evidence: { failures: Array(64).fill({ message: 'x'.repeat(4000) }) } })) } };
+  const diagnostic = failureDiagnostic({ code: 'operation_observation_lost', message: 'Bearer SECRET', details: { ...native, native_outcome: native, checks: child.details.checks, primary_error: child, cause: structuredClone(child) } });
+  assert.ok(Buffer.byteLength(JSON.stringify(diagnostic)) <= 32768);
+  assert.equal(diagnostic.diagnostic_truncated, true);
+  assert.equal(diagnostic.code, 'operation_observation_lost');
+  assert.equal(diagnostic.details.physical_stopped, true);
+  assert.equal(diagnostic.details.native_settled, false);
+  assert.equal(diagnostic.details.native_settlement.reason, 'native_tree_inspection_unavailable');
+  assert.equal(diagnostic.details.native_settlement.operation_id, 'op');
+  assert.ok(!JSON.stringify(diagnostic).includes('SECRET'));
+});
+
+test("partial @2 diagnostics retain bounded child locators without becoming complete or native pending", () => {
+  const report = { relative_path: "steps/tests/report.json", sha256: "a".repeat(64) };
+  const projection = { state: "partial", reason: "count_bound", represented: 63, omitted: 1 };
+  const result = compactCheckDiagnostic({ runner_evidence_required: { schema_id: "dd-flow/check-runner-evidence@2", path: "quality.runner.json" }, runner_evidence: { schema_id: "dd-flow/check-runner-evidence@2", completed: true, counts: { failed: 100 }, failure_projection: projection, failures: [{ category: "unclassified", native_code: "TypeError", repair_evidence: { rule: "candidate_test_runtime_error" } }], steps: [{ id: "tests", state: "failed", report, binding: { secret: "SECRET" } }, { id: "bad", report: { ...report, relative_path: "../escape" } }] } });
+  assert.equal(result.runner_evidence.completed, false);
+  assert.equal(result.runner_evidence.observation_unknown, undefined);
+  assert.deepEqual(result.runner_evidence.failure_projection, projection);
+  assert.deepEqual(result.runner_evidence.steps, [{ id: "tests", state: "failed", report }]);
+  assert.equal(result.runner_evidence.failures[0].native_code, "TypeError");
+  assert.equal(result.runner_evidence.failures[0].repair_evidence, undefined);
+  assert.ok(!JSON.stringify(result).includes("SECRET"));
+});
+
 test("compact diagnostic retains safe hashed locators without granting repair authority", () => {
   const ref = { relative_path: "diagnostics/failure.json", sha256: "a".repeat(64) };
   const result = compactCheckDiagnostic({ runner_evidence: { failures: [{ category: "tooling", diagnostic_artifact: ref, repair_evidence: { arbitrary: true } }] }, execution_failures: [{ diagnostic_artifact: { ...ref, relative_path: "../escape" } }] });
@@ -20,6 +48,9 @@ test("compact native and engine failures redact Bearer and credential variants",
   assert.match(result.execution_failures[0].message, /Authorization/);
   assert.equal(compactCheckDiagnostic({ execution_failures: [{ message: "token".repeat(250000) }] }).execution_failures[0].message.length, 1024);
   assert.equal(compactCheckDiagnostic({ execution_failures: [{ message: "token-".repeat(50000) }] }).execution_failures[0].message.length, 1024);
+  const allScalars = failureDiagnostic({ code: 'Bearer SECRET', details: { violations: ['Bearer SECRET', 'https://example.test?token=SECRET'], uncovered_questions: ['token=SECRET'], checks: [{ log: 'https://example.test?token=SECRET', runner_evidence: { failures: [{ classification_reason: 'Bearer SECRET', file: 'token=SECRET' }] } }] } });
+  assert.ok(!JSON.stringify(allScalars).includes('SECRET'));
+  assert.equal(compactCheckDiagnostic({ execution_failures: [{ diagnostic_artifact: { relative_path: 'logs/token=SECRET.json', sha256: 'a'.repeat(64) } }] }).execution_failures[0].diagnostic_artifact, undefined, 'secret-bearing locators are omitted, not rewritten into a nonexistent proof path');
 });
 
 test("aggregate diagnostics locate the child report instead of rebasing native refs incorrectly", () => {

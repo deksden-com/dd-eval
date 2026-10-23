@@ -15,6 +15,20 @@ const failure = event('operation.failed', { operation_id: launch, error: { code:
 const cancel = event('execution.cancel_requested');
 const settled = event('execution.cancelled');
 
+test('unconfirmed cancellation is stable cleanup-blocked, not completion or a discarded failure', () => {
+  const blocked = event('execution.cancellation_unconfirmed', { receipt: { physical_stopped: true, native_settled: false } });
+  const events = [cancel, blocked, complete, failure];
+  const state = executionState(events, run, execution);
+  assert.equal(state.result.state, 'cancellation_unconfirmed');
+  assert.equal(state.result.cleanup_blocked, true);
+  assert.equal(state.cancellation.effective, true);
+  assert.equal(state.cancellation.settled, false);
+  assert.throws(() => assertExecutionDispatch(state, launch), { code: 'execution_cancelled' });
+  events.push(settled);
+  assert.equal(executionState(events, run, execution).result.state, 'cancelled');
+  assert.equal(executionState([failure, cancel, blocked], run, execution).result.code, 'integrity_failure');
+});
+
 test('execution projections cannot mutate accepted subject history during attribution', () => {
   for (const terminal of [event('operation.completed',{operation_id:launch,result:{execution:'e',state:'candidate_ready',recovery:{refs:[{sha256:'original'}]}}}),
     event('execution.failed',{code:'original_failure',recovery:{refs:[{sha256:'original'}]}})]) {

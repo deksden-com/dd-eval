@@ -49,6 +49,13 @@ test('Judge verdict and lifecycle remain independently bound; cleanup reuse neve
   const bytes = await readFile(path.join(root, 'result.json'));
   const publication = await assertJudgeCleanup(root, verdict);
   assert.equal(assertJudgeCleanupCurrent(publication), true);
+  const fenceFile = path.join(root, 'daemon/operation-fence.json'), fenceBytes = await readFile(fenceFile);
+  for (const fence of [{ daemon_id: 'foreign', generation: 1 }, { daemon_id: 'offline-daemon', generation: 2 }, { daemon_id: 'offline-daemon' }]) {
+    await writeFile(fenceFile, JSON.stringify(fence));
+    await assert.rejects(assertJudgeCleanup(root, verdict), { code: 'judge_cleanup_unconfirmed' });
+    assert.throws(() => assertJudgeCleanupCurrent(publication), { code: 'judge_cleanup_unconfirmed' });
+  }
+  await writeFile(fenceFile, fenceBytes);
   const afterVerdictFailure = Object.assign(new Error('result event write failed'), { code: 'EIO' });
   await finishJudgeCleanup({ root, profileId: 'offline', primaryError: afterVerdictFailure, stop: () => assert.fail('settled cleanup must not repeat') });
   assert.equal(afterVerdictFailure.details.retained_verdict.verdict.result.valid, true);
@@ -57,7 +64,7 @@ test('Judge verdict and lifecycle remain independently bound; cleanup reuse neve
   assert.throws(() => assertJudgeCleanupCurrent(publication), { code: 'judge_cleanup_unconfirmed' });
   await writeFile(path.join(root, 'result.json'), bytes);
   const stateFile = path.join(root, 'daemon', 'daemon.json'), stateBytes = await readFile(stateFile), state = JSON.parse(stateBytes);
-  await writeFile(stateFile, JSON.stringify({ ...state, shutdown: { ...state.shutdown, phases: { ...state.shutdown.phases, provider_close: false } } }));
+  await writeFile(stateFile, JSON.stringify({ ...state, shutdown: { ...state.shutdown, phases: { ...state.shutdown.phases, provider: false } } }));
   await assert.rejects(assertJudgeCleanup(root, verdict), { code: 'judge_cleanup_unconfirmed' });
   assert.throws(() => assertJudgeCleanupCurrent(publication), { code: 'judge_cleanup_unconfirmed' });
   await writeFile(stateFile, stateBytes);

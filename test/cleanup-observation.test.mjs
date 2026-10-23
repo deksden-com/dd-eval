@@ -72,7 +72,7 @@ test('late sealed capture is visible independently of report; foreign proof neve
   await writeFile(path.join(capture, 'snapshot.json'), JSON.stringify(snapshot));
   const control = { current: true, control_id: 'CTRL-1', recovery_id: 'REC-1', generation: 1, admission: 'sealed', capture_path: capture };
   const input = { root, manifest: { executions: [{ id: 'e' }], runtime_recovery_home: recovery }, results: [{ execution: 'e', state: 'failed', run_id: 'RUN-1' }],
-    live: { executions: [{ execution: 'e', run_id: 'RUN-1', receipt: { scope: { run_id: 'RUN-1' }, settled: true, control } }] }, report: null, reportState: 'pending' };
+    live: { executions: [{ execution: 'e', run_id: 'RUN-1', receipt: { scope: { run_id: 'RUN-1' }, settled: true, physical_stopped: true, control } }] }, report: null, reportState: 'pending' };
   const ready = await cleanupObservation(input);
   assert.equal(ready.physical, 'settled'); assert.equal(ready.capture, 'ready'); assert.equal(ready.finalization, 'pending');
   input.results[0].recovery = { run_id: 'FOREIGN-HISTORY' };
@@ -82,7 +82,10 @@ test('late sealed capture is visible independently of report; foreign proof neve
   const normalBytes = JSON.stringify({ ...snapshot, purpose: 'candidate' });
   const normalFile = path.join(root, 'candidate-snapshot.json'); await writeFile(normalFile, normalBytes);
   const normal = { ...input, results: [{ ...input.results[0], state: 'candidate_ready', candidate: { manifest: normalFile, manifest_sha256: createHash('sha256').update(normalBytes).digest('hex') } }],
-    live: { executions: [{ ...input.live.executions[0], receipt: { scope: { run_id: 'RUN-1' }, settled: true, control: null } }] } };
+    live: { executions: [{ ...input.live.executions[0], receipt: { scope: { run_id: 'RUN-1' }, settled: true, physical_stopped: true, control: null } }] } };
+  const executionOnly = structuredClone(normal);
+  delete executionOnly.live.executions[0].receipt.physical_stopped;
+  assert.equal((await cleanupObservation(executionOnly)).physical, 'unknown', 'settled execution is not resource retirement');
   assert.equal((await cleanupObservation(normal)).capture, 'ready', 'normal completion needs no recovery control');
   const diagnosticBytes=JSON.stringify({...snapshot,schema_id:'dd-flow/eval-run-snapshot@7',purpose:'candidate',workspace:{kind:'git_repository'}});
   await writeFile(normalFile,diagnosticBytes);

@@ -6,8 +6,9 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { judgeTurnText, failureDiagnostic } from "../lib/runner.mjs";
-import { successfulPolicy } from "./fixtures/capacity-policy.mjs";
+import { successfulPolicy, settledTreeContracts } from "./fixtures/capacity-policy.mjs";
 const policy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, "src/harness-runtime/lib/provider-overload-policy.mjs")).href) : null;
+const nativeTree = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, "src/harness-runtime/lib/native-children.mjs")).href) : null;
 const test = (name, run) => nodeTest(name, { skip: !policy && "set DD_FLOW_SOURCE_ROOT to test the selected engine policy" }, run);
 
 nodeTest('publication recovery observes only: no fresh dispatch, inspection or backoff, even after deadline', async t => {
@@ -50,10 +51,79 @@ function overload(operationId, turnId = "turn-1", sessionId = "session-1", provi
   } });
 }
 
+test('bound AGY pending waits read-only, then fresh items permit the same-session continuation', async t => {
+  for (const scenario of ['ready', 'producer-restarted', 'expired', 'foreign', 'cancelled', 'missing-contract', 'reattach']) {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'judge-native-pending-'));
+    t.after(() => rm(directory, { recursive: true, force: true }));
+    let time = 0, calls = 0, reads = 0, original, interrupt = scenario === 'reattach';
+    const contracts = { ...nativeTree, native_tree_settlement_contract: nativeTree.NATIVE_TREE_SETTLEMENT_CONTRACT };
+    const input = { policy, nativeContracts: scenario === 'missing-contract' ? undefined : contracts, sessionId: 'agy', originalPrompt: 'task',
+      stateFile: path.join(directory, 'chain.json'), clock: () => time, random: () => 0,
+      admit: () => { if (scenario === 'cancelled' && reads >= 2) throw Object.assign(new Error('cancelled'), { code: 'execution_cancelled' }); },
+      wait: async ms => { time += ms; if (interrupt) { interrupt = false; throw Object.assign(new Error('lost reader'), { code: 'operation_observation_lost' }); } },
+      inspect: async () => {
+        reads++;
+        const proof = original.details.request_proof;
+        const bound = { provider_session_id: 'agy', terminal_metadata: { request_proof: proof }, native_settlement: { contract: nativeTree.NATIVE_TREE_SETTLEMENT_CONTRACT, scope: 'required_execution' } };
+        if (scenario !== 'expired' && reads >= 3) return { ...bound, settled: true, tree_session_ids: ['agy'], unsettled_sessions: [], tree_observations: [{ provider_session_id: 'agy', settled: true }], native_turn_items: { observed: true, pending: false, possible_effects: false } };
+        return { ...bound, settled: false, native_turn_items: { observed: true, pending: true, possible_effects: true },
+          native_settlement: { ...bound.native_settlement, state: 'inspection_pending', confirmed: false, provider_session_id: 'agy', operation_id: scenario === 'foreign' ? 'foreign' : proof.operation_id,
+            request_key: policy.streamRequestKey(proof), observation_clock: { policy: 'operation-progress@1', started_at: 0, cursor: 'dispatch', observed_at: 0,
+              timeout_ms: scenario === 'expired' ? 300 : 10000, elapsed_ms: time, gaps: scenario === 'producer-restarted' ? 1 : 0, uncertain: scenario === 'producer-restarted', observation_lost: false, uncertainty_elapsed_ms: 0 } } };
+      },
+      dispatch: async (_text, capacity, authorize) => {
+        await authorize(); calls++;
+        if (calls > 1) return { assistant_text: 'done' };
+        original = Object.assign(new Error('native overload'), { code: 'provider_capacity_transient', details: { native_source: 'agy.result', terminal_status: 'failed', provider_session_id: 'agy', operation_id: capacity.operation_id,
+          provider_error: { status: 503 }, native_turn_items: { observed: true, possible_effects: true, pending: true },
+          request_proof: { kind: 'stream_request', daemon_instance: 'daemon', connection_id: 'connection', operation_id: capacity.operation_id, turn_generation: 1, session_id: 'agy', outbound_position: 3, terminal_position: 9 } } });
+        throw original;
+      } };
+    if (['ready', 'producer-restarted'].includes(scenario)) {
+      assert.deepEqual(await promptJudgeWithCapacity(input), { assistant_text: 'done' });
+      assert.equal(calls, 2); assert.ok(reads >= 3);
+    } else if (scenario === 'reattach') {
+      await assert.rejects(promptJudgeWithCapacity(input), { code: 'operation_observation_lost' });
+      const before = JSON.parse(await readFile(input.stateFile));
+      assert.equal(before.turns.length, 1);
+      assert.ok(before.turns[0].settlement_observation_clock);
+      assert.deepEqual(await promptJudgeWithCapacity(input), { assistant_text: 'done' });
+      assert.equal(calls, 2);
+    } else {
+      await assert.rejects(promptJudgeWithCapacity(input), { code: scenario === 'cancelled' ? 'execution_cancelled' : scenario === 'missing-contract' ? 'native_contract_unsupported' : 'judge_capacity_settlement_unproven' });
+      assert.equal(calls, 1);
+    }
+    assert.equal(original.details.native_turn_items.pending, true, 'fresh readiness must not mutate the original failed outcome');
+  }
+});
+
+test('owned-child waits follow native progress high-water, not repeated or rolled-back snapshots', async () => {
+  for (const rollback of [false, true]) {
+    let reads = 0;
+    const fixture = harness({ outcomes: ['overload', {}], inspect: () => {
+      reads++;
+      const settled = reads >= 7;
+      return { provider_session_id: 'session-1', settled, native_settlement: { contract: nativeTree.NATIVE_TREE_SETTLEMENT_CONTRACT, scope: 'required_execution' }, native_turn_items: { observed: true, possible_effects: false, pending: false },
+        tree_session_ids: ['session-1', 'child'], unsettled_sessions: settled ? [] : ['child'],
+        tree_observations: [{ provider_session_id: 'session-1', settled: true }, { provider_session_id: 'child', settled, status: settled ? 'idle' : 'running' }] };
+    } });
+    fixture.input.nativeContracts = { ...nativeTree, native_tree_settlement_contract: nativeTree.NATIVE_TREE_SETTLEMENT_CONTRACT };
+    fixture.input.observationClock = () => ({ policy: 'operation-progress@1', timeout_ms: 600, started_at: 0, cursor: `daemon:${rollback && reads > 2 ? 1 : reads}`, native_progress_sequence: rollback && reads > 2 ? 1 : reads,
+      observed_at: fixture.time(), elapsed_ms: 0, gaps: 0, uncertain: false, uncertainty_elapsed_ms: 0, observation_lost: false });
+    if (rollback) {
+      await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'judge_capacity_settlement_unproven' });
+      assert.equal(fixture.calls.length, 1);
+    } else {
+      assert.deepEqual(await promptJudgeWithCapacity(fixture.input), {});
+      assert.equal(fixture.calls.length, 2);
+    }
+  }
+});
+
 test("AGY stream proof is inspected without a fabricated native Turn ID and retained safely", async () => {
   let now = 0, calls = 0, latest;
   const inspections = [];
-  const input = { policy, sessionId: "agy-session", originalPrompt: "task", clock: () => now,
+  const input = { policy, nativeContracts: settledTreeContracts, sessionId: "agy-session", originalPrompt: "task", clock: () => now,
     wait: async ms => { now += ms; }, random: () => 0,
     inspect: async selector => {
       inspections.push(selector);
@@ -81,7 +151,7 @@ test("AGY stream proof is inspected without a fabricated native Turn ID and reta
 test("AGY missing or foreign stream inspection cannot authorize continuation", async () => {
   for (const changed of [null, { operation_id: "foreign" }, { turn_generation: 2 }, { connection_id: "foreign" }]) {
     let calls = 0, failure;
-    await assert.rejects(promptJudgeWithCapacity({ policy, sessionId: "agy-session", originalPrompt: "task",
+    await assert.rejects(promptJudgeWithCapacity({ policy, nativeContracts: settledTreeContracts, sessionId: "agy-session", originalPrompt: "task",
       inspect: async () => ({ provider_session_id: "agy-session", settled: true, settlement: { state: "not_required" },
         terminal_metadata: { request_proof: changed && { ...failure.details.request_proof, ...changed } } }),
       dispatch: async (_text, capacity, authorize) => {
@@ -101,7 +171,7 @@ test("AGY missing or foreign stream inspection cannot authorize continuation", a
 function harness({ outcomes, inspect = call => ({ provider_session_id: "session-1", settled: true, settlement: { state: "settled", operation_ids: [call.capacity.operation_id] } }), admit = () => {}, pauses = [5_000, 15_000], deadline = null } = {}) {
   let time = 0;
   const calls = [];
-  const input = { codex: true, policy, sessionId: "session-1", packetFiles: ["/packet.json"], originalPrompt: "original prompt", pauses, deadline,
+  const input = { codex: true, policy, nativeContracts: settledTreeContracts, sessionId: "session-1", packetFiles: ["/packet.json"], originalPrompt: "original prompt", pauses, deadline,
     clock: () => time, random: () => 0, wait: async ms => { time += ms; }, admit,
     inspect: async () => inspect(calls.at(-1)),
     dispatch: async (prompt, capacity, authorizeDispatch) => {
@@ -130,10 +200,11 @@ test("Judge continues only the same Session with bounded fresh operations", asyn
   assert.equal(fixture.time(), 20_000);
 });
 
-test("Judge preserves the overload chain after three failed turns", async () => {
-  const fixture = harness({ outcomes: ["overload", "overload", "overload"], inspect: last => ({ provider_session_id: "session-1", settled: true, settlement: { state: "settled", operation_ids: [last.capacity.operation_id] } }) });
-  await assert.rejects(promptJudgeWithCapacity(fixture.input), error => error.code === "provider_unavailable" && error.details.capacity_continuation.attempts === 3 && error.details.capacity_continuation.stop_reason === "overload_retries_exhausted");
-  assert.equal(fixture.calls.length, 3);
+test("Judge preserves the overload chain through the configured continuation budget", async () => {
+  const attempts = policy.MAX_OVERLOAD_RETRIES + 1;
+  const fixture = harness({ outcomes: Array(attempts).fill("overload"), inspect: last => ({ provider_session_id: "session-1", settled: true, settlement: { state: "settled", operation_ids: [last.capacity.operation_id] } }) });
+  await assert.rejects(promptJudgeWithCapacity(fixture.input), error => error.code === "provider_unavailable" && error.details.capacity_continuation.attempts === attempts && error.details.capacity_continuation.stop_reason === "overload_retries_exhausted");
+  assert.equal(fixture.calls.length, attempts);
 });
 
 test("exact failed Turn with unloaded items retains completed-tool evidence for continuation", async () => {
@@ -156,17 +227,18 @@ test("exact failed Turn with unloaded items retains completed-tool evidence for 
   assert.equal(fixture.calls.length, 3);
 });
 
-test("retained over-budget intent never dispatches a fourth attempt", async t => {
+test("retained over-budget intent never dispatches past the configured budget", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'judge-over-budget-'));
   t.after(() => rm(root, { recursive: true, force: true }));
-  const fixture = harness({ outcomes: ['overload', 'overload', 'overload', {}] });
+  const attempts = policy.MAX_OVERLOAD_RETRIES + 1;
+  const fixture = harness({ outcomes: Array(attempts).fill('overload') });
   fixture.input.stateFile = path.join(root, 'chain.json');
   await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'provider_unavailable' });
   const chain = JSON.parse(await readFile(fixture.input.stateFile));
-  chain.turns.push({ ...chain.turns[2], ordinal: 3, operation_id: `${chain.root_operation_id}:capacity:3:session.prompt`, state: 'prepared' });
+  chain.turns.push({ ...chain.turns.at(-1), ordinal: attempts, operation_id: `${chain.root_operation_id}:capacity:${attempts}:session.prompt`, state: 'prepared' });
   await writeFile(fixture.input.stateFile, JSON.stringify(chain));
   await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'capacity_chain_conflict' });
-  assert.equal(fixture.calls.length, 3);
+  assert.equal(fixture.calls.length, attempts);
 });
 
 test("quota after overload is terminal, and invalid native identity never retries", async () => {
@@ -368,8 +440,8 @@ test('cancellation during post-permit native inspection prevents dispatch', asyn
   assert.equal(fixture.calls.length, 1);
 });
 
-test('slow refusals still stop after three attempts', async () => {
-  const fixture = harness({ outcomes: ['overload', 'overload', 'overload', {}] });
+test('slow refusals still stop at the configured continuation budget', async () => {
+  const fixture = harness({ outcomes: Array(policy.MAX_OVERLOAD_RETRIES + 1).fill('overload') });
   const dispatch = fixture.input.dispatch;
   const wait = fixture.input.wait;
   fixture.input.dispatch = async (...args) => {
@@ -378,7 +450,7 @@ test('slow refusals still stop after three attempts', async () => {
     catch (error) { throw error; }
   };
   await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'provider_unavailable' });
-  assert.deepEqual(fixture.calls.map(call => call.capacity.ordinal), [0, 1, 2]);
+  assert.deepEqual(fixture.calls.map(call => call.capacity.ordinal), Array.from({ length: policy.MAX_OVERLOAD_RETRIES + 1 }, (_, index) => index));
 });
 
 test('long Retry-After never dispatches before provider budget', async () => {
@@ -470,14 +542,14 @@ test('compact inspection without Turn fields requires proven immutable terminal 
 test('recovered native receipt preserves its failure time and cannot bypass the burst', async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'judge-capacity-recovered-time-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  const fixture = harness({ outcomes: ['overload', 'overload', {}] });
+  const fixture = harness({ outcomes: [...Array(policy.MAX_OVERLOAD_RETRIES).fill('overload'), {}] });
   fixture.input.stateFile = path.join(directory, 'chain.json');
   let recoveredError;
   const dispatch = fixture.input.dispatch;
   fixture.input.dispatch = async (text, capacity, authorize) => {
-    if (capacity.ordinal === 2) {
+    if (capacity.ordinal === policy.MAX_OVERLOAD_RETRIES) {
       await authorize(); fixture.calls.push({ prompt: text, capacity });
-      recoveredError = overload(capacity.operation_id, 'turn-3');
+      recoveredError = overload(capacity.operation_id, `turn-${policy.MAX_OVERLOAD_RETRIES + 1}`);
       recoveredError.details.observed_at = new Date(fixture.time()).toISOString();
       throw Object.assign(new Error('lost observer'), { code: 'operation_observation_lost' });
     }
@@ -485,13 +557,13 @@ test('recovered native receipt preserves its failure time and cannot bypass the 
     catch (error) { error.details.observed_at = new Date(fixture.time()).toISOString(); throw error; }
   };
   await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'operation_observation_lost' });
-  assert.equal(fixture.time(), 20000);
+  const failureAt = fixture.time();
   fixture.input.clock = () => 200000;
   fixture.input.recover = async operationId => { assert.equal(operationId, recoveredError.details.operation_id); throw recoveredError; };
-  await assert.rejects(promptJudgeWithCapacity(fixture.input), error => error.code === 'provider_unavailable' && error.details.capacity_continuation.attempts === 3);
+  await assert.rejects(promptJudgeWithCapacity(fixture.input), error => error.code === 'provider_unavailable' && error.details.capacity_continuation.attempts === policy.MAX_OVERLOAD_RETRIES + 1);
   const retained = JSON.parse(await readFile(fixture.input.stateFile, 'utf8'));
-  assert.equal(retained.turns[2].refusal.first_observed_at, '1970-01-01T00:00:20.000Z');
-  assert.deepEqual(fixture.calls.map(call => call.capacity.ordinal), [0, 1, 2]);
+  assert.equal(retained.turns.at(-1).refusal.first_observed_at, new Date(failureAt).toISOString());
+  assert.deepEqual(fixture.calls.map(call => call.capacity.ordinal), Array.from({ length: policy.MAX_OVERLOAD_RETRIES + 1 }, (_, index) => index));
 });
 
 test('recovered missing, invalid or reversed refusal timestamps cannot authorize a successor', async t => {
@@ -524,7 +596,7 @@ test('recovered missing, invalid or reversed refusal timestamps cannot authorize
 test('retained refusal policy, timestamps and duplicate Turn identities are rejected before sending', async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'judge-capacity-malformed-refusal-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  const fixture = harness({ outcomes: ['overload', 'overload', 'overload'] });
+  const fixture = harness({ outcomes: Array(policy.MAX_OVERLOAD_RETRIES + 1).fill('overload') });
   fixture.input.stateFile = path.join(directory, 'chain.json');
   await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'provider_unavailable' });
   const valid = JSON.parse(await readFile(fixture.input.stateFile, 'utf8'));
@@ -542,6 +614,6 @@ test('retained refusal policy, timestamps and duplicate Turn identities are reje
     const chain = structuredClone(valid); corrupt(chain);
     await writeFile(fixture.input.stateFile, JSON.stringify(chain));
     await assert.rejects(promptJudgeWithCapacity(fixture.input), { code: 'capacity_chain_conflict' });
-    assert.equal(fixture.calls.length, 3);
+    assert.equal(fixture.calls.length, policy.MAX_OVERLOAD_RETRIES + 1);
   }
 });
