@@ -39,3 +39,9 @@ Fresh `cp-246-{agy,grok}-compatibility-r2` smokes passed with native/physical
 cleanup confirmed, qualifying AGY 1.4.6 and Grok 1.0.69 at conservative capacity 1.
 Keep the earlier failures unchanged. CP246 checkpoint now selects the exact local
 beta.148 candidate; release acceptance/publication remain pending.
+
+Preflight exposed a historical-reader mismatch: unchanged Judge answers were
+retained on beta.142 with shutdown@1, while the new reader required shutdown@2.
+The follow-up verifies completed legacy proof read-only against its pinned bytes,
+generation, exact stop operation and retired physical owner; new operations remain
+strictly @2. Do not regenerate the unchanged Judge corpus or rewrite its receipts.
