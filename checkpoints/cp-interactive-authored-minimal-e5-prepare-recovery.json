@@ -1,0 +1,21 @@
+{
+  "id": "cp-interactive-authored-minimal-e5-prepare-recovery",
+  "source": {
+    "repository": "test/fixtures/interactive/minimal-v3.bundle",
+    "commit": "ac26b92d0fe8987ab830786a0c7a86677073d536"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "d85a4fa3c029ac8f898f274811b2dc91ff812e97",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "e3950ccf8568e488997d37fa82ee469ed64d34b8",
+      "version": "0.9.0-beta.145",
+      "artifact_sha256": "432d9739b947c1450caecf27a981835ed7f77d98d6350114c907a5f8d2eea483"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}
