@@ -1,0 +1,30 @@
+{
+  "id": "cp-249-plan101-candidate",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1ce1892212967470993bc3ca440517e243cfde36"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "3632efc6f14761d6fe52e51409c7cfc9f7cec1ea",
+      "version": "0.9.0-beta.149",
+      "artifact_sha256": "a2954abcd81b88e86907011b5c339c5983c1891f702c0738dff36ae3bb9021ce"
+    }
+  },
+  "state": "candidate_pending_release",
+  "preparation": {
+    "launchable": false,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Plan101 candidate only; exact local installed snapshot, NOT the published beta.149. No runtime replaced, no EVAL launched. Source overlay preserves CP247 product files/tests. Release and new exact-engine matrix qualification must be performed separately before selection.",
+    "runner_evidence_probe": {
+      "path": "scripts/check-evidence-probe.mjs",
+      "contract": "dd-tasks/check-evidence-probe@1"
+    },
+    "baseline": "Baseline performs real producer/installed-consumer negative-path compatibility before Subject dispatch."
+  }
+}
