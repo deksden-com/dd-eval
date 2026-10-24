@@ -7,6 +7,27 @@ import childProcess from 'node:child_process';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { assertJudgeCleanup, assertJudgeCleanupCurrent, finishJudgeCleanup } from '../lib/judge-cleanup.mjs';
 
+test('stop ACK cannot turn missing, null or active execution evidence into clean cleanup', async t => {
+  for (const activity of [undefined, null, true]) {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'judge-unknown-activity-'));
+    t.after(() => rm(root, { recursive: true, force: true }));
+    const verdict = { profile_id: 'offline', session_id: 'session', result: { valid: true } };
+    await settledJudge(root, verdict);
+    const stateFile = path.join(root, 'daemon', 'daemon.json');
+    const state = JSON.parse(await readFile(stateFile));
+    await rm(path.join(root, 'cleanup.json'));
+    await assert.rejects(finishJudgeCleanup({ root, profileId: 'offline', stop: async () => {
+      await writeFile(stateFile, JSON.stringify({ ...state, active_tree: activity }));
+      return { stopped: true, clean: true };
+    } }), error => {
+      assert.equal(error.code, 'judge_cleanup_failed');
+      assert.equal(error.details.cleanup_error.message, 'Judge stop did not retain matching clean settlement');
+      return true;
+    });
+    assert.deepEqual(JSON.parse(await readFile(path.join(root, 'result.json'))), verdict);
+  }
+});
+
 test('all Judge cleanup consumers reject live/unknown identity but reuse a retired daemon with recycled PID', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'judge-reused-pid-'));
   t.after(() => rm(root, { recursive: true, force: true }));

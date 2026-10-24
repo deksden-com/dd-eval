@@ -1,0 +1,34 @@
+{
+  "id": "cp-246-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "dc4ae3be860549101d814651b09255a265d70a23",
+    "tag": "eval/cp243-native-typecheck"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-246-installed-matrix-qualification.json",
+      "sha256": "5ad547fc3061e0b50b8ddccdb2dd5885ec532d72d8791b98f0b802752edf9ded",
+      "canon_commit": "925ef10ecc0b683f7feba6f74913e15560842500"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "17bf983178e8f9f27bac65501c1434785ee3f214",
+      "version": "0.9.0-beta.148",
+      "artifact_sha256": "48bd7c544f5cc322c68b8fb584c47f8cb7db7b657583804aaf8378d93ebd6c6b"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "CP243 product and flow pack unchanged. Beta.148 includes prerequisite probe diagnostics and pre-storage lifecycle issuance validation. Installed full-cycle matrix proof passed. Operator authorized research E2Es on the exact local candidate while the full release gate continues; not release-accepted or npm-published yet.",
+    "world_isolation": "Per-execution test worlds; isolated campaign PostgreSQL on loopback 55439.",
+    "baseline": "Each scored workspace runs its own full baseline before Subject dispatch."
+  }
+}
