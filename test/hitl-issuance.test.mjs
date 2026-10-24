@@ -10,7 +10,7 @@ import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { promptJudgeWithCapacity } from '../lib/judge-capacity.mjs';
 import { loadCapacityPolicy } from '../lib/capacity-policy.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
-import { successfulPolicyFixture, successfulPolicy } from './fixtures/capacity-policy.mjs';
+import { successfulPolicyFixture, successfulPolicy, successfulNativeFixture } from './fixtures/capacity-policy.mjs';
 import { resolveExecutionContract, contractProfile, profileSemanticHash } from '../lib/execution-contract.mjs';
 
 async function frozenJudge(root, declaration) {
@@ -82,7 +82,7 @@ for (const retainedState of ['completed', 'dispatched']) test(`lost verdict publ
   await writeFile(path.join(root, 'native-intent.json'), JSON.stringify({ profile_id: profile.id, profile_sha256: profileSemanticHash(profile), packet_sha256: hashJson(packet), filter: null }));
   const runtimeRoot = path.join(attempt, 'runtime'), engine = path.join(runtimeRoot, 'engines/selected'), lib = path.join(engine, 'dist/harness-runtime/lib');
   await mkdir(lib, { recursive: true });
-  for (const [file, content] of [['provider-overload-policy.mjs', successfulPolicyFixture], ['native-children.mjs', "export const NATIVE_CHILD_CONTRACT_VERSION='native-children@1'; export function normalizeNativeChildren(){return []}"], ['operation-errors.mjs', "export const OPERATION_ERROR_CONTRACT_VERSION='operation-errors@1'; export function isObservationLoss(){return false}"], ['dd-agy.mjs', 'export function agyTerminalFailure(){return null}']]) await writeFile(path.join(lib, file), content);
+  for (const [file, content] of [['provider-overload-policy.mjs', successfulPolicyFixture], ['native-children.mjs', successfulNativeFixture], ['operation-errors.mjs', "export const OPERATION_ERROR_CONTRACT_VERSION='operation-errors@1'; export function isObservationLoss(){return false}"], ['dd-agy.mjs', 'export function agyTerminalFailure(){return null}']]) await writeFile(path.join(lib, file), content);
   await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
   await symlink('engines/selected/dist/harness-runtime', path.join(runtimeRoot, 'harness-runtime'));
   const policy = await loadCapacityPolicy(runtimeRoot), sessionId = 'session', prompt = interactionJudgePrompt(packetFile);
