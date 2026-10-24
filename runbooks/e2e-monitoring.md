@@ -60,6 +60,10 @@ to bypass these rules.
 
 ## Errors and unknown outcomes
 
+- `runner_evidence_incompatible` is a producer/installed-engine tooling blocker,
+  not a model or product failure. Read case ID, expected/observed contract and
+  bound validation diagnostics; use a new compatible checkpoint, never rewrite
+  retained reports or bypass the guard with a manual continuation.
 - Preserve the first correlated error, its operation/Session/Stage attempt and
   effect; report cleanup warnings separately. `incomplete_subject_turn` and
   `fanout_stage_nonprogressing` wrappers alone do not establish cause/attribution.
