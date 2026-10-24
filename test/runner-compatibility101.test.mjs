@@ -5,6 +5,13 @@ import os from "node:os";
 import path from "node:path";
 import { verifyRunnerEvidenceCompatibility } from "../lib/baseline-admission.mjs";
 import { compactCheckDiagnostic } from "../lib/check-diagnostic.mjs";
+import { assertCheckpointLaunchable } from "../lib/engine-admission.mjs";
+
+test("candidate checkpoint is inspectable but cannot dispatch until explicitly ready", () => {
+  assert.throws(() => assertCheckpointLaunchable({ value: { preparation: { launchable: false } } }), { code: "input_checkpoint_not_launchable" });
+  assert.doesNotThrow(() => assertCheckpointLaunchable({ value: { preparation: { launchable: true } } }));
+  assert.doesNotThrow(() => assertCheckpointLaunchable({ value: {} }));
+});
 
 test("compatibility refuses a missing failure producer before dispatch", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "runner-compat101-"));
@@ -12,6 +19,8 @@ test("compatibility refuses a missing failure producer before dispatch", async t
   await assert.rejects(verifyRunnerEvidenceCompatibility({ projectRoot: root, outputRoot: root, api: {}, binding: {} }), error =>
     error.code === "runner_evidence_incompatible" && error.details.reason === "missing_failure_probe" && error.details.product_repair_allowed === false);
   assert.equal(await verifyRunnerEvidenceCompatibility({ projectRoot: root, outputRoot: root, api: {}, binding: {}, required: false }), null);
+  for (const requirement of [null, { path: "../outside", contract: "dd-tasks/check-evidence-probe@1" }, { path: "scripts/probe.mjs", contract: "foreign" }])
+    await assert.rejects(verifyRunnerEvidenceCompatibility({ projectRoot: root, outputRoot: root, api: {}, binding: {}, requirement }), error => error.code === "runner_evidence_incompatible" && error.details.reason === "invalid_probe_requirement");
 });
 
 test("compatibility requires every real producer case and checks foreign bindings", async t => {
@@ -31,6 +40,8 @@ fs.writeFileSync(path.join(out,'probe.json'),JSON.stringify({schema_id:'dd-tasks
     error.code === "runner_evidence_incompatible" && error.details.reason === "failure_capability_rejected");
   await assert.rejects(verifyRunnerEvidenceCompatibility({ projectRoot: root, outputRoot: root, api: { ...api, readRunnerEvidence: () => ({}) }, binding }), error =>
     error.code === "runner_evidence_incompatible" && error.details.reason === "foreign_binding_accepted");
+  await writeFile(path.join(root, "scripts/check-evidence-probe.mjs"), `import fs from 'node:fs';import path from 'node:path';fs.writeFileSync(path.join(process.argv[process.argv.indexOf('--output')+1],'probe.json'),'null');`);
+  await assert.rejects(verifyRunnerEvidenceCompatibility({ projectRoot: root, outputRoot: root, api, binding }), error => error.code === "runner_evidence_incompatible" && error.details.reason === "probe_cases_missing");
 });
 
 test("validation diagnostics survive compaction without secrets or unbounded payload", () => {

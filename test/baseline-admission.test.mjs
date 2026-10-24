@@ -20,6 +20,7 @@ test("baseline consumes selected engine runner evidence without turning tooling 
 export const runnerContractsValid=()=>true;
 export function runnerContractForArgv(p,c,a){const alias=Object.keys(p.runner_evidence_by_alias).find(k=>p.aliases[k]===[c,...a].join(' '));return alias?{alias,command:p.aliases[alias],contract:p.runner_evidence_by_alias[alias]}:null;}
 export function readRunnerEvidence(r,c,b){try{const e=JSON.parse(fs.readFileSync(path.join(r,c.path)));return JSON.stringify(e.binding)===JSON.stringify(b)?e:null;}catch{return null;}}
+export const readRunnerEvidenceDetailed=(r,c,b)=>({evidence:readRunnerEvidence(r,c,b),diagnostics:[]});
 export const readRunnerProgress=()=>{if(fs.readFileSync(${JSON.stringify(categoryFile)},'utf8')==='progress-invalid')throw Object.assign(new Error('unsafe progress'),{code:'runner_progress_invalid'});return [];};
 export const runnerObservationDurations=()=>({startupMs:1500,executionMs:2500});
 export const runnerEvidencePass=e=>!!e?.completed&&!e.observation_unknown&&e.counts.failed===0&&e.failures.length===0;

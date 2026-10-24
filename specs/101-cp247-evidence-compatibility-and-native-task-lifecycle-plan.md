@@ -199,8 +199,10 @@ EVAL compactCheckDiagnostic и capture/restore обязаны сохранять
    полю validated=true. Повторная загрузка заново проверяет proof/hash/binding.
    code-checks rehydrate уже перечитывает proofs, lifecycle-invocations специально
    проверяет process-local capabilities до clone/SQL commit: эти гарантии не удалять.
-4. Общий error сохраняет primary failures и per-check/per-failure dispositions,
+4. Общий error сохраняет primary native failures и per-check dispositions,
    independent cleanup error и точное действие для recovery. Секреты фильтруются.
+   Отдельная authority для частичного поднабора ошибок не вводится: исходные
+   native failures сохраняются целиком, неизвестная причина блокирует весь check.
 5. Проверить все callers D9 малыми контрактными тестами. Ни stage, ни harness
    не получают собственного менее строгого решения по тому же receipt.
 
