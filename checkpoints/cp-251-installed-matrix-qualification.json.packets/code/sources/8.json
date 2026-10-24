@@ -1,0 +1,48 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "2886488c8c99f6e7605e63a3f7e2aa2d6cc571da00a1e62b739b15ffb45160e0",
+  "verification_epoch": "2fa48761c0815b1138ce72f0952bb58fc8d0f9fefc080b6c9fd6035234f83f09",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp-250-installed-matrix-proof/dd-flow-protocolize-YJRi3u/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp-250-installed-matrix-proof/dd-flow-protocolize-YJRi3u/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp-250-installed-matrix-proof/dd-flow-protocolize-YJRi3u/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp-250-installed-matrix-proof/dd-flow-protocolize-YJRi3u/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "fingerprint_scope": "check_inputs",
+  "input_manifest": {
+    "path": "inputs-before.json",
+    "sha256": "1ec2fca1009f132302820233433e81cc623ed48db90b4b3f65060c11abb38879",
+    "truncated": false
+  },
+  "execution_contract_hash": "21ced6a8cbe907807e13059858f26c5d5cdf186ecb1c3ed857fc8d35c6e1f671",
+  "workspace_fingerprint": "031d3c2f38f75a73d90653725ec4b6e8e953fa858bf95cad4804bac9fb2dd1f0",
+  "before_fingerprint": "91ef26b032fe60c794e8a4418b2da7c4fa00f78359545e6f7777114f5aee91d8",
+  "after_fingerprint": "91ef26b032fe60c794e8a4418b2da7c4fa00f78359545e6f7777114f5aee91d8",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-24T20:01:49.905Z",
+  "finished_at": "2026-10-24T20:01:49.986Z",
+  "candidate_root": "/Users/deksden/.dd-eval/qualification/cp-250-installed-matrix-proof/dd-flow-protocolize-YJRi3u/project",
+  "candidate_files": [],
+  "candidate_absences": [],
+  "execution_failures": []
+}

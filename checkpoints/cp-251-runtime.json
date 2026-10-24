@@ -1,0 +1,34 @@
+{
+  "id": "cp-251-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "a16dec02fdd4b269fd89f39245d58ffd0ffde938",
+    "tag": "eval/cp250-plan101-reviewed-tooling"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-251-installed-matrix-qualification.json",
+      "sha256": "7965adda5534f42d1896dbfa54444f31a1e6567049b0899c1256ce10a650efa8",
+      "canon_commit": "925ef10ecc0b683f7feba6f74913e15560842500"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "ad05c70447949f295e588546fe27f6abc4640c3f",
+      "version": "0.9.0-beta.150",
+      "artifact_sha256": "05ad3e93f53884af638e112b2e2b29802b3012a074eb9c9d1ac52b27d5092435"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Published beta.150, tag v0.9.0-beta.150; exact tarball SHA256 5f0fda701d8cb35dcbf07e35452327b55434d5730108422919d23b9443f95a5f. Full local release gate, registry readback/consumer and installed matrix PASS. Reviewed plan 101 tooling overlay preserves the CP247 product baseline; no product implementation fix is supplied. Every new launch still requires its own preflight and baseline. Historical runs and their pins remain unchanged.",
+    "world_isolation": "Per-execution test worlds; isolated EVAL PostgreSQL on loopback 55439.",
+    "baseline": "Every scored workspace runs its own baseline before Subject dispatch."
+  }
+}
