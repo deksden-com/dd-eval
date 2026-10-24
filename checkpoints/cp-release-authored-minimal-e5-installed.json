@@ -1,0 +1,21 @@
+{
+  "id": "cp-release-authored-minimal-e5-installed",
+  "source": {
+    "repository": "test/fixtures/delivery/minimal-v2.bundle",
+    "commit": "69e6840d31f35c6cab3cc441350c066b1cf8f697"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden/dd-memorybank.git",
+    "commit": "544fb0994fa26765236f6fe3b6d3632b69572394",
+    "path": ".memory-bank/dd-flow",
+    "delivery": "installed_canon",
+    "memory_bank_version": "4.1.2",
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "03627020c2edc6c78def164169a16651dccccd94",
+      "version": "0.9.0-beta.148",
+      "artifact_sha256": "28dc3755d5a39c02c6d78c615873b2137c2b8c5820911ebf3c2ec39bbc7ddbf7"
+    }
+  },
+  "state": "candidate_pending_preflight"
+}

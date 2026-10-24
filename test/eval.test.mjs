@@ -43,7 +43,8 @@ test("mandatory post-native observation failure is infrastructure, retains stabl
 
 test("raw report errors remain bounded and JSON safe for evidence and revision", () => {
   const raw = { state: "failed", code: "native_outcome_observation_failed", error: "x".repeat(32000), details: { provider_session_id: "owned" } };
-  assert.equal(executionEvidence(raw).failure.message.length, 16000);
+  // Reports consume the redacted compact diagnostic, not the raw 16K error envelope.
+  assert.equal(executionEvidence(raw).failure.message.length, 4000);
   raw.error = raw; raw.details.cycle = raw.details;
   assert.doesNotThrow(() => JSON.stringify(executionEvidence(raw)));
   assert.doesNotThrow(() => failureEvidenceRevision(raw));

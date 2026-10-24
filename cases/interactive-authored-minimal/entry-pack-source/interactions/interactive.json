@@ -1,0 +1,15 @@
+{
+  "schema_id": "dd-eval/canonical-responses@1",
+  "stage": "interactive",
+  "mode": "required",
+  "max_rounds": 1,
+  "responses": [
+    {
+      "id": "finish-agreed-scope",
+      "topic": "Explicit finish and existing local integration authority",
+      "applicability": "The agreed actual.ts-only edit is ready and the agent asks whether to finish input and proceed to consolidation, independent hardening/review and local integration.",
+      "answer": "Finish the agreed actual.ts-only change now. Preserve its existing comment and every other file. Proceed through independent hardening, checks and review, then make the already authorized local main commit containing only actual.ts. No push, publication or deployment.",
+      "input_kind": "finish"
+    }
+  ]
+}

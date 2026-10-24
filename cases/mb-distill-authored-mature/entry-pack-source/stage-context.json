@@ -1,0 +1,515 @@
+{
+  "schema_id": "dd-eval/stage-context-blueprint@1",
+  "stages": {
+    "preflight": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "preflight",
+      "objective": "Определить согласованный research scope, исходный project_root, отдельное назначение, обе линзы и явные исключения. Не подменять дистилляцию аудитом или ремонтом.",
+      "task_input": [
+        {
+          "role": "initial_user_request",
+          "path": ".dd-eval/request.md",
+          "source": "request.md",
+          "sha256": "823a8e36eea330f260724f1d6422d666b603d8814f47ef82dfd0e8d1acf9b328"
+        }
+      ],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/architecture.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/decisions.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/ledger.mjs",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/ledger.test.mjs",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/FEAT-001-safe-ledger.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/DEF-UPGRADE-001.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI supplies frozen criteria, actual Work/Session ownership, source and destination evidence, and issued lifecycle/publication commands."
+        }
+      ]
+    },
+    "extract": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "extract",
+      "objective": "Извлечь подтверждённые практики отдельно по выбранным аспектам; сравнить использование с замороженным каноном, не принимая декларации за реализацию.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/architecture.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/decisions.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/ledger.mjs",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/ledger.test.mjs",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/FEAT-001-safe-ledger.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/DEF-UPGRADE-001.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "01-preflight",
+          "required": true,
+          "reason": "Accepted immediate predecessor of this same RUN; not a reference answer."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI supplies frozen criteria, actual Work/Session ownership, source and destination evidence, and issued lifecycle/publication commands."
+        }
+      ]
+    },
+    "review": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "review",
+      "objective": "Сопоставить независимую критику новизны и переносимости, сохранить отклонённые варианты и разногласия, не выдавать собственное мнение за чужой review.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/architecture.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/decisions.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/ledger.mjs",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/ledger.test.mjs",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/FEAT-001-safe-ledger.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/DEF-UPGRADE-001.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "02-extract",
+          "required": true,
+          "reason": "Accepted immediate predecessor of this same RUN; not a reference answer."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI supplies frozen criteria, actual Work/Session ownership, source and destination evidence, and issued lifecycle/publication commands."
+        }
+      ]
+    },
+    "promote": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "promote",
+      "objective": "Применить только согласованные adopt/adapt в одном документе отдельного назначения, сохранив прежний смысл; не публиковать фиктивную квитанцию.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/architecture.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/decisions.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/ledger.mjs",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/ledger.test.mjs",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/FEAT-001-safe-ledger.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/DEF-UPGRADE-001.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "03-review",
+          "required": true,
+          "reason": "Accepted immediate predecessor of this same RUN; not a reference answer."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI supplies frozen criteria, actual Work/Session ownership, source and destination evidence, and issued lifecycle/publication commands."
+        }
+      ]
+    },
+    "verify": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "verify",
+      "objective": "Независимо проверить фактические новые документы и сохранность исходного текста по retained before evidence, не повторять только заявление writer.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/architecture.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/decisions.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/ledger.mjs",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/ledger.test.mjs",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/FEAT-001-safe-ledger.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/DEF-UPGRADE-001.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "04-promote",
+          "required": true,
+          "reason": "Accepted immediate predecessor of this same RUN; not a reference answer."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI supplies frozen criteria, actual Work/Session ownership, source and destination evidence, and issued lifecycle/publication commands."
+        }
+      ]
+    },
+    "finish": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "finish",
+      "objective": "Завершить тот же RUN с происхождением кандидатов, критикой, реальной проверкой и ограничениями; не объявлять исходный проект исправленным.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "package.json",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/architecture.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "docs/decisions.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "src/ledger.mjs",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/ledger.test.mjs",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/index.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/product/FEAT-001-safe-ledger.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/DEF-UPGRADE-001.md",
+          "required": true,
+          "reason": "Original source evidence; claims require comparison with actual code and accepted constraints."
+        },
+        {
+          "role": "accepted_predecessor",
+          "root": "run",
+          "path": "05-verify",
+          "required": true,
+          "reason": "Accepted immediate predecessor of this same RUN; not a reference answer."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI supplies frozen criteria, actual Work/Session ownership, source and destination evidence, and issued lifecycle/publication commands."
+        }
+      ]
+    }
+  }
+}

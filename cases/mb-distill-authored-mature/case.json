@@ -1,0 +1,42 @@
+{
+  "schema_id": "dd-eval/case@7",
+  "suite_id": "distillation-flow-e5",
+  "id": "mb-distill-authored-mature",
+  "assessment": "assessment.json",
+  "input": [
+    {
+      "role": "initial_user_request",
+      "source": "entry-pack-source/request.md",
+      "sha256": "823a8e36eea330f260724f1d6422d666b603d8814f47ef82dfd0e8d1acf9b328"
+    }
+  ],
+  "input_checkpoint": {
+    "id": "cp-distill-authored-mature-e5-installed",
+    "sha256": "759e73963eb396a767fad753255df71a55e97173d5001a52951c4c5a8cacc339"
+  },
+  "entry_pack": null,
+  "baseline_admission": {
+    "file": "baseline-admission.json",
+    "sha256": "ea49abf7440ef4bfea0dcc8ef3ff887a0a3c5b11ef87dd79a53a235ed31cbd52"
+  },
+  "profiles": {
+    "subject": [
+      "codex-desktop-gpt-6-luna-xhigh-codex-0-163-0"
+    ],
+    "judge": [
+      "codex-desktop-gpt-6-1-sol-high-codex-0-163-0"
+    ]
+  },
+  "flow": {
+    "id": "mb-distill",
+    "contour": [
+      "preflight",
+      "extract",
+      "review",
+      "promote",
+      "verify",
+      "finish"
+    ],
+    "terminal_stage": "finish"
+  }
+}

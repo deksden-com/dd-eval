@@ -1,0 +1,46 @@
+{
+  "schema_id": "dd-eval/case@7",
+  "suite_id": "delivery-flow-e5",
+  "id": "deploy-authored-minimal",
+  "assessment": "assessment.json",
+  "input": [
+    {
+      "role": "initial_user_request",
+      "source": "entry-pack-source/request.md",
+      "sha256": "cbecd75af20d51f6ed76ef5baf0cc336874c0c21b09f1c6df81782c5ef476ae0"
+    }
+  ],
+  "input_checkpoint": {
+    "id": "cp-deploy-authored-minimal-e5-installed",
+    "sha256": "9e3091cf5ff8694136efd7dadbb7dcf46e05febd1cb5b2c5359babd189ce5e39"
+  },
+  "entry_pack": null,
+  "baseline_admission": {
+    "file": "baseline-admission.json",
+    "sha256": "6807135d75c9c20a00753592c6225750911b559b86e44fe349e9fc541e43e929"
+  },
+  "profiles": {
+    "subject": [
+      "codex-desktop-gpt-6-luna-xhigh-codex-0-163-0"
+    ],
+    "judge": [
+      "codex-desktop-gpt-6-1-sol-high-codex-0-163-0"
+    ]
+  },
+  "flow": {
+    "id": "deploy",
+    "contour": [
+      "preflight",
+      "target-decision",
+      "prepare",
+      "deploy",
+      "verify",
+      "finish"
+    ],
+    "terminal_stage": "finish",
+    "git_policy": {
+      "route": "integration_branch_direct",
+      "integration_branch": "main"
+    }
+  }
+}

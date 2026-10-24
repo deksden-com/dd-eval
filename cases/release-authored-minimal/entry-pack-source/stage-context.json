@@ -1,0 +1,438 @@
+{
+  "schema_id": "dd-eval/stage-context-blueprint@1",
+  "stages": {
+    "preflight": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "preflight",
+      "objective": "Inspect actual existing artifact, version, local provider policy and preservation boundary. Bind the one original approved request; no effect or version bump at preflight.",
+      "task_input": [
+        {
+          "role": "initial_user_request",
+          "path": ".dd-eval/request.md",
+          "source": "request.md",
+          "sha256": "cb33184e855e029409a2ee6505174ad2be71cddf727925995ddf498acf863099"
+        }
+      ],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "version.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "candidate.tgz",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "delivery.mjs",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "delivery-policy-release.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/fixture.test.mjs",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/project-policy.md",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/code-check-profile.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI owns exact lifecycle/operation commands, user inputs, actors and receipts; project commands do not grant authority by themselves."
+        }
+      ]
+    },
+    "version-decision": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "version-decision",
+      "objective": "Retain the approved version 1.2.3, operation_id OPR-eval-release and exact observed local-preview release binding. Existing version/artifact are intentional; do not manufacture a release change.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "version.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "candidate.tgz",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "delivery.mjs",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "delivery-policy-release.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/fixture.test.mjs",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/project-policy.md",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/code-check-profile.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI owns exact lifecycle/operation commands, user inputs, actors and receipts; project commands do not grant authority by themselves."
+        }
+      ]
+    },
+    "prepare": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "prepare",
+      "objective": "Select the exact unchanged candidate.tgz and actual digest. Run the declared readiness check through the owned delivery-check command; do not rebuild or replace source/artifact bytes.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "version.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "candidate.tgz",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "delivery.mjs",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "delivery-policy-release.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/fixture.test.mjs",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/project-policy.md",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/code-check-profile.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI owns exact lifecycle/operation commands, user inputs, actors and receipts; project commands do not grant authority by themselves."
+        }
+      ]
+    },
+    "verify": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "verify",
+      "objective": "Use a physically distinct verification actor, independently inspect actual artifact, authority and readiness evidence, and execute the owned verify checks. No new external mutation.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "version.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "candidate.tgz",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "delivery.mjs",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "delivery-policy-release.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/fixture.test.mjs",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/project-policy.md",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/code-check-profile.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI owns exact lifecycle/operation commands, user inputs, actors and receipts; project commands do not grant authority by themselves."
+        }
+      ]
+    },
+    "publish": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "publish",
+      "objective": "Interpret the original exact one-operation approval and execute release only through its issued CLI delivery command. Observe the actual local result; never run execute directly, invent receipts, broaden target or retry unknown effects.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "version.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "candidate.tgz",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "delivery.mjs",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "delivery-policy-release.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/fixture.test.mjs",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/project-policy.md",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/code-check-profile.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI owns exact lifecycle/operation commands, user inputs, actors and receipts; project commands do not grant authority by themselves."
+        }
+      ]
+    },
+    "finish": {
+      "schema_id": "dd-eval/stage-context@1",
+      "stage": "finish",
+      "objective": "Reconcile the one original release and retain its actual local result, exact artifact/target, owned check/readback evidence and limitations. No mutation at finish; preserve project/HEAD/index and do not claim remote or production qualification.",
+      "task_input": [],
+      "sources": [
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "README.md",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "version.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "candidate.tgz",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "delivery.mjs",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "delivery-policy-release.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": "test/fixture.test.mjs",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/project-policy.md",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        },
+        {
+          "role": "project_source",
+          "root": "project",
+          "path": ".memory-bank/spec/engineering/code-check-profile.json",
+          "required": true,
+          "reason": "Actual project procedure, selected facts and preservation boundary; inspect source rather than infer behavior."
+        }
+      ],
+      "accepted_decisions": [],
+      "dynamic_roles": [
+        {
+          "role": "selected_stage_contract",
+          "reason": "The installed CLI owns exact lifecycle/operation commands, user inputs, actors and receipts; project commands do not grant authority by themselves."
+        }
+      ]
+    }
+  }
+}

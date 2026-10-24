@@ -1,0 +1,14 @@
+{
+  "schema_id": "dd-eval/baseline-admission-policy@2",
+  "commands": [
+    {
+      "id": "source-and-separate-destination",
+      "command": "node",
+      "args": [
+        "-e",
+        "const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process');const cwd=fs.realpathSync(process.cwd());assert.equal(path.basename(cwd),'project');assert.equal(cp.execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),'fc3edfee4d6dc8b27a664bb5ee5e08cc58387817');cp.execFileSync('git',['diff','--exit-code','HEAD','--','.']);const target=path.join(path.dirname(cwd),'distill-destination');const owner=JSON.stringify({schema_id:'dd-eval/distill-destination-fixture@1',case_id:'mb-distill-authored-mature',source:cwd});if(fs.existsSync(target)){assert(fs.lstatSync(target).isDirectory());assert.equal(fs.realpathSync(target),target);assert.equal(fs.readFileSync(path.join(target,'.fixture-owner.json'),'utf8'),owner);}else{fs.mkdirSync(target,{mode:448});fs.writeFileSync(path.join(target,'.fixture-owner.json'),owner,{flag:'wx',mode:384});}for(const relative of ['.memory-bank','.memory-bank/mbb']){const dir=path.join(target,relative);if(!fs.existsSync(dir))fs.mkdirSync(dir,{mode:448});assert(fs.lstatSync(dir).isDirectory());assert.equal(fs.realpathSync(dir),dir);}const files={'.memory-bank/index.md':'# Distillation destination\\nThis index is outside the approved write scope.\\n','.memory-bank/mbb/distilled-practices.md':'# Existing evidence boundary\\n\\nDESTINATION-BOUNDARY-001: A transferred example is not a repaired source project.\\nKeep applicability limits, accepted source constraints and unknowns explicit.\\n'};for(const [relative,text]of Object.entries(files)){const file=path.join(target,relative);if(fs.existsSync(file)){assert(fs.lstatSync(file).isFile());assert.equal(fs.lstatSync(file).nlink,1);assert.equal(fs.readFileSync(file,'utf8'),text);}else fs.writeFileSync(file,text,{flag:'wx',mode:384});}console.log('Pinned source unchanged; separate owned destination seeded without overwriting prior output.');"
+      ],
+      "inactivity_timeout_ms": 30000
+    }
+  ]
+}

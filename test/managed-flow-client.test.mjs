@@ -6,28 +6,136 @@ import path from "node:path";
 import { createHash } from 'node:crypto';
 import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
 
-test('diagnostic preparation reuses public managed RUNs without mutation-route selectors', async t => {
+for (const mode of ['turn', 'finish', 'missing', 'pending', 'foreign', 'controlled', 'invalid']) test(`interactive observer uses public input custody: ${mode}`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'observe-interactive-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), callsFile = path.join(root, 'calls.jsonl'), intakeFile = path.join(root, 'input.md');
+  const raw = 'Original authorized user input.\r\n'; await writeFile(intakeFile, raw);
+  const sha256 = 'a'.repeat(64);
+  await writeFile(bin, `import fs from 'node:fs';
+const args=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(callsFile)},JSON.stringify(args)+'\\n');
+let result;
+if(args[0]==='run' && args[1]==='drive' && args[2]==='status') result={controller:{controller_id:'DRV',status:fs.existsSync(${JSON.stringify(path.join(root, 'controlled'))})?'control_requested':'waiting_for_user',stage:'interactive'},events:[]};
+else if(args[0]==='run' && args[1]==='status') result={index:{stage_runs:[{stage:'interactive',status:'paused',pause:{id:'HITL-1'}}]}};
+else if(args[0]==='interactive' && args[1]==='inputs') result={run_id:'RUN-001-interactive',sha256:${JSON.stringify(sha256)}};
+else if(args[0]==='interactive' && ['turn','finish'].includes(args[1])) {
+  if(fs.readFileSync(args[args.indexOf('--intake-file')+1],'utf8')!==${JSON.stringify(raw)}) throw new Error('Original input bytes changed');
+  result={delivery:{kind:${JSON.stringify(mode === 'pending' ? 'controller_answer_pending' : 'controller_answer')},pause_id:${JSON.stringify(mode === 'foreign' ? 'HITL-foreign' : 'HITL-1')},operation_id:'DRV:answer:original'}};
+} else throw new Error('Unexpected command or direct native dispatch: '+JSON.stringify(args));
+console.log(JSON.stringify(result));`);
+  const input = { bin, projectRoot: root, runId: 'RUN-001-interactive', controllerId: 'DRV', requestId: 'execution-one', flow: 'interactive',
+    observeOnce: true, pollMs: 0, answerFor: () => assert.fail('Interactive must not bypass retained turn/finish with generic answer'),
+    interactiveInputFor: async (stage, run, controller, inputs) => {
+      assert.equal(stage.pause.id, 'HITL-1'); assert.equal(controller.controller_id, 'DRV'); assert.equal(inputs.sha256, sha256);
+      if (mode === 'controlled') await writeFile(path.join(root, 'controlled'), 'stop');
+      return mode === 'missing' ? null : { kind: mode === 'finish' ? 'finish' : mode === 'invalid' ? 'answer' : 'turn', intakeFile };
+    } };
+  if (mode === 'foreign') await assert.rejects(observeManagedRun(input), { code: 'controller_receipt_invalid' });
+  else if (mode === 'controlled') await assert.rejects(observeManagedRun(input), { code: 'managed_run_controlled' });
+  else if (mode === 'invalid') await assert.rejects(observeManagedRun(input), { code: 'managed_flow_input_invalid' });
+  else {
+    const result = await observeManagedRun(input);
+    if (mode === 'missing') assert.equal(result.pending_answer.pause_id, 'HITL-1');
+    else if (mode === 'pending') assert.equal(result.pending_input.receipt.delivery.kind, 'controller_answer_pending');
+    assert.equal(result.controller.status, 'waiting_for_user');
+  }
+  const calls = (await readFile(callsFile, 'utf8')).trim().split('\n').map(JSON.parse);
+  const delivered = calls.filter(args => args[0] === 'interactive' && ['turn', 'finish'].includes(args[1]));
+  assert.equal(delivered.length, ['missing', 'controlled', 'invalid'].includes(mode) ? 0 : 1);
+  if (delivered.length) {
+    assert.equal(delivered[0][delivered[0].indexOf('--expected-inputs-sha256') + 1], sha256);
+    assert.match(delivered[0][delivered[0].indexOf('--request-id') + 1], /^input-[a-f0-9]{64}$/);
+  }
+});
+
+test('interactive preparation uses managed public ingress with original intake and explicit Git policy', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-interactive-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), calls = path.join(root, 'calls.json'), intakeFile = path.join(root, 'intake.md');
+  const raw = 'Change only the selected source; preserve unrelated staged edits.\r\n'; await writeFile(intakeFile, raw);
+  const interactive = { requestId: 'interactive-request', intakeFile, intakeSha256: createHash('sha256').update(raw).digest('hex'),
+    profile: 'subject', workspaceRoot: root, gitRoute: 'integration_branch_direct', integrationBranch: 'main', stageProfiles: ['review=critic'], maxParallel: 1 };
+  const receipt = { run_id: 'RUN-001-interactive', flow_id: 'interactive', action: 'flow_interactive_prepared', request_id: interactive.requestId };
+  const script = value => `import fs from 'node:fs';fs.writeFileSync(${JSON.stringify(calls)},JSON.stringify(process.argv.slice(2)));console.log(JSON.stringify(${JSON.stringify(value)}));`;
+  await writeFile(bin, script(receipt));
+  const input = { bin, projectRoot: root, flow: 'interactive', interactive };
+  assert.deepEqual(await prepareManagedRun(input), receipt);
+  const args = JSON.parse(await readFile(calls));
+  assert.deepEqual(args.slice(0, 2), ['flow', 'interactive']);
+  for (const [flag, value] of [['--execution', 'managed'], ['--git-route', 'integration_branch_direct'], ['--integration-branch', 'main'], ['--intake-file', intakeFile]])
+    assert.equal(args[args.indexOf(flag) + 1], value);
+  assert(args.includes('--prepare-only')); assert(args.includes('--non-interactive')); assert(!args.includes('--intake-sha256'));
+  assert.equal(args[args.indexOf('--workspace') + 1], root); assert(!args.includes('--workspace-root'));
+  assert.equal(await readFile(intakeFile, 'utf8'), raw);
+  await rm(calls);
+  for (const change of [{ interactive: undefined }, { flow: 'sdlc' }, { flow: 'mb-init' }, { memoryInit: {} }, { diagnostic: {} }, { memoryFix: {} },
+    { executionRoutingFile: 'foreign' }, ...[{ gitRoute: 'implicit' }, { integrationBranch: '' }, { profileFile: 'also-selected' },
+      { maxParallel: 0 }, { intakeSha256: '0'.repeat(64) }, { execution: 'attached' }].map(patch => ({ interactive: { ...interactive, ...patch } }))]) {
+    await assert.rejects(prepareManagedRun({ ...input, ...change }), { code: 'managed_flow_input_invalid' });
+    await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  }
+  for (const change of [{ flow_id: 'mb-init' }, { action: 'flow_interactive_attached' }, { request_id: 'foreign' }, { controller: {} }]) {
+    await writeFile(bin, script({ ...receipt, ...change }));
+    await assert.rejects(prepareManagedRun(input), { code: 'controller_receipt_invalid' });
+  }
+});
+
+for (const flow of ['release', 'deploy', 'publish']) test(`delivery preparation preserves ${flow} identity and raw authority without launching it`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-delivery-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), calls = path.join(root, 'calls.json'), intakeFile = path.join(root, 'intake.md');
+  const raw = 'Only the exact private preview target is authorized.\r\n'; await writeFile(intakeFile, raw);
+  const delivery = { requestId: 'delivery-request', intakeFile, intakeSha256: createHash('sha256').update(raw).digest('hex'),
+    profile: 'subject', workspaceRoot: root, stageProfiles: ['verify=critic'], workProfiles: ['worker'], maxParallel: 1 };
+  const receipt = { run_id: 'RUN-001-delivery', flow_id: flow, action: `flow_${flow}_prepared`, request_id: delivery.requestId };
+  const script = value => `import fs from 'node:fs';fs.writeFileSync(${JSON.stringify(calls)},JSON.stringify(process.argv.slice(2)));console.log(JSON.stringify(${JSON.stringify(value)}));`;
+  await writeFile(bin, script(receipt));
+  const input = { bin, projectRoot: root, flow, delivery };
+  assert.deepEqual(await prepareManagedRun(input), receipt);
+  const args = JSON.parse(await readFile(calls));
+  assert.deepEqual(args.slice(0, 2), ['flow', flow]);
+  for (const [flag, value] of [['--workspace', root], ['--intake-file', intakeFile], ['--profile', 'subject'], ['--stage-profile', 'verify=critic']])
+    assert.equal(args[args.indexOf(flag) + 1], value);
+  assert(args.includes('--prepare-only')); assert(args.includes('--non-interactive'));
+  for (const flag of ['--workspace-root', '--git-route', '--integration-branch', '--intake-sha256', '--detach']) assert(!args.includes(flag));
+  assert.equal(await readFile(intakeFile, 'utf8'), raw);
+  await rm(calls);
+  for (const change of [{ delivery: undefined }, { flow: 'sdlc' }, { flow: 'mb-init' }, { memoryInit: {} }, { diagnostic: {} }, { interactive: {} },
+    { executionRoutingFile: 'foreign' }, ...[{ profileFile: 'ambiguous' }, { maxParallel: 65 }, { intakeSha256: '0'.repeat(64) },
+      { gitRoute: 'integration_branch_direct' }, { rollback: true }].map(patch => ({ delivery: { ...delivery, ...patch } }))]) {
+    await assert.rejects(prepareManagedRun({ ...input, ...change }), { code: 'managed_flow_input_invalid' });
+    await assert.rejects(readFile(calls), { code: 'ENOENT' });
+  }
+  for (const change of [{ flow_id: 'mb-init' }, { action: 'flow_publish_attached' }, { request_id: 'foreign' }, { controller: {} }]) {
+    await writeFile(bin, script({ ...receipt, ...change }));
+    await assert.rejects(prepareManagedRun(input), { code: 'controller_receipt_invalid' });
+  }
+});
+
+test('source-snapshot preparation reuses public managed RUNs without mutation-route selectors', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'managed-diagnostic-'));
   t.after(() => rm(root, {recursive:true,force:true}));
   const bin=path.join(root,'cli.mjs'),calls=path.join(root,'calls.json'),intakeFile=path.join(root,'intake.md');
   const raw='Review actual implementation without repairs.\n';await writeFile(intakeFile,raw);
-  for(const flow of ['mb-audit','project-review']) {
+  for(const flow of ['mb-audit','project-review','mb-distill']) {
+    const selectionKey=flow==='mb-distill'?'distillation':'diagnostic';
     const diagnostic={requestId:'diagnostic-request',intakeFile,intakeSha256:createHash('sha256').update(raw).digest('hex'),
       profile:'subject',stageProfiles:['review=critic'],workProfiles:['worker'],maxParallel:2};
     const receipt={run_id:'RUN-diagnostic',flow_id:flow,action:`flow_${flow.replaceAll('-','_')}_prepared`,request_id:diagnostic.requestId};
     const script=value=>`import fs from 'node:fs';fs.writeFileSync(${JSON.stringify(calls)},JSON.stringify(process.argv.slice(2)));console.log(JSON.stringify(${JSON.stringify(value)}));`;
     await writeFile(bin,script(receipt));
-    const input={bin,projectRoot:root,flow,diagnostic};
+    const input={bin,projectRoot:root,flow,[selectionKey]:diagnostic};
     assert.deepEqual(await prepareManagedRun(input),receipt);
     const args=JSON.parse(await readFile(calls));
     assert.deepEqual(args.slice(0,2),['flow',flow]);
     for(const flag of ['--prepare-only','--non-interactive','--request-id','--intake-file','--stage-profile','--work-profile'])assert(args.includes(flag));
     for(const flag of ['--git-route','--workspace-root','--integration-branch','--intake-sha256','launch','init','upgrade'])assert(!args.includes(flag));
     await rm(calls);
-    for(const change of [{diagnostic:undefined},{memoryInit:{}},{memoryUpgrade:{}},{executionRoutingFile:'routing.json'},
-      {flow:'sdlc'},{flow:'mb-init'},{diagnostic:{...diagnostic,gitRoute:'feature_worktree'}},
-      {diagnostic:{...diagnostic,profileFile:'other'}},{diagnostic:{...diagnostic,intakeSha256:'0'.repeat(64)}},
-      ...[0,65,1.5,null].map(maxParallel=>({diagnostic:{...diagnostic,maxParallel}}))]) {
+    for(const change of [{[selectionKey]:undefined},{memoryInit:{}},{memoryUpgrade:{}},{executionRoutingFile:'routing.json'},
+      {[selectionKey==='diagnostic'?'distillation':'diagnostic']:diagnostic},
+      {flow:'sdlc'},{flow:'mb-init'},{[selectionKey]:{...diagnostic,gitRoute:'feature_worktree'}},
+      {[selectionKey]:{...diagnostic,profileFile:'other'}},{[selectionKey]:{...diagnostic,intakeSha256:'0'.repeat(64)}},
+      ...[0,65,1.5,null].map(maxParallel=>({[selectionKey]:{...diagnostic,maxParallel}}))]) {
       await assert.rejects(prepareManagedRun({...input,...change}),{code:'managed_flow_input_invalid'});
       await assert.rejects(readFile(calls),{code:'ENOENT'});
     }
@@ -35,6 +143,40 @@ test('diagnostic preparation reuses public managed RUNs without mutation-route s
       await writeFile(bin,script({...receipt,...change}));
       await assert.rejects(prepareManagedRun(input),{code:'controller_receipt_invalid'});
     }
+  }
+});
+
+test('repair prepares its public CLI with exact accepted source selectors and no implicit source discovery',async t => {
+  const root=await mkdtemp(path.join(os.tmpdir(),'managed-repair-'));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const bin=path.join(root,'cli.mjs'),calls=path.join(root,'calls.json'),intakeFile=path.join(root,'intake.md');
+  const raw='Repair only selected memory documents. No code changes.\r\n'; await writeFile(intakeFile,raw);
+  const memoryFix={requestId:'repair-request',sourceRunId:'RUN-001-audit',findingIds:['FIND-2','FIND-1'],intakeFile,
+    intakeSha256:createHash('sha256').update(raw).digest('hex'),gitRoute:'feature_worktree',integrationBranch:'main',
+    profile:'subject',stageProfiles:['verify=critic'],maxParallel:1};
+  const receipt={run_id:'RUN-002-mb-fix',flow_id:'mb-fix',action:'flow_mb_fix_prepared',request_id:memoryFix.requestId};
+  const script=value=>`import fs from 'node:fs';fs.writeFileSync(${JSON.stringify(calls)},JSON.stringify(process.argv.slice(2)));console.log(JSON.stringify(${JSON.stringify(value)}));`;
+  await writeFile(bin,script(receipt));
+  const input={bin,projectRoot:root,flow:'mb-fix',memoryFix};
+  assert.deepEqual(await prepareManagedRun(input),receipt);
+  const args=JSON.parse(await readFile(calls));
+  assert.deepEqual(args.slice(0,2),['flow','mb-fix']);
+  assert.deepEqual(args.flatMap((value,index)=>value==='--finding'?[args[index+1]]:[]),memoryFix.findingIds);
+  for(const [flag,value] of [['--source-run',memoryFix.sourceRunId],['--git-route','feature_worktree'],['--integration-branch','main'],['--intake-file',intakeFile]])
+    assert.equal(args[args.indexOf(flag)+1],value);
+  for(const flag of ['--prepare-only','--non-interactive'])assert(args.includes(flag));
+  for(const flag of ['--workspace-root','--intake-sha256','--execution-routing-file','launch'])assert(!args.includes(flag));
+  await rm(calls);
+  for(const change of [{memoryFix:undefined},{flow:'mb-audit'},{flow:'sdlc'},{memoryInit:{}},{diagnostic:{}},{distillation:{}},
+    {executionRoutingFile:'routing'},...[{sourceRunId:'latest'},{findingIds:[]},{findingIds:['FIND-1','FIND-1']},
+      {findingIds:['bad\nselector']},{gitRoute:'implicit'},{integrationBranch:''},{profileFile:'also-selected'},
+      {maxParallel:65},{delegation:'native'},{intakeSha256:'0'.repeat(64)}].map(patch=>({memoryFix:{...memoryFix,...patch}}))]) {
+    await assert.rejects(prepareManagedRun({...input,...change}),{code:'managed_flow_input_invalid'});
+    await assert.rejects(readFile(calls),{code:'ENOENT'});
+  }
+  for(const change of [{flow_id:'mb-audit'},{request_id:'other'},{controller:{}}]) {
+    await writeFile(bin,script({...receipt,...change}));
+    await assert.rejects(prepareManagedRun(input),{code:'controller_receipt_invalid'});
   }
 });
 

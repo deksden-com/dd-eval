@@ -1,0 +1,250 @@
+# E5 distillation qualification — in progress
+
+This work belongs to E5.03 of canonical SPC-014. Diagnostic E5.01–02 acceptance
+is unchanged. Distillation is not a diagnostic audit, project repair or implicit
+permission to publish shared canon. Later E5 families and E6 remain separate.
+
+## Source consumer checkpoint
+
+Worktrunk created `codex/mb-e5-completion` from main
+`a92006edc1e78982f7fe9b46e535a9d8ab9b4fa4` at
+`/Users/deksden/Documents/_Projects/_worktrees/dd-eval-e5-completion`, with
+explicit path and no hooks. `npm ci` used that explicit prefix and installed
+five packages; primary checkout, running campaigns and global tools stayed
+untouched.
+
+Eval now recognizes installed `mb-distill`, uses its original project without a
+flow overlay and prepares the public source-snapshot command. The explicit
+`subject.distillation` selector is exclusive with diagnostic, init, upgrade and
+SDLC selections. Both profile schema versions retain one executor, private setup,
+external Work and the CLI's64 concurrency bound. Source selection neither
+materializes ordinary SDLC project policy nor grants destination writes.
+
+Four-file source regression passed51/53, zero failures, two explicit pre-existing
+installed opt-in skips. The expanded tests cover both source products with/without
+a Memory Bank, original intake, foreign/mixed selectors, schemas v1/v2 and existing
+Memory/controller behavior. Node syntax and diff checks passed. This is not a
+complete paired suite or real-model distillation acceptance.
+
+## Installed expectation readback
+
+CLI candidate root:
+`/Users/deksden/Documents/_Projects/_artifacts/e5-distill-candidate.GK9y5S`.
+CLI `9266565b67077d9325c19c5819217b4735e7fadf`, canon
+`ae5e3cf26b93e3dc712c8ba608b96c89816cdacd`. The CLI-owned authored positive
+completed all six stages in `diagnostic-preparation-rMm2xR`, including registered
+aspect/critics, scoped publication, publication replay and before/after evidence.
+The forged-source negative in `diagnostic-preparation-EzcKYf` stopped at extract
+before promotion. Those fixtures are not provider or semantic qualification.
+
+This Eval worktree's installed expectation consumer passed1/1, zero skips, with:
+
+```sh
+DD_EVAL_DISTILL_INSTALLED_CELL=/Users/deksden/Documents/_Projects/_artifacts/e5-distill-candidate.GK9y5S/diagnostic-preparation-rMm2xR node --test test/distill-installed-expectation.test.mjs
+```
+
+It imported the admitted installed engine, independently resolved the expected
+six-stage settings/profiles and matched the completed RUN's frozen execution.
+RUN, Session, Work and audit counts did not change. A first test-reader attempt
+mistook the engine-manifest reference for metadata; it failed before observation.
+The corrected reader loads that referenced manifest; the initial FAIL is not a
+PASS and no runtime data was repaired.
+
+## Remaining
+
+Create and validate the distillation case, original source/destination fixtures,
+scope/transfer/preservation rubric and pinned candidate. Run the authorized real
+Subject (`gpt-6-luna/xhigh`) and Judge (`gpt-6.1-sol/high`) through installed Codex,
+with isolated runtime/config/registry and bounded campaign resources. Preserve
+original inputs/results and distinguish model quality, physical settlement and
+publication effects. Then complete paired regressions, applicable Console
+consumer proof, review, project-policy integration/readback and owned cleanup.
+No production publication, global install or migration is implied.
+
+## Native case preparation — 2026-10-22
+
+Case/checkpoint/rubric commit: `89e0e3c`. The source remains the exact authored
+ledger bundle `fc3edfee4d6dc8b27a664bb5ee5e08cc58387817`. The original request
+selects domain-04 and process-09, explicitly excludes other aspects and permits
+only one document in a separate fixture-owned peer destination. Baseline setup
+is idempotent only before publication; changed output or a foreign owner refuses
+without reset. The assessment is not exposed as Subject input. It accepts
+evidence-backed alternatives and honest no-promotion, but not fictitious
+implementation guarantees, repairs, criticism or executed checks.
+
+Current checkpoint selects CLI `f6dd596ded5a13d7ad076d59b81f746a40b96e0f`, canon
+`0f934217dd60340193d44f026fc3d3f61046006b` and full-content engine
+`8f7df86d42f7a36dcd9aca464019bbc4699a78eb7bc20a987b18d3ec69c0a9cf`.
+This successor explicitly supplies each Work with its original request reference
+and the issued current-user-input command. It has a new immutable installed
+candidate, `e5-distill-candidate.XpCWEe`; the earlier GK9y5S proof is not relabelled
+as proof of the added context. The successor's full installed fixture is running.
+
+Case/baseline plus existing preparation/client regression passed46/46, zero
+failures/skips. The private actual-model root is
+`/Users/deksden/Documents/_Projects/_artifacts/e5-distill-native.SHQwQX`.
+Its operation-only Subject profile, Judge runtime template and Codex harness
+configuration contain no copied credentials. The existing installed Codex reports
+0.163.0. Router engine/setup completed only in the private router Home, using the
+temporary development trust; no qualified production route was claimed. Native
+preflight is running with separate Eval/config/resources/registry and the frozen
+expanded canon. No real Subject/Judge call has been started yet; there is no
+native quality PASS at this checkpoint.
+
+The successor installed lifecycle subsequently passed2/2, zero failures/skips,
+in `e5-distill-candidate.XpCWEe/diagnostic-preparation-I8Eo8I`: all six stages
+completed, and every aspect/critic Work checked its issued inputs command and
+original request reference against retained bytes. This is authored transport,
+not model quality. The actual native preflight also passed, at
+`eval/conformance/e2e-preflight/1792671363238-e6895d25/mb-distill-mature-luna-sol`
+under the private native root. It matched the frozen engine/profiles, prepared
+the public RUN and completed version/initialize doctors for both requested
+models and the operational Subject alias. provider_sessions_created was0;
+baseline admission is deliberately deferred to the actual execution.
+
+The real run request was then accepted as `EVAL-20261022121916-ea0d3410`, root
+`eval/runs/EVAL-20261022121916-ea0d3410` under the same native root. Its initial
+runner attempt is `b7cfe4eff3669dfa0043b4c116c76ad76e6cc11102594b3bed4abc1919358d76`.
+Acceptance/requested is not proof of Subject dispatch or completion. Observe
+that exact existing EVAL; do not launch a replacement on observation loss.
+No real model quality, final Judge or E5 completion verdict exists yet.
+
+## Boundary-capture correction candidate
+
+The first actual run reached a real Subject preflight result, then failed in
+automatic snapshot capture: `snapshot_workspace_invalid` required Git HEAD in
+distill's intentionally unborn private source workspace. No HITL was requested
+and Judge did not run. The EVAL is recovery_blocked; owner cleanup reported
+physical/native settlement but capture remains pending. Retain the old run,
+profile, frozen inputs and XpCWEe installed bytes unchanged.
+
+CLI `b57c363d` reuses the source-snapshot predicate in the existing copier and
+restore admission. Full snapshot regression passed44/44, no skips; typecheck,
+targeted ESLint and diff checks passed. New immutable installed candidate is
+`e5-distill-candidate.XAACfz`, canon `97f2e630`, full-content engine
+`664c425c9275c7433621b381540560b9fbc69ad0ac1b8462824741c36d1cdee2`.
+The selected checkpoint/case binding advances only for a new attempt; source
+fixture, request, baseline and accepted assessment are unchanged. The old tuple
+remains in Git and the retained EVAL definition snapshot.
+
+Successor native campaign root is `e5-distill-native.FKtHtL`, with fresh private
+router/config/resources/Eval/registry. Engine installation and signed development
+setup completed there, without executor defaults or global changes. Installed
+six-stage regression is running. The first successor preflight refused the
+uncommitted definition as expected; commit before repeating. No successor native
+quality or full E5 acceptance is claimed.
+
+Successor preflight subsequently passed at
+`eval/conformance/e2e-preflight/1792672928970-8d840a33/mb-distill-mature-luna-sol`
+under FKtHtL. It matched engine/checkpoint and both requested profiles, prepared
+the public RUN and passed version/initialize doctors; no provider Session was
+created by preflight. Definition/baseline tests passed2/2 without skips.
+The actual model request was accepted as `EVAL-20261022124345-d362dcb2`, attempt
+`c62e52c1519acad0547b4d539a633b5238272c35de9e3cc45a140e37d7078f0b`.
+Its first status is awaiting_provider, not completion or a quality verdict.
+Observe this exact existing attempt instead of replacing it on timeout.
+
+The first XAACfz installed lifecycle reached all six stages and passed its
+child checks in `diagnostic-preparation-n8vZGz`, but the parent test failed:
+operator invocation used strip-types without the owning source-test loader,
+so the after-hook could not resolve cleanup helper's source `.js` imports.
+This is not a full installed PASS. Run owner-scoped drain for that exact Home
+using the existing loader and repeat the complete test with:
+
+```sh
+DD_FLOW_E5_INSTALLED_ROOT=/Users/deksden/Documents/_Projects/_artifacts/e5-distill-candidate.XAACfz DD_FLOW_E5_DISTILL_PREPARATION=1 DD_FLOW_E5_LIFECYCLE=1 node --import ./scripts/source-test-loader.mjs --test scripts/e5-installed-diagnostic-preparation.test.mjs
+```
+
+The corrected invocation is running in a fresh child fixture; installed engine
+bytes and the original failed receipt are unchanged. The native successor has
+an actual owned controller and an admitted provider turn; no quality verdict yet.
+
+Owner-scoped drain of `diagnostic-preparation-n8vZGz` subsequently completed
+using the existing source loader. This does not erase the parent invocation FAIL.
+The installed expectation consumer on that completed RUN passed1/1 with zero
+skips, matching its frozen engine/settings/profiles without allocating runtime.
+
+An additional read-only Console observation used its existing payload revision
+`0.4.0+1791754658104-67039eb3`, not a newly built current-source candidate.
+`flowDetail` read all six done stages,4 Work and9 Sessions with empty diagnostics;
+RUN/Work/Session/audit counts were unchanged. The initial ad-hoc assertion used
+the wrong nested `run` shape; after inspecting the reader contract, flat-field
+assertions passed. No producer data was changed. This proves basic consumption
+by that payload only, not a complete current Console source/browser acceptance.
+Console checkout was unchanged and no source/server/global registry was added.
+
+The corrected installed invocation completed in
+`e5-distill-candidate.XAACfz/diagnostic-preparation-L28QTa`: 2/2 PASS, zero
+failures/skips, including its owner-scoped cleanup after-hook (482.60s).
+All six stages reached done and the controller completed. Scoped destination,
+selected-before custody, independent verification/report, source/index
+preservation and exact publication intent/replay assertions passed. This is
+authored installed mechanics, not a model semantic verdict. The earlier n8vZGz
+parent invocation remains failed; it is not overwritten by this successor.
+The installed forged-source negative and complete distill source regression
+are still running. The real native Subject remains on preflight without a
+controller error; its journal continues to show completed provider tool calls.
+
+Later results: complete distill source regression passed89/89 in11 files with
+zero skips. Installed forged-source negative passed2/2, including cleanup, in
+`diagnostic-preparation-zT9eUP` (261.68s); source evidence refused at extract
+before destination publication. The actual model completed preflight and its
+controller committed the automatic boundary snapshot before creating a fresh
+extract Session (`01a163ad-e833-7932-8990-ffa4d8a266b8`). Boundary manifest SHA:
+`ad6d91ff907affa97bbf9aaad07f50277135b227887757df0134a73153778c5e`.
+This proves the original capture failure is corrected on the real path, not
+that extract or the remaining model lifecycle/Judge has passed.
+
+Paired installed regression subsequently passed2/2 without skips (146.44s):
+`test/managed-flow-client.integration.test.mjs` and
+`test/eval-resume.integration.test.mjs`, sequentially, with the XAACfz installed
+CLI and matching source fixture adapter. Private root:
+`_artifacts/e5-distill-paired.mos1E5`; private Eval/registry/resources overrides
+were explicit and campaign Flow routing variables were unset. Both ordinary
+SDLC stages/captures and background continuation of a retained RUN completed.
+This is the affected paired integration gate, not the complete paired npm suite
+or real-provider conformance. No tests or source/dist were rebuilt during it.
+
+Actual Subject's two extract Work units completed with their expected result
+schemas: domain-04 proposes one candidate; process-09 proposes none and retains
+limitations. These are author proposals, not independent critic acceptance.
+The controller is still collecting the extract result, without reported error.
+
+## Native candidate completed and independently judged
+
+`EVAL-20261022124345-d362dcb2` completed all six stages on the unchanged XAACfz
+engine/canon tuple. Both critics recommended adapt; one optional compact
+assertion-index example was published to the single agreed destination file.
+The original destination boundary remains, and original project Git status was
+clean. Promotion and verification used distinct physical Codex Sessions. Actual
+VERIFY read retained before text and published output; FINISH retained the
+origins, critic decisions and limitations. No HITL exchange was needed because
+the original request already supplied the selected scope and destination.
+
+Final Judge `gpt-6.1-sol/high` returned run_validity:valid, scores3/4 for
+evidence-fidelity and4/4 for portable-value, bounded-authority and independent-
+lifecycle. One minor finding remains: research did not explicitly reconcile the
+contradictory shipped-safety documentation against implementation/accepted DEF.
+Judge confirms none of those false guarantees entered the transferred example;
+the gap does not invalidate this run. Preserve the original assessment/result,
+do not rewrite them or claim zero findings. This is exact Codex0.163.0/Luna-xhigh
+Subject/Sol-high Judge case evidence, not qualification of other routes or E6.
+
+Judge cleanup is settled. Owner cleanup request
+`e5-distill-final-owned-cleanup` completed with physical_stopped:true,
+native_settled:true, cleanup_state:settled and no live registered processes.
+Initial status nevertheless reported native_settlement_pending: the observer
+used the unrequested RUN-control receipt and ignored the independently current,
+native-settled EVAL retirement proof. Corrected observation now uses that proof
+only with matching manifest/resource/scope/fenced inventory, no provider turns,
+settled cleanup receipt and all native nodes settled. Physical-only flags do not
+authorize native settlement; candidate path/version/hash checks remain intact.
+
+Cleanup/status regression passed10/10 and retirement reuse/sidecar regression
+passed3/3, zero skips; syntax/diff checks passed. The first added test supplied an
+incomplete @7 snapshot fixture and failed; adding the required independent-Git
+workspace shape corrected the fixture without relaxing the version gate. Actual
+readback now reports physical:settled, capture:ready, finalization:completed,
+state:completed and zero live processes. No Subject/Judge or frozen report was
+rerun or edited for this observer correction. Whole E5 review/integration and
+the remaining workflow families are still open.
