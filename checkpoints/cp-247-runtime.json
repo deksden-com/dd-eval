@@ -1,0 +1,34 @@
+{
+  "id": "cp-247-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "dc4ae3be860549101d814651b09255a265d70a23",
+    "tag": "eval/cp243-native-typecheck"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-247-installed-matrix-qualification.json",
+      "sha256": "a2ebe05400748be5846965b3f8e95e66edaa98448bfae04f0ea91abedfd9fe85",
+      "canon_commit": "925ef10ecc0b683f7feba6f74913e15560842500"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "a98fb70bbcf26481de03def94fb3abc01fdfb525",
+      "version": "0.9.0-beta.149",
+      "artifact_sha256": "f0a3738b812de1505001e9ee567bd6f30b4354bc8e62cc30235da689bc05a696"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "CP243 product and flow pack unchanged. Beta.149 contains reviewed plan100 Codex/OpenCode shutdown publication and finite-log watermark fixes. Installed full-cycle matrix proof passed. Scored dispatch requires the matching published artifact and preflight PASS; release acceptance is recorded separately, never inferred from this checkpoint.",
+    "world_isolation": "Per-execution test worlds; isolated EVAL PostgreSQL on loopback 55439.",
+    "baseline": "Every scored workspace runs its own baseline before Subject dispatch."
+  }
+}
