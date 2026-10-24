@@ -75,6 +75,17 @@ test('late sealed capture is visible independently of report; foreign proof neve
     live: { executions: [{ execution: 'e', run_id: 'RUN-1', receipt: { scope: { run_id: 'RUN-1' }, settled: true, physical_stopped: true, control } }] }, report: null, reportState: 'pending' };
   const ready = await cleanupObservation(input);
   assert.equal(ready.physical, 'settled'); assert.equal(ready.capture, 'ready'); assert.equal(ready.finalization, 'pending');
+  // Real run-control status does not publish the runtime-scope physical field.
+  // Its sealed, settled control authorizes reading this snapshot, not inferring
+  // physical retirement or report finalization.
+  const runReceipt = structuredClone(input);
+  delete runReceipt.live.executions[0].receipt.physical_stopped;
+  const independentlySealed = await cleanupObservation(runReceipt);
+  assert.equal(independentlySealed.physical, 'unknown');
+  assert.equal(independentlySealed.capture, 'ready');
+  assert.equal(independentlySealed.finalization, 'pending');
+  runReceipt.live.executions[0].receipt.control.admission = 'draining';
+  assert.equal((await cleanupObservation(runReceipt)).capture, 'pending');
   input.results[0].recovery = { run_id: 'FOREIGN-HISTORY' };
   const conflicting = await cleanupObservation(input);
   assert.equal(conflicting.physical, 'unknown'); assert.equal(conflicting.capture, 'unknown', 'matching current control cannot replace a foreign retained RUN');
