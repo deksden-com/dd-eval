@@ -1,5 +1,10 @@
 # Plan 100 implementation report
 
+Independent follow-up review found and corrected a missing OpenCode stop-state
+publication and a fixture integration gap. See [100-review-report.md](100-review-report.md)
+for the combined six-harness 290/290 PASS and final acceptance; the isolated
+suite results below are preserved historical results, not a substitute for it.
+
 ## EVAL implementation and audit
 
 Judge stop ACK preliminary acceptance now requires explicit `active_tree === false`, matching final physical-state validation. Missing, null and true activity evidence cannot be promoted to clean cleanup. Regression verifies the early rejection reason and unchanged saved verdict.
