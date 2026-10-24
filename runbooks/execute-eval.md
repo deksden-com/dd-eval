@@ -21,6 +21,7 @@ alone does not authorize paid qualification, provider calls or scored launches.
    export DD_FLOW_CONFIG_HOME="$DD_EVAL_HOME/engine-config"
    export DD_FLOW_RESOURCE_HOME=/absolute/shared-host-resource-home
    export DD_EVAL_REGISTRY_FILE=/absolute/project-eval-registry/homes.json
+   export AGY_CLI_DISABLE_AUTO_UPDATE=true
    ~~~
 
    Prepare these from the accepted engine/configuration, not a failed execution.
@@ -32,6 +33,10 @@ alone does not authorize paid qualification, provider calls or scored launches.
    separately in the candidate receipt; verify both before selecting the pin.
    Preflight and launch must use the same engine. Do not silently fall back to a
    global CLI or change a retained run's engine. See [harness updates](update-harnesses.md).
+   Keep AGY's self-updater disabled from doctor/preflight through all native
+   children: it can replace even a private copied binary. Use the literal `true`,
+   not `1`, and verify the selected binary digest after preparation. This is
+   EVAL-scoped; do not change the user's global updater preference.
 4. Verify engine integrity, installed `harnesses.json`, every reachable Flow agent
    profile and Subject/worker/Judge adapter admission. Eval profiles and installed
    Flow profiles have different schemas. Run the pinned adapter's non-generative

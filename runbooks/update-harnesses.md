@@ -17,6 +17,11 @@ New productive owners require the integrity-verified engine's bundled
 for every harness, not only Codex. Qualification caches bind to the exact package
 checksum; changing source or an ambient launcher does not update retained engines.
 Verify exports and copied bytes from an installed snapshot before qualification.
+For pinned AGY, set `AGY_CLI_DISABLE_AUTO_UPDATE=true` in the runner environment
+before even doctor/version probes and retain it for descendants. A private copy
+alone is not immutable: the native background updater replaces its executable.
+Check its digest against the qualification receipt after preparation; a replaced
+binary needs a new owned copy or qualification, never a relabelled receipt.
 
 Verify `provider-overload-episode@1` with terminal native error fixtures: original
 plus two same-Session continuations, success resets the episode, active native

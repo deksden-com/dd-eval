@@ -20,8 +20,13 @@ Native routing:
 - Grok 1.0.70: changed-version smoke qualified one native child with confirmed
   native/physical cleanup; profile records its retained receipt, capacity1.
 - AGY selected private exact copy1.4.6 (`11e51de3d0e3e16ea0a8574c13e730ab415bf95d11ec7af75b5b22eec3a98e3e`)
-  under `~/.dd-eval/artifacts/agy/1.4.6-11e51de3/agy`, reusing its existing
-  exact native P3 receipt. Installed user1.4.7 is not downgraded or qualified.
+  reusing its existing exact native P3 receipt. Its initial private copy was
+  replaced by AGY's background updater; EVAL-20261024105516-0bbb3eb1 failed
+  before baseline on the correct runtime-version guard, cleanup settled.
+  The replacement attempt uses fresh home cp-247-agy-r2-full and exact copy
+  `~/.dd-eval/artifacts/agy/1.4.6-frozen-11e51de3/agy`, with
+  `AGY_CLI_DISABLE_AUTO_UPDATE=true` from preflight through native descendants.
+  Preflight PASS; selected version/digest reverified. User1.4.7 unchanged.
 - Codex0.164.0 failed changed-runtime smoke with native
   `paginated_threads is not supported yet` before any child started. Original
   capture retained under cp-247-compatibility. Select installed immutable
