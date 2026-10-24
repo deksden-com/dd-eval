@@ -3,7 +3,11 @@
 Engine source `a98fb70bbcf26481de03def94fb3abc01fdfb525`; package SHA256
 `83cc774e382e7a210be59b0392aaa73245ae705866c198b7306f9db539218957`.
 Installed content and matrix receipt digests are bound by cp-247-runtime.json.
-No scored dispatch before the exact artifact is published and preflight passes.
+Preflight passes for all five profiles. On 2026-10-24 the operator explicitly
+authorized five research E2Es on this exact unpublished artifact while release
+acceptance continues. They do not claim release-accepted status. Publication and
+global runtime updates still require PASS; retained CP247 runs keep these exact
+bytes even if the eventual published candidate has a newer provenance commit.
 
 Subject profiles: OpenCode GLM-5.3-Flash/max; ZCode GLM-5.3-Flash/max;
 AGY Gemini-3.8-Flash/high; Codex gpt-6-luna/xhigh; Grok grok-4.7/high.
