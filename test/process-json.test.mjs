@@ -6,6 +6,7 @@ import test from "node:test";
 import { commandJson, commandText, commandObservationTimeout, reportedFailure } from "../lib/process-json.mjs";
 import { callDriver } from "../lib/runner.mjs";
 import { errorRecord } from "../lib/operation-errors.mjs";
+import { settledTreeContracts } from "./fixtures/capacity-policy.mjs";
 
 test("operation diagnostics cannot hide a pretty typed native failure", () => {
   const record = { code: "native_rejected", message: "primary", retryable: false, details: { session_id: "retained" } };
@@ -93,7 +94,7 @@ test("driver retains native receipt when client ledger publication or identity v
   const state = path.join(root, "state");
   // Inject storage failure only after dispatch: the requested ledger remains writable.
   await writeFile(executable, `import {rm,writeFile} from 'node:fs/promises'; await rm(${JSON.stringify(path.join(state, "client-operations"))},{recursive:true}); await writeFile(${JSON.stringify(path.join(state, "client-operations"))},'blocked'); console.log(${JSON.stringify(JSON.stringify(receipt))});`);
-  await assert.rejects(callDriver({ harness: "droid-cli" }, ["session", "prompt", "--session-id", "owned", "--state-dir", state], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root } }), error => error.code === "native_outcome_observation_failed" && error.retryable === false && error.details.native_outcome.turn_id === "turn" && error.details.phase === "client_ledger_publication" && !!error.cause);
+  await assert.rejects(callDriver({ harness: "droid-cli" }, ["session", "prompt", "--session-id", "owned", "--state-dir", state], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, nativeContracts: settledTreeContracts }), error => error.code === "native_outcome_observation_failed" && error.retryable === false && error.details.native_outcome.turn_id === "turn" && error.details.phase === "client_ledger_publication" && !!error.cause);
   await writeFile(executable, `console.log(${JSON.stringify(JSON.stringify(receipt))});`);
   await assert.rejects(callDriver({ harness: "droid-cli" }, ["session", "inspect", "--session-id", "foreign"], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root } }), error => error.code === "session_identity_mismatch" && error.details.native_outcome.provider_session_id === "owned");
 });
@@ -221,7 +222,7 @@ test("Judge prompt has native inactivity ownership, not a competing caller work 
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-native-work-")); t.after(() => rm(root, { recursive: true, force: true }));
   const directory = path.join(root, "harness-runtime/bin"); await mkdir(directory, { recursive: true });
   await writeFile(path.join(directory, "dd-droid.mjs"), "await new Promise(resolve=>setTimeout(resolve,100));console.log(JSON.stringify({provider_session_id:'owned',status:'completed'}));");
-  const result = await callDriver({ harness: "droid-cli" }, ["session", "prompt", "--session-id", "owned", "--state-dir", path.join(root, "state")], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, timeoutMs: 10 });
+  const result = await callDriver({ harness: "droid-cli" }, ["session", "prompt", "--session-id", "owned", "--state-dir", path.join(root, "state")], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, nativeContracts: settledTreeContracts, timeoutMs: 10 });
   assert.equal(result.status, "completed");
 });
 
@@ -230,7 +231,7 @@ test("selected native wait contract controls productive start versus bounded acc
   const directory = path.join(root, "harness-runtime/bin"); await mkdir(directory, { recursive: true });
   await writeFile(path.join(directory, "dd-droid.mjs"), "await new Promise(resolve=>setTimeout(resolve,150));console.log(JSON.stringify({status:'completed'}));");
   for (const phase of ["native-work", "control"]) {
-    const nativeContracts = { nativeOperationWait(harness, operation) {
+    const nativeContracts = { ...settledTreeContracts, nativeOperationWait(harness, operation) {
       assert.equal(harness, "droid-cli"); assert.equal(operation, "session.start"); return phase;
     } };
     const invocation = callDriver({ harness: "droid-cli" }, ["session", "start"], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, nativeContracts, timeoutMs: 10 });
@@ -255,7 +256,7 @@ const id=process.env.DD_EVAL_OPERATION_ID, directory=path.join(${JSON.stringify(
 await mkdir(directory,{recursive:true});await appendFile(${JSON.stringify(calls)},id+'\\n');
 await writeFile(path.join(directory,'requested.json'),JSON.stringify({operation_id:id,daemon_id:'original'}));
 await writeFile(path.join(directory,'result.json'),JSON.stringify({state:'completed',result:{provider_session_id:'owned',status:'completed'}}));console.log('invalid transport JSON');`);
-  const result = await callDriver({ harness: "droid-cli" }, ["session", "prompt", "--session-id", "owned", "--state-dir", state], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: "exact-native-operation" });
+  const result = await callDriver({ harness: "droid-cli" }, ["session", "prompt", "--session-id", "owned", "--state-dir", state], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, nativeContracts: settledTreeContracts, operationId: "exact-native-operation" });
   assert.equal(result.status, "completed");
   assert.equal(await readFile(calls, "utf8"), "exact-native-operation\n");
 });
@@ -268,7 +269,7 @@ test("unknown reconciliation retains the original observer and cleanup errors", 
 const id=process.env.DD_EVAL_OPERATION_ID,file=path.join(${JSON.stringify(state)},'client-operations',createHash('sha256').update(id).digest('hex')+'.json'),client=JSON.parse(await readFile(file));
 client.recovery_observation_clock={policy:'operation-progress@1',timeout_ms:30000,started_at:Date.now(),observed_at:null,elapsed_ms:0,uncertainty_elapsed_ms:120000,gaps:2,observation_lost:true};await writeFile(file,JSON.stringify(client));
 console.log(JSON.stringify({ok:false,error:{code:'operation_output_limit',message:'observer primary',cleanup_error:{code:'retirement_uncertain',message:'secondary'}}}));`);
-  await assert.rejects(callDriver({ harness: "droid-cli" }, ["session", "prompt", "--session-id", "owned", "--state-dir", state], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, operationId: "original" }), error => error.code === "operation_observation_lost"
+  await assert.rejects(callDriver({ harness: "droid-cli" }, ["session", "prompt", "--session-id", "owned", "--state-dir", state], { cwd: root, env: { DD_FLOW_CONFIG_HOME: root }, nativeContracts: settledTreeContracts, operationId: "original" }), error => error.code === "operation_observation_lost"
     && error.cause?.code === "operation_output_limit" && error.details.observation_error.cleanup_error.code === "retirement_uncertain");
 });
 

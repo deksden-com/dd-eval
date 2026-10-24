@@ -1,4 +1,4 @@
-import { mkdir, writeFile, symlink } from "node:fs/promises";
+import { mkdir, writeFile, symlink, readlink } from "node:fs/promises";
 import path from "node:path";
 import { engineArtifactDigest } from "../../lib/engine-admission.mjs";
 // Native-success doubles need a capability-bearing engine, not retry logic.
@@ -52,6 +52,10 @@ export async function installSuccessfulPolicy(root) {
   await writeFile(path.join(lib, "operation-errors.mjs"), "export const OPERATION_ERROR_CONTRACT_VERSION='operation-errors@1';export const isObservationLoss=()=>false;");
   await writeFile(path.join(lib, "dd-agy.mjs"), "export const agyTerminalFailure=()=>null;");
   await writeFile(path.join(engine, "engine.json"), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
-  await symlink("engines/test/dist/harness-runtime", path.join(root, "harness-runtime"));
+  const target = "engines/test/dist/harness-runtime", link = path.join(root, "harness-runtime");
+  try { await symlink(target, link); }
+  catch (error) {
+    if (error.code !== "EEXIST" || await readlink(link) !== target) throw error;
+  }
   return root;
 }

@@ -12,7 +12,7 @@
   ],
   "input_checkpoint": {
     "id": "cp-deploy-authored-minimal-e5-installed",
-    "sha256": "9cb528010f1b63a333a08d745d488060feb2342c7f6dcbcaabf4147945fc458e"
+    "sha256": "593a43c094758727381b0f74764a7e7f1654851feed1260804bd186478eff1a3"
   },
   "entry_pack": null,
   "baseline_admission": {

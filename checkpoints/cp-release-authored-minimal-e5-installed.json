@@ -6,15 +6,15 @@
   },
   "flow_pack": {
     "repository": "https://github.com/deksden/dd-memorybank.git",
-    "commit": "3aad4905cb9674971cc6bcfb5f97d617826b75a7",
+    "commit": "58c60aeeedef03d6ac20bca9c849a3d505797c94",
     "path": ".memory-bank/dd-flow",
     "delivery": "installed_canon",
     "memory_bank_version": "4.1.2",
     "engine": {
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
-      "commit": "7966dbde05b737c35b13c8059e0181f8d755d62c",
-      "version": "0.9.0-beta.145",
-      "artifact_sha256": "5d2d83f3f97fb16b0cb3651dc05ecfe29334b6253ac02dc7b8d3a0e54d082fe6"
+      "commit": "c4941b75171303265bfb8615166702e97bae0563",
+      "version": "0.9.0-beta.148",
+      "artifact_sha256": "c89f29516f51a715e042a0723406983253e2434bd4cd239d3183c5d9a8c114d7"
     }
   },
   "state": "candidate_pending_preflight"

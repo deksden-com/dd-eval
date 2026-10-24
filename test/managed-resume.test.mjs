@@ -81,7 +81,7 @@ let result;
 const pending = ${waiting} && !fs.existsSync(${JSON.stringify(path.join(root, 'answered'))});
 const interrupted = fs.existsSync(${JSON.stringify(path.join(root, 'interrupt'))}) && !fs.existsSync(${JSON.stringify(path.join(root, 'resumed'))});
 if (args[0] === 'engine' && args[1] === 'resolve') result = {selection:{selected:${JSON.stringify(engine)}}};
-else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'status') result = {scope:{run_id:'RUN-retained'},settled:true,control:{...${JSON.stringify(control)},admission:fs.existsSync(${JSON.stringify(path.join(root, 'unsealed'))})?'open':'sealed'}};
+else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'status') result = {scope:{run_id:'RUN-retained'},settled:true,physical_stopped:true,control:{...${JSON.stringify(control)},admission:fs.existsSync(${JSON.stringify(path.join(root, 'unsealed'))})?'open':'sealed'}};
 else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'resume') {
   if(args[args.indexOf('--from')+1]!=='CTL-retained') throw new Error('wrong recovery control');
   fs.writeFileSync(${JSON.stringify(path.join(root, 'resumed'))},args[args.indexOf('--request-id')+1]);
