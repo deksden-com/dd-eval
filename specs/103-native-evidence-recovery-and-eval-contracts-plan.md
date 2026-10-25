@@ -343,6 +343,18 @@ P4 реализует новый ABI отдельно от legacy, единиц�
 
 GitHub CI, новые scored EVAL, release/publish, изменение pins/установленных hooks и исторических вердиктов не выполнялись. Выпуск согласованного engine/bridge tuple — отдельная следующая операция, не часть этой реализации.
 
+## 13. Ревью реализации
+
+Повторное ревью выявило и исправило следующие существенные пробелы:
+
+- Controller запрещал собственный child recovery тем же observer fence, которым запрещён новый fanout. Исключение разрешено только для exact durable recovery intent, parent/failed Turn, operation и digest сообщения; fence не снимается. Родительский отказ после SendMessage не считается успехом по одному `running`: требуется связанное native admission/successor.
+- Повторное использование fixture validation cache проверяло самосогласованность receipt, но не его привязку к запрошенному reader и текущему execution reference. Подмена другой валидной квитанцией теперь отвергается без нового исполнения продукта или скрытой перевалидации.
+- Ошибка identity-discovery browser microprobe могла выйти наружу до обработки unavailable. Весь discovery/probe путь теперь возвращает недоступный environment fact, а не блокирует baseline.
+- Browser sidecar reader сохранял старый лимит 256 KiB при заявленном auxiliary limit 2 MiB. Лимит выровнен в общем pure core и frozen copy; допустимый полный native error inventory и превышение 2 MiB проверяются отдельно.
+- Bridge выбирал retained DB/metadata по bridge home, а native backend мог использовать `ZCODE_DATA_BASE_DIR`. Теперь root фиксируется из фактического environment backend generation и передаётся всем proof readers; отсутствие binding запрещает proof без spawn/resume. SQLite budgets считают UTF-8 bytes, не символы.
+
+Проверки этого ревью — только затронутые controller/evidence/cache/bridge зоны. Новые EVAL, запросы модели, полный gate, GitHub CI, release и обновление установленных hooks не входят в ревью. Ограничение `background_effects_unproven` для недостаточно структурированного Bash evidence остаётся намеренным: ревью не превращает отсутствие native доказательств в безопасный replay.
+
 ## Источники внешних ограничений
 
 - [OpenCode agents](https://opencode.ai/docs/agents/): primary/subagent role не равна модели или permission policy.

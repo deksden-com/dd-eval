@@ -3,9 +3,22 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { browserCapabilitySource, browserCapabilityDiagnostic } from '../lib/browser-capabilities.mjs';
+import { assessBrowserCapabilities, browserCapabilitySource, browserCapabilityDiagnostic } from '../lib/browser-capabilities.mjs';
 import { hashJson } from '../lib/runner-events.mjs';
 import { materializeStageSlice, semanticContextHash } from '../lib/entry-pack.mjs';
+
+test('identity probe process failure is an unavailable environment fact, not an admission failure', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'browser-discovery103-'));
+  try {
+    const fact = await assessBrowserCapabilities({ projectRoot: path.join(root, 'missing-project') });
+    assert.equal(fact.schema_id, 'dd-eval/browser-capabilities@1');
+    assert.equal(fact.outcome, 'unknown');
+    assert.equal(fact.probe_executed, false);
+    assert.equal(fact.assessment_status, 'unavailable');
+    assert.equal(fact.reason, 'assessment_unavailable');
+    assert.equal(fact.identity, undefined);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 
 test('runtime browser facts exist, bind bytes and do not alter authored context', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'browser-fact-'));
