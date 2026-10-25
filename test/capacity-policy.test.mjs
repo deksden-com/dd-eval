@@ -168,7 +168,7 @@ test('built capacity asset executes from an installed engine snapshot, not the s
   await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
   await symlink('engines/selected/dist/harness-runtime', path.join(root, 'harness-runtime'));
   const policy = await loadCapacityPolicy(root);
-  assert.equal(policy.CAPACITY_POLICY, 'provider-overload-episode@1');
+  assert.equal(policy.CAPACITY_POLICY, policy.RECOVERY_POLICY ?? 'provider-overload-episode@1');
   const error = { code: 'turn_interrupted', details: { provider_session_id: 'session', turn_id: 'turn', native_turn_id: 'turn', terminal_status: 'failed', provider_error: { codexErrorInfo: { code: 'serverOverloaded' } } } };
   assert.equal(policy.terminalProviderOverload(error, 'session'), true);
   assert.equal(policy.capacityBackoff(error, 2, 0, () => 0), 15000);

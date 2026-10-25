@@ -5,8 +5,16 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 const zones = [
+  [/model-observations/, /model-observations|runner-execution-contract/],
+  [/^operation-errors\.mjs$/, /operation-errors|capacity-policy/],
+  [/^check-diagnostic\.mjs$/, /check-diagnostic086|browser-capabilities103/],
+  [/^capacity-policy\.mjs$/, /capacity-policy|judge-capacity|capacity-transcript|semantic-decisions/],
+  [/^(?:decision-transport|semantic-decisions)\.mjs$/, /semantic-decisions/],
+  [/^native-failure-evidence\.mjs$/, /native-failure083/],
+  [/browser-capabilit|entry-pack/, /browser-capabilit|entry-pack/],
+  [/check-runner-proof|runner-proof-sources|sync-runner-proof|case-acceptance|composite-runner103/, /case-acceptance|runner-proof103|engine-admission/],
   [/baseline-admission|fixture-assessment|world-readiness|check-resources/, /baseline-admission|fixture-assessment102|check-resources|runner-compatibility101/],
-  [/engine-admission|verification-components|(?:qualify|rebind)-verification-matrix/, /engine-admission|verification-components102/],
+  [/engine-admission|verification-components|(?:qualify|rebind)-verification-matrix/, /engine-admission|verification-components(?:102|103)/],
   [/hitl|coverage|judge|decision/, /hitl|coverage|judge|decision/],
   [/retirement|cleanup|process|daemon|lease|runner-lock|qualification-owner|qualification-intent|qualification-recovery/, /retirement|cleanup|process|daemon|lease|runner-lock|qualification-owner|qualification-intent|qualification-recovery/],
   [/runner\.mjs|eval-resume|eval-worker|execution|canonical|comparison|compare|run-specify/, /runner-native|comparison-admission|runner-resume|canonical|fork|stop-after/],
