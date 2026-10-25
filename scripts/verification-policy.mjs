@@ -13,7 +13,7 @@ const zones = [
   [/^native-failure-evidence\.mjs$/, /native-failure083/],
   [/browser-capabilit|entry-pack/, /browser-capabilit|entry-pack/],
   [/check-runner-proof|runner-proof-sources|sync-runner-proof|case-acceptance|composite-runner103/, /case-acceptance|runner-proof103|engine-admission/],
-  [/baseline-admission|fixture-assessment|world-readiness|check-resources/, /baseline-admission|fixture-assessment102|check-resources|runner-compatibility101/],
+  [/baseline-admission|fixture-assessment|world-readiness|check-resources/, /baseline-admission|fixture-assessment102|fixture-validation103|check-resources|runner-compatibility101/],
   [/engine-admission|verification-components|(?:qualify|rebind)-verification-matrix/, /engine-admission|verification-components(?:102|103)/],
   [/hitl|coverage|judge|decision/, /hitl|coverage|judge|decision/],
   [/retirement|cleanup|process|daemon|lease|runner-lock|qualification-owner|qualification-intent|qualification-recovery/, /retirement|cleanup|process|daemon|lease|runner-lock|qualification-owner|qualification-intent|qualification-recovery/],
