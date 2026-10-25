@@ -40,6 +40,56 @@ authored hashes, duplicate helper-directory setup, wrong fixture control-bin hom
 were corrected without weakening expected outcomes. Browser regression uses the
 existing pinned browser cache explicitly because verification isolates HOME.
 
-Final local receipts and Git integration refs are recorded below after completion.
 Live semantic acceptance is deliberately pending separate authorization: corpus
 expectations and deterministic packet/oracle tests are not a fresh Judge verdict.
+
+### Engine / producer acceptance
+
+- Engine: `/tmp/dd-flow-plan105-verification-final/verification.json`, PASS,
+  12 impact-selected contracts, 748 top-level cases and 44 nested native cases.
+  Final attempt executes only the five updated library-proof tests, reuses ten
+  contracts and revalidates one. OpenCode's 44 native cases were executed in the
+  preceding retained successful contract attempt, not skipped.
+- dd-tasks: `/tmp/plan105-producer-tests-r2.tap`, 13/13 PASS, including real
+  synchronous query and native browser observations. Only tooling scripts changed.
+- Generated EVAL proof mirror matches final built engine (`sync-runner-proof --check`).
+- The installed producer/consumer test actually exercised both @1 (five cases)
+  and @2 (six cases) in the retained first scoped EVAL attempt; legacy CP247 proof
+  replay remains optional because its historical report directory was not supplied.
+
+### Integration
+
+- dd-tasks main: `03be9411b6bcbaf9fae7ecfacb5d687750af443a` (fast-forward).
+- dd-flow-cli: PR #131, squash main `f4e4feff133404beb33874f5778e6cdcaae35ea6`;
+  merged tree equals tested implementation commit `7c4e7988`.
+
+### EVAL acceptance
+
+Final scoped receipt:
+`/private/var/folders/3d/083xyfws1x57r5mm5t1_rxqm0000gp/T/dd-eval-scoped-GoSknd/receipt.json`.
+PASS: 59 selected files, 497 cases (487 passed, 10 explicitly allowed optional
+integration skips). The final aggregation reuses all 59 validated receipts and
+executes zero additional tests. The final recovery-file attempt passed 66/66:
+`/tmp/plan105-recovery-final-file-drkUSm/result.json`.
+
+Optional skips are published-engine admission (2), installed/legacy producer
+integration (2), exact external zero checkpoint (1), and real-CLI control (5).
+Installed producer @1/@2 integration was separately executed successfully above;
+the other optional boundaries are not claimed as new release/EVAL acceptance.
+All new 105 regressions executed, none skipped. Required selected-engine source
+was explicitly supplied for native-capacity/supplement fixtures; skipped capacity
+tests were rejected, not accepted as PASS.
+
+Completion date: 2026-10-26. Source implementation complete; live semantic
+acceptance and release/new EVAL remain separate, not implicitly authorized.
+
+### Additional test-boundary corrections
+
+Existing doubles were updated where they contradicted actual contracts: native
+@2 capability and reused cleanup runtime, idempotent exact-target runtime symlink,
+RUN scope in control replies, and independent physical proof for cancelled work.
+Same-scope logical settlement without physical evidence is explicitly negative.
+The current native-shaped receipt plus inventory positive is in the linked 105
+regression; the retained top-level physical flag test is labelled legacy compatibility.
+The IPC mock uses a unique short socket directory because macOS Unix socket paths
+have a finite native limit and the adapter already shortens long runtime paths.
