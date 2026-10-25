@@ -1,0 +1,34 @@
+{
+  "id": "cp-253-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "084da68049dbf0019162f156bd82d9235549ff58",
+    "tag": "eval/cp251-native-test-types"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-253-installed-matrix-qualification.json",
+      "sha256": "7cc65362fbf41834e23880d6829f67c29c1094ff4d8353d75de089062400afbe",
+      "canon_commit": "925ef10ecc0b683f7feba6f74913e15560842500"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "24d85e333a1034213be4a030dbff2c7a643f17f7",
+      "version": "0.9.0-beta.151",
+      "artifact_sha256": "b945da34bb6899d884c7a30dac674a2aa228762257f881aa5661abcd0d85c754"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "CP253 beta.151 reviewed plan103 engine and downstream bridge b18dfdb. Impact-selected local acceptance only; no full gate or GitHub CI. Installed matrix publication verified offline. Product source, flow and canonical response bytes unchanged from CP252. Native same-child Read continuation accepted on the installed bridge; Bash effects remain explicitly fenced if native proof is insufficient.",
+    "world_isolation": "Per-execution test worlds; isolated EVAL PostgreSQL on loopback 55439.",
+    "baseline": "Every scored workspace runs its own baseline before Subject dispatch."
+  }
+}
