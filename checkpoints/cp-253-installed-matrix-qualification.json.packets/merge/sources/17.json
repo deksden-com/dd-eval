@@ -1,0 +1,48 @@
+{
+  "id": "WRK-006-merge/RCP-003",
+  "local_id": "RCP-003",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-NEW",
+    "PRT-001-task-priority/CHK-P1-TEST",
+    "PRT-001-task-priority/CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "fcc2e4c14e00c17751b419e0d37f5e120a1aacc846ab45ddadbeb08b780c221c",
+  "verification_epoch": "d429c2c56c5ec04b7fdf0af85fe90c048715374a62231fe9cf1f9d2c6e2200bd",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp253-installed-matrix-proof/dd-flow-protocolize-JEmuGW/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp253-installed-matrix-proof/dd-flow-protocolize-JEmuGW/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp253-installed-matrix-proof/dd-flow-protocolize-JEmuGW/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp253-installed-matrix-proof/dd-flow-protocolize-JEmuGW/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "fingerprint_scope": "check_inputs",
+  "input_manifest": {
+    "path": "inputs-before.json",
+    "sha256": "b4e8b745de12aebfc7c37054c097d4e381b86166f8db7f5548c9b263c82a375a",
+    "truncated": false
+  },
+  "execution_contract_hash": "22e79a3786320c021ddce7212143be6cd45c73e24d1b7a23135f3c15d06d6855",
+  "workspace_fingerprint": "cef1a0c9ba9697007b051b56bb812cdad41f8dda587dea042a5fc8208562204a",
+  "before_fingerprint": "b1205b35cf8a1e529e1bfe74ae7685c4c00e9e3f65bdd8ab6cee413f1ee40872",
+  "after_fingerprint": "b1205b35cf8a1e529e1bfe74ae7685c4c00e9e3f65bdd8ab6cee413f1ee40872",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-25T09:32:18.143Z",
+  "finished_at": "2026-10-25T09:32:18.215Z",
+  "candidate_root": "/Users/deksden/.dd-eval/qualification/cp253-installed-matrix-proof/dd-flow-protocolize-JEmuGW/project",
+  "candidate_files": [],
+  "candidate_absences": [],
+  "execution_failures": []
+}
