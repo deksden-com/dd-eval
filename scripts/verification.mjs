@@ -16,6 +16,13 @@ const optional = new Set([
   'installed consumer accepts actual producer failures and rejects retained legacy/foreign proof',
   'actual pinned dd-tasks zero checkpoint materializes blank with exact README bytes',
 ]);
+const optionalControl = new Set([
+  'resume cannot observe the initial EVAL queue until its owner finishes projection (real CLI: true)',
+  'real EVAL resume continues its queue through one active observer (normal)',
+  'real EVAL resume continues its queue through one active observer (killed)',
+  'real EVAL resume continues its queue through one active observer (observer-killed)',
+  'real EVAL stop drains its probe after client exit and preserves a neighboring EVAL',
+]);
 
 export function validateContractResult(result, descriptor, env = process.env) {
   assert.equal(result.status,'passed');
@@ -40,7 +47,10 @@ export function validateContractResult(result, descriptor, env = process.env) {
   assert.deepEqual(top,Array.from({length:top.length},(_,i)=>i+1),'Missing/duplicate TAP case');
   assert.equal(tests,result.tests);
   const skipped = output.split('\n').filter(line=>/^\s*ok \d+ - .* # SKIP/.test(line));
-  assert.ok(skipped.every(line=>optional.has(line.replace(/^\s*ok \d+ - /,'').replace(/ # SKIP.*$/,''))),'Unexpected skipped contract');
+  assert.ok(skipped.every(line=>{
+    const title=line.replace(/^\s*ok \d+ - /,'').replace(/ # SKIP.*$/,'');
+    return optional.has(title) || result.file==='test/runner-control.test.mjs' && !env.DD_EVAL_TEST_FLOW_CLI && optionalControl.has(title);
+  }),'Unexpected skipped contract');
   assert.equal(contractDescriptor(result.file,{env}).execution_key,descriptor.execution_key,'Contract changed during verification');
   return result;
 }

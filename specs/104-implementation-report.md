@@ -85,3 +85,52 @@ publish, глобальные установки, model probes и новые EVA
 останавливает. `controller-shared` остаётся явно консервативным контрактом для
 действительно общих модулей. Старые недоказуемые grouped receipts не получают
 выдуманные per-fixture proofs. Отдельный инфраструктурный сервис не добавлялся.
+
+## Повторное review реализации
+
+Основной агент перепроверил три независимых ревью по коду и воспроизводимым
+сценариям. Существенные исправления:
+
+1. Engine @2 reader теперь повторно применяет существующий
+   `verifyReceiptProvenance`: правильный hash/key не оправдывает filtered argv,
+   чужой scope или некорректную duration. Добавлен positive/negative receipt case.
+2. Pnpm alias исправлен не только в ключе, но и при выборе affected consumers
+   lock-only diff: обе операции используют одно разрешение snapshot key.
+3. Nested бюджет был локален вызову; sibling callers могли умножить пул.
+   Проверяемые slot-wide subleases сериализуют siblings, не блокируя рекурсию.
+   Реальная регрессия включает несколько процессов и глубину dispatch.
+4. Direct child exit отделён от закрытия stdio. Живой descendant с pipe больше
+   не подвешивает отмену; неизвестный cleanup оставляет fence. Fast exit без
+   startup identity освобождает slot только после actual exit и свежего
+   подтверждения отсутствия точного PGID. Полный pipe tail сохраняется.
+5. Отмена во время validation не публикует PASS и не инвалидирует PASS чужого
+   producer. Перед dispatch повторно проверяется отмена ожидающего capacity.
+6. Устранены пробелы EVAL catalog для control/managed-resume; явно добавлены
+   их runtime helpers и baseline consumer runtime shim. Неизвестный source
+   impact по-прежнему блокирует mapping. Пять optional installed-engine skips
+   разрешены только для точного файла/названия и без заданного installed engine.
+7. Bridge recomputes consumed inputs перед reuse/dispatch/публикацией PASS:
+   parent FAIL больше не может оставить ложно атрибутированный cached PASS.
+   Clean owned dist внутри exclusive build не оставляет удалённый JS в архиве.
+8. Исправлены synthetic fixtures managed-запуска: private coordinators снимают
+   оба inherited slot context; npm install fixture использует существующую
+   production-нормализацию pnpm allow-scripts в private npmrc; tag создаётся до
+   capture release boundary. Runtime проверки не ослаблялись.
+
+Приёмка review: штатный `pnpm test` выбрал **7 файлов / 8 контрактов**, а не полный
+gate. Финальный report `plan104-review-engine-managed-r2/verification.json` —
+PASS: 4 executed, 4 reused; 60 executed и 6 reused верхнеуровневых cases;
+1 reused nested native case учитывается отдельно. Helper — 13 cases, policy —
+25, publish — 13, inventory — 9; остальные retained contracts перепроверены
+reader. Первая попытка managed-r1 с двумя fixture failures сохранена как FAIL.
+EVAL: review policy/admission — 9 PASS; final verification104 — 6 PASS.
+Bridge downstream — 7 PASS, включая offline archive/install. Targeted ESLint,
+Node syntax, whitespace и byte-identical vendoring проверены отдельно.
+Helper после review: SHA-256
+`b649a6c74ce891f7779c92005f14bbdedd0a12c9bb0157a3646851faf63beccf`.
+Новых EVAL, model probes, полного gate, CI или публикации не было.
+
+Интеграция выполняется review PR в remote main трёх репозиториев. Primary local
+main с отдельной неопубликованной E5-историей и dirty старый bridge checkout
+не сбрасываются и не подменяются. Cleanup допускается только для проверенно
+завершённых/интегрированных refs, без active campaign sources или чужих изменений.

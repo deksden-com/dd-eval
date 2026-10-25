@@ -17,10 +17,14 @@ const zones = [
   [/engine-admission|verification-components|(?:qualify|rebind)-verification-matrix/, /engine-admission|verification-components(?:102|103)/],
   [/hitl|coverage|judge|decision/, /hitl|coverage|judge|decision/],
   [/retirement|cleanup|process|daemon|lease|runner-lock|qualification-owner|qualification-intent|qualification-recovery/, /retirement|cleanup|process|daemon|lease|runner-lock|qualification-owner|qualification-intent|qualification-recovery|admission104/],
-  [/runner\.mjs|eval-resume|eval-worker|execution|canonical|comparison|compare|run-specify/, /runner-native|comparison-admission|runner-resume|canonical|fork|stop-after/],
+  [/runner\.mjs|eval-resume|eval-worker|execution|canonical|comparison|compare|run-specify/, /runner-native|comparison-admission|runner-resume|runner-control|managed-resume|canonical|fork|stop-after/],
   [/verification-policy|verification\.mjs|verification-jobs/, /verification-policy102|verification104/],
   [/case-definition/, /definition|case-acceptance|baseline-admission/],
 ];
+// The control/recovery tests exercise these shared runner helpers directly.
+// Keep their explicit closure local; unrelated libs are not a whole-suite key.
+const controlContracts = ['test/runner-control.test.mjs','test/managed-resume.test.mjs'];
+const controlInputs = ['lib/runner.mjs','lib/eval-retirement.mjs','lib/eval-resume-worker.mjs','lib/cleanup-observation.mjs','lib/recovery-safety.mjs','lib/execution-state.mjs','lib/execution-contract.mjs','lib/entry-pack.mjs','lib/engine-admission.mjs','lib/baseline-admission.mjs','lib/runtime-maintenance.mjs','lib/managed-flow-client.mjs','lib/homes.mjs','lib/hitl-contract.mjs','lib/hitl-retained.mjs','lib/native-failure-evidence.mjs','lib/driver-recovery.mjs','lib/operation-context.mjs'];
 const repoGit = (root, ...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio:['ignore','pipe','pipe'] }).trimEnd();
 const sha = value => createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
 export function verificationSelection(base = null, { root = process.cwd(), env = process.env } = {}) {
@@ -35,6 +39,8 @@ export function verificationSelection(base = null, { root = process.cwd(), env =
   for (const file of paths) {
     if (/^(?:README|CHANGELOG)|^(?:runbooks|specs)\/.*\.md$/.test(file)) continue;
     if (available.includes(file)) { tests.add(file); continue; }
+    if (controlInputs.includes(file)) controlContracts.filter(test=>available.includes(test)).forEach(test=>tests.add(test));
+    if (file==='lib/runner.mjs' && available.includes('test/baseline-admission.test.mjs')) tests.add('test/baseline-admission.test.mjs');
     if (/^(?:cases|schemas|profiles|checkpoints)\//.test(file)) {
       for (const test of available.filter(file => /definition|case-acceptance|baseline-admission/.test(file))) tests.add(test);
       reasons.push({ file, owner: 'definitions' }); continue;
@@ -51,7 +57,7 @@ export function verificationSelection(base = null, { root = process.cwd(), env =
     }
     const match = zones.find(([source]) => source.test(path.basename(file)));
     assert.ok(match, `Unclassified EVAL impact: ${file}; declare affected contracts in scripts/verification-policy.mjs`);
-    const consumers = available.filter(test => match[1].test(path.basename(test)) && (!test.includes('/installed-') || paths.includes(test)));
+    const consumers = [...new Set([...available.filter(test => match[1].test(path.basename(test)) && (!test.includes('/installed-') || paths.includes(test))), ...(controlInputs.includes(file)?controlContracts.filter(test=>available.includes(test)):[])])];
     assert.ok(consumers.length, `No contracts for ${file}`);
     consumers.forEach(file => tests.add(file)); reasons.push({ file, owner: String(match[0]) });
   }
@@ -81,7 +87,7 @@ export function contractDescriptor(file, { root = process.cwd(), env = process.e
   const technical = /verification-policy102|verification104/.test(file);
   const processConsumer = /runner|baseline|fixture-validation|admission|capacity|judge|hitl|control|managed|lease|retirement|cleanup|process|semantic/.test(file);
   const fixtures = all.filter(input => input.startsWith('test/fixtures/') && fixtureOwners.some(([pattern, consumer]) => pattern.test(input.slice('test/fixtures/'.length)) && consumer.test(file)));
-  const inputs = [...new Set([file, ...fixtures, ...(processConsumer ? processHelpers : []), ...all.filter(input =>
+  const inputs = [...new Set([file, ...fixtures, ...(processConsumer ? processHelpers : []), ...(controlContracts.includes(file)?controlInputs:[]), ...(file==='test/baseline-admission.test.mjs'?['lib/runner.mjs']:[]), ...all.filter(input =>
     /^(lib|bin)\//.test(input) && owners.some(([source]) => source.test(path.basename(input)))
     || technical && /^(?:scripts\/verification(?:-policy)?\.mjs|tools\/verification-jobs\.mjs)$/.test(input)
     || /case-acceptance|case-definition|memory-case-definition/.test(file) && /^(?:cases|schemas)\//.test(input))])].sort();

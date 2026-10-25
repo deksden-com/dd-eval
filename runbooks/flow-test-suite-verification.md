@@ -35,6 +35,10 @@ top-level jobs. Set `DD_FLOW_VERIFICATION_JOBS=1` for serial fallback. Each chil
 gets private HOME/TMP/XDG/harness/resource paths and no provider credentials unless
 explicitly allowed. `exclusive` drains the pool; nested runners inherit a verified
 slot and run serially. Do not start a second unmanaged runner to bypass the lease.
+Concurrent nested callers share a validated slot-wide sublease; managed descendants
+receive their own checked child context, so recursion does not deadlock. Private
+synthetic coordinators must clear both inherited `DD_FLOW_VERIFICATION_SLOT` and
+`DD_FLOW_VERIFICATION_NESTED_SLOT` explicitly. Never clear them in productive jobs.
 Live/unknown owners are never stolen. Coordinator death does not prove its
 detached children stopped. Identical requests join the exact producer attempt;
 cancelled waiters do not cancel it. Retain attempts and cleanup evidence.
