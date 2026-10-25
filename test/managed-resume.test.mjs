@@ -81,7 +81,9 @@ let result;
 const pending = ${waiting} && !fs.existsSync(${JSON.stringify(path.join(root, 'answered'))});
 const interrupted = fs.existsSync(${JSON.stringify(path.join(root, 'interrupt'))}) && !fs.existsSync(${JSON.stringify(path.join(root, 'resumed'))});
 if (args[0] === 'engine' && args[1] === 'resolve') result = {selection:{selected:${JSON.stringify(engine)}}};
-else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'status') result = {scope:{run_id:'RUN-retained'},settled:true,control:{...${JSON.stringify(control)},admission:fs.existsSync(${JSON.stringify(path.join(root, 'unsealed'))})?'open':'sealed'}};
+// Native settlement alone is not physical-stop evidence. Model both fields
+// required by the retained cleanup-observation reader, including its negative case.
+else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'status') result = {scope:{run_id:'RUN-retained'},settled:true,physical_stopped:!fs.existsSync(${JSON.stringify(path.join(root, 'physical-unconfirmed'))}),control:{...${JSON.stringify(control)},admission:fs.existsSync(${JSON.stringify(path.join(root, 'unsealed'))})?'open':'sealed'}};
 else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'resume') {
   if(args[args.indexOf('--from')+1]!=='CTL-retained') throw new Error('wrong recovery control');
   fs.writeFileSync(${JSON.stringify(path.join(root, 'resumed'))},args[args.indexOf('--request-id')+1]);
@@ -128,7 +130,13 @@ console.log(JSON.stringify(result));
       await assert.rejects(recoverExecution({ ...input, manifest: invalidManifest, events }), { code: 'runtime_scope_identity_missing' });
       assert.equal(await readFile(path.join(root, 'calls.jsonl'), 'utf8'), callsBeforeInvalidScope);
     }
+    await write('physical-unconfirmed', 'yes');
+    const unconfirmed = await captureRecoveryEvidence({ root, manifest, result: { execution: execution.id, attempt, state: 'failed', code: 'provider_failed' } });
+    assert.equal(unconfirmed.unavailable, true, 'native settlement without physical-stop evidence cannot authorize recovery capture');
+    assert.equal(unconfirmed.capture_error.code, 'recovery_evidence_invalid');
+    await rm(path.join(root, 'physical-unconfirmed'));
     const recovery = await captureRecoveryEvidence({ root, manifest, result: { execution: execution.id, attempt, state: 'failed', code: 'provider_failed' } });
+    assert.equal(recovery.capture_error, undefined, JSON.stringify(recovery));
     assert.equal(recovery.control_id, control.control_id);
     assert.equal(recovery.manifest_sha256, hash(await readFile(recoveryManifest)));
     // A late settled owner receipt is usable even if the original native
