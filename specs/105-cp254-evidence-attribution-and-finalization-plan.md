@@ -2,6 +2,7 @@
 
 Статус: реализован; приёмка затронутых контрактов PASS (2026-10-26).
 Результат и границы приёмки: `105-implementation-report.md`.
+Post-implementation review и исправления: `105-review-report.md`.
 Дата: 2026-10-25.
 Основание: расследование CP254 и аудит аналогичных producers/consumers.
 

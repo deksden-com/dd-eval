@@ -70,7 +70,7 @@ export function verificationSelection(base = null, { root = process.cwd(), env =
 const processHelpers = ['lib/process-json.mjs','lib/operation-errors.mjs','lib/runner-events.mjs','lib/managed-daemon.mjs','lib/runtime-maintenance.mjs','lib/runner-lock.mjs','lib/process-snapshot.mjs','lib/observation-clock.mjs'];
 const fixtureOwners = [
   [/maintenance-/, /baseline-admission|e2e-reliability|runner|retirement|control|managed|lease|admission|engine-admission/],
-  [/capacity-policy\.mjs|judge-cleanup\.mjs/, /capacity|hitl|judge|semantic|eval\.test|runner|control|managed/],
+  [/capacity-policy\.mjs|judge-cleanup\.mjs/, /capacity|hitl|judge|semantic|eval\.test|runner|control|managed|recovery-finalization105/],
   [/composite-runner/, /case-acceptance|engine-admission|runner-proof|composite-runner/],
   [/hitl-/, /hitl|coverage|judge|canonical/],
   [/memory-upgrade\//, /memory-upgrade/],

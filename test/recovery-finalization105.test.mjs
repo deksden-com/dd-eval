@@ -2,10 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import os from 'node:os';
-import { mkdtemp, mkdir, chmod, writeFile, readFile, rm, realpath } from 'node:fs/promises';
+import { mkdtemp, mkdir, chmod, writeFile, readFile, rm, realpath, rename, symlink } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { captureRecoveryEvidence, runnerCleanup, runnerCleanupReceipt } from '../lib/runner.mjs';
+import { captureRecoveryEvidence, runnerCleanup, runnerCleanupReceipt, storedExecutionResults, runResultRevision, recoveryHistory, runnerControlStatus, recoverExecution, runnerCancel } from '../lib/runner.mjs';
 import { appendEvent, readEvents, writeJsonAtomic, sha256 } from '../lib/runner-events.mjs';
+import { observeBoundSnapshot } from '../lib/snapshot-observation.mjs';
+import { installSuccessfulPolicy } from './fixtures/capacity-policy.mjs';
+import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 
 test('105 late capture with real RUN receipt ingests once through cleanup without replay or Judge', async t => {
   const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'recovery105-')));
@@ -42,7 +45,7 @@ test('105 late capture with real RUN receipt ingests once through cleanup withou
   receipt.settled = true; receipt.control.admission = 'sealed'; receipt.control.capture_path = capture;
   receipt.control.settlement = { settled: true, nodes: [], process_bindings: [{ resource_home: resources, process_id: record.id, registration_sha256: signature }] };
   await writeJsonAtomic(statusFile, receipt);
-  await writeJsonAtomic(path.join(capture, 'snapshot.json'), { schema_id: 'dd-flow/eval-run-snapshot@5', purpose: 'recovery', run_id: 'RUN-1', recovery_id: 'RCV-1', project_root: project, dd_flow_home: runtime, consistency: 'sealed_writer_barrier_required' });
+  await writeJsonAtomic(path.join(capture, 'snapshot.json'), { schema_id: 'dd-flow/eval-run-snapshot@5', purpose: 'recovery', run_id: 'RUN-1', recovery_id: 'RCV-1', project_root: project, dd_flow_home: runtime, consistency: 'sealed_writer_barrier_required', restorable: 'same-runtime-or-explicit-restore' });
   const bytesBeforeRecognition = await readFile(eventsFile);
   const args = { evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true };
   assert.equal((await runnerCleanupReceipt(args)).recognition, 'pending');
@@ -70,4 +73,113 @@ test('105 late capture with real RUN receipt ingests once through cleanup withou
   assert.notEqual(unknown.state, 'recovery_blocked'); assert.equal(unknown.executions[0].code, failure.code);
   await writeJsonAtomic(statusFile, receipt);
   assert.equal((await runnerCleanup({ evalRoot: root })).cleanup_state, 'settled', 'fresh readback can recover the observation without native replay');
+});
+
+for (const changed of ['none', 'project', 'runtime', 'binding', 'attempt', 'run-type']) test(`105 recovery callers validate owned paths before any native read (${changed})`, async t => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'recovery105-owned-')));
+  const outside = await realpath(await mkdtemp(path.join(os.tmpdir(), 'recovery105-foreign-')));
+  t.after(() => Promise.all([root, outside].map(file => rm(file, { recursive: true, force: true }))));
+  const attempt = path.join(root, 'executions/e'), project = path.join(attempt, 'project'), runtime = path.join(attempt, 'dd-flow-home');
+  const capture = path.join(root, 'recovery/RCV-1'), bindingFile = path.join(attempt, 'managed-runtime.json'), calls = path.join(root, 'calls.jsonl');
+  const resources = path.join(root, 'resources'), controlBin = path.join(root, 'control-runtime/bin/dd-flow');
+  for (const directory of [project, path.join(runtime, 'bin'), capture, resources, path.dirname(controlBin)]) await mkdir(directory, { recursive: true });
+  const manifest = { run_id: 'EVAL-owned-105', executions: [{ id: 'e' }], profile: { judge: { enabled: false } }, runtime_recovery_home: path.join(root, 'recovery'), runtime_control_bin: controlBin, runtime_resource_home: resources };
+  // Legacy explicit physical evidence isolates caller path validation here;
+  // the native-shaped RUN/inventory settlement path is covered above.
+  const receipt = { scope: { run_id: 'RUN-1' }, settled: true, physical_stopped: true,
+    control: { current: true, admission: 'sealed', control_id: 'CTL-1', recovery_id: 'RCV-1', generation: 1, capture_path: capture } };
+  const bin = path.join(runtime, 'bin/dd-flow');
+  await writeFile(bin, `#!${process.execPath}\nrequire('node:fs').appendFileSync(${JSON.stringify(calls)},'native-read\\n');console.log(${JSON.stringify(JSON.stringify(receipt))});\n`);
+  await chmod(bin, 0o700);
+  await writeFile(controlBin, await readFile(bin)); await chmod(controlBin, 0o700);
+  await writeJsonAtomic(bindingFile, { schema_id: 'dd-eval/managed-runtime@1', run_id: 'RUN-1', project_root: project, runtime_root: runtime });
+  await writeJsonAtomic(path.join(capture, 'snapshot.json'), { schema_id: 'dd-flow/eval-run-snapshot@5', purpose: 'recovery', run_id: 'RUN-1', recovery_id: 'RCV-1', project_root: project, dd_flow_home: runtime, consistency: 'sealed_writer_barrier_required', restorable: 'same-runtime-or-explicit-restore' });
+  const result = { execution: 'e', state: 'failed', run_id: 'RUN-1', code: 'provider_failed', error: 'original failure' };
+  if (changed === 'attempt') result.attempt = outside;
+  else if (changed === 'run-type') await writeJsonAtomic(bindingFile, { schema_id: 'dd-eval/managed-runtime@1', run_id: 123, project_root: project, runtime_root: runtime });
+  else if (changed !== 'none') {
+    const target = { project, runtime, binding: bindingFile }[changed], foreign = path.join(outside, path.basename(target));
+    await rename(target, foreign); await symlink(foreign, target);
+  }
+  const captured = await captureRecoveryEvidence({ root, manifest, result });
+  if (changed === 'none') assert.equal(captured.recovery_id, 'RCV-1');
+  else assert.equal(captured.capture_error.code, ['attempt', 'run-type'].includes(changed) ? 'execution_scope_invalid' : 'recovery_evidence_invalid');
+  const manifestFile = path.join(root, 'manifest.json'), eventsFile = path.join(root, 'events.jsonl');
+  await writeJsonAtomic(manifestFile, manifest);
+  await appendEvent(eventsFile, { source: 'test', runId: manifest.run_id, executionId: 'e', type: 'dev.dd.eval.execution.cancelled', data: changed === 'attempt' ? { attempt: outside } : {} });
+  let events = await readEvents(eventsFile);
+  await appendEvent(eventsFile, { source: 'test', runId: manifest.run_id, type: 'dev.dd.eval.completed', data: { state: 'cancelled', result_revision: runResultRevision(events, manifest) } });
+  events = await readEvents(eventsFile); const results = storedExecutionResults(events, manifest);
+  await writeJsonAtomic(path.join(root, 'reports/report.json'), { schema_id: 'dd-eval/report@2', run_id: manifest.run_id, state: 'cancelled', execution_state: 'cancelled', cleanup_state: 'settled', judge_status: 'not_requested', executions: results, execution_history: recoveryHistory(events, manifest, results) });
+  const before = await readFile(eventsFile), recognized = await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true });
+  // Cancelled-result projection deliberately drops arbitrary event.attempt.
+  // It safely observes the canonical binding instead of the forged locator.
+  assert.equal(recognized.cleanup_state, ['none', 'attempt'].includes(changed) ? 'settled' : 'pending');
+  assert.deepEqual(await readFile(eventsFile), before, 'recognition never rewrites retained events');
+  const nativeReads = await readFile(calls, 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error; });
+  assert.equal(nativeReads, changed === 'none' ? 'native-read\nnative-read\nnative-read\n' : changed === 'attempt' ? 'native-read\n' : '', 'only validated canonical bindings may execute a native read');
+  if (changed !== 'none') {
+    // Authorized late-capture cleanup enriches the failure before capture and
+    // physical recognition. That earlier diagnostic path must share the guard.
+    await writeFile(eventsFile, ''); await writeFile(calls, '');
+    const operationId = `${manifest.run_id}:e:launch`;
+    for (const type of ['started', 'failed']) await appendEvent(eventsFile, { source: 'test', runId: manifest.run_id, executionId: 'e', type: `dev.dd.eval.operation.${type}`, data: { operation_id: operationId, ...(type === 'failed' ? { error: { code: result.code, message: result.error } } : {}) } });
+    await appendEvent(eventsFile, { source: 'test', runId: manifest.run_id, executionId: 'e', type: 'dev.dd.eval.execution.failed', data: { ...result, execution_operation_id: operationId } });
+    const cleaned = await runnerCleanup({ evalRoot: root });
+    assert.equal(cleaned.cleanup_state, 'blocked'); assert.equal(cleaned.executions[0].code, result.code, 'path rejection cannot replace the original subject failure');
+    const bindingRejected = error => ['snapshot_binding_invalid', 'execution_scope_invalid'].includes(error.code);
+    await assert.rejects(runnerCleanup({ evalRoot: root, requestId: 'owned-path-guard' }), bindingRejected, 'explicit control reconciliation also validates its binding before RPC');
+    if (changed !== 'attempt') {
+      const status = await runnerControlStatus({ evalRoot: root, executionId: 'e' });
+      assert.equal(status.executions[0].unavailable, true, 'status cannot call a noncanonical runtime');
+      await assert.rejects(recoverExecution({ root, events: await readEvents(eventsFile), manifest, execution: manifest.executions[0], loaded: null, blueprint: {}, profile: {}, terminalOnly: true }), bindingRejected);
+      const cancelled = await runnerCancel({ evalRoot: root, executionId: 'e' });
+      assert.equal(cancelled.state, 'cancellation_unconfirmed');
+      assert.ok(bindingRejected(cancelled.cancelled[0].receipt.cleanup_error), 'destructive cancellation also rejects the replaced binding');
+    }
+    assert.equal(await readFile(calls, 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error; }), '', 'failure enrichment cannot execute outside the retained binding');
+  }
+});
+
+test('105 recovery capture cannot invent a missing writer barrier or restorable marker', async t => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'recovery105-barrier-')));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const capture = path.join(root, 'recovery/RCV-1'); await mkdir(capture, { recursive: true });
+  const file = path.join(capture, 'snapshot.json'), binding = { run_id: 'RUN-1', project_root: path.join(root, 'project'), runtime_root: path.join(root, 'runtime') };
+  const input = { root, manifest: { runtime_recovery_home: path.join(root, 'recovery') }, result: { state: 'failed' }, binding,
+    receipt: { scope: { run_id: binding.run_id }, settled: true, control: { current: true, control_id: 'CTL-1', recovery_id: 'RCV-1', generation: 1, admission: 'sealed', capture_path: capture } } };
+  const snapshot = { schema_id: 'dd-flow/eval-run-snapshot@5', purpose: 'recovery', run_id: binding.run_id, recovery_id: 'RCV-1', project_root: binding.project_root, dd_flow_home: binding.runtime_root,
+    consistency: 'sealed_writer_barrier_required', restorable: 'same-runtime-or-explicit-restore' };
+  for (const changed of [{ consistency: undefined }, { consistency: 'sqlite_read_snapshot_files_copied_nonatomically' }, { restorable: undefined }, { restorable: false }, { restorable: true }]) {
+    await writeJsonAtomic(file, { ...snapshot, ...changed });
+    await assert.rejects(observeBoundSnapshot(input), error => error.code === 'snapshot_binding_invalid' && error.details.reason === 'capture_consistency_invalid');
+  }
+  await writeJsonAtomic(file, snapshot);
+  assert.equal((await observeBoundSnapshot(input)).capture, 'ready');
+});
+
+for (const changed of ['none', 'project', 'runtime', 'daemon']) test(`105 legacy cancellation rejects aliases before inspect or stop (${changed})`, async t => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'recovery105-legacy-')));
+  const outside = await realpath(await mkdtemp(path.join(os.tmpdir(), 'recovery105-legacy-foreign-')));
+  t.after(() => Promise.all([root, outside].map(file => rm(file, { recursive: true, force: true }))));
+  const attempt = path.join(root, 'executions/e'), project = path.join(attempt, 'project'), runtime = path.join(attempt, 'dd-flow-home'), daemon = path.join(attempt, 'drivers/daemon');
+  const calls = path.join(root, 'native-calls.jsonl'), engine = path.join(runtime, 'engines/test'), adapter = path.join(engine, 'dist/harness-runtime/bin/dd-codex.mjs');
+  for (const directory of [project, daemon, path.join(root, 'resources')]) await mkdir(directory, { recursive: true });
+  await installSuccessfulPolicy(runtime);
+  await mkdir(path.dirname(adapter), { recursive: true });
+  await writeFile(adapter, `import fs from 'node:fs';fs.appendFileSync(${JSON.stringify(calls)},process.argv.slice(2,4).join(' ')+'\\n');console.log(JSON.stringify({ok:false,error:{code:'fixture_native_called',message:'offline control stub reached'}}));process.exitCode=1;\n`);
+  await writeJsonAtomic(path.join(engine, 'engine.json'), { integrity: { checksum: await engineArtifactDigest(engine) } });
+  await writeJsonAtomic(path.join(daemon, 'daemon.json'), { daemon_id: 'legacy-owned', config: { cwd: project }, sessions: [] });
+  const manifest = { run_id: 'EVAL-legacy-105', executions: [{ id: 'e' }], subject_profile: { harness: 'codex-desktop' }, profile: { judge: { enabled: false } },
+    runtime_resource_home: path.join(root, 'resources'), runtime_control_bin: path.join(root, 'control-runtime/bin/dd-flow') };
+  await writeJsonAtomic(path.join(root, 'manifest.json'), manifest);
+  await appendEvent(path.join(root, 'events.jsonl'), { source: 'test', runId: manifest.run_id, executionId: 'e', type: 'dev.dd.eval.operation.started', data: { operation_id: `${manifest.run_id}:e:launch` } });
+  if (changed !== 'none') {
+    const target = { project, runtime, daemon }[changed], replacement = path.join(outside, path.basename(target));
+    await rename(target, replacement); await symlink(replacement, target);
+  }
+  const cancelled = await runnerCancel({ evalRoot: root, executionId: 'e' });
+  assert.equal(cancelled.state, 'cancellation_unconfirmed');
+  assert.equal(cancelled.cancelled[0].receipt.cleanup_error.code, changed === 'none' ? 'fixture_native_called' : 'execution_scope_invalid');
+  assert.equal(await readFile(calls, 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error; }), changed === 'none' ? 'daemon stop\n' : '', 'only canonical execution paths can reach the native control stub');
 });

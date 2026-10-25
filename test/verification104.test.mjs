@@ -25,6 +25,16 @@ function fixture() {
 }
 const descriptor = root => contractDescriptor(file,{root,env:{}});
 
+test('105: recovery receipt keys include the native fixture they execute', t => {
+  const root = fixture(), contract = 'test/recovery-finalization105.test.mjs';
+  t.after(() => fs.rmSync(root, {recursive:true,force:true}));
+  write(root, contract, "import './fixtures/capacity-policy.mjs';\n");
+  const before = contractDescriptor(contract, {root,env:{}});
+  assert.ok(before.inputs.includes('test/fixtures/capacity-policy.mjs'));
+  write(root, 'test/fixtures/capacity-policy.mjs', 'export const fixture = 2;\n');
+  assert.notEqual(contractDescriptor(contract, {root,env:{}}).execution_key, before.execution_key);
+});
+
 test('104: changed control and retained-recovery tests have owned source closures',t=>{
   const root=fixture();
   t.after(()=>fs.rmSync(root,{recursive:true,force:true}));

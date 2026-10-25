@@ -64,7 +64,7 @@ for (const waiting of [false, true]) test(`managed recovery retains capture, con
     manifest.runtime_recovery_home = path.join(root, 'recovery');
     manifest.runtime_control_bin = path.join(root, 'control-runtime', 'bin', 'dd-flow');
     const recoveryManifest = await write('recovery/snapshot.json', { schema_id: 'dd-flow/eval-run-snapshot@5', purpose: 'recovery', run_id: controller.run_id,
-      recovery_id: 'REC-retained', project_root: projectRoot, dd_flow_home: runtimeRoot, consistency: 'sealed_writer_barrier_required' });
+      recovery_id: 'REC-retained', project_root: projectRoot, dd_flow_home: runtimeRoot, consistency: 'sealed_writer_barrier_required', restorable: 'same-runtime-or-explicit-restore' });
     const control = { control_id: 'CTL-retained', recovery_id: 'REC-retained', current: true, admission: 'sealed', generation: 1, capture_path: path.dirname(recoveryManifest), settlement: { settled: true, nodes: [] } };
     const controllerEvents = [
       { sequence: 1, type: 'context_required', data: { stage: 'specify' } },
