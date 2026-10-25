@@ -173,7 +173,7 @@ for (const disposition of ['fenced', 'running', 'foreign']) test(`explicit clean
   await writeFile(cli, `#!${process.execPath}\nconst fs=require('node:fs'),a=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify(a)+'\\n');let r;
 if(a[0]==='engine')r={selection:{selected:${JSON.stringify(engine)}}};
 else if(a[1]==='drive'&&a[2]==='status')r={controller:${JSON.stringify(controller)},events:[]};
-else if(a[1]==='control'&&a[2]==='status')r={settled:false,control:${JSON.stringify(control)}};
+else if(a[1]==='control'&&a[2]==='status')r={schema_id:'dd-flow/run-control-receipt@1',scope:{run_id:'RUN'},settled:false,control:${JSON.stringify(control)}};
 else if(a[1]==='control'&&a[2]==='reconcile'){if(a[a.indexOf('--control-id')+1]!=='CTL-existing')throw Error('foreign control');r={};}
 else if(a[0]==='stat'||a[0]==='run'&&['status','list'].includes(a[1]))r={};else throw Error('productive dispatch forbidden '+a);console.log(JSON.stringify(r));\n`);
   await chmod(cli, 0o700);
