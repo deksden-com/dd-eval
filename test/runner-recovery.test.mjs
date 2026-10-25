@@ -269,16 +269,20 @@ test("terminal cleanup receipt rejects unsettled or foreign-scope cancelled nati
   // This checks binding/settlement, not cold Node startup latency. Observe all
   // three actual replies; an aborted CLI must not make a negative case pass.
   const observationSignal = () => AbortSignal.timeout(10_000);
-  for (const status of [{ settled: false, scope: { run_id: "RUN-cancelled" } }, { settled: true, scope: { run_id: "RUN-foreign" } }]) {
+  for (const status of [{ settled: false, scope: { run_id: "RUN-cancelled" } }, { settled: true, scope: { run_id: "RUN-foreign" } }, { settled: true, scope: { run_id: "RUN-cancelled" } }]) {
     await writeJsonAtomic(statusFile, status);
     assert.equal(await runnerCleanupReceipt({ ...input, signal: observationSignal() }), null);
   }
-  await writeJsonAtomic(statusFile, { settled: true, scope: { run_id: "RUN-cancelled" } });
+  // Legacy explicit physical-stop receipt compatibility. The real current RUN
+  // receipt plus independent registration proof is exercised by plan105's
+  // linked finalization fixture; native settled alone must stay unproven here.
+  await writeJsonAtomic(statusFile, { settled: true, physical_stopped: true, scope: { run_id: "RUN-cancelled" } });
   assert.equal((await runnerCleanupReceipt({ ...input, signal: observationSignal() })).cleanup_state, "settled");
   assert.deepEqual((await readFile(observationsFile, 'utf8')).trim().split('\n').map(JSON.parse), [
     { settled: false, scope: { run_id: "RUN-cancelled" } },
     { settled: true, scope: { run_id: "RUN-foreign" } },
-    { settled: true, scope: { run_id: "RUN-cancelled" } }
+    { settled: true, scope: { run_id: "RUN-cancelled" } },
+    { settled: true, physical_stopped: true, scope: { run_id: "RUN-cancelled" } }
   ]);
 });
 
