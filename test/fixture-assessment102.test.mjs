@@ -15,7 +15,7 @@ test('one fixture assessment qualifies two independently checked worlds; foreign
   t.after(() => { if (old === undefined) delete process.env.DD_EVAL_FIXTURE_ASSESSMENT_HOME; else process.env.DD_EVAL_FIXTURE_ASSESSMENT_HOME = old; });
   const counter = path.join(root, 'count');
   const assessed = `const fs=require('node:fs');const f=${JSON.stringify(counter)};fs.writeFileSync(f,String(Number(fs.existsSync(f)?fs.readFileSync(f):0)+1));`;
-  const ready = `const fs=require('node:fs'),crypto=require('node:crypto');const token=crypto.randomUUID().replaceAll('-','');const w={state:'cleaned',world_id:token,pid:process.pid,project_root:process.cwd(),process_cleanup:[{settled:true}]};fs.writeFileSync(process.env.DD_TASKS_TEST_WORLD_FINAL_RECEIPT,JSON.stringify(w));console.log(JSON.stringify({schema_id:'dd-eval/world-readiness@1',world_id:token,owner_pid:process.pid,ready:true}));`;
+  const ready = `const fs=require('node:fs'),crypto=require('node:crypto');const token=crypto.randomUUID().replaceAll('-','');const w={state:'cleaned',world_id:token,pid:process.pid,project_root:process.cwd()+'/',process_cleanup:[{settled:true}]};fs.writeFileSync(process.env.DD_TASKS_TEST_WORLD_FINAL_RECEIPT,JSON.stringify(w));console.log(JSON.stringify({schema_id:'dd-eval/world-readiness@1',world_id:token,owner_pid:process.pid,ready:true}));`;
   const policy = { schema_id: 'dd-eval/baseline-admission-policy@3', commands: [{ id: 'world-readiness', command: process.execPath, args: ['-e', ready], inactivity_timeout_ms: 2000 }], fixture_assessment: { inputs: ['package.json'], commands: [{ id: 'quality', command: process.execPath, args: ['-e', assessed], inactivity_timeout_ms: 2000 }] } };
   const bytes = JSON.stringify(policy); await writeFile(path.join(root, 'policy.json'), bytes);
   const definition = { file: 'policy.json', sha256: sha(bytes) }, checkpoint = { sha256: 'a'.repeat(64), value: { id: 'cp102', source: { commit: 'b'.repeat(40) } } };
@@ -32,6 +32,10 @@ test('one fixture assessment qualifies two independently checked worlds; foreign
     await assert.rejects(runBaselineAdmission({ caseRoot: root, definition, projectRoot, outputRoot: path.join(root, `result-${id}`), checkpoint }), { code: 'baseline_admission_attempt_exists' });
   }
   assert.equal(await readFile(counter, 'utf8'), '1');
+  const foreignPolicy = structuredClone(policy);
+  foreignPolicy.commands[0].args[1] = ready.replace("process.cwd()+'/'", JSON.stringify(root));
+  const foreignBytes = JSON.stringify(foreignPolicy); await writeFile(path.join(root, 'foreign-policy.json'), foreignBytes);
+  await assert.rejects(runBaselineAdmission({ caseRoot: root, definition: { file: 'foreign-policy.json', sha256: sha(foreignBytes) }, projectRoot: path.join(root, 'one'), outputRoot: path.join(root, 'foreign-world'), checkpoint }), { code: 'baseline_readiness_unconfirmed' });
   const forkRoot = path.join(root, 'fork-project'); await mkdir(forkRoot);
   await writeFile(path.join(forkRoot, 'package.json'), '{"feature_changes":true}');
   await commandText('git', ['init','-q'], { cwd: forkRoot });
