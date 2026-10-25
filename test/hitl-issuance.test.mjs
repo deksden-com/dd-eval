@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, readFile, symlink, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { interactionJudge, interactionJudgePrompt, judgeRuntimeEnvironment, isInfrastructureFailure } from '../lib/runner.mjs';
@@ -9,8 +9,7 @@ import { hashJson } from '../lib/runner-events.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { promptJudgeWithCapacity } from '../lib/judge-capacity.mjs';
 import { loadCapacityPolicy } from '../lib/capacity-policy.mjs';
-import { engineArtifactDigest } from '../lib/engine-admission.mjs';
-import { successfulPolicyFixture, successfulPolicy } from './fixtures/capacity-policy.mjs';
+import { installSuccessfulPolicy, successfulPolicy } from './fixtures/capacity-policy.mjs';
 import { resolveExecutionContract, contractProfile, profileSemanticHash } from '../lib/execution-contract.mjs';
 
 async function frozenJudge(root, declaration) {
@@ -80,11 +79,7 @@ for (const retainedState of ['completed', 'dispatched']) test(`lost verdict publ
   await mkdir(root, { recursive: true });
   const packetFile = path.join(root, 'packet.json'); await writeFile(packetFile, JSON.stringify(packet));
   await writeFile(path.join(root, 'native-intent.json'), JSON.stringify({ profile_id: profile.id, profile_sha256: profileSemanticHash(profile), packet_sha256: hashJson(packet), filter: null }));
-  const runtimeRoot = path.join(attempt, 'runtime'), engine = path.join(runtimeRoot, 'engines/selected'), lib = path.join(engine, 'dist/harness-runtime/lib');
-  await mkdir(lib, { recursive: true });
-  for (const [file, content] of [['provider-overload-policy.mjs', successfulPolicyFixture], ['native-children.mjs', "export const NATIVE_CHILD_CONTRACT_VERSION='native-children@1'; export function normalizeNativeChildren(){return []}"], ['operation-errors.mjs', "export const OPERATION_ERROR_CONTRACT_VERSION='operation-errors@1'; export function isObservationLoss(){return false}"], ['dd-agy.mjs', 'export function agyTerminalFailure(){return null}']]) await writeFile(path.join(lib, file), content);
-  await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
-  await symlink('engines/selected/dist/harness-runtime', path.join(runtimeRoot, 'harness-runtime'));
+  const runtimeRoot = await installSuccessfulPolicy(path.join(attempt, 'runtime'));
   const policy = await loadCapacityPolicy(runtimeRoot), sessionId = 'session', prompt = interactionJudgePrompt(packetFile);
   const raw = { schema_id: 'dd-eval/hitl-match@3', atoms: [{ source_quote: packet.question, decision: 'Required default', classification: 'covered_by_canonical_response', reference_bindings: [], scope_evidence: [], answer_evidence: [{ response_id: 'answer', answer_quote: 'Canonical' }], rationale: 'Covered' }] };
   const native = { provider_session_id: sessionId, turn_id: 'turn', turn: { id: 'turn', status: 'completed' }, assistant_text: JSON.stringify(raw) };
@@ -100,7 +95,7 @@ for (const retainedState of ['completed', 'dispatched']) test(`lost verdict publ
     await writeFile(path.join(operation, 'requested.json'), JSON.stringify({ operation_id: turn.operation_id, operation: 'session.prompt', session_id: sessionId }));
     await writeFile(path.join(operation, 'result.json'), JSON.stringify({ state: 'completed', result: native }));
   }
-  await settledJudge(root, { schema_id: 'dd-eval/interaction-judge-receipt@1', stage: binding.stage, profile_id: profile.id, profile_sha256: profileSemanticHash(profile), session_id: sessionId, interaction_fixture_sha256: fixture.sha256, packet_sha256: hashJson(packet), verdict: validateGroundedHitl(raw, packet) });
+  await settledJudge(root, { schema_id: 'dd-eval/interaction-judge-receipt@1', stage: binding.stage, profile_id: profile.id, profile_sha256: profileSemanticHash(profile), session_id: sessionId, interaction_fixture_sha256: fixture.sha256, packet_sha256: hashJson(packet), verdict: validateGroundedHitl(raw, packet) }, { runtimeRoot });
   await rm(path.join(root, 'result.json'));
   const cleanupFile = path.join(root, 'cleanup.json'), cleanup = JSON.parse(await readFile(cleanupFile));
   await writeFile(cleanupFile, JSON.stringify({ ...cleanup, verdict_sha256: null, session_id: null }));

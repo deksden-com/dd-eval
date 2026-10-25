@@ -81,8 +81,8 @@ let result;
 const pending = ${waiting} && !fs.existsSync(${JSON.stringify(path.join(root, 'answered'))});
 const interrupted = fs.existsSync(${JSON.stringify(path.join(root, 'interrupt'))}) && !fs.existsSync(${JSON.stringify(path.join(root, 'resumed'))});
 if (args[0] === 'engine' && args[1] === 'resolve') result = {selection:{selected:${JSON.stringify(engine)}}};
-// Native settlement alone is not physical-stop evidence. Model both fields
-// required by the retained cleanup-observation reader, including its negative case.
+// A sealed publication remains readable independently of physical-stop proof.
+// This field exercises observation only; physical finalization has its own gate.
 else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'status') result = {scope:{run_id:'RUN-retained'},settled:true,physical_stopped:!fs.existsSync(${JSON.stringify(path.join(root, 'physical-unconfirmed'))}),control:{...${JSON.stringify(control)},admission:fs.existsSync(${JSON.stringify(path.join(root, 'unsealed'))})?'open':'sealed'}};
 else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'resume') {
   if(args[args.indexOf('--from')+1]!=='CTL-retained') throw new Error('wrong recovery control');
@@ -132,8 +132,9 @@ console.log(JSON.stringify(result));
     }
     await write('physical-unconfirmed', 'yes');
     const unconfirmed = await captureRecoveryEvidence({ root, manifest, result: { execution: execution.id, attempt, state: 'failed', code: 'provider_failed' } });
-    assert.equal(unconfirmed.unavailable, true, 'native settlement without physical-stop evidence cannot authorize recovery capture');
-    assert.equal(unconfirmed.capture_error.code, 'recovery_evidence_invalid');
+    assert.equal(unconfirmed.capture_error, undefined, 'sealed capture bytes are verifiable without claiming physical retirement');
+    assert.equal(unconfirmed.control_id, control.control_id);
+    assert.equal(unconfirmed.physical_stopped, undefined, 'capture validation must not manufacture physical-stop authority');
     await rm(path.join(root, 'physical-unconfirmed'));
     const recovery = await captureRecoveryEvidence({ root, manifest, result: { execution: execution.id, attempt, state: 'failed', code: 'provider_failed' } });
     assert.equal(recovery.capture_error, undefined, JSON.stringify(recovery));

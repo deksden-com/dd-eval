@@ -1598,6 +1598,182 @@
           }
         ]
       }
+    },
+    {
+      "id": "cp254-zcode-public-error-exact",
+      "question": "## Q-001 — Уровни приоритета и значение по умолчанию\n\nWhy this decision is required:\n- Это новый видимый пользователю набор значений плюс значение по умолчанию для уже существующих задач — безопасного дефолта нет, выбирать вам.\n\nOptions:\n- A: Три уровня: Низкий / Средний / Высокий; по умолчанию «Средний» (существующие задачи получают его при миграции).\n- B: Четыре уровня: Срочный / Высокий / Средний / Низкий; по умолчанию «Средний».\n- C: Другой набор уровней — назовите значения, их порядок и дефолт.\n\nRecommendation:\n- A: минимальный понятный набор, «Средний» — нейтральный дефолт и для новых, и для существующих задач.\n\nEffect on scope or acceptance:\n- Фиксирует таксономию значений, понятный текст метки в списке задач и правило заполнения существующих задач.\n\n## Q-002 — Создание и изменение приоритета\n\nWhy this decision is required:\n- Правила «когда и кто» определяют поведение создания/редактирования и границу авторизации.\n\nOptions:\n- A: Приоритет выбирается при создании задачи (необязательно, иначе дефолт) и изменяется в любой момент теми же ролями, которые сегодня могут редактировать задачу (owner; member в пределах текущего доступа).\n- B: Приоритет задаётся только при создании и далее неизменяем.\n- C: Изменять приоритет может только owner; member только видит его.\n\nRecommendation:\n- A: повторяет существующие правила редактирования задачи, не вводя новых ролей и исключений.\n\nEffect on scope or acceptance:\n- Определяет требования к созданию/изменению приоритета и проверку авторизации в критериях приёмки.\n\n## Q-003 — Поверхность UI и API\n\nWhy this decision is required:\n- От объёма UI/API зависит scope работы и то, что именно доказывает приёмка.\n\nOptions:\n- A: Полный контур: выбор приоритета в форме создания задачи, редактирование на странице задачи, понятный текст всегда виден в списке задач; API принимает и возвращает приоритет при создании/изменении/получении, неизвестное значение отклоняется стабильной публичной ошибкой без частичной записи.\n- B: Минимальный: поле приоритета в API и текст метки в списке задач; редактирование приоритета в UI откладывается.\n- C: Только отображение текста приоритета из API в списке; без какого-либо редактирования.\n\nRecommendation:\n- A: вы просили поле приоритета и видимый текст в списке; полный контур даёт сквозной проверяемый путь создания → отображения → изменения.\n\nEffect on scope or acceptance:\n- Задаёт требования к UI-состояниям и валидации API, входящие в критерии приёмки.",
+      "status": "matched",
+      "classification": "covered_by_canonical_response",
+      "response_ids": [
+        "clarification-task-priority"
+      ],
+      "context_file": "entry-pack-source/interactions/qualification-public-errors.json",
+      "context_sha256": "c24826c224989f67924074ca4a33e5b321a22a02144053dfc10b7f83a23147da",
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "decision-0",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "decision-0"
+            ]
+          },
+          {
+            "id": "decision-1",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "decision-1"
+            ]
+          },
+          {
+            "id": "decision-2",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "decision-2"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "decision-0",
+            "source_quotes": [
+              "Три уровня: Низкий / Средний / Высокий"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "decision-1",
+            "source_quotes": [
+              "Приоритет выбирается при создании задачи"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "decision-2",
+            "source_quotes": [
+              "API принимает и возвращает приоритет"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cp254-inherited-public-error",
+      "question": "Нужны редактирование приоритета и отклонение неизвестного значения стабильной публичной ошибкой без частичной записи?",
+      "status": "matched",
+      "classification": "covered_by_canonical_response",
+      "response_ids": [
+        "clarification-task-priority"
+      ],
+      "context_file": "entry-pack-source/interactions/qualification-public-errors.json",
+      "context_sha256": "c24826c224989f67924074ca4a33e5b321a22a02144053dfc10b7f83a23147da",
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "decision-0",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "decision-0"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "decision-0",
+            "source_quotes": [
+              "отклонение неизвестного значения стабильной публичной ошибкой без частичной записи"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cp254-new-public-error-format",
+      "question": "Нужно ли заменить существующий формат публичной ошибки новым форматом с обязательным полем priorityErrorId?",
+      "status": "unmatched",
+      "classification": "out_of_scope",
+      "response_ids": [],
+      "context_file": "entry-pack-source/interactions/qualification-public-errors.json",
+      "context_sha256": "c24826c224989f67924074ca4a33e5b321a22a02144053dfc10b7f83a23147da",
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "decision-0",
+            "classification": "out_of_scope",
+            "response_ids": [],
+            "witness_ids": [
+              "decision-0"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "decision-0",
+            "source_quotes": [
+              "заменить существующий формат публичной ошибки новым форматом"
+            ],
+            "classification": "out_of_scope",
+            "response_ids": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "cp254-priority-and-new-public-error-format",
+      "question": "Приоритет отображаем в списке задач. Нужно ли заменить существующий формат публичной ошибки новым форматом с обязательным полем priorityErrorId?",
+      "status": "unmatched",
+      "classification": "out_of_scope",
+      "response_ids": [],
+      "context_file": "entry-pack-source/interactions/qualification-public-errors.json",
+      "context_sha256": "c24826c224989f67924074ca4a33e5b321a22a02144053dfc10b7f83a23147da",
+      "expected_coverage": {
+        "obligations": [
+          {
+            "id": "decision-0",
+            "classification": "out_of_scope",
+            "response_ids": [],
+            "witness_ids": [
+              "decision-0"
+            ]
+          }
+        ],
+        "witnesses": [
+          {
+            "id": "decision-0",
+            "source_quotes": [
+              "заменить существующий формат публичной ошибки новым форматом"
+            ],
+            "classification": "out_of_scope",
+            "response_ids": []
+          }
+        ]
+      }
     }
   ],
   "context_required": true,

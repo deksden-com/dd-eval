@@ -173,7 +173,7 @@ for (const disposition of ['fenced', 'running', 'foreign']) test(`explicit clean
   await writeFile(cli, `#!${process.execPath}\nconst fs=require('node:fs'),a=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify(a)+'\\n');let r;
 if(a[0]==='engine')r={selection:{selected:${JSON.stringify(engine)}}};
 else if(a[1]==='drive'&&a[2]==='status')r={controller:${JSON.stringify(controller)},events:[]};
-else if(a[1]==='control'&&a[2]==='status')r={settled:false,control:${JSON.stringify(control)}};
+else if(a[1]==='control'&&a[2]==='status')r={schema_id:'dd-flow/run-control-receipt@1',scope:{run_id:'RUN'},settled:false,control:${JSON.stringify(control)}};
 else if(a[1]==='control'&&a[2]==='reconcile'){if(a[a.indexOf('--control-id')+1]!=='CTL-existing')throw Error('foreign control');r={};}
 else if(a[0]==='stat'||a[0]==='run'&&['status','list'].includes(a[1]))r={};else throw Error('productive dispatch forbidden '+a);console.log(JSON.stringify(r));\n`);
   await chmod(cli, 0o700);
@@ -269,16 +269,20 @@ test("terminal cleanup receipt rejects unsettled or foreign-scope cancelled nati
   // This checks binding/settlement, not cold Node startup latency. Observe all
   // three actual replies; an aborted CLI must not make a negative case pass.
   const observationSignal = () => AbortSignal.timeout(10_000);
-  for (const status of [{ settled: false, scope: { run_id: "RUN-cancelled" } }, { settled: true, scope: { run_id: "RUN-foreign" } }]) {
+  for (const status of [{ settled: false, scope: { run_id: "RUN-cancelled" } }, { settled: true, scope: { run_id: "RUN-foreign" } }, { settled: true, scope: { run_id: "RUN-cancelled" } }]) {
     await writeJsonAtomic(statusFile, status);
     assert.equal(await runnerCleanupReceipt({ ...input, signal: observationSignal() }), null);
   }
-  await writeJsonAtomic(statusFile, { settled: true, scope: { run_id: "RUN-cancelled" } });
+  // Legacy explicit physical-stop receipt compatibility. The real current RUN
+  // receipt plus independent registration proof is exercised by plan105's
+  // linked finalization fixture; native settled alone must stay unproven here.
+  await writeJsonAtomic(statusFile, { settled: true, physical_stopped: true, scope: { run_id: "RUN-cancelled" } });
   assert.equal((await runnerCleanupReceipt({ ...input, signal: observationSignal() })).cleanup_state, "settled");
   assert.deepEqual((await readFile(observationsFile, 'utf8')).trim().split('\n').map(JSON.parse), [
     { settled: false, scope: { run_id: "RUN-cancelled" } },
     { settled: true, scope: { run_id: "RUN-foreign" } },
-    { settled: true, scope: { run_id: "RUN-cancelled" } }
+    { settled: true, scope: { run_id: "RUN-cancelled" } },
+    { settled: true, physical_stopped: true, scope: { run_id: "RUN-cancelled" } }
   ]);
 });
 
@@ -608,7 +612,7 @@ for (const [blocked, worker] of [
     await mkdir(path.join(runtime, "bin"), { recursive: true }); await mkdir(project);
     const statusFile = path.join(root, "control.json"), bin = path.join(runtime, "bin/dd-flow");
     await writeFile(bin, `#!/usr/bin/env node\nconsole.log(require('node:fs').readFileSync(${JSON.stringify(statusFile)},'utf8'))\n`); await chmod(bin, 0o700);
-    await writeJsonAtomic(statusFile, { ok: true, settled: true, worker });
+    await writeJsonAtomic(statusFile, { schema_id: "dd-flow/run-control-receipt@1", scope: { run_id: "RUN-test" }, ok: true, settled: false, worker });
     await writeJsonAtomic(path.join(attempt, "managed-runtime.json"), { schema_id: "dd-eval/managed-runtime@1", project_root: project, runtime_root: runtime, run_id: "RUN-test" });
     const manifest = { run_id: "EVAL-test", runtime_resource_home: path.join(root, "resources"), case_id: "sdlc-eval-2026-summer-task-priority", executions: [{ id: "e", stage: "specify", terminal_stage: "merge", mode: "e2e" }], subject_profile: {}, profile: { judge: { enabled: false } } };
     await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
@@ -638,7 +642,7 @@ for (const [owner, capture, receiptRun, statusRun = "RUN-test"] of [["absent", "
     await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
     for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "invalid_run_state", message: "original finalization failure" } } });
     const result = await runnerResume({ evalRoot: root });
-    const bound = receiptRun === "RUN-test" && statusRun === "RUN-test", blocked = owner === "absent" && bound;
+    const bound = receiptRun === "RUN-test" && statusRun === "RUN-test", foreignScope = statusRun !== "RUN-test", blockedFinalization = owner === "absent" && bound, blocked = foreignScope || blockedFinalization;
     assert.equal(result.state, blocked ? "recovery_blocked" : "awaiting_provider");
     assert.equal(result.cleanup_state, blocked ? "blocked" : "pending");
     assert.equal(result.executions[0].code, "invalid_run_state");
@@ -646,8 +650,9 @@ for (const [owner, capture, receiptRun, statusRun = "RUN-test"] of [["absent", "
     assert.equal(report.run_validity, bound ? "invalid_infrastructure_flow" : "valid", JSON.stringify(result.executions[0]));
     assert.equal(result.candidate, undefined);
     assert.equal((await readEvents(path.join(root, "events.jsonl"))).some(event => event.type === "dev.dd.eval.candidate.frozen"), false);
-    if (blocked) assert.deepEqual(result.executions[0].recovery.finalization, finalization);
-    if (blocked && capture === "recorded") {
+    if (foreignScope) assert.equal(result.executions[0].recovery.capture_error.code, "execution_scope_invalid", "foreign RUN readback fails closed without attributing its finalization");
+    if (blockedFinalization) assert.deepEqual(result.executions[0].recovery.finalization, finalization);
+    if (blockedFinalization && capture === "recorded") {
       const sealed = path.join(runtime, "recovery", "REC-test"); await mkdir(sealed, { recursive: true }); await writeJsonAtomic(path.join(sealed, "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed" });
       await writeJsonAtomic(statusFile, { scope: { run_id: "RUN-test" }, run_status: "done", settled: true, physical_stopped: true, finalization,
         worker: { status: "completed" }, control: { current: true, admission: "sealed", capture_path: sealed, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });

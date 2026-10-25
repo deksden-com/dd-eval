@@ -1,0 +1,17 @@
+{
+  "schema_id": "dd-eval/stage-context@1",
+  "stage": "specify",
+  "objective": "Уточнить приоритет задач без изменения существующего публичного контракта ошибок.",
+  "task_input": [],
+  "sources": [
+    {
+      "role": "system_contract",
+      "root": "project",
+      "path": "entry-pack-source/interactions/qualification-public-errors.md",
+      "required": true,
+      "reason": "Замороженные существующие нормативные правила, не новое решение."
+    }
+  ],
+  "accepted_decisions": [],
+  "dynamic_roles": []
+}

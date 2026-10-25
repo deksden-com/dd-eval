@@ -9,6 +9,7 @@ import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { snapshotTreeHash } from '../lib/case-acceptance.mjs';
 import { hashJson } from '../lib/runner-events.mjs';
+import { runPhysicalStopped } from '../lib/snapshot-observation.mjs';
 
 test('actual RUN status uses only a current fenced EVAL retirement proof for physical stop', async t => {
   const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'cleanup-retired-')));
@@ -48,6 +49,10 @@ test('late sealed capture is visible independently of report; foreign proof neve
     live: { executions: [{ execution: 'e', run_id: 'RUN-1', receipt: { scope: { run_id: 'RUN-1' }, settled: true, physical_stopped: true, control } }] }, report: null, reportState: 'pending' };
   const ready = await cleanupObservation(input);
   assert.equal(ready.physical, 'settled'); assert.equal(ready.capture, 'ready'); assert.equal(ready.finalization, 'pending');
+  delete input.live.executions[0].receipt.physical_stopped;
+  const captureOnly = await cleanupObservation(input);
+  assert.equal(captureOnly.physical, 'unknown'); assert.equal(captureOnly.capture, 'ready', 'real RUN control does not have to claim EVAL-wide retirement');
+  input.live.executions[0].receipt.physical_stopped = true;
   input.results[0].recovery = { run_id: 'FOREIGN-HISTORY' };
   const conflicting = await cleanupObservation(input);
   assert.equal(conflicting.physical, 'unknown'); assert.equal(conflicting.capture, 'unknown', 'matching current control cannot replace a foreign retained RUN');
@@ -59,6 +64,7 @@ test('late sealed capture is visible independently of report; foreign proof neve
   const executionOnly = structuredClone(normal);
   delete executionOnly.live.executions[0].receipt.physical_stopped;
   assert.equal((await cleanupObservation(executionOnly)).physical, 'unknown', 'settled execution is not resource retirement');
+  assert.equal((await cleanupObservation(executionOnly)).capture, 'ready', 'candidate publication validation is also independent of resource retirement');
   assert.equal((await cleanupObservation(normal)).capture, 'ready', 'normal completion needs no recovery control');
   const diagnosticBytes=JSON.stringify({...snapshot,schema_id:'dd-flow/eval-run-snapshot@7',purpose:'candidate',workspace:{kind:'git_repository'}});
   await writeFile(normalFile,diagnosticBytes);
@@ -71,7 +77,7 @@ test('late sealed capture is visible independently of report; foreign proof neve
   } }] } };
   const unrequestedObservation = await cleanupObservation(unrequested);
   assert.equal(unrequestedObservation.physical, 'unknown', 'absence of operator control is not evidence of a live process');
-  assert.equal(unrequestedObservation.capture, 'pending', 'absence of control must not manufacture settlement or ready capture');
+  assert.equal(unrequestedObservation.capture, 'ready', 'exact retained candidate publication is readable without an operator control; this grants neither native nor physical settlement');
   const nativeUnknown = { ...input, live: { executions: [{ ...input.live.executions[0], receipt: { scope: { run_id: 'RUN-1' }, settled: false, physical_stopped: true, control } }] } };
   const stopped = await cleanupObservation(nativeUnknown);
   assert.equal(stopped.physical, 'settled', 'physical shutdown need not prove native outcome');
@@ -116,6 +122,31 @@ test('late sealed capture is visible independently of report; foreign proof neve
   assert.equal((await cleanupObservation(input)).capture, 'unknown');
   input.manifest.executions.push({ id: 'other' });
   assert.equal((await cleanupObservation(input)).physical, 'unknown', 'all executions require proof');
+});
+
+test('RUN physical proof binds every owned registration while excluding only separate coordinators', () => {
+  const binding = { run_id: 'RUN-1', runtime_root: '/eval/executions/e/dd-flow-home' }, resourceHome = '/resources', scopeId = 'EVAL-1';
+  const record = { id: 'PROC-1', kind: 'codex-provider', owner_id: 'daemon', lease_token: 'lease', pid: 1, pid_started_at: 'birth', project_id: 'PRJ-1', run_id: 'RUN-1', work_id: 'WRK-1', check_id: null, operation_id: 'op', metadata_json: JSON.stringify({ dd_flow_home: binding.runtime_root, budget: { scope_id: scopeId } }), state: 'stopped' };
+  const registration = () => createHash('sha256').update(JSON.stringify([resourceHome, record.id, record.kind, record.owner_id, record.lease_token, record.pid, record.pid_started_at, record.project_id, record.run_id, record.work_id, record.check_id, record.operation_id, record.metadata_json])).digest('hex');
+  const receipt = { scope: { run_id: binding.run_id }, settled: true, control: { current: true, control_id: 'CTL-1', admission: 'sealed', settlement: { settled: true, process_bindings: [{ resource_home: resourceHome, process_id: record.id, registration_sha256: registration() }] } } };
+  const observer = { kind: 'eval-observer', owner_id: scopeId, metadata_json: JSON.stringify({ role: 'observer', budget: { scope_id: scopeId } }), run_id: null, state: 'running' };
+  const inventory = { scope_id: scopeId, processes: [record, observer], provider_turns: [] };
+  const stopped = () => runPhysicalStopped({ receipt, binding, inventory, resourceHome, scopeId });
+  assert.equal(stopped(), true, 'live EVAL observer is not a RUN writer');
+  record.state = 'running'; assert.equal(stopped(), false, 'active owned child blocks settlement even with an older signature'); record.state = 'stopped';
+  record.lease_token = 'replacement'; assert.equal(stopped(), false); record.lease_token = 'lease';
+  inventory.processes.push({ ...record, id: 'new-child' }); assert.equal(stopped(), false); inventory.processes.pop();
+  inventory.processes.push({ kind: 'unknown', metadata_json: '{}' }); assert.equal(stopped(), false); inventory.processes.pop();
+  observer.owner_id = 'foreign'; assert.equal(stopped(), false, 'an observer label without the exact EVAL owner cannot bypass proof'); observer.owner_id = scopeId;
+  observer.metadata_json = JSON.stringify({ role: 'observer', budget: { scope_id: 'foreign' } }); assert.equal(stopped(), false, 'foreign scope cannot borrow coordinator exclusion');
+  observer.metadata_json = JSON.stringify({ role: 'observer', budget: { scope_id: scopeId } });
+  const judgeDir = '/eval/judge/daemon';
+  const judge = { ...record, id: 'judge', state: 'running', owner_id: `judge:${createHash('sha256').update(judgeDir).digest('hex')}`, metadata_json: JSON.stringify({ role: 'judge', state_dir: judgeDir, dd_flow_home: binding.runtime_root, budget: { scope_id: scopeId } }) };
+  inventory.processes.push(judge); assert.equal(stopped(), true, 'a correctly bound Judge has independent cleanup authority');
+  judge.owner_id = 'judge:invented'; assert.equal(stopped(), false, 'a role label or owner prefix cannot exempt an unbound native process'); inventory.processes.pop();
+  inventory.provider_turns.push({ run_id: binding.run_id }); assert.equal(stopped(), false); inventory.provider_turns.pop();
+  receipt.control.current = false; assert.equal(stopped(), false); receipt.control.current = true;
+  inventory.scope_id = 'foreign'; assert.equal(stopped(), false);
 });
 
 test('pre-native failure needs no RUN cleanup and finally preserves primary failure', async t => {

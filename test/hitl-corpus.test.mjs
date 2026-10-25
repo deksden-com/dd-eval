@@ -119,7 +119,7 @@ const split = item => verdict(item.expected_coverage.witnesses.filter(witness =>
 test('all current authored items have coherent finite coverage and exact context hashes', async () => {
   assert.equal(corpus.schema_id, 'dd-eval/hitl-qualification-corpus@2');
   assert.equal(corpus.coverage_required, true);
-  assert.equal(corpus.items.length, 20);
+  assert.equal(corpus.items.length, 24);
   for (const item of corpus.items) {
     validateExpectedAtoms(item, options);
     assertExpectedAtoms(item, split(item), options);

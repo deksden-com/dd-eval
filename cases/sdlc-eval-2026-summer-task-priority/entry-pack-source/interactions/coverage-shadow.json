@@ -5,7 +5,7 @@
   "resolved_model": "typesafe/jev-1.13-20260917",
   "provider": "TypeSafe",
   "projection_version": "dd-eval/hitl-coverage-input@1",
-  "prompt_sha256": "fec6da5fb4cfa90de66c777a0fb290be1602895cc131e918eba40a857f11cf5a",
+  "prompt_sha256": "0e73458a4fca5505abe031b38a24a50e2eb38652d36f18b8063924910952ebd2",
   "transport_version": "dd-eval/jev-transport@1",
   "max_uncovered_probability": null,
   "qualification_sha256": null
