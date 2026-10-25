@@ -47,18 +47,29 @@ AGY `settled_by_root` and Grok multi-result need each child's matching lifecycle
 receipt; ZCode `lost`, conflicting parentage or unbound children remain unknown.
 Read full inventories, not just one page or the current controller journal.
 
-For `provider-overload-episode@1`, confirmed terminal overload continues the same
-Session/task at most twice (three attempts total), regardless of refusal duration.
-Backoff is 5/15 seconds plus small jitter, respecting proven Retry-After up to 30s.
-Success closes the episode; a later overload has a fresh budget. Exhaustion is
-`provider_unavailable`; optional Decisions fall back to classic Judge. Native retry
-still in progress or unknown outcome never authorizes another prompt. Historical
-pinned runs retain their recorded policy; never reinterpret or reset their budget.
+For `provider-recovery-episode@1`, confirmed terminal overload, bounded rate limit
+or allowlisted structured transport failure can continue the same Session/task
+at most three times (four attempts total). Backoff is 5/15/15 seconds plus jitter,
+respecting proven Retry-After up to 30s. Success closes that episode; a later
+independent refusal has a fresh budget. Optional HTTP Decisions use their own
+initial request + two retries, then fall back once to classic Judge. Exhaustion
+is `provider_unavailable`, retaining the actual category, not blanket overload.
+Native retry still in progress, pending effects or unknown admission never
+authorizes another prompt. ZCode requires an acknowledged managed bridge and
+fresh native same-child/effects proof; do not replay SendMessage after a lost ack.
+Historical `provider-overload-episode@1` runs retain their exact pinned policy
+and budget; never migrate/reset an active episode by renaming it.
 Quota/auth failures do not auto-continue. Report native reset time/anchored
 estimate without moving it on subsequent polls. Never manually continue an EVAL
 to bypass these rules.
 
 ## Errors and unknown outcomes
+
+- A browser capability fact in the issued RUN context describes only its exact
+  browser/key sequence. Unsupported is not keyboard acceptance; `selectOption`
+  proves semantic selection only. Read the fact before requesting product repair.
+- Canonical vocabulary comes from retained, actually issued answers. An authored
+  fixture/reference alone does not prove that the Subject received that decision.
 
 - `runner_evidence_incompatible` is a producer/installed-engine tooling blocker,
   not a model or product failure. Read case ID, expected/observed contract and

@@ -6,8 +6,8 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { judgeTurnText, failureDiagnostic } from "../lib/runner.mjs";
-import { successfulPolicy, settledTreeContracts } from "./fixtures/capacity-policy.mjs";
-const policy = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, "src/harness-runtime/lib/provider-overload-policy.mjs")).href) : null;
+import { successfulPolicy, settledTreeContracts, selectedPolicy } from "./fixtures/capacity-policy.mjs";
+const policy = process.env.DD_FLOW_SOURCE_ROOT ? selectedPolicy : null;
 const nativeTree = process.env.DD_FLOW_SOURCE_ROOT ? await import(pathToFileURL(path.join(process.env.DD_FLOW_SOURCE_ROOT, "src/harness-runtime/lib/native-children.mjs")).href) : null;
 const test = (name, run) => nodeTest(name, { skip: !policy && "set DD_FLOW_SOURCE_ROOT to test the selected engine policy" }, run);
 
@@ -203,7 +203,7 @@ test("Judge continues only the same Session with bounded fresh operations", asyn
 test("Judge preserves the overload chain through the configured continuation budget", async () => {
   const attempts = policy.MAX_OVERLOAD_RETRIES + 1;
   const fixture = harness({ outcomes: Array(attempts).fill("overload"), inspect: last => ({ provider_session_id: "session-1", settled: true, settlement: { state: "settled", operation_ids: [last.capacity.operation_id] } }) });
-  await assert.rejects(promptJudgeWithCapacity(fixture.input), error => error.code === "provider_unavailable" && error.details.capacity_continuation.attempts === attempts && error.details.capacity_continuation.stop_reason === "overload_retries_exhausted");
+  await assert.rejects(promptJudgeWithCapacity(fixture.input), error => error.code === "provider_unavailable" && error.details.capacity_continuation.attempts === attempts && error.details.capacity_continuation.stop_reason === (policy.RECOVERY_POLICY ? "provider_retries_exhausted" : "overload_retries_exhausted"));
   assert.equal(fixture.calls.length, attempts);
 });
 

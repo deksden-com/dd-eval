@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { checkCaseAcceptance, snapshotTreeHash, validateCaseAcceptancePolicy, selectFailedCheckGate, finalReceiptIndex, validateFrozenReceiptScope, validateFinalCheckReceipts } from "../lib/case-acceptance.mjs";
+import { compositeRunner } from './fixtures/composite-runner103.mjs';
 
 const sha = value => createHash("sha256").update(value).digest("hex");
 const policy = { checker: "task-priority@1", case_id: "sdlc-eval-2026-summer-task-priority" };
@@ -33,10 +34,11 @@ test("final native receipt contract resolves runner enrichment from trusted prof
     const matrix={header:{run_id:"RUN-001"},sources:[{root:"run",role:"check_profile_target",path:"profile.json"},{root:"run",role:"receipt:db",path:`${directory}/receipt.json`},{root:"run",role:"completion:db",path:`${directory}/completion.json`},...native.artifacts.map(artifact=>({root:"run",role:`artifact:db:${artifact.path}`,path:`${directory}/artifacts/${artifact.path}`,sha256:artifact.sha256}))]};
     const gate={checks:[check],acceptance_refs:[],profile_hash:"profile"};
     const decoded=new Map([["run:07-merge/merge-gate-acceptance.json",{receipts:[{id,input_hash:"input",binding_refs:[check.canonical_ref],execution_refs:[check.canonical_ref]}]}],["run:profile.json",{profile}],[`run:${directory}/receipt.json`,native],[`run:${directory}/completion.json`,{exit_code:0,finished_at:native.finished_at}]]);
-    assert.doesNotThrow(()=>validateFinalCheckReceipts(matrix,gate,decoded));
+    const runnerBytes=new Map([[`run:${directory}/artifacts/${runner.path}`,Buffer.from(JSON.stringify({schema_id,binding:{invocation_id:id,check_id:id,command:native.command,input_hash:native.input_hash,verification_epoch:native.verification_epoch},runner:{name:'fixture',version:'1'},completed:true,counts:{passed:1,failed:0,skipped:0},failures:[]}))]]);
+    assert.doesNotThrow(()=>validateFinalCheckReceipts(matrix,gate,decoded,runnerBytes));
     for(const mutation of [{required_artifacts:[runner.path]},{required_artifacts:[runner.path,"engine-outcome.json","forged.json"]},{runner_evidence_required:{...runner,path:"foreign.json"}}]) {
       decoded.set(`run:${directory}/receipt.json`,{...native,...mutation});
-      assert.throws(()=>validateFinalCheckReceipts(matrix,gate,decoded),/execution contract differs/);
+      assert.throws(()=>validateFinalCheckReceipts(matrix,gate,decoded,runnerBytes),/execution contract differs/);
     }
   }
 });
@@ -253,13 +255,14 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
   const f = await fixture();
   const v2 = { ...policy, checker: "task-priority@2" };
   const protocol = "PRT-007-task-priority-e2e";
+  const runnerContract = { schema_id: 'dd-flow/check-runner-evidence@2', path: 'quality.json' };
   const candidatePlan = { plan_id: "PLAN-007", protocol_id: protocol, revision: 2,
-    checks: [{ id: "CHK-LOCAL", command: "true", run_at: "merge" }], items: [],
+    checks: [{ id: "CHK-LOCAL", command: "true", run_at: "merge", runner_evidence: runnerContract }], items: [],
     acceptance: [{ criterion_id: "AC-001", check_refs: ["CHK-LOCAL"], expected_evidence: ["local check"], proof_limits: ["local only"] }] };
   const planBytes = JSON.stringify(candidatePlan);
   const receiptId = "WRK-001-merge/RCP-002";
   const binding = `${protocol}/CHK-LOCAL`;
-  const check = { id: "CHK-LOCAL", command: "true", canonical_ref: binding, run_at: "merge" };
+  const check = { id: "CHK-LOCAL", command: "true", canonical_ref: binding, run_at: "merge", runner_evidence: runnerContract };
   const gate = { schema_id: "dd-flow/merge-gate@2", run_id: "RUN-001", protocols: [protocol], checks: [check], acceptance_refs: [], profile_hash: null };
   gate.gate_hash = sha(JSON.stringify({ checks: gate.checks, acceptance_refs: [] }));
   const accepted = { schema_id: "dd-flow/merge-gate-acceptance@2", merge_request_id: "MRG-001", run_id: "RUN-001",
@@ -283,6 +286,11 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     const artifactBytes = "native binary proof\u0000\u0001", artifactRelative = "07-merge/works/WRK-001-merge/checks/RCP-002/artifacts/proof.bin";
     await put(f.runtime, artifactRelative, artifactBytes);
     await put(f.runtime, "07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json", JSON.stringify({ id: receiptId, status: "passed", scope: "aggregate", exit_code: 0, profile_hash: null, gate: "merge", command: "true", before_fingerprint: fingerprint, after_fingerprint: fingerprint, mutation_paths: [], inputs: [], resources: { ports: {} }, finished_at: completedAt, input_hash: "hash-one", verification_epoch: sha(`merge\0${fingerprint}`), check_refs: [binding], artifacts: [{ path: "proof.bin", sha256: sha(artifactBytes) }], required_artifacts: [] }));
+    const composite = compositeRunner({ invocation_id: receiptId, check_id: receiptId, command: 'true', input_hash: 'hash-one', verification_epoch: sha(`merge\0${fingerprint}`) }, runnerContract);
+    const initialNative = JSON.parse(await readFile(path.join(f.runtime, '07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json')));
+    Object.assign(initialNative, { runner_evidence_required: runnerContract, runner_evidence: composite.report, required_artifacts: [...composite.artifacts.keys()], artifacts: [...initialNative.artifacts, ...[...composite.artifacts].map(([path, bytes]) => ({ path, sha256: sha(bytes) }))] });
+    for (const [name, bytes] of composite.artifacts) await put(f.runtime, `07-merge/works/WRK-001-merge/checks/RCP-002/artifacts/${name}`, bytes);
+    await put(f.runtime, '07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json', JSON.stringify(initialNative));
     await put(f.runtime, "07-merge/works/WRK-001-merge/checks/RCP-002/completion.json", JSON.stringify({ exit_code: 0, finished_at: completedAt }));
     const nativeMerge = JSON.parse(await readFile(path.join(f.runtime, "07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json"), "utf8"));
     await put(f.runtime, "07-merge/works/WRK-001-merge/checks/RCP-002/receipt.json", JSON.stringify({ ...nativeMerge, local_id: "RCP-002", work_id: "WRK-001-merge" }));
@@ -304,6 +312,7 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
       { role: `completion:${binding}`, root: "run", path: "07-merge/works/WRK-001-merge/checks/RCP-002/completion.json" },
       { role: `artifact:${binding}:proof.bin`, root: "run", path: artifactRelative }
     ];
+    sourceNames.push(...[...composite.artifacts.keys()].map(name => ({ role: `artifact:${binding}:${name}`, root: 'run', path: `07-merge/works/WRK-001-merge/checks/RCP-002/artifacts/${name}` })));
     const retainedBatchBytes = await readFile(path.join(f.runtime, "03-plan/code-work-batch.json"));
     const retainedBatchPath = `07-merge/verification/sources/${sha(retainedBatchBytes)}/code-work-batch.json`;
     await put(f.runtime, retainedBatchPath, retainedBatchBytes);
@@ -368,6 +377,10 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     const nativeRelative = sourceNames.find(item => item.role === `receipt:${binding}`).path;
     const completionRelativeScoped = sourceNames.find(item => item.role === `completion:${binding}`).path;
     const manifestRelative = path.posix.join(path.posix.dirname(nativeRelative), "inputs-before.json");
+    const outcomeRelative = path.posix.join(path.posix.dirname(nativeRelative), 'artifacts/engine-outcome.json');
+    const outcomeBytes = JSON.stringify({ schema_id: 'dd-flow/check-execution-outcome@1', ...Object.fromEntries(['id','command','input_hash','verification_epoch','fingerprint_scope','execution_contract_hash','input_manifest','execution_failures'].map(key => [key,nativeReceipt[key]])) });
+    await put(f.runtime, outcomeRelative, outcomeBytes);
+    nativeReceipt.artifacts = nativeReceipt.artifacts.map(artifact => artifact.path === 'engine-outcome.json' ? { ...artifact, sha256: sha(outcomeBytes) } : artifact);
     await put(f.runtime, manifestRelative, manifestBytes);
     await put(f.runtime, nativeRelative, JSON.stringify(nativeReceipt));
     await put(f.runtime, completionRelativeScoped, JSON.stringify({ exit_code: 0, finished_at: completedAt, fingerprint_scope: "check_inputs", id: nativeReceipt.id, input_hash: nativeReceipt.input_hash, verification_epoch: nativeReceipt.verification_epoch, before_fingerprint: nativeReceipt.before_fingerprint, after_fingerprint: nativeReceipt.after_fingerprint, input_manifest: nativeReceipt.input_manifest }));
@@ -383,6 +396,7 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     assert.equal((await generatedRead()).status, "unavailable", "JSON cannot downgrade scoped SQL authority to legacy");
     for (const key of Object.keys(nativeReceipt)) if (!(key in legacyNative)) delete nativeReceipt[key];
     Object.assign(nativeReceipt, legacyNative);
+    await put(f.runtime, outcomeRelative, '{}');
     await put(f.runtime, nativeRelative, JSON.stringify(nativeReceipt));
     await put(f.runtime, completionRelativeScoped, JSON.stringify({ exit_code: 0, finished_at: completedAt }));
     await rm(path.join(f.snapshot, "runtime/db.sqlite")); await rm(path.join(f.runtime, manifestRelative)); await publish();
@@ -426,7 +440,7 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     await publish();
     assert.equal((await generatedRead()).status, "unavailable", "an aborted execution cannot prove successful final acceptance");
     nativeReceipt.status = "passed";
-    nativeReceipt.required_artifacts = [];
+    nativeReceipt.required_artifacts = originalNative.required_artifacts;
     await put(f.runtime, sourceNames.find(item => item.role === `receipt:${binding}`).path, JSON.stringify(nativeReceipt));
     fact.result = { ...nativeReceipt, input_hash: "forged" };
     await publish();

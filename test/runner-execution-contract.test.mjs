@@ -35,6 +35,35 @@ test('conformance binds outbound intent to its controller profile, not any plann
   result.model_attribution.sessions.push({ harness: 'codex-desktop', session_id: 'unmapped', requested: { model: 'wanted' } });
   assert.equal((await executionConformance(result, contract)).intent_evidence, 'unknown');
   assert.equal((await executionConformance(result, null)).state, 'unknown');
+  result.model_attribution.sessions = [{ harness: 'codex-desktop', session_id: 'root', requested: { model: 'wanted' }, observations: [
+    { requested: { model: 'wanted' } }, { requested: { model: 'later-model' } }
+  ] }];
+  assert.equal((await executionConformance(result, contract)).state, 'mismatched', 'late request drift cannot hide behind summary.requested');
+  result.model_attribution.sessions[0].observations[1] = { requested: {}, source: { non_asserting: true } };
+  assert.equal((await executionConformance(result, contract)).state, 'matched');
+});
+
+test('OpenCode worker role is accepted only with direct generated launch lineage', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'worker-role-contract-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeJsonAtomic(path.join(root, 'agent-profiles', 'subject.json'), { schema_id: 'dd-flow/agent-profile@1', id: 'subject', harness: 'opencode', provider: 'zai', model: 'wanted', reasoning: 'max', mode: 'build', permission: 'allow' });
+  const contract = await resolveExecutionContract({ configHome: root, runProfile: { subject: { profile_id: 'subject', execution: { agent_profile_id: 'subject' } } }, loadProfile: () => ({ id: 'subject', harness: 'opencode-server', provider: 'zai', model: 'wanted', reasoning: 'max', mode: 'build' }) });
+  const attempt = path.join(root, 'attempt'), runtime = path.join(attempt, 'runtime'), runHome = path.join(runtime, 'runs', 'RUN');
+  await writeJsonAtomic(path.join(attempt, 'managed-runtime.json'), { runtime_root: runtime, run_home: runHome });
+  await writeJsonAtomic(path.join(runHome, 'run.json'), { execution_profile: { settings: { execution: contract.routing }, agent_profiles: contract.profiles } });
+  const role = { name: 'dd-flow-worker', kind: 'subagent', parent_session_id: 'parent', launch: { root_session_id: 'parent', primary_agent: 'build', subagent: 'dd-flow-worker', max_depth: 1, locator: '/owned/opencode.json', sha256: 'a'.repeat(64) } };
+  const event = { parent_session_id: 'parent', requested: { model: 'wanted', mode: 'dd-flow-worker', permission_mode: 'allow' }, native_agent_role: role };
+  const result = { attempt, driver: { controller: { sessions: [{ session_id: 'parent', profile_id: 'subject' }] } }, model_attribution: { sessions: [
+    { harness: 'opencode-server', session_id: 'parent', requested: { model: 'wanted', mode: 'build' } },
+    { harness: 'opencode-server', session_id: 'child', parent_session_id: 'parent', requested: event.requested, observations: [event] }
+  ] } };
+  assert.equal((await executionConformance(result, contract)).intent_evidence, 'available');
+  event.requested.model = 'foreign';
+  assert.equal((await executionConformance(result, contract)).state, 'mismatched');
+  event.requested.model = 'wanted'; role.launch.root_session_id = 'foreign';
+  assert.equal((await executionConformance(result, contract)).state, 'mismatched');
+  role.launch.root_session_id = 'parent'; event.requested.permission_mode = 'deny';
+  assert.equal((await executionConformance(result, contract)).state, 'mismatched');
 });
 
 test('status settlement requires current terminal revision and matching report, not CLI/owner exit', () => {

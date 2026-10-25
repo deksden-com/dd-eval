@@ -88,6 +88,12 @@ test('safe nested fanout diagnostic retains binding but never native prose', () 
   assert.ok(!JSON.stringify(diagnostic).includes('secret'));
   assert.equal(diagnostic.details.controller.error.details.failures[0].provider_error.code, 'model_request_failed');
 });
+test('unavailable safe continuation is a tooling blocker with its bounded reason', () => {
+  const error = { code: 'harness_adapter_failed', details: { controller: { error: { code: 'provider_recovery_unavailable', details: { reason: 'background_effects_unproven' } } } } };
+  assert.equal(classifyInterruption(error).category, 'execution_blocked');
+  assert.equal(classifyInterruption(error).evidence_reason, 'background_effects_unproven');
+  assert.equal(isInfrastructureFailure(error), true);
+});
 
 const baseBinding = binding;
 for (const nativeHarness of ['zcode-acp','codex-desktop']) test(`${nativeHarness}: owned frozen registries plus independent terminal journal grant validity, stale journal does not`, async () => {
@@ -119,7 +125,7 @@ for (const nativeHarness of ['zcode-acp','codex-desktop']) test(`${nativeHarness
     db.prepare('INSERT INTO sessions VALUES(?,?,?,?,?,?)').run('child-store',binding.project_id,binding.provider_session_id,binding.harness_id,'parent-store',binding.parent_provider_session_id);
     db.prepare('INSERT INTO sessions VALUES(?,?,?,?,?,?)').run('parent-store',binding.project_id,binding.parent_provider_session_id,binding.harness_id,null,null);
     db.prepare('INSERT INTO stage_work_memberships VALUES(?,?,?,?,?,?)').run(binding.project_id,binding.run_id,binding.work_id,binding.stage,binding.stage_attempt_id,binding.stage_cycle); db.close();
-    const providerError = nativeHarness === 'zcode-acp' ? {} : failure(binding).details.controller.error.details.failures[0].provider_error;
+    const providerError = nativeHarness === 'zcode-acp' ? { code: 'model_request_failed', attribution: { source: 'network', reason: 'network_error', errorPhase: 'stream', exceptionKind: 'transport', retryable: true } } : failure(binding).details.controller.error.details.failures[0].provider_error;
     const rawNativeError = { ...providerError, reason: 'не типизированная причина', headers: { authorization: 'secret' }, message: 'secret' };
     await writeFile(path.join(runRoot,'timeline.jsonl'),JSON.stringify({run_id:binding.run_id,stage:binding.stage,type:'native_child_reconciliation',reconciled:[{outcome:'failed',native_binding:binding}],observations:{harness_id:binding.harness_id,parent_session_id:binding.parent_provider_session_id,children:[{status:'failed',session_id:binding.provider_session_id,parent_session_id:binding.parent_provider_session_id,terminal_turn_id:binding.terminal_turn_id,provider_error:providerError}]}})+'\n');
     await writeFile(path.join(runtime,path.dirname(journalRelative),'daemon.json'),JSON.stringify({sessions:[{provider_session_id:binding.parent_provider_session_id,root_provider_session_id:binding.parent_provider_session_id,adapter_session_id:'native-root'}]}));
@@ -142,6 +148,8 @@ for (const nativeHarness of ['zcode-acp','codex-desktop']) test(`${nativeHarness
     assert.equal(isInfrastructureFailure(result),true);
     assert.equal(classifyInterruption(result).retryable,false);
     assert.equal(classifyInterruption(result).category,'native_execution_failed','actual stage comes from captured controller, not entry stage');
+    assert.equal(classifyInterruption(result).source,nativeHarness === 'zcode-acp' ? 'network' : 'unknown');
+    if (nativeHarness === 'zcode-acp') assert.equal(classifyInterruption(result).native_cause.failures[0].native_binding.provider_session_id,binding.provider_session_id);
     assert.equal(executionEvidence(result).failure.attribution,'evaluation_infrastructure');
     const report = buildReport({root,manifest:{run_id:'EVAL-test',executions:[{id:execution}]},state:'completed_with_failures',results:[result]});
     assert.equal(report.run_validity,'invalid_infrastructure_flow');

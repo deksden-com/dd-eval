@@ -2,6 +2,7 @@
   "schema_id": "dd-eval/assessment@1",
   "case_id": "sdlc-eval-2026-summer-task-priority",
   "status": "accepted",
+  "canonical_response_refs": [{"stage":"specify","response_id":"clarification-task-priority","purpose":"ui_priority_vocabulary"}],
   "scopes": {
     "specify": {
       "note": "Judge the clarified problem, complete R/AC obligations and portable handoff, not the number of questions or parseable identifiers.",
@@ -162,7 +163,7 @@
               "SCN-002 and project engineering/coding standards"
             ],
             "essential_semantics": [
-              "exact No priority, Low, Medium and High labels",
+              "exact code-to-label pairs from the retained issued canonical response referenced by canonical_response_refs; an authored but unissued answer is an expectation, not an accepted decision",
               "untouched edit preserves priority",
               "archived-project tasks remain readable and only their priority control stays editable; unrelated controls remain read-only",
               "existing loading, empty, error, focus and ordering behavior remains",

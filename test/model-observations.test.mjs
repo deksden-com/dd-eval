@@ -206,6 +206,8 @@ test('dd-eval model projection matches the selected dd-flow source across typed 
     [root, { ...root, observed: {}, evidence: 'response', source: { scope: 'response', turn_id: 'one' } }],
     [root, { ...root, observed: {}, evidence: 'unavailable', source: { channel: 'native.hook', scope: 'configured', non_asserting: true } }],
     [root, { ...root, observed: {}, evidence: 'unavailable', source: { scope: 'response', turn_id: 'two' } }],
-    [root, { ...root, session_id: 'child', parent_session_id: 'root', observed: {}, evidence: 'unavailable' }]];
+    [root, { ...root, session_id: 'child', parent_session_id: 'root', observed: {}, evidence: 'unavailable' }],
+    [root, { ...root, evidence_conflict: { code: 'model_observation_identity_conflict', original_id: 'first' } }],
+    [root, { ...root, parent_session_id: 'one' }, { ...root, parent_session_id: 'two' }]];
   for (const events of corpus) assert.deepEqual(modelAttribution(events, ['root', 'child']), native.modelAttribution(events, ['root', 'child']));
 });
