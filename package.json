@@ -7,8 +7,9 @@
     "dd-eval": "./bin/dd-eval.mjs"
   },
   "scripts": {
-    "test": "node --test --test-concurrency=1 test/*.test.mjs",
-    "validate": "node --test --test-concurrency=1 test/*.test.mjs",
+    "test": "node scripts/verification.mjs run",
+    "validate": "node scripts/verification.mjs run",
+    "verify:plan": "node scripts/verification.mjs plan",
     "test:setup": "DD_EVAL_REQUIRE_SETUP=1 node --test test/setup-installed.integration.test.mjs"
   },
   "engines": {
