@@ -18,7 +18,12 @@ their results in a PR/review receipt. Required gates run locally: do not dispatc
 or rerun GitHub CI, including release workflows (operator decision 2026-10-21).
 Git/PR/tag operations remain permitted. Existing workflow files do not authorize
 execution; re-enabling CI requires explicit operator instruction. Documentation
-changes need link/command review, not an unrelated full runtime suite. Runtime,
+and metadata do not trigger runtime tests. Plan 102 replaces mandatory full release
+profiles with impact-selected contracts and intact evidence reuse; releases still
+verify the exact delivered package. EVAL preparation does not repeat unchanged
+fixture/Judge/engine suites. Unknown impact requires reviewed ownership, not a
+whole-suite fallback. See `flow-test-suite-verification.md`.
+Documentation changes need link/command review, not an unrelated full runtime suite. Runtime,
 prompt and canon changes require behavioral checks. Prefer PRs into main with
 required checks/review enforced by repository settings when configured. Routine
 direct pushes to main are outside this workflow.

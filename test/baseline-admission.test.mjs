@@ -89,7 +89,7 @@ test("task-priority baseline provisions its locked Playwright browser before bro
   const policy = await readBaselineAdmissionPolicy({ caseRoot: caseRoot.pathname, definition });
   const provision = policy.commands.findIndex(command => command.id === "browser-install");
   assert.ok(provision > policy.commands.findIndex(command => command.id === "install"));
-  assert.ok(provision < policy.commands.findIndex(command => command.id === "browser"));
+  assert.ok(policy.fixture_assessment.commands.some(command => command.id === 'browser'));
   assert.deepEqual(policy.commands[provision].args, ["--filter", "@dd-tasks/web", "exec", "playwright", "install", "chromium", "--only-shell"]);
 });
 

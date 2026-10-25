@@ -91,10 +91,12 @@ node bin/dd-eval.mjs runner eval preflight --profile <absolute-profile.json>
 
 Preflight prepares the pinned project/configuration and an unstarted RUN, without
 Subject Sessions or baseline execution. PASS means **ready; baseline pending**.
-Do not repeat it for unchanged inputs or documentation edits. Actual E2E runs its
-own baseline before Subject dispatch, including locked Playwright prerequisites;
-never share baseline PASS across workspaces. Stagger CPU-heavy baseline admission
-before allowing parallel productive runs on one host.
+Do not repeat it for unchanged inputs or documentation edits. Policy@3 reuses an
+intact fixture assessment for identical source/tooling/dependency/consumer inputs;
+each new workspace separately installs locked prerequisites and proves its own
+DB/schema/seed/ownership/read-write/cleanup readiness. Never copy another world's
+readiness or writable state. Legacy policy@1/@2 retains its original admission.
+No full engine gate or unchanged quality/browser suite is an extra preparation step.
 
 New runs retain one absolute Playwright cache in `manifest.check_resources`:
 explicit `PLAYWRIGHT_BROWSERS_PATH`, otherwise

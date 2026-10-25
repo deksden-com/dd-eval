@@ -10,6 +10,7 @@ import { assertCheckpointEngine, assertVerificationMatrixQualification, engineAr
 import { verificationMatrixFingerprint, validateVerificationMatrixAuthority, isVerificationMatrixTextSource } from "../lib/case-acceptance.mjs";
 import { operationalDecisionFor, materializeOperationalDecision, loadOperationalContract } from "../lib/operational-decision.mjs";
 import { runBaselineAdmission } from "../lib/baseline-admission.mjs";
+import { matrixComponentFingerprint } from '../lib/verification-components.mjs';
 
 test("operational declarations bind logical launch scope without inventing acceptance", async () => {
   const source = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-server-merge-luna-xhigh.json", import.meta.url)));
@@ -262,6 +263,18 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
     };
     await reseal();
     await assertVerificationMatrixQualification(checkpoint, engine, policy);
+    const roots = ['services/verification-matrix.js', 'services/stage-report-renderer.js', 'services/accepted-intent.js', 'services/check-runner-evidence.js'];
+    await mkdir(path.join(root, 'dist/services'));
+    for (const file of roots) await put(`dist/${file}`, 'export {};\n');
+    await put('dist/verification-components.json', { schema_id: 'dd-flow/verification-components@1', matrix: { roots, files: roots } });
+    receipt.schema_id = 'dd-eval/verification-matrix-qualification@4';
+    receipt.component_sha256 = await matrixComponentFingerprint(root); await reseal();
+    const upgraded = { ...engine, package_version: 'new', engine_version: 'new', integrity: { checksum: 'e'.repeat(64) } };
+    await assertVerificationMatrixQualification(checkpoint, upgraded, policy);
+    await put('dist/services/verification-matrix.js', 'changed producer');
+    await assert.rejects(assertVerificationMatrixQualification(checkpoint, upgraded, policy), { code: 'verification_matrix_qualification_invalid' });
+    await put('dist/services/verification-matrix.js', 'export {};\n');
+    receipt.schema_id = 'dd-eval/verification-matrix-qualification@3'; delete receipt.component_sha256; await reseal();
     for (const change of [{ data_sha256: "f".repeat(64) }, { status: "running" }]) {
       const unacceptedRun = structuredClone(runValue); Object.assign(unacceptedRun.stage_runs[0], change);
       const ref = await put("run.json", unacceptedRun); for (const packet of receipt.packets) packet.run = ref;
