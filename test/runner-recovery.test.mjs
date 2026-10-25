@@ -505,7 +505,7 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
     assert.equal(pending.state, "awaiting_provider");
     assert.equal(pending.execution_state, "failed");
     assert.equal(pending.cleanup_state, "pending");
-    const capture = path.join(runtime, "recovery", "REC-test"); await mkdir(capture, { recursive: true }); await writeJsonAtomic(path.join(capture, "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed" });
+    const capture = path.join(runtime, "recovery", "REC-test"); await mkdir(capture, { recursive: true }); await writeJsonAtomic(path.join(capture, "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed_writer_barrier_required", restorable: "same-runtime-or-explicit-restore" });
     await writeJsonAtomic(statusFile, { ok: true, settled: true, physical_stopped: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
     const final = await runnerResume({ evalRoot: root });
     assert.equal(final.state, "completed_with_failures");
@@ -545,7 +545,7 @@ for (const invalid of ["foreign", "missing", "malformed"]) test(`invalid settled
   for (const type of ["started", "failed"]) await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "unexpected_hitl", message: "second question" } } });
   const capture = path.join(runtime, "recovery", "REC-test"), snapshotFile = path.join(capture, "snapshot.json");
   await mkdir(capture, { recursive: true });
-  const snapshot = { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed" };
+  const snapshot = { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed_writer_barrier_required", restorable: "same-runtime-or-explicit-restore" };
   if (invalid === "foreign") await writeJsonAtomic(snapshotFile, { ...snapshot, run_id: "FOREIGN-RUN" });
   if (invalid === "malformed") await writeFile(snapshotFile, "{");
   await writeJsonAtomic(statusFile, { ok: true, settled: true, physical_stopped: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
@@ -653,7 +653,7 @@ for (const [owner, capture, receiptRun, statusRun = "RUN-test"] of [["absent", "
     if (foreignScope) assert.equal(result.executions[0].recovery.capture_error.code, "execution_scope_invalid", "foreign RUN readback fails closed without attributing its finalization");
     if (blockedFinalization) assert.deepEqual(result.executions[0].recovery.finalization, finalization);
     if (blockedFinalization && capture === "recorded") {
-      const sealed = path.join(runtime, "recovery", "REC-test"); await mkdir(sealed, { recursive: true }); await writeJsonAtomic(path.join(sealed, "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed" });
+      const sealed = path.join(runtime, "recovery", "REC-test"); await mkdir(sealed, { recursive: true }); await writeJsonAtomic(path.join(sealed, "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed_writer_barrier_required", restorable: "same-runtime-or-explicit-restore" });
       await writeJsonAtomic(statusFile, { scope: { run_id: "RUN-test" }, run_status: "done", settled: true, physical_stopped: true, finalization,
         worker: { status: "completed" }, control: { current: true, admission: "sealed", capture_path: sealed, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
       const settled = await runnerResume({ evalRoot: root });
