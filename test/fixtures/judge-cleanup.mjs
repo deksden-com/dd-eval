@@ -4,11 +4,11 @@ import { createHash } from 'node:crypto';
 import { finishJudgeCleanup } from '../../lib/judge-cleanup.mjs';
 import { installSuccessfulPolicy } from './capacity-policy.mjs';
 
-export async function settledJudge(root, verdict) {
+export async function settledJudge(root, verdict, { runtimeRoot = path.join(root, 'runtime') } = {}) {
   const stateDir = path.join(root, 'daemon');
   await mkdir(stateDir, { recursive: true });
   await writeFile(path.join(root, 'result.json'), JSON.stringify(verdict));
-  const runtime = await installSuccessfulPolicy(path.join(root, 'runtime'));
+  const runtime = await installSuccessfulPolicy(runtimeRoot);
   const state = { daemon_id: 'offline-daemon', pid: 2147483647, config: { cwd: root, ddFlowHome: runtime }, shutdown_state: 'running', active_tree: false };
   await writeFile(path.join(stateDir, 'daemon.json'), JSON.stringify(state));
   return finishJudgeCleanup({ root, profileId: verdict.profile_id, stop: async operationId => {

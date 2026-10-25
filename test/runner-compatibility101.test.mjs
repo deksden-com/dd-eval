@@ -52,3 +52,26 @@ test("validation diagnostics survive compaction without secrets or unbounded pay
   assert.ok(!JSON.stringify(result).includes("SECRET"));
   assert.ok(Buffer.byteLength(JSON.stringify(result)) <= 32768);
 });
+
+test("probe @2 explicitly negotiates the library case without changing @1", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "runner-compat105-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await mkdir(path.join(root, "scripts"));
+  const binding = { invocation_id: "probe105", input_hash: "a".repeat(64), verification_epoch: "b".repeat(64) };
+  const api = { runnerContractsValid: () => true, readRunnerEvidence: (_root, _contract, value) => value.invocation_id === binding.invocation_id ? {} : null, checkRepairDisposition: () => "source_repair" };
+  const requirement = { path: "scripts/check-evidence-probe.mjs", contract: "dd-tasks/check-evidence-probe@2" };
+  const script = `import fs from 'node:fs';import path from 'node:path';const args=process.argv.slice(2),out=args[args.indexOf('--output')+1],binding=JSON.parse(args[args.indexOf('--binding-json')+1]);
+const contract=args.includes('--contract')?args[args.indexOf('--contract')+1]:'dd-tasks/check-evidence-probe@1';
+fs.mkdirSync(path.join(out,'project'));const ids=['browser-window','runtime-error','runtime-typeerror','compiler','composite'];if(contract.endsWith('@2'))ids.push('library-query');
+const cases=ids.map(id=>{fs.mkdirSync(path.join(out,id),{recursive:true});return {id,root:id,candidate_root:'project',contract:{schema_id:'dd-flow/check-runner-evidence@2',path:'report.json'},binding,expected:'source_repair'}});
+fs.writeFileSync(path.join(out,'probe.json'),JSON.stringify({schema_id:contract,cases}));`;
+  await writeFile(path.join(root, requirement.path), script);
+  assert.equal((await verifyRunnerEvidenceCompatibility({ projectRoot: root, outputRoot: root, api, binding })).cases.length, 5);
+  const result = await verifyRunnerEvidenceCompatibility({ projectRoot: root, outputRoot: root, api, binding, requirement });
+  assert.equal(result.schema_id, requirement.contract);
+  assert.equal(result.cases.length, 6);
+  for (const broken of [script.replace("ids.push('library-query')", "ids.push('compiler')"), script.replace("ids.push('library-query')", "ids.push('foreign-case')"), script.replace("ids.push('library-query')", "ids.push('library-query','extra')")]) {
+    await writeFile(path.join(root, requirement.path), broken);
+    await assert.rejects(verifyRunnerEvidenceCompatibility({ projectRoot: root, outputRoot: root, api, binding, requirement }), error => error.details?.reason === "probe_cases_missing");
+  }
+});

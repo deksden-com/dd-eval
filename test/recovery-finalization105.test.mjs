@@ -1,0 +1,73 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import os from 'node:os';
+import { mkdtemp, mkdir, chmod, writeFile, readFile, rm, realpath } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { captureRecoveryEvidence, runnerCleanup, runnerCleanupReceipt } from '../lib/runner.mjs';
+import { appendEvent, readEvents, writeJsonAtomic, sha256 } from '../lib/runner-events.mjs';
+
+test('105 late capture with real RUN receipt ingests once through cleanup without replay or Judge', async t => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'recovery105-')));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const attempt = path.join(root, 'executions/e'), project = path.join(attempt, 'project'), runtime = path.join(attempt, 'dd-flow-home');
+  const resources = path.join(root, 'resources'), controlHome = path.join(root, 'control-runtime'), capture = path.join(root, 'recovery/RCV-1'), bin = path.join(runtime, 'bin/dd-flow'), controlBin = path.join(controlHome, 'bin/dd-flow');
+  for (const directory of [project, resources, path.dirname(controlBin), capture, path.dirname(bin)]) await mkdir(directory, { recursive: true });
+  const statusFile = path.join(root, 'status.json'), inventoryFile = path.join(root, 'inventory.json'), calls = path.join(root, 'calls.jsonl');
+  await writeFile(bin, `#!${process.execPath}\nconst fs=require('node:fs');const args=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify(args)+'\\n');const action=args.slice(0,3).join(' ');if(action!=='run control status'&&action!=='runtime scope status')throw Error('Unexpected native action '+action);console.log(fs.readFileSync(action==='run control status'?${JSON.stringify(statusFile)}:${JSON.stringify(inventoryFile)},'utf8'));\n`);
+  await chmod(bin, 0o700);
+  await writeFile(controlBin, await readFile(bin)); await chmod(controlBin, 0o700);
+  const manifest = { run_id: 'EVAL-105', case_id: 'sdlc-eval-2026-summer-task-priority', runtime_control_bin: controlBin, runtime_resource_home: resources, runtime_recovery_home: path.join(root, 'recovery'),
+    executions: [{ id: 'e', stage: 'code', terminal_stage: 'merge', mode: 'e2e' }], profile: { judge: { enabled: true, profile_id: 'must-not-run' } } };
+  const manifestFile = path.join(root, 'manifest.json'), eventsFile = path.join(root, 'events.jsonl');
+  await writeJsonAtomic(manifestFile, manifest);
+  await writeJsonAtomic(path.join(attempt, 'managed-runtime.json'), { schema_id: 'dd-eval/managed-runtime@1', project_root: project, runtime_root: runtime, run_id: 'RUN-1' });
+  const failure = { execution: 'e', state: 'failed', stage: 'code', run_id: 'RUN-1', code: 'check_gate_blocked', error: 'original check error', started_at: '2026-01-01T00:00:00.000Z', finished_at: '2026-01-01T00:01:00.000Z',
+    recovery: { unavailable: true, capture_error: { code: 'recovery_capture_pending', message: 'not yet published' } },
+    incomplete_evidence: { snapshot: null, missing: "Waiting for the managed controller's sealed recovery capture" } };
+  for (const type of ['started', 'failed']) await appendEvent(eventsFile, { source: 'test', runId: manifest.run_id, executionId: 'e', type: `dev.dd.eval.operation.${type}`, data: { operation_id: `${manifest.run_id}:e:launch`, error: { code: failure.code, message: failure.error } } });
+  await appendEvent(eventsFile, { source: 'test', runId: manifest.run_id, executionId: 'e', type: 'dev.dd.eval.execution.failed', data: { ...failure, execution_operation_id: `${manifest.run_id}:e:launch` } });
+  const record = { id: 'PROC-1', kind: 'codex-provider', owner_id: 'daemon', lease_token: 'lease', pid: 123, pid_started_at: 'birth', project_id: 'PRJ-1', run_id: 'RUN-1', work_id: null, check_id: null, operation_id: 'session', metadata_json: JSON.stringify({ dd_flow_home: runtime, budget: { scope_id: manifest.run_id } }), state: 'stopped' };
+  const signature = createHash('sha256').update(JSON.stringify([resources, record.id, record.kind, record.owner_id, record.lease_token, record.pid, record.pid_started_at, record.project_id, record.run_id, record.work_id, record.check_id, record.operation_id, record.metadata_json])).digest('hex');
+  const inventory = { scope_id: manifest.run_id, processes: [record, { id: 'observer', owner_id: manifest.run_id, kind: 'eval-observer', run_id: null, metadata_json: JSON.stringify({ role: 'observer', budget: { scope_id: manifest.run_id } }), state: 'running' }], provider_turns: [] };
+  await writeJsonAtomic(inventoryFile, inventory);
+  const receipt = { schema_id: 'dd-flow/run-control-receipt@1', scope: { project_id: 'PRJ-1', run_id: 'RUN-1' }, settled: false,
+    control: { current: true, control_id: 'CTL-1', recovery_id: 'RCV-1', generation: 1, admission: 'draining', capture_path: null } };
+  await writeJsonAtomic(statusFile, receipt);
+  const before = await runnerCleanup({ evalRoot: root });
+  assert.equal(before.cleanup_state, 'pending', JSON.stringify(before.executions[0].recovery));
+  assert.equal(before.executions[0].recovery.recovery_id, undefined);
+  await writeJsonAtomic(statusFile, { ...receipt, scope: { run_id: 'FOREIGN-RUN' } });
+  assert.equal((await captureRecoveryEvidence({ root, manifest, result: failure })).capture_error.code, 'execution_scope_invalid', 'a foreign not-yet-sealed status is invalid, not a transient pending publication');
+  receipt.settled = true; receipt.control.admission = 'sealed'; receipt.control.capture_path = capture;
+  receipt.control.settlement = { settled: true, nodes: [], process_bindings: [{ resource_home: resources, process_id: record.id, registration_sha256: signature }] };
+  await writeJsonAtomic(statusFile, receipt);
+  await writeJsonAtomic(path.join(capture, 'snapshot.json'), { schema_id: 'dd-flow/eval-run-snapshot@5', purpose: 'recovery', run_id: 'RUN-1', recovery_id: 'RCV-1', project_root: project, dd_flow_home: runtime, consistency: 'sealed_writer_barrier_required' });
+  const bytesBeforeRecognition = await readFile(eventsFile);
+  const args = { evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true };
+  assert.equal((await runnerCleanupReceipt(args)).recognition, 'pending');
+  assert.deepEqual(await readFile(eventsFile), bytesBeforeRecognition, 'recognition cannot ingest or rewrite late evidence');
+  const captured = await captureRecoveryEvidence({ root, manifest, result: failure });
+  assert.equal(captured.recovery_id, 'RCV-1', 'capture itself does not require observer retirement');
+  const settled = await runnerCleanup({ evalRoot: root });
+  assert.equal(settled.cleanup_state, 'settled'); assert.equal(settled.state, 'completed_with_failures');
+  assert.equal(settled.judge_status, 'not_run_cleanup_only');
+  assert.equal(settled.executions[0].code, failure.code); assert.equal(settled.executions[0].finished_at, failure.finished_at);
+  assert.equal(settled.executions[0].incomplete_evidence, null);
+  const once = await readFile(eventsFile), report = await readFile(path.join(root, 'reports/report.json'));
+  assert.equal((await runnerCleanup({ evalRoot: root })).cleanup_state, 'settled');
+  assert.deepEqual(await readFile(eventsFile), once, 'same capture cannot append another failure/terminal event');
+  assert.equal((await runnerCleanupReceipt(args)).cleanup_state, 'settled');
+  assert.equal((await readEvents(eventsFile)).filter(event => event.type === 'dev.dd.eval.operation.started').length, 1);
+  assert.ok((await readFile(calls, 'utf8')).trim().split('\n').every(line => { const args = JSON.parse(line); return ['run control status', 'runtime scope status'].includes(args.slice(0, 3).join(' ')) || args.slice(0, 2).join(' ') === 'run status'; }), 'only diagnostic reads are permitted; no prompt, stop or resume');
+  record.state = 'running'; await writeJsonAtomic(inventoryFile, inventory);
+  assert.equal((await runnerCleanupReceipt(args)).cleanup_state, 'pending', 'active owned child blocks physical recognition despite sealed capture');
+  assert.deepEqual(await readFile(path.join(root, 'reports/report.json')), report, 'recognition never rewrites published report');
+  record.state = 'stopped'; await writeJsonAtomic(inventoryFile, inventory);
+  await writeJsonAtomic(statusFile, { ok: false, code: 'operation_observation_lost', error: 'readback disconnected' });
+  const unknown = await runnerCleanup({ evalRoot: root });
+  assert.equal(unknown.cleanup_state, 'pending', 'temporary observation loss is not proof that the bound capture is corrupt');
+  assert.notEqual(unknown.state, 'recovery_blocked'); assert.equal(unknown.executions[0].code, failure.code);
+  await writeJsonAtomic(statusFile, receipt);
+  assert.equal((await runnerCleanup({ evalRoot: root })).cleanup_state, 'settled', 'fresh readback can recover the observation without native replay');
+});

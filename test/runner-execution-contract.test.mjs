@@ -6,7 +6,7 @@ import os from 'node:os';
 import { writeJsonAtomic, appendEvent, readEvents, sha256 } from '../lib/runner-events.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { resolveExecutionContract } from '../lib/execution-contract.mjs';
-import { executionConformance, statusCleanupState, runResultRevision, buildReport, driverProfileArgs, assertObservedProfile, recoverExecution, interactionFixtureManifest } from '../lib/runner.mjs';
+import { executionConformance, statusCleanupState, runResultRevision, buildReport, reportMarkdown, driverProfileArgs, assertObservedProfile, recoverExecution, interactionFixtureManifest } from '../lib/runner.mjs';
 
 test('conformance binds outbound intent to its controller profile, not any planned model', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'runner-contract-'));
@@ -23,6 +23,7 @@ test('conformance binds outbound intent to its controller profile, not any plann
   await writeJsonAtomic(path.join(runHome, 'run.json'), { execution_profile: { settings: { execution: contract.routing }, agent_profiles: contract.profiles } });
   const result = { attempt, driver: { controller: { sessions: [{ session_id: 'root', profile_id: 'subject' }] } },
     model_attribution: { sessions: [{ harness: 'codex-desktop', session_id: 'root', requested: { model: 'wanted', reasoning: 'high', permission_mode: 'allow' } }] } };
+  result.model_attribution.sessions[0].observations = [{ requested: result.model_attribution.sessions[0].requested }];
   assert.equal((await executionConformance(result, contract)).state, 'matched');
   result.model_attribution.sessions[0].requested.model = 'later-model';
   assert.equal((await executionConformance(result, contract)).state, 'mismatched');
@@ -30,10 +31,13 @@ test('conformance binds outbound intent to its controller profile, not any plann
   result.model_attribution.sessions[0].requested.permission_mode = 'deny';
   assert.equal((await executionConformance(result, contract)).state, 'mismatched');
   result.model_attribution.sessions[0].requested.permission_mode = 'allow';
-  result.model_attribution.sessions.push({ harness: 'codex-desktop', session_id: 'child', parent_session_id: 'root', requested: { model: 'wanted' } });
+  result.model_attribution.sessions.push({ harness: 'codex-desktop', session_id: 'child', parent_session_id: 'root', requested: { model: 'wanted' }, observations: [{ parent_session_id: 'root', requested: { model: 'wanted' } }] });
   assert.equal((await executionConformance(result, contract)).intent_evidence, 'available');
-  result.model_attribution.sessions.push({ harness: 'codex-desktop', session_id: 'unmapped', requested: { model: 'wanted' } });
+  result.model_attribution.sessions.push({ harness: 'codex-desktop', session_id: 'unmapped', requested: { model: 'wanted' }, observations: [{ requested: { model: 'wanted' } }] });
   assert.equal((await executionConformance(result, contract)).intent_evidence, 'unknown');
+  assert.equal((await executionConformance(result, contract)).state, 'unknown');
+  result.model_attribution.sessions.at(-1).observations[0].evidence_conflict = { code: 'native_event_conflict' };
+  assert.equal((await executionConformance(result, contract)).state, 'mismatched', 'conflict wins over missing lineage');
   assert.equal((await executionConformance(result, null)).state, 'unknown');
   result.model_attribution.sessions = [{ harness: 'codex-desktop', session_id: 'root', requested: { model: 'wanted' }, observations: [
     { requested: { model: 'wanted' } }, { requested: { model: 'later-model' } }
@@ -64,6 +68,30 @@ test('OpenCode worker role is accepted only with direct generated launch lineage
   assert.equal((await executionConformance(result, contract)).state, 'mismatched');
   role.launch.root_session_id = 'parent'; event.requested.permission_mode = 'deny';
   assert.equal((await executionConformance(result, contract)).state, 'mismatched');
+  event.requested.permission_mode = 'allow'; role.launch.root_session_id = null;
+  assert.equal((await executionConformance(result, contract)).state, 'unknown');
+  event.requested.model = 'foreign';
+  const conflict = await executionConformance(result, contract);
+  assert.equal(conflict.state, 'mismatched', 'missing root cannot hide a conflicting model');
+  assert.ok(conflict.intent_diagnostics.some(item => item.field === 'model' && item.kind === 'conflicting'));
+  event.requested.model = 'wanted'; role.launch.root_session_id = 'parent';
+  event.source = { non_asserting: true };
+  assert.equal((await executionConformance(result, contract)).state, 'unknown', 'summary model is not assertive evidence');
+  event.source = undefined;
+  result.model_attribution.sessions[1].observations.unshift({ requested: { model: 'foreign' }, source: { non_asserting: true }, parent_session_id: 'foreign' });
+  assert.equal((await executionConformance(result, contract)).state, 'matched', 'nonasserting hook cannot poison the requested profile or parent');
+  delete result.model_attribution.sessions[1].observations[1].requested;
+  assert.equal((await executionConformance(result, contract)).state, 'unknown', 'no assertive outbound proof is not matched');
+});
+
+test('105 report distinguishes requested Judge from an unexecuted blocked Judge', () => {
+  const manifest = { run_id: 'EVAL', case_id: 'fixture', profile: { judge: { enabled: true, profile_id: 'judge-high' } }, executions: [] };
+  const report = buildReport({ root: '/fixture', manifest, results: [], judgeStatus: 'not_run_profile_mismatch' });
+  assert.equal(report.judge_requested_profile, 'judge-high');
+  assert.match(reportMarkdown(report), /Final Judge requested profile: judge-high/);
+  assert.match(reportMarkdown(report), /Final Judge executed profile: not_run/);
+  delete report.judge_requested_profile;
+  assert.match(reportMarkdown(report), /Final Judge requested profile: unknown/, 'historical absence is not not_requested');
 });
 
 test('status settlement requires current terminal revision and matching report, not CLI/owner exit', () => {

@@ -4,8 +4,17 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { commandJson, commandText, commandObservationTimeout, reportedFailure } from "../lib/process-json.mjs";
-import { callDriver } from "../lib/runner.mjs";
+import { callDriver as runtimeCallDriver } from "../lib/runner.mjs";
 import { errorRecord } from "../lib/operation-errors.mjs";
+import { settledTreeContracts } from './fixtures/capacity-policy.mjs';
+
+// These tests own transport/ledger behavior, not installed-engine qualification.
+// Supply the explicit native ABI their bin-only doubles promise to implement.
+const transportContracts = { ...settledTreeContracts,
+  canonicalNativeOperation: (_harness, operation) => operation,
+  nativeOperationWait: (_harness, operation) => ['session.prompt', 'session.start'].includes(operation) ? 'native-work' : 'control' };
+const callDriver = (profile, args, options) => runtimeCallDriver(profile, args, { ...options,
+  nativeContracts: { ...transportContracts, ...options.nativeContracts } });
 
 test("operation diagnostics cannot hide a pretty typed native failure", () => {
   const record = { code: "native_rejected", message: "primary", retryable: false, details: { session_id: "retained" } };

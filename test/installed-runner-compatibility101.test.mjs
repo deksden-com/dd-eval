@@ -26,6 +26,10 @@ test("installed consumer accepts actual producer failures and rejects retained l
   const receipt = await verifyRunnerEvidenceCompatibility({ projectRoot: producer, outputRoot: root, api, binding });
   assert.equal(receipt.status, "passed");
   assert.deepEqual(receipt.cases.map(item => item.disposition), Array(5).fill("source_repair"));
+  const next = await verifyRunnerEvidenceCompatibility({ projectRoot: producer, outputRoot: root, api, binding,
+    requirement: { path: "scripts/check-evidence-probe.mjs", contract: "dd-tasks/check-evidence-probe@2" } });
+  assert.equal(next.schema_id, "dd-tasks/check-evidence-probe@2");
+  assert.deepEqual(next.cases.map(item => item.disposition), Array(6).fill("source_repair"));
   const manifest = JSON.parse(await readFile(receipt.manifest));
   const item = manifest.cases.find(item => item.id === "browser-window");
   const evidenceRoot = path.join(path.dirname(receipt.manifest), item.root);

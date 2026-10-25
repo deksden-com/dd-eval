@@ -64,6 +64,7 @@
     "observability": {
       "type": "object"
     },
+    "judge_requested_profile": {"type": ["string", "null"]},
     "judge_status": {
       "type": "string"
     },
