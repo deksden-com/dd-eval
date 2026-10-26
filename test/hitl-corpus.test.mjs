@@ -11,6 +11,36 @@ const corpus = JSON.parse(await readFile(new URL('entry-pack-source/interactions
 const covered = 'covered_by_canonical_response';
 const { responses } = JSON.parse(await readFile(new URL('entry-pack-source/interactions/specify.json', caseRoot)));
 const options = { responses, coverageRequired: true };
+test('CP255 exact public-error question accepts native split and merged decisions without hiding missing evidence', async () => {
+  const item = corpus.items.find(item => item.id === 'cp254-zcode-public-error-exact');
+  const verdict = JSON.parse(await readFile(new URL('./fixtures/hitl-cp255-public-error-verdict.json', import.meta.url)));
+  validateExpectedAtoms(item, options);
+  assert.equal(item.expected_coverage.obligations.length, 11);
+  assert.equal(compareHitlExpectation(item, verdict, options).passed, true);
+  const merged = structuredClone(verdict);
+  merged.atoms = [{ ...merged.atoms[0], source_quote: item.question,
+    answer_evidence: [...new Map(verdict.atoms.flatMap(atom => atom.answer_evidence).map(evidence => [JSON.stringify(evidence), evidence])).values()] }];
+  assert.equal(compareHitlExpectation(item, merged, options).passed, true);
+  // The two API decisions share a quote; their independent answer requirements
+  // must not let one survive merely because the other's quote is still present.
+  for (const [index, missing] of [[8, 'api-write'], [9, 'api-read'], [10, 'public-error']]) {
+    const omitted = structuredClone(verdict);
+    omitted.atoms.splice(index, 1);
+    const result = compareHitlExpectation(item, omitted, options);
+    assert.equal(result.passed, false);
+    assert.ok(result.missing_obligation_ids.includes(missing));
+  }
+  const noPreservation = structuredClone(verdict);
+  noPreservation.atoms.at(-1).answer_evidence = noPreservation.atoms.at(-1).answer_evidence.filter(evidence => !evidence.answer_quote.includes('Общие правила проекта сохраняются'));
+  assert.equal(compareHitlExpectation(item, noPreservation, options).passed, false);
+  const wrong = structuredClone(verdict);
+  Object.assign(wrong.atoms.at(-1), { classification: 'fixture_gap', answer_evidence: [] });
+  assert.equal(compareHitlExpectation(item, wrong, options).passed, false);
+  const extra = structuredClone(verdict);
+  const extended = { ...item, question: item.question + '\nНужен новый код priorityErrorId?' };
+  extra.atoms.push({ ...extra.atoms[0], source_quote: 'Нужен новый код priorityErrorId?' });
+  assert.equal(compareHitlExpectation(extended, extra, options).mismatch_kind, 'extra_atoms');
+});
 test('CP236 optional create display is covered without answering an independent new decision', async () => {
   const coverage = JSON.parse(await readFile(new URL('entry-pack-source/interactions/qualification-coverage.json', caseRoot)));
   const item = coverage.items.find(item => item.id === 'cp236-create-display-optional');
@@ -114,7 +144,7 @@ const atom = witness => {
     answer_evidence: [...witness.response_ids.map(response_id => ({ response_id, answer_quote: 'answer' })), ...proof], rationale: 'test evidence' };
 };
 const verdict = witnesses => { const atoms = witnesses.map(atom); return { atoms, ...projectHitlAtoms(atoms, responses) }; };
-const split = item => verdict(item.expected_coverage.witnesses.filter(witness => item.expected_coverage.obligations.some(obligation => obligation.id === witness.id)));
+const split = item => verdict(item.expected_coverage.witnesses.filter(witness => item.expected_coverage.obligations.some(obligation => obligation.witness_ids[0] === witness.id)));
 
 test('all current authored items have coherent finite coverage and exact context hashes', async () => {
   assert.equal(corpus.schema_id, 'dd-eval/hitl-qualification-corpus@2');
