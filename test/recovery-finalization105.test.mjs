@@ -30,7 +30,10 @@ test('105 late capture with real RUN receipt ingests once through cleanup withou
     incomplete_evidence: { snapshot: null, missing: "Waiting for the managed controller's sealed recovery capture" } };
   for (const type of ['started', 'failed']) await appendEvent(eventsFile, { source: 'test', runId: manifest.run_id, executionId: 'e', type: `dev.dd.eval.operation.${type}`, data: { operation_id: `${manifest.run_id}:e:launch`, error: { code: failure.code, message: failure.error } } });
   await appendEvent(eventsFile, { source: 'test', runId: manifest.run_id, executionId: 'e', type: 'dev.dd.eval.execution.failed', data: { ...failure, execution_operation_id: `${manifest.run_id}:e:launch` } });
-  const record = { id: 'PROC-1', kind: 'codex-provider', owner_id: 'daemon', lease_token: 'lease', pid: 123, pid_started_at: 'birth', project_id: 'PRJ-1', run_id: 'RUN-1', work_id: null, check_id: null, operation_id: 'session', metadata_json: JSON.stringify({ dd_flow_home: runtime, budget: { scope_id: manifest.run_id } }), state: 'stopped' };
+  // This fixture exercises capture of a stopped local check, not a native
+  // provider. A provider needs its own daemon shutdown proof and cannot be
+  // represented by an invented PID alone.
+  const record = { id: 'PROC-1', kind: 'fixture-check', owner_id: 'daemon', lease_token: 'lease', pid: 2147483647, pid_started_at: 'birth', project_id: 'PRJ-1', run_id: 'RUN-1', work_id: null, check_id: null, operation_id: 'session', metadata_json: JSON.stringify({ dd_flow_home: runtime, process_group_id: 2147483647, budget: { scope_id: manifest.run_id } }), state: 'stopped' };
   const signature = createHash('sha256').update(JSON.stringify([resources, record.id, record.kind, record.owner_id, record.lease_token, record.pid, record.pid_started_at, record.project_id, record.run_id, record.work_id, record.check_id, record.operation_id, record.metadata_json])).digest('hex');
   const inventory = { scope_id: manifest.run_id, processes: [record, { id: 'observer', owner_id: manifest.run_id, kind: 'eval-observer', run_id: null, metadata_json: JSON.stringify({ role: 'observer', budget: { scope_id: manifest.run_id } }), state: 'running' }], provider_turns: [] };
   await writeJsonAtomic(inventoryFile, inventory);
@@ -38,7 +41,8 @@ test('105 late capture with real RUN receipt ingests once through cleanup withou
     control: { current: true, control_id: 'CTL-1', recovery_id: 'RCV-1', generation: 1, admission: 'draining', capture_path: null } };
   await writeJsonAtomic(statusFile, receipt);
   const before = await runnerCleanup({ evalRoot: root });
-  assert.equal(before.cleanup_state, 'pending', JSON.stringify(before.executions[0].recovery));
+  assert.equal(before.cleanup_state, 'settled', 'physical stop does not wait for capture');
+  assert.equal(before.cleanup_observation.capture, 'pending', JSON.stringify(before.executions[0].recovery));
   assert.equal(before.executions[0].recovery.recovery_id, undefined);
   await writeJsonAtomic(statusFile, { ...receipt, scope: { run_id: 'FOREIGN-RUN' } });
   assert.equal((await captureRecoveryEvidence({ root, manifest, result: failure })).capture_error.code, 'execution_scope_invalid', 'a foreign not-yet-sealed status is invalid, not a transient pending publication');

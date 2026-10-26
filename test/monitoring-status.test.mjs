@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, rm, stat } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, rm, stat, realpath } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { evalRuntimeEnv, buildReport, installRuntimeShim, projectStoppedControl, runnerStatus, runResultRevision, storedExecutionResults } from '../lib/runner.mjs';
-import { appendEvent, readEvents, writeJsonAtomic } from '../lib/runner-events.mjs';
+import { appendEvent, hashJson, readEvents, sha256, writeJsonAtomic } from '../lib/runner-events.mjs';
 import { commandText } from '../lib/process-json.mjs';
 
 test('status preserves durable run state while failed HITL readback remains unknown, never permission', async t => {
@@ -28,6 +28,26 @@ test('status preserves durable run state while failed HITL readback remains unkn
   assert.equal(status.interaction_coverage.verification.complete, false);
   assert.equal(status.execution_results[0].hitl_observation.unavailable, true);
   assert.equal(status.execution_results[0].hitl_observation.error.code, 'judge_evidence_mismatch');
+});
+
+test('status uses one current all-role retirement proof while preserving Judge activity', async t => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'status-retirement-')));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const resource = path.join(root, 'resources'), bin = path.join(root, 'control.mjs'), runId = 'EVAL-retired';
+  await mkdir(resource);
+  const manifest = { run_id: runId, case_id: 'fixture', executions: [], runtime_resource_home: resource, runtime_control_bin: bin };
+  const manifestBytes = JSON.stringify(manifest); await writeFile(path.join(root, 'manifest.json'), manifestBytes);
+  const binding = { eval_root: root, run_id: runId, manifest_sha256: sha256(manifestBytes), resource_home: resource };
+  const record = { id: 'judge-1', kind: 'native-provider', state: 'failed', pid: 99999999, pid_started_at: 'old', metadata_json: JSON.stringify({ state_dir: path.join(root, 'missing-daemon'), role: 'judge', budget: { scope_id: runId } }) };
+  const inventory = { scope_id: runId, dispatch_blocked: true, fence: { scope_id: runId }, processes: [record], provider_turns: [] };
+  const respond = async value => writeFile(bin, `console.log(${JSON.stringify(JSON.stringify(value))})`);
+  await respond(inventory);
+  await appendEvent(path.join(root, 'events.jsonl'), { source: 'test', runId, type: 'dev.dd.eval.completed', data: { state: 'completed_with_failures' } });
+  const saved = { schema_id: 'dd-eval/resume-worker@1', status: 'completed', intent: { eval_root: root, request_id: 'cleanup', kind: 'cleanup', mode: 'reconcile', manifest_sha256: binding.manifest_sha256, target_binding_digest: hashJson(binding) }, result: { binding, inventory, physical_stopped: true, receipt: { scope_id: runId } } };
+  await writeJsonAtomic(path.join(root, 'runner-attempts', sha256('cleanup'), 'attempt.json'), saved);
+  assert.equal((await runnerStatus({ evalRoot: root })).cleanup_state, 'settled');
+  await respond({ ...inventory, provider_turns: [{ process_id: 'judge-1' }] });
+  assert.equal((await runnerStatus({ evalRoot: root })).cleanup_state, 'pending', 'a later live Judge turn invalidates the retained proof');
 });
 
 test('runtime shim pins home and engine from a foreign cwd and environment', async t => {

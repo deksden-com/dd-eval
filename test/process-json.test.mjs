@@ -16,6 +16,17 @@ const transportContracts = { ...settledTreeContracts,
 const callDriver = (profile, args, options) => runtimeCallDriver(profile, args, { ...options,
   nativeContracts: { ...transportContracts, ...options.nativeContracts } });
 
+test("owned CLI JSON results are not rejected merely for exceeding the old reply ceiling", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-long-reply-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const executable = path.join(root, "reply.mjs");
+  await writeFile(executable, 'console.log(JSON.stringify({ok:true,text:"x".repeat(8*1024*1024+1)}))');
+  const result = await commandJson(executable, [], { timeoutMs: 60_000 });
+  assert.equal(result.ok, true);
+  assert.equal(result.text.length, 8 * 1024 * 1024 + 1);
+  assert.equal(JSON.parse(await commandText(executable, [], { timeoutMs: 60_000 })).text.length, result.text.length);
+});
+
 test("operation diagnostics cannot hide a pretty typed native failure", () => {
   const record = { code: "native_rejected", message: "primary", retryable: false, details: { session_id: "retained" } };
   const output = [JSON.stringify({ kind: "operation_progress", sequence: 1 }), JSON.stringify({ ok: false, error: record }, null, 2), JSON.stringify({ kind: "operation_wait", state: "provider_capacity" })].join("\n");
@@ -216,7 +227,7 @@ test("long diagnostic streams keep bounded tails without rejecting a valid final
   assert.deepEqual(await commandJson(cli, []), {});
   assert.equal(await commandText(cli, []), "{}");
   await writeFile(cli, "process.stdout.write('x'.repeat(9*1024*1024));");
-  await assert.rejects(commandJson(cli, []), { code: "operation_output_limit" });
+  await assert.rejects(commandJson(cli, []), { code: "flow_reconciliation_failed", message: /returned invalid JSON/ });
 });
 
 test("bad phase durations are rejected before spawning", async () => {

@@ -4,7 +4,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { mkdtemp, mkdir, writeFile, readFile, realpath, rm } from 'node:fs/promises';
 import { cleanupObservation } from '../lib/cleanup-observation.mjs';
-import { workerCleanupFailure } from '../lib/eval-resume-worker.mjs';
+import { cleanupGoalComplete, needsFailureReconciliation, workerCleanupFailure } from '../lib/eval-resume-worker.mjs';
 import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { snapshotTreeHash } from '../lib/case-acceptance.mjs';
@@ -33,6 +33,21 @@ test('actual RUN status uses only a current fenced EVAL retirement proof for phy
     input.live.inventory = replacement;
     assert.equal((await cleanupObservation(input)).physical, 'unknown', 'changed or missing inventory cannot reuse an old stop proof');
   }
+  input.live.inventory = { ...inventory, provider_turns: [{ process_id: 'judge' }] };
+  assert.equal((await cleanupObservation(input)).physical, 'unknown', 'an active Judge turn invalidates all-role retirement');
+});
+
+test('physical retirement is independent of capture and cleanup-only goal', () => {
+  const result = { execution_state: 'failed', cleanup_state: 'settled', physical_stopped: true, cleanup_observation: { capture: 'pending' } };
+  assert.equal(needsFailureReconciliation(result), true);
+  assert.equal(cleanupGoalComplete('local_retirement', result), true);
+  assert.equal(cleanupGoalComplete('reconcile', result), false);
+  delete result.cleanup_observation.capture;
+  assert.equal(needsFailureReconciliation(result), true, 'missing capture is not a ready receipt');
+  assert.equal(cleanupGoalComplete('reconcile', result), false);
+  result.cleanup_observation.capture = 'ready';
+  assert.equal(needsFailureReconciliation(result), false);
+  assert.equal(cleanupGoalComplete('reconcile', result), true);
 });
 
 test('late sealed capture is visible independently of report; foreign proof never completes cleanup', async t => {

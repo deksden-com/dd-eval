@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { assessEvalHealth, reconcileEvalHealth } from "../lib/runner-health.mjs";
+import { assessEvalHealth, boundFlowHealth, reconcileEvalHealth } from "../lib/runner-health.mjs";
 import { appendEvent, observationProjection, readEvents } from "../lib/runner-events.mjs";
 
 const now = "2026-10-13T12:00:00.000Z";
@@ -12,6 +12,16 @@ test("quiet live owners warn without inventing failure; heartbeat is not progres
   const events = [event,{type:"dev.dd.eval.observer.heartbeat",time:now,data:{sequence:2}}];
   const result = assessEvalHealth({state:"awaiting_provider",events,owners:[{state:"alive"}],now,noProgressMs:60_000});
   assert.equal(result.state,"no_progress"); assert.equal(result.last_progress_at,event.time); assert.equal(result.last_heartbeat_at,now);
+});
+test("a live observer does not hide a bound RUN's technical dependency pause", () => {
+  const receipt = { scope: { run_id: "RUN-1" }, run_status: "paused", control: { current: true, requested_mode: "pause", request_id: "technical:controller:1:abc" }, technical_notes: [{ run_id: "RUN-1", state: "open", consequence: "dependency_blocked" }] };
+  const item = { execution: "e", run_id: "RUN-1", receipt };
+  const input = { state: "running", events: [event], owners: [{ state: "alive" }], now, noProgressMs: 60_000 };
+  assert.equal(assessEvalHealth({ ...input, flowHealth: [boundFlowHealth(item)] }).reason, "native_writer_dependency_blocked");
+  assert.equal(boundFlowHealth({ ...item, receipt: { ...receipt, control: { ...receipt.control, current: false } } }).health.reason, "bound_run_status");
+  assert.equal(boundFlowHealth({ ...item, receipt: { ...receipt, scope: { run_id: "foreign" } } }).complete, false);
+  const other = { id: "other", complete: false };
+  assert.equal(assessEvalHealth({ ...input, flowHealth: [boundFlowHealth(item), other] }).state, "unknown");
 });
 test("death, unknown ownership, child activity and HITL stay distinct", () => {
   const input = {state:"awaiting_provider",events:[],now,noProgressMs:60_000};
