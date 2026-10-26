@@ -197,7 +197,7 @@ test("cleanup leaves queued executions and Judge undispatched", async () => {
     for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "preflight_failed", message: "before session" } } });
     const result = await runnerCleanup({ evalRoot: root, requestId: "cleanup-1" });
     assert.equal(result.execution_state, "failed");
-    assert.equal(result.judge_status, "not_run_cleanup_only");
+    assert.equal(result.judge_status, "not_run_incomplete_evidence");
     const events = await readEvents(path.join(root, "events.jsonl"));
     assert.equal(events.filter(event => event.type === "dev.dd.eval.operation.started").length, 1);
     await assert.rejects(readFile(path.join(root, "candidate.json")), { code: "ENOENT" });
@@ -354,7 +354,7 @@ test("cleanup worker persists final observation without starting productive work
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-test('explicit Judge reuse refuses missing or failed cleanup without another paid turn', async t => {
+test('explicit Judge reuse accepts retained content despite missing or failed cleanup without another paid turn', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-cached-judge-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const caseId = 'sdlc-eval-2026-summer-task-priority';
@@ -375,9 +375,9 @@ test('explicit Judge reuse refuses missing or failed cleanup without another pai
   for (const status of ['missing', 'failed']) {
     if (status === 'missing') await rm(cleanupFile);
     else await writeJsonAtomic(cleanupFile, { ...cleanup, status, error: { code: 'EPERM', message: 'offline cleanup failure' } });
-    await assert.rejects(evalJudge({ evalRoot: root }), { code: 'judge_cleanup_unconfirmed' });
+    assert.deepEqual((await evalJudge({ evalRoot: root })).receipt, receipt);
     const report = JSON.parse(await readFile(path.join(root, 'reports/report.json')));
-    assert.equal(report.judge_status, 'failed');
+    assert.equal(report.judge_status, 'completed');
     assert.deepEqual(report.judge, receipt);
     assert.deepEqual(await readFile(path.join(judgeRoot, 'result.json')), verdictBytes);
     assert.equal((await readEvents(path.join(root, 'events.jsonl'))).filter(event => event.type === 'dev.dd.eval.operation.started').length, operationCount);
@@ -392,11 +392,10 @@ test('explicit Judge reuse refuses missing or failed cleanup without another pai
   });
   const publication = await runnerResume({ evalRoot: root });
   probe.mock.restore();
-  assert.equal(publication.judge_status, 'failed');
-  assert.equal(publication.state, 'awaiting_cleanup');
-  assert.equal(publication.cleanup_state, 'pending');
+  assert.equal(publication.judge_status, 'completed');
+  assert.equal(publication.state, 'completed_with_failures');
   const report = JSON.parse(await readFile(path.join(root, 'reports/report.json')));
-  assert.equal(report.judge_status, 'failed');
+  assert.equal(report.judge_status, 'completed');
   assert.deepEqual(report.judge, receipt);
 });
 
@@ -502,7 +501,7 @@ test("failed execution waits for delayed capture, clears pending evidence, and f
     await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
     for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "unexpected_hitl", message: "second question" } } });
     const pending = await runnerResume({ evalRoot: root });
-    assert.equal(pending.state, "awaiting_provider");
+    assert.equal(pending.state, "completed_with_failures");
     assert.equal(pending.execution_state, "failed");
     assert.equal(pending.cleanup_state, "pending");
     const capture = path.join(runtime, "recovery", "REC-test"); await mkdir(capture, { recursive: true }); await writeJsonAtomic(path.join(capture, "snapshot.json"), { schema_id: "dd-flow/eval-run-snapshot@5", purpose: "recovery", run_id: "RUN-test", recovery_id: "REC-test", project_root: project, dd_flow_home: runtime, consistency: "sealed_writer_barrier_required", restorable: "same-runtime-or-explicit-restore" });
@@ -550,7 +549,7 @@ for (const invalid of ["foreign", "missing", "malformed"]) test(`invalid settled
   if (invalid === "malformed") await writeFile(snapshotFile, "{");
   await writeJsonAtomic(statusFile, { ok: true, settled: true, physical_stopped: true, scope: { run_id: "RUN-test" }, control: { current: true, admission: "sealed", capture_path: capture, recovery_id: "REC-test", control_id: "CTRL-test", generation: 1 } });
   const blocked = await runnerResume({ evalRoot: root });
-  assert.equal(blocked.state, "recovery_blocked"); assert.equal(blocked.cleanup_state, "blocked");
+  assert.equal(blocked.state, "completed_with_failures"); assert.equal(blocked.cleanup_state, "settled");
   assert.equal(blocked.executions[0].recovery.capture_error.code, "recovery_evidence_invalid");
   assert.equal(blocked.candidate, undefined); assert.equal(blocked.judge, undefined);
   await assert.rejects(readFile(path.join(root, "candidate.json")), { code: "ENOENT" });
@@ -570,7 +569,7 @@ for (const invalid of ["foreign", "missing", "malformed"]) test(`invalid settled
   assert.equal((await captureRecoveryEvidence({ root, manifest, result: { ...cleaned.executions[0], code: "operation_observation_lost", error: "observer lost its reply" } })).capture_error.code, "recovery_evidence_invalid");
   assert.equal((await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true })).cleanup_state, "pending");
   const stale = await runnerResume({ evalRoot: root });
-  assert.equal(stale.state, "recovery_blocked"); assert.equal(stale.candidate, undefined);
+  assert.equal(stale.state, "completed_with_failures"); assert.equal(stale.candidate, undefined);
   await writeJsonAtomic(snapshotFile, snapshot);
   assert.equal((await runnerCleanup({ evalRoot: root })).cleanup_state, "settled");
   assert.equal((await runnerCleanupReceipt({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), detailed: true })).cleanup_state, "settled", "restored capture republishes current completion after the intervening blocker");
@@ -598,7 +597,7 @@ for (const invalid of ["foreign", "missing", "malformed"]) test(`invalid settled
   // and binding disappear together.
   await rm(attempt, { recursive: true, force: true });
   const absent = await runnerResume({ evalRoot: root });
-  assert.equal(absent.state, "recovery_blocked"); assert.equal(absent.candidate, undefined);
+  assert.equal(absent.state, "completed_with_failures"); assert.equal(absent.candidate, undefined);
 });
 
 for (const [blocked, worker] of [
@@ -618,8 +617,8 @@ for (const [blocked, worker] of [
     await writeJsonAtomic(path.join(root, "manifest.json"), manifest);
     for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "provider_failed", message: "subject failed" } } });
     const result = await runnerResume({ evalRoot: root });
-    assert.equal(result.state, blocked ? "recovery_blocked" : "awaiting_provider");
-    assert.equal(result.cleanup_state, blocked ? "blocked" : "pending");
+    assert.equal(result.state, "completed_with_failures");
+    assert.equal(result.cleanup_state, "pending");
     assert.equal(result.executions[0].code, "provider_failed");
     assert.equal(result.executions[0].recovery.capture_error.code, blocked ? "recovery_blocked" : "recovery_capture_pending");
     assert.equal(result.candidate, undefined);
@@ -643,8 +642,8 @@ for (const [owner, capture, receiptRun, statusRun = "RUN-test"] of [["absent", "
     for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "invalid_run_state", message: "original finalization failure" } } });
     const result = await runnerResume({ evalRoot: root });
     const bound = receiptRun === "RUN-test" && statusRun === "RUN-test", foreignScope = statusRun !== "RUN-test", blockedFinalization = owner === "absent" && bound, blocked = foreignScope || blockedFinalization;
-    assert.equal(result.state, blocked ? "recovery_blocked" : "awaiting_provider");
-    assert.equal(result.cleanup_state, blocked ? "blocked" : "pending");
+    assert.equal(result.state, "completed_with_failures");
+    assert.equal(result.cleanup_state, "pending");
     assert.equal(result.executions[0].code, "invalid_run_state");
     const report = JSON.parse(await readFile(path.join(root, "reports/report.json")));
     assert.equal(report.run_validity, bound ? "invalid_infrastructure_flow" : "valid", JSON.stringify(result.executions[0]));

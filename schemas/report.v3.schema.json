@@ -65,6 +65,8 @@
       "type": "object"
     },
     "judge_requested_profile": {"type": ["string", "null"]},
+    "technical_notes": {"type": "array", "items": {"type": "object"}},
+    "assessment_state": {"enum": ["completed", "pending", "unavailable", "not_requested"]},
     "judge_status": {
       "type": "string"
     },
