@@ -34,3 +34,12 @@ changed discovery, then isolated Corepack downloads failed before test entry.
 The fixture was removed by its owner, and only affected failed contracts were
 retried with the existing exact pnpm cache (`COREPACK_HOME`). No assertion
 was relaxed. Producer checks on the tooling-only baseline: 3/3 PASS.
+
+The first generic HITL assessment rejected a correct canonical-response selection
+because the new exact CP254 question had only three coarse authoring anchors.
+Its saved 11-atom native verdict is retained as a portable regression. The
+expectation now enumerates the independent decisions and separately binds API
+write/read and inherited-error answer evidence. Split/merged positives and
+omission/wrong-class/new-error negatives pass (28 corpus tests). Oracle and
+canonical response bytes are unchanged. Reassess saved native answers; never
+repeat a model request merely because the expectation changed.

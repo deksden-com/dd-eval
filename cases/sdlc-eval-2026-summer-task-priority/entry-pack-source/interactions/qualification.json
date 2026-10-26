@@ -1612,41 +1612,144 @@
       "expected_coverage": {
         "obligations": [
           {
-            "id": "decision-0",
+            "id": "levels",
             "classification": "covered_by_canonical_response",
             "response_ids": [
               "clarification-task-priority"
             ],
             "witness_ids": [
-              "decision-0"
+              "levels"
             ]
           },
           {
-            "id": "decision-1",
+            "id": "default",
             "classification": "covered_by_canonical_response",
             "response_ids": [
               "clarification-task-priority"
             ],
             "witness_ids": [
-              "decision-1"
+              "default"
             ]
           },
           {
-            "id": "decision-2",
+            "id": "ordering",
             "classification": "covered_by_canonical_response",
             "response_ids": [
               "clarification-task-priority"
             ],
             "witness_ids": [
-              "decision-2"
+              "ordering"
+            ]
+          },
+          {
+            "id": "creation",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "creation"
+            ]
+          },
+          {
+            "id": "editing-time",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "editing-time"
+            ]
+          },
+          {
+            "id": "roles",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "roles"
+            ]
+          },
+          {
+            "id": "editing-ui",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "editing-ui"
+            ]
+          },
+          {
+            "id": "list-label",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "list-label"
+            ]
+          },
+          {
+            "id": "public-error",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "public-error"
+            ],
+            "answer_evidence": [
+              {
+                "response_id": "clarification-task-priority",
+                "answer_quote": "Общие правила проекта сохраняются"
+              },
+              {
+                "response_id": "clarification-task-priority",
+                "answer_quote": "Неизвестное или недопустимое значение приоритета отклоняем без частичной записи"
+              }
+            ]
+          },
+          {
+            "id": "api-write",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "api"
+            ],
+            "answer_evidence": [
+              {
+                "response_id": "clarification-task-priority",
+                "answer_quote": "При создании задачи отсутствие поля `priority`"
+              }
+            ]
+          },
+          {
+            "id": "api-read",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "api"
+            ],
+            "answer_evidence": [
+              {
+                "response_id": "clarification-task-priority",
+                "answer_quote": "Поле `priority` возвращается в ответах API"
+              }
             ]
           }
         ],
         "witnesses": [
           {
-            "id": "decision-0",
+            "id": "levels",
             "source_quotes": [
-              "Три уровня: Низкий / Средний / Высокий"
+              "Три уровня: Низкий / Средний / Высокий",
+              "назовите значения"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -1654,9 +1757,10 @@
             ]
           },
           {
-            "id": "decision-1",
+            "id": "default",
             "source_quotes": [
-              "Приоритет выбирается при создании задачи"
+              "по умолчанию «Средний»",
+              "их порядок и дефолт"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
@@ -1664,9 +1768,84 @@
             ]
           },
           {
-            "id": "decision-2",
+            "id": "ordering",
+            "source_quotes": [
+              "их порядок"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "creation",
+            "source_quotes": [
+              "Приоритет выбирается при создании задачи",
+              "выбор приоритета в форме создания задачи"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "editing-time",
+            "source_quotes": [
+              "изменяется в любой момент",
+              "далее неизменяем"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "roles",
+            "source_quotes": [
+              "теми же ролями, которые сегодня могут редактировать задачу",
+              "Изменять приоритет может только owner"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "editing-ui",
+            "source_quotes": [
+              "редактирование на странице задачи",
+              "редактирование приоритета в UI"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "list-label",
+            "source_quotes": [
+              "понятный текст всегда виден в списке задач",
+              "текст метки в списке задач"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "api",
             "source_quotes": [
               "API принимает и возвращает приоритет"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "public-error",
+            "source_quotes": [
+              "неизвестное значение отклоняется стабильной публичной ошибкой без частичной записи"
             ],
             "classification": "covered_by_canonical_response",
             "response_ids": [
