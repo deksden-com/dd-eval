@@ -11,6 +11,21 @@ const corpus = JSON.parse(await readFile(new URL('entry-pack-source/interactions
 const covered = 'covered_by_canonical_response';
 const { responses } = JSON.parse(await readFile(new URL('entry-pack-source/interactions/specify.json', caseRoot)));
 const options = { responses, coverageRequired: true };
+test('CP255 inherited public-error question retains editing independently of atomic rejection', async () => {
+  const item = corpus.items.find(item => item.id === 'cp254-inherited-public-error');
+  const verdict = JSON.parse(await readFile(new URL('./fixtures/hitl-cp255-inherited-error-verdict.json', import.meta.url)));
+  assert.equal(compareHitlExpectation(item, verdict, options).passed, true);
+  for (const index of [0, 1]) {
+    const omitted = structuredClone(verdict);
+    omitted.atoms.splice(index, 1);
+    assert.equal(compareHitlExpectation(item, omitted, options).passed, false);
+  }
+  const noPreservation = structuredClone(verdict);
+  noPreservation.atoms[1].answer_evidence = noPreservation.atoms[1].answer_evidence.filter(evidence => !evidence.answer_quote.includes('Общие правила проекта сохраняются'));
+  assert.equal(compareHitlExpectation(item, noPreservation, options).passed, false);
+  const bundled = { atoms: [{ ...verdict.atoms[0], source_quote: item.question, answer_evidence: verdict.atoms.flatMap(atom => atom.answer_evidence) }] };
+  assert.equal(compareHitlExpectation(item, bundled, options).passed, true);
+});
 test('CP255 exact public-error question accepts native split and merged decisions without hiding missing evidence', async () => {
   const item = corpus.items.find(item => item.id === 'cp254-zcode-public-error-exact');
   const verdict = JSON.parse(await readFile(new URL('./fixtures/hitl-cp255-public-error-verdict.json', import.meta.url)));
