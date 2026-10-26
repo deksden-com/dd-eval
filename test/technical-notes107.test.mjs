@@ -5,8 +5,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { technicalNotes, recordTechnicalNote } from '../lib/technical-notes.mjs';
 import { readEvents, writeJsonAtomic, appendEvent } from '../lib/runner-events.mjs';
-import { subjectHistoryEvents, runResultRevision, buildReport, frozenCandidate, buildEvidencePacket, interactionCleanupPending, scopeResourcesPending, publishSubjectTechnicalNotes, projectSubjectTechnicalNotes, resolveRetiredTechnicalNotes, reportMarkdown, runnerResume } from '../lib/runner.mjs';
-import { hashJson } from '../lib/runner-events.mjs';
+import { subjectHistoryEvents, runResultRevision, buildReport, frozenCandidate, buildEvidencePacket, interactionCleanupPending, scopeResourcesPending, publishSubjectTechnicalNotes, projectSubjectTechnicalNotes, resolveRetiredTechnicalNotes, reportMarkdown, runnerResume, managedCompletionEvidence, runnerFinalizeSettled, publishExecutionStatistics } from '../lib/runner.mjs';
+import { hashJson, sha256 } from '../lib/runner-events.mjs';
+import { observeManagedRun } from '../lib/managed-flow-client.mjs';
+import { observedCompletionScope } from '../lib/completion-scope.mjs';
 import { baselineExecutionSettled } from '../lib/baseline-admission.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { assertNativeResourceRetired } from '../lib/judge-cleanup.mjs';
@@ -56,6 +58,72 @@ test('assessment waits only for a proven active capture owner, never cleanup alo
     assert.equal(report.execution_state, 'completed');
     assert.equal(report.assessment_state, owner === 'live' ? 'pending' : 'unavailable');
   }
+});
+
+for (const mode of ['missing', 'corrupt', 'interaction', 'required-interaction']) test(`accepted terminal controller survives ${mode} assessment evidence without Judge or candidate fabrication`, async t => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'accepted-capture107-')));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const evalId = 'EVAL-accepted', operationId = `${evalId}:e:launch`, runId = 'RUN-accepted';
+  const controller = { controller_id: 'DRV-accepted', project_id: 'PRJ-accepted', run_id: runId, request_id: `eval:${sha256(operationId)}`, generation: 1, status: 'completed', stage: 'merge', sessions: [] };
+  const boundary = { stage: 'merge', manifest: path.join(root, 'snapshot.json'), manifest_sha256: '0'.repeat(64) };
+  if (mode !== 'missing') {
+    await writeJsonAtomic(boundary.manifest, { snapshot: true });
+    if (mode !== 'corrupt') boundary.manifest_sha256 = sha256(await readFile(boundary.manifest));
+  }
+  const bin = path.join(root, 'flow.mjs');
+  await writeFile(bin, `#!/usr/bin/env node\nconsole.log(JSON.stringify({controller:${JSON.stringify(controller)},events:${JSON.stringify(mode !== 'missing' ? [{ sequence: 1, type: 'boundary_captured', data: boundary }] : [])}}));\n`);
+  await chmod(bin, 0o700);
+  const observed = await observeManagedRun({ bin, env: {}, projectRoot: root, runId, requestId: controller.request_id, controllerId: controller.controller_id });
+  const lifecycle = { run_id: runId, stage_status: 'done', status: { run: { id: runId, project_id: controller.project_id }, index: { run_id: runId, current_stage: 'merge', stage_runs: [{ stage: 'merge', status: 'done' }] } } };
+  const execution = { id: 'e', stage: 'specify', terminal_stage: 'merge', mode: 'e2e' };
+  const completion = await managedCompletionEvidence({ execution, observed, lifecycle, runId, operationId });
+  if (['missing', 'corrupt'].includes(mode)) {
+    assert.equal(completion.candidate, null);
+    assert.equal(completion.incomplete_evidence.failure.code, mode === 'corrupt' ? 'snapshot_checksum_mismatch' : 'controller_boundary_missing');
+  } else assert.deepEqual(completion.candidate, boundary);
+  if (mode === 'required-interaction') completion.incomplete_evidence = { missing: 'Required HITL was not observed', failure: { code: 'required_hitl_missing', stages: ['specify'] } };
+  const result = { execution: 'e', execution_operation_id: operationId, state: 'candidate_ready', run_id: runId, stage: 'merge', attempt: path.join(root, 'executions/e'), driver: observed, lifecycle, ...completion };
+  const bounded = { ...execution, completion_scope: { entry_stage: 'specify', effective_terminal_stage: 'merge', requested_stop_after: 'merge',
+    case_entry_stage: 'specify', case_terminal_stage: 'merge', case_contour: ['specify', 'merge'], requested_full_case: true } };
+  assert.equal(observedCompletionScope(bounded, result).target_reached, true);
+  for (const wrong of [{ run_id: 'RUN-foreign' }, { request_id: 'foreign' }, { status: 'running' }, { generation: -1 }]) {
+    const foreign = { ...observed, controller: { ...controller, ...wrong } };
+    await assert.rejects(managedCompletionEvidence({ execution, observed: foreign, lifecycle, runId, operationId }), { code: 'stage_boundary_incomplete' });
+    assert.equal(observedCompletionScope(bounded, { ...result, candidate: null, driver: foreign }).target_reached, false);
+  }
+  for (const wrong of [{ ...lifecycle, status: { ...lifecycle.status, run: { ...lifecycle.status.run, id: 'RUN-foreign' } } },
+    { ...lifecycle, status: { ...lifecycle.status, index: { ...lifecycle.status.index, stage_runs: [{ stage: 'merge', status: 'running' }] } } },
+    { ...lifecycle, status: { ...lifecycle.status, index: { ...lifecycle.status.index, current_stage: 'code' } } }]) {
+    await assert.rejects(managedCompletionEvidence({ execution, observed, lifecycle: wrong, runId, operationId }), { code: 'stage_boundary_incomplete' });
+    assert.equal(observedCompletionScope(bounded, { ...result, candidate: null, lifecycle: wrong }).target_reached, false);
+  }
+  const recovered = { ...result, execution_operation_id: `${operationId}:recover:REC-1`, execution_launch_operation_id: operationId };
+  assert.equal(observedCompletionScope(bounded, recovered).target_reached, true);
+  assert.deepEqual((await managedCompletionEvidence({ execution, observed, lifecycle, runId, operationId: recovered.execution_operation_id, launchOperationId: operationId })).candidate, completion.candidate);
+  const manifest = { run_id: evalId, case_id: 'sdlc-eval-2026-summer-task-priority', executions: [mode === 'missing' ? bounded : execution],
+    profile: { ...(mode === 'missing' ? { schema_id: 'dd-eval/run-profile@2', selection: { stop_after: 'merge' } } : {}), judge: { enabled: true, profile_id: 'must-not-run' } } };
+  const manifestFile = path.join(root, 'manifest.json'), eventsFile = path.join(root, 'events.jsonl');
+  await writeJsonAtomic(manifestFile, manifest);
+  for (const phase of ['started', 'completed']) await appendEvent(eventsFile, { source: 'test', runId: evalId, executionId: 'e', type: `dev.dd.eval.operation.${phase}`, data: { operation_id: operationId, ...(phase === 'completed' ? { result } : {}) } });
+  await appendEvent(eventsFile, { source: 'test', runId: evalId, executionId: 'e', type: 'dev.dd.eval.execution.candidate_ready', data: { execution: 'e', execution_operation_id: operationId, result } });
+  if (mode === 'interaction') await appendEvent(eventsFile, { source: 'test', runId: evalId, executionId: 'e', type: 'dev.dd.eval.hitl.matched', data: { receipt_file: path.join(root, 'missing-interaction/result.json') } });
+  let judgeAdmissions = 0;
+  const finalized = await runnerFinalizeSettled({ evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), authorizeFinalization: async () => { judgeAdmissions++; throw new Error('Judge must not run'); } });
+  assert.equal(finalized.execution_state, 'completed'); assert.equal(finalized.state, mode === 'missing' ? 'finished' : 'completed');
+  assert.equal(finalized.judge_status, 'not_run_incomplete_evidence');
+  const report = JSON.parse(await readFile(path.join(root, 'reports/report.json')));
+  assert.equal(report.assessment_state, 'unavailable'); assert.equal(report.candidate, undefined);
+  assert.equal(judgeAdmissions, 0);
+  await assert.rejects(readFile(path.join(root, 'candidate.json')), { code: 'ENOENT' });
+});
+
+test('optional statistics companion publication cannot reject accepted inline observations', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'optional-statistics107-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const file = path.join(root, 'events.jsonl'), statistics = { usage: { tokens: 42 }, sessions: [] }, before = structuredClone(statistics);
+  await publishExecutionStatistics(root, statistics, { eventsFile: file, runId: 'EVAL-test', operationId: 'EVAL-test:e:launch' });
+  assert.deepEqual(statistics, before);
+  assert.equal(technicalNotes(await readEvents(file))[0].code, 'statistics_publication_unavailable');
 });
 
 test('Interaction Judge cleanup debt is visible separately and never hidden by Subject stop', async t => {

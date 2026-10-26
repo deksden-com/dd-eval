@@ -2,6 +2,8 @@
 
 Status: implementation complete; affected-zone verification passed. Not release/EVAL acceptance.
 
+Subsequent implementation review and integration: [107-review-report.md](107-review-report.md).
+
 ## Delivery scope
 
 - Engine branch: `fix/plan107-result-authority`, base `fe486595`, implementation
