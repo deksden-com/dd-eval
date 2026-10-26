@@ -24,6 +24,14 @@ test("installed consumer accepts actual producer failures and rejects retained l
   t.after(() => rm(root, { recursive: true, force: true }));
   const binding = { invocation_id: "INSTALLED-101", check_id: "check-101", command: "probe", input_hash: "a".repeat(64), verification_epoch: "b".repeat(64) };
   const receipt = await verifyRunnerEvidenceCompatibility({ projectRoot: producer, outputRoot: root, api, binding });
+  if (api.checkDiagnosisPolicy === "settled-failure@1") {
+    assert.equal(receipt.status, "not_required");
+    assert.equal(receipt.reason, "settled_failures_use_agent_diagnosis");
+    const { readdir } = await import("node:fs/promises");
+    assert.deepEqual(await readdir(root), []); // No synthetic probe was dispatched.
+    assert.equal(api.checkDiagnosisDisposition({ status: "failed", exit_code: 1 }), "diagnosis_required");
+    return;
+  }
   assert.equal(receipt.status, "passed");
   assert.deepEqual(receipt.cases.map(item => item.disposition), Array(5).fill("source_repair"));
   const next = await verifyRunnerEvidenceCompatibility({ projectRoot: producer, outputRoot: root, api, binding,

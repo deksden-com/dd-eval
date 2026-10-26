@@ -7,6 +7,16 @@ import { verifyRunnerEvidenceCompatibility } from "../lib/baseline-admission.mjs
 import { compactCheckDiagnostic } from "../lib/check-diagnostic.mjs";
 import { assertCheckpointLaunchable } from "../lib/engine-admission.mjs";
 
+test("agent-diagnosis engines do not run a semantic producer probe", async () => {
+  const result = await verifyRunnerEvidenceCompatibility({
+    projectRoot: "/does-not-exist", outputRoot: "/does-not-exist",
+    api: { checkDiagnosisPolicy: "settled-failure@1" }, binding: {},
+    requirement: { path: "missing-probe.mjs", contract: "unused" },
+  });
+  assert.equal(result.status, "not_required");
+  assert.equal(result.model_calls, 0);
+});
+
 test("candidate checkpoint is inspectable but cannot dispatch until explicitly ready", () => {
   assert.throws(() => assertCheckpointLaunchable({ value: { preparation: { launchable: false } } }), { code: "input_checkpoint_not_launchable" });
   assert.doesNotThrow(() => assertCheckpointLaunchable({ value: { preparation: { launchable: true } } }));
