@@ -1619,6 +1619,12 @@
             ],
             "witness_ids": [
               "levels"
+            ],
+            "answer_evidence": [
+              {
+                "response_id": "clarification-task-priority",
+                "answer_quote": "Используем четыре уровня:"
+              }
             ]
           },
           {
@@ -1629,6 +1635,12 @@
             ],
             "witness_ids": [
               "default"
+            ],
+            "answer_evidence": [
+              {
+                "response_id": "clarification-task-priority",
+                "answer_quote": "для новых и существующих задач по умолчанию — `no_priority`"
+              }
             ]
           },
           {

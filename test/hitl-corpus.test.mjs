@@ -38,7 +38,7 @@ test('CP255 exact public-error question accepts native split and merged decision
   assert.equal(compareHitlExpectation(item, merged, options).passed, true);
   // The two API decisions share a quote; their independent answer requirements
   // must not let one survive merely because the other's quote is still present.
-  for (const [index, missing] of [[8, 'api-write'], [9, 'api-read'], [10, 'public-error']]) {
+  for (const [index, missing] of ['levels', 'default', 'ordering', 'creation', 'editing-time', 'roles', 'editing-ui', 'list-label', 'api-write', 'api-read', 'public-error'].entries()) {
     const omitted = structuredClone(verdict);
     omitted.atoms.splice(index, 1);
     const result = compareHitlExpectation(item, omitted, options);
