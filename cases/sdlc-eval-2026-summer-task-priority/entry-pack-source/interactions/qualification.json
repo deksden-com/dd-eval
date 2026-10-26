@@ -1868,19 +1868,49 @@
       "expected_coverage": {
         "obligations": [
           {
-            "id": "decision-0",
+            "id": "editing",
             "classification": "covered_by_canonical_response",
             "response_ids": [
               "clarification-task-priority"
             ],
             "witness_ids": [
-              "decision-0"
+              "editing"
+            ]
+          },
+          {
+            "id": "inherited-error",
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ],
+            "witness_ids": [
+              "inherited-error"
+            ],
+            "answer_evidence": [
+              {
+                "response_id": "clarification-task-priority",
+                "answer_quote": "Неизвестное или недопустимое значение приоритета отклоняем без частичной записи"
+              },
+              {
+                "response_id": "clarification-task-priority",
+                "answer_quote": "Общие правила проекта сохраняются"
+              }
             ]
           }
         ],
         "witnesses": [
           {
-            "id": "decision-0",
+            "id": "editing",
+            "source_quotes": [
+              "редактирование приоритета"
+            ],
+            "classification": "covered_by_canonical_response",
+            "response_ids": [
+              "clarification-task-priority"
+            ]
+          },
+          {
+            "id": "inherited-error",
             "source_quotes": [
               "отклонение неизвестного значения стабильной публичной ошибкой без частичной записи"
             ],

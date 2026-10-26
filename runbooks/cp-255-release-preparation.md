@@ -40,6 +40,8 @@ because the new exact CP254 question had only three coarse authoring anchors.
 Its saved 11-atom native verdict is retained as a portable regression. The
 expectation now enumerates the independent decisions and separately binds API
 write/read and inherited-error answer evidence. Split/merged positives and
-omission/wrong-class/new-error negatives pass (28 corpus tests). Oracle and
+omission/wrong-class/new-error negatives pass (29 corpus tests). The second
+new positive also retains editing separately from inherited error rejection.
+Oracle and
 canonical response bytes are unchanged. Reassess saved native answers; never
 repeat a model request merely because the expectation changed.
