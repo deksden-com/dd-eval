@@ -1,0 +1,384 @@
+{
+  "schema_id": "dd-eval/verification-matrix-qualification@4",
+  "contract": "dd-flow/verification-matrix@1",
+  "coverage_contract": "dd-flow/final-check-coverage@1",
+  "status": "passed",
+  "engine_artifact_sha256": "d474bed97b95f0509dda3f50c9fda7960c6893f8f5fc8c19b1bce9f34905b43b",
+  "engine_binding": {
+    "path": "cp-257-installed-matrix-qualification.json.packets/engine-binding.json",
+    "sha256": "9dee8a02694316bbe529c99cda064bf5e6d1c05185a890805751a848f1935591"
+  },
+  "flow_commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+  "built_with_canon": {
+    "version": "4.1.2",
+    "commit": "4a6c2d2fd247cb66a1523dbdd022d2d71b75601c"
+  },
+  "skipped_stages": [
+    "code-review"
+  ],
+  "packets": [
+    {
+      "run": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/plan/run.json",
+        "sha256": "b8bafc4af364c841c663ef521871a4b62ecbf1918e0deb41fe1a7eaa978927c6"
+      },
+      "report": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/plan/report.json",
+        "sha256": "ed3605a358728fc58e3c000a2b01b9a45102f94862a5ede029a0fcc8d99b7b73"
+      },
+      "json": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/plan/json.json",
+        "sha256": "41ff331639012bd48145f84718fc29632be839b931b584502251c491946f613d"
+      },
+      "markdown": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/plan/matrix.md",
+        "sha256": "135fb752da24188d2e79c8a1e6cc92d6dcc55a855d42f56404a1447f5168fb47"
+      },
+      "sources": [
+        {
+          "root": "run",
+          "source_path": "03-plan/verification/sources/e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd/accepted-input.md",
+          "path": "cp-257-installed-matrix-qualification.json.packets/plan/sources/0.json",
+          "sha256": "e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd"
+        },
+        {
+          "root": "run",
+          "source_path": "03-plan/verification/sources/87e04b2d0de72ebc62c60cc3fcf258903579dc55ea1f8925affe328a03b062d9/code-work-batch.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/plan/sources/1.json",
+          "sha256": "87e04b2d0de72ebc62c60cc3fcf258903579dc55ea1f8925affe328a03b062d9"
+        },
+        {
+          "root": "run",
+          "source_path": "03-plan/verification/sources/54ab1c31ae295a032639f7764fffbf6f8ff2c7e96a87821a0c89d88bd3bb0387/plan.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/plan/sources/2.json",
+          "sha256": "54ab1c31ae295a032639f7764fffbf6f8ff2c7e96a87821a0c89d88bd3bb0387"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/protocolize-result.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/plan/sources/3.json",
+          "sha256": "e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/stage-report.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/plan/sources/4.json",
+          "sha256": "b13c3b98b11401c83f3d0b4870ce3d5000e34815b7ce3d92b8057bfbe01887a2"
+        },
+        {
+          "root": "run",
+          "source_path": "01-specify/specify.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/plan/sources/5.json",
+          "sha256": "00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa"
+        }
+      ]
+    },
+    {
+      "run": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/plan-review/run.json",
+        "sha256": "b8bafc4af364c841c663ef521871a4b62ecbf1918e0deb41fe1a7eaa978927c6"
+      },
+      "report": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/plan-review/report.json",
+        "sha256": "f3673d13bda9701328bb312269ed15ed07b38e4c0221537a54b30261854c6738"
+      },
+      "json": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/plan-review/json.json",
+        "sha256": "7451b6058df5890641f54125d840339bc4ab4cd542e505ff471e1aeb909bf2ba"
+      },
+      "markdown": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/plan-review/matrix.md",
+        "sha256": "bf66d203ed5562435a63843e0236da6f2f245c34ca97e947eb57740c1c57e04f"
+      },
+      "sources": [
+        {
+          "root": "run",
+          "source_path": "04-plan-review/verification/sources/e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd/accepted-input.md",
+          "path": "cp-257-installed-matrix-qualification.json.packets/plan-review/sources/0.json",
+          "sha256": "e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd"
+        },
+        {
+          "root": "run",
+          "source_path": "04-plan-review/verification/sources/77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da/code-work-batch.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/plan-review/sources/1.json",
+          "sha256": "77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da"
+        },
+        {
+          "root": "run",
+          "source_path": "04-plan-review/verification/sources/aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7/plan.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/plan-review/sources/2.json",
+          "sha256": "aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/protocolize-result.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/plan-review/sources/3.json",
+          "sha256": "e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/stage-report.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/plan-review/sources/4.json",
+          "sha256": "b13c3b98b11401c83f3d0b4870ce3d5000e34815b7ce3d92b8057bfbe01887a2"
+        },
+        {
+          "root": "run",
+          "source_path": "04-plan-review/decision.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/plan-review/sources/5.json",
+          "sha256": "492846573f426109bdb030918167f4435992308fed97b2aa06021c338d83d321"
+        },
+        {
+          "root": "run",
+          "source_path": "01-specify/specify.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/plan-review/sources/6.json",
+          "sha256": "00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa"
+        }
+      ]
+    },
+    {
+      "run": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/code/run.json",
+        "sha256": "b8bafc4af364c841c663ef521871a4b62ecbf1918e0deb41fe1a7eaa978927c6"
+      },
+      "report": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/code/report.json",
+        "sha256": "c1674d7776e0dcebeb5e223db34bd607a98c0c479a483269f6167fee92bf3e3c"
+      },
+      "json": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/code/json.json",
+        "sha256": "962efed604b00410b393b84e6031bcaff590bf5df200600fc02537e9a8581eb2"
+      },
+      "markdown": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/code/matrix.md",
+        "sha256": "e6ec16d2dc581d9ad14ad5e97c75c46dc2896ccab9ce0ce58ae5adcc58adc70e"
+      },
+      "sources": [
+        {
+          "root": "run",
+          "source_path": "05-code/verification/sources/e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd/accepted-input.md",
+          "path": "cp-257-installed-matrix-qualification.json.packets/code/sources/0.json",
+          "sha256": "e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/verification/sources/77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da/code-work-batch.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/code/sources/1.json",
+          "sha256": "77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/checks/RCP-002/completion.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/code/sources/2.json",
+          "sha256": "3584417471369d335d92922d6ccf34c795cb3ee3dcc1d61750d98ba977040236"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/checks/RCP-002/completion.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/code/sources/3.json",
+          "sha256": "3584417471369d335d92922d6ccf34c795cb3ee3dcc1d61750d98ba977040236"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/checks/RCP-002/completion.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/code/sources/4.json",
+          "sha256": "3584417471369d335d92922d6ccf34c795cb3ee3dcc1d61750d98ba977040236"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/verification/sources/aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7/plan.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/code/sources/5.json",
+          "sha256": "aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/protocolize-result.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/code/sources/6.json",
+          "sha256": "e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/stage-report.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/code/sources/7.json",
+          "sha256": "b13c3b98b11401c83f3d0b4870ce3d5000e34815b7ce3d92b8057bfbe01887a2"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/checks/RCP-002/receipt.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/code/sources/8.json",
+          "sha256": "70084c8d6c037764376fc067eefae2aac20a558f977d16e47cfe7a98b11238c0"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/checks/RCP-002/receipt.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/code/sources/9.json",
+          "sha256": "70084c8d6c037764376fc067eefae2aac20a558f977d16e47cfe7a98b11238c0"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/checks/RCP-002/receipt.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/code/sources/10.json",
+          "sha256": "70084c8d6c037764376fc067eefae2aac20a558f977d16e47cfe7a98b11238c0"
+        },
+        {
+          "root": "run",
+          "source_path": "05-code/code-verification.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/code/sources/11.json",
+          "sha256": "f06a8edc39c7a72e8a2e779f267c306d5da53a18bd3c23c16d8bc90281788c1a"
+        },
+        {
+          "root": "run",
+          "source_path": "01-specify/specify.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/code/sources/12.json",
+          "sha256": "00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa"
+        }
+      ]
+    },
+    {
+      "run": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/merge/run.json",
+        "sha256": "b8bafc4af364c841c663ef521871a4b62ecbf1918e0deb41fe1a7eaa978927c6"
+      },
+      "report": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/merge/report.json",
+        "sha256": "67b54ed50f6d3c6dbd2a8483bdfe836948d8d35d9ee4761dbfa8b5a4d7cf5ed7"
+      },
+      "json": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/merge/json.json",
+        "sha256": "e915ca79346becca6a9115c33e79eb46e3a00fce1ef8fc812a0651da3aedc797"
+      },
+      "markdown": {
+        "path": "cp-257-installed-matrix-qualification.json.packets/merge/matrix.md",
+        "sha256": "5af34a66c42d4c05abb435603bf25fe20ce88bc67211d0dcd7d42f78451a03eb"
+      },
+      "sources": [
+        {
+          "root": "run",
+          "source_path": "07-merge/verification/sources/e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd/accepted-input.md",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/0.json",
+          "sha256": "e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/check-profile-baseline.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/1.json",
+          "sha256": "1c0ff3551f961e377f66732b45807b9b85dee91a7c596fc9e30eab3744dfac35"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/check-profile-source.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/2.json",
+          "sha256": "1c0ff3551f961e377f66732b45807b9b85dee91a7c596fc9e30eab3744dfac35"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/check-profile-target.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/3.json",
+          "sha256": "1c0ff3551f961e377f66732b45807b9b85dee91a7c596fc9e30eab3744dfac35"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/verification/sources/77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da/code-work-batch.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/4.json",
+          "sha256": "77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da"
+        },
+        {
+          "root": "run",
+          "source_path": "03-plan/code-work-batch.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/5.json",
+          "sha256": "77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-004/completion.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/6.json",
+          "sha256": "5e12f7b8beccd836b4e0fcca6d4898b6f68cf4e2397a9905c688e1a7e585e1a0"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/7.json",
+          "sha256": "f53869aa008a8981b41ec78b050861f0287fbd123bb6820dca84d58e71f0f6eb"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/8.json",
+          "sha256": "f53869aa008a8981b41ec78b050861f0287fbd123bb6820dca84d58e71f0f6eb"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-003/completion.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/9.json",
+          "sha256": "f53869aa008a8981b41ec78b050861f0287fbd123bb6820dca84d58e71f0f6eb"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/merge-gate-acceptance.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/10.json",
+          "sha256": "26f9a44357c8b93d2eb45d528435618460f24bbe37c855d804a1aadde095411a"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/merge-gate.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/11.json",
+          "sha256": "30d931339dbbe7946a3acce6c6aa9b75ac6350a8cca873b272edbe5d74c51349"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/verification/sources/aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7/plan.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/12.json",
+          "sha256": "aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/protocolize-result.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/13.json",
+          "sha256": "e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead"
+        },
+        {
+          "root": "run",
+          "source_path": "02-protocolize/stage-report.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/14.json",
+          "sha256": "b13c3b98b11401c83f3d0b4870ce3d5000e34815b7ce3d92b8057bfbe01887a2"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/15.json",
+          "sha256": "2c9d826f954a4775503c1a2efc840f31b337261827faa3b8900dc48e8f2a7a01"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/16.json",
+          "sha256": "3ed2cd9e2cd7152bb75277590fdffacdeb7c7ce6892c22360c08a39535f54b0b"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/17.json",
+          "sha256": "3ed2cd9e2cd7152bb75277590fdffacdeb7c7ce6892c22360c08a39535f54b0b"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/18.json",
+          "sha256": "3ed2cd9e2cd7152bb75277590fdffacdeb7c7ce6892c22360c08a39535f54b0b"
+        },
+        {
+          "root": "run",
+          "source_path": "07-merge/works/WRK-006-merge/result.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/19.json",
+          "sha256": "ff9c50911b3e9db3ab9b10bd03f9c5066362d5b0e23b25a9e039e9325d181f91"
+        },
+        {
+          "root": "run",
+          "source_path": "01-specify/specify.json",
+          "path": "cp-257-installed-matrix-qualification.json.packets/merge/sources/20.json",
+          "sha256": "00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa"
+        }
+      ]
+    }
+  ],
+  "component_sha256": "bd58e3efe62cb88206014d012186e03687df425ba568e80bea9984b931564288"
+}

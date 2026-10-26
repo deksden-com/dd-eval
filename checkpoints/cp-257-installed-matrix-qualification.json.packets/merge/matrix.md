@@ -1,0 +1,46 @@
+# Verification matrix
+
+RUN: RUN-001-tasks; stage: merge / try-001; role: output; completeness: final.
+
+This generated view is not semantic acceptance. A retained passed check proves only its declared contour and proof limits.
+
+## Requirements
+
+| Protocol | Requirement | Statement | PLAN items / checks |
+| --- | --- | --- | --- |
+| PRT-001-task-priority | R-001 | Priority field. | P1: CHK-NEW, CHK-P1-TEST |
+
+## Acceptance criteria
+
+| Protocol | Criterion | Gate | Checks / native results | Proof limits |
+| --- | --- | --- | --- | --- |
+| PRT-001-task-priority | AC-001 | work | PRT-001-task-priority/CHK-P1-TEST: passed; PRT-001-task-priority/CHK-READY: passed | ["No production claim."] |
+
+## Policy checks
+
+- PRT-001-task-priority/CHK-MERGE: passed
+- PRT-001-task-priority/CHK-NEW: passed
+
+## Sources
+
+- accepted_intake: run:07-merge/verification/sources/e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd/accepted-input.md (e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd)
+- check_profile_baseline: run:07-merge/check-profile-baseline.json (1c0ff3551f961e377f66732b45807b9b85dee91a7c596fc9e30eab3744dfac35)
+- check_profile_source: run:07-merge/check-profile-source.json (1c0ff3551f961e377f66732b45807b9b85dee91a7c596fc9e30eab3744dfac35)
+- check_profile_target: run:07-merge/check-profile-target.json (1c0ff3551f961e377f66732b45807b9b85dee91a7c596fc9e30eab3744dfac35)
+- code_work_batch: run:07-merge/verification/sources/77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da/code-work-batch.json (77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da)
+- code_work_batch_current: run:03-plan/code-work-batch.json (77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da)
+- completion:PRT-001-task-priority/CHK-MERGE: run:07-merge/works/WRK-006-merge/checks/RCP-004/completion.json (5e12f7b8beccd836b4e0fcca6d4898b6f68cf4e2397a9905c688e1a7e585e1a0)
+- completion:PRT-001-task-priority/CHK-NEW: run:07-merge/works/WRK-006-merge/checks/RCP-003/completion.json (f53869aa008a8981b41ec78b050861f0287fbd123bb6820dca84d58e71f0f6eb)
+- completion:PRT-001-task-priority/CHK-P1-TEST: run:07-merge/works/WRK-006-merge/checks/RCP-003/completion.json (f53869aa008a8981b41ec78b050861f0287fbd123bb6820dca84d58e71f0f6eb)
+- completion:PRT-001-task-priority/CHK-READY: run:07-merge/works/WRK-006-merge/checks/RCP-003/completion.json (f53869aa008a8981b41ec78b050861f0287fbd123bb6820dca84d58e71f0f6eb)
+- merge_acceptance: run:07-merge/merge-gate-acceptance.json (26f9a44357c8b93d2eb45d528435618460f24bbe37c855d804a1aadde095411a)
+- merge_gate: run:07-merge/merge-gate.json (30d931339dbbe7946a3acce6c6aa9b75ac6350a8cca873b272edbe5d74c51349)
+- plan:PRT-001-task-priority: run:07-merge/verification/sources/aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7/plan.json (aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7)
+- protocolize: run:02-protocolize/protocolize-result.json (e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead)
+- protocolize_report: run:02-protocolize/stage-report.json (b13c3b98b11401c83f3d0b4870ce3d5000e34815b7ce3d92b8057bfbe01887a2)
+- receipt:PRT-001-task-priority/CHK-MERGE: run:07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json (2c9d826f954a4775503c1a2efc840f31b337261827faa3b8900dc48e8f2a7a01)
+- receipt:PRT-001-task-priority/CHK-NEW: run:07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json (3ed2cd9e2cd7152bb75277590fdffacdeb7c7ce6892c22360c08a39535f54b0b)
+- receipt:PRT-001-task-priority/CHK-P1-TEST: run:07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json (3ed2cd9e2cd7152bb75277590fdffacdeb7c7ce6892c22360c08a39535f54b0b)
+- receipt:PRT-001-task-priority/CHK-READY: run:07-merge/works/WRK-006-merge/checks/RCP-003/receipt.json (3ed2cd9e2cd7152bb75277590fdffacdeb7c7ce6892c22360c08a39535f54b0b)
+- semantic_assessment: run:07-merge/works/WRK-006-merge/result.json (ff9c50911b3e9db3ab9b10bd03f9c5066362d5b0e23b25a9e039e9325d181f91)
+- specify: run:01-specify/specify.json (00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa)

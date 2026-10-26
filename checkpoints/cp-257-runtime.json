@@ -1,0 +1,34 @@
+{
+  "id": "cp-257-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "4fccc4ab1f60ab4e09ac170c286650ab47fbe2b4",
+    "tag": "eval/cp256-library-proof"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-257-installed-matrix-qualification.json",
+      "sha256": "4f421dcf3a9fcb8fd611011ea70e45f325eaedc56f0c0c89c2c4c01ac4358561",
+      "canon_commit": "4a6c2d2fd247cb66a1523dbdd022d2d71b75601c"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "6a155461637bada8baad4418432fc8cfcf1a93e5",
+      "version": "0.9.0-beta.153",
+      "artifact_sha256": "d474bed97b95f0509dda3f50c9fda7960c6893f8f5fc8c19b1bce9f34905b43b"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "CP257: reviewed plans 106/107 on isolated beta.153 research candidate. Product source, flow pack, canonical answers, models and qualified native bridge retained from CP256. No release acceptance claim, full gate or GitHub CI.",
+    "world_isolation": "Per-execution test worlds; project-owned EVAL PostgreSQL on loopback 55439.",
+    "baseline": "Each scored workspace executes its own baseline before Subject dispatch."
+  }
+}
