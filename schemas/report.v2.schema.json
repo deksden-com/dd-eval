@@ -20,6 +20,8 @@
     "execution_contract": {"type": "object"},
     "executions": {"type": "array", "items": {"type": "object"}},
     "observability": {"type": "object"},
+    "technical_notes": {"type": "array", "items": {"type": "object"}},
+    "assessment_state": {"enum": ["completed", "pending", "unavailable", "not_requested"]},
     "judge_status": {"type": "string"},
     "judge_requested_profile": {"type": ["string", "null"]},
     "judge_error": {"type": "object"},

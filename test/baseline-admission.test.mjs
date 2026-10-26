@@ -268,7 +268,7 @@ test("baseline admission is pinned, records failure and rejects source mutations
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-for (const version of [1, 2]) test(`baseline custody@${version} uses one monitored grant before its command`, async t => {
+for (const version of [1, 2]) for (const finishFails of [false, true]) test(`baseline custody@${version} uses one monitored grant before its command (retirement failure: ${finishFails})`, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "baseline-custody-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const projectRoot = path.join(root, "project"), cli = path.join(root, "flow.mjs"), calls = path.join(root, "calls"), binding = path.join(root, "binding.json");
@@ -285,10 +285,11 @@ for (const version of [1, 2]) test(`baseline custody@${version} uses one monitor
   await writeFile(cli, `import fs from 'node:fs';const a=process.argv.slice(2),action=a[2],v=n=>a[a.indexOf('--'+n)+1],file=${JSON.stringify(binding)},calls=${JSON.stringify(calls)};
 fs.appendFileSync(calls,action+'\\n');let r,result;
 if(action==='register')r={id:v('id'),lease_token:'lease',kind:'eval-baseline',owner_id:v('owner'),operation_id:v('operation'),state:'starting',metadata_json:JSON.stringify({dd_flow_home:process.env.DD_FLOW_HOME,role:'probe',owner_pid:Number(v('owner-pid')),budget:JSON.parse(v('budget-json'))})};else r=JSON.parse(fs.readFileSync(file));
-if(action==='confirm')Object.assign(r,{pid:Number(v('pid')),state:'running',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)});
+if(action==='confirm')Object.assign(r,{pid:Number(v('pid')),pid_started_at:'fixture-birth',state:'running',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)});
 result={ok:true,process:r};
 if(action==='heartbeat')result={ok:true,process_id:r.id,lease_expires_at:r.lease_expires_at,registration_sha256:r.registration_sha256};
 if(action==='check-admission'){r.admissions=(r.admissions??0)+1;result={ok:true,admitted:r.admissions===1,process_id:r.id};}
+if(action==='finish'&&${finishFails})result={ok:false,error:{code:'registry_finish_unconfirmed',message:'fixture lost ACK'}};
 fs.writeFileSync(file,JSON.stringify(r));console.log(JSON.stringify(result));`);
   const reference = await runBaselineAdmission({ caseRoot: root, definition: { file: "policy.json", sha256: createHash("sha256").update(bytes).digest("hex") }, projectRoot, outputRoot: path.join(root, "evidence"), checkpoint,
     runtimeScope: { bin: cli, home: root, resourceHome: path.join(root, "resources"), budget: { schema_id: "dd-flow/runtime-budget@1", scope_id: "EVAL-custody", per_harness: {} }, operationId: "baseline-custody" } });
@@ -297,4 +298,7 @@ fs.writeFileSync(file,JSON.stringify(r));console.log(JSON.stringify(result));`);
   const receipt = JSON.parse(await readFile(reference.file, "utf8"));
   assert.equal(receipt.schema_id, `dd-eval/baseline-admission@${version}`);
   assert.equal(receipt.checks[0].timeout_kind, version === 2 ? "inactivity" : undefined);
+  assert.equal(receipt.checks[0].execution_settlement.state, 'settled');
+  assert.equal(receipt.checks[0].cleanup, finishFails ? 'pending' : 'settled');
+  await verifyBaselineAdmission({ reference, definition: { file: 'policy.json', sha256: createHash('sha256').update(bytes).digest('hex') }, checkpoint, caseRoot: root });
 });

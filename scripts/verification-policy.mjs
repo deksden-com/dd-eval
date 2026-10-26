@@ -5,6 +5,8 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 const zones = [
+  [/technical-notes|baseline-admission|^runner\.mjs$/, /technical-notes107/],
+  [/technical-notes/, /runner-health|runner-recovery|qualification-owner090/],
   [/snapshot-observation/, /recovery-finalization105|runner-recovery|cleanup-observation/],
   [/model-observations/, /model-observations|runner-execution-contract/],
   [/^operation-errors\.mjs$/, /operation-errors|capacity-policy/],
@@ -70,7 +72,7 @@ export function verificationSelection(base = null, { root = process.cwd(), env =
 const processHelpers = ['lib/process-json.mjs','lib/operation-errors.mjs','lib/runner-events.mjs','lib/managed-daemon.mjs','lib/runtime-maintenance.mjs','lib/runner-lock.mjs','lib/process-snapshot.mjs','lib/observation-clock.mjs'];
 const fixtureOwners = [
   [/maintenance-/, /baseline-admission|e2e-reliability|runner|retirement|control|managed|lease|admission|engine-admission/],
-  [/capacity-policy\.mjs|judge-cleanup\.mjs/, /capacity|hitl|judge|semantic|eval\.test|runner|control|managed|recovery-finalization105/],
+  [/capacity-policy\.mjs|judge-cleanup\.mjs/, /capacity|hitl|judge|semantic|eval\.test|runner|control|managed|recovery-finalization105|technical-notes107/],
   [/composite-runner/, /case-acceptance|engine-admission|runner-proof|composite-runner/],
   [/hitl-/, /hitl|coverage|judge|canonical/],
   [/memory-upgrade\//, /memory-upgrade/],

@@ -60,8 +60,10 @@ alone does not authorize paid qualification, provider calls or scored launches.
    Subject harness/engine fixes, transport repairs and unrelated repo edits do not
    retest Judge. Oracle changes reassess retained answers deterministically; changed
    questions affect their tasks, shared Judge prompt/model changes affect all tasks.
-   Corrupt evidence, unknown paid outcomes or unconfirmed cleanup require resolution,
-   not a replacement call. Qualification is regression evidence, not infallibility.
+   Corrupt evidence and unknown paid outcomes require resolution, not a replacement
+   call. Valid retained answers do not require new model calls merely because
+   cleanup remains pending; record that technical debt and block only conflicting
+   resource reuse. Qualification is regression evidence, not infallibility.
    Codex history may be unavailable before its SQLite view is ready. Observe the
    accepted Turn; do not resend it or classify a history-read refusal as provider
    outage. An unresolved outcome/cleanup uses the retained operation's recovery,

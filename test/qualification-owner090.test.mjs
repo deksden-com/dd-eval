@@ -45,8 +45,9 @@ test("qualification runtime cleanup uncertainty never turns into clean success",
   t.after(() => rm(home, { recursive: true, force: true }));
   const owner = await prepareQualificationOwner({ home, caseId: "fixture", runtimeRoot: path.join(home, "runtime"), resourceHome: path.join(home, "resources"),
     registryFile: path.join(home, "homes.json"), engine: {}, perHarness: {} }, { retirement: async (_options, reserve) => reserve() });
-  await assert.rejects(finishQualificationOwner(owner, null, { cleanup: async () => ({ result: { physical_stopped: null } }) }), { code: "definition_qualification_cleanup_failed" });
-  await assert.rejects(finishQualificationOwner(owner, null, { cleanup: async () => ({ result: { physical_stopped: true, native_settled: false } }) }), { code: "definition_qualification_cleanup_failed" });
+  assert.equal((await finishQualificationOwner(owner, null, { cleanup: async () => ({ result: { physical_stopped: null } }) })).result.physical_stopped, null);
+  assert.equal((await finishQualificationOwner(owner, null, { cleanup: async () => ({ result: { physical_stopped: true, native_settled: false } }) })).result.native_settled, false);
+  assert.equal(reduceEvents(await readEvents(path.join(owner.root, 'events.jsonl'))).state, 'completed');
 });
 
 test("qualification status is read-only and reports retained cleanup independently of missing runtime", async t => {

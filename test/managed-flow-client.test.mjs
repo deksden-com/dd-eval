@@ -6,6 +6,21 @@ import path from "node:path";
 import { createHash } from 'node:crypto';
 import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
 
+test('Subject technical notes leave immutable managed receipts unchanged and cannot fail observation', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-notes107-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), controller = { controller_id: 'DRV-notes', status: 'completed', stage: 'code', sessions: [] };
+  const notes = [{ id: 'note', code: 'cleanup_pending', run_id: 'RUN' }];
+  await writeFile(bin, `console.log(JSON.stringify(${JSON.stringify({ controller, technical_notes: notes, events: [] })}));`);
+  let observed;
+  const input = { bin, env: process.env, projectRoot: root, runId: 'RUN', controllerId: controller.controller_id, observeOnce: true };
+  const result = await observeManagedRun({ ...input, onTechnicalNotes: value => { observed = value; } });
+  assert.deepEqual(observed, notes);
+  assert.deepEqual(result.controller, controller);
+  assert.equal(Object.hasOwn(result, 'technical_notes'), false);
+  assert.deepEqual((await observeManagedRun({ ...input, onTechnicalNotes: () => { throw new Error('optional note sink unavailable'); } })).controller, controller);
+});
+
 test('diagnostic preparation reuses public managed RUNs without mutation-route selectors', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'managed-diagnostic-'));
   t.after(() => rm(root, {recursive:true,force:true}));

@@ -17,6 +17,13 @@ Read `cleanup_maintenance` separately from historical execution outcome. Termina
 observers hand off owner-scoped retirement; investigation deferral is explicit
 and must close before the next campaign. See [cleanup commands](eval-storage.md#stop-leftover-daemons).
 
+An accepted Work/Stage result is not revoked by a late native error or failed
+session shutdown. Report `technical_notes`, assessment availability and cleanup
+separately. `completed`/`finished` does not mean resources are clean or the product
+passed Judge. A result file or native completion alone does not prove acceptance.
+Pause only a conflicting continuation while an owned writer remains possible;
+do not repeat accepted Work or call a model merely to retire a session.
+
 ## Determine the current stage
 
 `manifest.executions[].stage` is the immutable **entry**, not current progress.
