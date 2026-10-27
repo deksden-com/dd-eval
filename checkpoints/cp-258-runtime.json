@@ -1,0 +1,34 @@
+{
+  "id": "cp-258-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "4fccc4ab1f60ab4e09ac170c286650ab47fbe2b4",
+    "tag": "eval/cp256-library-proof"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-258-installed-matrix-qualification.json",
+      "sha256": "950f83c17a5abfb76ccb6397de097708e9087b929030f9ee8635067e1e5a7f7e",
+      "canon_commit": "4a6c2d2fd247cb66a1523dbdd022d2d71b75601c"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "527f5804849cc81e4697a0789cb174a8d94d70da",
+      "version": "0.9.0-beta.154",
+      "artifact_sha256": "63e638c4ea2146c30377d4ecfea30ff682bd684ba30e0adf86ffb694fd2790b4"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "CP258: published beta.154 with plan108 thin hooks, late native progress and accepted-result/retirement separation. Source product and flow-pack inputs remain CP256. Scoped verification only, no full release-gate or GitHub CI. Native AGY1.4.7 and downstream bridge f9a3c59 selected; both Judges gpt-6.1-sol/high. Full E2E, no stop_after or semantic decision shortcut.",
+    "world_isolation": "Per-execution test worlds; project-owned EVAL PostgreSQL on loopback 55439.",
+    "baseline": "Each scored workspace executes its own baseline before Subject dispatch."
+  }
+}
