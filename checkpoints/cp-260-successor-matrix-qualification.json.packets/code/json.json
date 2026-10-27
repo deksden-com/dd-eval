@@ -1,0 +1,279 @@
+{
+  "criteria": [
+    {
+      "check_refs": [
+        "CHK-P1-TEST",
+        "CHK-READY"
+      ],
+      "checks": [
+        {
+          "canonical_ref": "PRT-001-task-priority/CHK-P1-TEST",
+          "declaration": {
+            "availability": "available",
+            "canonical_ref": "PRT-001-task-priority/CHK-P1-TEST",
+            "command": "test -f apps/api/src/core/service.ts",
+            "id": "CHK-P1-TEST",
+            "purpose": "Proves the changed task service exists.",
+            "run_at": "work"
+          },
+          "disposition": "retained",
+          "id": "CHK-P1-TEST",
+          "result": {
+            "after_fingerprint": "80dd31136a10ece9dc22b24d1f1fad60a7ff06a961d14ff096031d089d262b13",
+            "artifacts": [],
+            "before_fingerprint": "80dd31136a10ece9dc22b24d1f1fad60a7ff06a961d14ff096031d089d262b13",
+            "candidate_absences": [],
+            "candidate_files": [],
+            "candidate_library_inputs": [],
+            "candidate_root": "/Users/deksden/.dd-eval/qualification/cp260-installed-matrix-proof-successor/dd-flow-protocolize-keIPB8/project",
+            "check_refs": [
+              "CHK-NEW",
+              "CHK-P1-TEST",
+              "CHK-READY"
+            ],
+            "command": "test -f apps/api/src/core/service.ts",
+            "completion_path": "05-code/checks/RCP-002/completion.json",
+            "declaration_id": "CHK-NEW",
+            "execution_contract_hash": "3c529643ef40a4cfcbba47229e8804eec730848e07ca36fa4dac0c6a3b863031",
+            "execution_failures": [],
+            "exit_code": 0,
+            "fingerprint_scope": "check_inputs",
+            "finished_at": "2026-10-27T19:11:57.481Z",
+            "gate": "readiness",
+            "id": "RUN-001-tasks/RCP-002",
+            "input_hash": "15322177314aba2c72b9cadffc043503ffe02f0dd2aa445cfd604b9803e1f07b",
+            "input_manifest": {
+              "path": "inputs-before.json",
+              "sha256": "9114de21ce2397509c85e71bd2cf40ea211dad55776fb61fd7a6cac090a0a861",
+              "truncated": false
+            },
+            "inputs": [],
+            "local_id": "RCP-002",
+            "mutation_paths": [],
+            "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+            "receipt_path": "05-code/checks/RCP-002/receipt.json",
+            "required_artifacts": [],
+            "resources": {
+              "ports": {}
+            },
+            "retry_of_receipt_id": null,
+            "retry_reason": null,
+            "scope": "aggregate",
+            "started_at": "2026-10-27T19:11:57.403Z",
+            "status": "passed",
+            "stderr_path": "05-code/checks/RCP-002/stderr.log",
+            "stdout_path": "05-code/checks/RCP-002/stdout.log",
+            "verification_epoch": "91d36ff511cd46fa1ee6a9ac4be1e3a4d1add46a0ed12e0d76e1da01c189b846",
+            "work_id": null,
+            "workspace_fingerprint": "9d176a5d622e5f172c3624e87541a54834ec042002e2507c4a679aac2dfa853e"
+          }
+        },
+        {
+          "canonical_ref": "PRT-001-task-priority/CHK-READY",
+          "declaration": {
+            "availability": "available",
+            "canonical_ref": "PRT-001-task-priority/CHK-READY",
+            "command": "test -f apps/api/src/core/service.ts",
+            "id": "CHK-READY",
+            "purpose": "Confirms the prepared workspace contains the service.",
+            "run_at": "readiness"
+          },
+          "disposition": "retained",
+          "id": "CHK-READY",
+          "result": {
+            "after_fingerprint": "80dd31136a10ece9dc22b24d1f1fad60a7ff06a961d14ff096031d089d262b13",
+            "artifacts": [],
+            "before_fingerprint": "80dd31136a10ece9dc22b24d1f1fad60a7ff06a961d14ff096031d089d262b13",
+            "candidate_absences": [],
+            "candidate_files": [],
+            "candidate_library_inputs": [],
+            "candidate_root": "/Users/deksden/.dd-eval/qualification/cp260-installed-matrix-proof-successor/dd-flow-protocolize-keIPB8/project",
+            "check_refs": [
+              "CHK-NEW",
+              "CHK-P1-TEST",
+              "CHK-READY"
+            ],
+            "command": "test -f apps/api/src/core/service.ts",
+            "completion_path": "05-code/checks/RCP-002/completion.json",
+            "declaration_id": "CHK-NEW",
+            "execution_contract_hash": "3c529643ef40a4cfcbba47229e8804eec730848e07ca36fa4dac0c6a3b863031",
+            "execution_failures": [],
+            "exit_code": 0,
+            "fingerprint_scope": "check_inputs",
+            "finished_at": "2026-10-27T19:11:57.481Z",
+            "gate": "readiness",
+            "id": "RUN-001-tasks/RCP-002",
+            "input_hash": "15322177314aba2c72b9cadffc043503ffe02f0dd2aa445cfd604b9803e1f07b",
+            "input_manifest": {
+              "path": "inputs-before.json",
+              "sha256": "9114de21ce2397509c85e71bd2cf40ea211dad55776fb61fd7a6cac090a0a861",
+              "truncated": false
+            },
+            "inputs": [],
+            "local_id": "RCP-002",
+            "mutation_paths": [],
+            "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+            "receipt_path": "05-code/checks/RCP-002/receipt.json",
+            "required_artifacts": [],
+            "resources": {
+              "ports": {}
+            },
+            "retry_of_receipt_id": null,
+            "retry_reason": null,
+            "scope": "aggregate",
+            "started_at": "2026-10-27T19:11:57.403Z",
+            "status": "passed",
+            "stderr_path": "05-code/checks/RCP-002/stderr.log",
+            "stdout_path": "05-code/checks/RCP-002/stdout.log",
+            "verification_epoch": "91d36ff511cd46fa1ee6a9ac4be1e3a4d1add46a0ed12e0d76e1da01c189b846",
+            "work_id": null,
+            "workspace_fingerprint": "9d176a5d622e5f172c3624e87541a54834ec042002e2507c4a679aac2dfa853e"
+          }
+        }
+      ],
+      "criterion_id": "AC-001",
+      "declaration": {
+        "changed_surfaces": [
+          "apps/api/src/core/service.ts"
+        ],
+        "check_refs": [
+          "CHK-P1-TEST",
+          "CHK-READY"
+        ],
+        "cleanup": "No persistent fixture.",
+        "criterion_id": "AC-001",
+        "environment": "Local tests.",
+        "expected_evidence": [
+          "Focused test passes."
+        ],
+        "fixtures": [],
+        "gate": "work",
+        "path": "Set priority through the task service.",
+        "plan_item_ids": [
+          "P1"
+        ],
+        "proof_limits": [
+          "No production claim."
+        ]
+      },
+      "gate": "work",
+      "protocol_id": "PRT-001-task-priority",
+      "statement": "A member changes a task priority."
+    }
+  ],
+  "header": {
+    "completeness": "execution",
+    "project_id": "PRJ-001-project",
+    "role": "output",
+    "run_id": "RUN-001-tasks",
+    "source_fingerprint": "156c2fb2af7835d09cd0ddbaffc1ae9a670153c3b98f159139fd4d2a49b11f3e",
+    "stage": "code",
+    "stage_attempt": "try-001"
+  },
+  "policy_checks": [],
+  "requirements": [
+    {
+      "id": "R-001",
+      "plan_items": [
+        {
+          "check_refs": [
+            "CHK-NEW",
+            "CHK-P1-TEST"
+          ],
+          "id": "P1",
+          "work_ids": [
+            "WRK-005-prt-001-task-priority-p1"
+          ]
+        }
+      ],
+      "protocol_id": "PRT-001-task-priority",
+      "statement": "Priority field."
+    }
+  ],
+  "schema_id": "dd-flow/verification-matrix@1",
+  "semantic_assessment": {
+    "path": "05-code/code-verification.json",
+    "root": "run",
+    "sha256": "f06a8edc39c7a72e8a2e779f267c306d5da53a18bd3c23c16d8bc90281788c1a"
+  },
+  "sources": [
+    {
+      "path": "05-code/verification/sources/e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd/accepted-input.md",
+      "role": "accepted_intake",
+      "root": "run",
+      "sha256": "e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd"
+    },
+    {
+      "path": "05-code/verification/sources/77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da/code-work-batch.json",
+      "role": "code_work_batch",
+      "root": "run",
+      "sha256": "77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da"
+    },
+    {
+      "path": "05-code/checks/RCP-002/completion.json",
+      "role": "completion:PRT-001-task-priority/CHK-NEW",
+      "root": "run",
+      "sha256": "0b9a82e310a8bf62b24f618cc945ff29f85ab20e36cef908cfbb6658712670b3"
+    },
+    {
+      "path": "05-code/checks/RCP-002/completion.json",
+      "role": "completion:PRT-001-task-priority/CHK-P1-TEST",
+      "root": "run",
+      "sha256": "0b9a82e310a8bf62b24f618cc945ff29f85ab20e36cef908cfbb6658712670b3"
+    },
+    {
+      "path": "05-code/checks/RCP-002/completion.json",
+      "role": "completion:PRT-001-task-priority/CHK-READY",
+      "root": "run",
+      "sha256": "0b9a82e310a8bf62b24f618cc945ff29f85ab20e36cef908cfbb6658712670b3"
+    },
+    {
+      "path": "05-code/verification/sources/aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7/plan.json",
+      "role": "plan:PRT-001-task-priority",
+      "root": "run",
+      "sha256": "aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7"
+    },
+    {
+      "path": "02-protocolize/protocolize-result.json",
+      "role": "protocolize",
+      "root": "run",
+      "sha256": "e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead"
+    },
+    {
+      "path": "02-protocolize/stage-report.json",
+      "role": "protocolize_report",
+      "root": "run",
+      "sha256": "cfcce5b2487f527c1877a2c3a633fbbb0723d6c15a1ef075026d13594ea3de6e"
+    },
+    {
+      "path": "05-code/checks/RCP-002/receipt.json",
+      "role": "receipt:PRT-001-task-priority/CHK-NEW",
+      "root": "run",
+      "sha256": "74e59ae9c1ef2514b384fc35d85f013df82142d57a7a0afe8c7a255a3094b8de"
+    },
+    {
+      "path": "05-code/checks/RCP-002/receipt.json",
+      "role": "receipt:PRT-001-task-priority/CHK-P1-TEST",
+      "root": "run",
+      "sha256": "74e59ae9c1ef2514b384fc35d85f013df82142d57a7a0afe8c7a255a3094b8de"
+    },
+    {
+      "path": "05-code/checks/RCP-002/receipt.json",
+      "role": "receipt:PRT-001-task-priority/CHK-READY",
+      "root": "run",
+      "sha256": "74e59ae9c1ef2514b384fc35d85f013df82142d57a7a0afe8c7a255a3094b8de"
+    },
+    {
+      "path": "05-code/code-verification.json",
+      "role": "semantic_assessment",
+      "root": "run",
+      "sha256": "f06a8edc39c7a72e8a2e779f267c306d5da53a18bd3c23c16d8bc90281788c1a"
+    },
+    {
+      "path": "01-specify/specify.json",
+      "role": "specify",
+      "root": "run",
+      "sha256": "00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "WRK-006-merge/RCP-004",
+  "local_id": "RCP-004",
+  "declaration_id": "CHK-MERGE",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-MERGE"
+  ],
+  "gate": "merge",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "true",
+  "input_hash": "aed9f0af040f3196b6ec0b53acd16000f457d2935b36a6100e93bee6c98c22de",
+  "verification_epoch": "4bd4d2b3663fa58c127ac59c3be8ef4dab8b2704e139bf904064091eccddb7a8",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp260-installed-matrix-proof-successor/dd-flow-protocolize-keIPB8/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp260-installed-matrix-proof-successor/dd-flow-protocolize-keIPB8/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp260-installed-matrix-proof-successor/dd-flow-protocolize-keIPB8/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp260-installed-matrix-proof-successor/dd-flow-protocolize-keIPB8/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "fingerprint_scope": "check_inputs",
+  "input_manifest": {
+    "path": "inputs-before.json",
+    "sha256": "584dd725180395733378e7fb356c86030a473a3bdf4c0cedf0bb648baef1cb23",
+    "truncated": false
+  },
+  "execution_contract_hash": "c953fc586d1b703c88cf8a70751a1977126e2cde21994151542c5ee90f9886e9",
+  "workspace_fingerprint": "1b8b68865146f0a7d46effef9a0f9f76eb0ef438c0bbbbdb854e8127725a208e",
+  "before_fingerprint": "677fd72e78a3e81539bcd2b0d12d445e54b9eab53b931ded0912c54e175ee22f",
+  "after_fingerprint": "677fd72e78a3e81539bcd2b0d12d445e54b9eab53b931ded0912c54e175ee22f",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-27T19:12:03.349Z",
+  "finished_at": "2026-10-27T19:12:03.409Z",
+  "candidate_root": "/Users/deksden/.dd-eval/qualification/cp260-installed-matrix-proof-successor/dd-flow-protocolize-keIPB8/project",
+  "candidate_files": [],
+  "candidate_absences": [],
+  "candidate_library_inputs": [],
+  "execution_failures": []
+}
