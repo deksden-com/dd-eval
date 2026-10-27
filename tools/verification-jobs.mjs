@@ -249,9 +249,14 @@ async function execute(job, { home, owner, nested, scope, signal, env, save, que
   // node:test sets this private flag for its own children; a separately managed
   // test command must produce a standalone report, not use its parent's IPC.
   delete childEnv.NODE_TEST_CONTEXT;
-  for (const name of ['HOME', 'TMPDIR', 'XDG_CACHE_HOME', 'XDG_CONFIG_HOME', 'XDG_RUNTIME_DIR', 'CODEX_HOME', 'AGY_HOME', 'DD_FLOW_HOME', 'DD_FLOW_RESOURCE_HOME', 'DD_FLOW_CONFIG_HOME']) {
+  for (const name of ['HOME', 'XDG_CACHE_HOME', 'XDG_CONFIG_HOME', 'XDG_RUNTIME_DIR', 'CODEX_HOME', 'AGY_HOME', 'DD_FLOW_HOME', 'DD_FLOW_RESOURCE_HOME', 'DD_FLOW_CONFIG_HOME']) {
     childEnv[name] = path.join(root, name.toLowerCase()); fs.mkdirSync(childEnv[name], { recursive: true });
   }
+  // Unix socket paths have a small OS limit. Keep the per-attempt temporary
+  // world short even when the durable coordinator/report home is deeply nested.
+  const tempBase = process.platform === 'win32' ? os.tmpdir() : fs.realpathSync('/tmp');
+  childEnv.TMPDIR = fs.mkdtempSync(path.join(tempBase, 'ddv-'));
+  atomicJson(path.join(root, 'temporary.json'), { tmpdir: childEnv.TMPDIR });
   // Only an explicit native/delivery descriptor may opt into provider credentials.
   const token = randomUUID();
   if (!nested) {
