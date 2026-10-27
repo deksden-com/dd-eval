@@ -1,0 +1,78 @@
+{
+  "schema_id": "dd-eval/regression-observations@1",
+  "note": "Sanitized retained observations. expected_after_fix is authored, not a new model response or retroactive PASS. No filesystem paths or credential/native transcripts are retained.",
+  "samples": [
+    {
+      "harness": "zcode",
+      "eval_id": "EVAL-20261027114014-e1359ddd",
+      "provenance": {
+        "packet_sha256": "cf915c98feee0bada87d7aba77b00b3c1ca99d8546cbc7135d93c190c1ddf005",
+        "packet_file_sha256": "1848d33306ad4c89cf86d503fddb3a553222b3afc9dab5a5b6ce9e9f8d785344",
+        "receipt_sha256": "4a13de30997f58c19b4ace859a4cfa1e0e27d4a9f44f4472d79677a3e28209a5",
+        "canonical_fixture_sha256": "631d3647ea7a9b276d186d237cacc7eff561aeb8aaa40561cc72582103c82e61"
+      },
+      "question": "## Q-001 — Набор уровней приоритета и понятные подписи\n\nWhy this decision is required:\n- Приоритет — новая видимая пользователю шкала значений; ни один авторитетный источник проекта не определяет набор уровней и их подписи, безопасного умолчания нет.\n\nOptions:\n- A: Три уровня: low / medium / high, подписи вида «Низкий / Средний / Высокий», по умолчанию medium\n- B: Четыре уровня: low / medium / high / urgent, подписи вида «Низкий / Средний / Высокий / Срочный», по умолчанию medium\n- C: Числовая шкала 1–5 с подписями к каждому значению, по умолчанию 3\n\nRecommendation:\n- A: минимальная шкала, которая закрывает запрос «понятный текст в списке задач»; позже расширяется до варианта B без переделки данных.\n\nEffect on scope or acceptance:\n- Фиксирует допустимые машинные значения API, подписи в списке задач и значение по умолчанию для новых задач; критерии приёмки ссылаются на эту шкалу.\n\n## Q-002 — Значение приоритета для уже существующих задач\n\nWhy this decision is required:\n- В базе уже есть задачи без приоритета; правило заполнения существующих данных — продуктовое решение без безопасного умолчания.\n\nOptions:\n- A: Миграция проставляет всем существующим задачам значение по умолчанию: в БД у каждой задачи всегда записан приоритет\n- B: Существующие задачи не изменяются; при отсутствии значения список показывает приоритет по умолчанию (fallback при чтении)\n\nRecommendation:\n- A: одинаковая семантика для старых и новых задач и детерминированные данные; forward-only миграции — устоявшийся механизм проекта.\n\nEffect on scope or acceptance:\n- Определяет, что видно в списке задач для задач, созданных до внедрения приоритета, и добавляет миграционный шаг в приёмку (или явно исключает его).\n\n## Q-003 — Правила задания и изменения приоритета\n\nWhy this decision is required:\n- Не согласовано, кто, когда и где может задавать и менять приоритет задачи в UI и API.\n\nOptions:\n- A: Приоритет задаётся при создании задачи (необязателен, иначе применяется умолчание) и меняется позже как обычное поле задачи — теми же actor-ами и в том же месте, где задача сейчас редактируется\n- B: Приоритет задаётся только при создании и дальше не меняется\n- C: Менять приоритет может только владелец workspace; участник видит приоритет, но не меняет его\n\nRecommendation:\n- A: повторяет принятые правила работы с задачами (owner/member task path в SCN-002) и не вводит новых ролей или ограничений.\n\nEffect on scope or acceptance:\n- Определяет сценарии установки и изменения приоритета в UI/API; в архивном проекте изменение приоритета отклоняется действующим read-only гейтом архивных проектов во всех вариантах.\n",
+      "subject_context": {
+        "objective": "Уточнить требуемое поведение приоритета задач, сформировать требования и проверяемые критерии приёмки.",
+        "accepted_decisions": []
+      },
+      "source_excerpts": [
+        {
+          "source_id": "source-6",
+          "original_sha256": "6a675112a9269f8bd61d41833ab9f1804be10300b82557b2d788e8fba932d9ba",
+          "text": "Давай добавим в dd-tasks поддержку приоритета задач: у задачи должно быть поле\nприоритета, а в списке задач должен быть виден его понятный текст. Правила\nуровней и значения по умолчанию, создания и изменения, архивных проектов и\nUI/API ещё не согласованы. Сначала уточни у меня эти существенные решения,\nзатем оформи протокол; не выбирай продуктовые правила за меня.\n"
+        }
+      ],
+      "observation": {
+        "status": "unmatched",
+        "classification": "out_of_scope",
+        "uncovered_questions": [
+          "- A: Миграция проставляет всем существующим задачам значение по умолчанию: в БД у каждой задачи всегда записан приоритет\n- B: Существующие задачи не изменяются; при отсутствии значения список показывает приоритет по умолчанию (fallback при чтении)"
+        ]
+      },
+      "expected_after_fix": {
+        "status": "covered",
+        "response_ids": [
+          "clarification-task-priority"
+        ],
+        "uncovered_questions": []
+      }
+    },
+    {
+      "harness": "opencode",
+      "eval_id": "EVAL-20261027115210-6886d3ab",
+      "provenance": {
+        "packet_sha256": "75315a1371f29e11f1e0b2933d7cd38b710b7056536e3200d574b6a2a7b9a216",
+        "packet_file_sha256": "f8203b271bcd3d34e9bfe6cb2852752e2cec0670728fd238a4fe4d3daebc30a3",
+        "receipt_sha256": "016efd322a09fb527d376cb78dc0609a3ab1f5c61517bee73bffcde16a600f2b",
+        "canonical_fixture_sha256": "631d3647ea7a9b276d186d237cacc7eff561aeb8aaa40561cc72582103c82e61"
+      },
+      "question": "## Context (already settled — no answer needed)\n\n- Agreed kernel of your request: every task has a priority field, and the task list shows its human-readable text.\n- Archived projects: the accepted system behavior already makes archived projects read-only for task changes (active-project gate; SCN-002 \"archived filtering/read-only gate\"). Priority therefore cannot be changed in archived projects, while remaining visible. If you explicitly want an exception to this read-only policy, say so in your reply.\n- The product UI language is English; readable priority text uses English labels.\n\n## Q-001 — Priority level taxonomy\n\nWhy this decision is required:\n- A new user-visible value taxonomy has no safe default: it fixes the allowed values, the readable text in the task list and every acceptance example.\n\nOptions:\n- Three levels: Low / Medium / High.\n- Four levels: Urgent / High / Medium / Low.\n- Two levels: Normal / High.\n\nRecommendation:\n- Three levels (Low / Medium / High): the smallest set that still allows meaningful triage and stays extensible.\n\nEffect on scope or acceptance:\n- Determines the accepted input values, the list labels, and all positive/negative API and browser acceptance paths.\n\n## Q-002 — Default priority for new and existing tasks\n\nWhy this decision is required:\n- A default for existing persisted data and for creation has no safe default, yet the list must always show readable priority text.\n\nOptions:\n- Middle level (e.g., Medium) is the default for new tasks without an explicit priority and is backfilled to all existing tasks.\n- Lowest level is the default for new tasks and is backfilled to existing tasks.\n- No default: priority is optional; new tasks may omit it, existing tasks stay without priority, and the list shows a neutral placeholder (e.g., \"—\") until one is set.\n\nRecommendation:\n- Middle level as default: every task immediately shows meaningful readable text, with no extra nullable state in the list.\n\nEffect on scope or acceptance:\n- Determines backfill of existing tasks, creation semantics with/without an explicit priority, and whether an \"unset\" display state must exist.\n\n## Q-003 — Who may set/change priority, and through which surfaces\n\nWhy this decision is required:\n- Role and lifecycle semantics plus the public input surface change accepted behavior, and you explicitly reserved this rule.\n\nOptions:\n- Inherit existing task rules: anyone who can already create/edit a task (owner or workspace member) may set priority at creation and change it later, via the existing task create/edit UI and task API; priority is returned in task payloads together with its readable text.\n- Owner-only: only the workspace owner sets or changes priority; members see it read-only.\n- Fixed at creation: a priority is assigned at creation (default if not specified) and can never be changed afterwards.\n\nRecommendation:\n- Inherit existing task rules: priority is an ordinary task field, so the existing task authorization and the archived read-only gate already cover it without any new trust boundary.\n\nEffect on scope or acceptance:\n- Defines the authorization rows (owner / member / archived project), the UI edit surface, the API contract (priority accepted in task create/update), and the negative paths (member denial, archived rejection, invalid value rejected without partial write).\n",
+      "subject_context": {
+        "objective": "Уточнить требуемое поведение приоритета задач, сформировать требования и проверяемые критерии приёмки.",
+        "accepted_decisions": []
+      },
+      "source_excerpts": [
+        {
+          "source_id": "source-6",
+          "original_sha256": "6a675112a9269f8bd61d41833ab9f1804be10300b82557b2d788e8fba932d9ba",
+          "text": "Давай добавим в dd-tasks поддержку приоритета задач: у задачи должно быть поле\nприоритета, а в списке задач должен быть виден его понятный текст. Правила\nуровней и значения по умолчанию, создания и изменения, архивных проектов и\nUI/API ещё не согласованы. Сначала уточни у меня эти существенные решения,\nзатем оформи протокол; не выбирай продуктовые правила за меня.\n"
+        }
+      ],
+      "observation": {
+        "status": "uncovered",
+        "classification": null,
+        "uncovered_questions": [
+          "Which English human-readable priority labels should the task list display? The canonical response specifies Russian labels, conflicting with the settled English UI requirement."
+        ]
+      },
+      "expected_after_fix": {
+        "status": "covered",
+        "response_ids": [
+          "clarification-task-priority"
+        ],
+        "uncovered_questions": []
+      }
+    }
+  ]
+}

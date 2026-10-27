@@ -683,15 +683,15 @@
       "partition": "heldout",
       "classification": "fixture_gap",
       "response_ids": [],
-      "context_file": "entry-pack-source/interactions/qualification-specify.json",
-      "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
+      "context_file": "entry-pack-source/interactions/qualification-cp258-localization-accepted.json",
+      "context_sha256": "7ecde16c3799dad950c3433d260548a0a8863beb6861d0cf790b5891ef741c90",
       "coverage_expectation": {
         "status": "uncovered",
         "response_ids": [],
         "remaining_decisions": [
           {
             "id": "language",
-            "description": "Нужны ли английские подписи и выбор языка?"
+            "description": "Как разрешить конфликт принятой поддержки двух языков и выбора языка с каноническим исключением этого функционала?"
           }
         ]
       }
@@ -936,6 +936,134 @@
             "description": "Independent request to replace the existing public error format with priorityErrorId is not settled by preserving existing rules."
           }
         ]
+      }
+    },
+    {
+      "id": "cp258-zcode-exact",
+      "question": "## Q-001 — Набор уровней приоритета и понятные подписи\n\nWhy this decision is required:\n- Приоритет — новая видимая пользователю шкала значений; ни один авторитетный источник проекта не определяет набор уровней и их подписи, безопасного умолчания нет.\n\nOptions:\n- A: Три уровня: low / medium / high, подписи вида «Низкий / Средний / Высокий», по умолчанию medium\n- B: Четыре уровня: low / medium / high / urgent, подписи вида «Низкий / Средний / Высокий / Срочный», по умолчанию medium\n- C: Числовая шкала 1–5 с подписями к каждому значению, по умолчанию 3\n\nRecommendation:\n- A: минимальная шкала, которая закрывает запрос «понятный текст в списке задач»; позже расширяется до варианта B без переделки данных.\n\nEffect on scope or acceptance:\n- Фиксирует допустимые машинные значения API, подписи в списке задач и значение по умолчанию для новых задач; критерии приёмки ссылаются на эту шкалу.\n\n## Q-002 — Значение приоритета для уже существующих задач\n\nWhy this decision is required:\n- В базе уже есть задачи без приоритета; правило заполнения существующих данных — продуктовое решение без безопасного умолчания.\n\nOptions:\n- A: Миграция проставляет всем существующим задачам значение по умолчанию: в БД у каждой задачи всегда записан приоритет\n- B: Существующие задачи не изменяются; при отсутствии значения список показывает приоритет по умолчанию (fallback при чтении)\n\nRecommendation:\n- A: одинаковая семантика для старых и новых задач и детерминированные данные; forward-only миграции — устоявшийся механизм проекта.\n\nEffect on scope or acceptance:\n- Определяет, что видно в списке задач для задач, созданных до внедрения приоритета, и добавляет миграционный шаг в приёмку (или явно исключает его).\n\n## Q-003 — Правила задания и изменения приоритета\n\nWhy this decision is required:\n- Не согласовано, кто, когда и где может задавать и менять приоритет задачи в UI и API.\n\nOptions:\n- A: Приоритет задаётся при создании задачи (необязателен, иначе применяется умолчание) и меняется позже как обычное поле задачи — теми же actor-ами и в том же месте, где задача сейчас редактируется\n- B: Приоритет задаётся только при создании и дальше не меняется\n- C: Менять приоритет может только владелец workspace; участник видит приоритет, но не меняет его\n\nRecommendation:\n- A: повторяет принятые правила работы с задачами (owner/member task path в SCN-002) и не вводит новых ролей или ограничений.\n\nEffect on scope or acceptance:\n- Определяет сценарии установки и изменения приоритета в UI/API; в архивном проекте изменение приоритета отклоняется действующим read-only гейтом архивных проектов во всех вариантах.\n",
+      "partition": "heldout",
+      "classification": "covered_by_canonical_response",
+      "response_ids": [
+        "clarification-task-priority"
+      ],
+      "context_file": "entry-pack-source/interactions/qualification-specify.json",
+      "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
+      "coverage_expectation": {
+        "status": "covered",
+        "response_ids": [
+          "clarification-task-priority"
+        ],
+        "remaining_decisions": []
+      }
+    },
+    {
+      "id": "cp258-opencode-exact",
+      "question": "## Context (already settled — no answer needed)\n\n- Agreed kernel of your request: every task has a priority field, and the task list shows its human-readable text.\n- Archived projects: the accepted system behavior already makes archived projects read-only for task changes (active-project gate; SCN-002 \"archived filtering/read-only gate\"). Priority therefore cannot be changed in archived projects, while remaining visible. If you explicitly want an exception to this read-only policy, say so in your reply.\n- The product UI language is English; readable priority text uses English labels.\n\n## Q-001 — Priority level taxonomy\n\nWhy this decision is required:\n- A new user-visible value taxonomy has no safe default: it fixes the allowed values, the readable text in the task list and every acceptance example.\n\nOptions:\n- Three levels: Low / Medium / High.\n- Four levels: Urgent / High / Medium / Low.\n- Two levels: Normal / High.\n\nRecommendation:\n- Three levels (Low / Medium / High): the smallest set that still allows meaningful triage and stays extensible.\n\nEffect on scope or acceptance:\n- Determines the accepted input values, the list labels, and all positive/negative API and browser acceptance paths.\n\n## Q-002 — Default priority for new and existing tasks\n\nWhy this decision is required:\n- A default for existing persisted data and for creation has no safe default, yet the list must always show readable priority text.\n\nOptions:\n- Middle level (e.g., Medium) is the default for new tasks without an explicit priority and is backfilled to all existing tasks.\n- Lowest level is the default for new tasks and is backfilled to existing tasks.\n- No default: priority is optional; new tasks may omit it, existing tasks stay without priority, and the list shows a neutral placeholder (e.g., \"—\") until one is set.\n\nRecommendation:\n- Middle level as default: every task immediately shows meaningful readable text, with no extra nullable state in the list.\n\nEffect on scope or acceptance:\n- Determines backfill of existing tasks, creation semantics with/without an explicit priority, and whether an \"unset\" display state must exist.\n\n## Q-003 — Who may set/change priority, and through which surfaces\n\nWhy this decision is required:\n- Role and lifecycle semantics plus the public input surface change accepted behavior, and you explicitly reserved this rule.\n\nOptions:\n- Inherit existing task rules: anyone who can already create/edit a task (owner or workspace member) may set priority at creation and change it later, via the existing task create/edit UI and task API; priority is returned in task payloads together with its readable text.\n- Owner-only: only the workspace owner sets or changes priority; members see it read-only.\n- Fixed at creation: a priority is assigned at creation (default if not specified) and can never be changed afterwards.\n\nRecommendation:\n- Inherit existing task rules: priority is an ordinary task field, so the existing task authorization and the archived read-only gate already cover it without any new trust boundary.\n\nEffect on scope or acceptance:\n- Defines the authorization rows (owner / member / archived project), the UI edit surface, the API contract (priority accepted in task create/update), and the negative paths (member denial, archived rejection, invalid value rejected without partial write).\n",
+      "partition": "heldout",
+      "classification": "covered_by_canonical_response",
+      "response_ids": [
+        "clarification-task-priority"
+      ],
+      "context_file": "entry-pack-source/interactions/qualification-specify.json",
+      "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
+      "coverage_expectation": {
+        "status": "covered",
+        "response_ids": [
+          "clarification-task-priority"
+        ],
+        "remaining_decisions": []
+      }
+    },
+    {
+      "id": "cp258-storage-operational-policy-gap",
+      "question": "Какой максимальный допустимый простой сервиса разрешён при миграции приоритета: требуется zero downtime или разрешено техническое окно?",
+      "partition": "heldout",
+      "classification": "fixture_gap",
+      "response_ids": [],
+      "context_file": "entry-pack-source/interactions/qualification-specify.json",
+      "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
+      "coverage_expectation": {
+        "status": "uncovered",
+        "response_ids": [],
+        "remaining_decisions": [
+          {
+            "id": "downtime-policy",
+            "description": "Разрешён ли простой при миграции и каков его предел?"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cp258-english-normative-conflict",
+      "question": "## Context (already settled — no answer needed)\n\n- Agreed kernel of your request: every task has a priority field, and the task list shows its human-readable text.\n- Archived projects: the accepted system behavior already makes archived projects read-only for task changes (active-project gate; SCN-002 \"archived filtering/read-only gate\"). Priority therefore cannot be changed in archived projects, while remaining visible. If you explicitly want an exception to this read-only policy, say so in your reply.\n- The product UI language is English; readable priority text uses English labels.\n\n## Q-001 — Priority level taxonomy\n\nWhy this decision is required:\n- A new user-visible value taxonomy has no safe default: it fixes the allowed values, the readable text in the task list and every acceptance example.\n\nOptions:\n- Three levels: Low / Medium / High.\n- Four levels: Urgent / High / Medium / Low.\n- Two levels: Normal / High.\n\nRecommendation:\n- Three levels (Low / Medium / High): the smallest set that still allows meaningful triage and stays extensible.\n\nEffect on scope or acceptance:\n- Determines the accepted input values, the list labels, and all positive/negative API and browser acceptance paths.\n\n## Q-002 — Default priority for new and existing tasks\n\nWhy this decision is required:\n- A default for existing persisted data and for creation has no safe default, yet the list must always show readable priority text.\n\nOptions:\n- Middle level (e.g., Medium) is the default for new tasks without an explicit priority and is backfilled to all existing tasks.\n- Lowest level is the default for new tasks and is backfilled to existing tasks.\n- No default: priority is optional; new tasks may omit it, existing tasks stay without priority, and the list shows a neutral placeholder (e.g., \"—\") until one is set.\n\nRecommendation:\n- Middle level as default: every task immediately shows meaningful readable text, with no extra nullable state in the list.\n\nEffect on scope or acceptance:\n- Determines backfill of existing tasks, creation semantics with/without an explicit priority, and whether an \"unset\" display state must exist.\n\n## Q-003 — Who may set/change priority, and through which surfaces\n\nWhy this decision is required:\n- Role and lifecycle semantics plus the public input surface change accepted behavior, and you explicitly reserved this rule.\n\nOptions:\n- Inherit existing task rules: anyone who can already create/edit a task (owner or workspace member) may set priority at creation and change it later, via the existing task create/edit UI and task API; priority is returned in task payloads together with its readable text.\n- Owner-only: only the workspace owner sets or changes priority; members see it read-only.\n- Fixed at creation: a priority is assigned at creation (default if not specified) and can never be changed afterwards.\n\nRecommendation:\n- Inherit existing task rules: priority is an ordinary task field, so the existing task authorization and the archived read-only gate already cover it without any new trust boundary.\n\nEffect on scope or acceptance:\n- Defines the authorization rows (owner / member / archived project), the UI edit surface, the API contract (priority accepted in task create/update), and the negative paths (member denial, archived rejection, invalid value rejected without partial write).\n",
+      "partition": "heldout",
+      "classification": "fixture_gap",
+      "response_ids": [],
+      "context_file": "entry-pack-source/interactions/qualification-cp258-english-accepted.json",
+      "context_sha256": "cbf74847ac038bb7a585cb2b6112b20f6555f38c9772a6a780dc84ea6a902197",
+      "coverage_expectation": {
+        "status": "uncovered",
+        "response_ids": [],
+        "remaining_decisions": [
+          {
+            "id": "language-conflict",
+            "description": "Как разрешить противоречие точных русских подписей с принятым обязательным английским языком?"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cp258-current-english-ui",
+      "question": "Текущее поведение: существующий интерфейс содержит английские тексты. Принятого запрета иных подписей нет. Какие точные подписи показывать у уровней приоритета?",
+      "partition": "heldout",
+      "classification": "covered_by_canonical_response",
+      "response_ids": [
+        "clarification-task-priority"
+      ],
+      "context_file": "entry-pack-source/interactions/qualification-specify.json",
+      "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
+      "coverage_expectation": {
+        "status": "covered",
+        "response_ids": [
+          "clarification-task-priority"
+        ],
+        "remaining_decisions": []
+      }
+    },
+    {
+      "id": "cp258-technical-options",
+      "question": "Для существующих задач можно выполнить backfill или fallback при чтении. Какое пользовательское поведение приоритета должно быть одинаковым в UI и API?",
+      "partition": "heldout",
+      "classification": "covered_by_canonical_response",
+      "response_ids": [
+        "clarification-task-priority"
+      ],
+      "context_file": "entry-pack-source/interactions/qualification-specify.json",
+      "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
+      "coverage_expectation": {
+        "status": "covered",
+        "response_ids": [
+          "clarification-task-priority"
+        ],
+        "remaining_decisions": []
+      }
+    },
+    {
+      "id": "cp258-localization-refused",
+      "question": "Требуется ли поддержка английских подписей наряду с русскими и кто выбирает язык?",
+      "partition": "heldout",
+      "classification": "covered_by_canonical_response",
+      "response_ids": [
+        "clarification-task-priority"
+      ],
+      "context_file": "entry-pack-source/interactions/qualification-specify.json",
+      "context_sha256": "6987f0bf96cbfd606a28cbfd13176cc2ae7b69b77fe9f4d4514d3373189878cf",
+      "coverage_expectation": {
+        "status": "covered",
+        "response_ids": [
+          "clarification-task-priority"
+        ],
+        "remaining_decisions": []
       }
     }
   ]

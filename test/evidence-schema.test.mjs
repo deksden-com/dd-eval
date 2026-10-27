@@ -21,16 +21,18 @@ test('finalization attribution requires engine phase and matching RUN, not gener
   assert.equal(isInfrastructureFailure({ code: 'wrapper', run_id: 'RUN-owned', cause: failure }), true);
   assert.equal(isInfrastructureFailure({ ...failure, recovery: { finalization: { ...finalization, status: 'pending', owner: 'unknown' } } }), true, 'cleanup uncertainty does not erase a proven finalization failure');
 });
-test('Final Judge has explicit frozen decision packet paths for fast and fallback exchanges', () => {
+test('Final Judge receives verified packet paths independent of filter and contract', () => {
   const hitl = ['semantic_decision', 'interaction_judge'].map(decision_source => ({ stage: 'specify', pause_id: decision_source,
-    decision_source, receipt_file: `/owned/${decision_source}/result.json`, coverage_filter: { confidence: 0.88 } }));
+    decision_source, receipt_file: `/owned/${decision_source}/result.json`, packet_file: `/owned/${decision_source}/packet.json`, coverage_filter: { confidence: 0.88 } }));
+  hitl.push({ stage: 'specify', verdict_contract: 'dd-eval/hitl-match@3', packet_file: '/owned/legacy/packet.json' });
   const result = { execution: 'e', state: 'candidate_ready', hitl };
   const packet = buildEvidencePacket({ manifest: { run_id: 'EVAL-audit', executions: [{ id: 'e' }] }, results: [result], candidate: { immutable_hash: 'a'.repeat(64) } });
   for (const [i, item] of packet.executions[0].hitl.entries()) {
-    assert.equal(item.packet_file, `/owned/${hitl[i].decision_source}/packet.json`);
-    assert.equal(item.coverage_filter.confidence, 0.88);
+    assert.equal(item.packet_file, hitl[i].packet_file);
+    if (i < 2) assert.equal(item.coverage_filter.confidence, 0.88);
   }
-  assert.equal(hitl[0].packet_file, undefined, 'projection must not mutate frozen exchanges');
+  const unverified = buildEvidencePacket({ manifest: { executions: [] }, results: [{ hitl: [{ receipt_file: '/unverified/result.json', coverage_filter: {} }] }], candidate: {} });
+  assert.equal(unverified.executions[0].hitl[0].packet_file, undefined, 'a receipt locator alone must not grant a derived read');
 });
 async function validator(file) {
   const schema = JSON.parse(await readFile(path.join(schemaRoot, file), "utf8"));

@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { buildHitlPacket, hitlCoverageContract, validateHitlCoverage, hitlCoverageInput, interactionCoveragePrompt, interactionGroundedPrompt, canonicalExclusionRule } from "../lib/hitl-contract.mjs";
 import { semanticQuestion } from "../lib/semantic-decisions.mjs";
-import { coverageTransport, jevPromptHash, validateCoveragePolicy, jevRequest, requestJev, observeJev, calibrateJev, verifyCoverageQualification } from "../lib/hitl-coverage.mjs";
+import { coverageTransport, jevPromptHash, validateCoveragePolicy, jevRequest, requestJev, observeJev, calibrateJev, verifyCoverageQualification, verifyJevReceipt } from "../lib/hitl-coverage.mjs";
 import { selectedPolicy as capacityPolicy, successfulPolicy, installSuccessfulPolicy } from "./fixtures/capacity-policy.mjs";
 import { childEnvironment } from "../lib/process-json.mjs";
 import { writeJsonAtomic, hashJson, sha256 } from "../lib/runner-events.mjs";
@@ -143,6 +143,17 @@ test("qualification derives acceptance instead of trusting counters and requires
   assert.throws(() => calibrateJev(calibration, heldout.map((s, n) => n === 0 ? { ...s, id: "positive" } : s), policy));
 });
 
+test("historical JEV prompt mismatch is incompatible evidence, never a new issuance or a corruption claim", async () => {
+  const p = await packet();
+  const oldPolicy = { ...policy, prompt_sha256: "a".repeat(64) };
+  const receipt = { decision_source: "jev", schema_id: "dd-eval/hitl-coverage-route@1", packet_sha256: hashJson(p),
+    policy: oldPolicy, policy_sha256: hashJson(oldPolicy) };
+  // No retained directory or provider is consulted when the frozen policy is incompatible.
+  await assert.rejects(verifyJevReceipt("/unread-retained-jev", receipt, p), { code: "judge_evidence_incompatible" });
+  assert.throws(() => validateCoveragePolicy(oldPolicy), { code: "coverage_policy_invalid" }, "new policy admission is not weakened");
+  await assert.rejects(verifyJevReceipt("/unread-retained-jev", { ...receipt, packet_sha256: "b".repeat(64) }, p), { code: "judge_evidence_mismatch" });
+});
+
 test("non-owner environment strips OpenRouter after overrides", () => {
   assert.equal(childEnvironment({ OPENROUTER_API_KEY: "secret", KEEP_ME: "value" }).OPENROUTER_API_KEY, undefined);
   assert.equal(childEnvironment({ KEEP_ME: "value" }).KEEP_ME, "value");
@@ -152,7 +163,9 @@ test("coverage corpus freezes calibration and balanced holdout, separating seman
   const runProfile = await loadRunProfile("cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-inline-merge-luna-coverage-shadow.json");
   runProfile.qualificationJudgeProfile = { ...JSON.parse(await readFile(path.join('profiles', `${runProfile.value.interaction_judge.profile_id}.json`))), provider: 'openai', mode: 'agent', permission: 'allow' };
   const loaded = await loadCase(runProfile.value.case_id), qualified = await hitlQualificationInputs({ loaded, runProfile, definition: {} });
-  assert.equal(qualified.corpus.items.length, 50); assert.equal(qualified.compact, true);
+  const authored = JSON.parse(await readFile(path.join(loaded.root, loaded.value.hitl_qualification.coverage.file)));
+  assert.deepEqual(qualified.corpus, authored, "qualification includes every authored regression, not a stale fixed-size prefix");
+  assert.equal(qualified.compact, true);
   assert.equal(qualified.corpus.items.find(item => item.id === "cp236-create-display-optional").coverage_expectation.status, "covered");
   assert.equal(qualified.corpus.items.find(item => item.id === "cp236-create-display-and-independent-gap").coverage_expectation.status, "uncovered");
   const preliminary = qualified.corpus.items.find(item => item.id === "cp205-preliminary-archive-background");
@@ -250,6 +263,6 @@ test("compact native replay retains its actual Session, final Turn and settled c
 test("unresolved coverage stays neutral, not infrastructure blame", () => {
   const manifest = { run_id: "test", case_id: "case", profile: { interaction_judge: { verdict_contract: hitlCoverageContract } }, executions: [] };
   const report = buildReport({ root: "/test", manifest, state: "completed_with_failures", results: [{ execution: "e", state: "failed", code: "hitl_coverage_unresolved" }] });
-  assert.equal(report.schema_id, "dd-eval/report@3"); assert.equal(report.interaction_resolution, "unresolved"); assert.equal(report.run_validity, "valid");
+  assert.equal(report.schema_id, "dd-eval/report@3"); assert.equal(report.interaction_resolution, "unknown", "a failure code without retained verdict cannot establish coverage"); assert.equal(report.run_validity, "valid");
   assert.equal(classifyInterruption({ code: "hitl_coverage_unresolved" }).source, "unknown");
 });

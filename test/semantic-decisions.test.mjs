@@ -5,7 +5,7 @@ import path from "node:path";
 import os from "node:os";
 import { setTimeout as delay, setImmediate as nextTurn } from "node:timers/promises";
 import { hashJson, writeJsonAtomic, sha256 } from "../lib/runner-events.mjs";
-import { buildHitlPacket, hitlCoverageContract } from "../lib/hitl-contract.mjs";
+import { buildHitlPacket, hitlCoverageContract, canonicalCoveragePolicy, interactionCoveragePrompt } from "../lib/hitl-contract.mjs";
 import { jevInstructions, jevRequest, requestJev } from "../lib/hitl-coverage.mjs";
 import { openaiDecisions } from "../lib/semantic-openai-decisions.mjs";
 import { openrouterDecisions } from "../lib/semantic-openrouter-decisions.mjs";
@@ -63,6 +63,24 @@ test("provider-neutral configuration and codecs preserve exact question meaning 
   const refusal = await requestSemantic(request, config, { key: "test", fetchImpl: async () => Response.json({ model: config.model, answers: [{ type: "refusal", name: "uncovered", message: "never retain" }] }) });
   assert.deepEqual(refusal.response.answers[0], { id: "uncovered", status: "refused", value: null, probability_true: null, confidence: null });
   assert.ok(!JSON.stringify(refusal).includes("never retain"));
+});
+
+test("native, JEV and Luna Decisions receive the same operational policy and unpromoted Subject claims", async () => {
+  const packet = await buildHitlPacket({ stage: "specify", question: "Already settled: English labels. Backfill or fallback?", responses: [
+    { id: "canon", answer: "Используйте русские подписи. Default no_priority; backfill/fallback выбирает исполнитель." }
+  ], subjectContext: { objective: "Task priority", accepted_decisions: [] }, verdictContract: hitlCoverageContract });
+  const original = structuredClone(packet);
+  const shared = semanticQuestion(packet);
+  const router = openrouterDecisions.encode(shared, jev.model);
+  const luna = openaiDecisions.encode(shared, config.model);
+  for (const prompt of [interactionCoveragePrompt(packet, "packet.json"), router.questions.uncovered.instructions, luna.questions[0].instructions]) {
+    assert.ok(prompt.includes(canonicalCoveragePolicy));
+  }
+  assert.equal(router.state.question, packet.question);
+  assert.deepEqual(router.state.context.accepted_decisions, []);
+  assert.deepEqual(JSON.parse(luna.input), router.state);
+  assert.deepEqual(router.state.responses, packet.responses);
+  assert.deepEqual(packet, original, "policy rendering does not promote claims, translate or alter canonical bytes");
 });
 
 test("JEV identity allows only its own release resolution and strips arbitrary provider fields", async () => {

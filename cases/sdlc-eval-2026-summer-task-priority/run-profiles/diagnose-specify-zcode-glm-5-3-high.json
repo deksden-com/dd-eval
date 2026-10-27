@@ -17,7 +17,8 @@
     "enabled": false
   },
   "interaction_judge": {
-    "profile_id": "codex-desktop-gpt-6-1-sol-high"
+    "profile_id": "codex-desktop-gpt-6-1-sol-high",
+    "verdict_contract": "dd-eval/hitl-coverage@1"
   },
   "concurrency": {
     "global": 1,
