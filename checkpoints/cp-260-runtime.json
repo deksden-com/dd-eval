@@ -12,22 +12,22 @@
     "memory_bank_version": "4.1.3",
     "verification_matrix": {
       "contract": "dd-flow/verification-matrix@1",
-      "file": "cp-260-installed-matrix-qualification.json",
-      "sha256": "c4626244f7ec0600a5807553982d469cb063f4a70b995d1fb3589ee18c95a061",
+      "file": "cp-260-successor-matrix-qualification.json",
+      "sha256": "0f8a1a5b12e6ca422322c3ab4c1a078f76b7008ee2ec8aa898a12a59487f311b",
       "canon_commit": "052ffdf0fff642a46485d2decc79bf78b1970d5e"
     },
     "engine": {
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
-      "commit": "da5f0fe21f242fb220130b7cbdb936be2f6f1bef",
+      "commit": "80c075ee8863086d87e087b576c46ac5b6cd6a15",
       "version": "0.9.0-beta.155",
-      "artifact_sha256": "7b2673d8b6c9c90d80cb3fb92d1455c1fcb6321e6afee60a5d58908f7b3b351e"
+      "artifact_sha256": "40a76e0aea34ba0ec60e2c7e09c332e774219592008ae33123ab03651515694e"
     }
   },
   "state": "candidate_pending_preflight",
   "preparation": {
     "launchable": true,
     "product_base": "26bf561f175450337a999fdb114580e641c99cde",
-    "tooling": "CP260: canon 4.1.3 integrates accepted local main and plan109; beta.155 scoped verification and actual publication required before launch. Managed flow pack refreshed without product changes. Installed matrix @4 retains its original producer and packets; final engine component fingerprint matches. No full release gate or GitHub CI. Both Judges gpt-6.1-sol/high; no semantic decision shortcut or stop_after.",
+    "tooling": "CP260: canon 4.1.3 integrates accepted local main and plan109; beta.155 scoped verification and actual publication required before launch. Managed flow pack refreshed without product changes. A fresh installed matrix @4 retains four actual Stage publications after repair-successor and HITL resume recovery fixes. Earlier proof remains unchanged. No full release gate or GitHub CI. Both Judges gpt-6.1-sol/high; no semantic decision shortcut or stop_after.",
     "world_isolation": "Per-execution test worlds; owned EVAL PostgreSQL on loopback 55439.",
     "baseline": "Each scored workspace executes its own baseline before Subject dispatch."
   }
