@@ -2,6 +2,7 @@
 
 Дата: 2026-10-27. Статус: implementation complete / scoped offline verified.
 Не является release-accepted или результатом нового модельного/E2E прогона.
+Повторное ревью и интеграция: [109 — review receipt](109-review-and-integration.md).
 
 ## Что сделано
 
