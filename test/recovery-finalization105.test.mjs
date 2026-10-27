@@ -85,7 +85,7 @@ for (const changed of ['none', 'project', 'runtime', 'binding', 'attempt', 'run-
   t.after(() => Promise.all([root, outside].map(file => rm(file, { recursive: true, force: true }))));
   const attempt = path.join(root, 'executions/e'), project = path.join(attempt, 'project'), runtime = path.join(attempt, 'dd-flow-home');
   const capture = path.join(root, 'recovery/RCV-1'), bindingFile = path.join(attempt, 'managed-runtime.json'), calls = path.join(root, 'calls.jsonl');
-  const resources = path.join(root, 'resources'), controlBin = path.join(root, 'control-runtime/bin/dd-flow');
+  const resources = path.join(root, 'resources'), controlBin = path.join(root, 'control-runtime/bin/dd-flow'), scopeCalls = path.join(root, 'scope-calls.jsonl');
   for (const directory of [project, path.join(runtime, 'bin'), capture, resources, path.dirname(controlBin)]) await mkdir(directory, { recursive: true });
   const manifest = { run_id: 'EVAL-owned-105', executions: [{ id: 'e' }], profile: { judge: { enabled: false } }, runtime_recovery_home: path.join(root, 'recovery'), runtime_control_bin: controlBin, runtime_resource_home: resources };
   // Legacy explicit physical evidence isolates caller path validation here;
@@ -95,7 +95,10 @@ for (const changed of ['none', 'project', 'runtime', 'binding', 'attempt', 'run-
   const bin = path.join(runtime, 'bin/dd-flow');
   await writeFile(bin, `#!${process.execPath}\nrequire('node:fs').appendFileSync(${JSON.stringify(calls)},'native-read\\n');console.log(${JSON.stringify(JSON.stringify(receipt))});\n`);
   await chmod(bin, 0o700);
-  await writeFile(controlBin, await readFile(bin)); await chmod(controlBin, 0o700);
+  // Scope observation uses the canonical manifest executable independently of
+  // the per-execution binding. It is not a read through a replaced native path.
+  await writeFile(controlBin, `#!${process.execPath}\nconst fs=require('node:fs');fs.appendFileSync(${JSON.stringify(scopeCalls)},JSON.stringify(process.argv.slice(2))+'\\n');console.log(${JSON.stringify(JSON.stringify({ scope_id: manifest.run_id, processes: [], provider_turns: [] }))});\n`);
+  await chmod(controlBin, 0o700);
   await writeJsonAtomic(bindingFile, { schema_id: 'dd-eval/managed-runtime@1', run_id: 'RUN-1', project_root: project, runtime_root: runtime });
   await writeJsonAtomic(path.join(capture, 'snapshot.json'), { schema_id: 'dd-flow/eval-run-snapshot@5', purpose: 'recovery', run_id: 'RUN-1', recovery_id: 'RCV-1', project_root: project, dd_flow_home: runtime, consistency: 'sealed_writer_barrier_required', restorable: 'same-runtime-or-explicit-restore' });
   const result = { execution: 'e', state: 'failed', run_id: 'RUN-1', code: 'provider_failed', error: 'original failure' };
@@ -122,6 +125,8 @@ for (const changed of ['none', 'project', 'runtime', 'binding', 'attempt', 'run-
   assert.deepEqual(await readFile(eventsFile), before, 'recognition never rewrites retained events');
   const nativeReads = await readFile(calls, 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error; });
   assert.equal(nativeReads, changed === 'none' ? 'native-read\nnative-read\nnative-read\n' : changed === 'attempt' ? 'native-read\n' : '', 'only validated canonical bindings may execute a native read');
+  assert.deepEqual((await readFile(scopeCalls, 'utf8')).trim().split('\n').map(JSON.parse),
+    [['runtime', 'scope', 'status', '--scope-id', manifest.run_id, '--json']], 'independent scope observation is read-only and bound to this EVAL');
   if (changed !== 'none') {
     // Authorized late-capture cleanup enriches the failure before capture and
     // physical recognition. That earlier diagnostic path must share the guard.
@@ -130,7 +135,9 @@ for (const changed of ['none', 'project', 'runtime', 'binding', 'attempt', 'run-
     for (const type of ['started', 'failed']) await appendEvent(eventsFile, { source: 'test', runId: manifest.run_id, executionId: 'e', type: `dev.dd.eval.operation.${type}`, data: { operation_id: operationId, ...(type === 'failed' ? { error: { code: result.code, message: result.error } } : {}) } });
     await appendEvent(eventsFile, { source: 'test', runId: manifest.run_id, executionId: 'e', type: 'dev.dd.eval.execution.failed', data: { ...result, execution_operation_id: operationId } });
     const cleaned = await runnerCleanup({ evalRoot: root });
-    assert.equal(cleaned.cleanup_state, 'blocked'); assert.equal(cleaned.executions[0].code, result.code, 'path rejection cannot replace the original subject failure');
+    assert.equal(cleaned.cleanup_state, 'pending');
+    assert.equal(cleaned.cleanup_observation.capture, 'unknown', 'invalid binding blocks capture separately from physical cleanup');
+    assert.equal(cleaned.executions[0].code, result.code, 'path rejection cannot replace the original subject failure');
     const bindingRejected = error => ['snapshot_binding_invalid', 'execution_scope_invalid'].includes(error.code);
     await assert.rejects(runnerCleanup({ evalRoot: root, requestId: 'owned-path-guard' }), bindingRejected, 'explicit control reconciliation also validates its binding before RPC');
     if (changed !== 'attempt') {
