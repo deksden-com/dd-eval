@@ -11,9 +11,9 @@
   "reasoning": "high",
   "mode": "accept-edits",
   "runtime": {
-    "agy": "1.4.6",
+    "agy": "1.4.7",
     "dd_harness_contract": "dd-agy-harness@1"
   },
   "subagent_capacity": 1,
-  "notes": "CP246 AGY 1.4.6 compatibility qualified with one observed direct child, required execution idle and native/physical cleanup confirmed. Receipt: /Users/deksden/.dd-eval/qualification/cp-246-agy-compatibility-r2/conformance/harness-compatibility/20261023171229364/antigravity-cli-google-gemini-3-8-flash-high/receipt.json. Native model attribution remains incomplete. Conservative capacity 1; scored E2E pending."
+  "notes": "CP258 AGY 1.4.7 compatibility qualified with one observed direct child, required execution idle and native/physical retirement confirmed. Capacity 1 reuses that same smoke, not a second model probe. Receipt: /Users/deksden/.dd-eval/qualification/cp258-agy-full/conformance/native-subagents/20261027104136505/antigravity-cli-google-gemini-3-8-flash-high/capacity.json. P3: /Users/deksden/.dd-eval/qualifications/native/agy-1.4.7-plan108-20261027/qualification.json. Native profile attribution remains incomplete; full scored E2E pending."
 }
