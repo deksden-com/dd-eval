@@ -6,13 +6,31 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import Ajv from "ajv/dist/2020.js";
-import { buildHitlPacket, validateHitlPacket, validateGroundedHitl, hitlMatchContract, interactionGroundedPrompt, interactionCoveragePrompt, canonicalExclusionRule, hitlCoverageContract } from "../lib/hitl-contract.mjs";
+import { buildHitlPacket, validateHitlPacket, validateGroundedHitl, hitlMatchContract, interactionGroundedPrompt, interactionCoveragePrompt, canonicalExclusionRule, canonicalCoveragePolicy, hitlCoverageContract } from "../lib/hitl-contract.mjs";
 import { jevInstructions } from "../lib/hitl-coverage.mjs";
 
 const responses = [{ id: "a", topic: "value", applicability: "value", answer: "Closed tasks may change priority. No colors." }, { id: "b", topic: "default", applicability: "default", answer: "Default is normal." }];
 const atom = (source_quote, classification = "covered_by_canonical_response", extra = {}) => ({ source_quote, decision: source_quote, classification, reference_bindings: [], answer_evidence: classification === "covered_by_canonical_response" ? [{ response_id: "a", answer_quote: "Closed tasks may change priority." }] : [], scope_evidence: [], rationale: "Exact supplied evidence", ...extra });
 const raw = atoms => ({ schema_id: hitlMatchContract, atoms });
 const packet = question => buildHitlPacket({ stage: "specify", question, responses });
+
+test("operational coverage shares sufficiency and authority policy without changing legacy atom classification", async () => {
+  const p = await buildHitlPacket({ stage: "specify", question: "Which storage mechanism? English is already settled.", responses, verdictContract: hitlCoverageContract });
+  for (const prompt of [interactionCoveragePrompt(p, "packet.json"), jevInstructions]) {
+    assert.ok(prompt.includes(canonicalCoveragePolicy));
+    assert.match(prompt, /Assess answer sufficiency, not the quality or necessity/);
+    assert.match(prompt, /explicitly delegated implementation choice is resolved/);
+    assert.match(prompt, /missing observable behavior for existing tasks remains unresolved/);
+    assert.match(prompt, /genuine independently accepted English-only policy without an authorized revision remains a conflict/);
+    assert.match(prompt, /Browser locale and the language of existing UI strings do not establish that policy/);
+    assert.match(prompt, /redundant request to reconfirm an answered decision is covered/);
+  }
+  // Choosing the compact operational task never reclassifies retained atom results.
+  const historical = await packet("Which storage mechanism?");
+  const rejected = validateGroundedHitl(raw([atom(historical.question, "out_of_scope")]), historical);
+  assert.equal(rejected.status, "unmatched");
+  assert.equal(rejected.classification, "out_of_scope");
+});
 
 test("every semantic route shares background/replacement authority without erasing independent decisions", async () => {
   const p = await buildHitlPacket({ stage: "specify", question: "Old behavior is read-only. Which priority rules?", responses, verdictContract: hitlCoverageContract });

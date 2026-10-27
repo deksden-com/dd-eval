@@ -125,6 +125,8 @@ test("HITL qualification binds Judge task evidence, not repository tree or harne
   try {
     const loaded = await loadCase(caseId);
     const runProfile = await loadRunProfile(path.join(root, "cases", caseId, "run-profiles", "e2e-inline-merge-luna-xhigh.json"));
+    // This fixture tests historical atom evidence, not the operational profile default.
+    runProfile.value.interaction_judge.verdict_contract = 'dd-eval/hitl-match@3';
     const judgeId = runProfile.value.interaction_judge.profile_id;
     await mkdir(path.join(process.env.DD_FLOW_CONFIG_HOME, 'agent-profiles'), { recursive: true });
     await writeFile(path.join(process.env.DD_FLOW_CONFIG_HOME, 'agent-profiles', `${judgeId}.json`), JSON.stringify({ schema_id: 'dd-flow/agent-profile@1', id: judgeId, harness: 'codex', provider: 'openai', model: 'stale-model', reasoning: 'low', mode: 'agent', permission: 'allow' }));
@@ -540,10 +542,10 @@ test("Final Judge receives a bounded evidence scope", () => {
   assert.match(prompt, /"scope":"e2e"/);
   assert.match(prompt, /"id":"quality"/);
   assert.match(prompt, /"id":"integrity"/);
-  assert.match(prompt, /independently audit the semantic decision/);
-  assert.match(prompt, /Audit both accepted fast paths and fallback routes/);
+  assert.match(prompt, /audit material semantic consequences/);
+  assert.match(prompt, /Audit native Judge, accepted fast paths and fallback routes/);
   assert.match(prompt, /Missing retained evidence means unassessable, not correct/);
-  assert.match(prompt, /This audit is required even when there are no findings/);
+  assert.match(prompt, /when applicable to the rubric/);
 });
 
 test("Codex default and mixed E2E differ only in explicit reviewer routing", async () => {

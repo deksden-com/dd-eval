@@ -73,7 +73,9 @@ test('v3 proof requires event anchors and exact scope/round binding', async t =>
   await rm(path.join(root, 'cleanup.json'));
   await settledJudge(root, { schema_id: 'dd-eval/interaction-judge-receipt@2', stage: data.stage, profile_id: 'judge', session_id: 'session', packet_sha256: hashJson(packet), verdict });
   const anchored = { ...data, judge_profile: 'judge', scope_id: 'e2e', receipt_sha256: sha256(await readFile(data.receipt_file)), packet_sha256: hashJson(packet), verdict_contract: verdict.schema_id };
-  assert.equal((await verifyRetainedHitl({ data: anchored, expectedScope: 'e2e' })).verdict.schema_id, verdict.schema_id);
+  const proof = await verifyRetainedHitl({ data: anchored, expectedScope: 'e2e' });
+  assert.equal(proof.verdict.schema_id, verdict.schema_id);
+  assert.equal(proof.packet_file, path.join(root, 'packet.json'));
   for (const changed of [{ receipt_sha256: null }, { packet_sha256: 'changed' }, { round: 2 }, { scope_id: 'other' }, { judge_profile: undefined }, { judge_session_id: undefined }, { verdict_contract: 'dd-eval/hitl-match@1' }]) {
     await assert.rejects(verifyRetainedHitl({ data: { ...anchored, ...changed } }), { code: 'judge_evidence_mismatch' });
   }
