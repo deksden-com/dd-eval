@@ -38,7 +38,7 @@ test("stop targets shorten ranges, never expand or silently ignore an execution"
   assert.deepEqual(segment.map(item => [item.id, item.terminal_stage]), [["segment-plan-to-merge-r1", "code"], ["segment-plan-to-merge-r2", "code"]]);
 });
 
-test("completed target becomes finished only after cleanup; failure or missing proof cannot finish", () => {
+test("accepted target becomes finished independently of cleanup; failure or missing target proof cannot finish", () => {
   const retained = manifest(profile()), result = ready(retained.executions[0]);
   assert.equal(projectRunCompletion({ manifest: retained, results: [result] }), "finished");
   assert.equal(projectRunCompletion({ manifest: retained, results: [result], pending: true }), "awaiting_provider");

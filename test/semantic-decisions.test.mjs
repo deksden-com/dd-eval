@@ -254,6 +254,24 @@ test("optional unavailability, exhausted/long retries and low-confidence need no
   assert.equal(semanticRetryAfter("-1"), null); assert.equal(semanticRetryAfter("garbage"), null);
 });
 
+test("network exhaustion retains a transport cause, not provider overload", async () => temporary(async root => {
+  const input = options(root); let calls = 0;
+  input.transport.fetchImpl = async () => { calls++; throw Object.assign(new Error("private response"), { code: "ECONNRESET" }); };
+  const saved = await observeSemantic(input);
+  assert.equal(calls, 3);
+  assert.equal(saved.reason, "transport_retries_exhausted");
+  assert.equal(saved.state, "fallback_intended");
+  assert.ok(!JSON.stringify(saved).includes("private response"));
+}));
+
+test("HTTP and successful-response schema failures never claim a network cause", async () => {
+  for (const [status, category] of [[400, "provider_failed"], [404, "provider_failed"], [500, "provider_http_transient"], [200, "provider_failed"]]) {
+    const result = await requestSemantic(request, config, { key: "test", fetchImpl: async () => Response.json({ answers: {} }, { status }) });
+    assert.equal(result.category, category);
+    assert.equal(result.retryable, status === 500);
+  }
+});
+
 test("live or uninspectable owner cannot be stolen; dead unknown attempt goes only to fallback", async () => temporary(async root => {
   let calls = 0, release; const input = options(root);
   input.transport.fetchImpl = async () => { calls++; await new Promise(resolve => { release = resolve; }); return Response.json(response(.01)); };

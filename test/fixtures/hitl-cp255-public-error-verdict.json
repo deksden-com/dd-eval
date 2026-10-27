@@ -1,0 +1,215 @@
+{
+  "schema_id": "dd-eval/hitl-match@3",
+  "atoms": [
+    {
+      "source_quote": "Другой набор уровней — назовите значения",
+      "decision": "Choose the priority codes and their user-facing labels.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Используем четыре уровня: `no_priority` («Без приоритета»), `low` («Низкий»), `medium` («Средний»), `high` («Высокий»); для новых и существующих задач по умолчанию — `no_priority`."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "The canonical response supplies the exact vocabulary and labels, replacing the proposed sets."
+    },
+    {
+      "source_quote": "по умолчанию «Средний» (существующие задачи получают его при миграции).",
+      "decision": "Choose the default priority, including the value assigned to existing tasks.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [
+        {
+          "reference_quote": "его",
+          "source_id": "question",
+          "evidence_quote": "по умолчанию «Средний»"
+        }
+      ],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Используем четыре уровня: `no_priority` («Без приоритета»), `low` («Низкий»), `medium` («Средний»), `high` («Высокий»); для новых и существующих задач по умолчанию — `no_priority`."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "The response explicitly sets no_priority for both new and existing tasks, replacing the proposed medium default."
+    },
+    {
+      "source_quote": "Другой набор уровней — назовите значения, их порядок и дефолт.",
+      "decision": "Determine whether the priority vocabulary requires an ordering of levels or a separate control order.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [
+        {
+          "reference_quote": "их",
+          "source_id": "question",
+          "evidence_quote": "Другой набор уровней — назовите значения, их порядок и дефолт."
+        }
+      ],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Никаких дополнительных сравнений, ранжирования, сортировки или фильтрации задач по приоритету не требуется. Перечень кодов и подписей — фиксированный словарь, а не требование нового порядка задач или отдельного порядка UI-контрола."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "The explicit refusal of comparisons, ranking and separate ordering resolves the ordering request; the vocabulary does not establish an accepted ordinal scale."
+    },
+    {
+      "source_quote": "Приоритет выбирается при создании задачи (необязательно, иначе дефолт)",
+      "decision": "Decide whether users can optionally select priority during task creation, including in the creation form.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "При создании отдельный выбор приоритета не требуется: новая задача получает `no_priority`; изменить приоритет можно после создания через существующий интерфейс редактирования."
+        },
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "При создании задачи отсутствие поля `priority` или значение `no_priority` создаёт задачу без приоритета. Переданные `low`, `medium`, `high` и недопустимые значения отклоняются без создания задачи: приоритет меняется только после создания."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "The response replaces selection at creation with no_priority and allows priority changes only after creation, resolving the repeated creation-form proposal as well."
+    },
+    {
+      "source_quote": "изменяется в любой момент",
+      "decision": "Decide when priority may be changed after creation, including whether task or project status restricts changes.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Изменение приоритета разрешено для открытых и закрытых задач; статус самой задачи не ограничивает это действие."
+        },
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Из общего read-only правила архивного проекта делаем узкое исключение: участник workspace может изменить приоритет задачи, в том числе через существующий интерфейс редактирования; остальные поля остаются read-only."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "The response permits changes for open and closed tasks and explicitly permits priority edits in archived projects; post-creation editing in active projects is specified in the role rule."
+    },
+    {
+      "source_quote": "теми же ролями, которые сегодня могут редактировать задачу (owner; member в пределах текущего доступа).",
+      "decision": "Choose which roles may change priority, preserving the stated owner/member access condition.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "В активном проекте и owner, и member могут после создания менять приоритет задачи; оба видят понятную подпись в списке и карточке задачи."
+        },
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Из общего read-only правила архивного проекта делаем узкое исключение: участник workspace может изменить приоритет задачи, в том числе через существующий интерфейс редактирования; остальные поля остаются read-only."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "The question identifies the candidate roles explicitly; the response authorizes both in active projects and supplies the narrow archived-project exception."
+    },
+    {
+      "source_quote": "редактирование на странице задачи",
+      "decision": "Decide whether priority editing is available in the task UI.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "При создании отдельный выбор приоритета не требуется: новая задача получает `no_priority`; изменить приоритет можно после создания через существующий интерфейс редактирования."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "The response selects editing after creation through the existing editing interface, resolving the proposed UI editing surface."
+    },
+    {
+      "source_quote": "понятный текст всегда виден в списке задач",
+      "decision": "Decide whether the task list displays a readable priority label.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "В списке задач показываем эти понятные тексты и не меняем существующий порядок задач из-за приоритета."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "The response explicitly requires the readable priority texts in the list."
+    },
+    {
+      "source_quote": "API принимает и возвращает приоритет при создании/изменении/получении",
+      "decision": "Determine which priority values the API accepts during creation and update, including omitted fields.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "При создании задачи отсутствие поля `priority` или значение `no_priority` создаёт задачу без приоритета. Переданные `low`, `medium`, `high` и недопустимые значения отклоняются без создания задачи: приоритет меняется только после создания. При обновлении отсутствие поля `priority` сохраняет текущее значение; переданное допустимое значение устанавливается, включая `no_priority`. Недопустимое значение отклоняет весь запрос без частичной записи."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "The response gives distinct creation and update rules, replacing unrestricted priority selection during creation."
+    },
+    {
+      "source_quote": "API принимает и возвращает приоритет при создании/изменении/получении",
+      "decision": "Decide whether the API returns priority as part of the task representation.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Правила одинаковы для UI и API. Поле `priority` возвращается в ответах API как для списка задач, так и для детальной задачи; список и detail-вид показывают соответствующую понятную подпись."
+        },
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "API возвращает только код уровня в поле `priority`; отдельную текстовую подпись API не возвращает, UI отображает её по коду из той же фиксированной шкалы."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "The canonical response requires priority in task API representations and specifies that the returned value is its code."
+    },
+    {
+      "source_quote": "неизвестное значение отклоняется стабильной публичной ошибкой без частичной записи.",
+      "decision": "Decide whether unknown priority values are rejected atomically using the existing stable public error contract.",
+      "classification": "covered_by_canonical_response",
+      "reference_bindings": [],
+      "answer_evidence": [
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Общие правила проекта сохраняются, кроме явно указанного исключения для изменения приоритета в архивном проекте."
+        },
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Неизвестное или недопустимое значение приоритета отклоняем без частичной записи: задача остаётся без изменений."
+        },
+        {
+          "response_id": "clarification-task-priority",
+          "answer_quote": "Переданные `low`, `medium`, `high` и недопустимые значения отклоняются без создания задачи: приоритет меняется только после создания."
+        }
+      ],
+      "scope_evidence": [],
+      "rationale": "The response explicitly requires atomic rejection and preserves general project rules. Frozen source-0 states: Public errors имеют стабильные `code`/`message`; unexpected internals не\nвыдаются клиенту. It also requires preserving the structured public error contract. The stable-error modifier inherits this existing normative rule; no new error code or format is requested."
+    }
+  ],
+  "status": "matched",
+  "classification": "covered_by_canonical_response",
+  "response_ids": [
+    "clarification-task-priority"
+  ],
+  "covered_questions": [
+    "Другой набор уровней — назовите значения",
+    "по умолчанию «Средний» (существующие задачи получают его при миграции).",
+    "Другой набор уровней — назовите значения, их порядок и дефолт.",
+    "Приоритет выбирается при создании задачи (необязательно, иначе дефолт)",
+    "изменяется в любой момент",
+    "теми же ролями, которые сегодня могут редактировать задачу (owner; member в пределах текущего доступа).",
+    "редактирование на странице задачи",
+    "понятный текст всегда виден в списке задач",
+    "API принимает и возвращает приоритет при создании/изменении/получении",
+    "API принимает и возвращает приоритет при создании/изменении/получении",
+    "неизвестное значение отклоняется стабильной публичной ошибкой без частичной записи."
+  ],
+  "uncovered_questions": [],
+  "rationale": "The canonical response supplies the exact vocabulary and labels, replacing the proposed sets.\nThe response explicitly sets no_priority for both new and existing tasks, replacing the proposed medium default.\nThe explicit refusal of comparisons, ranking and separate ordering resolves the ordering request; the vocabulary does not establish an accepted ordinal scale.\nThe response replaces selection at creation with no_priority and allows priority changes only after creation, resolving the repeated creation-form proposal as well.\nThe response permits changes for open and closed tasks and explicitly permits priority edits in archived projects; post-creation editing in active projects is specified in the role rule.\nThe question identifies the candidate roles explicitly; the response authorizes both in active projects and supplies the narrow archived-project exception.\nThe response selects editing after creation through the existing editing interface, resolving the proposed UI editing surface.\nThe response explicitly requires the readable priority texts in the list.\nThe response gives distinct creation and update rules, replacing unrestricted priority selection during creation.\nThe canonical response requires priority in task API representations and specifies that the returned value is its code.\nThe response explicitly requires atomic rejection and preserves general project rules. Frozen source-0 states: Public errors имеют стабильные `code`/`message`; unexpected internals не\nвыдаются клиенту. It also requires preserving the structured public error contract. The stable-error modifier inherits this existing normative rule; no new error code or format is requested."
+}

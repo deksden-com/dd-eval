@@ -13,9 +13,9 @@
   "runtime": {
     "zcode": "0.17.0",
     "zcode_acp": "0.52.0",
-    "zcode_acp_commit": "9c5ca6cc81c4eb5065e43f8b7ab6b7cc5ab7ae47",
+    "zcode_acp_commit": "b18dfdbedaa9330e765315bce0f1a609792d6c91",
     "dd_harness_contract": "dd-zcode-harness@2"
   },
-  "notes": "Controlled ZCode Flash subject at maximum reasoning. ZCode 0.17.0 qualified on beta.148: /Users/deksden/.dd-eval/qualification/cp-246-zcode-compatibility/conformance/harness-compatibility/20261023172817027/zcode-acp-zai-glm-5-3-flash-max/receipt.json. One native child completed; native and physical cleanup confirmed. Capacity is conservatively limited to the observed fan-out.",
+  "notes": "CP253 installed downstream 0.52.0 bridge b18dfdb, fingerprint 3cda80116f19b72b7909050a26d1dc3299245b978e98b1faae7b4d3e50c7a0b3. Native same-child Read continuation and retained causal admission passed; capacity remains 1. Receipt: /var/folders/3d/083xyfws1x57r5mm5t1_rxqm0000gp/T/plan103-zcode-native-FnYWSt/receipt-1792920358228.json. New E2E pending; shell effects are not inferred from prose.",
   "subagent_capacity": 1
 }

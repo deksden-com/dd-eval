@@ -40,6 +40,15 @@ later package-manager operation can still resolve its recorded file dependency.
 
 ## Candidate sequence
 
+For our downstream artifact use bridge `pnpm release:downstream <reviewed-selection.json>
+<absolute-empty-output-directory>`. The committed selection@2 names exact tests,
+source/dependency closures, execution classes and build consumption against
+`upstream-base.json`; unknown executable changes block selection. Only missing
+contracts run. One build precedes compiled consumers, then hook-free pack/install
+and installed version/commit readback. This path never publishes or invokes the
+upstream full-test lifecycle. Keep prior output directories immutable. See the
+fork README for the selection schema; use the common verification runner policy.
+
 1. Inventory native ZCode, bridge, extension contract, published dd-flow adapter
    and profile. Review both release streams. Choose an exact upstream tag and
    ask the fork maintenance procedure to produce a tested downstream artifact.

@@ -21,6 +21,7 @@ alone does not authorize paid qualification, provider calls or scored launches.
    export DD_FLOW_CONFIG_HOME="$DD_EVAL_HOME/engine-config"
    export DD_FLOW_RESOURCE_HOME=/absolute/shared-host-resource-home
    export DD_EVAL_REGISTRY_FILE=/absolute/project-eval-registry/homes.json
+   export AGY_CLI_DISABLE_AUTO_UPDATE=true
    ~~~
 
    Prepare these from the accepted engine/configuration, not a failed execution.
@@ -32,6 +33,10 @@ alone does not authorize paid qualification, provider calls or scored launches.
    separately in the candidate receipt; verify both before selecting the pin.
    Preflight and launch must use the same engine. Do not silently fall back to a
    global CLI or change a retained run's engine. See [harness updates](update-harnesses.md).
+   Keep AGY's self-updater disabled from doctor/preflight through all native
+   children: it can replace even a private copied binary. Use the literal `true`,
+   not `1`, and verify the selected binary digest after preparation. This is
+   EVAL-scoped; do not change the user's global updater preference.
 4. Verify engine integrity, installed `harnesses.json`, every reachable Flow agent
    profile and Subject/worker/Judge adapter admission. Eval profiles and installed
    Flow profiles have different schemas. Run the pinned adapter's non-generative
@@ -55,8 +60,10 @@ alone does not authorize paid qualification, provider calls or scored launches.
    Subject harness/engine fixes, transport repairs and unrelated repo edits do not
    retest Judge. Oracle changes reassess retained answers deterministically; changed
    questions affect their tasks, shared Judge prompt/model changes affect all tasks.
-   Corrupt evidence, unknown paid outcomes or unconfirmed cleanup require resolution,
-   not a replacement call. Qualification is regression evidence, not infallibility.
+   Corrupt evidence and unknown paid outcomes require resolution, not a replacement
+   call. Valid retained answers do not require new model calls merely because
+   cleanup remains pending; record that technical debt and block only conflicting
+   resource reuse. Qualification is regression evidence, not infallibility.
    Codex history may be unavailable before its SQLite view is ready. Observe the
    accepted Turn; do not resend it or classify a history-read refusal as provider
    outage. An unresolved outcome/cleanup uses the retained operation's recovery,
@@ -86,10 +93,12 @@ node bin/dd-eval.mjs runner eval preflight --profile <absolute-profile.json>
 
 Preflight prepares the pinned project/configuration and an unstarted RUN, without
 Subject Sessions or baseline execution. PASS means **ready; baseline pending**.
-Do not repeat it for unchanged inputs or documentation edits. Actual E2E runs its
-own baseline before Subject dispatch, including locked Playwright prerequisites;
-never share baseline PASS across workspaces. Stagger CPU-heavy baseline admission
-before allowing parallel productive runs on one host.
+Do not repeat it for unchanged inputs or documentation edits. Policy@3 reuses an
+intact fixture assessment for identical source/tooling/dependency/consumer inputs;
+each new workspace separately installs locked prerequisites and proves its own
+DB/schema/seed/ownership/read-write/cleanup readiness. Never copy another world's
+readiness or writable state. Legacy policy@1/@2 retains its original admission.
+No full engine gate or unchanged quality/browser suite is an extra preparation step.
 
 New runs retain one absolute Playwright cache in `manifest.check_resources`:
 explicit `PLAYWRIGHT_BROWSERS_PATH`, otherwise

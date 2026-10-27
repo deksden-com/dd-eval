@@ -1,5 +1,5 @@
 {
-  "schema_id": "dd-eval/baseline-admission-policy@2",
+  "schema_id": "dd-eval/baseline-admission-policy@3",
   "commands": [
     {
       "id": "install",
@@ -7,14 +7,6 @@
       "args": [
         "install",
         "--frozen-lockfile"
-      ],
-      "inactivity_timeout_ms": 600000
-    },
-    {
-      "id": "quality",
-      "command": "pnpm",
-      "args": [
-        "quality"
       ],
       "inactivity_timeout_ms": 600000
     },
@@ -33,20 +25,107 @@
       "inactivity_timeout_ms": 600000
     },
     {
-      "id": "browser",
+      "id": "world-readiness",
       "command": "pnpm",
       "args": [
-        "test:browser"
+        "--filter",
+        "@dd-tasks/api",
+        "exec",
+        "tsx",
+        "scripts/test-world.ts",
+        "integration",
+        "node",
+        "--import",
+        "tsx",
+        "__DD_EVAL_WORLD_READINESS__"
       ],
-      "inactivity_timeout_ms": 600000
-    },
-    {
-      "id": "isolation",
-      "command": "pnpm",
-      "args": [
-        "test:world"
-      ],
-      "inactivity_timeout_ms": 600000
+      "inactivity_timeout_ms": 120000
     }
-  ]
+  ],
+  "fixture_assessment": {
+    "inputs": [
+      "apps/**",
+      "scripts/**",
+      "package.json",
+      "pnpm-lock.yaml",
+      "pnpm-workspace.yaml",
+      "biome.json",
+      ".memory-bank/spec/engineering/code-check-profile.json"
+    ],
+    "commands": [
+      {
+        "id": "quality",
+        "command": "pnpm",
+        "args": [
+          "quality"
+        ],
+        "inactivity_timeout_ms": 600000
+      },
+      {
+        "id": "browser",
+        "command": "pnpm",
+        "args": [
+          "test:browser"
+        ],
+        "inactivity_timeout_ms": 600000
+      },
+      {
+        "id": "isolation",
+        "command": "pnpm",
+        "args": [
+          "test:world"
+        ],
+        "inactivity_timeout_ms": 600000
+      }
+    ],
+    "inputs_by_command": {
+      "quality": [
+        "apps/**",
+        "scripts/**",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "biome.json",
+        ".memory-bank/spec/engineering/code-check-profile.json"
+      ],
+      "browser": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "apps/api/package.json",
+        "apps/web/package.json",
+        ".memory-bank/spec/engineering/code-check-profile.json",
+        "apps/api/src/**",
+        "apps/api/drizzle/**",
+        "apps/api/scripts/test-world.ts",
+        "apps/web/src/**",
+        "apps/web/tests/browser/**",
+        "apps/web/index.html",
+        "apps/web/vite.config.ts",
+        "apps/web/playwright*.ts",
+        "scripts/test-runner.mjs",
+        "scripts/test-observation.mjs",
+        "scripts/runner-progress.mjs",
+        "scripts/owned-process.mjs",
+        "scripts/browser-*.mjs",
+        "scripts/source-diagnostic.mjs"
+      ],
+      "isolation": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "apps/api/package.json",
+        "apps/web/package.json",
+        ".memory-bank/spec/engineering/code-check-profile.json",
+        "apps/api/src/db/test-world.ts",
+        "apps/api/scripts/test-world*.ts",
+        "apps/api/tests/fixtures/test-world-probe.ts",
+        "scripts/test-runner.mjs",
+        "scripts/test-observation.mjs",
+        "scripts/runner-progress.mjs",
+        "scripts/owned-process.mjs",
+        "scripts/source-diagnostic.mjs"
+      ]
+    }
+  }
 }

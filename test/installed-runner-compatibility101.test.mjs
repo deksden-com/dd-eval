@@ -1,0 +1,59 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { mkdtemp, readFile, writeFile, rm, realpath } from "node:fs/promises";
+import path from "node:path";
+import os from "node:os";
+import { pathToFileURL } from "node:url";
+import { verifyRunnerEvidenceCompatibility } from "../lib/baseline-admission.mjs";
+
+const consumer = process.env.DD_EVAL_PROBE_ENGINE_MODULE;
+const producer = process.env.DD_EVAL_PROBE_PROJECT;
+const legacyRoot = process.env.DD_EVAL_LEGACY_REPORT_DIR;
+test("installed consumer retains actual CP247 legacy refusal without rewriting evidence", { skip: !consumer || !legacyRoot }, async () => {
+  const api = await import(pathToFileURL(await realpath(consumer)));
+  const bytes = await readFile(path.join(legacyRoot, "browser.runner.json"));
+  const report = JSON.parse(bytes);
+  const result = api.readRunnerEvidenceDetailed(legacyRoot, { schema_id: report.schema_id, path: "browser.runner.json" }, report.binding);
+  assert.ok(result.diagnostics.some(item => item.reason === "unsupported_observation_contract"));
+  assert.notEqual(api.checkRepairDisposition({ status: "failed", exit_code: 1, runner_evidence: result.evidence }), "source_repair");
+  assert.deepEqual(await readFile(path.join(legacyRoot, "browser.runner.json")), bytes);
+});
+test("installed consumer accepts actual producer failures and rejects retained legacy/foreign proof", { skip: !consumer || !producer }, async t => {
+  const api = await import(pathToFileURL(await realpath(consumer)));
+  const root = await mkdtemp(path.join(os.tmpdir(), "installed-contract101-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const binding = { invocation_id: "INSTALLED-101", check_id: "check-101", command: "probe", input_hash: "a".repeat(64), verification_epoch: "b".repeat(64) };
+  const receipt = await verifyRunnerEvidenceCompatibility({ projectRoot: producer, outputRoot: root, api, binding });
+  if (api.checkDiagnosisPolicy === "settled-failure@1") {
+    assert.equal(receipt.status, "not_required");
+    assert.equal(receipt.reason, "settled_failures_use_agent_diagnosis");
+    const { readdir } = await import("node:fs/promises");
+    assert.deepEqual(await readdir(root), []); // No synthetic probe was dispatched.
+    assert.equal(api.checkDiagnosisDisposition({ status: "failed", exit_code: 1 }), "diagnosis_required");
+    return;
+  }
+  assert.equal(receipt.status, "passed");
+  assert.deepEqual(receipt.cases.map(item => item.disposition), Array(5).fill("source_repair"));
+  const next = await verifyRunnerEvidenceCompatibility({ projectRoot: producer, outputRoot: root, api, binding,
+    requirement: { path: "scripts/check-evidence-probe.mjs", contract: "dd-tasks/check-evidence-probe@2" } });
+  assert.equal(next.schema_id, "dd-tasks/check-evidence-probe@2");
+  assert.deepEqual(next.cases.map(item => item.disposition), Array(6).fill("source_repair"));
+  const manifest = JSON.parse(await readFile(receipt.manifest));
+  const item = manifest.cases.find(item => item.id === "browser-window");
+  const evidenceRoot = path.join(path.dirname(receipt.manifest), item.root);
+  const reportFile = path.join(evidenceRoot, item.contract.path);
+  const bytes = await readFile(reportFile);
+  const report = JSON.parse(bytes);
+  delete report.failures[0].repair_evidence.observation_contract;
+  delete report.failures[0].repair_evidence.target;
+  delete report.failures[0].repair_evidence.window_epoch;
+  report.schema_id = "dd-flow/check-runner-evidence@1";
+  await writeFile(reportFile, JSON.stringify(report));
+  const legacyContract = { ...item.contract, schema_id: report.schema_id };
+  const legacy = api.readRunnerEvidenceDetailed(evidenceRoot, legacyContract, item.binding);
+  assert.ok(legacy.diagnostics.some(item => item.reason === "unsupported_observation_contract"));
+  assert.notEqual(api.checkRepairDisposition({ status: "failed", exit_code: 1, runner_evidence: legacy.evidence, runner_evidence_required: legacyContract, candidate_root: path.join(path.dirname(receipt.manifest), item.candidate_root ?? manifest.candidate_root) }), "source_repair");
+  await writeFile(reportFile, bytes);
+  await writeFile(reportFile, "{broken");
+  assert.equal(api.readRunnerEvidenceDetailed(evidenceRoot, item.contract, item.binding).diagnostics[0].reason, "invalid_json");
+});

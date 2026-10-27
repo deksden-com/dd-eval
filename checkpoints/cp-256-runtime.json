@@ -1,0 +1,34 @@
+{
+  "id": "cp-256-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "4fccc4ab1f60ab4e09ac170c286650ab47fbe2b4",
+    "tag": "eval/cp256-library-proof"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-255-installed-matrix-qualification.json",
+      "sha256": "d46dd5f39bcb0127b27daa6808b5cf5f24c1588ec27fc4f0ed2f253d680b9e00",
+      "canon_commit": "925ef10ecc0b683f7feba6f74913e15560842500"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "70ed6da341845d1b7f262b74f6731ac4787aff73",
+      "version": "0.9.0-beta.152",
+      "artifact_sha256": "61c75ddc34531eb50c53fae02e93cdfe11bd70d42e3022152400d3dbd2402f16"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "CP256: Biome formatting/import normalization of the five plan105 producer files only. Product baseline, flow pack, canonical answers, qualified bridge, published beta.152 engine and matrix proof unchanged. Scoped Biome check and three producer regressions pass. No full gate, GitHub CI or repeated Judge qualification.",
+    "world_isolation": "Per-execution test worlds; project-owned EVAL PostgreSQL on loopback 55439.",
+    "baseline": "Each scored workspace executes its own baseline before Subject dispatch."
+  }
+}

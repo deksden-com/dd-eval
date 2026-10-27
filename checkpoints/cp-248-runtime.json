@@ -1,0 +1,34 @@
+{
+  "id": "cp-248-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "dc4ae3be860549101d814651b09255a265d70a23",
+    "tag": "eval/cp243-native-typecheck"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1fdebb7de50ad764b6a35fb8ef2b30cb2e0e5be9",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.2",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-247-published-installed-matrix-qualification.json",
+      "sha256": "b6f55c8e339f805284b1f413ab22cde51203b8e6cda74dbd068b174638dee35a",
+      "canon_commit": "925ef10ecc0b683f7feba6f74913e15560842500"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "7d17167f768483ffdb5d37f64cc385035c7d4658",
+      "version": "0.9.0-beta.149",
+      "artifact_sha256": "c67853f13276c03fcd23aa74206d3a3cb6aaf24970e1f13336363887a641dcff"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Published beta.149, tag v0.9.0-beta.149; exact tarball SHA256 0b59b876e0870fb660655b02fd320c7094fa45d219a5e6f9794976b5332d618e. Full local release gate and installed matrix PASS. New launches still require their own preflight. CP247 research runs retain their original unpublished artifact and evidence; this checkpoint does not relabel them as released or successful.",
+    "world_isolation": "Per-execution test worlds; isolated EVAL PostgreSQL on loopback 55439.",
+    "baseline": "Every scored workspace runs its own baseline before Subject dispatch."
+  }
+}

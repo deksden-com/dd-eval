@@ -39,8 +39,8 @@ async function fixture(t) {
   return { root, options, launches, polls, contract, fixtures, contextSha256 };
 }
 
-test("acknowledgment and terminal without settled cleanup never release next variant", async t => {
-  const f = await fixture(t), statuses = [{ state: "awaiting_provider" }, { state: "finished", cleanup_state: "pending" }, finished()];
+test("accepted terminal measurement does not wait for unrelated cleanup", async t => {
+  const f = await fixture(t), statuses = [{ state: "awaiting_provider" }, { ...finished(), cleanup_state: "pending" }];
   f.options.status = async variant => {
     if (variant.ordinal === 0) { assert.deepEqual(f.launches, [0]); return statuses.shift(); }
     return finished();
@@ -79,10 +79,7 @@ test("unknown launch with zero manifests is fail closed on restart", async t => 
 });
 
 for (const status of [{ state: "completed_with_failures", cleanup_state: "settled" }, { state: "awaiting_provider", runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "dead" } }] }, { state: "stopped" },
-  { state: "finished", cleanup_state: "blocked" },
   { ...finished(), interaction_coverage: { resolution: "unknown", verification: { complete: false } } },
-  { state: "finished", cleanup_state: "pending", runner_attempts: [{ last_recorded_status: "failed", error: { code: "owner_lost" }, live_owner: { state: "dead" } }] },
-  { state: "finished", cleanup_state: "pending", runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "dead" } }] },
   { state: "awaiting_provider", live: { observation_complete: false, inventory: { unavailable: true } }, runner_attempts: [{ last_recorded_status: "running", live_owner: { state: "alive" } }] }]) {
   test(`blocker ${JSON.stringify(status)} stops campaign`, async t => {
     const f = await fixture(t); f.options.status = async () => status;

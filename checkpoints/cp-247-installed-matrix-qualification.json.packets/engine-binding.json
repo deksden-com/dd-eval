@@ -1,0 +1,19 @@
+{
+  "schema_id": "dd-flow/run-engine-binding@1",
+  "run_id": "RUN-001-tasks",
+  "project_root": "/Users/deksden/.dd-eval/qualification/cp-247-installed-matrix-proof/dd-flow-protocolize-zo81P6/project",
+  "bound_at": "2026-10-24T08:29:26.401Z",
+  "source": "run_creation",
+  "reason": "RUN created by the selected execution engine.",
+  "engine": {
+    "package_name": "@deksden-com/dd-flow-cli",
+    "package_version": "0.9.0-beta.149",
+    "engine_version": "0.9.0-beta.149",
+    "integrity_checksum": "f0a3738b812de1505001e9ee567bd6f30b4354bc8e62cc30235da689bc05a696",
+    "snapshot_root": "/Users/deksden/.dd-eval/qualification/cp-247-installed-matrix-proof/dd-flow-protocolize-zo81P6/home/engines/@deksden-com_dd-flow-cli/0.9.0-beta.149"
+  },
+  "probe": {
+    "status": "not_required",
+    "command": null
+  }
+}

@@ -87,6 +87,10 @@ an old unregistered journal is not a cleanup candidate or proof of settlement.
 Retained resource aliases bind their resolved target; changing that target blocks
 cleanup. New campaign resource paths must still be canonical.
 Preserve the original failure/verdict; cleanup never sends a productive prompt.
+Accepted results remain terminal with technical notes while retirement is pending.
+Cleanup must not keep a productive RUN lease alive or change candidate/Judge
+evidence hashes. Resolve only the retained owned resources; before reuse or GC,
+prove their actual retirement. A completed outcome is not a physical-stop proof.
 
 If a historical pinned CLI cannot retire its failed native owner, use a checked
 newer maintenance CLI's `runtime scope stop --scope-id <EVAL-id> --request-id <id>`

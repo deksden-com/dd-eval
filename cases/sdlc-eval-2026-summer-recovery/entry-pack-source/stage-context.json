@@ -8,7 +8,9 @@
       "sources": [
         {"role": "project_index", "root": "project", "path": ".memory-bank/index.md", "required": true, "reason": "Входной индекс действующего Memory Bank."},
         {"role": "flow_index", "root": "project", "path": ".memory-bank/dd-flow/index.md", "required": true, "reason": "Действующие правила SDLC-флоу."},
-        {"role": "project_readme", "root": "project", "path": "README.md", "required": true, "reason": "Краткая ориентация по проекту."}
+        {"role": "project_readme", "root": "project", "path": "README.md", "required": true, "reason": "Краткая ориентация по проекту."},
+        {"role": "system_contract", "root": "project", "path": ".memory-bank/spec/system/index.md", "required": true, "reason": "Действующий контракт системы, включая публичные ошибки; не новое продуктовое решение."},
+        {"role": "engineering_rules", "root": "project", "path": ".memory-bank/spec/engineering/coding-standards.md", "required": true, "reason": "Действующие инженерные ограничения; применяются кроме явно согласованных исключений."}
       ], "accepted_decisions": [], "dynamic_roles": []
     },
     "protocolize": {

@@ -4,7 +4,69 @@ import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createHash } from 'node:crypto';
-import { observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
+import { isCurrentTechnicalDependency, observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
+
+test('a bound technical pause remains observational and cannot clear an operator control', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-technical-pause-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), calls = path.join(root, 'calls.log');
+  const controller = { controller_id: 'DRV', generation: 3, status: 'control_requested', stage: 'plan-review' };
+  const event = { sequence: 1, type: 'technical_dependency_paused', data: { schema_id: 'dd-flow/controller-dependency@1', generation: 3, control_id: 'CTL', request_id: 'technical:DRV:3:abc' } };
+  const receipt = { scope: { run_id: 'RUN' }, control: { current: true, requested_mode: 'pause', control_id: 'CTL', request_id: event.data.request_id } };
+  assert.equal(isCurrentTechnicalDependency(controller, event, receipt, 'RUN'), true);
+  for (const changed of [{ ...receipt, scope: { run_id: 'foreign' } }, { ...receipt, control: { ...receipt.control, current: false } }, { ...receipt, control: { ...receipt.control, request_id: 'human' } }])
+    assert.equal(isCurrentTechnicalDependency(controller, event, changed, 'RUN'), false);
+  const resuming = { ...receipt, control: { ...receipt.control, status: 'resuming', generation: 4 } };
+  assert.equal(isCurrentTechnicalDependency({ ...controller, status: 'starting', generation: 4 }, event, resuming, 'RUN'), true);
+  assert.equal(isCurrentTechnicalDependency({ ...controller, status: 'starting', generation: 5 }, event, resuming, 'RUN'), false);
+  assert.equal(isCurrentTechnicalDependency({ ...controller, status: 'starting', generation: 4 }, event, { ...resuming, control: { ...resuming.control, requested_mode: 'stop' } }, 'RUN'), false);
+  await writeFile(bin, `import fs from 'node:fs';const a=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify(a)+'\\n');const r=${JSON.stringify(receipt)};if(process.env.FOREIGN_CONTROL)r.control.current=false;console.log(JSON.stringify(a[1]==='control'?r:${JSON.stringify({ controller, events: [event] })}));`);
+  const input = { bin, projectRoot: root, runId: 'RUN', controllerId: 'DRV', requestId: 'request', observeOnce: true, beforeDispatch: () => assert.fail('observation must not dispatch') };
+  const result = await observeManagedRun(input);
+  assert.equal(result.pending_dependency.control_id, 'CTL');
+  const requests = (await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse);
+  assert.deepEqual(requests.map(args => args.slice(0, 3)), [['run', 'drive', 'status'], ['run', 'control', 'status']]);
+  await assert.rejects(observeManagedRun({ ...input, env: { FOREIGN_CONTROL: '1' } }), { code: 'managed_run_controlled' });
+});
+
+test('technical Work reconciliation retries a retiring owner with one exact request and never dispatches in observeOnce', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-technical-reconcile-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), calls = path.join(root, 'calls'), state = path.join(root, 'state');
+  const controller = { controller_id: 'DRV', generation: 3, status: 'control_requested', stage: 'plan' };
+  const event = { sequence: 1, type: 'technical_dependency_paused', data: { schema_id: 'dd-flow/controller-dependency@1', generation: 3, control_id: 'CTL', request_id: 'technical:DRV:3:abc', source_operation_id: 'exact-work' } };
+  const receipt = { scope: { run_id: 'RUN' }, control: { status: 'settled', current: true, requested_mode: 'pause', control_id: 'CTL', request_id: event.data.request_id } };
+  await writeFile(bin, `import fs from 'node:fs'; const a=process.argv.slice(2); fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify(a)+'\\n'); let n=0; try { n=Number(fs.readFileSync(${JSON.stringify(state)},'utf8')); } catch {};
+if(a[1]==='drive') { console.log(JSON.stringify(n>=2?{controller:{...${JSON.stringify(controller)},status:'completed'},events:[]}:{controller:${JSON.stringify(controller)},events:a.includes('--after')&&a[a.indexOf('--after')+1]==='0'?[${JSON.stringify(event)}]:[]})); }
+else if(a[2]==='status') console.log(JSON.stringify(${JSON.stringify(receipt)}));
+else if(a[2]==='reconcile') { fs.writeFileSync(${JSON.stringify(state)},String(++n)); console.log(JSON.stringify(n===1?{ok:false,error:{code:'controller_owner_unsettled',message:'owner exiting'}}:{ok:true})); }
+`);
+  const input = { bin, env: process.env, projectRoot: root, runId: 'RUN', controllerId: 'DRV', requestId: 'request', pollMs: 1, beforeDispatch: () => assert.fail('no Subject dispatch') };
+  const once = await observeManagedRun({ ...input, observeOnce: true });
+  assert.equal(once.pending_dependency.control_id, 'CTL');
+  assert.equal((await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse).some(args => args[2] === 'reconcile'), false);
+  const result = await observeManagedRun(input);
+  assert.equal(result.controller.status, 'completed');
+  const attempts = (await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse).filter(args => args[2] === 'reconcile');
+  assert.equal(attempts.length, 2);
+  assert.deepEqual(attempts[0], attempts[1]);
+  assert.equal(attempts[0][attempts[0].indexOf('--control-id') + 1], 'CTL');
+});
+
+test('Subject technical notes leave immutable managed receipts unchanged and cannot fail observation', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-notes107-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), controller = { controller_id: 'DRV-notes', status: 'completed', stage: 'code', sessions: [] };
+  const notes = [{ id: 'note', code: 'cleanup_pending', run_id: 'RUN' }];
+  await writeFile(bin, `console.log(JSON.stringify(${JSON.stringify({ controller, technical_notes: notes, events: [] })}));`);
+  let observed;
+  const input = { bin, env: process.env, projectRoot: root, runId: 'RUN', controllerId: controller.controller_id, observeOnce: true };
+  const result = await observeManagedRun({ ...input, onTechnicalNotes: value => { observed = value; } });
+  assert.deepEqual(observed, notes);
+  assert.deepEqual(result.controller, controller);
+  assert.equal(Object.hasOwn(result, 'technical_notes'), false);
+  assert.deepEqual((await observeManagedRun({ ...input, onTechnicalNotes: () => { throw new Error('optional note sink unavailable'); } })).controller, controller);
+});
 
 for (const mode of ['turn', 'finish', 'missing', 'pending', 'foreign', 'controlled', 'invalid']) test(`interactive observer uses public input custody: ${mode}`, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'observe-interactive-'));

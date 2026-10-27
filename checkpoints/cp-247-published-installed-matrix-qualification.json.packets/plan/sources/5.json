@@ -1,0 +1,22 @@
+{
+  "schema_id": "dd-flow/specify@1",
+  "summary": "Task priority is specified.",
+  "requirements": [
+    {
+      "id": "R-001",
+      "statement": "Priority field."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "A member changes a task priority."
+    }
+  ],
+  "sections": {
+    "problem_and_scope": "Order tasks by priority.",
+    "acceptance_and_verification": "Verify that a member changes priority.",
+    "gaps_defaults_and_project_facts": "Default sort is priority.",
+    "assessment_and_protocolize_handoff": "One protocol."
+  }
+}

@@ -59,7 +59,9 @@ test('event receipt anchor and cleanup are independently checked', async t => {
   const anchored = { ...data, receipt_sha256: sha256(await readFile(data.receipt_file)) };
   await assert.rejects(verifyRetainedHitl({ data: { ...anchored, receipt_sha256: 'changed' }, legacy: true, historical: true }), { code: 'judge_evidence_mismatch' });
   await rm(path.join(root, 'cleanup.json'));
-  await assert.rejects(verifyRetainedHitl({ data: anchored, legacy: true, historical: true }), { code: 'judge_cleanup_unconfirmed' });
+  const accepted = await verifyRetainedHitl({ data: anchored, legacy: true, historical: true });
+  assert.equal(accepted.cleanup.status, 'unknown');
+  assert.equal(accepted.answer, await readFile(data.answer_file, 'utf8'));
 });
 
 test('v3 proof requires event anchors and exact scope/round binding', async t => {

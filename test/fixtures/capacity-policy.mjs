@@ -35,7 +35,7 @@ export const nativeShutdownConfirmed=(s,b={})=>s?.schema_id==='dd-flow/daemon-sh
 export const settledTreeContracts = { native_tree_settlement_contract: "native-tree-settlement@2", nativeTreeReadiness(receipt, { sessionId }) {
   return (receipt.provider_session_id ?? receipt.session_id) === sessionId && receipt.settled === true && receipt.settlement?.state !== "pending" ? "ready" : "unproven";
 } };
-export const selectedPolicy = process.env.DD_FLOW_SOURCE_ROOT
+const selectedModule = process.env.DD_FLOW_SOURCE_ROOT
   ? await import(new URL(`file://${process.env.DD_FLOW_SOURCE_ROOT}/src/harness-runtime/lib/provider-overload-policy.mjs`))
   : { ...successfulPolicy, capacityBackoff(error, ordinal) {
     // Scheduler double only. Real policy arithmetic/classification is checked
@@ -44,6 +44,9 @@ export const selectedPolicy = process.env.DD_FLOW_SOURCE_ROOT
     if (requested > 30_000) throw Object.assign(new Error("Fixture delay exceeds budget"), { code: "provider_unavailable" });
     return Math.max([0, 5000, 15000][ordinal], requested);
   } };
+export const selectedPolicy = selectedModule.RECOVERY_POLICY ? { ...selectedModule, CAPACITY_POLICY: selectedModule.RECOVERY_POLICY,
+  terminalProviderOverload: selectedModule.terminalProviderRecovery, normalizeProviderFailure: selectedModule.normalizeRecoveryFailure,
+  capacityBackoff: selectedModule.recoveryBackoff, refusalObservation: selectedModule.recoveryRefusal, overloadExhausted: selectedModule.recoveryExhausted } : selectedModule;
 export async function installSuccessfulPolicy(root) {
   const engine = path.join(root, "engines/test"), lib = path.join(engine, "dist/harness-runtime/lib");
   await mkdir(lib, { recursive: true });

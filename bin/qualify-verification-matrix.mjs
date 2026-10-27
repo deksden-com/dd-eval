@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile, realpath, lstat, open, link, unlink } from 
 import path from "node:path";
 import { verifyEngineArtifact, assertVerificationMatrixQualification } from "../lib/engine-admission.mjs";
 import { validateVerificationMatrix } from "../lib/case-acceptance.mjs";
+import { matrixComponentFingerprint } from '../lib/verification-components.mjs';
 
 const args = process.argv.slice(2);
 const argument = name => { const at = args.indexOf(name); if (at < 0 || !args[at + 1]) throw new Error(`Required: ${name}`); return args[at + 1]; };
@@ -66,6 +67,10 @@ if (!packets.length) throw new Error("No real owning Stage report published a ma
 for (const item of retained) { await mkdir(path.dirname(item.file), { recursive: true }); await writeFile(item.file, item.bytes, { flag: "wx" }); }
 const skipped = ["plan-review", "code-review"].filter(stage => run.settings?.[stage.replace("-", "_")]?.mode === "off" && run.settings[stage.replace("-", "_")].reason?.trim());
 const receipt = { schema_id: "dd-eval/verification-matrix-qualification@3", contract: run.verification_matrix_contract, coverage_contract: run.final_check_coverage_contract, status: "passed", engine_artifact_sha256: engineDigest, engine_binding: { path: bindingRelative, sha256: sha(bindingBytes) }, flow_commit: flowCommit, built_with_canon: { version: canon.version, commit: canon.commit }, skipped_stages: skipped, packets };
+try {
+  receipt.component_sha256 = await matrixComponentFingerprint(engine.snapshot_root);
+  receipt.schema_id = 'dd-eval/verification-matrix-qualification@4';
+} catch (error) { if (error.code !== 'ENOENT') throw error; }
 const receiptBytes = Buffer.from(JSON.stringify(receipt, null, 2) + "\n");
 await assertVerificationMatrixQualification({ file: path.join(path.dirname(output), "checkpoint.json"), value: { flow_pack: { commit: flowCommit, memory_bank_version: canon.version, verification_matrix: { contract: receipt.contract, file: path.basename(output), sha256: sha(receiptBytes), canon_commit: canon.commit } } } }, engine, { checker: "task-priority@4" }, receiptBytes);
 // A crash during writing must never expose a partial receipt labelled passed.

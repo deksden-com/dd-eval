@@ -10,6 +10,8 @@ import { assertCheckpointEngine, assertVerificationMatrixQualification, engineAr
 import { verificationMatrixFingerprint, validateVerificationMatrixAuthority, isVerificationMatrixTextSource } from "../lib/case-acceptance.mjs";
 import { operationalDecisionFor, materializeOperationalDecision, loadOperationalContract } from "../lib/operational-decision.mjs";
 import { runBaselineAdmission } from "../lib/baseline-admission.mjs";
+import { matrixComponentFingerprint } from '../lib/verification-components.mjs';
+import { compositeRunner } from './fixtures/composite-runner103.mjs';
 
 test("operational declarations bind logical launch scope without inventing acceptance", async () => {
   const source = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/run-profiles/e2e-server-merge-luna-xhigh.json", import.meta.url)));
@@ -137,7 +139,8 @@ test("final matrix authority preserves profile@7 planned runner aliases and cano
       proof.value.profile_bytes = JSON.stringify(proof.value.profile); proof.value.profile_sha256 = hash(proof.value.profile_bytes); proof.sha256 = hash(JSON.stringify(proof.value));
     }
     matrix.sources = proofs.map(({ value, ...source }) => source); matrix.header.source_fingerprint = verificationMatrixFingerprint(matrix);
-    return validateVerificationMatrixAuthority(matrix, proofs);
+    const bytes=Buffer.from(JSON.stringify({schema_id:runner.schema_id,binding:{invocation_id:native.id,check_id:native.id,command:native.command,input_hash:native.input_hash,verification_epoch:native.verification_epoch},runner:{name:'fixture',version:'1'},completed:true,counts:{passed:1,failed:0,skipped:0},failures:[]}));
+    return validateVerificationMatrixAuthority(matrix, proofs, null, new Map([['run:07-merge/checks/RCP-native/artifacts/runner.json',bytes]]));
   };
   assert.doesNotThrow(validate);
   // Reordering transport keys must preserve the engine's canonical @7 hash.
@@ -197,9 +200,10 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
     await put("dist/build-info.json", { built_with_canon: canon });
     const matrix = { schema_id: "dd-flow/verification-matrix@1", header: { project_id: "PRJ-1", run_id: "RUN-1", stage: "plan", stage_attempt: "try-001", role: "output", completeness: "declared", source_fingerprint: "1".repeat(64) }, sources: [], requirements: [], criteria: [], policy_checks: [] };
     const planned = { id: "CHK-1", command: "@check/new", definition: "true", provided_by: "ITEM-1", run_at: "work", purpose: "planned semantic", availability: "planned" };
-    const itemOnly = { id: "CHK-MERGE", command: "true", run_at: "merge", purpose: "item-only semantic", availability: "available" };
-    const baselineProfile = { schema_id: "dd-flow/code-check-profile@6", aliases: { "@check/quality": "true" }, require_alias_for: {}, mandatory_by_gate: { merge: ["@check/quality"] } };
-    const sourceProfile = { ...baselineProfile, aliases: { ...baselineProfile.aliases, "@check/new": "true" } };
+    const itemOnly = { id: "CHK-MERGE", command: "@check/quality", run_at: "merge", purpose: "item-only semantic", availability: "available" };
+    const runnerContract = { schema_id: 'dd-flow/check-runner-evidence@2', path: 'quality.json' };
+    const baselineProfile = { schema_id: "dd-flow/code-check-profile@7", aliases: { "@check/quality": "true" }, require_alias_for: {}, mandatory_by_gate: { merge: ["@check/quality"] }, runner_evidence_by_alias: { '@check/quality': runnerContract } };
+    const sourceProfile = { ...baselineProfile, aliases: { ...baselineProfile.aliases, "@check/new": "true" }, runner_evidence_by_alias: { ...baselineProfile.runner_evidence_by_alias, '@check/new': runnerContract } };
     const policyCheck = { id: "POLICY/merge/quality", canonical_ref: "POLICY/merge/quality", source: "project_policy", command: "@check/quality", purpose: "Mandatory project merge gate.", run_at: "merge", availability: "available" };
     const plan = { protocol_id: "PRT-001", plan_id: "PLAN-001", revision: 1, items: [], checks: [planned, itemOnly], acceptance: [] }, planHash = hash(JSON.stringify(plan));
     const batch = { sources: [{ protocol_id: plan.protocol_id, plan_id: plan.plan_id, revision: 1, sha256: planHash }] }, batchHash = hash(JSON.stringify(batch));
@@ -223,11 +227,14 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
     const checkpoint = { file: path.join(root, "checkpoint.json"), value: { flow_pack: { commit: receipt.flow_commit, memory_bank_version: canon.version, verification_matrix: { contract: matrix.schema_id, file: qualification.path, sha256: qualification.sha256, canon_commit: canon.commit } } } };
     const engine = { package_name: "dd-flow", package_version: "test", engine_version: "test", snapshot_root: root, integrity: { checksum: receipt.engine_artifact_sha256 } };
     await assert.rejects(assertVerificationMatrixQualification(checkpoint, engine, policy), { code: "verification_matrix_qualification_invalid" }, "one PLAN output cannot qualify the full promised cycle");
-    const gate = { schema_id: "dd-flow/merge-gate@2", run_id: "RUN-1", checks: [planned, itemOnly].map(check => ({ ...check, canonical_ref: `PRT-001/${check.id}` })).concat(policyCheck), acceptance_refs: [], profile_hash: hash(JSON.stringify({ ...baselineProfile, ports_by_alias: {}, inputs_by_alias: {} })) };
+    const canonical = value => JSON.stringify(value, (_key, item) => item && typeof item === 'object' && !Array.isArray(item) ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b))) : item);
+    const gate = { schema_id: "dd-flow/merge-gate@2", run_id: "RUN-1", checks: [planned, itemOnly].map(check => ({ ...check, canonical_ref: `PRT-001/${check.id}` })).concat(policyCheck), acceptance_refs: [], profile_hash: hash(canonical({ ...baselineProfile, ports_by_alias: {}, inputs_by_alias: {} })) };
     gate.gate_hash = hash(JSON.stringify({ checks: gate.checks, acceptance_refs: [] }));
     const fingerprint = "e".repeat(64);
     const artifactBytes = "non-JSON native proof\u0000\u0001";
     const native = { id: "WRK-1/RCP-1", scope: "aggregate", status: "passed", exit_code: 0, profile_hash: gate.profile_hash, command: "true", gate: "merge", input_hash: "target-input", verification_epoch: hash(`merge\0${fingerprint}`), before_fingerprint: fingerprint, after_fingerprint: fingerprint, mutation_paths: [], inputs: [], resources: { ports: {} }, required_artifacts: [], artifacts: [{ path: "proof.bin", sha256: hash(artifactBytes) }], finished_at: "2026-10-01T00:00:00Z", check_refs: gate.checks.map(check => check.canonical_ref) };
+    const composite = compositeRunner({ invocation_id: native.id, check_id: native.id, command: native.command, input_hash: native.input_hash, verification_epoch: native.verification_epoch }, runnerContract);
+    Object.assign(native, { runner_evidence_required: runnerContract, required_artifacts: [...composite.artifacts.keys()], artifacts: [...native.artifacts, ...[...composite.artifacts].map(([path, bytes]) => ({ path, sha256: hash(bytes) }))] });
     const accepted = { schema_id: "dd-flow/merge-gate-acceptance@2", run_id: "RUN-1", accepted_tree: "tree", work_id: "WRK-1", merge_request_id: "MRG-1", profile_hash: gate.profile_hash, gate_hash: gate.gate_hash, receipts: [{ id: native.id, input_hash: native.input_hash, execution_refs: native.check_refs, binding_refs: native.check_refs }] };
     const refs = [];
     for (const [source_path, value] of [["07-merge/merge-gate.json", gate], ["07-merge/merge-gate-acceptance.json", accepted], ["07-merge/checks/RCP-1/receipt.json", native], ["03-plan/code-work-batch.json", batch], ["07-merge/checks/RCP-1/completion.json", { exit_code: 0, finished_at: native.finished_at }]]) {
@@ -239,6 +246,7 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
       refs.push({ ...ref, root: "run", source_path: `07-merge/verification/sources/${ref.sha256}/accepted-input.md`, role });
     }
     refs.push({ ...await put("proof.bin", artifactBytes), root: "run", source_path: "07-merge/checks/RCP-1/artifacts/proof.bin", role: "artifact:PRT-001/CHK-1:proof.bin" });
+    for (const [name, bytes] of composite.artifacts) refs.push({ ...await put(`runner-${refs.length}.json`, bytes.toString()), root: 'run', source_path: `07-merge/checks/RCP-1/artifacts/${name}`, role: `artifact:PRT-001/CHK-1:${name}` });
     for (const role of ["baseline", "source", "target"]) {
       const profile = role === "baseline" ? baselineProfile : sourceProfile;
       refs.push({ ...await put(`profile-${role}.json`, { schema_id: "dd-flow/retained-check-profile@1", profile, profile_sha256: hash(JSON.stringify(profile)), profile_bytes: JSON.stringify(profile) }), root: "run", source_path: `07-merge/check-profile-${role}.json`, role: `check_profile_${role}` });
@@ -262,6 +270,18 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
     };
     await reseal();
     await assertVerificationMatrixQualification(checkpoint, engine, policy);
+    const roots = ['services/verification-matrix.js', 'services/stage-report-renderer.js', 'services/accepted-intent.js', 'services/check-runner-evidence.js'];
+    await mkdir(path.join(root, 'dist/services'));
+    for (const file of roots) await put(`dist/${file}`, 'export {};\n');
+    await put('dist/verification-components.json', { schema_id: 'dd-flow/verification-components@1', matrix: { roots, files: roots } });
+    receipt.schema_id = 'dd-eval/verification-matrix-qualification@4';
+    receipt.component_sha256 = await matrixComponentFingerprint(root); await reseal();
+    const upgraded = { ...engine, package_version: 'new', engine_version: 'new', integrity: { checksum: 'e'.repeat(64) } };
+    await assertVerificationMatrixQualification(checkpoint, upgraded, policy);
+    await put('dist/services/verification-matrix.js', 'changed producer');
+    await assert.rejects(assertVerificationMatrixQualification(checkpoint, upgraded, policy), { code: 'verification_matrix_qualification_invalid' });
+    await put('dist/services/verification-matrix.js', 'export {};\n');
+    receipt.schema_id = 'dd-eval/verification-matrix-qualification@3'; delete receipt.component_sha256; await reseal();
     for (const change of [{ data_sha256: "f".repeat(64) }, { status: "running" }]) {
       const unacceptedRun = structuredClone(runValue); Object.assign(unacceptedRun.stage_runs[0], change);
       const ref = await put("run.json", unacceptedRun); for (const packet of receipt.packets) packet.run = ref;

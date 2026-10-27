@@ -99,6 +99,10 @@ Current beta specifications live under [beta/](beta/README.md); they document
 candidate behavior without consuming canonical `SPC-*` numbering.
 
 Repository-level eval design specifications live under [specs/](specs/). The
+[thin-hook and native recovery plan 108](specs/108-thin-hooks-progress-and-native-recovery-plan.md)
+defines the next simplification of hook/CLI responsibilities, progress observation
+and cleanup projections; it is not an implementation or EVAL acceptance receipt.
+The
 current [execution-control consolidation specification 035](specs/035-execution-control-consolidation.md)
 defines the planned ownership, state, timeout and recovery boundary with dd-flow.
 The

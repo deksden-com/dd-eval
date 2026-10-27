@@ -11,10 +11,10 @@
   "reasoning": "high",
   "mode": "bypassPermissions",
   "runtime": {
-    "grok": "1.0.69",
+    "grok": "1.0.70",
     "acp": 1,
     "dd_harness_contract": "dd-grok-harness@1"
   },
-  "subagent_capacity": 1,
-  "notes": "CP246 Grok 1.0.69 compatibility passed with one completed direct child and native/physical cleanup confirmed. Receipt: /Users/deksden/.dd-eval/qualification/cp-246-grok-compatibility-r2/conformance/harness-compatibility/20261023171231073/grok-acp-xai-grok-4-7-high/receipt.json. Conservative capacity 1; scored E2E pending."
+  "notes": "CP247 Grok 1.0.70 compatibility passed with one completed native child and native/physical cleanup. Receipt: /Users/deksden/.dd-eval/qualification/cp-247-compatibility/conformance/harness-compatibility/20261024083149142/grok-acp-xai-grok-4-7-high/receipt.json. Capacity limited to observed fan-out.",
+  "subagent_capacity": 1
 }

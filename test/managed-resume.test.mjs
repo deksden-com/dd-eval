@@ -64,7 +64,7 @@ for (const waiting of [false, true]) test(`managed recovery retains capture, con
     manifest.runtime_recovery_home = path.join(root, 'recovery');
     manifest.runtime_control_bin = path.join(root, 'control-runtime', 'bin', 'dd-flow');
     const recoveryManifest = await write('recovery/snapshot.json', { schema_id: 'dd-flow/eval-run-snapshot@5', purpose: 'recovery', run_id: controller.run_id,
-      recovery_id: 'REC-retained', project_root: projectRoot, dd_flow_home: runtimeRoot, consistency: 'sealed_writer_barrier_required' });
+      recovery_id: 'REC-retained', project_root: projectRoot, dd_flow_home: runtimeRoot, consistency: 'sealed_writer_barrier_required', restorable: 'same-runtime-or-explicit-restore' });
     const control = { control_id: 'CTL-retained', recovery_id: 'REC-retained', current: true, admission: 'sealed', generation: 1, capture_path: path.dirname(recoveryManifest), settlement: { settled: true, nodes: [] } };
     const controllerEvents = [
       { sequence: 1, type: 'context_required', data: { stage: 'specify' } },
@@ -81,7 +81,9 @@ let result;
 const pending = ${waiting} && !fs.existsSync(${JSON.stringify(path.join(root, 'answered'))});
 const interrupted = fs.existsSync(${JSON.stringify(path.join(root, 'interrupt'))}) && !fs.existsSync(${JSON.stringify(path.join(root, 'resumed'))});
 if (args[0] === 'engine' && args[1] === 'resolve') result = {selection:{selected:${JSON.stringify(engine)}}};
-else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'status') result = {scope:{run_id:'RUN-retained'},settled:true,control:{...${JSON.stringify(control)},admission:fs.existsSync(${JSON.stringify(path.join(root, 'unsealed'))})?'open':'sealed'}};
+// A sealed publication remains readable independently of physical-stop proof.
+// This field exercises observation only; physical finalization has its own gate.
+else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'status') result = {scope:{run_id:'RUN-retained'},settled:true,physical_stopped:!fs.existsSync(${JSON.stringify(path.join(root, 'physical-unconfirmed'))}),control:{...${JSON.stringify(control)},admission:fs.existsSync(${JSON.stringify(path.join(root, 'unsealed'))})?'open':'sealed'}};
 else if (args[0] === 'run' && args[1] === 'control' && args[2] === 'resume') {
   if(args[args.indexOf('--from')+1]!=='CTL-retained') throw new Error('wrong recovery control');
   fs.writeFileSync(${JSON.stringify(path.join(root, 'resumed'))},args[args.indexOf('--request-id')+1]);
@@ -128,7 +130,14 @@ console.log(JSON.stringify(result));
       await assert.rejects(recoverExecution({ ...input, manifest: invalidManifest, events }), { code: 'runtime_scope_identity_missing' });
       assert.equal(await readFile(path.join(root, 'calls.jsonl'), 'utf8'), callsBeforeInvalidScope);
     }
+    await write('physical-unconfirmed', 'yes');
+    const unconfirmed = await captureRecoveryEvidence({ root, manifest, result: { execution: execution.id, attempt, state: 'failed', code: 'provider_failed' } });
+    assert.equal(unconfirmed.capture_error, undefined, 'sealed capture bytes are verifiable without claiming physical retirement');
+    assert.equal(unconfirmed.control_id, control.control_id);
+    assert.equal(unconfirmed.physical_stopped, undefined, 'capture validation must not manufacture physical-stop authority');
+    await rm(path.join(root, 'physical-unconfirmed'));
     const recovery = await captureRecoveryEvidence({ root, manifest, result: { execution: execution.id, attempt, state: 'failed', code: 'provider_failed' } });
+    assert.equal(recovery.capture_error, undefined, JSON.stringify(recovery));
     assert.equal(recovery.control_id, control.control_id);
     assert.equal(recovery.manifest_sha256, hash(await readFile(recoveryManifest)));
     // A late settled owner receipt is usable even if the original native

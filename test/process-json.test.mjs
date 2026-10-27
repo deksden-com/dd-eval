@@ -4,9 +4,28 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { commandJson, commandText, commandObservationTimeout, reportedFailure } from "../lib/process-json.mjs";
-import { callDriver } from "../lib/runner.mjs";
+import { callDriver as runtimeCallDriver } from "../lib/runner.mjs";
 import { errorRecord } from "../lib/operation-errors.mjs";
 import { settledTreeContracts } from "./fixtures/capacity-policy.mjs";
+
+// These tests own transport/ledger behavior, not installed-engine qualification.
+// Supply the explicit native ABI their bin-only doubles promise to implement.
+const transportContracts = { ...settledTreeContracts,
+  canonicalNativeOperation: (_harness, operation) => operation,
+  nativeOperationWait: (_harness, operation) => ['session.prompt', 'session.start'].includes(operation) ? 'native-work' : 'control' };
+const callDriver = (profile, args, options) => runtimeCallDriver(profile, args, { ...options,
+  nativeContracts: { ...transportContracts, ...options.nativeContracts } });
+
+test("owned CLI JSON results are not rejected merely for exceeding the old reply ceiling", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "eval-long-reply-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const executable = path.join(root, "reply.mjs");
+  await writeFile(executable, 'console.log(JSON.stringify({ok:true,text:"x".repeat(8*1024*1024+1)}))');
+  const result = await commandJson(executable, [], { timeoutMs: 60_000 });
+  assert.equal(result.ok, true);
+  assert.equal(result.text.length, 8 * 1024 * 1024 + 1);
+  assert.equal(JSON.parse(await commandText(executable, [], { timeoutMs: 60_000 })).text.length, result.text.length);
+});
 
 test("operation diagnostics cannot hide a pretty typed native failure", () => {
   const record = { code: "native_rejected", message: "primary", retryable: false, details: { session_id: "retained" } };
@@ -208,7 +227,7 @@ test("long diagnostic streams keep bounded tails without rejecting a valid final
   assert.deepEqual(await commandJson(cli, []), {});
   assert.equal(await commandText(cli, []), "{}");
   await writeFile(cli, "process.stdout.write('x'.repeat(9*1024*1024));");
-  await assert.rejects(commandJson(cli, []), { code: "operation_output_limit" });
+  await assert.rejects(commandJson(cli, []), { code: "flow_reconciliation_failed", message: /returned invalid JSON/ });
 });
 
 test("bad phase durations are rejected before spawning", async () => {

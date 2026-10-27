@@ -53,28 +53,15 @@ manifest без поля использует прежний global default, п�
 
 ## Проверки до live
 
-Development:
-
-```sh
-node --test test/homes.test.mjs test/monitoring-status.test.mjs test/runner-fork.test.mjs
-```
-
-Приёмка — полный paired offline procedure из
-[flow-test-suite-verification](flow-test-suite-verification.md), на frozen build
-из isolated FLOW checkout. Required FLOW suites не заменяются этими тремя files.
-Producer/console проверяются вместе с одинаковым private registry. Installed
-smoke проверяет actual engine identity, dependency closure и child env, не только
-наличие launcher text.
-
-Дополнительный installed launcher gate повторяет real lifecycle/resume fixtures,
-не заменяя full paired procedure. После source freeze укажи private launcher в
-`DD_EVAL_TEST_FLOW_CLI`, installed-helper fixture в `DD_EVAL_TEST_FLOW_ADAPTER`,
-существующий owned parent в `DD_EVAL_TEST_FIXTURE_ROOT`, campaign resource home в
-`DD_EVAL_TEST_RESOURCE_HOME` и тот же private file в `DD_EVAL_TEST_REGISTRY_FILE`.
-Выполни `node --test --test-concurrency=1 test/managed-flow-client.integration.test.mjs
-test/eval-resume.integration.test.mjs`. Все эти overrides принадлежат tests,
-не являются публичными production настройками. Fixture configs и native state
-создаются внутри выбранного test parent; helper modules идут из installed engine.
+Выбери тесты по изменённым механизмам и их callers; полный paired gate,
+GitHub CI и повторная Judge qualification не являются обязательными при выпуске
+или подготовке EVAL. Сохрани список проверенных зон и границы непроверенного.
+При изменении installed launcher или его integration-контракта проверь только
+затронутые installed fixtures на frozen private candidate, включая identity,
+dependency closure и child env. Для этих fixtures `DD_EVAL_TEST_FLOW_CLI`,
+`DD_EVAL_TEST_FLOW_ADAPTER`, `DD_EVAL_TEST_FIXTURE_ROOT`,
+`DD_EVAL_TEST_RESOURCE_HOME` и `DD_EVAL_TEST_REGISTRY_FILE` — test-only overrides;
+fixture state создаётся внутри выбранного private parent.
 
 Canary working roots должны оставаться неизменными при negative launch,
 migration, stop/recovery и cleanup. Для настоящих active homes не сравнивай
