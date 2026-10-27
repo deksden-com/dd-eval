@@ -81,11 +81,11 @@ async function claim(lock, signal) {
 
 /** One immutable producer attempt. The index is scheduling state, not proof;
  * callers must validate the returned report bytes and meaningful inputs. */
-export async function withContractAttempt(index, { rerun = false, reason, signal, validate, validationKey } = {}, action) {
+export async function withContractAttempt(index, { rerun = false, failedOnly = false, reason, signal, validate, validationKey } = {}, action) {
   if (rerun && !reason) throw new Error('Explicit rerun requires a reason');
   const lock = `${index}.claim`;
   const initial = optional(index);
-  if (initial?.status === 'running' && !rerun) {
+  if (initial?.status === 'running' && (!rerun || failedOnly)) {
     const result = await joinAttempt(initial, signal);
     await validate?.(result.result, initial);
     signal?.throwIfAborted();
@@ -96,8 +96,8 @@ export async function withContractAttempt(index, { rerun = false, reason, signal
   let attempt;
   try {
     const current = optional(index); // Mandatory reread under claim.
-    if (current?.status === 'running' && !rerun) { joined = current; }
-    else if (current && !rerun) {
+    if (current?.status === 'running' && (!rerun || failedOnly)) { joined = current; }
+    else if (current && (!rerun || failedOnly && current.status === 'passed')) {
       if (current.status !== 'passed') throw blocked(`Retained ${current.status} attempt requires explicit rerun: ${index}`);
       try {
         const terminal = read(current.report);
