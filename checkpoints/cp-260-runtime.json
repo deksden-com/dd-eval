@@ -18,9 +18,9 @@
     },
     "engine": {
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
-      "commit": "c0185a1f33d2380a6ae74aec9cdcf3939ad164aa",
+      "commit": "74596a7b6cf74a7cae8b7b1db521ef3c13952828",
       "version": "0.9.0-beta.155",
-      "artifact_sha256": "a4c2c1339965f2728f2b8b75512b028651bc9ca0f0b456b6824878581e042dc6"
+      "artifact_sha256": "7f0f91f08aa89ef9bdc614a2ef21dea97c700024841612bca4a193016723391e"
     }
   },
   "state": "candidate_pending_preflight",
