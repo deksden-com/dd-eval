@@ -30,6 +30,17 @@ Native TAP retains the original event-validator fingerprint. If that validator
 changes, rerun only the exact affected fixture: TAP cannot reconstruct every
 original event. A packaging/aggregate-validator edit alone does not require it.
 
+Engine releases may set `DD_FLOW_VERIFICATION_PRIOR_CANDIDATE` to an explicit
+immutable earlier candidate. The verifier checks its package/source tuple and
+retains only latest intact PASS proofs outside the changed contract scope,
+preserving the original execution key, report hashes and producer. Actual direct
+test/fixture imports, dependency/canonical inputs and native validators remain
+guards; FAIL/running/missing evidence never becomes PASS. The separate
+`retained_unaffected` decision is revalidated during publish. Test-only edits do
+not select a neighboring suite; compile-only TypeScript imports are not runtime
+dependencies. Investigated `verification.mjs rerun <reason>` preserves valid PASS
+and repeats only failed/missing current contracts.
+
 Cooperating engine/EVAL/bridge runners share a host lease and at most two isolated
 top-level jobs. Set `DD_FLOW_VERIFICATION_JOBS=1` for serial fallback. Each child
 gets private HOME/TMP/XDG/harness/resource paths and no provider credentials unless

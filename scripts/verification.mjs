@@ -64,7 +64,7 @@ async function worker(file, signal) {
   assert.ok(path.isAbsolute(cache)); fs.mkdirSync(cache,{recursive:true});
   const index = path.join(cache,`${current.execution_key}.json`);
   const attempt = await withContractAttempt(index,{
-    signal, rerun:Boolean(job.rerun_reason),reason:job.rerun_reason,validationKey:current.validation_key,
+    signal, rerun:Boolean(job.rerun_reason),failedOnly:true,reason:job.rerun_reason,validationKey:current.validation_key,
     validate:result=>validateContractResult(result,current),
   },async ({root})=>{
     const logFile = path.join(root,'runner.tap'), log = fs.openSync(logFile,'wx',0o600);
