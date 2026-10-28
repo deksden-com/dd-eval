@@ -11,8 +11,8 @@
     }
   ],
   "input_checkpoint": {
-    "id": "cp-260-runtime",
-    "sha256": "54d73fa7e3e16affa3613653f38cddfb9d17d8b9ab6f878b982e47e824406247"
+    "id": "cp-261-runtime",
+    "sha256": "5167e45768669c8422a3c4cda0e94be709694abbec5505fab642f4497daea690"
   },
   "entry_pack": null,
   "hitl_qualification": {
