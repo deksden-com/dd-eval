@@ -81,7 +81,9 @@ ps/socket и исправленный test-double отказ не выдаютс
 - Engine implementation commit: `32f09f453d8eb2068a60a21f7c0d1ebdae0e2432`.
 - Engine PR: [dd-flow-cli#149](https://github.com/deksden-com/dd-flow-cli/pull/149).
 - Engine main squash commit: `b59c32bf531e7fe8be698f8a2aa0fcfb99050ace`.
-- EVAL-часть интегрируется отдельным squash PR вместе с этим receipt и планом.
+- EVAL PR: [dd-eval#177](https://github.com/deksden-com/dd-eval/pull/177),
+  main squash `245d47d0f51c2469915c8b93373099cbc3bfc2b9`.
+- Последующее ревью и исправления: [110 — implementation review](110-implementation-review.md).
 - Changeset engine описывает будущий patch release; package version/published
   artifact не менялись. Canon и bridge не изменялись.
 
