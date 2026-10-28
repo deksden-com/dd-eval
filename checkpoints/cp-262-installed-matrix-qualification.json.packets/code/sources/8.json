@@ -1,0 +1,49 @@
+{
+  "id": "RUN-001-tasks/RCP-002",
+  "local_id": "RCP-002",
+  "declaration_id": "CHK-NEW",
+  "check_refs": [
+    "CHK-NEW",
+    "CHK-P1-TEST",
+    "CHK-READY"
+  ],
+  "gate": "readiness",
+  "scope": "aggregate",
+  "work_id": null,
+  "command": "test -f apps/api/src/core/service.ts",
+  "input_hash": "70802e092450844e00214c7706c002a2db76e74a6382aa6599524bfdf749c0e4",
+  "verification_epoch": "9f6036f0690c7113e880c29b25fb31d34b957a508e83589e81ac327186054456",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp262-installed-matrix-proof/dd-flow-protocolize-JtetNv/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp262-installed-matrix-proof/dd-flow-protocolize-JtetNv/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp262-installed-matrix-proof/dd-flow-protocolize-JtetNv/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp262-installed-matrix-proof/dd-flow-protocolize-JtetNv/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-002/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "fingerprint_scope": "check_inputs",
+  "input_manifest": {
+    "path": "inputs-before.json",
+    "sha256": "d697e48a1b4bb95dc5dd3f38a53c67c11836b8a70e641ce0901803d73fcff619",
+    "truncated": false
+  },
+  "execution_contract_hash": "0f185fe11ec0a0cc9f2b545f9f224b3b9b6bf559036eaa0073887f935ca0ff79",
+  "workspace_fingerprint": "09a402a2fa130dc740d02a4d9529f507452f6daa5fbb0482a4b588b794ef6d9a",
+  "before_fingerprint": "2f6ee50780daee119ef918ed63587a8e5be83dbbafc279aa5e2a1667f9075689",
+  "after_fingerprint": "2f6ee50780daee119ef918ed63587a8e5be83dbbafc279aa5e2a1667f9075689",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-28T14:28:30.521Z",
+  "finished_at": "2026-10-28T14:28:30.634Z",
+  "candidate_root": "/Users/deksden/.dd-eval/qualification/cp262-installed-matrix-proof/dd-flow-protocolize-JtetNv/project",
+  "candidate_files": [],
+  "candidate_absences": [],
+  "candidate_library_inputs": [],
+  "execution_failures": []
+}

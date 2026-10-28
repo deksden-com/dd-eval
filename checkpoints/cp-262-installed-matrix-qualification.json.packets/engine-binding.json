@@ -1,0 +1,19 @@
+{
+  "schema_id": "dd-flow/run-engine-binding@1",
+  "run_id": "RUN-001-tasks",
+  "project_root": "/Users/deksden/.dd-eval/qualification/cp262-installed-matrix-proof/dd-flow-protocolize-JtetNv/project",
+  "bound_at": "2026-10-28T14:27:40.244Z",
+  "source": "run_creation",
+  "reason": "RUN created by the selected execution engine.",
+  "engine": {
+    "package_name": "@deksden-com/dd-flow-cli",
+    "package_version": "0.9.0-beta.157",
+    "engine_version": "0.9.0-beta.157",
+    "integrity_checksum": "c39378b389e03c310c4052cf5183cd7d0e80fbeaf89cc5e7b0a2a4b4794033c5",
+    "snapshot_root": "/Users/deksden/.dd-eval/qualification/cp262-installed-matrix-proof/dd-flow-protocolize-JtetNv/home/engines/@deksden-com_dd-flow-cli/0.9.0-beta.157"
+  },
+  "probe": {
+    "status": "not_required",
+    "command": null
+  }
+}
