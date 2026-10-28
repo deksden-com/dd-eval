@@ -463,3 +463,49 @@ pins, канон и опубликованный engine этим изменен�
 Ревью независимо разделённых изменений выполнено основным агентом; cross-review
 controller/retirement дополнительно обнаружило returned-unsettled и resource-RPC
 варианты D6, исправленные до фиксации результата.
+
+## 10. Ревью реализации и интеграция — 2026-10-28
+
+Ревью выявило и исправило шесть существенных пробелов, не замеченных первичной
+адресной приёмкой:
+
+1. Preparation refusal создавал successor без сохранённого successor ID.
+   Добавлена durable связь; реальный issuer → completedChildRepair проходит.
+2. Отказ подготовки происходил раньше retention фактического Work input:
+   retry возвращал placeholder path/reason. Проверенные public semantics теперь
+   сохраняются и при no-effect preparation rejection; foreign route не допускается.
+3. Human output не показывал единственную инструкцию fresh-session handoff.
+   Общий renderer выводит уже существующие recovery_instruction/work_id/
+   handoff_required, не создавая нового решения о маршрутизации.
+4. Несколько наблюдений одной технической паузы блокировали принятый Work либо
+   стирали source в EVAL. Допускается один согласованный bound source среди
+   неизменяемых событий exact control. Конфликт/чужая identity блокируют reconcile;
+   новый control не наследует source предыдущего. История не переписывается.
+5. Реальный AGY terminal task proof не совпадал с ожидаемым stop-RPC proof.
+   Принимается существующий ordered terminal_source с daemon ownership;
+   captureChildTools сохраняет owner после проверки transcript ancestry.
+6. Native inventory baseline снимался после physical observation, допуская
+   незамеченного позднего writer. Теперь baseline снимается до наблюдения,
+   сверяется после и тем же значением защищает seal.
+
+Регрессии воспроизвели дефекты до исправления. После исправлений PASS:
+lifecycle 10 + issuer/controller 1 + renderer 3; engine technical-control 2;
+EVAL technical-observer 10; managed-binding 9 и real physical observe/seal 2
+(включая внедрённый late writer). AGY positive использует настоящий
+Runtime.captureChildTools с локальным transcript, без RPC/модели.
+Typecheck, финальная сборка и diff-check PASS; старые незатронутые группы
+первичной приёмки повторно не запускались. Полного gate/CI/EVAL/model probes нет.
+
+Engine reviewed source `8e4afa69` интегрирован squash PR
+[155](https://github.com/deksden-com/dd-flow-cli/pull/155), main `b7555a74`;
+дерево merge совпало с проверенным source. Нового выпуска или смены pins нет.
+Native AGY 400/P3 остаются отдельной последующей живой приёмкой, не объявляются
+исправленными только на основании обновлённого CLI или offline regressions.
+
+Старые merged task branches/worktrees очищаются после проверки PR history,
+содержимого и отсутствия активных EVAL. Нужные пакеты вынесены в стабильный
+`/Users/deksden/Documents/_Projects/.cache/dd-flow-cli-deps-plan111`, прежние
+зависимости сохранены отдельно. Ignored .tasks/.env старых checkout сохранены
+в private archive `/Users/deksden/Documents/_Projects/.cache/worktree-retirement-20261028`.
+Три orphan fake-AGY группы завершённых failed verification jobs остановлены
+по exact PID/birth/cwd/group; исторические EVAL homes и результаты не менялись.
