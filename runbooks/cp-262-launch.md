@@ -3,6 +3,8 @@
 Use [execute-eval.md](execute-eval.md). Exact local beta.157 candidate source
 `8f858471` includes plan111 and its review. It is not npm-published or
 release-accepted; research dispatch requires the operator's explicit approval.
+Operator approval received 2026-10-28: launch all four on this fixed candidate,
+without npm publication or release-accepted status.
 No full gate, GitHub CI or repeated unchanged Judge qualification.
 
 Fresh homes: `~/.dd-eval/qualification/cp262-{luna,zcode,agy,opencode}-full`.
