@@ -1,0 +1,34 @@
+{
+  "id": "cp-261-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "4fccc4ab1f60ab4e09ac170c286650ab47fbe2b4",
+    "tag": "eval/cp256-library-proof"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "1df94eb1577df927499fa7a608e1ac9204341079",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.3",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-261-installed-matrix-qualification.json",
+      "sha256": "ef34fc91c2d76ba3f419fe866cd61843b51a5c90ff9b759c684a7934c7c0c1f0",
+      "canon_commit": "052ffdf0fff642a46485d2decc79bf78b1970d5e"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "1a2bd0ea6d022b22e94f552f1cde1fb8e8b6689e",
+      "version": "0.9.0-beta.156",
+      "artifact_sha256": "03b83c8772421ce5a1dda8f68a0674fc6ce6d7826fad9ca2f7305fafd8816a52"
+    }
+  },
+  "state": "candidate_pending_preflight",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "CP261: plan110 and review; beta.156 scoped verification and publication/readback required before scored launch. Product, canon 4.1.3, flow pack, models and canonical answers unchanged. Updated matrix technical proof required for changed component. No full release gate or GitHub CI. Both Judges gpt-6.1-sol/high; no semantic decision shortcut or stop_after.",
+    "world_isolation": "Per-execution test worlds; owned EVAL PostgreSQL on loopback 55439.",
+    "baseline": "Each scored workspace executes its own baseline before Subject dispatch."
+  }
+}
