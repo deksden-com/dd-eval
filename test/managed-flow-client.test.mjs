@@ -26,6 +26,7 @@ test('a bound technical pause remains observational and cannot clear an operator
   assert.equal(result.pending_dependency.control_id, 'CTL');
   const requests = (await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse);
   assert.deepEqual(requests.map(args => args.slice(0, 3)), [['run', 'drive', 'status'], ['run', 'control', 'status']]);
+  assert.equal(requests[1].includes('--control-id'), false);
   await assert.rejects(observeManagedRun({ ...input, env: { FOREIGN_CONTROL: '1' } }), { code: 'managed_run_controlled' });
 });
 
