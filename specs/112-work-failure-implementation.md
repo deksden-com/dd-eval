@@ -42,3 +42,25 @@ Engine commit: `a0f68559`; canon commit: `462a644`.
 Ни полного release-gate, ни GitHub CI, ни новых model/native probes или E2E.
 Это implementation acceptance, не утверждение о прохождении нового живого E2E.
 Ранее согласованные capacity профилей (Luna 3, остальные 15) сохранены отдельно.
+
+## Ревью реализации
+
+Повторно проверены controller/fanout/native fences, retry/start/archive,
+external launch и EVAL attribution. Найдены и исправлены три существенных дефекта:
+
+1. Crash между записью accepted decision и SQL acceptance-event блокировал
+   восстановление. Теперь production replay завершает тот же приём идемпотентно.
+2. Потерянный ack уже выполненного pause пропускал reconciliation в paused Stage
+   и мог повторно задать вопрос после ответа. Теперь exact pause сверяется и
+   pending resolution снимается до штатной HITL-доставки.
+3. Изменение только retry-correction.json могло изменить новый worker prompt,
+   хотя accepted decision оставался прежним. Перед выдачей используется сверка
+   correction с самим принятым решением, а не только проверка hash его файла.
+
+Исправления engine: `8c1f531f`. Новые регрессии проверены на production helper,
+который вызывает controller loop; проверка одного файла не выдана за полный
+живой controller/E2E. Итоговый адресный прогон: 79/79 engine, 19/19 EVAL,
+TypeScript и scoped ESLint — PASS. Прежняя отдельная external-launch регрессия
+не повторялась: её код и тест после PASS не менялись. Аналогично сохранены
+результаты неизменённой verification-policy. Полный gate и новые E2E не запускались.
+Канон интегрирован PR #17, merge `3c16542f`.
