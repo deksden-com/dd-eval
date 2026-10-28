@@ -96,6 +96,8 @@ test("scored finalization after cleanup freezes the failed candidate and attempt
   for (const type of ["started", "failed"]) await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: `${manifest.run_id}:e:launch`, error: { code: "preflight_failed", message: "before session" } } });
   assert.equal((await runnerCleanup({ evalRoot: root })).judge_status, "not_run_cleanup_only");
   const args = { evalRoot: root, expectedManifestSha256: sha256(await readFile(manifestFile)), authorizeFinalization: async () => {} };
+  assert.equal((await runnerFinalizeSettled({ ...args, technicalOnly: true })).judge_status, 'not_run_cleanup_only');
+  assert.equal((await readEvents(eventsFile)).filter(event => event.data?.operation === 'final_judge').length, 0);
   await assert.rejects(runnerFinalizeSettled({ ...args, authorizeFinalization: null }), { code: "finalization_authority_required" });
   await assert.rejects(runnerFinalizeSettled({ ...args, authorizeFinalization: async () => { throw Object.assign(new Error("observer expired"), { code: "process_lease_lost" }); } }), { code: "process_lease_lost" });
   const finalized = await runnerFinalizeSettled(args);
@@ -286,9 +288,9 @@ test("terminal cleanup receipt rejects unsettled or foreign-scope cancelled nati
   ]);
 });
 
-test("cleanup RPC is bounded while productive calls do not inherit its timeout", async () => {
+test("cleanup RPC uses its sliding observer rather than a second fixed abort", async () => {
   const budget = recoveryObservationBudget({ recovery_observation: { remaining_ms: 30 } }, () => 0);
-  await assert.rejects(withRecoveryObservation(budget, () => commandJson(process.execPath, ["-e", "setTimeout(()=>{}, 10000)", "--"])), { name: "AbortError" });
+  await assert.rejects(withRecoveryObservation(budget, () => commandJson(process.execPath, ["-e", "setTimeout(()=>{}, 10000)", "--"], { timeoutMs: 1000 })), { code: "operation_observation_lost" });
   let now = 0;
   const expired = recoveryObservationBudget({ recovery_observation: { remaining_ms: 30 } }, () => now);
   now = 30;
@@ -728,8 +730,8 @@ test("settlement inactivity renews only new physical proof and preserves legacy 
   const legacy = recoveryObservationBudget({ recovery_observation: { remaining_ms: 1000 } }, () => time);
   legacy.observe({ physical_settled: true }); assert.equal(legacy.state().remaining_ms, 1000);
   assert.throws(() => recoveryObservationBudget({ recovery_observation: { policy_id: "unknown", remaining_ms: 1000 } }), { code: "recovery_observation_invalid" });
-  time += 61000; assert.equal(restored.exhausted(), true); // reconstruction + gap is a repeated unknown episode
-  time += 61000; assert.equal(restored.exhausted(), true);
+  time += 61000; assert.equal(restored.exhausted(), false); // Scheduler gaps are not silence or proof of native failure.
+  time += 61000; assert.equal(restored.exhausted(), false);
 });
 
 test("automatic reconstruction cannot replenish uncertainty or resurrect exhausted recovery", () => {
@@ -737,9 +739,9 @@ test("automatic reconstruction cannot replenish uncertainty or resurrect exhaust
   const replacement = recoveryObservationBudget({ recovery_observation: first.state() }, () => 0);
   assert.equal(replacement.state().remaining_ms, 120000);
   const repeated = recoveryObservationBudget({ recovery_observation: replacement.state() }, () => 0);
-  assert.equal(repeated.exhausted(), true);
+  assert.equal(repeated.exhausted(), false);
   repeated.observe({ operation_id: "owned", physical_settled: true });
-  assert.equal(repeated.state().remaining_ms, 0);
+  assert.equal(repeated.state().remaining_ms, 120000);
 });
 import { appendRunEventOnce, runResultRevision, recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoverySourceFromEvents, recoveryOperationId, recoveryPrompt, prepareRecoveryDelivery, isInfrastructureFailure } from "../lib/runner.mjs";
 
