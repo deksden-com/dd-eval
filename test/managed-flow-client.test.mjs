@@ -26,6 +26,7 @@ test('a bound technical pause remains observational and cannot clear an operator
   assert.equal(result.pending_dependency.control_id, 'CTL');
   const requests = (await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse);
   assert.deepEqual(requests.map(args => args.slice(0, 3)), [['run', 'drive', 'status'], ['run', 'control', 'status']]);
+  assert.equal(requests[1].includes('--control-id'), false);
   await assert.rejects(observeManagedRun({ ...input, env: { FOREIGN_CONTROL: '1' } }), { code: 'managed_run_controlled' });
 });
 
@@ -66,6 +67,27 @@ test('Subject technical notes leave immutable managed receipts unchanged and can
   assert.deepEqual(result.controller, controller);
   assert.equal(Object.hasOwn(result, 'technical_notes'), false);
   assert.deepEqual((await observeManagedRun({ ...input, onTechnicalNotes: () => { throw new Error('optional note sink unavailable'); } })).controller, controller);
+});
+
+for (const mode of ['bound-unbound', 'unbound-bound', 'duplicate', 'conflicting', 'new-control', 'generation', 'owner-request']) test(`technical control retains only one consistent source across observations: ${mode}`, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-technical-sources111-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs'), calls = path.join(root, 'calls'), state = path.join(root, 'reads');
+  const controller = { controller_id: 'DRV', generation: 3, status: 'control_requested', stage: 'plan' };
+  const data = { schema_id: 'dd-flow/controller-dependency@1', generation: 3, state_dir: '/daemon', control_id: 'CTL', request_id: 'technical:DRV:3:abc' };
+  const bound = { ...data, source_operation_id: 'accepted-work' };
+  const second = mode === 'bound-unbound' ? data : mode === 'conflicting' ? { ...bound, source_operation_id: 'other-work' }
+    : mode === 'new-control' ? { ...data, control_id: 'NEW', request_id: 'technical:DRV:3:new' }
+    : mode === 'generation' ? { ...data, generation: 4 } : mode === 'owner-request' ? { ...data, request_id: 'technical:OTHER:3:abc' } : bound;
+  const events = [mode === 'unbound-bound' ? data : bound, second].map((value, index) => ({ sequence: index + 1, type: 'technical_dependency_paused', data: value }));
+  const receipt = { scope: { run_id: 'RUN' }, control: { status: 'settled', current: true, requested_mode: 'pause', control_id: second.control_id, request_id: second.request_id } };
+  await writeFile(bin, `import fs from 'node:fs';const a=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify(a)+'\\n');let n=0;try{n=Number(fs.readFileSync(${JSON.stringify(state)},'utf8'));}catch{}
+if(a[1]==='drive'){fs.writeFileSync(${JSON.stringify(state)},String(n+1));console.log(JSON.stringify(n?{controller:{...${JSON.stringify(controller)},status:'completed'},events:[]}:{controller:${JSON.stringify(controller)},events:${JSON.stringify(events)}}));}
+else console.log(JSON.stringify(a[2]==='status'?${JSON.stringify(receipt)}:{ok:true}));`);
+  try { await observeManagedRun({ bin, projectRoot: root, runId: 'RUN', controllerId: 'DRV', requestId: 'request', pollMs: 1, beforeDispatch: () => assert.fail('no Subject dispatch') }); }
+  catch (error) { assert.equal(error.code, 'managed_run_controlled'); }
+  const requests = (await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse);
+  assert.equal(requests.filter(args => args[2] === 'reconcile').length, ['bound-unbound', 'unbound-bound', 'duplicate'].includes(mode) ? 1 : 0);
 });
 
 for (const mode of ['turn', 'finish', 'missing', 'pending', 'foreign', 'controlled', 'invalid']) test(`interactive observer uses public input custody: ${mode}`, async t => {
