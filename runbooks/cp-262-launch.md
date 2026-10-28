@@ -23,3 +23,8 @@ Stop the shared DB after its last consumer, retaining volumes/evidence.
 Preparation evidence: `~/.dd-eval/qualification/cp262-preparation`,
 `cp262-engine-candidate`, `cp262-installed-matrix-proof` and
 `~/.dd-eval/qualifications/native/agy-1.4.9-plan111-cp262`.
+
+AGY1.4.9 P3: all11 PASS; one-child compatibility/cleanup PASS. Reuse that
+validated smoke for capacity1. Original incomplete service capture is retained;
+operator-probe terminal sampling correction is tracked in engine PR157, without
+changing the frozen package runtime or weakening the evidence collector.
