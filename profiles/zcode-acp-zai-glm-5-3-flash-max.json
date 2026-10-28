@@ -16,6 +16,6 @@
     "zcode_acp_commit": "f9a3c5948ffbb0a31ec00bf8986610e17b8b9d77",
     "dd_harness_contract": "dd-zcode-harness@2"
   },
-  "subagent_capacity": 1,
-  "notes": "CP258 downstream bridge f9a3c5948ffbb0a31ec00bf8986610e17b8b9d77, dd-zcode-harness@2, native ZCode 0.17.0. Compatibility smoke observed one direct child completed and confirmed native/physical retirement. Capacity 1 reuses that same smoke, not a second model probe. Receipt: /Users/deksden/.dd-eval/qualification/cp258-zcode-full/conformance/native-subagents/20261027104138208/zcode-acp-zai-glm-5-3-flash-max/capacity.json. Full scored E2E pending."
+  "subagent_capacity": 15,
+  "notes": "Native ZCode 0.17.0, downstream bridge f9a3c5948ffbb0a31ec00bf8986610e17b8b9d77, dd-zcode-harness@2. CP262 isolated capacity probe on 2026-10-28 requested, started and completed 15 direct children; native metadata confirms overlapping lifetimes, with all created before the first completed. Native and physical retirement confirmed. Capacity is at least 15, not a measured upper limit or a heavy-work throughput guarantee. Applies to future launches only; frozen EVAL profiles remain unchanged. Receipt: /Users/deksden/.dd-eval/qualification/cp262-zcode-capacity-probe/conformance/native-subagents/20261028190326903/zcode-acp-zai-glm-5-3-flash-max/capacity.json."
 }

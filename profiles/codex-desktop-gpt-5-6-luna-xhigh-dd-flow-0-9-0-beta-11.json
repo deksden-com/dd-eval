@@ -4,10 +4,10 @@
   "harness": "codex-desktop",
   "model": "gpt-6-luna",
   "reasoning": "xhigh",
-  "notes": "Luna Subject settings. The historical profile ID is stable; the committed input checkpoint alone selects the flow pack and engine version. The live CPA model is gpt-6-luna.",
+  "notes": "Luna Subject settings; historical profile ID remains stable. CP262 held-child probe on 2026-10-28 accepted 3 direct children; the fourth spawn returned native agent thread limit reached before any accepted child completed. All 3 children completed and native/physical retirement confirmed. Current Codex multi-agent v2 default is 4 concurrent threads including the coordinator, hence 3 children; legacy v1 default 6 is not applicable. Global Codex config was not changed. Evidence: /Users/deksden/.dd-eval/qualification/cp262-held-capacity/luna/report.json and events.jsonl. Earlier fast-child total of 15 was not a concurrency measurement. Existing frozen EVALs are unchanged.",
   "runtime": {
     "codex_cli": "0.163.0",
     "dd_harness_contract": "dd-codex-harness@1"
   },
-  "subagent_capacity": 2
+  "subagent_capacity": 3
 }

@@ -42,6 +42,13 @@ alone does not authorize paid qualification, provider calls or scored launches.
    Flow profiles have different schemas. Run the pinned adapter's non-generative
    doctor; qualify changed native contracts only when relevant evidence is absent.
    Compatibility/capacity qualification can call a provider and needs authorization.
+   Reuse committed `subagent_capacity`; do not run a paid capacity probe before
+   every EVAL or merely because a CLI/engine version changed. Current measured
+   profiles: Luna/Codex v2 **3**, ZCode **15**, AGY **15**, OpenCode **15**.
+   Reprobe only to raise the limit, after a relevant native concurrency/config
+   change, or after an observed capacity regression. A new probe must measure
+   overlapping live children, not total children created across successive waves.
+   Freeze the selected capacity at launch; never update an existing EVAL in place.
 5. For focused/segment runs, validate their accepted entry pack:
 
    ~~~sh
