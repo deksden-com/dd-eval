@@ -64,13 +64,17 @@ test('110 verified native ledger progress crosses the old fixed RPC deadline', a
   const saved = recoveryObservationBudget(null, () => 0).state();
   saved.remaining_ms = 30;
   const budget = recoveryObservationBudget({ recovery_observation: saved }, () => 0);
+  let nativeSequence = 0;
   const value = await withRecoveryObservation(budget, () => commandJson(process.execPath,
     ['-e', 'setTimeout(()=>console.log("{}"),1500)', '--'], {
       timeoutMs: 1000, env: { DD_EVAL_OPERATION_ID: 'original-native-operation' },
-      operationProgress: async () => ({ cursor: 'native-daemon:1', observed_at: Date.now() })
+      // This case models an active ledger throughout command startup/execution,
+      // not a single event followed by silence. Cold Node startup is variable.
+      operationProgress: async () => ({ cursor: `native-daemon:${++nativeSequence}`, observed_at: Date.now() })
     }));
   assert.deepEqual(value, {});
-  assert.equal(budget.state().activity_cursors['original-native-operation'], 'native-daemon:1');
+  assert.ok(nativeSequence > 0);
+  assert.equal(budget.state().activity_cursors['original-native-operation'], `native-daemon:${nativeSequence}`);
 });
 
 test('110 physical cleanup cannot retain scored observer after capture readiness or block live neighbours', () => {

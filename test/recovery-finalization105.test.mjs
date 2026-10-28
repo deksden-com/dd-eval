@@ -4,13 +4,13 @@ import path from 'node:path';
 import os from 'node:os';
 import { mkdtemp, mkdir, chmod, writeFile, readFile, rm, realpath, rename, symlink } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { captureRecoveryEvidence, runnerCleanup, runnerCleanupReceipt, storedExecutionResults, runResultRevision, recoveryHistory, runnerControlStatus, recoverExecution, runnerCancel } from '../lib/runner.mjs';
+import { captureRecoveryEvidence, runnerCleanup, runnerCleanupReceipt, runnerFinalizeSettled, storedExecutionResults, runResultRevision, recoveryHistory, runnerControlStatus, recoverExecution, runnerCancel } from '../lib/runner.mjs';
 import { appendEvent, readEvents, writeJsonAtomic, sha256 } from '../lib/runner-events.mjs';
 import { observeBoundSnapshot } from '../lib/snapshot-observation.mjs';
 import { installSuccessfulPolicy } from './fixtures/capacity-policy.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 
-test('105 late capture with real RUN receipt ingests once through cleanup without replay or Judge', async t => {
+test('105 late capture with real RUN receipt separates cleanup ingestion from scored Judge admission without replay', async t => {
   const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'recovery105-')));
   t.after(() => rm(root, { recursive: true, force: true }));
   const attempt = path.join(root, 'executions/e'), project = path.join(attempt, 'project'), runtime = path.join(attempt, 'dd-flow-home');
@@ -46,6 +46,10 @@ test('105 late capture with real RUN receipt ingests once through cleanup withou
   assert.equal(JSON.parse(await readFile(path.join(root, 'reports/report.json'))).assessment_state, 'unavailable');
   assert.equal(before.cleanup_observation.capture, 'pending', JSON.stringify(before.executions[0].recovery));
   assert.equal(before.executions[0].recovery.recovery_id, undefined);
+  const scoredBefore = await runnerFinalizeSettled({ evalRoot: root,
+    expectedManifestSha256: sha256(await readFile(manifestFile)), authorizeFinalization: async () => {} });
+  assert.equal(scoredBefore.judge_status, 'not_run_incomplete_evidence', 'fresh finalization cannot admit Judge before capture readiness');
+  assert.equal((await readEvents(eventsFile)).filter(event => event.data?.operation === 'final_judge').length, 0);
   await writeJsonAtomic(statusFile, { ...receipt, scope: { run_id: 'FOREIGN-RUN' } });
   assert.equal((await captureRecoveryEvidence({ root, manifest, result: failure })).capture_error.code, 'execution_scope_invalid', 'a foreign not-yet-sealed status is invalid, not a transient pending publication');
   receipt.settled = true; receipt.control.admission = 'sealed'; receipt.control.capture_path = capture;
@@ -73,6 +77,11 @@ test('105 late capture with real RUN receipt ingests once through cleanup withou
   record.state = 'running'; await writeJsonAtomic(inventoryFile, inventory);
   assert.equal((await runnerCleanupReceipt(args)).cleanup_state, 'pending', 'active owned child blocks physical recognition despite sealed capture');
   assert.deepEqual(await readFile(path.join(root, 'reports/report.json')), report, 'recognition never rewrites published report');
+  const scored = await runnerFinalizeSettled({ ...args, authorizeFinalization: async () => {} });
+  assert.equal(scored.cleanup_state, 'pending');
+  assert.equal(scored.cleanup_observation.capture, 'ready');
+  assert.equal(scored.judge_status, 'failed', 'ready capture admits Judge independently of cleanup recognition; missing fixture profile prevents a provider call');
+  assert.equal((await readEvents(eventsFile)).filter(event => event.type === 'dev.dd.eval.operation.started' && event.data.operation_id === `${manifest.run_id}:e:launch`).length, 1, 'scored finalization never repeats Subject');
   record.state = 'stopped'; await writeJsonAtomic(inventoryFile, inventory);
   await writeJsonAtomic(statusFile, { ok: false, code: 'operation_observation_lost', error: 'readback disconnected' });
   const unknown = await runnerCleanup({ evalRoot: root });
