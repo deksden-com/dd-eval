@@ -6,9 +6,9 @@
   "model": "glm-5.3-flash",
   "reasoning": "max",
   "mode": "build",
-  "notes": "OpenCode 2.0.31 passed native compatibility and two-child capacity qualification for CP231; full scored E2E remains pending.",
+  "notes": "OpenCode 2.0.31 CP262 isolated probe on 2026-10-28 started and completed 15 children. Native session_v2 timestamps confirm all 15 were created before the first child became idle. Native and physical retirement confirmed. Capacity is at least 15, not a measured upper limit or heavy-work throughput guarantee. Receipt: /Users/deksden/.dd-eval/qualification/cp262-opencode-capacity-probe/conformance/native-subagents/20261028191914460/opencode-server-zai-glm-5-3-flash-max/capacity.json. Existing frozen EVALs are unchanged.",
   "runtime": {
     "opencode": "2.0.31"
   },
-  "subagent_capacity": 2
+  "subagent_capacity": 15
 }

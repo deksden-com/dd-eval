@@ -11,9 +11,9 @@
   "reasoning": "high",
   "mode": "accept-edits",
   "runtime": {
-    "agy": "1.4.7",
+    "agy": "1.4.9",
     "dd_harness_contract": "dd-agy-harness@1"
   },
-  "subagent_capacity": 1,
-  "notes": "CP258 AGY 1.4.7 compatibility qualified with one observed direct child, required execution idle and native/physical retirement confirmed. Capacity 1 reuses that same smoke, not a second model probe. Receipt: /Users/deksden/.dd-eval/qualification/cp258-agy-full/conformance/native-subagents/20261027104136505/antigravity-cli-google-gemini-3-8-flash-high/capacity.json. P3: /Users/deksden/.dd-eval/qualifications/native/agy-1.4.7-plan108-20261027/qualification.json. Native profile attribution remains incomplete; full scored E2E pending."
+  "subagent_capacity": 15,
+  "notes": "CP262 AGY 1.4.9 binary cdf246218723bc58927a4d984fba5b9f7905cde5913d24b52624bc5a8d13c408. Held-child native probe on 2026-10-28 accepted 15 direct children via invoke_subagent TypeName self, Role capacity_N. All 15 start markers existed before external barrier release, all 15 finished, and native/physical retirement confirmed. Capacity is at least 15, not a measured upper limit. Earlier generic probe was inconclusive because its prompt omitted the concrete native tool. Evidence: /Users/deksden/.dd-eval/qualification/cp262-held-capacity/agy/report.json. P3: /Users/deksden/.dd-eval/qualifications/native/agy-1.4.9-plan111-cp262/qualification.json. Applies only to future runs; historical frozen profiles are unchanged."
 }
