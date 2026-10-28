@@ -29,7 +29,7 @@ test("owned CLI JSON results are not rejected merely for exceeding the old reply
 
 test("operation diagnostics cannot hide a pretty typed native failure", () => {
   const record = { code: "native_rejected", message: "primary", retryable: false, details: { session_id: "retained" } };
-  const output = [JSON.stringify({ kind: "operation_progress", sequence: 1 }), JSON.stringify({ ok: false, error: record }, null, 2), JSON.stringify({ kind: "operation_wait", state: "provider_capacity" })].join("\n");
+  const output = [JSON.stringify({ kind: "native_hook_diagnostic", code: 'observer_unavailable' }), JSON.stringify({ kind: "operation_progress", sequence: 1 }), JSON.stringify({ ok: false, error: record }, null, 2), JSON.stringify({ kind: "operation_wait", state: "provider_capacity" })].join("\n");
   assert.deepEqual(errorRecord(reportedFailure("", output, "fallback")), record);
 });
 
@@ -320,6 +320,7 @@ test("text command diagnostics distinguish productive work from keepalive, repla
     { kind: "process_maintenance_phase", action: "heartbeat", phase: "request" },
     { kind: "process_maintenance_phase", operation_id: "owned", phase: "same" },
     { kind: "native_hook_phase", operation_id: "owned", phase: "elapsed" },
+    { kind: "native_hook_diagnostic", operation_id: "owned", phase: "verification", code: 'observer_unavailable' },
   ]) {
     await writeFile(cli, `setInterval(()=>console.error(JSON.stringify(${JSON.stringify(value)})),50);`);
     await assert.rejects(commandText(cli, [], { timeoutMs: 1500 }), { code: "operation_observation_lost" });

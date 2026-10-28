@@ -42,11 +42,14 @@ test('105 late capture with real RUN receipt ingests once through cleanup withou
   await writeJsonAtomic(statusFile, receipt);
   const before = await runnerCleanup({ evalRoot: root });
   assert.equal(before.cleanup_state, 'settled', 'physical stop does not wait for capture');
+  assert.equal(before.state, 'completed_with_failures', 'missing capture cannot strand the technical report');
+  assert.equal(JSON.parse(await readFile(path.join(root, 'reports/report.json'))).assessment_state, 'unavailable');
   assert.equal(before.cleanup_observation.capture, 'pending', JSON.stringify(before.executions[0].recovery));
   assert.equal(before.executions[0].recovery.recovery_id, undefined);
   await writeJsonAtomic(statusFile, { ...receipt, scope: { run_id: 'FOREIGN-RUN' } });
   assert.equal((await captureRecoveryEvidence({ root, manifest, result: failure })).capture_error.code, 'execution_scope_invalid', 'a foreign not-yet-sealed status is invalid, not a transient pending publication');
   receipt.settled = true; receipt.control.admission = 'sealed'; receipt.control.capture_path = capture;
+  receipt.worker = { status: 'recovery_blocked', error: { code: 'recovery_observation_budget_exhausted' } };
   receipt.control.settlement = { settled: true, nodes: [], process_bindings: [{ resource_home: resources, process_id: record.id, registration_sha256: signature }] };
   await writeJsonAtomic(statusFile, receipt);
   await writeJsonAtomic(path.join(capture, 'snapshot.json'), { schema_id: 'dd-flow/eval-run-snapshot@5', purpose: 'recovery', run_id: 'RUN-1', recovery_id: 'RCV-1', project_root: project, dd_flow_home: runtime, consistency: 'sealed_writer_barrier_required', restorable: 'same-runtime-or-explicit-restore' });

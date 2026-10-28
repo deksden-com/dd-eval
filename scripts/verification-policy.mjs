@@ -5,6 +5,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 const zones = [
+  [/^recovery-observation-budget\.mjs$/, /plan110-recovery|runner-recovery|eval-retirement090|process-json/],
   [/technical-notes|baseline-admission|^runner\.mjs$/, /technical-notes107/],
   [/technical-notes/, /runner-health|runner-recovery|qualification-owner090/],
   [/snapshot-observation/, /recovery-finalization105|runner-recovery|cleanup-observation/],
@@ -19,7 +20,7 @@ const zones = [
   [/baseline-admission|fixture-assessment|world-readiness|check-resources/, /baseline-admission|fixture-assessment102|fixture-validation103|check-resources|runner-compatibility101/],
   [/engine-admission|verification-components|(?:qualify|rebind)-verification-matrix/, /engine-admission|verification-components(?:102|103)/],
   [/hitl|coverage|judge|decision/, /hitl|coverage|judge|decision/],
-  [/retirement|cleanup|process|daemon|lease|runner-lock|qualification-owner|qualification-intent|qualification-recovery/, /retirement|cleanup|process|daemon|lease|runner-lock|qualification-owner|qualification-intent|qualification-recovery|admission104/],
+  [/retirement|cleanup|process|daemon|lease|runner-lock|qualification-owner|qualification-intent|qualification-recovery/, /retirement|cleanup|process|daemon|lease|runner-lock|qualification-owner|qualification-intent|qualification-recovery|admission104|plan110-admission/],
   [/runner\.mjs|eval-resume|eval-worker|execution|canonical|comparison|compare|run-specify/, /runner-native|comparison-admission|runner-resume|runner-control|runner-recovery|runner-execution-contract|recovery-finalization105|managed-resume|canonical|fork|stop-after/],
   [/verification-policy|verification\.mjs|verification-jobs/, /verification-policy102|verification104/],
   [/case-definition/, /definition|case-acceptance|baseline-admission/],
