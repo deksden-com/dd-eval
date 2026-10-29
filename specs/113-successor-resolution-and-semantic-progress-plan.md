@@ -1,7 +1,8 @@
 # 113 — Единое продолжение lifecycle и содержательный прогресс контроллера
 
-Статус: реализован 2026-10-29; адресная приёмка завершена.
+Статус: реализован и прошёл ревью 2026-10-29; интегрирован в engine main.
 Результат: [implementation receipt](113-implementation-completion.md).
+Ревью и интеграция: [review receipt](113-implementation-review.md).
 Проверен по ponytail full и независимым аудитам authority, progress, tests;
 выводы перепроверены по исходному коду. Новые EVAL не запускаются.
 

@@ -5,6 +5,9 @@
 Engine: `cfa81c1aeb3c52888e448ef2655c194564894a34`,
 ветка `fix/plan-113-lifecycle-progress` в `dd-flow-cli`.
 Это source candidate, не новый опубликованный engine и не release-accepted EVAL.
+Последующее [ревью](113-implementation-review.md) исправило два существенных
+пропуска и интегрировало итоговую реализацию в engine main через PR166.
+Указанный выше commit сохраняет идентичность первоначальной реализации.
 
 ## Что изменено
 
@@ -74,4 +77,5 @@ paths, а не предполагает общее число проверок �
 Реализация и приёмка плана завершены. Модель, native provider probes, capacity,
 Judge/matrix qualification, новые EVAL и GitHub CI не запускались. Работающие
 EVAL/installed hooks/operator homes не менялись. Исторический CP263 не изменён.
-Merge, выпуск и живой новый EVAL требуют отдельного поручения.
+Ревью и merge выполнены по следующему поручению; см. отдельный review receipt.
+Выпуск и живой новый EVAL остаются отдельной задачей.
