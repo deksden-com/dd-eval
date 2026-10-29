@@ -152,3 +152,28 @@ regression 1/1 PASS, TypeScript/affected ESLint PASS. No lifecycle scope mocks.
 The detached cleanup-worker regression and existing cleanup observation tests
 also pass 7/7. Full affected three-file verification is still in progress;
 integration/publication are not claimed complete.
+
+### Expanded analog audit requested before launch
+
+The three affected original files passed 304/304 cases (session50649,1080.07s).
+This does not prove absence of all similar defects. A further source audit found
+confirmed siblings before merge: hook-only repeated/fatal/persistence outcomes
+removed top-level retry help but retained nested command_after_input; response
+overlay and persistence failure could retain the original help after cleaning a
+clone. Reuse removeRetryPromises at each authority-removal boundary and replace
+response promises from the authoritative clone, preserving diagnostic input_file.
+
+Proven native directory refusals also escaped before event persistence in shared
+Codex/ZCode/Grok and controlled OpenCode/AGY/Droid paths, masking their typed error
+at CLI admission. Reuse the existing non-capability diagnostic with exact native
+scope/fingerprint and original directory provenance. CLI accepts only explicit
+known refusal codes, not arbitrary diagnostic execution or fuzzy assignment.
+Readiness requires fatal/rollback/original-response and shared/controlled directory
+regressions, duplicate idempotency, foreign-scope exclusion and zero invocations.
+These are cycle3 additions, not another budget reservation or product change.
+
+Cleanup sibling audit: every remaining lease.admission in eval-resume-worker is
+after the productive lease assignment; no second pre-initialization call found.
+Additional focused checks and final review remain pending; no blanket no-bugs or
+full E2E PASS claim is made. Ponytail: reuse existing helper/storage and guards,
+no new framework, retry limits, model/capacity changes or full gate.

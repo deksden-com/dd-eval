@@ -1,0 +1,37 @@
+{
+  "id": "cp-267-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "4fccc4ab1f60ab4e09ac170c286650ab47fbe2b4",
+    "tag": "eval/cp256-library-proof"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "01cad45f12b853d716d887d76636ccda1fcc714a",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.4",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": null,
+      "sha256": null,
+      "canon_commit": "7cc415b3ef3ce37c9624c7cee51023e66f67cd57"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "version": "0.9.0-beta.162",
+      "commit": null,
+      "artifact_sha256": null
+    }
+  },
+  "state": "preparing",
+  "preparation": {
+    "launchable": false,
+    "managed_tools": [
+      "wt"
+    ],
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Repair cycle3/3, plan116. DRAFT: release commit, artifact and fresh installed matrix pending; not acceptance or publication. No full gate, GitHub CI or provider requalification.",
+    "world_isolation": "Use owned EVAL PostgreSQL on loopback55439; never foreign55433. Each execution gets a fresh isolated test world.",
+    "baseline": "Run the pinned baseline once in the scored workspace before Subject dispatch."
+  }
+}
