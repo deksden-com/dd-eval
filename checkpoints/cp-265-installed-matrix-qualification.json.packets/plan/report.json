@@ -1,0 +1,95 @@
+{
+  "schema_id": "dd-flow/stage-report@2",
+  "run_id": "RUN-001-tasks",
+  "stage": "plan",
+  "generated_at": "2026-10-29T15:17:18.377Z",
+  "verdict": "done",
+  "semantic": {
+    "result": "Accepted 1 executable PLAN artifact.",
+    "acceptance": [
+      "PRT-001-task-priority"
+    ],
+    "changed_files": [
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+      "run://RUN-001-tasks/03-plan/PRT-001-task-priority/aspect-map.json",
+      "run://RUN-001-tasks/03-plan/code-work-batch.json"
+    ],
+    "checks": [
+      "protocol-plan schema",
+      "aspect-map schema",
+      "cross-artifact references",
+      "generated CODE batch"
+    ],
+    "evidence": [
+      "run://RUN-001-tasks/03-plan/stage-report.json"
+    ],
+    "next_action": "start_plan_review",
+    "plans": [
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json"
+    ],
+    "aspect_maps": [
+      "run://RUN-001-tasks/03-plan/PRT-001-task-priority/aspect-map.json"
+    ],
+    "code_work_batch": "run://RUN-001-tasks/03-plan/code-work-batch.json",
+    "batch_checksum": "87e04b2d0de72ebc62c60cc3fcf258903579dc55ea1f8925affe328a03b062d9",
+    "plan_checksums": [
+      {
+        "path": ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+        "sha256": "54ab1c31ae295a032639f7764fffbf6f8ff2c7e96a87821a0c89d88bd3bb0387"
+      }
+    ],
+    "aspect_map_checksums": [
+      {
+        "path": "03-plan/PRT-001-task-priority/aspect-map.json",
+        "sha256": "706cb6004ccbe32a2b940f739aa335d2afe3dcd8dcd1c0a94af92026cf94bf25"
+      }
+    ],
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "role": "output",
+      "completeness": "declared",
+      "source_fingerprint": "53cb8af7a1ab9c53b81a696196ae7205ab97fedb750142b0ffcb0743a34e6001",
+      "json": {
+        "path": "03-plan/verification/53cb8af7a1ab9c53b81a696196ae7205ab97fedb750142b0ffcb0743a34e6001/verification-matrix.json",
+        "sha256": "ed637c30a51238d930f7d10885d55c351222e162a1a435d0401279e41209189d"
+      },
+      "markdown": {
+        "path": "03-plan/verification/53cb8af7a1ab9c53b81a696196ae7205ab97fedb750142b0ffcb0743a34e6001/verification-matrix.md",
+        "sha256": "39e3ec5df9d510c0082a14692351a4fb4c243ad1f3853af4002b371d29968203"
+      },
+      "accepted_sources": [
+        {
+          "role": "accepted_intake",
+          "root": "run",
+          "path": "03-plan/verification/sources/e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd/accepted-input.md",
+          "sha256": "e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd"
+        }
+      ],
+      "coverage_contract": "dd-flow/final-check-coverage@1"
+    }
+  },
+  "mechanical": {
+    "started_at": "2026-10-29T15:17:14.701Z",
+    "finished_at": "2026-10-29T15:17:18.377Z",
+    "wall_clock_ms": 3676,
+    "git": {
+      "branch": "main",
+      "head": "ad2d467fb6333f8ebdb73185c9673d1ff9749811",
+      "status": "dirty"
+    },
+    "session_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp265-installed-matrix-proof/dd-flow-protocolize-FHyPiJ/home\" dd-flow stat run sessions ls --run RUN-001-tasks --project-root \"/Users/deksden/.dd-eval/qualification/cp265-installed-matrix-proof/dd-flow-protocolize-FHyPiJ/project\" --json",
+    "usage_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp265-installed-matrix-proof/dd-flow-protocolize-FHyPiJ/home\" dd-flow stat usage --run RUN-001-tasks --project-root \"/Users/deksden/.dd-eval/qualification/cp265-installed-matrix-proof/dd-flow-protocolize-FHyPiJ/project\" --json",
+    "next_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp265-installed-matrix-proof/dd-flow-protocolize-FHyPiJ/home\" dd-flow stage start RUN-001-tasks --stage plan-review --project-root \"/Users/deksden/.dd-eval/qualification/cp265-installed-matrix-proof/dd-flow-protocolize-FHyPiJ/project\" --json"
+  },
+  "artifacts": {
+    "json": "stage-report.json",
+    "markdown": "stage-report.md",
+    "html": "stage-report.html"
+  },
+  "validation": {
+    "permission_scope": "known_targets_only",
+    "memory_bank_scope": "changed_files_and_links_only",
+    "status": "passed"
+  },
+  "summary": "Accepted 1 executable PLAN artifact."
+}

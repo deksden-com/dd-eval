@@ -1,0 +1,279 @@
+{
+  "criteria": [
+    {
+      "check_refs": [
+        "CHK-P1-TEST",
+        "CHK-READY"
+      ],
+      "checks": [
+        {
+          "canonical_ref": "PRT-001-task-priority/CHK-P1-TEST",
+          "declaration": {
+            "availability": "available",
+            "canonical_ref": "PRT-001-task-priority/CHK-P1-TEST",
+            "command": "test -f apps/api/src/core/service.ts",
+            "id": "CHK-P1-TEST",
+            "purpose": "Proves the changed task service exists.",
+            "run_at": "work"
+          },
+          "disposition": "retained",
+          "id": "CHK-P1-TEST",
+          "result": {
+            "after_fingerprint": "00c86235cd00bcdf747a2ab2ac36d38220fb08a8863fcd08a6fa1e315d8afe9f",
+            "artifacts": [],
+            "before_fingerprint": "00c86235cd00bcdf747a2ab2ac36d38220fb08a8863fcd08a6fa1e315d8afe9f",
+            "candidate_absences": [],
+            "candidate_files": [],
+            "candidate_library_inputs": [],
+            "candidate_root": "/Users/deksden/.dd-eval/qualification/cp265-installed-matrix-proof/dd-flow-protocolize-FHyPiJ/project",
+            "check_refs": [
+              "CHK-NEW",
+              "CHK-P1-TEST",
+              "CHK-READY"
+            ],
+            "command": "test -f apps/api/src/core/service.ts",
+            "completion_path": "05-code/checks/RCP-002/completion.json",
+            "declaration_id": "CHK-NEW",
+            "execution_contract_hash": "fdad8ba6d0f39863d03e9e012beec0c5d254ad2aa9a1d59795509787225575f8",
+            "execution_failures": [],
+            "exit_code": 0,
+            "fingerprint_scope": "check_inputs",
+            "finished_at": "2026-10-29T15:17:39.402Z",
+            "gate": "readiness",
+            "id": "RUN-001-tasks/RCP-002",
+            "input_hash": "0e7771ea98430f4a8710874c53b788e084a9db7cc0941f7f5fba70d3852d59d0",
+            "input_manifest": {
+              "path": "inputs-before.json",
+              "sha256": "a5973a2d702d717f2cde9365f422e6e8ca30d5f6c4ef9d20df04012ef7b84dc3",
+              "truncated": false
+            },
+            "inputs": [],
+            "local_id": "RCP-002",
+            "mutation_paths": [],
+            "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+            "receipt_path": "05-code/checks/RCP-002/receipt.json",
+            "required_artifacts": [],
+            "resources": {
+              "ports": {}
+            },
+            "retry_of_receipt_id": null,
+            "retry_reason": null,
+            "scope": "aggregate",
+            "started_at": "2026-10-29T15:17:39.340Z",
+            "status": "passed",
+            "stderr_path": "05-code/checks/RCP-002/stderr.log",
+            "stdout_path": "05-code/checks/RCP-002/stdout.log",
+            "verification_epoch": "c1e606580c967c0e949a6d90e8d37b8871c060672375b3c8b096e498252b4bce",
+            "work_id": null,
+            "workspace_fingerprint": "eca1ef2f3713f6b17ee6539807a3f0678a71b456ff8c57e1832c16e0c9121139"
+          }
+        },
+        {
+          "canonical_ref": "PRT-001-task-priority/CHK-READY",
+          "declaration": {
+            "availability": "available",
+            "canonical_ref": "PRT-001-task-priority/CHK-READY",
+            "command": "test -f apps/api/src/core/service.ts",
+            "id": "CHK-READY",
+            "purpose": "Confirms the prepared workspace contains the service.",
+            "run_at": "readiness"
+          },
+          "disposition": "retained",
+          "id": "CHK-READY",
+          "result": {
+            "after_fingerprint": "00c86235cd00bcdf747a2ab2ac36d38220fb08a8863fcd08a6fa1e315d8afe9f",
+            "artifacts": [],
+            "before_fingerprint": "00c86235cd00bcdf747a2ab2ac36d38220fb08a8863fcd08a6fa1e315d8afe9f",
+            "candidate_absences": [],
+            "candidate_files": [],
+            "candidate_library_inputs": [],
+            "candidate_root": "/Users/deksden/.dd-eval/qualification/cp265-installed-matrix-proof/dd-flow-protocolize-FHyPiJ/project",
+            "check_refs": [
+              "CHK-NEW",
+              "CHK-P1-TEST",
+              "CHK-READY"
+            ],
+            "command": "test -f apps/api/src/core/service.ts",
+            "completion_path": "05-code/checks/RCP-002/completion.json",
+            "declaration_id": "CHK-NEW",
+            "execution_contract_hash": "fdad8ba6d0f39863d03e9e012beec0c5d254ad2aa9a1d59795509787225575f8",
+            "execution_failures": [],
+            "exit_code": 0,
+            "fingerprint_scope": "check_inputs",
+            "finished_at": "2026-10-29T15:17:39.402Z",
+            "gate": "readiness",
+            "id": "RUN-001-tasks/RCP-002",
+            "input_hash": "0e7771ea98430f4a8710874c53b788e084a9db7cc0941f7f5fba70d3852d59d0",
+            "input_manifest": {
+              "path": "inputs-before.json",
+              "sha256": "a5973a2d702d717f2cde9365f422e6e8ca30d5f6c4ef9d20df04012ef7b84dc3",
+              "truncated": false
+            },
+            "inputs": [],
+            "local_id": "RCP-002",
+            "mutation_paths": [],
+            "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+            "receipt_path": "05-code/checks/RCP-002/receipt.json",
+            "required_artifacts": [],
+            "resources": {
+              "ports": {}
+            },
+            "retry_of_receipt_id": null,
+            "retry_reason": null,
+            "scope": "aggregate",
+            "started_at": "2026-10-29T15:17:39.340Z",
+            "status": "passed",
+            "stderr_path": "05-code/checks/RCP-002/stderr.log",
+            "stdout_path": "05-code/checks/RCP-002/stdout.log",
+            "verification_epoch": "c1e606580c967c0e949a6d90e8d37b8871c060672375b3c8b096e498252b4bce",
+            "work_id": null,
+            "workspace_fingerprint": "eca1ef2f3713f6b17ee6539807a3f0678a71b456ff8c57e1832c16e0c9121139"
+          }
+        }
+      ],
+      "criterion_id": "AC-001",
+      "declaration": {
+        "changed_surfaces": [
+          "apps/api/src/core/service.ts"
+        ],
+        "check_refs": [
+          "CHK-P1-TEST",
+          "CHK-READY"
+        ],
+        "cleanup": "No persistent fixture.",
+        "criterion_id": "AC-001",
+        "environment": "Local tests.",
+        "expected_evidence": [
+          "Focused test passes."
+        ],
+        "fixtures": [],
+        "gate": "work",
+        "path": "Set priority through the task service.",
+        "plan_item_ids": [
+          "P1"
+        ],
+        "proof_limits": [
+          "No production claim."
+        ]
+      },
+      "gate": "work",
+      "protocol_id": "PRT-001-task-priority",
+      "statement": "A member changes a task priority."
+    }
+  ],
+  "header": {
+    "completeness": "execution",
+    "project_id": "PRJ-001-project",
+    "role": "output",
+    "run_id": "RUN-001-tasks",
+    "source_fingerprint": "916b802f0512b63416f9069ad5a959f0cbe55f2d066163cc38e7ba6d7f214a85",
+    "stage": "code",
+    "stage_attempt": "try-001"
+  },
+  "policy_checks": [],
+  "requirements": [
+    {
+      "id": "R-001",
+      "plan_items": [
+        {
+          "check_refs": [
+            "CHK-NEW",
+            "CHK-P1-TEST"
+          ],
+          "id": "P1",
+          "work_ids": [
+            "WRK-005-prt-001-task-priority-p1"
+          ]
+        }
+      ],
+      "protocol_id": "PRT-001-task-priority",
+      "statement": "Priority field."
+    }
+  ],
+  "schema_id": "dd-flow/verification-matrix@1",
+  "semantic_assessment": {
+    "path": "05-code/code-verification.json",
+    "root": "run",
+    "sha256": "f06a8edc39c7a72e8a2e779f267c306d5da53a18bd3c23c16d8bc90281788c1a"
+  },
+  "sources": [
+    {
+      "path": "05-code/verification/sources/e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd/accepted-input.md",
+      "role": "accepted_intake",
+      "root": "run",
+      "sha256": "e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd"
+    },
+    {
+      "path": "05-code/verification/sources/77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da/code-work-batch.json",
+      "role": "code_work_batch",
+      "root": "run",
+      "sha256": "77bae4b331373b07cdf71acd27acef07229923e245ce5f4534301d2f96f197da"
+    },
+    {
+      "path": "05-code/checks/RCP-002/completion.json",
+      "role": "completion:PRT-001-task-priority/CHK-NEW",
+      "root": "run",
+      "sha256": "1dc11e5af3349ff19216ed69913e266a058d902e79f8b5939866a11bafd76074"
+    },
+    {
+      "path": "05-code/checks/RCP-002/completion.json",
+      "role": "completion:PRT-001-task-priority/CHK-P1-TEST",
+      "root": "run",
+      "sha256": "1dc11e5af3349ff19216ed69913e266a058d902e79f8b5939866a11bafd76074"
+    },
+    {
+      "path": "05-code/checks/RCP-002/completion.json",
+      "role": "completion:PRT-001-task-priority/CHK-READY",
+      "root": "run",
+      "sha256": "1dc11e5af3349ff19216ed69913e266a058d902e79f8b5939866a11bafd76074"
+    },
+    {
+      "path": "05-code/verification/sources/aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7/plan.json",
+      "role": "plan:PRT-001-task-priority",
+      "root": "run",
+      "sha256": "aa9dc1e2c172705a8f6ca03141a24a3822ab6de0da4d48fa40e44498befacce7"
+    },
+    {
+      "path": "02-protocolize/protocolize-result.json",
+      "role": "protocolize",
+      "root": "run",
+      "sha256": "e76aee02e027ca6ca16de8c5b1533e91b469595098e423668cded932ded55ead"
+    },
+    {
+      "path": "02-protocolize/stage-report.json",
+      "role": "protocolize_report",
+      "root": "run",
+      "sha256": "3dcb2a9de621fdcfcf1af333470ebb0363eaf406df5f1658bdfe756fbd83f963"
+    },
+    {
+      "path": "05-code/checks/RCP-002/receipt.json",
+      "role": "receipt:PRT-001-task-priority/CHK-NEW",
+      "root": "run",
+      "sha256": "1391c63fa3ba1271597d7cc3e463f4891972c78beaae4d2ebe2e458cc53176a3"
+    },
+    {
+      "path": "05-code/checks/RCP-002/receipt.json",
+      "role": "receipt:PRT-001-task-priority/CHK-P1-TEST",
+      "root": "run",
+      "sha256": "1391c63fa3ba1271597d7cc3e463f4891972c78beaae4d2ebe2e458cc53176a3"
+    },
+    {
+      "path": "05-code/checks/RCP-002/receipt.json",
+      "role": "receipt:PRT-001-task-priority/CHK-READY",
+      "root": "run",
+      "sha256": "1391c63fa3ba1271597d7cc3e463f4891972c78beaae4d2ebe2e458cc53176a3"
+    },
+    {
+      "path": "05-code/code-verification.json",
+      "role": "semantic_assessment",
+      "root": "run",
+      "sha256": "f06a8edc39c7a72e8a2e779f267c306d5da53a18bd3c23c16d8bc90281788c1a"
+    },
+    {
+      "path": "01-specify/specify.json",
+      "role": "specify",
+      "root": "run",
+      "sha256": "00ae7c018b7cb7cb7e74c3ddf4c0da94e5fa03bea10248cb34caee01bc01cfaa"
+    }
+  ]
+}
