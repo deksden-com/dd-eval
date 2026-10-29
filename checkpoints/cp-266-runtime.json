@@ -1,0 +1,37 @@
+{
+  "id": "cp-266-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "4fccc4ab1f60ab4e09ac170c286650ab47fbe2b4",
+    "tag": "eval/cp256-library-proof"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "01cad45f12b853d716d887d76636ccda1fcc714a",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.4",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-266-installed-matrix-qualification.json",
+      "sha256": "e1442cd0f615e51f6664c034afab216cae9433ab0ea2d760a55b11cc14aab79d",
+      "canon_commit": "7cc415b3ef3ce37c9624c7cee51023e66f67cd57"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "version": "0.9.0-beta.161",
+      "commit": "367b9cb844aa34fd36d0a00cf059160377d10bdd",
+      "artifact_sha256": "ef2b95e878f00d8ea016efc9ea6e6b4a0c29c54cd1f207d2ddaea04f0c541de4"
+    }
+  },
+  "state": "published",
+  "preparation": {
+    "launchable": true,
+    "managed_tools": [
+      "wt"
+    ],
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Repair cycle2/3, plan115 accepted handoff custody. Published beta.161 exact registry tar/dependency readback PASS; scoped acceptance46contracts PASS (39executed7reused), fresh offline installed-CLI matrix PASS. Preserve canon4.1.4, flow-pack, product, fixture/Judge inputs, native capacity3 and shared verified Worktrunk cache. No full gate, GitHub CI or paid requalification.",
+    "world_isolation": "Use owned EVAL PostgreSQL on loopback55439; never foreign55433. Each execution gets a fresh isolated test world.",
+    "baseline": "Run the pinned baseline once in the scored workspace before Subject dispatch."
+  }
+}
