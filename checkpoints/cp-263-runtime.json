@@ -18,16 +18,16 @@
     },
     "engine": {
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
-      "commit": "be189e793b61c4c03f3c0553a56c66c6eb439b72",
+      "commit": "d0da77c661fa63daf690214f177105c0c0892262",
       "version": "0.9.0-beta.158",
-      "artifact_sha256": "6974cfc291921840738c8c502bb35d8af1c126a1715824795d3072a606d114d5"
+      "artifact_sha256": "670aef37797faf30eca40710462eec464f3194c3ba3deeecea8463364784e62f"
     }
   },
-  "state": "candidate_pending_publication",
+  "state": "published",
   "preparation": {
-    "launchable": false,
+    "launchable": true,
     "product_base": "26bf561f175450337a999fdb114580e641c99cde",
-    "tooling": "CP263: plan112 implementation/review; beta.158 and canon4.1.4 with selective flow-pack refresh. Exact npm publication/readback required before launch. Scoped verification only; no full gate or GitHub CI. Installed matrix proof PASS. Luna gpt-6-luna/xhigh, both Judges gpt-6.1-sol/high; no Decisions shortcut or stop_after. Measured capacity3 reused, no new probe.",
+    "tooling": "CP263: published beta.158 (d0da77c6) and canon4.1.4 with selective flow-pack refresh. Exact npm bytes and dependency resolution readback PASS. Scoped verification PASS: 29 executed, 129 retained unaffected, 39 revalidated; no full gate or GitHub CI. Installed matrix proof reused by identical component. Luna gpt-6-luna/xhigh, both Judges gpt-6.1-sol/high; no Decisions shortcut or stop_after. Measured capacity3 reused, no new probe.",
     "world_isolation": "Use owned EVAL PostgreSQL on loopback55439; never foreign55433. Each execution gets a fresh isolated test world.",
     "baseline": "Run the pinned baseline once in the scored workspace before Subject dispatch."
   }
