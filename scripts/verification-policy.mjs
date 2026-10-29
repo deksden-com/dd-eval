@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 
 const zones = [
   [/^recovery-observation-budget\.mjs$/, /plan110-recovery|runner-recovery|eval-retirement090|process-json/],
-  [/technical-notes|baseline-admission|^runner\.mjs$/, /technical-notes107/],
+  [/technical-notes|baseline-admission|^runner\.mjs$/, /technical-notes107|tool-preparation114/],
   [/technical-notes/, /runner-health|runner-recovery|qualification-owner090/],
   [/snapshot-observation/, /recovery-finalization105|runner-recovery|cleanup-observation/],
   [/model-observations/, /model-observations|runner-execution-contract/],

@@ -57,7 +57,7 @@ for (const waiting of [false, true]) test(`managed recovery retains capture, con
     await write('case/entry-pack-source/interactions/specify.json', fixture);
     const manifest = { run_id: 'EVAL-test', runtime_resource_home: path.join(root, 'resources'), profile: { concurrency: { global: 1, per_harness: {} } }, interaction_fixtures: { specify: { interaction_fixture_sha256: hashJson(fixture) } } };
     const opId = `${manifest.run_id}:${execution.id}:launch`;
-    const controller = { controller_id: 'DRV-retained', request_id: `eval:${hash(opId)}`, run_id: 'RUN-retained', status: 'stop_target_reached', stage: 'specify', sessions: [{ session_id: 'native-retained', stopped: true }] };
+    const controller = { controller_id: 'DRV-retained', request_id: `eval:${hash(opId)}`, project_id: 'PRJ-retained', generation: 1, run_id: 'RUN-retained', status: 'stop_target_reached', stage: 'specify', sessions: [{ session_id: 'native-retained', stopped: true }] };
     await write('executions/e2e/managed-runtime.json', { schema_id: 'dd-eval/managed-runtime@1', run_id: controller.run_id, project_root: projectRoot, runtime_root: runtimeRoot });
     const captureFile = await write('capture.json', { boundary_capture: { controller_id: controller.controller_id } });
     const boundary = { stage: 'specify', manifest: captureFile, manifest_sha256: hash(await readFile(captureFile)) };
@@ -95,7 +95,7 @@ else if (args[0] === 'run' && args[1] === 'drive' && args[2] === 'status') {
 } else if (args[0] === 'run' && args[1] === 'drive' && args[2] === 'answer') {
   if(fs.readFileSync(args[args.indexOf('--answer-file')+1],'utf8')!=='unchanged answer\\n') throw new Error('accepted answer changed');
   fs.writeFileSync(${JSON.stringify(path.join(root, 'answered'))},'yes');result={ok:true};
-} else if (args[0] === 'run' && args[1] === 'status') result = {index:{stage_runs:[{stage:'specify',status:pending?'paused':'done',pause:pending?{id:'PAUSE-retained'}:null}]}};
+} else if (args[0] === 'run' && args[1] === 'status') result = {run:{id:'RUN-retained',project_id:'PRJ-retained'},index:{run_id:'RUN-retained',current_stage:'specify',stage_runs:[{stage:'specify',status:pending?'paused':'done',pause:pending?{id:'PAUSE-retained'}:null}]}};
 else if (args[0] === 'stat') result = {};
 else throw new Error('unexpected productive command '+JSON.stringify(args));
 console.log(JSON.stringify(result));
