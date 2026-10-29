@@ -1,0 +1,35 @@
+{
+  "id": "cp-265-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "4fccc4ab1f60ab4e09ac170c286650ab47fbe2b4",
+    "tag": "eval/cp256-library-proof"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "01cad45f12b853d716d887d76636ccda1fcc714a",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.4",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-265-installed-matrix-qualification.json",
+      "sha256": "8321733efe053495365f367eca9c352d8d840cef7a28bd46df745b5b3a0a4819",
+      "canon_commit": "7cc415b3ef3ce37c9624c7cee51023e66f67cd57"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "version": "0.9.0-beta.160",
+      "commit": "3d065fa9b570fdb25570e4c47d7c99a5d50d5574",
+      "artifact_sha256": "032a3c18c1e615887cb1be8117c09a37007b20042ad987dfdb8b260b0ee98d8a"
+    }
+  },
+  "state": "published",
+  "preparation": {
+    "launchable": true,
+    "managed_tools": ["wt"],
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Published beta.160 exact registry tar/dependency closure and source verified. Plan114 prepares pinned Worktrunk before Subject dispatch, reuses the explicit shared verified resource cache, applies bounded native download retries and preserves current failed-entry attribution. Scoped engine53 contracts passed; dd-eval8 files passed with7 intact proofs reused. One fresh offline installed-CLI matrix producer covers the changed component. No full gate, GitHub CI, capacity reprobe or unchanged Judge qualification. Canon4.1.4, flow-pack, product source, fixture/Judge inputs and Luna capacity3 remain unchanged.",
+    "world_isolation": "Use owned EVAL PostgreSQL on loopback55439; never foreign55433. Each execution gets a fresh isolated test world.",
+    "baseline": "Run the pinned baseline once in the scored workspace before Subject dispatch."
+  }
+}

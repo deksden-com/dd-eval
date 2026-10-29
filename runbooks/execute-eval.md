@@ -33,6 +33,9 @@ alone does not authorize paid qualification, provider calls or scored launches.
    separately in the candidate receipt; verify both before selecting the pin.
    Preflight and launch must use the same engine. Do not silently fall back to a
    global CLI or change a retained run's engine. See [harness updates](update-harnesses.md).
+   New checkpoints needing Worktrunk declare `preparation.managed_tools: ["wt"]`.
+   Preflight/launch prepares it through the pinned engine before Subject dispatch,
+   using the same explicit shared resource home; no model or test suite is needed.
    Keep AGY's self-updater disabled from doctor/preflight through all native
    children: it can replace even a private copied binary. Use the literal `true`,
    not `1`, and verify the selected binary digest after preparation. This is
