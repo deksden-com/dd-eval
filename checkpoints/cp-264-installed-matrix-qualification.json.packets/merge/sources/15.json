@@ -1,0 +1,47 @@
+{
+  "id": "WRK-006-merge/RCP-004",
+  "local_id": "RCP-004",
+  "declaration_id": "CHK-MERGE",
+  "check_refs": [
+    "PRT-001-task-priority/CHK-MERGE"
+  ],
+  "gate": "merge",
+  "scope": "aggregate",
+  "work_id": "WRK-006-merge",
+  "command": "true",
+  "input_hash": "f3fd6e76107a1eff37443ab14d8c76b4488dd7d887b6228ffd56cc52510e5b9e",
+  "verification_epoch": "63da9f2941e467ad57f516523d6954bfc648ce3b918efd140ee55d25ebfb4a82",
+  "retry_of_receipt_id": null,
+  "retry_reason": null,
+  "status": "passed",
+  "exit_code": 0,
+  "stdout_path": "/Users/deksden/.dd-eval/qualification/cp264-installed-matrix-proof/dd-flow-protocolize-oEE8Mi/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stdout.log",
+  "stderr_path": "/Users/deksden/.dd-eval/qualification/cp264-installed-matrix-proof/dd-flow-protocolize-oEE8Mi/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/stderr.log",
+  "receipt_path": "/Users/deksden/.dd-eval/qualification/cp264-installed-matrix-proof/dd-flow-protocolize-oEE8Mi/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/receipt.json",
+  "completion_path": "/Users/deksden/.dd-eval/qualification/cp264-installed-matrix-proof/dd-flow-protocolize-oEE8Mi/home/projects/PRJ-001-project/runs/RUN-001-tasks/07-merge/works/WRK-006-merge/checks/RCP-004/completion.json",
+  "required_artifacts": [],
+  "inputs": [],
+  "fingerprint_scope": "check_inputs",
+  "input_manifest": {
+    "path": "inputs-before.json",
+    "sha256": "2da91186b40fefb9f7820543fc500ec88d428d3d3901f2cbab443b80a3c29083",
+    "truncated": false
+  },
+  "execution_contract_hash": "9e937aa7580ef8f64f44d214798f312c531984dba0df3cbe15227b4bfab79ae9",
+  "workspace_fingerprint": "825818d1606ba98349af6ce446f4a58baefd813c1e647f45e816fe0623bfa7f1",
+  "before_fingerprint": "97ad978633f22e6ae6fa56135278753e4753b05971bafdd7dc6ed04b9f4a6828",
+  "after_fingerprint": "97ad978633f22e6ae6fa56135278753e4753b05971bafdd7dc6ed04b9f4a6828",
+  "profile_hash": "b755930d5c66fb967c541429990cc8c66cc949752444d3a5252d471992662c53",
+  "mutation_paths": [],
+  "artifacts": [],
+  "resources": {
+    "ports": {}
+  },
+  "started_at": "2026-10-29T12:04:12.366Z",
+  "finished_at": "2026-10-29T12:04:12.410Z",
+  "candidate_root": "/Users/deksden/.dd-eval/qualification/cp264-installed-matrix-proof/dd-flow-protocolize-oEE8Mi/project",
+  "candidate_files": [],
+  "candidate_absences": [],
+  "candidate_library_inputs": [],
+  "execution_failures": []
+}

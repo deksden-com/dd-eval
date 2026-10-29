@@ -1,0 +1,34 @@
+{
+  "id": "cp-264-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "4fccc4ab1f60ab4e09ac170c286650ab47fbe2b4",
+    "tag": "eval/cp256-library-proof"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "01cad45f12b853d716d887d76636ccda1fcc714a",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.4",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-264-installed-matrix-qualification.json",
+      "sha256": "be457af084516a4c87c01e5224b967a9af16a692a2bc59e8dbdcfcc1fb83274d",
+      "canon_commit": "7cc415b3ef3ce37c9624c7cee51023e66f67cd57"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "version": "0.9.0-beta.159",
+      "commit": "138ff716eb8e3f8e4b5c32a7556284c30e50804b",
+      "artifact_sha256": "577e35eea385a078f5792cd9199ed400bd49b821c53452389a54ab2525355d35"
+    }
+  },
+  "state": "published",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Published beta.159 readback, exact registry artifact/dependency closure and installed Luna checksum verified. Source 138ff716 includes plan113 and corrected release fixture resolution/context. Scoped acceptance: 104 contracts passed (80 executed, 22 reused, 2 revalidated); no full gate or GitHub CI. Fresh offline installed-CLI matrix proof covers changed lifecycle/state dependencies, and its component matches the published installation. Both Codex hook homes retain explicit pin handling and the absolute updated pnpm fallback. Canon4.1.4, flow-pack, product source, fixture/Judge inputs and measured Luna capacity3 are unchanged; no capacity reprobe or unchanged Judge qualification.",
+    "world_isolation": "Use owned EVAL PostgreSQL on loopback55439; never foreign55433. Each execution gets a fresh isolated test world.",
+    "baseline": "Run the pinned baseline once in the scored workspace before Subject dispatch."
+  }
+}
