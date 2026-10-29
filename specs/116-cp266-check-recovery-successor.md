@@ -177,3 +177,28 @@ after the productive lease assignment; no second pre-initialization call found.
 Additional focused checks and final review remain pending; no blanket no-bugs or
 full E2E PASS claim is made. Ponytail: reuse existing helper/storage and guards,
 no new framework, retry limits, model/capacity changes or full gate.
+
+Expanded audit verification: fatal/overlay selection11PASS; two added fixture
+errors (wrong operation bypassed cwd guard; duplicate error payload changed its
+immutable signature) were corrected without relaxing production guards and only
+those two cases rerun2/2PASS. Controlled diagnostics7/7PASS plus shared Codex1PASS;
+real managed-owner/hook/CLI MERGE1/1PASS; TypeScript and affected ESLint PASS.
+Primary independently reviewed the final diffs. Other pre-persist guards require
+unproven identity/schema/project/replay proof or explicit Work-stage policy and
+remain fail-closed; no other confirmed successor mismatch found in the inspected
+producer/consumer graph. Not exhaustive live-provider testing or proof of no bugs.
+
+### Exact-candidate acceptance finding
+
+The first beta162 scoped acceptance exposed one stale expectation in the real
+AGY feature-compound lifecycle test: after a proven wrong-directory refusal it
+expected two hook rows, but the new intended diagnostic is a third non-authority
+row. Retained attempt0727ad31-1a6a-4659-ae39-7bb0f6e3e152 fails only that count
+assertion (not a timeout); the new public MERGE regression passes in this batch.
+Let the original batch finish without changing frozen inputs. Then update only
+the test expectation to distinguish two native observations from one diagnostic,
+assert zero invocation admission for that diagnostic and no foreign-owner row.
+No production guard relaxation or new technical cycle. Preserve the original
+unaccepted candidate/failure and all other valid PASS evidence; prepare a new
+unpublished162 candidate with the test-only commit and rerun only affected/missing
+contracts through the standard verifier and explicit investigated-failure rerun.

@@ -2,7 +2,9 @@
 
 Continue [CP264 campaign rules](cp-264-luna-plan113.md): correction cycle **3 of 3**; no budget reset. Preserve CP266 evidence. This is preparation only, not a launch or PASS.
 
-`cp-267-runtime` is `preparing`, `launchable: false`. Target beta.162 is not a published claim. Engine commit/checksum and matrix file/checksum are deliberately null until actual receipts exist. Do not bind case.json, pins or monitor to this draft.
+Published beta.162 source d78bcd1bb6f510fee45a3d77463b172cc92420dd; registry tar/dependency/tag readback completed2026-10-29T23:39:20.866Z. Installed checksum eb52d8f17c964f9ddc85a825f667c2d3b8c7bdb4e23ddf11bf47bb4723260a9d; tar SHA d249b67beb193081d1fc00910b8662ad8f44757d7277a9d602fe33e46fab0f2d. Scoped r2 PASS107 (1executed101reused5revalidated). First unaccepted candidate and stale AGY test-expectation failure remain retained; production guard was not relaxed.
+
+Fresh offline installed matrix PASS1 selected/26filtered,46.09s. Qualification cec537c8ce8f67d011a4acddf31f9e2150763eaa9daed5202624ec330c47492c binds the actual retained RUN and exact engine; this is technical publication evidence, not Luna E2E acceptance. Checkpoint is now published/launchable. Private published installation matches the accepted checksum; both Codex hook homes pass, CPA symlink and absolute fallback preserved with backup. Commit the final case binding before one preflight and one fresh launch; record their actual receipts in the campaign ledger.
 
 ## Release admission
 
@@ -24,7 +26,7 @@ Only actual accepted/published engine provenance and fresh qualification permit 
 
 ## Owned preparation and dispatch
 
-Ignored templates live in `.tasks/cp264-luna-monitor/{prepare-cp267-candidate,prepare-cp267,launch-cp267,update-hooks162}.mjs`. All fail closed while this checkpoint is nonlaunchable. Do not execute them during draft preparation. Reconcile any existing receipt rather than dispatching a duplicate.
+Ignored templates live in `.tasks/cp264-luna-monitor/{prepare-cp267-candidate,prepare-cp267,launch-cp267,update-hooks162}.mjs`. Only candidate-only preparation may consume an actual built/accepted matching candidate while this checkpoint is nonlaunchable; it does not claim publication. Published preparation, hooks and launch remain blocked until final admission. Reconcile any existing receipt rather than dispatching a duplicate.
 
 Fresh home: `/Users/deksden/.dd-eval/qualification/cp267-luna-full`; receipts: `/Users/deksden/.dd-eval/qualification/cp267-preparation`. Copy only CP266 portable agent-profiles/harness configuration; never RUN databases, locks or runtime state. Preserve native adapter configuration and exact profiles: Luna gpt-6-luna/xhigh, capacity 3, Judges gpt-6.1-sol/high, no Decisions/stop_after. Keep canon 4.1.4, flow pack and product unchanged. Reuse verified Worktrunk resources under cp-211-specify-scoped-base and registry `/Users/deksden/.dd-eval/homes.json`.
 

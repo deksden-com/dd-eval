@@ -12,25 +12,25 @@
     "memory_bank_version": "4.1.4",
     "verification_matrix": {
       "contract": "dd-flow/verification-matrix@1",
-      "file": null,
-      "sha256": null,
+      "file": "cp-267-installed-matrix-qualification.json",
+      "sha256": "cec537c8ce8f67d011a4acddf31f9e2150763eaa9daed5202624ec330c47492c",
       "canon_commit": "7cc415b3ef3ce37c9624c7cee51023e66f67cd57"
     },
     "engine": {
       "repository": "https://github.com/deksden-com/dd-flow-cli.git",
       "version": "0.9.0-beta.162",
-      "commit": null,
-      "artifact_sha256": null
+      "commit": "d78bcd1bb6f510fee45a3d77463b172cc92420dd",
+      "artifact_sha256": "eb52d8f17c964f9ddc85a825f667c2d3b8c7bdb4e23ddf11bf47bb4723260a9d"
     }
   },
-  "state": "preparing",
+  "state": "published",
   "preparation": {
-    "launchable": false,
+    "launchable": true,
     "managed_tools": [
       "wt"
     ],
     "product_base": "26bf561f175450337a999fdb114580e641c99cde",
-    "tooling": "Repair cycle3/3, plan116. DRAFT: release commit, artifact and fresh installed matrix pending; not acceptance or publication. No full gate, GitHub CI or provider requalification.",
+    "tooling": "Repair cycle3/3, plan116 check-recovery authority and typed native diagnostics. Published beta.162 source d78bcd1b exact registry tar/dependencies/tag readback PASS. Scoped acceptance107contracts PASS (1executed101reused5revalidated); initial stale AGY test expectation failure and unaccepted candidate-r1 retained. Fresh offline installed matrix1fixture PASS46.09s. Preserve canon4.1.4, product/flow pack, profiles, native capacity3, fixture/Judge evidence and verified Worktrunk cache. No full gate, GitHub CI or paid requalification.",
     "world_isolation": "Use owned EVAL PostgreSQL on loopback55439; never foreign55433. Each execution gets a fresh isolated test world.",
     "baseline": "Run the pinned baseline once in the scored workspace before Subject dispatch."
   }
