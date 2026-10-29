@@ -1,0 +1,34 @@
+{
+  "id": "cp-263-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "4fccc4ab1f60ab4e09ac170c286650ab47fbe2b4",
+    "tag": "eval/cp256-library-proof"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "01cad45f12b853d716d887d76636ccda1fcc714a",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.4",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-263-installed-matrix-qualification.json",
+      "sha256": "55b0b0983f86f3312d4d73f8197ec549536e79cf40c8e9d9cbdcc403836b73ea",
+      "canon_commit": "7cc415b3ef3ce37c9624c7cee51023e66f67cd57"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "commit": "d0da77c661fa63daf690214f177105c0c0892262",
+      "version": "0.9.0-beta.158",
+      "artifact_sha256": "670aef37797faf30eca40710462eec464f3194c3ba3deeecea8463364784e62f"
+    }
+  },
+  "state": "published",
+  "preparation": {
+    "launchable": true,
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "CP263: published beta.158 (d0da77c6) and canon4.1.4 with selective flow-pack refresh. Exact npm bytes and dependency resolution readback PASS. Scoped verification PASS: 29 executed, 129 retained unaffected, 39 revalidated; no full gate or GitHub CI. Installed matrix proof reused by identical component. Luna gpt-6-luna/xhigh, both Judges gpt-6.1-sol/high; no Decisions shortcut or stop_after. Measured capacity3 reused, no new probe.",
+    "world_isolation": "Use owned EVAL PostgreSQL on loopback55439; never foreign55433. Each execution gets a fresh isolated test world.",
+    "baseline": "Run the pinned baseline once in the scored workspace before Subject dispatch."
+  }
+}
