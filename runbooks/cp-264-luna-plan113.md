@@ -4,6 +4,16 @@ Follow [execute-eval.md](execute-eval.md), [monitoring](e2e-monitoring.md) and
 [cleanup](eval-storage.md). Authority: operator request 2026-10-29 in this chat.
 Only affected-contract verification; no full gate or GitHub CI.
 
+## Additional authority — 2026-10-30
+
+The user explicitly authorized exactly one additional correction cycle for the
+CP267 SCN-002 acceptance-synchronization finding and confirmed analogous defects,
+followed by a fresh full Luna and monitoring. The total repair budget is now four
+(five EVAL attempts including the initial run), not a counter reset. Reserve and
+continue cycle4 once in the ledger. Preserve the previous three cycles and CP267
+evidence. All other workflow, scoring, product-ownership and safety boundaries
+below remain in force. No full gate or GitHub CI; no fifth repair authorized.
+
 ## Launch contract
 
 - Publish the engine containing plan113, update pins and both installed Codex
