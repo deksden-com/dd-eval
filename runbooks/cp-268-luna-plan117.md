@@ -5,6 +5,15 @@ additional authority: repair cycle4 of4, not a reset. Preserve completed CP267
 and its sole scenario-status gap. [Plan117](../specs/117-cp267-scenario-closure.md)
 records RCA, analog review and readiness. Preparation is not publication or PASS.
 
+Published beta163 source69a5136fc68e87f27869012d8c4845ae3d765802; exact registry
+tar/dependency/tag readback complete2026-10-30T06:22:05.850Z. Tar SHA256
+5a5df8dd379a4f542d3f7a5f25f5f7311732ee9414f17667020634f92f6abd4e;
+installed checksum720c650110330d3a7717b9a63e46f73ac567f627a33cbc15364d51654cf74409.
+Scoped54/54 contracts and1631cases PASS, merged receipt54reused. Fresh installed
+fullcycle1selected/26filtered PASS57.92s; portable qualification SHA256
+681b68bbdd3b917369f8155c4d4bf23122e47ed3480a8e95908aa9c4064bd1d8.
+These are runtime/publication proofs, not Luna E2E acceptance.
+
 ## Release and preparation
 
 Engine beta163 restores accepted document/scenario closure instructions without
