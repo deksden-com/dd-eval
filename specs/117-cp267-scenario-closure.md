@@ -56,3 +56,20 @@ technical check success or expand beyond the confirmed instruction-custody bug.
 Independent read-only audit confirms cause and existing repair route; primary
 reviewed source and immutable artifacts. This is behavioral prompt correction,
 not a claim of mechanical semantic enforcement or guaranteed future score.
+
+## Verification and integration
+
+Engine PR175 squash merged69a5136fc68e87f27869012d8c4845ae3d765802 after primary
+and independent review, no significant findings. TypeScript, affected ESLint,
+diff check PASS. Scoped r1:54/54 contracts,1631tests PASS; r2 reuses all54 after
+merged provenance build. The initial direct sandbox test bootstrap timed out
+under process-inspection denial; interrupted owned test retained. The same
+bootstrap passes outside sandbox without guard/timeout relaxation.
+
+Real CLI regression27/27 includes runnable_local -> needs_checks receipts ->
+fresh owned document repair with original owner/reason/current baseline ->
+accepted_local -> CODE/MERGE; both injected variants pass. Installed exact
+artifact repeats this route:1selected/26filtered PASS57.92s, no providers.
+Portable qualification681b68bb is new, not rebound CP267 proof. Exact beta163
+registry tar, dependency closure and release tag read back successfully at
+2026-10-30T06:22:05.850Z. Fresh Luna remains a separate scored verification.

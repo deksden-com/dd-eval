@@ -1,0 +1,37 @@
+{
+  "id": "cp-268-runtime",
+  "source": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "4fccc4ab1f60ab4e09ac170c286650ab47fbe2b4",
+    "tag": "eval/cp256-library-proof"
+  },
+  "flow_pack": {
+    "repository": "https://github.com/deksden-com/dd-tasks.git",
+    "commit": "01cad45f12b853d716d887d76636ccda1fcc714a",
+    "path": ".memory-bank/dd-flow",
+    "memory_bank_version": "4.1.4",
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "file": "cp-268-installed-matrix-qualification.json",
+      "sha256": "681b68bbdd3b917369f8155c4d4bf23122e47ed3480a8e95908aa9c4064bd1d8",
+      "canon_commit": "7cc415b3ef3ce37c9624c7cee51023e66f67cd57"
+    },
+    "engine": {
+      "repository": "https://github.com/deksden-com/dd-flow-cli.git",
+      "version": "0.9.0-beta.163",
+      "commit": "69a5136fc68e87f27869012d8c4845ae3d765802",
+      "artifact_sha256": "720c650110330d3a7717b9a63e46f73ac567f627a33cbc15364d51654cf74409"
+    }
+  },
+  "state": "published",
+  "preparation": {
+    "launchable": true,
+    "managed_tools": [
+      "wt"
+    ],
+    "product_base": "26bf561f175450337a999fdb114580e641c99cde",
+    "tooling": "Additional authorized repair cycle4/4, plan117 durable scenario acceptance closure. Published beta163 source69a5136f exact registry tar/dependency/tag readback PASS2026-10-30T06:22:05.850Z. Scoped54/54 contracts and1631cases PASS; merged receipt reused54, fresh installed fullcycle1selected/26filtered PASS57.92s. Preserve canon4.1.4, product/flow pack, profiles/capacity3, unchanged fixture/Judge qualifications and verified Worktrunk cache. No full gate/GitHub CI/paid requalification.",
+    "world_isolation": "Use owned EVAL PostgreSQL on loopback55439; never foreign55433. Each execution gets a fresh isolated test world.",
+    "baseline": "Run the pinned baseline once in the scored workspace before Subject dispatch."
+  }
+}

@@ -196,6 +196,14 @@ temporary directory. The recorded engine version, commit and checksum must
 equal the immutable checkpoint. This is a published-package pin, not a local
 development override.
 
+When refreshing a global router/engine pin as well, install the global engine
+store from this exact qualified published prefix, not an unrelated pnpm global
+dependency lock. The same package version can resolve a different transitive
+closure there. Use the normal `engine install --force` from the qualified CLI
+with the intended global `DD_FLOW_HOME`, then verify the selected checksum;
+never relabel qualification to accept the other closure. The engine installer
+preserves already-bound checksum variants. Keep workstation hooks and symlinks.
+
 The runner allocates a fresh directory under
 `$DD_EVAL_HOME/runs/<eval-id>/`. Each execution gets its own restored project,
 `DD_FLOW_HOME`, managed harness state and append-only `events.jsonl`.

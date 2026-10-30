@@ -1,0 +1,139 @@
+{
+  "schema_id": "dd-flow/stage-report@2",
+  "run_id": "RUN-001-tasks",
+  "stage": "plan-review",
+  "generated_at": "2026-10-30T06:17:06.798Z",
+  "verdict": "done",
+  "semantic": {
+    "result": "Independent PLAN review accepted the plan.",
+    "acceptance": [
+      "accepted"
+    ],
+    "changed_files": [
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+      "RUN/03-plan/PRT-001-task-priority/aspect-map.json"
+    ],
+    "checks": [
+      "accepted PLAN report",
+      "generated CODE batch",
+      "reviewer evidence",
+      "mechanical correction receipt"
+    ],
+    "evidence": [],
+    "next_action": "start_code",
+    "plan_review": {
+      "requested_mode": "standard",
+      "effective_mode": "standard",
+      "outcome": "accepted",
+      "groups": [
+        "PRT-001-task-priority/contract"
+      ],
+      "initial_plan_revision": 1,
+      "final_plan_revision": 2,
+      "initial_plan_checksum": "033a685fcd870d52a8f229c6688d4fffbf6e0e9f0e850bcf4b9f15b27386076a",
+      "final_plan_checksum": "aba8b72a793558433451b32de8c82bf9a197a5af31c2b27d2948eb9584f29a82",
+      "initial_batch_checksum": "75713ad51c2dbd2001a352d72c3a9878ec6340a8ef92fae23493fd02476d04a3",
+      "final_batch_checksum": "75713ad51c2dbd2001a352d72c3a9878ec6340a8ef92fae23493fd02476d04a3",
+      "correction": {
+        "status": "applied",
+        "previous_plan_revision": 1,
+        "changed_paths": [
+          ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+          "RUN/03-plan/PRT-001-task-priority/aspect-map.json"
+        ],
+        "summary": "Added the missing contract test and synchronized the aspect map."
+      },
+      "decision": {
+        "schema_id": "dd-flow/plan-review-decision@4",
+        "outcome": "accepted",
+        "summary": "The finding was corrected in this review Work.",
+        "finding_decisions": [
+          {
+            "finding_ref": "WRK-004-prt-001-task-priority-contract/FIND-001",
+            "decision": "accepted_fix",
+            "reason": "Added the missing contract test to the plan."
+          }
+        ],
+        "correction": {
+          "status": "applied",
+          "previous_plan_revision": 1,
+          "changed_paths": [
+            ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+            "RUN/03-plan/PRT-001-task-priority/aspect-map.json"
+          ],
+          "summary": "Added the missing contract test and synchronized the aspect map."
+        }
+      },
+      "reviewer_works": [
+        {
+          "work_id": "WRK-004-prt-001-task-priority-contract",
+          "status": "completed",
+          "verdict": "blocked"
+        }
+      ]
+    },
+    "plan_checksum": "aba8b72a793558433451b32de8c82bf9a197a5af31c2b27d2948eb9584f29a82",
+    "batch_checksum": "75713ad51c2dbd2001a352d72c3a9878ec6340a8ef92fae23493fd02476d04a3",
+    "code": {
+      "ok": true,
+      "work_ids": {
+        "PRT-001-task-priority:P1": "WRK-005-prt-001-task-priority-p1"
+      }
+    },
+    "def_evidence": [],
+    "accepted_intent_review": {
+      "reviewed_fingerprint": "9b2e44f23a9630470f465d594d5ff98a1392e2feb1fa4228e6e460601a47ab94",
+      "current_fingerprint": "9b2e44f23a9630470f465d594d5ff98a1392e2feb1fa4228e6e460601a47ab94",
+      "independent_coverage": "reviewed_sources_only",
+      "coordinator_clarification_refs": [],
+      "source_event_id": 0
+    },
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "role": "output",
+      "completeness": "declared",
+      "source_fingerprint": "eaee0d22fa96b630e39e9fe89b7783a533059ea637423086fba96a93140e9948",
+      "json": {
+        "path": "04-plan-review/verification/eaee0d22fa96b630e39e9fe89b7783a533059ea637423086fba96a93140e9948/verification-matrix.json",
+        "sha256": "b3449091f5e7eff4ab282c742a9bdda08b2310db9c7ee956fda0bdb60f53bd23"
+      },
+      "markdown": {
+        "path": "04-plan-review/verification/eaee0d22fa96b630e39e9fe89b7783a533059ea637423086fba96a93140e9948/verification-matrix.md",
+        "sha256": "d32aea55afc05d29f28e191e34b40ef929c46913a32f8f3bb83fb6d012948598"
+      },
+      "accepted_sources": [
+        {
+          "role": "accepted_intake",
+          "root": "run",
+          "path": "04-plan-review/verification/sources/e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd/accepted-input.md",
+          "sha256": "e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd"
+        }
+      ],
+      "coverage_contract": "dd-flow/final-check-coverage@1"
+    }
+  },
+  "mechanical": {
+    "started_at": "2026-10-30T06:16:58.079Z",
+    "finished_at": "2026-10-30T06:17:06.798Z",
+    "wall_clock_ms": 8719,
+    "git": {
+      "branch": "main",
+      "head": "dd508731ec4225fd8b51b9085e3b8607d279529e",
+      "status": "dirty"
+    },
+    "session_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home\" \"/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home/bin/dd-flow\" stat run sessions ls --run RUN-001-tasks --project-root \"/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/project\" --json",
+    "usage_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home\" \"/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home/bin/dd-flow\" stat usage --run RUN-001-tasks --project-root \"/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/project\" --json",
+    "next_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home\" \"/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home/bin/dd-flow\" stage start RUN-001-tasks --stage code --project-root \"/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/project\" --json"
+  },
+  "artifacts": {
+    "json": "stage-report.json",
+    "markdown": "stage-report.md",
+    "html": "stage-report.html"
+  },
+  "validation": {
+    "permission_scope": "known_targets_only",
+    "memory_bank_scope": "changed_files_and_links_only",
+    "status": "passed"
+  },
+  "summary": "Independent PLAN review accepted the plan."
+}
