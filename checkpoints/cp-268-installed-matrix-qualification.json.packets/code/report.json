@@ -1,0 +1,192 @@
+{
+  "schema_id": "dd-flow/stage-report@2",
+  "run_id": "RUN-001-tasks",
+  "stage": "code",
+  "generated_at": "2026-10-30T06:17:24.950Z",
+  "verdict": "done",
+  "verification": {
+    "checks": [
+      {
+        "id": "CHK-P1-TEST",
+        "run_at": "work",
+        "status": "passed",
+        "receipt_ref": "/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-004/receipt.json"
+      },
+      {
+        "id": "CHK-READY",
+        "run_at": "readiness",
+        "status": "passed",
+        "receipt_ref": "/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-004/receipt.json"
+      },
+      {
+        "id": "CHK-NEW",
+        "run_at": "work",
+        "status": "passed",
+        "receipt_ref": "/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-004/receipt.json"
+      }
+    ],
+    "acceptance": [
+      {
+        "criterion_id": "AC-001",
+        "gate": "work",
+        "status": "confirmed",
+        "check_refs": [
+          "CHK-P1-TEST",
+          "CHK-READY"
+        ],
+        "evidence_refs": [
+          ".memory-bank/spec/engineering/code-check-profile.json",
+          ".memory-bank/scenarios/SCN-002.md",
+          "run://RUN-001-tasks/05-code/checks/RCP-004/receipt.json"
+        ]
+      }
+    ]
+  },
+  "semantic": {
+    "result": "Completed 2 CODE Work items; 1 current final check receipt passed.",
+    "acceptance": [
+      "R-001",
+      "AC-001"
+    ],
+    "changed_files": [
+      ".memory-bank/dd-flow/mb-sdlc/plan-aspects/aspects/contract-review.md",
+      ".memory-bank/dd-flow/project-execution.json",
+      ".memory-bank/epics/EP-001-tasks/features/FT-001-task-priority/index.md",
+      ".memory-bank/epics/EP-001-tasks/index.md",
+      ".memory-bank/protocol/PRT-001-historical/summary.md",
+      ".memory-bank/protocol/PRT-001-task-priority/index.md",
+      ".memory-bank/protocol/PRT-001-task-priority/intake/user-input.md",
+      ".memory-bank/protocol/PRT-001-task-priority/plan.json",
+      ".memory-bank/protocol/PRT-001-task-priority/summary.md",
+      ".memory-bank/protocol/index.md",
+      ".memory-bank/scenarios/SCN-002.md",
+      ".memory-bank/spec/engineering/code-check-profile.json",
+      ".tasks/dd-flow-dashboard.md",
+      "apps/api/test/priority.test.ts",
+      "renamed-input.ts"
+    ],
+    "checks": [
+      "test -f apps/api/src/core/service.ts"
+    ],
+    "evidence": [
+      "/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/checks/RCP-004/receipt.json"
+    ],
+    "next_action": "start_merge",
+    "code": {
+      "work_ids": [
+        "WRK-005-prt-001-task-priority-p1",
+        "WRK-006-code-verification-repair"
+      ],
+      "requirement_coverage": [
+        "AC-001",
+        "R-001"
+      ],
+      "repairs": [
+        {
+          "work_id": "WRK-006-code-verification-repair",
+          "origin_work_ids": [
+            "WRK-005-prt-001-task-priority-p1"
+          ],
+          "semantic_unresolved": [
+            "Scenario status still records runnable_local."
+          ],
+          "verification_path": "/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home/projects/PRJ-001-project/runs/RUN-001-tasks/05-code/code-verification.json",
+          "verification_check_refs": [
+            {
+              "id": "CHK-P1-TEST",
+              "command": "test -f apps/api/src/core/service.ts",
+              "purpose": "Prove the CODE verification repair: Proves the changed task service exists.",
+              "run_at": "work",
+              "availability": "available"
+            },
+            {
+              "id": "CHK-NEW",
+              "command": "@check/priority-contract",
+              "purpose": "Prove the CODE verification repair: Will prove the new priority contract.",
+              "run_at": "work",
+              "availability": "planned",
+              "provided_by": "P1",
+              "definition": "test -f apps/api/src/core/service.ts"
+            },
+            {
+              "id": "CHK-READY",
+              "command": "test -f apps/api/src/core/service.ts",
+              "purpose": "Prove the CODE verification repair: Confirms the prepared workspace contains the service.",
+              "run_at": "readiness",
+              "availability": "available"
+            }
+          ]
+        }
+      ],
+      "verification": {
+        "schema_id": "dd-flow/code-verification@2",
+        "verdict": "passed",
+        "summary": "The accepted Work materialized its code and durable scenario.",
+        "unresolved": [],
+        "deviations": []
+      }
+    },
+    "plan_conformance": {
+      "schema_id": "dd-flow/code-verification@2",
+      "verdict": "passed",
+      "summary": "The accepted Work materialized its code and durable scenario.",
+      "unresolved": [],
+      "deviations": []
+    },
+    "verification_matrix": {
+      "contract": "dd-flow/verification-matrix@1",
+      "role": "output",
+      "completeness": "execution",
+      "source_fingerprint": "170517ba68483c2a718e011fff08096bc8b3b9a452a45ff6ab5eb85743f2322f",
+      "json": {
+        "path": "05-code/verification/170517ba68483c2a718e011fff08096bc8b3b9a452a45ff6ab5eb85743f2322f/verification-matrix.json",
+        "sha256": "7650a04a3e8a18b7c44d85f65d446d9a7c1043c718bcf38fe5cd563867495ce8"
+      },
+      "markdown": {
+        "path": "05-code/verification/170517ba68483c2a718e011fff08096bc8b3b9a452a45ff6ab5eb85743f2322f/verification-matrix.md",
+        "sha256": "18a915330ede92b59955812d18458dbca41e060269a086f42109bbd99ed2548c"
+      },
+      "accepted_sources": [
+        {
+          "role": "accepted_intake",
+          "root": "run",
+          "path": "05-code/verification/sources/e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd/accepted-input.md",
+          "sha256": "e4a6938b5896af4c7a44ed499875e6b630c1249dd35d3274c4b6bb0eb019c0bd"
+        }
+      ],
+      "coverage_contract": "dd-flow/final-check-coverage@1"
+    }
+  },
+  "mechanical": {
+    "started_at": "2026-10-30T06:17:13.579Z",
+    "finished_at": "2026-10-30T06:17:24.950Z",
+    "wall_clock_ms": 11371,
+    "git": {
+      "branch": "main",
+      "head": "dd508731ec4225fd8b51b9085e3b8607d279529e",
+      "status": "dirty"
+    },
+    "graph": {
+      "total": 2,
+      "created": 0,
+      "running": 0,
+      "completed": 2,
+      "failed": 0,
+      "ready": [],
+      "blocked": []
+    },
+    "session_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home\" \"/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home/bin/dd-flow\" stat run sessions ls --run RUN-001-tasks --project-root /Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/project --json",
+    "usage_stats_command": "DD_FLOW_HOME=\"/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home\" \"/Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/home/bin/dd-flow\" stat usage --run RUN-001-tasks --project-root /Users/deksden/.dd-eval/qualification/cp268-installed-matrix-proof-r1/dd-flow-protocolize-M7W47o/project --json"
+  },
+  "artifacts": {
+    "json": "stage-report.json",
+    "markdown": "stage-report.md",
+    "html": "stage-report.html"
+  },
+  "validation": {
+    "permission_scope": "known_targets_only",
+    "memory_bank_scope": "changed_files_and_links_only",
+    "status": "passed"
+  },
+  "summary": "Completed 2 CODE Work items; 1 current final check receipt passed."
+}
