@@ -1,5 +1,15 @@
 # dd-eval
 
+## dd-flow vNext direction
+
+The [dd-flow vNext vision](../dd-flow/.memory-bank/spec/system/vnext-node-network-recovery-and-evals.md)
+(`dd-flow`, branch `develop`) owns the target model: versioned experiment tasks,
+isolated flow runs, Stage/final/comparative Judge jobs and control-plane catalog.
+This sibling-checkout link is the single source. Eval tooling should consume the
+common runtime checkpoint/resume/fork and node-execution contracts, not implement
+a second flow recovery engine. These are target contracts, not current support
+claims; technical completion, case acceptance and Judge verdicts remain distinct.
+
 Harness upgrades follow the [common upgrade runbook](runbooks/update-harnesses.md),
 with [ZCode-specific operations](runbooks/update-zcode.md) and the
 [cross-repository Git workflow](runbooks/git-workflow.md).
