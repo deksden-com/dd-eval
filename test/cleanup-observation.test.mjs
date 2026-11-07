@@ -53,6 +53,14 @@ test('actual RUN status uses only a current fenced EVAL retirement proof for phy
   assert.equal(retiredCandidate.physical, 'settled');
   assert.equal(retiredCandidate.capture, 'ready', 'physical retirement and accepted snapshot custody are independent');
   assert.equal(retiredCandidate.executions[0].reason, 'settled_candidate_verified');
+  const candidateSha='b'.repeat(64),candidate12=JSON.stringify({schema_id:'dd-flow/eval-run-snapshot@12',purpose:'candidate',stage_entry:null,run_id:'RUN-1',project_root:project,dd_flow_home:runtime,workspace:{kind:'project'},work_git:{sha256:candidateSha,refs:[{ref:`refs/dd-flow/work-results/${candidateSha}`,commit:'c'.repeat(40)}]},payload_integrity:{schema_id:'dd-flow/framed-payload@1',project:candidateSha,runtime:candidateSha}});
+  await writeFile(snapshotFile,candidate12);input.results[0].candidate.manifest_sha256=createHash('sha256').update(candidate12).digest('hex');
+  assert.equal((await cleanupObservation(input)).capture,'ready','version observation checks manifest shape, not the Git bundle payload');
+  const sha='a'.repeat(64),stage=JSON.stringify({schema_id:'dd-flow/eval-run-snapshot@11',purpose:'stage_entry',stage_entry:'merge',run_id:'RUN-1',project_root:project,dd_flow_home:runtime,workspace:{kind:'project'},payload_integrity:{schema_id:'dd-flow/framed-payload@1',project:sha,runtime:sha}});
+  await writeFile(snapshotFile,stage);input.results[0].candidate.manifest_sha256=createHash('sha256').update(stage).digest('hex');
+  const retiredStage=await cleanupObservation(input);
+  assert.equal(retiredStage.capture,'ready');assert.equal(retiredStage.executions[0].reason,'stage_entry_manifest_verified');
+  await writeFile(snapshotFile,snapshot);input.results[0].candidate.manifest_sha256=createHash('sha256').update(snapshot).digest('hex');
   inventory.provider_turns.push({ operation_id: 'still-active' });
   saved.result.inventory.provider_turns.push({ operation_id: 'still-active' });
   assert.equal((await cleanupObservation(input)).physical, 'unknown', 'even a matching retirement record cannot hide a current provider turn');

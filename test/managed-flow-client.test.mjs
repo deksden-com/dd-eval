@@ -6,6 +6,32 @@ import path from "node:path";
 import { createHash } from 'node:crypto';
 import { isCurrentTechnicalDependency, observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
 
+test('SDLC preparation requires pinned-engine snapshot capability before allocation', async t => {
+  const root=await mkdtemp(path.join(os.tmpdir(),'managed-snapshot-policy-'));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const bin=path.join(root,'cli.mjs'),calls=path.join(root,'calls.jsonl');
+  const help={schema_id:'dd-flow/cli-help@1',command:'run prepare-vnext-specify',options:[{name:'snapshot-policy',kind:'value',choices:['best_effort','required']}]};
+  const script=(metadata,receipt)=>`import fs from 'node:fs';const a=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify(a)+'\\n');console.log(JSON.stringify(a.includes('--help')?${JSON.stringify(metadata)}:${JSON.stringify(receipt)}));`;
+  const input={bin,projectRoot:root,slug:'fixture',executionRoutingFile:path.join(root,'routing.json')};
+  await writeFile(bin,script(help,{run_id:'RUN-1',snapshot_policy:'required'}));
+  assert.equal((await prepareManagedRun(input)).snapshot_policy,'required');
+  let observed=(await readFile(calls,'utf8')).trim().split('\n').map(JSON.parse);
+  assert.equal(observed.length,2);assert(observed[0].includes('--help'));
+  assert.equal(observed[1][observed[1].indexOf('--snapshot-policy')+1],'required');
+  await rm(calls);
+  for (const metadata of [{...help,options:[]},{...help,command:'run start'},{...help,options:[{name:'snapshot-policy',kind:'value',choices:['best_effort']}]},{...help,options:[...help.options,...help.options]}]) {
+    await writeFile(bin,script(metadata,{run_id:'MUST-NOT-ALLOCATE'}));
+    await assert.rejects(prepareManagedRun(input),{code:'snapshot_policy_unsupported',details:{effect:'no_effect'}});
+  }
+  observed=(await readFile(calls,'utf8')).trim().split('\n').map(JSON.parse);
+  assert.equal(observed.length,4);assert(observed.every(args=>args.includes('--help')));
+  await rm(calls);
+  await writeFile(bin,script(help,{run_id:'RUN-retained'}));
+  await assert.rejects(prepareManagedRun(input),{code:'snapshot_policy_unconfirmed',details:{effect:'partial',run_id:'RUN-retained',next_action:'inspect_retained_run'}});
+  observed=(await readFile(calls,'utf8')).trim().split('\n').map(JSON.parse);
+  assert.equal(observed.length,2);
+});
+
 test('a bound technical pause remains observational and cannot clear an operator control', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'managed-technical-pause-'));
   t.after(() => rm(root, { recursive: true, force: true }));

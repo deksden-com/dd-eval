@@ -7,6 +7,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { checkCaseAcceptance, snapshotTreeHash, validateCaseAcceptancePolicy, selectFailedCheckGate, finalReceiptIndex, validateFrozenReceiptScope, validateFinalCheckReceipts } from "../lib/case-acceptance.mjs";
 import { compositeRunner } from './fixtures/composite-runner103.mjs';
+import { framedSnapshotTreeHash } from '../lib/framed-snapshot-hash.mjs';
 
 const sha = value => createHash("sha256").update(value).digest("hex");
 const policy = { checker: "task-priority@1", case_id: "sdlc-eval-2026-summer-task-priority" };
@@ -236,6 +237,23 @@ test("case acceptance reads only a sealed checkpoint and separates objective gap
   } finally { await rm(f.root, { recursive: true, force: true }); }
 });
 
+test("case acceptance verifies a terminal candidate with retained Work Git evidence",async()=>{
+  const f=await fixture();
+  try {
+    await mkdir(path.join(f.snapshot,'project'));
+    const bundle=Buffer.from('bundle'),hash='a'.repeat(64);await writeFile(path.join(f.snapshot,'work-git.bundle'),bundle);
+    const data={schema_id:'dd-flow/eval-run-snapshot@12',purpose:'candidate',stage_entry:null,run_id:'RUN-001',project_id:'PRJ-001',
+      workspace:{kind:'git_worktree',sha256:snapshotTreeHash(f.workspace)},runtime_sha256:snapshotTreeHash(path.join(f.snapshot,'runtime')),
+      work_git:{sha256:sha(bundle),refs:[{ref:`refs/dd-flow/work-results/${hash}`,commit:'b'.repeat(40)}]},
+      payload_integrity:{schema_id:'dd-flow/framed-payload@1',project:framedSnapshotTreeHash(path.join(f.snapshot,'project')),runtime:framedSnapshotTreeHash(path.join(f.snapshot,'runtime')),workspace:framedSnapshotTreeHash(f.workspace)}};
+    const bytes=JSON.stringify(data);await writeFile(f.result.candidate.manifest,bytes);f.result.candidate.manifest_sha256=sha(bytes);
+    const read=()=>checkCaseAcceptance({evalRoot:f.root,execution:'e2e',result:f.result,policy});
+    assert.equal((await read()).status,'passed');
+    await writeFile(path.join(f.snapshot,'work-git.bundle'),'tampered');
+    assert.equal((await read()).status,'unavailable');
+  } finally {await rm(f.root,{recursive:true,force:true});}
+});
+
 test("case acceptance rejects escaped or corrupt candidate evidence without inventing a product failure", async () => {
   const f = await fixture();
   try {
@@ -299,6 +317,16 @@ test("v2 resolves the accepted protocol and its final MERGE Work receipt", async
     const passed = await read();
     assert.equal(passed.status, "passed", JSON.stringify(passed.evidence_error ?? passed.gaps));
     assert.equal(passed.facts.criteria[0].checks[0].receipt_id, receiptId);
+    await mkdir(path.join(f.snapshot,'project'));
+    const bundle=Buffer.from('v2-candidate-bundle'),ref='a'.repeat(64);await writeFile(path.join(f.snapshot,'work-git.bundle'),bundle);
+    const retained={schema_id:'dd-flow/eval-run-snapshot@12',purpose:'candidate',stage_entry:null,run_id:'RUN-001',project_id:'PRJ-001',
+      workspace:{kind:'git_worktree',sha256:snapshotTreeHash(f.workspace)},runtime_sha256:snapshotTreeHash(path.join(f.snapshot,'runtime')),
+      work_git:{sha256:sha(bundle),refs:[{ref:`refs/dd-flow/work-results/${ref}`,commit:'b'.repeat(40)}]},
+      payload_integrity:{schema_id:'dd-flow/framed-payload@1',project:framedSnapshotTreeHash(path.join(f.snapshot,'project')),runtime:framedSnapshotTreeHash(path.join(f.snapshot,'runtime')),workspace:framedSnapshotTreeHash(f.workspace)}};
+    const retainedBytes=JSON.stringify(retained);await writeFile(f.result.candidate.manifest,retainedBytes);f.result.candidate.manifest_sha256=sha(retainedBytes);
+    assert.equal((await read()).status,'passed');
+    await writeFile(path.join(f.snapshot,'work-git.bundle'),'tampered');assert.equal((await read()).status,'unavailable');
+    await seal(f);
     // V3 uses generated facts, not a second manually copied Markdown passport.
     const v3 = { ...v2, checker: "task-priority@3" };
     const matrixPath = "07-merge/verification/final/verification-matrix.json";

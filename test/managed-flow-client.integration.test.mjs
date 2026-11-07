@@ -36,7 +36,10 @@ test("eval client drives two real CLI lifecycle stages and retains controller-ow
     await assert.rejects(prepareManagedRun({ bin: cli, env, projectRoot: project, slug: "missing-profile", executionRoutingFile }), { code: "agent_profile_missing" });
     await write("routing.json", { schema_id: "dd-flow/execution-routing@1", execution: { agent_profile_id: "first", stage_overrides: { protocolize: { agent_profile_id: "second" } } } });
     const started = await prepareManagedRun({ bin: cli, env, projectRoot: project, slug: "controller-stages", executionRoutingFile });
+    assert.equal(started.snapshot_policy, "required");
     runId = started.run_id;
+    const preparedStatus = await commandJson(cli,["run","status",runId,"--project-root",project],{cwd:project,env});
+    assert.equal(preparedStatus.index.snapshot_policy,"required");
     const intake = await write("task.md", "Add task priority so members can order existing tasks.\n");
     const references = {};
     for (const stage of ["specify", "protocolize"]) {
@@ -73,10 +76,16 @@ test("eval client drives two real CLI lifecycle stages and retains controller-ow
     settled = result.controller.sessions.every(session => session.stopped);
     assert.equal(result.controller.status, "stop_target_reached"); assert.equal(settled, true);
     assert.equal(result.controller.sessions.length, 2);
-    assert.deepEqual(events.filter(event => event.type === "boundary_captured").map(event => event.data.stage), ["specify", "protocolize"]);
+    assert.deepEqual(events.filter(event => event.type === "boundary_captured").map(event => event.data.stage), [null, "specify", "protocolize"]);
     assert.equal(hash(await readFile(result.boundary.manifest)), result.boundary.manifest_sha256);
     const capture = JSON.parse(await readFile(result.boundary.manifest, "utf8"));
     assert.equal(capture.boundary_capture.controller_id, result.controller.controller_id);
+    assert.equal(capture.purpose, "candidate");
+    const successor = events.filter(event => event.type === "stage_entry_captured");
+    assert.equal(successor.length, 1);
+    assert.equal(successor[0].data.stage_entry, "plan");
+    const snapshots = await commandJson(cli, ["run", "snapshots", runId, "--project-root", project, "--json"], { cwd: project, env });
+    assert.ok(snapshots.snapshots.some(item => item.available && item.restorable && item.forkable && item.after_stage === "protocolize" && item.stage_entry === "plan"));
     phase = "completed_reattach";
     const repeated = await observeManagedRun({ ...input, controllerId, contextFor: async () => assert.fail("completed controller cannot request historical context"), beforeDispatch: async () => assert.fail("completed reattach is read-only") });
     assert.equal(repeated.controller.controller_id, controllerId);
