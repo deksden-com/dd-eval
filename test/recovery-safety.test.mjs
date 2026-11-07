@@ -1,12 +1,34 @@
 import { processSnapshot } from "../lib/process-snapshot.mjs";
 import assert from "node:assert/strict";
-import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, realpath, writeFile, readFile, rm } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { assertDaemonReplaceable } from "../lib/driver-recovery.mjs";
 import { frozenCandidate, storedExecutionResults, runnerRecoveryInspect } from "../lib/runner.mjs";
 import { appendEvent } from "../lib/runner-events.mjs";
+import { resolveBoundSnapshot } from "../lib/recovery-safety.mjs";
+import { snapshotTreeHash } from "../lib/case-acceptance.mjs";
+import { framedSnapshotTreeHash } from "../lib/framed-snapshot-hash.mjs";
+
+test("terminal Git candidate checks bundle and framed payload before use", async t => {
+  const root=await realpath(await mkdtemp(path.join(os.tmpdir(),"dd-eval-candidate-git-")));t.after(()=>rm(root,{recursive:true,force:true}));
+  const snapshot=path.join(root,"executions","one","boundaries","terminal");
+  await mkdir(path.join(snapshot,"project"),{recursive:true});await mkdir(path.join(snapshot,"runtime"));
+  await writeFile(path.join(snapshot,"project","file"),"project");await writeFile(path.join(snapshot,"runtime","file"),"runtime");
+  const digest=value=>createHash("sha256").update(value).digest("hex"),bundle=Buffer.from("bundle");
+  await writeFile(path.join(snapshot,"work-git.bundle"),bundle);
+  const sha="a".repeat(64),manifest={schema_id:"dd-flow/eval-run-snapshot@12",purpose:"candidate",stage_entry:null,run_id:"RUN-1",workspace:{kind:"project"},
+    work_git:{sha256:digest(bundle),refs:[{ref:`refs/dd-flow/work-results/${sha}`,commit:"b".repeat(40)}]},
+    project_sha256:snapshotTreeHash(path.join(snapshot,"project")),runtime_sha256:snapshotTreeHash(path.join(snapshot,"runtime")),
+    payload_integrity:{schema_id:"dd-flow/framed-payload@1",project:framedSnapshotTreeHash(path.join(snapshot,"project")),runtime:framedSnapshotTreeHash(path.join(snapshot,"runtime"))}};
+  const bytes=JSON.stringify(manifest);await writeFile(path.join(snapshot,"snapshot.json"),bytes);
+  const input={evalRoot:root,execution:"one",result:{run_id:"RUN-1"},checkpoint:{snapshot,manifest_sha256:digest(bytes)},purpose:"candidate"};
+  assert.equal((await resolveBoundSnapshot(input)).data.schema_id,manifest.schema_id);
+  await writeFile(path.join(snapshot,"work-git.bundle"),"changed");
+  await assert.rejects(resolveBoundSnapshot(input),{code:"snapshot_binding_invalid"});
+});
 
 test("captured recovery supersedes the original launch failure and inspect is read-only", async () => {
   const manifest = { run_id: "test", executions: [{ id: "one" }] };

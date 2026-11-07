@@ -20,6 +20,7 @@ async function waitForState(runner, evalRoot, expected, timeoutMs = 60_000, read
   for (;;) {
     const status = await runner.runnerStatus({ evalRoot });
     if (expected.includes(status.state) && await ready(status)) return status;
+    if (status.state === 'completed_with_failures' && !expected.includes(status.state)) throw new Error(`Detached fixture completed with failures: ${JSON.stringify(status.execution_results)}`);
     if (['failed', 'recovery_blocked'].includes(status.state) && status.runner_attempts?.some(attempt => ['failed', 'recovery_blocked'].includes(attempt.last_recorded_status))) {
       throw new Error(`Detached fixture owner failed before ${expected.join(', ')}: ${JSON.stringify(status.runner_attempts)}`);
     }
@@ -94,7 +95,7 @@ const write = (file, value) => {fs.mkdirSync(path.dirname(file),{recursive:true}
 const project = path.join(c.output,'executions/e2e/project'), runHome=path.join(c.output,'executions/e2e/dd-flow-home/run');
 const managedFile=c.output+'/executions/e2e/managed-runtime.json';
 const runtimeProcess = () => { const pid=Number(a.includes('--pid')?get('--pid'):null)||process.pid, budget=a.includes('--budget-json')?JSON.parse(get('--budget-json')):{schema_id:'dd-flow/runtime-budget@1',scope_id:'x',per_harness:{}}; return {id:'PROC-fake',lease_token:'lease-fake',kind:'eval-observer',owner_id:(a.includes('--owner')?get('--owner'):null)||process.env.DD_EVAL_RUN_ID||'EVAL-fake',operation_id:(a.includes('--operation')?get('--operation'):null)||'',pid,pid_started_at:execFileSync('ps',['-o','lstart=','-p',String(pid)],{encoding:'utf8'}).trim(),state:'running',metadata_json:JSON.stringify({role:'observer',dd_flow_home:process.env.DD_FLOW_HOME,process_group_id:pid,budget})}; };
-const controller = {controller_id:'DRV-fake',run_id:'RUN-fake',request_id:fs.existsSync(c.output+'/launch')?fs.readFileSync(c.output+'/launch','utf8'):'none',stage:c.stopAfter||'code',status:'stop_target_reached',sessions:[],runtime_budget:fs.existsSync(managedFile)?JSON.parse(fs.readFileSync(managedFile)).runtime_budget:null};
+const controller = {controller_id:'DRV-fake',project_id:'PRJ-fake',generation:0,run_id:'RUN-fake',request_id:fs.existsSync(c.output+'/launch')?fs.readFileSync(c.output+'/launch','utf8'):'none',stage:c.stopAfter||'code',status:'stop_target_reached',sessions:[],runtime_budget:fs.existsSync(managedFile)?JSON.parse(fs.readFileSync(managedFile)).runtime_budget:null};
 const captured = stage => {const file=c.output+'/capture-'+stage+'/snapshot.json';write(file,{purpose:'stage_entry',stage_entry:stage==='plan-review'?'code':'code-review'});return {stage,manifest:file,manifest_sha256:require('node:crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex')};};
 if(a[0]==='engine') out(a[1]==='resolve'?{selection:{selected:c.engine}}:{engine:c.engine});
 else if(a[0]==='runtime' && a[1]==='scope') {
@@ -126,7 +127,7 @@ else if(a[0]==='run' && a[1]==='fork') {
   // This fixture owns no process tree once its control has settled.
   out({scope:{run_id:'RUN-fake'},settled,physical_stopped:settled,control:{current:true,control_id:'CTL-fake',recovery_id:'REC-fake',admission:'sealed',capture_path:capture,generation:1,settlement:{settled}}});
 } else if(a[0]==='run' && a[1]==='list') out({runs:[{id:'RUN-fake'}]});
-else if(a[0]==='run' && a[1]==='status') out({run:{workspace_root:project,run_root:runHome},index:{stage_runs:[{stage:'plan-review',status:c.stageOutcome||'done'},{stage:'code',status:fs.existsSync(c.output+'/code')?'done':'pending'}]}});
+else if(a[0]==='run' && a[1]==='status') out({run:{id:'RUN-fake',project_id:'PRJ-fake',workspace_root:project,run_root:runHome},index:{run_id:'RUN-fake',stage_runs:[{stage:'plan-review',status:c.stageOutcome||'done'},{stage:'code',status:fs.existsSync(c.output+'/code')?'done':'pending'}]}});
 else if(a[0]==='stat') out({});
 else throw Error('unexpected command '+JSON.stringify(a));
 `);
@@ -174,6 +175,18 @@ test('fork inherits pins, crosses a boundary and finalizes through ordinary EVAL
   assert.equal(calls.filter(a => a[1] === 'drive' && a[2] === 'context').length, 1);
   assert.deepEqual(await readFile(path.join(f.sourceRoot, 'manifest.json')), sourceBytes);
   assert.equal((await waitForState(f.runner, f.output, ['completed'])).state, 'completed');
+});
+
+test('fork rejects unsupported and incomplete Stage manifests before creating output',async t=>{
+  const f=await setup(t),file=path.join(f.sourceRoot,'executions/e2e/boundaries',f.input.from,'snapshot.json');
+  for(const manifest of [
+    {schema_id:'dd-flow/eval-run-snapshot@999',purpose:'stage_entry',stage_entry:'plan-review'},
+    {schema_id:'dd-flow/eval-run-snapshot@11',purpose:'stage_entry',stage_entry:'plan-review',workspace:{kind:'project'}}
+  ]) {
+    await write(file,manifest);
+    await assert.rejects(f.runner.runnerFork(f.input),{code:'fork_checkpoint_invalid'});
+    await assert.rejects(stat(f.output),{code:'ENOENT'});
+  }
 });
 
 test('fork and detached continuation retain a private registry despite ambient replacement', async t => {

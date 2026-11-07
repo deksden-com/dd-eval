@@ -32,6 +32,8 @@ if(args[0]==='engine' && args[1]==='install') {
   console.log(JSON.stringify({ok:true}));
 } else if(args[0]==='run' && args[1]==='snapshot' && args[2]==='bootstrap' && args[3]==='restore') {
   console.log(JSON.stringify({target_stage:'specify',materialized_commit:'c'.repeat(40)}));
+} else if(args[0]==='run' && args[1]==='snapshot' && args[2]==='restore' && args.includes('--help')) {
+  console.log(JSON.stringify({schema_id:'dd-flow/cli-help@1',command:'run snapshot restore',options:process.env.TEST_NO_SNAPSHOT_POLICY==='1'?[]:[{name:'snapshot-policy',kind:'value',choices:['required']}]}));
 } else if(args[0]==='run' && args[1]==='snapshot' && args[2]==='restore') {
   const existing = fs.existsSync(home)?fs.readdirSync(home):[];
   if(existing.some(name=>name!=='agent-profiles')) throw new Error('restore destination is not empty');
@@ -39,7 +41,7 @@ if(args[0]==='engine' && args[1]==='install') {
   const runHome = path.join(home,'runs','RUN-001'); fs.mkdirSync(runHome,{recursive:true});
   fs.writeFileSync(path.join(runHome,'engine-binding.json'),JSON.stringify({engine:{package_name:'fixture',package_version:'1',engine_version:'1',integrity_checksum:(process.env.TEST_RESTORE_MISMATCH==='1'?'b':'a').repeat(64)}}));
   fs.writeFileSync(path.join(runHome,'retained.txt'),'restored history');
-  console.log(JSON.stringify({run_id:'RUN-001',target_stage:'code',run_home:runHome,project_root:args[args.indexOf('--project-root')+1]}));
+  console.log(JSON.stringify({run_id:'RUN-001',target_stage:'code',run_home:runHome,project_root:args[args.indexOf('--project-root')+1],...(args.includes('--snapshot-policy')?{snapshot_policy:'required'}:{})}));
 } else throw new Error('unexpected command '+JSON.stringify(args));
 `;
 
@@ -84,6 +86,30 @@ test('qualification provisions an isolated selected runtime without starting a p
   }
 });
 
+test('focused SDLC refuses a legacy importer before restoring any RUN',async()=>{
+  const root=await mkdtemp(path.join(os.tmpdir(),'eval-restore-policy-'));
+  const keys=['DD_FLOW_BIN','DD_FLOW_CONFIG_HOME','TEST_RESTORE_LOG','TEST_NO_SNAPSHOT_POLICY'];
+  const prior=Object.fromEntries(keys.map(key=>[key,process.env[key]]));
+  try {
+    const config=path.join(root,'config'),home=path.join(root,'eval-home'),snapshot=path.join(home,'snapshot'),log=path.join(root,'calls.jsonl');
+    await mkdir(config);await mkdir(snapshot,{recursive:true});
+    await writeFile(path.join(config,'harnesses.json'),JSON.stringify({schema_id:'dd-flow/harness-config@1',harnesses:{}}));
+    const executable=path.join(root,'cli.mjs');await writeFile(executable,fixture);
+    Object.assign(process.env,{DD_FLOW_BIN:executable,DD_FLOW_CONFIG_HOME:config,TEST_RESTORE_LOG:log,TEST_NO_SNAPSHOT_POLICY:'1'});
+    const bytes=JSON.stringify({schema_id:'dd-flow/eval-run-snapshot@5',purpose:'stage_entry',run_id:'RUN-001',stage_entry:'code'});
+    await writeFile(path.join(snapshot,'snapshot.json'),bytes);
+    const runtimeRoot=path.join(root,'runtime'),projectRoot=path.join(root,'project');
+    await assert.rejects(restoreStageSnapshot({home,stage:'code',runtimeRoot,projectRoot,flowId:'sdlc',entry:{snapshot:{kind:'run',run_id:'RUN-001',locator:'snapshot',manifest_sha256:createHash('sha256').update(bytes).digest('hex')}}}),{code:'snapshot_policy_unsupported',details:{effect:'no_effect'}});
+    const calls=(await readFile(log,'utf8')).trim().split('\n').map(JSON.parse);
+    assert.equal(calls.filter(call=>call.args[0]==='run').length,1);
+    assert(calls.find(call=>call.args[0]==='run').args.includes('--help'));
+    assert.deepEqual(await readdir(projectRoot),[]);
+  } finally {
+    for(const [key,value] of Object.entries(prior)) {if(value===undefined) delete process.env[key];else process.env[key]=value;}
+    await rm(root,{recursive:true,force:true});
+  }
+});
+
 test('bootstrap restore retains the materialized checkout commit', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-bootstrap-'));
   const prior = Object.fromEntries(['DD_FLOW_BIN', 'DD_FLOW_CONFIG_HOME', 'TEST_RESTORE_LOG'].map(key => [key, process.env[key]]));
@@ -118,20 +144,22 @@ for (const mismatch of [false, true]) test(`stage restore uses an external impor
     const bytes = JSON.stringify({ schema_id: "dd-flow/eval-run-snapshot@5", purpose: "stage_entry", run_id: "RUN-001", stage_entry: "code" });
     await writeFile(path.join(snapshot, "snapshot.json"), bytes);
     const runtimeRoot = path.join(root, "runtime"), projectRoot = path.join(root, "project");
-    const input = { home, stage: "code", runtimeRoot, projectRoot, entry: { snapshot: { kind: "run", run_id: "RUN-001", locator: "snapshot", manifest_sha256: createHash("sha256").update(bytes).digest("hex") } } };
+    const input = { home, stage: "code", runtimeRoot, projectRoot, flowId:'sdlc', entry: { snapshot: { kind: "run", run_id: "RUN-001", locator: "snapshot", manifest_sha256: createHash("sha256").update(bytes).digest("hex") } } };
     if (mismatch) await assert.rejects(restoreStageSnapshot(input), { code: "snapshot_engine_mismatch" });
     else {
       const result = await restoreStageSnapshot(input);
+      assert.equal(result.snapshot_policy,'required');
       assert.equal(result.engine.snapshot_root.startsWith(runtimeRoot + path.sep), true);
       assert.equal(await readFile(path.join(result.run_home, "retained.txt"), "utf8"), "restored history");
       const adapter = await driverAdapterInvocation({ harness: 'codex-desktop' }, { env: { DD_FLOW_HOME: runtimeRoot } });
       assert.deepEqual(await commandJson(adapter.executable, adapter.prefix), { selected: true });
     }
     const calls = (await readFile(log, "utf8")).trim().split("\n").map(JSON.parse);
-    const restore = calls.findIndex(call => call.args[0] === "run");
+    const restore = calls.findIndex(call => call.args[0] === "run" && !call.args.includes('--help'));
     assert.ok(restore > 0);
     assert.ok(calls.slice(0, restore).every(call => call.home !== runtimeRoot));
     assert.equal(calls[restore].home, runtimeRoot);
+    assert.equal(calls[restore].args[calls[restore].args.indexOf('--snapshot-policy')+1],'required');
     assert.equal(calls.slice(restore + 1).some(call => call.home === runtimeRoot && call.args[1] === "install"), !mismatch);
     assert.ok(!(await readdir(root)).some(name => name.startsWith(".restore-engine-")));
   } finally {

@@ -169,6 +169,16 @@ The downstream implementation contour is being defined in
 
 An evaluation run starts from an immutable `dd-tasks` checkpoint and measures a
 specific harness/model profile, not a model in isolation.
+Fresh managed SDLC preparation requires the pinned engine to advertise
+`run prepare-vnext-specify --snapshot-policy required` through its structured
+help. The runner checks before allocating the RUN and validates the returned
+policy; an older engine without the capability is refused rather than silently
+upgraded or passed an unsupported option. A missing confirmation after
+allocation reports the retained RUN for inspection, without starting it again.
+Focused managed SDLC runs also require that capability on the exact importer:
+the isolated Stage-entry import explicitly strengthens its policy to
+`required` and retains the source snapshot unchanged. Recovery of the same
+RUN cannot change its frozen policy. Non-SDLC flows are not yet covered.
 The [Task Priority baseline audit](runbooks/task-priority-baseline-audit-2026-09-06.md)
 records the active tagged source, preparation checks and latest Droid qualification limits.
 The [Droid defect investigation and repair plan](specs/028-droid-eval-defects-root-cause-and-repair-plan.md)

@@ -1,14 +1,23 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, readFile, rm, symlink, realpath } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, rm, symlink, realpath, chmod } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { snapshotTreeHash } from "../lib/case-acceptance.mjs";
+import { framedSnapshotTreeHash } from "../lib/framed-snapshot-hash.mjs";
 import { protocolizeMaterializationEvidence } from "../lib/materialization-evidence.mjs";
 import { finalJudgePrompt } from "../lib/runner.mjs";
 const sha = bytes => createHash("sha256").update(bytes).digest("hex");
+
+test('framed snapshot hash follows the cross-engine root, mode, file and symlink contract',async t=>{
+  const root=await realpath(await mkdtemp(path.join(os.tmpdir(),'framed-snapshot-contract-')));t.after(()=>rm(root,{recursive:true,force:true}));
+  await chmod(root,0o700);await mkdir(path.join(root,'a'));await chmod(path.join(root,'a'),0o700);
+  await writeFile(path.join(root,'a','file'),'hello');await chmod(path.join(root,'a','file'),0o600);await symlink('a/file',path.join(root,'b'));
+  const records=[['root',0o700],['directory','a',0o700],['file','a/file',0o600,sha('hello')],['symlink','b',Buffer.from('a/file').toString('base64')]];
+  assert.equal(framedSnapshotTreeHash(root),sha(records.map(item=>`${JSON.stringify(item)}\n`).join('')));
+});
 
 test("Judge receives frozen owned reciprocal links, not authored empty lists", async t => {
   const root = await realpath(await mkdtemp(path.join(os.tmpdir(), "materialization-evidence-")));
@@ -38,6 +47,23 @@ test("Judge receives frozen owned reciprocal links, not authored empty lists", a
   await seal();
   const passed = await protocolizeMaterializationEvidence(root, result);
   assert.equal(passed.status, "passed"); assert.equal(passed.source, "stage_boundary"); assert.equal(passed.authored_result_role, "input_not_materialized_output");
+  const project=path.join(snapshot,"project");await mkdir(project);
+  await writeFile(path.join(project,"a"),"XbY");await writeFile(path.join(project,"b"),"Z");
+  const stage=JSON.parse(await readFile(path.join(snapshot,"snapshot.json"))),framed={...stage,schema_id:"dd-flow/eval-run-snapshot@11",workspace:{...stage.workspace,kind:"git_worktree"},project_sha256:snapshotTreeHash(project),payload_integrity:{schema_id:"dd-flow/framed-payload@1",project:framedSnapshotTreeHash(project),runtime:framedSnapshotTreeHash(runtime),workspace:framedSnapshotTreeHash(workspace)}};
+  const publish=async value=>{const bytes=JSON.stringify(value);await writeFile(path.join(snapshot,"snapshot.json"),bytes);result.boundaries[0].manifest_sha256=sha(bytes);};
+  await publish(framed);assert.equal((await protocolizeMaterializationEvidence(root,result)).status,"passed");
+  const bundle=Buffer.from('candidate bundle'),ref='a'.repeat(64);await writeFile(path.join(snapshot,'work-git.bundle'),bundle);
+  const candidate={...framed,schema_id:'dd-flow/eval-run-snapshot@12',purpose:'candidate',stage_entry:null,work_git:{sha256:sha(bundle),refs:[{ref:`refs/dd-flow/work-results/${ref}`,commit:'b'.repeat(40)}]}};
+  await publish(candidate);assert.equal((await protocolizeMaterializationEvidence(root,result)).status,'passed');
+  await writeFile(path.join(snapshot,'work-git.bundle'),'corrupt');assert.equal((await protocolizeMaterializationEvidence(root,result)).status,'unavailable');
+  await publish(framed);
+  await writeFile(path.join(project,"a"),"X");await writeFile(path.join(project,"b"),"YbZ");
+  assert.equal(snapshotTreeHash(project),framed.project_sha256,'legacy stream is ambiguous');
+  assert.equal((await protocolizeMaterializationEvidence(root,result)).reason,"snapshot_payload_mismatch");
+  await writeFile(path.join(project,"a"),"XbY");await writeFile(path.join(project,"b"),"Z");
+  const incomplete={...framed};delete incomplete.payload_integrity;await publish(incomplete);
+  assert.equal((await protocolizeMaterializationEvidence(root,result)).status,"unavailable");
+  await seal();
   proof.owned_links[0].raw_body = "SECRET_SENTINEL";
   await seal(); proof.documents[0].headers = { authorization: "SECRET_SENTINEL" }; await seal(false);
   assert.ok(!JSON.stringify(await protocolizeMaterializationEvidence(root, result)).includes("SECRET_SENTINEL"));

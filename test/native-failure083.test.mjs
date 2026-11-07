@@ -2,6 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { causalNodes, nativeBindingFields, validateNativeFailureEvidence, verifyCapturedNativeFailure, hasVerifiedNativeFailure } from '../lib/native-failure-evidence.mjs';
 import { classifyInterruption, isInfrastructureFailure, failureDiagnostic, failureAttribution, buildReport, executionEvidence } from '../lib/runner.mjs';
+
+test('snapshot policy capability and unconfirmed allocation are infrastructure failures',()=>{
+  assert.equal(isInfrastructureFailure({code:'snapshot_policy_unsupported',details:{effect:'no_effect'}}),true);
+  assert.equal(isInfrastructureFailure({code:'snapshot_policy_unconfirmed',details:{effect:'partial',run_id:'RUN-retained'}}),true);
+  assert.equal(isInfrastructureFailure({code:'snapshot_policy_invalid',details:{effect:'no_effect'}}),true);
+  assert.equal(isInfrastructureFailure({code:'snapshot_recovery_policy_frozen',details:{effect:'no_effect'}}),true);
+});
 import { mkdtemp, mkdir, writeFile, rm, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';

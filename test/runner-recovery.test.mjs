@@ -46,7 +46,7 @@ import { ObservationClock } from "../lib/observation-clock.mjs";
 import { readBaselineAdmissionPolicy } from "../lib/baseline-admission.mjs";
 import { assertExecutionDispatch, executionState } from "../lib/execution-state.mjs";
 
-test("fork checkpoint listing advertises only sealed stage-entry snapshots", async t => {
+test("fork checkpoint listing returns only Stage-entry manifest candidates", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-fork-checkpoints-"));
   try {
     const boundaries = path.join(root, "executions", "e2e", "boundaries");
@@ -66,11 +66,21 @@ test("fork checkpoint listing advertises only sealed stage-entry snapshots", asy
       await writeJsonAtomic(path.join(boundaries, id, "snapshot.json"), { schema_id: schema,
         workspace: { kind, state: "unborn" }, purpose, stage_entry: "audit", run_id: "RUN-audit" });
     }
+    const sha="a".repeat(64),git={sha256:sha,refs:[{ref:`refs/dd-flow/work-results/${sha}`,commit:"b".repeat(40)}]};
+    for (const [id,schema,proof] of [["code-git-legacy","dd-flow/eval-run-snapshot@10",undefined],
+      ["code-git-current","dd-flow/eval-run-snapshot@11",{schema_id:"dd-flow/framed-payload@1",project:sha,runtime:sha}],
+      ["code-git-incomplete","dd-flow/eval-run-snapshot@11",undefined]]) {
+      await mkdir(path.join(boundaries,id));
+      await writeJsonAtomic(path.join(boundaries,id,"snapshot.json"),{schema_id:schema,workspace:{kind:"project"},purpose:"stage_entry",stage_entry:"merge",run_id:"RUN-code",work_git:git,...(proof?{payload_integrity:proof}:{})});
+    }
     const result = await runnerCheckpoints({ evalRoot: root });
     assert.deepEqual(result.checkpoints.map(item => [item.id, item.stage, item.run_id]), [
       ["audit-diagnostic", "audit", "RUN-audit"],
+      ["code-git-current", "merge", "RUN-code"],
+      ["code-git-legacy", "merge", "RUN-code"],
       ["plan-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "plan", "RUN-1"]]);
     assert.match(result.checkpoints[0].manifest_sha256, /^[a-f0-9]{64}$/);
+    assert(result.checkpoints.every(item=>item.verification==="manifest_only" && item.forkability==="requires_engine_verification"));
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
