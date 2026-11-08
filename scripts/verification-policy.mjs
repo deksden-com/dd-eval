@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 
 const zones = [
   [/snapshot-version/, /snapshot-version|runner-fork|runner-recovery/],
+  [/recovery-safety/, /recovery-safety|case-acceptance|runner-recovery/],
   [/completion-scope/, /completion-scope|runner-fork/],
   [/managed-flow-client/, /managed-flow-client|runner-work-cli/],
   [/recovery-work-cli/, /runner-work-cli/],
@@ -78,6 +79,7 @@ export function verificationSelection(base = null, { root = process.cwd(), env =
 
 const processHelpers = ['lib/process-json.mjs','lib/operation-errors.mjs','lib/runner-events.mjs','lib/managed-daemon.mjs','lib/runtime-maintenance.mjs','lib/runner-lock.mjs','lib/process-snapshot.mjs','lib/observation-clock.mjs'];
 const fixtureOwners = [
+  [/recovery-work-cli/, /runner-work-cli/],
   [/maintenance-/, /baseline-admission|e2e-reliability|runner|retirement|control|managed|lease|admission|engine-admission/],
   [/capacity-policy\.mjs|judge-cleanup\.mjs/, /capacity|hitl|judge|semantic|eval\.test|runner|control|managed|recovery-finalization105|technical-notes107/],
   [/composite-runner/, /case-acceptance|engine-admission|runner-proof|composite-runner/],

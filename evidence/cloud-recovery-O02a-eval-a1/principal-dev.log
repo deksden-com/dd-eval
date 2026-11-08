@@ -1,0 +1,63 @@
+
+ RUN  v4.1.7 /home/exedev/workspaces/dd-flow-cli/o02a-cli-consumer-v2-a1
+
+Failed controller fixture diagnostics retained at /tmp/dd-controller-stages-avLJmi
+ × ../o02a-eval-a1/test/fixtures/recovery-work-cli.vitest.ts > automatic required Work point prepares publicly, retains prefix and completes the derived suffix through eval consumers 131892ms
+   → The "path" argument must be of type string. Received undefined
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  ../o02a-eval-a1/test/fixtures/recovery-work-cli.vitest.ts > automatic required Work point prepares publicly, retains prefix and completes the derived suffix through eval consumers
+TypeError: The "path" argument must be of type string. Received undefined
+ ❯ ../o02a-eval-a1/test/fixtures/recovery-work-cli.vitest.ts:107:56
+    105|   const continued = await forkManagedRun(input);
+    106|   expect(continued.handle).toBe(prepared.handle);
+    107|   const observed = await observeManagedRun({ bin: path.join(prepared.f…
+       |                                                        ^
+    108|     projectRoot: prepared.target.project_root, runId: source.runId, re…
+    109|     controllerId: continued.controller.controller_id, pollMs: 100,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_INVALID_ARG_TYPE' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  11:09:57
+   Duration  136.67s (transform 3.59s, setup 0ms, import 4.64s, tests 131.89s, environment 0ms)
+
+✖ automatic Work checkpoint uses the pinned real CLI consumer (137060.989442ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 137128.048607
+
+✖ failing tests:
+
+test at test/runner-work-cli.integration.test.mjs:8:1
+✖ automatic Work checkpoint uses the pinned real CLI consumer (137060.989442ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   code: 1,
+  -   code: 0,
+      signal: null
+    }
+  
+      at TestContext.<anonymous> (file:///home/exedev/workspaces/dd-flow-cli/o02a-eval-a1/test/runner-work-cli.integration.test.mjs:14:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { code: 1, signal: null },
+    expected: { code: 0, signal: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

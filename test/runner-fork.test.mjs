@@ -97,7 +97,8 @@ const managedFile=c.output+'/executions/e2e/managed-runtime.json';
 const runtimeProcess = () => { const pid=Number(a.includes('--pid')?get('--pid'):null)||process.pid, budget=a.includes('--budget-json')?JSON.parse(get('--budget-json')):{schema_id:'dd-flow/runtime-budget@1',scope_id:'x',per_harness:{}}; return {id:'PROC-fake',lease_token:'lease-fake',kind:'eval-observer',owner_id:(a.includes('--owner')?get('--owner'):null)||process.env.DD_EVAL_RUN_ID||'EVAL-fake',operation_id:(a.includes('--operation')?get('--operation'):null)||'',pid,pid_started_at:execFileSync('ps',['-o','lstart=','-p',String(pid)],{encoding:'utf8'}).trim(),state:'running',metadata_json:JSON.stringify({role:'observer',dd_flow_home:process.env.DD_FLOW_HOME,process_group_id:pid,budget})}; };
 const controller = {controller_id:'DRV-fake',project_id:'PRJ-fake',generation:0,run_id:'RUN-fake',request_id:fs.existsSync(c.output+'/launch')?fs.readFileSync(c.output+'/launch','utf8'):'none',stage:c.stopAfter||'code',status:'stop_target_reached',sessions:[],runtime_budget:fs.existsSync(managedFile)?JSON.parse(fs.readFileSync(managedFile)).runtime_budget:null};
 const captured = stage => {const file=c.output+'/capture-'+stage+'/snapshot.json';write(file,{purpose:'stage_entry',stage_entry:stage==='plan-review'?'code':'code-review'});return {stage,manifest:file,manifest_sha256:require('node:crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex')};};
-if(a[0]==='engine') out(a[1]==='resolve'?{selection:{selected:c.engine}}:{engine:c.engine});
+if(a.includes('--help')) out({schema_id:'dd-flow/cli-help@1',command:'run fork',options:c.workFork?[{name:'prepare-only',kind:'switch'}]:[]});
+else if(a[0]==='engine') out(a[1]==='resolve'?{selection:{selected:c.engine}}:{engine:c.engine});
 else if(a[0]==='runtime' && a[1]==='scope') {
   const scope_id=get('--scope-id');
   if(a[2]==='status') out({scope_id,dispatch_blocked:false,processes:[],provider_turns:[]});
@@ -107,8 +108,13 @@ else if(a[0]==='runtime' && a[1]==='scope') {
 else if(a[0]==='runtime' && a[1]==='process') out(a[2]==='status'?{processes:[]}:a[2]==='heartbeat'?{ok:true,process_id:'PROC-fake',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)}:a[2]==='check-admission'?{ok:true,admitted:true,process_id:'PROC-fake'}:a[2]==='finish'?{ok:true}:{process:runtimeProcess()});
 else if(a[0]==='run' && a[1]==='fork') {
   fs.mkdirSync(project,{recursive:true});fs.mkdirSync(runHome,{recursive:true});execFileSync('git',['init','--quiet'],{cwd:project});
+  if(c.workFork && !a.includes('--prepare-only')) {
+    if(!fs.existsSync(managedFile)||!fs.existsSync(c.output+'/executions/e2e/stage-context/plan-review-1.json')||!fs.existsSync(path.dirname(runHome)+'/harnesses.json')) throw Error('work dispatch preceded EVAL preparation');
+    fs.writeFileSync(c.output+'/launch','work-snapshot:'+get('--request-id'));
+    out({status:'continuation_requested',handle:'HANDLE-work',run_id:'RUN-fake',execution:{resource_home:process.env.DD_FLOW_RESOURCE_HOME,budget:JSON.parse(process.env.DD_FLOW_RUNTIME_BUDGET)},controller:{...controller,request_id:'work-snapshot:'+get('--request-id')}});return;
+  }
   if(c.fault==='fork-lost' && !fs.existsSync(project+'/published')) {fs.writeFileSync(project+'/published','retain');out({ok:false,error:{code:'rpc_timeout',message:'lost fork reply'}});return;}
-  out({ok:true,status:'ready',fork:{project_root:project,dd_flow_home:path.dirname(runHome),run_id:'RUN-fake',run_home:runHome,workspace_root:project,target_stage:'plan-review',engine:c.engine}});
+  out({ok:true,status:'ready',...(c.workFork?{handle:'HANDLE-work',execution:{resource_home:process.env.DD_FLOW_RESOURCE_HOME,budget:JSON.parse(process.env.DD_FLOW_RUNTIME_BUDGET)}}:{}),fork:{project_root:project,dd_flow_home:path.dirname(runHome),run_id:'RUN-fake',run_home:runHome,workspace_root:project,target_stage:'plan-review',engine:c.engine}});
 } else if(a[0]==='run' && a[1]==='drive' && a[2]==='launch') {
   if(fs.existsSync(c.output+'/launch')) throw Error('duplicate controller launch');fs.writeFileSync(c.output+'/launch',get('--request-id'));out({controller});
 } else if(a[0]==='run' && a[1]==='drive' && a[2]==='context') {
@@ -129,7 +135,7 @@ else if(a[0]==='run' && a[1]==='fork') {
   out({scope:{run_id:'RUN-fake'},settled,physical_stopped:settled,control:{current:true,control_id:'CTL-fake',recovery_id:'REC-fake',admission:'sealed',capture_path:capture,generation:1,settlement:{settled}}});
 } else if(a[0]==='run' && a[1]==='list') out({runs:[{id:'RUN-fake'}]});
 else if(a[0]==='run' && a[1]==='snapshots') out({ok:true,run_id:c.snapshotRunId,snapshots:c.snapshots});
-else if(a[0]==='run' && a[1]==='status') out({run:{id:'RUN-fake',project_id:'PRJ-fake',workspace_root:project,run_root:runHome},index:{run_id:'RUN-fake',stage_runs:[{stage:'plan-review',status:c.stageOutcome||'done'},{stage:'code',status:fs.existsSync(c.output+'/code')?'done':'pending'}]}});
+else if(a[0]==='run' && a[1]==='status') out({run:{id:'RUN-fake',project_id:'PRJ-fake',workspace_root:project,run_root:runHome},index:{run_id:'RUN-fake',...(c.workFork?{snapshot_policy:'required'}:{}),stage_runs:[{stage:'plan-review',status:c.stageOutcome||'done'},{stage:'code',status:fs.existsSync(c.output+'/code')?'done':'pending'}]}});
 else if(a[0]==='stat') out({});
 else throw Error('unexpected command '+JSON.stringify(a));
 `);
@@ -148,6 +154,51 @@ else throw Error('unexpected command '+JSON.stringify(a));
   }
   return { temp, runner, sourceRoot, source, caseRoot, output, callsFile, engine, configFile, input: { evalRoot: sourceRoot, executionId: 'e2e', from, output, engineVersion: 'new', requestId: 'fork-test' } };
 }
+
+async function workSource(f) {
+  const attempt = path.join(f.sourceRoot, 'executions/e2e'), runtime = path.join(attempt, 'dd-flow-home'), project = path.join(attempt, 'project');
+  const engineRoot = path.join(runtime, 'engines/fixture/new'), runHome = path.join(runtime, 'run');
+  await mkdir(project, { recursive: true });
+  await f.runner.installRuntimeShim(runtime, { ...f.engine, snapshot_root: engineRoot });
+  await write(path.join(attempt, 'managed-runtime.json'), { schema_id: 'dd-eval/managed-runtime@1', run_id: 'RUN-source', run_home: runHome, project_root: project, runtime_root: runtime });
+  await write(path.join(runHome, 'engine-binding.json'), { run_id: 'RUN-source', project_root: project, engine: f.engine });
+  const snapshot = path.join(attempt, 'boundaries', f.input.from);
+  const bytes = JSON.stringify({ manifest: { request: { snapshot_policy: 'required' }, execution_profile: { settings: { stop_target: 'code_completed' } } } });
+  await write(path.join(snapshot, 'runtime.json'), bytes);
+  const manifest = { schema_id: 'dd-flow/work-boundary-snapshot@1', purpose: 'work_boundary', source: { run_id: 'RUN-source' },
+    boundary: { kind: 'sequential' }, cursor: { schema_id: 'dd-flow/work-boundary-cursor@2', action: 'continue_stage', stage: 'plan-review', accepted: [{ work_id: 'accepted' }], pending: ['pending'], integration_pending: false },
+    continuation: { file: 'runtime.json', sha256: hash(bytes) } };
+  await write(path.join(snapshot, 'snapshot.json'), manifest);
+  const config = JSON.parse(await readFile(f.configFile));
+  await write(f.configFile, { ...config, workFork: true, snapshotRunId: 'RUN-source', snapshots: [{ snapshot_id: 'DRV:work-point', snapshot,
+    manifest_sha256: hash(await readFile(path.join(snapshot, 'snapshot.json'))), available: true, forkable: true, restorable: true, continuation_supported: true }] });
+  return { ...f.input, from: 'DRV:work-point', integrityChecksum: f.engine.integrity_checksum };
+}
+
+for (const lost of [false, true]) test(`runner Work prepare/start retains handle and observes one controller (lost observer: ${lost})`, async t => {
+  const f = await setup(t, lost ? 'lost' : null), input = await workSource(f);
+  const ready = await f.runner.runnerFork(input);
+  assert.equal(ready.fork.handle, 'HANDLE-work');
+  await assert.rejects(stat(path.join(f.output, 'launch')), { code: 'ENOENT' });
+  const manifest = JSON.parse(await readFile(path.join(f.output, 'manifest.json')));
+  assert.deepEqual(manifest.derived_from.work_cursor.accepted, [{ work_id: 'accepted' }]);
+  await f.runner.runnerFork({ ...input, start: true });
+  const status = await waitForState(f.runner, f.output, ['completed']);
+  assert.equal(status.execution_results[0].stage, 'code');
+  const calls = (await readFile(f.callsFile, 'utf8')).trim().split('\n').map(JSON.parse);
+  assert.equal(calls.filter(args => args[1] === 'fork' && args.includes('--prepare-only')).length, 1);
+  assert.equal(calls.filter(args => args[1] === 'fork' && !args.includes('--prepare-only') && !args.includes('--help')).length, 1);
+  assert.equal(calls.filter(args => args[1] === 'drive' && args[2] === 'launch').length, 0);
+  assert.equal((await f.runner.runnerFork(input)).fork.handle, ready.fork.handle);
+});
+
+test('Work fork refuses an unsupported stop target before output allocation', async t => {
+  const f = await setup(t), input = await workSource(f);
+  f.source.executions[0].terminal_stage = 'plan-review';
+  await write(path.join(f.sourceRoot, 'manifest.json'), f.source);
+  await assert.rejects(f.runner.runnerFork(input), { code: 'fork_stop_target_unsupported' });
+  await assert.rejects(stat(f.output), { code: 'ENOENT' });
+});
 
 test('fork inherits pins, crosses a boundary and finalizes through ordinary EVAL exactly once', async t => {
   const f = await setup(t);
@@ -201,7 +252,7 @@ test('retained engine listing keeps negative capabilities and refuses unsupporte
   assert.equal(listed.checkpoints[0].legacy_id, f.input.from);
   assert.equal(listed.checkpoints[0].snapshot_id, points[0].snapshot_id);
   assert.equal(listed.checkpoints[1].selectable, false);
-  await assert.rejects(f.runner.runnerFork(f.input), { code: 'fork_execution_scope_unsupported' });
+  await assert.rejects(f.runner.runnerFork({ ...f.input, integrityChecksum: f.engine.integrity_checksum }), { code: 'fork_execution_scope_unsupported' });
   await assert.rejects(stat(f.output), { code: 'ENOENT' });
   const automatic = path.join(f.sourceRoot, 'recovery/automatic-point');
   await cp(snapshot, automatic, { recursive: true });
@@ -210,12 +261,12 @@ test('retained engine listing keeps negative capabilities and refuses unsupporte
   const registered = await f.runner.runnerCheckpoints({ evalRoot: f.sourceRoot });
   assert.equal(registered.checkpoints[0].selectable, true);
   assert.equal(registered.checkpoints[0].legacy_id, undefined);
-  await assert.rejects(f.runner.runnerFork({ ...f.input, from: points[0].snapshot_id }), { code: 'fork_execution_scope_unsupported' });
+  await assert.rejects(f.runner.runnerFork({ ...f.input, from: points[0].snapshot_id, integrityChecksum: f.engine.integrity_checksum }), { code: 'fork_execution_scope_unsupported' });
   await assert.rejects(f.runner.runnerFork({ ...f.input, from: automatic }), { code: 'fork_input_invalid' });
   await write(path.join(runHome, 'engine-binding.json'), { run_id: 'foreign', project_root: project, engine: f.engine });
   await assert.rejects(f.runner.runnerCheckpoints({ evalRoot: f.sourceRoot }), { code: 'fork_engine_mismatch' });
   const calls = (await readFile(f.callsFile, 'utf8')).trim().split('\n').map(JSON.parse);
-  assert(calls.every(args => args[1] === 'snapshots'));
+  assert(calls.every(args => args[1] === 'snapshots' || args.includes('--help')));
 });
 
 test('lost fork reply preserves its published target and EVAL identity on exact request reconciliation', async t => {
@@ -240,7 +291,7 @@ test('derived candidate and report retain inherited scope independently of suffi
   assert.deepEqual(candidate.derived_from, manifest.derived_from);
   const report = f.runner.buildReport({ root: f.output, manifest, state: 'completed', executionState: 'completed', results: [result] });
   assert.equal(report.observability.derived_scope.full_original_e2e_pass, false);
-  assert.equal(report.observability.derived_scope.judge, 'not_requested');
+  assert.equal(report.observability.derived_scope.judge.status, 'not_requested');
   assert.match(f.runner.reportMarkdown(report), /not a full original E2E PASS/);
 });
 

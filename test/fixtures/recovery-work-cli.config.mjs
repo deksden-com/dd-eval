@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const cli = process.env.DD_EVAL_RECOVERY_CLI_ROOT;
+const cli = process.env.DD_EVAL_TEST_RECOVERY_CLI_ROOT;
 if (!cli || !path.isAbsolute(cli)) throw new Error('Select the exact built CLI checkout');
 export default {
   resolve: { alias: { '@cli': cli, vitest: path.join(cli, 'node_modules/vitest/dist/index.js') } },

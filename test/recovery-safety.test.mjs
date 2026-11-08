@@ -30,6 +30,25 @@ test("terminal Git candidate checks bundle and framed payload before use", async
   await assert.rejects(resolveBoundSnapshot(input),{code:"snapshot_binding_invalid"});
 });
 
+test('derived Work candidate admits only its frozen EVAL-owned native capture root', async t => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-work-candidate-')));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const captures = path.join(root, 'executions/.one-captures'), snapshot = path.join(captures, 'terminal');
+  await mkdir(path.join(snapshot, 'project'), { recursive: true }); await mkdir(path.join(snapshot, 'runtime'));
+  const manifest = { schema_id: 'dd-flow/eval-run-snapshot@5', purpose: 'candidate', stage_entry: null, run_id: 'RUN-1', workspace: { kind: 'project' },
+    project_sha256: snapshotTreeHash(path.join(snapshot, 'project')), runtime_sha256: snapshotTreeHash(path.join(snapshot, 'runtime')) };
+  const bytes = JSON.stringify(manifest); await writeFile(path.join(snapshot, 'snapshot.json'), bytes);
+  const evalManifest = { kind: 'derived', derived_from: { work_cursor: { schema_id: 'dd-flow/work-boundary-cursor@2' } }, executions: [{ id: 'one', capture_root: captures }] };
+  const writeManifest = value => writeFile(path.join(root, 'manifest.json'), JSON.stringify(value));
+  const input = { evalRoot: root, execution: 'one', result: { run_id: 'RUN-1' }, checkpoint: { snapshot, manifest_sha256: createHash('sha256').update(bytes).digest('hex') }, purpose: 'candidate' };
+  await writeManifest(evalManifest);
+  assert.equal((await resolveBoundSnapshot(input)).data.run_id, 'RUN-1');
+  for (const change of [{ ...evalManifest, kind: 'scored' }, { ...evalManifest, derived_from: {} },
+    { ...evalManifest, executions: [{ id: 'one', capture_root: path.join(root, 'other-captures') }] }]) {
+    await writeManifest(change); await assert.rejects(resolveBoundSnapshot(input), { code: 'snapshot_binding_invalid' });
+  }
+});
+
 test("captured recovery supersedes the original launch failure and inspect is read-only", async () => {
   const manifest = { run_id: "test", executions: [{ id: "one" }] };
   const events = [

@@ -1,0 +1,11 @@
+✔ retained engine listing keeps negative capabilities and refuses unsupported Work scope without allocating output (501.542084ms)
+✔ lost fork reply preserves its published target and EVAL identity on exact request reconciliation (495.831626ms)
+✔ derived candidate and report retain inherited scope independently of suffix completion and Judge (418.193588ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1605.609885

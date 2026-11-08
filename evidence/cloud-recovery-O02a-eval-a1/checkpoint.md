@@ -120,3 +120,43 @@ ORCH coordinates coherent public `run fork --prepare-only`: prepared Work target
 no controller; EVAL preflight, then same exact request starts continuation. Current
 pin remains unchanged until an explicit published source/interface assignment.
 Stop target/capture root and predispatch selected adapter routing remain required.
+
+## Explicit v2 input and connected implementation
+
+ORCH cf3a91c4030c684f89a5a0a1b6ac4eb2c3ddbbd8 explicitly revised the input to
+CLI 9af49580675829b700ff0fb5e2a3148a1f187f52. Updated packet/interface read in
+full. Separate clean `/home/exedev/workspaces/dd-flow-cli/o02a-cli-consumer-v2-a1`
+strict build PASS with the same canon/toolchain, before dist consumers; complete
+cli-v2-artifact-before.json retained. Earlier 9c9a proofs/FAILs are not relabeled.
+
+Implemented public Work `--prepare-only` capability check and shared
+forkManagedRun transport with exact execution binding readback. Runner preserves
+ready handle, cursor and graph identity; ordinary harness/hooks/baseline/context
+preparation precedes the SAME request's native continuation. Observer consumes
+the returned controller with its frozen `work-snapshot:<request>` identity;
+recovery checks it too, with no second drive launcher. Only supported normal
+SDLC full-RUN stop targets are admitted; a different requested EVAL target gets
+explicit no-effect fork_stop_target_unsupported before import. Required snapshot
+policy is preserved, never silently strengthened from best_effort.
+
+Native Work capture root `.execution-captures` is frozen in the derived execution
+and admitted only inside that EVAL for candidate readers. Stage reader behavior
+is unchanged. Report separates actual technical state, case acceptance status,
+Judge status and inherited Stage/Work scope, all explicitly suffix-only.
+
+Development checks: runner Work prepare/start and lost-observer recovery3/3 PASS,
+zero ordinary drive launch calls; integrity/accounting14/14 PASS. Real v2 dev
+principal FAILED after actual native target start because the test assumed public
+binding included entrypoint. Public binding does not; runner now starts through
+its verified private shim, test observes through its exact source-built CLI.
+Failure retained in principal-dev.log; readback failed-dev-readback.json shows
+target RUN done/controller completed and all 17 retained process records stopped,
+not a completed principal assertion receipt. No automatic unknown replay was run.
+Test cleanup now fences an active target through public control before physical
+drain, covering the creator→registration gap on an early assertion failure.
+
+Ready for grouped clean prospective verification plus the final principal actual
+CLI check using DD_EVAL_TEST_RECOVERY_CLI_ROOT (standard test env prefix). Source
+and selected artifact remain immutable during those checks. Full task acceptance
+still OPEN until successful principal assertions, artifact comparison, cleanup,
+own delivery evidence and push/readback. Session counter remains1/3.

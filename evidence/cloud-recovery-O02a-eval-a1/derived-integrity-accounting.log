@@ -1,0 +1,22 @@
+✔ generic Memory stop target stays inside its declared contour (1.344869ms)
+✔ bounded direct selection retains original checkpoint mode and planned scope (0.522412ms)
+✔ stop targets shorten ranges, never expand or silently ignore an execution (0.312153ms)
+✔ accepted target becomes finished independently of cleanup; failure or missing target proof cannot finish (0.405855ms)
+✔ legal skipped target has an explicit outcome, not completed-stage or whole-case success (0.46806ms)
+✔ Final Judge scope derives from requested range, including failure and repeated scopes (0.389992ms)
+✔ report and candidate retain bounded observed scope; historical schemas are unchanged (106.805871ms)
+✔ finished is terminal in journal, observation, inventory and productive admission (0.958354ms)
+✔ terminal Git candidate checks bundle and framed payload before use (21.792703ms)
+✔ derived Work candidate admits only its frozen EVAL-owned native capture root (9.576284ms)
+✔ captured recovery supersedes the original launch failure and inspect is read-only (3.941018ms)
+✔ candidate revisions require a completed recovery and are reused without another Judge input (44.922304ms)
+✔ candidate identity includes failure evidence and links revisions to their immediate predecessor (40.391031ms)
+✔ retained process birth identity distinguishes a reused PID without signalling it (33.541932ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 509.355774

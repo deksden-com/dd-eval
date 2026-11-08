@@ -1,0 +1,4 @@
+
+> @deksden-com/dd-flow-cli@0.9.0-beta.163 build /home/exedev/workspaces/dd-flow-cli/o02a-cli-consumer-v2-a1
+> tsc -p tsconfig.build.json && node scripts/generate-build-info.mjs && node scripts/copy-assets.mjs && node scripts/generate-verification-components.mjs
+
