@@ -1,0 +1,115 @@
+{
+  "status": "PASS",
+  "assertions": 8,
+  "scope": "readback of retained real required automatic source; no fork/suffix claim",
+  "point": {
+    "snapshot_id": "DRV-445b218a-53f8-4d93-88ba-156af67e67c8:work-snapshot:auto-138a753f79a3224156520d660497ebd7eb41d08a8840f5685a57dfff91cb31ee",
+    "snapshot": "/tmp/eval-work-consumer-IEmt3O/points/work-138a753f79a3224156520d660497ebd7eb41d08a8840f5685a57dfff91cb31ee",
+    "manifest_sha256": "9fa3c17acfaa79e51943fcaa8362bcd316fa38ab64559c0152406df4e5eca6b9",
+    "kind": "sequential",
+    "stage": "code",
+    "created_at": "2026-11-08T10:51:06.070Z",
+    "available": true,
+    "forkable": true,
+    "restorable": true,
+    "continuation_supported": true,
+    "operational_acceptance_required": false
+  },
+  "cursor": {
+    "schema_id": "dd-flow/work-boundary-cursor@2",
+    "action": "continue_stage",
+    "stage": "code",
+    "attempt": "try-001",
+    "cycle": "",
+    "parent_work_id": "WRK-001-root",
+    "graph_sha256": "9a4ada3a4f23653ee16f4d1375f2271da5360b44ae099ee855adb6c23e8a69db",
+    "accepted": [
+      {
+        "work_id": "WRK-006-prt-001-task-priority-p1",
+        "work_session_id": "WS-ecb208fb-6759-463e-8833-fad45d0ac12c",
+        "attempt_id": "770e7339-216c-4c5e-a9d3-4f989e6fbe89",
+        "committed_at": "2026-11-08T10:50:40.485Z",
+        "result": {
+          "file": "results/WRK-006-prt-001-task-priority-p1.json",
+          "sha256": "c89cb150dd1c6149eede1c27ccb64fc31b8c94fd1bcfb4b291906aa782925d4a"
+        },
+        "git": {
+          "schema_id": "dd-flow/work-git-retained@1",
+          "project_id": "PRJ-001-project",
+          "run_id": "RUN-001-controller-stages",
+          "work_id": "WRK-006-prt-001-task-priority-p1",
+          "attempt_id": "770e7339-216c-4c5e-a9d3-4f989e6fbe89",
+          "work_session_id": "WS-ecb208fb-6759-463e-8833-fad45d0ac12c",
+          "assignment_sha256": "7dcb5c8a9e0c7fe8a656c1354d1f928ea17d53475258761aa775b3dc5a31d538",
+          "result_sha256": "c89cb150dd1c6149eede1c27ccb64fc31b8c94fd1bcfb4b291906aa782925d4a",
+          "ref": "refs/dd-flow/work-results/40cb6fb282bcb51c79bc83d27b7ff14fbef3dd28a53ce08b10a5c2aa0877ffbf",
+          "base": "6fb18d9c0e35f515ac4f31633b03b857f1c2c411",
+          "commit": "e4b96ed6730fcebe8d53583f8e3a7e3e9839521f",
+          "tree": "bb80fd949193197cb94e297a7c4cd88333855f13",
+          "paths": [
+            "apps/api/src/core/WRK-006.txt",
+            "apps/api/src/core/service.ts"
+          ]
+        }
+      },
+      {
+        "work_id": "WRK-007-prt-001-task-priority-p2",
+        "work_session_id": "WS-ef54b986-0569-4aea-bb54-a683913c256d",
+        "attempt_id": "c37d4ed0-f502-408b-94eb-9c9a0c221488",
+        "committed_at": "2026-11-08T10:50:40.485Z",
+        "result": {
+          "file": "results/WRK-007-prt-001-task-priority-p2.json",
+          "sha256": "1c195b51b6b3ef7331eb896b1686f2389d7893359a031e724fd67fb264cb15ab"
+        },
+        "git": {
+          "schema_id": "dd-flow/work-git-retained@1",
+          "project_id": "PRJ-001-project",
+          "run_id": "RUN-001-controller-stages",
+          "work_id": "WRK-007-prt-001-task-priority-p2",
+          "attempt_id": "c37d4ed0-f502-408b-94eb-9c9a0c221488",
+          "work_session_id": "WS-ef54b986-0569-4aea-bb54-a683913c256d",
+          "assignment_sha256": "3f9351749a552f6df7486c73c281eed85bf42746e468fb5bd5d152af6c66e861",
+          "result_sha256": "1c195b51b6b3ef7331eb896b1686f2389d7893359a031e724fd67fb264cb15ab",
+          "ref": "refs/dd-flow/work-results/955f85716cbfe652bcf1b5122698e9850a4ec7ceb3ff83fc915efd9989b4eed4",
+          "base": "229d39be7a028f5a1b74c8c0c9adba25ed2dace5",
+          "commit": "087d64cc73ed7aaafb96b0c53fb4facaec0edba2",
+          "tree": "1f2bdd37b0eac9fdb3c34220f2a732b8b31ca22e",
+          "paths": [
+            "apps/api/src/core/WRK-007.txt",
+            "apps/api/src/core/service.ts"
+          ]
+        }
+      }
+    ],
+    "pending": [
+      "WRK-008-prt-001-task-priority-p3"
+    ],
+    "integration_pending": true
+  },
+  "automatic": [
+    {
+      "action": "work_snapshot_capture",
+      "frontier_work_id": "WRK-006-prt-001-task-priority-p1",
+      "output": "/tmp/eval-work-consumer-IEmt3O/points/work-f7082163acd6a1cb9345590736eeda079bf5336028cd00e345f0deec81ec7014",
+      "automatic": true,
+      "boundary_key": "f7082163acd6a1cb9345590736eeda079bf5336028cd00e345f0deec81ec7014",
+      "stage": "code"
+    },
+    {
+      "action": "work_snapshot_capture",
+      "frontier_work_id": "WRK-007-prt-001-task-priority-p2",
+      "output": "/tmp/eval-work-consumer-IEmt3O/points/work-138a753f79a3224156520d660497ebd7eb41d08a8840f5685a57dfff91cb31ee",
+      "automatic": true,
+      "boundary_key": "138a753f79a3224156520d660497ebd7eb41d08a8840f5685a57dfff91cb31ee",
+      "stage": "code"
+    },
+    {
+      "action": "work_snapshot_capture",
+      "frontier_work_id": "WRK-008-prt-001-task-priority-p3",
+      "output": "/tmp/eval-work-consumer-IEmt3O/points/work-022a1a050d41f575c83ab14bfbd55d00d069507c753e8ca68369778724d18711",
+      "automatic": true,
+      "boundary_key": "022a1a050d41f575c83ab14bfbd55d00d069507c753e8ca68369778724d18711",
+      "stage": "code"
+    }
+  ]
+}

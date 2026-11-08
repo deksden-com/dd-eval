@@ -90,3 +90,33 @@ Next: accept explicitly assigned coherent CLI contract, wire public Work fork to
 returned controller without duplicate launch, finish principal source-preservation
 and suffix proof, grouped risk-selected checks in a clean prospective checkout,
 artifact rehash, exact owned cleanup and final commit/push/readback.
+
+## Published S1/S2 checkpoint and registry-selection follow-up
+
+Published/read back ed1b221411e1fa607b54ed0201734c693350b367 on assigned branch.
+Clean detached prospective checkout at that commit ran the four selected files:
+89 PASS / 3 FAIL, exactly the same three parent cleanup assertions. The attempted
+negative test-name filter did not exclude those qualified tests; all 92 ran, no
+hidden skips. This is not a blanket PASS. Original logs kept verbatim; log-only
+trailing spaces cause `git diff --check` diagnostics, while source-only diff check
+passes. No failure evidence is rewritten to normalize it.
+
+Further bounded change: stable registered snapshot_id selection resolves through
+the retained scoped RUN engine, not boundaries/from. Registered automatic recovery
+and derived capture roots can be selected; arbitrary caller paths cannot. Historical
+Stage basename selection remains an alias only within its owned boundaries directory.
+Listing verifies its executable against the retained RUN engine binding as well
+as full artifact content. Targeted registered-selection.log PASS4/4, including
+outside-boundaries selection, negative capability, foreign engine binding,
+unsupported Work predispatch refusal and stable Stage retry.
+
+The completed real required-policy source was read back without relaunch:
+retained-source-readback.json PASS8 assertions (second sequential point, two
+accepted/one pending, automatic producer, terminal evidence-only, RUN done,
+required policy). Original first-point selector FAIL stays preserved. This is
+observation proof only, not the mandatory public fork/suffix acceptance.
+
+ORCH coordinates coherent public `run fork --prepare-only`: prepared Work target,
+no controller; EVAL preflight, then same exact request starts continuation. Current
+pin remains unchanged until an explicit published source/interface assignment.
+Stop target/capture root and predispatch selected adapter routing remain required.

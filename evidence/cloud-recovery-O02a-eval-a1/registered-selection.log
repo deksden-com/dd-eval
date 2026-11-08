@@ -1,0 +1,12 @@
+✔ retained engine listing keeps negative capabilities and refuses unsupported Work scope without allocating output (353.629861ms)
+✔ lost fork reply preserves its published target and EVAL identity on exact request reconciliation (323.319973ms)
+✔ fork rejects unsupported and incomplete Stage manifests before creating output (154.469923ms)
+✔ invalid fork arguments do not register or create an output home (109.78115ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1062.510719

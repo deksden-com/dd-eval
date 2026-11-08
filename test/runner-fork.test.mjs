@@ -128,6 +128,7 @@ else if(a[0]==='run' && a[1]==='fork') {
   // This fixture owns no process tree once its control has settled.
   out({scope:{run_id:'RUN-fake'},settled,physical_stopped:settled,control:{current:true,control_id:'CTL-fake',recovery_id:'REC-fake',admission:'sealed',capture_path:capture,generation:1,settlement:{settled}}});
 } else if(a[0]==='run' && a[1]==='list') out({runs:[{id:'RUN-fake'}]});
+else if(a[0]==='run' && a[1]==='snapshots') out({ok:true,run_id:c.snapshotRunId,snapshots:c.snapshots});
 else if(a[0]==='run' && a[1]==='status') out({run:{id:'RUN-fake',project_id:'PRJ-fake',workspace_root:project,run_root:runHome},index:{run_id:'RUN-fake',stage_runs:[{stage:'plan-review',status:c.stageOutcome||'done'},{stage:'code',status:fs.existsSync(c.output+'/code')?'done':'pending'}]}});
 else if(a[0]==='stat') out({});
 else throw Error('unexpected command '+JSON.stringify(a));
@@ -176,6 +177,45 @@ test('fork inherits pins, crosses a boundary and finalizes through ordinary EVAL
   assert.equal(calls.filter(a => a[1] === 'drive' && a[2] === 'context').length, 1);
   assert.deepEqual(await readFile(path.join(f.sourceRoot, 'manifest.json')), sourceBytes);
   assert.equal((await waitForState(f.runner, f.output, ['completed'])).state, 'completed');
+});
+
+test('retained engine listing keeps negative capabilities and refuses unsupported Work scope without allocating output', async t => {
+  const f = await setup(t);
+  const attempt = path.join(f.sourceRoot, 'executions/e2e'), runtime = path.join(attempt, 'dd-flow-home'), project = path.join(attempt, 'project');
+  const engineRoot = path.join(runtime, 'engines/fixture/new'), runHome = path.join(runtime, 'run');
+  await mkdir(project, { recursive: true });
+  await f.runner.installRuntimeShim(runtime, { ...f.engine, snapshot_root: engineRoot });
+  await write(path.join(attempt, 'managed-runtime.json'), { schema_id: 'dd-eval/managed-runtime@1', run_id: 'RUN-source', run_home: runHome, project_root: project, runtime_root: runtime });
+  await write(path.join(runHome, 'engine-binding.json'), { run_id: 'RUN-source', project_root: project, engine: f.engine });
+  const snapshot = path.join(attempt, 'boundaries', f.input.from);
+  const manifest = { schema_id: 'dd-flow/work-boundary-snapshot@1', purpose: 'work_boundary', source: { run_id: 'RUN-source' },
+    boundary: { kind: 'sequential' }, cursor: { schema_id: 'dd-flow/work-boundary-cursor@2', action: 'continue_stage', stage: 'code', accepted: [{ work_id: 'accepted' }], pending: ['pending'], integration_pending: false } };
+  await write(path.join(snapshot, 'snapshot.json'), manifest);
+  const points = [{ snapshot_id: 'DRV-source:work-snapshot:auto-sha', snapshot, manifest_sha256: hash(await readFile(path.join(snapshot, 'snapshot.json'))), available: true, forkable: true, restorable: true, continuation_supported: true },
+    { snapshot_id: 'corrupt', available: false, forkable: false, error: { code: 'corrupt' } }];
+  const config = JSON.parse(await readFile(f.configFile));
+  await write(f.configFile, { ...config, snapshotRunId: 'RUN-source', snapshots: points });
+  const listed = await f.runner.runnerCheckpoints({ evalRoot: f.sourceRoot });
+  assert.equal(listed.observation, 'retained_engine');
+  assert.equal(listed.checkpoints[0].id, points[0].snapshot_id);
+  assert.equal(listed.checkpoints[0].legacy_id, f.input.from);
+  assert.equal(listed.checkpoints[0].snapshot_id, points[0].snapshot_id);
+  assert.equal(listed.checkpoints[1].selectable, false);
+  await assert.rejects(f.runner.runnerFork(f.input), { code: 'fork_execution_scope_unsupported' });
+  await assert.rejects(stat(f.output), { code: 'ENOENT' });
+  const automatic = path.join(f.sourceRoot, 'recovery/automatic-point');
+  await cp(snapshot, automatic, { recursive: true });
+  points[0].snapshot = automatic;
+  await write(f.configFile, { ...config, snapshotRunId: 'RUN-source', snapshots: points });
+  const registered = await f.runner.runnerCheckpoints({ evalRoot: f.sourceRoot });
+  assert.equal(registered.checkpoints[0].selectable, true);
+  assert.equal(registered.checkpoints[0].legacy_id, undefined);
+  await assert.rejects(f.runner.runnerFork({ ...f.input, from: points[0].snapshot_id }), { code: 'fork_execution_scope_unsupported' });
+  await assert.rejects(f.runner.runnerFork({ ...f.input, from: automatic }), { code: 'fork_input_invalid' });
+  await write(path.join(runHome, 'engine-binding.json'), { run_id: 'foreign', project_root: project, engine: f.engine });
+  await assert.rejects(f.runner.runnerCheckpoints({ evalRoot: f.sourceRoot }), { code: 'fork_engine_mismatch' });
+  const calls = (await readFile(f.callsFile, 'utf8')).trim().split('\n').map(JSON.parse);
+  assert(calls.every(args => args[1] === 'snapshots'));
 });
 
 test('lost fork reply preserves its published target and EVAL identity on exact request reconciliation', async t => {
