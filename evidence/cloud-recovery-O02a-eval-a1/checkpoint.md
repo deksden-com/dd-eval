@@ -1,7 +1,9 @@
 # RECOVERY O02a-eval/a1 — author session 1/3
 
-Status: implementation in progress; mandatory Work/group fork acceptance OPEN.
-No campaign, RV3, installed, live, service or reboot acceptance claimed.
+Status: bounded S1/S2/S3 author work complete, ready for ORCH acceptance.
+Current code299e15a5; delivered proof8b75d603. Principal PASS1/1/46 assertions;
+ready consumers115 PASS/3 exact-parent FAILs, artifact3278/3278 MATCH.
+No campaign, G02, RV3, installed, live, service or reboot acceptance claimed.
 
 Goal API active before edits, created 1794134496 in thread
 01a1babf-acb0-7810-a5fa-aa6f2f3198e4. Bounded objective: complete S1/S2/S3
@@ -160,3 +162,36 @@ CLI check using DD_EVAL_TEST_RECOVERY_CLI_ROOT (standard test env prefix). Sourc
 and selected artifact remain immutable during those checks. Full task acceptance
 still OPEN until successful principal assertions, artifact comparison, cleanup,
 own delivery evidence and push/readback. Session counter remains1/3.
+
+## Final author handback
+
+Principal passed on clean code299e15a5829c243569351d8ded5293b483042bad against
+explicitly assigned CLI9af49580675829b700ff0fb5e2a3148a1f187f52: real required
+automatic point, two accepted/one pending, public prepare/start and suffix→RUN
+done,46 assertions/209.6s. Prefix/source/snapshot/graph preserved; retries retain
+handle/controller, corrupt/conflicting inputs refuse. Technical/case/Judge/
+inherited accounting remains suffix-only. See delivery.md and principal-ready/.
+
+Clean ready consumer batch115 PASS/3 parent-matching FAILs, no skips/TODO/cancel;
+not an aggregate PASS. Both original and v2 complete CLI inventories3278/3278
+MATCH. V2 checksum962ddebd6be2bbe441f6a993cc6de688826e4dc0bf13639c8e663a090e497c63
+matches the principal target. Exact eval Git inventory is eval-source-manifest.json.
+Runtime code in the delivery is identical to the tested code299e15a5; later changes
+are README and evidence/cleanup records only. All failure logs remain intact.
+
+Acceptance evidence pushed/read back8b75d60351c13b0fc9056ced20838e32c7218b17
+before raw cleanup. cleanup-result.json records12 removals:5 owned clean test/
+consumer checkouts,4 failed owned fixture roots, the explicitly handed redundant
+W05 spool and2 persisted duplicate temporary logs. Successful principal roots
+were already removed by fixture cleanup. Post-cleanup argv/cwd/fd/maps consumers0;
+retained unused task resources0. Author checkout remains for ORCH follow-up.
+
+W05 index126/126/20,387,697bytes independently matched and remote dc5aea25 read
+back; two unindexed administrative files were copied into this published packet
+before spool deletion. No roots from its archival candidate list were acted on.
+Primaries remain clean: eval a6a9f028, CLI0a554864. Previous W03/W04/W05 sources,
+prepared toolchain/dependencies/cache/key and unrelated evidence remain intact.
+
+Next owner/action: ORCH evaluates this bounded consumer delivery alongside CLI
+G02 proof, then O02b/RV3; no further author code is pending. Full campaign and
+installed/live/service/reboot/O03 remain OPEN. No main merge/release authorized.

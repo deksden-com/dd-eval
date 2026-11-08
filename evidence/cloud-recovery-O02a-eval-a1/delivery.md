@@ -117,4 +117,6 @@ W05 durable index revalidated **126/126, 20,387,697 bytes** at dc5aea25 and remo
 branch readback matched. Two unindexed raw administrative files were inspected
 and preserved here byte-for-byte as prior-w05-* before removing the redundant
 spool. No prior W03/W04/W05 source checkout, prepared cache/toolchain/key or
-primary is a cleanup target. Cleanup execution/readback follows in its own receipt.
+primary was a cleanup target. cleanup-result.json records12 exact owned removals
+and zero post-cleanup consumers/retained unused task resources. Primaries are
+clean at eval a6a9f028 and CLI0a554864; the author checkout remains for follow-up.

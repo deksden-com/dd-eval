@@ -1,0 +1,247 @@
+{
+  "durable_evidence_commit": "8b75d60351c13b0fc9056ced20838e32c7218b17",
+  "pre_delete_audit": {
+    "roots": [
+      {
+        "root": "/home/exedev/workspaces/dd-flow-cli/w05-evidence",
+        "exists": true,
+        "canonical": true
+      },
+      {
+        "root": "/tmp/eval-work-consumer-IEmt3O",
+        "exists": true,
+        "canonical": true
+      },
+      {
+        "root": "/tmp/dd-controller-stages-tx9CvA",
+        "exists": true,
+        "canonical": true
+      },
+      {
+        "root": "/tmp/eval-work-consumer-OFCDok",
+        "exists": true,
+        "canonical": true
+      },
+      {
+        "root": "/tmp/dd-controller-stages-avLJmi",
+        "exists": true,
+        "canonical": true
+      },
+      {
+        "root": "/home/exedev/workspaces/dd-flow-cli/o02a-eval-parent-a1",
+        "exists": true,
+        "canonical": true
+      },
+      {
+        "root": "/home/exedev/workspaces/dd-flow-cli/o02a-eval-verify-a1",
+        "exists": true,
+        "canonical": true
+      },
+      {
+        "root": "/home/exedev/workspaces/dd-flow-cli/o02a-eval-verify-v2-a1",
+        "exists": true,
+        "canonical": true
+      },
+      {
+        "root": "/home/exedev/workspaces/dd-flow-cli/o02a-cli-consumer-a1",
+        "exists": true,
+        "canonical": true
+      },
+      {
+        "root": "/home/exedev/workspaces/dd-flow-cli/o02a-cli-consumer-v2-a1",
+        "exists": true,
+        "canonical": true
+      },
+      {
+        "root": "/tmp/dd-controller-stages-OQmRs4",
+        "exists": false,
+        "canonical": true
+      },
+      {
+        "root": "/tmp/eval-work-consumer-RnflGi",
+        "exists": false,
+        "canonical": true
+      }
+    ],
+    "excluded_audit_ancestors": [
+      1,
+      443,
+      976371,
+      976374,
+      976375
+    ],
+    "consumers": []
+  },
+  "removed": [
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/w05-evidence",
+      "kind": "owned_raw_root"
+    },
+    {
+      "root": "/tmp/eval-work-consumer-IEmt3O",
+      "kind": "owned_raw_root"
+    },
+    {
+      "root": "/tmp/dd-controller-stages-tx9CvA",
+      "kind": "owned_raw_root"
+    },
+    {
+      "root": "/tmp/eval-work-consumer-OFCDok",
+      "kind": "owned_raw_root"
+    },
+    {
+      "root": "/tmp/dd-controller-stages-avLJmi",
+      "kind": "owned_raw_root"
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/o02a-eval-parent-a1",
+      "kind": "owned_clean_worktree",
+      "head": "a6a9f028de60e439918b2d95979c0d3293ebcfe4"
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/o02a-eval-verify-a1",
+      "kind": "owned_clean_worktree",
+      "head": "ed1b221411e1fa607b54ed0201734c693350b367"
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/o02a-eval-verify-v2-a1",
+      "kind": "owned_clean_worktree",
+      "head": "299e15a5829c243569351d8ded5293b483042bad"
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/o02a-cli-consumer-a1",
+      "kind": "owned_clean_worktree",
+      "head": "9c9a96bf6b37aa7844557c9ca2d7d8cabed7e726"
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/o02a-cli-consumer-v2-a1",
+      "kind": "owned_clean_worktree",
+      "head": "9af49580675829b700ff0fb5e2a3148a1f187f52"
+    },
+    {
+      "root": "/tmp/o02a-cli-build.log",
+      "kind": "persisted_duplicate_log"
+    },
+    {
+      "root": "/tmp/o02a-eval-focused.log",
+      "kind": "persisted_duplicate_log"
+    }
+  ],
+  "retained": [],
+  "after_audit": {
+    "roots": [
+      {
+        "root": "/home/exedev/workspaces/dd-flow-cli/w05-evidence",
+        "exists": false,
+        "canonical": true
+      },
+      {
+        "root": "/tmp/eval-work-consumer-IEmt3O",
+        "exists": false,
+        "canonical": true
+      },
+      {
+        "root": "/tmp/dd-controller-stages-tx9CvA",
+        "exists": false,
+        "canonical": true
+      },
+      {
+        "root": "/tmp/eval-work-consumer-OFCDok",
+        "exists": false,
+        "canonical": true
+      },
+      {
+        "root": "/tmp/dd-controller-stages-avLJmi",
+        "exists": false,
+        "canonical": true
+      },
+      {
+        "root": "/home/exedev/workspaces/dd-flow-cli/o02a-eval-parent-a1",
+        "exists": false,
+        "canonical": true
+      },
+      {
+        "root": "/home/exedev/workspaces/dd-flow-cli/o02a-eval-verify-a1",
+        "exists": false,
+        "canonical": true
+      },
+      {
+        "root": "/home/exedev/workspaces/dd-flow-cli/o02a-eval-verify-v2-a1",
+        "exists": false,
+        "canonical": true
+      },
+      {
+        "root": "/home/exedev/workspaces/dd-flow-cli/o02a-cli-consumer-a1",
+        "exists": false,
+        "canonical": true
+      },
+      {
+        "root": "/home/exedev/workspaces/dd-flow-cli/o02a-cli-consumer-v2-a1",
+        "exists": false,
+        "canonical": true
+      },
+      {
+        "root": "/tmp/dd-controller-stages-OQmRs4",
+        "exists": false,
+        "canonical": true
+      },
+      {
+        "root": "/tmp/eval-work-consumer-RnflGi",
+        "exists": false,
+        "canonical": true
+      }
+    ],
+    "excluded_audit_ancestors": [
+      1,
+      443,
+      976371,
+      976374,
+      976548
+    ],
+    "consumers": []
+  },
+  "protected_paths": [
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/repos/deksden-com/dd-eval",
+      "exists": true
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/repos/deksden-com/dd-flow-cli",
+      "exists": true
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/w02-a1",
+      "exists": true
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/w04-a1",
+      "exists": true
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/w05-a1",
+      "exists": true
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/w04-evidence",
+      "exists": true
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/repos/deksden-com/.dd-flow-toolchain",
+      "exists": true
+    }
+  ],
+  "primaries": [
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/repos/deksden-com/dd-eval",
+      "head": "a6a9f028de60e439918b2d95979c0d3293ebcfe4",
+      "status": ""
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/repos/deksden-com/dd-flow-cli",
+      "head": "0a55486406f50b1ebbb239439c123fba608dcd5e",
+      "status": ""
+    }
+  ],
+  "status": "complete",
+  "prior_w05_candidate_list": "archival only; no roots from that list were acted on"
+}
