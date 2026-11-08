@@ -1,0 +1,162 @@
+[
+  {
+    "root": "/tmp/dd-controller-stages-1HKlcf",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-verify01"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-2GUnpq",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-a1"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-7xoRmk",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-verify01"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-DnS1bW",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-a1"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-EI6ITI",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-a1"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-EpZSwj",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-verify02"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-Gi6gMp",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-verify01"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-GvNAeD",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-verify01"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-HVTgfJ",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-verify01"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-I7e99b",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-a1"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-IMmfVh",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-a1"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-K8VfKu",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-verify03"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-Luae0A",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-a1"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-NkCUXI",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-verify01"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-lYW6KG",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-a1"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-lZLlXW",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-a1"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-controller-stages-yiHUNG",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-verify01"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-w04-durable-vFZ6jw",
+    "adapter_owner": [],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-w04-durable-vQ3bdo",
+    "adapter_owner": [],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-w05-auto-BfwZ7Y",
+    "adapter_owner": [],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-w05-auto-VxsCLY",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-a1"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-w05-auto-bX64pv",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-a1"
+    ],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-w05-auto-gNt9TV",
+    "adapter_owner": [],
+    "from_w05_raw_log": true
+  },
+  {
+    "root": "/tmp/dd-w05-auto-sSTnD0",
+    "adapter_owner": [
+      "/home/exedev/workspaces/dd-flow-cli/w05-a1"
+    ],
+    "from_w05_raw_log": true
+  }
+]

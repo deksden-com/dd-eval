@@ -1,0 +1,23 @@
+{
+  "comparisons": [
+    {
+      "source": "9c9a96bf6b37aa7844557c9ca2d7d8cabed7e726",
+      "before": "cli-artifact-before.json",
+      "after": "cli-artifact-after.json",
+      "files": 3278,
+      "bytes": 49963464,
+      "checksum": "2d44622acf8d737303edee6af480c0957523ab0f729bad0a9a4290cd88a858df",
+      "status": "MATCH"
+    },
+    {
+      "source": "9af49580675829b700ff0fb5e2a3148a1f187f52",
+      "before": "cli-v2-artifact-before.json",
+      "after": "cli-v2-artifact-after.json",
+      "files": 3278,
+      "bytes": 49967346,
+      "checksum": "962ddebd6be2bbe441f6a993cc6de688826e4dc0bf13639c8e663a090e497c63",
+      "status": "MATCH"
+    }
+  ],
+  "principal_target_matches_invoker": true
+}

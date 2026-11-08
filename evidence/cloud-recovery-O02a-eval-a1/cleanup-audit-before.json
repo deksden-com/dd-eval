@@ -1,0 +1,72 @@
+{
+  "roots": [
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/w05-evidence",
+      "exists": true,
+      "canonical": true
+    },
+    {
+      "root": "/tmp/eval-work-consumer-IEmt3O",
+      "exists": true,
+      "canonical": true
+    },
+    {
+      "root": "/tmp/dd-controller-stages-tx9CvA",
+      "exists": true,
+      "canonical": true
+    },
+    {
+      "root": "/tmp/eval-work-consumer-OFCDok",
+      "exists": true,
+      "canonical": true
+    },
+    {
+      "root": "/tmp/dd-controller-stages-avLJmi",
+      "exists": true,
+      "canonical": true
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/o02a-eval-parent-a1",
+      "exists": true,
+      "canonical": true
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/o02a-eval-verify-a1",
+      "exists": true,
+      "canonical": true
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/o02a-eval-verify-v2-a1",
+      "exists": true,
+      "canonical": true
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/o02a-cli-consumer-a1",
+      "exists": true,
+      "canonical": true
+    },
+    {
+      "root": "/home/exedev/workspaces/dd-flow-cli/o02a-cli-consumer-v2-a1",
+      "exists": true,
+      "canonical": true
+    },
+    {
+      "root": "/tmp/dd-controller-stages-OQmRs4",
+      "exists": false,
+      "canonical": true
+    },
+    {
+      "root": "/tmp/eval-work-consumer-RnflGi",
+      "exists": false,
+      "canonical": true
+    }
+  ],
+  "excluded_audit_ancestors": [
+    1,
+    443,
+    976208,
+    976211,
+    976212
+  ],
+  "consumers": []
+}

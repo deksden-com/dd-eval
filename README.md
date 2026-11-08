@@ -179,6 +179,20 @@ Focused managed SDLC runs also require that capability on the exact importer:
 the isolated Stage-entry import explicitly strengthens its policy to
 `required` and retains the source snapshot unchanged. Recovery of the same
 RUN cannot change its frozen policy. Non-SDLC flows are not yet covered.
+
+`runner checkpoints --eval ROOT` reads the execution's exact retained engine
+registry, including automatic Work/group points and explicit unsupported or
+corrupt entries. Use its stable `snapshot_id` with `runner fork --from ID` and
+an explicit engine version/checksum; legacy Stage basename selection remains
+available. Work fork requires public `run fork --prepare-only`: the runner binds
+the derived resource home/budget, prepares ordinary target routing, hooks and
+baseline readiness, then starts the same request and observes its controller.
+It supports the retained normal SDLC full-RUN target; an incompatible shorter
+stop target is refused before import. Accepted Stage/Work proof is inherited,
+not executed again. Candidate/report provenance separates suffix execution,
+case acceptance and Judge results; a completed suffix is not a full original
+E2E PASS.
+
 The [Task Priority baseline audit](runbooks/task-priority-baseline-audit-2026-09-06.md)
 records the active tagged source, preparation checks and latest Droid qualification limits.
 The [Droid defect investigation and repair plan](specs/028-droid-eval-defects-root-cause-and-repair-plan.md)

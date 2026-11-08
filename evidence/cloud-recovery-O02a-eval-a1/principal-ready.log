@@ -1,0 +1,19 @@
+
+ RUN  v4.1.7 /home/exedev/workspaces/dd-flow-cli/o02a-cli-consumer-v2-a1
+
+ ✓ ../o02a-eval-verify-v2-a1/test/fixtures/recovery-work-cli.vitest.ts > automatic required Work point prepares publicly, retains prefix and completes the derived suffix through eval consumers 204657ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  11:21:01
+   Duration  209.20s (transform 3.43s, setup 0ms, import 4.43s, tests 204.66s, environment 0ms)
+
+✔ automatic Work checkpoint uses the pinned real CLI consumer (209550.715242ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 209607.247224

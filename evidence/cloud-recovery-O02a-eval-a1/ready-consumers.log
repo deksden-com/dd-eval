@@ -1,0 +1,184 @@
+✔ generic Memory stop target stays inside its declared contour (1.352591ms)
+✔ bounded direct selection retains original checkpoint mode and planned scope (0.496483ms)
+✔ stop targets shorten ranges, never expand or silently ignore an execution (0.245332ms)
+✔ accepted target becomes finished independently of cleanup; failure or missing target proof cannot finish (0.413617ms)
+✔ legal skipped target has an explicit outcome, not completed-stage or whole-case success (0.48773ms)
+✔ Final Judge scope derives from requested range, including failure and repeated scopes (0.438605ms)
+✔ report and candidate retain bounded observed scope; historical schemas are unchanged (76.115037ms)
+✔ finished is terminal in journal, observation, inventory and productive admission (0.618378ms)
+✔ snapshot registry preserves negative capabilities and rejects foreign or ambiguous receipts without dispatch (153.809629ms)
+✔ SDLC preparation requires pinned-engine snapshot capability before allocation (272.422361ms)
+✔ a bound technical pause remains observational and cannot clear an operator control (128.460318ms)
+✔ technical Work reconciliation retries a retiring owner with one exact request and never dispatches in observeOnce (2350.76714ms)
+Optional Subject technical-note projection unavailable
+✔ Subject technical notes leave immutable managed receipts unchanged and cannot fail observation (109.625188ms)
+✔ technical control retains only one consistent source across observations: bound-unbound (1192.351098ms)
+✔ technical control retains only one consistent source across observations: unbound-bound (1184.447741ms)
+✔ technical control retains only one consistent source across observations: duplicate (1166.85211ms)
+✔ technical control retains only one consistent source across observations: conflicting (1133.366167ms)
+✔ technical control retains only one consistent source across observations: new-control (1118.852812ms)
+✔ technical control retains only one consistent source across observations: generation (65.612395ms)
+✔ technical control retains only one consistent source across observations: owner-request (60.922932ms)
+✔ interactive observer uses public input custody: turn (183.931522ms)
+✔ interactive observer uses public input custody: finish (188.548515ms)
+✔ interactive observer uses public input custody: missing (186.93706ms)
+✔ interactive observer uses public input custody: pending (306.700918ms)
+✔ interactive observer uses public input custody: foreign (185.227658ms)
+✔ interactive observer uses public input custody: controlled (146.468746ms)
+✔ interactive observer uses public input custody: invalid (135.250518ms)
+✔ interactive preparation uses managed public ingress with original intake and explicit Git policy (213.817294ms)
+✔ delivery preparation preserves release identity and raw authority without launching it (190.031946ms)
+✔ delivery preparation preserves deploy identity and raw authority without launching it (159.568616ms)
+✔ delivery preparation preserves publish identity and raw authority without launching it (188.754147ms)
+✔ source-snapshot preparation reuses public managed RUNs without mutation-route selectors (689.54149ms)
+✔ repair prepares its public CLI with exact accepted source selectors and no implicit source discovery (203.178378ms)
+✔ Memory reconciles only an explicitly allocated original request, once, without replacement or dispatch (1061.27149ms)
+✔ upgrade uses its public CLI with exact native selectors, never init or an implicit migration apply (246.130309ms)
+✔ Memory preparation uses public init without SDLC routing or Session dispatch (357.788661ms)
+✔ callback onEvent retains last observed owner without replacing primary error (new evidence) (30.032055ms)
+✔ callback onEvent retains last observed owner without replacing primary error (existing evidence) (61.326525ms)
+✔ callback answerFor retains last observed owner without replacing primary error (new evidence) (125.286254ms)
+✔ callback answerFor retains last observed owner without replacing primary error (existing evidence) (92.952047ms)
+✔ repair continuation and primary cause survive managed observation (running) (29.50768ms)
+✔ repair continuation and primary cause survive managed observation (recovery_required) (51.008013ms)
+✔ unknown native outcome cannot mask an issued owner fence (running) (29.69888ms)
+✔ unknown native outcome cannot mask an issued owner fence (control_requested) (31.694927ms)
+✔ unknown native outcome cannot mask an issued owner fence (recovery_required) (50.015377ms)
+✔ input preparation observes failure and never dispatches late input (slow: false, unknown: false) (92.696209ms)
+✔ input preparation observes failure and never dispatches late input (slow: false, unknown: true) (127.492781ms)
+✔ input preparation observes failure and never dispatches late input (slow: true, unknown: false) (122.23112ms)
+✔ input preparation observes failure and never dispatches late input (slow: true, unknown: true) (164.269797ms)
+✔ missing authorized HITL answer preserves the pause without sending a turn or answer (224.968941ms)
+✔ accepted controller HITL can outlive model quiet windows without a native prompt (306.871386ms)
+✔ HITL observation reconciles accepted answer: running, accepted=true (104.364268ms)
+✔ HITL observation reconciles accepted answer: running, accepted=false (84.405934ms)
+✔ HITL observation reconciles accepted answer: done, accepted=true (76.260908ms)
+✔ HITL observation reconciles accepted answer: done, accepted=false (62.056502ms)
+✔ HITL observation reconciles accepted answer: paused, accepted=true (61.746312ms)
+✔ HITL observation reconciles accepted answer: paused, accepted=false (68.020649ms)
+✔ HITL observation reconciles accepted answer: failed, accepted=true (67.182007ms)
+✔ HITL observation reconciles accepted answer: failed, accepted=false (73.287037ms)
+✔ operator control suspends the retained operation without terminal failure or replay (89.184532ms)
+✔ managed client observes the CLI and never owns provider turns (observer loss: false) (290.348734ms)
+✔ managed client observes the CLI and never owns provider turns (observer loss: true) (74.159901ms)
+✔ reattach drains historical pages without launch or context replay and checks owner (119.049934ms)
+✔ manual boundary review leaves the same controller waiting without dispatch (195.966487ms)
+✔ one observation detaches without cancelling and reattaches to the same controller (320.861428ms)
+✔ terminal Git candidate checks bundle and framed payload before use (14.981535ms)
+✔ derived Work candidate admits only its frozen EVAL-owned native capture root (35.084319ms)
+✔ captured recovery supersedes the original launch failure and inspect is read-only (3.534892ms)
+✔ candidate revisions require a completed recovery and are reused without another Judge input (39.625256ms)
+✔ candidate identity includes failure evidence and links revisions to their immediate predecessor (33.5884ms)
+✔ retained process birth identity distinguishes a reused PID without signalling it (38.032ms)
+✔ runner Work prepare/start retains handle and observes one controller (lost observer: false) (2831.402346ms)
+✔ runner Work prepare/start retains handle and observes one controller (lost observer: true) (3997.742787ms)
+✔ Work fork refuses an unsupported stop target before output allocation (203.993574ms)
+✔ fork inherits pins, crosses a boundary and finalizes through ordinary EVAL exactly once (2882.820957ms)
+✔ retained engine listing keeps negative capabilities and refuses unsupported Work scope without allocating output (402.993683ms)
+✔ lost fork reply preserves its published target and EVAL identity on exact request reconciliation (362.978014ms)
+✔ derived candidate and report retain inherited scope independently of suffix completion and Judge (245.197665ms)
+✔ fork rejects unsupported and incomplete Stage manifests before creating output (107.565604ms)
+✔ fork and detached continuation retain a private registry despite ambient replacement (2873.376973ms)
+✔ completed fork replay does not require its archived source checkpoint (223.271878ms)
+✔ profile@2 controller stop finishes a bounded fork with done, without successor dispatch (1467.833591ms)
+✔ profile@2 controller stop finishes a bounded fork with skipped, without successor dispatch (1380.373875ms)
+✔ fork rejects a successor checkpoint beyond its retained stop target before output creation (127.555988ms)
+✖ boundary callback failure retains primary error, stops the RUN and finalizes failure (3101.541356ms)
+✔ lost fork observer reattaches to the upgraded engine without another launch (3883.594462ms)
+✔ failed fork stays pending until cleanup is confirmed, then finalizes without redispatch (3100.481222ms)
+✔ infrastructure stop durably cancels queued siblings (retained failure: false) (2764.655403ms)
+✖ infrastructure stop durably cancels queued siblings (retained failure: true) (787.626085ms)
+✖ delayed infrastructure cleanup finalizes with its durably cancelled queue (2217.205042ms)
+✔ missing or changed source pins fail before fork preparation or native dispatch (96.560361ms)
+✔ fork never substitutes an ambient engine when the requested retained artifact is absent (107.855405ms)
+✔ invalid fork arguments do not register or create an output home (92.984197ms)
+✔ an explicit digest admits one installed upgrade artifact without router selection (2461.601439ms)
+✔ prepared fork revalidates its complete stage range before launch (213.498333ms)
+✔ derived engine pin admits only the selected upgraded bytes and preserves ordinary admission (95.233277ms)
+✔ all remaining fixture pins can be checked without creating a RUN (82.125355ms)
+✔ Work shape preserves accepted/pending cursor without granting Stage or recovery capability (0.764299ms)
+✔ snapshot version gate keeps independent workspace distinct from legacy and unborn-project formats (0.162136ms)
+✔ candidate Git evidence does not become a Stage entry or recovery capability (0.641213ms)
+✔ Stage gate recognizes retained Work refs without treating them as recovery or candidate snapshots (0.272924ms)
+✔ focused entry verification accepts diagnostic snapshot version without widening purpose or RUN identity (14.907432ms)
+✔ technical notes resolve and deduplicate without changing semantic result/history (57.621475ms)
+✔ baseline physical proof is separate from retirement bookkeeping; legacy unknown stays unproven (0.239373ms)
+✔ assessment waits only for a proven active capture owner, never cleanup alone (0.802266ms)
+✔ accepted terminal controller survives missing assessment evidence without Judge or candidate fabrication (95.873019ms)
+✔ accepted terminal controller survives corrupt assessment evidence without Judge or candidate fabrication (79.726967ms)
+✔ accepted terminal controller survives interaction assessment evidence without Judge or candidate fabrication (112.428942ms)
+✔ accepted terminal controller survives required-interaction assessment evidence without Judge or candidate fabrication (121.606023ms)
+✔ optional statistics companion publication cannot reject accepted inline observations (11.337187ms)
+✔ Interaction Judge cleanup debt is visible separately and never hidden by Subject stop (35.453889ms)
+✔ terminal failed registry record cannot hide a live child in its owned PGID (0.525787ms)
+✔ resource-only native retirement proof does not require a Judge verdict (20.181323ms)
+✔ bound Subject technical notes project into EVAL report/status without entering semantic evidence (7.240573ms)
+✔ later exact retirement resolves source debt without resurrecting an unchanged engine warning (11.878057ms)
+✔ empty physical scope cannot override unconfirmed RUN binding (foreign-run) (277.131458ms)
+✔ empty physical scope cannot override unconfirmed RUN binding (stale-control) (181.433113ms)
+✔ empty physical scope cannot override unconfirmed RUN binding (stale-cleanup-only) (297.112837ms)
+ℹ tests 118
+ℹ suites 0
+ℹ pass 115
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55132.539643
+
+✖ failing tests:
+
+test at ../o02a-eval-verify-v2-a1/test/runner-fork.test.mjs:387:1
+✖ boundary callback failure retains primary error, stops the RUN and finalizes failure (3101.541356ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///home/exedev/workspaces/dd-flow-cli/o02a-eval-verify-v2-a1/test/runner-fork.test.mjs:393:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ../o02a-eval-verify-v2-a1/test/runner-fork.test.mjs:439:46
+✖ infrastructure stop durably cancels queued siblings (retained failure: true) (787.626085ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'pending'
+  - 'settled'
+  
+      at TestContext.<anonymous> (file:///home/exedev/workspaces/dd-flow-cli/o02a-eval-verify-v2-a1/test/runner-fork.test.mjs:458:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'pending',
+    expected: 'settled',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ../o02a-eval-verify-v2-a1/test/runner-fork.test.mjs:474:1
+✖ delayed infrastructure cleanup finalizes with its durably cancelled queue (2217.205042ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'settled'
+  - 'pending'
+  
+      at TestContext.<anonymous> (file:///home/exedev/workspaces/dd-flow-cli/o02a-eval-verify-v2-a1/test/runner-fork.test.mjs:482:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'settled',
+    expected: 'pending',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
