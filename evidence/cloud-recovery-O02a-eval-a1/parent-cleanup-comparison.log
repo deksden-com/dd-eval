@@ -1,0 +1,69 @@
+✖ boundary callback failure retains primary error, stops the RUN and finalizes failure (4102.649534ms)
+✔ infrastructure stop durably cancels queued siblings (retained failure: false) (3313.47358ms)
+✖ infrastructure stop durably cancels queued siblings (retained failure: true) (980.782856ms)
+✖ delayed infrastructure cleanup finalizes with its durably cancelled queue (2779.193199ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 1
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11416.15418
+
+✖ failing tests:
+
+test at ../o02a-eval-parent-a1/test/runner-fork.test.mjs:269:1
+✖ boundary callback failure retains primary error, stops the RUN and finalizes failure (4102.649534ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///home/exedev/workspaces/dd-flow-cli/o02a-eval-parent-a1/test/runner-fork.test.mjs:275:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ../o02a-eval-parent-a1/test/runner-fork.test.mjs:321:46
+✖ infrastructure stop durably cancels queued siblings (retained failure: true) (980.782856ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'pending'
+  - 'settled'
+  
+      at TestContext.<anonymous> (file:///home/exedev/workspaces/dd-flow-cli/o02a-eval-parent-a1/test/runner-fork.test.mjs:340:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'pending',
+    expected: 'settled',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ../o02a-eval-parent-a1/test/runner-fork.test.mjs:356:1
+✖ delayed infrastructure cleanup finalizes with its durably cancelled queue (2779.193199ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'settled'
+  - 'pending'
+  
+      at TestContext.<anonymous> (file:///home/exedev/workspaces/dd-flow-cli/o02a-eval-parent-a1/test/runner-fork.test.mjs:364:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'settled',
+    expected: 'pending',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

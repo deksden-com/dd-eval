@@ -1,0 +1,68 @@
+
+ RUN  v4.1.7 /home/exedev/workspaces/dd-flow-cli/o02a-cli-consumer-a1
+
+Failed controller fixture diagnostics retained at /tmp/dd-controller-stages-tx9CvA
+ × ../o02a-eval-a1/test/fixtures/recovery-work-cli.vitest.ts > observes an automatic required Work point through the public CLI registry 137641ms
+   → expected [ …(2) ] to have a length of 1 but got 2
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  ../o02a-eval-a1/test/fixtures/recovery-work-cli.vitest.ts > observes an automatic required Work point through the public CLI registry
+AssertionError: expected [ …(2) ] to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ ../o02a-eval-a1/test/fixtures/recovery-work-cli.vitest.ts:43:35
+     41|   expect(isStageRunSnapshot(manifest)).toBe(false);
+     42|   expect(manifest.cursor.accepted.length).toBeGreaterThan(0);
+     43|   expect(manifest.cursor.pending).toHaveLength(1);
+       |                                   ^
+     44|   expect(JSON.parse(run.index_json).snapshot_policy).toBe('required');
+     45|   expect(source.calls().some(call => call.event === 'work_snapshot_req…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  10:49:29
+   Duration  146.87s (transform 7.14s, setup 0ms, import 8.98s, tests 137.64s, environment 0ms)
+
+✖ automatic Work checkpoint uses the pinned real CLI consumer (147620.661619ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 147740.286027
+
+✖ failing tests:
+
+test at test/runner-work-cli.integration.test.mjs:8:1
+✖ automatic Work checkpoint uses the pinned real CLI consumer (147620.661619ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   code: 1,
+  -   code: 0,
+      signal: null
+    }
+  
+      at TestContext.<anonymous> (file:///home/exedev/workspaces/dd-flow-cli/o02a-eval-a1/test/runner-work-cli.integration.test.mjs:14:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { code: 1, signal: null },
+    expected: { code: 0, signal: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

@@ -60,11 +60,13 @@ test("legal skipped target has an explicit outcome, not completed-stage or whole
   const completed = ready(execution);
   completed.lifecycle.status = { index: { stage_runs: contour.map(stage => ({ stage, status: "done" })) } };
   assert.equal(observedCompletionScope(execution, completed).full_case_completed, true);
+  assert.equal(observedCompletionScope({ ...execution, inherited_scope: { stages: [], works: ['accepted'] } }, completed).full_case_completed, false);
   completed.lifecycle.status = { index: { stage_runs: [{ stage: "code", status: "skipped" }] } };
   assert.equal(observedCompletionScope(execution, completed).full_case_completed, false);
 });
 
 test("Final Judge scope derives from requested range, including failure and repeated scopes", () => {
+  assert.equal(finalJudgeScope({ ...manifest(profile({ stop_after: 'merge' })), kind: 'derived' }, []), 'merge');
   assert.equal(finalJudgeScope(manifest(profile()), [{ stage: "specify" }]), "specify");
   assert.equal(finalJudgeScope(manifest(profile({ stop_after: "merge" })), [{ stage: "specify", state: "failed" }]), "e2e");
   assert.equal(finalJudgeScope(manifest(profile({ repetitions: 2 })), []), "specify");

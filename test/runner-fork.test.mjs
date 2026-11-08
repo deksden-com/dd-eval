@@ -107,6 +107,7 @@ else if(a[0]==='runtime' && a[1]==='scope') {
 else if(a[0]==='runtime' && a[1]==='process') out(a[2]==='status'?{processes:[]}:a[2]==='heartbeat'?{ok:true,process_id:'PROC-fake',lease_expires_at:new Date(Date.now()+900000).toISOString(),registration_sha256:'a'.repeat(64)}:a[2]==='check-admission'?{ok:true,admitted:true,process_id:'PROC-fake'}:a[2]==='finish'?{ok:true}:{process:runtimeProcess()});
 else if(a[0]==='run' && a[1]==='fork') {
   fs.mkdirSync(project,{recursive:true});fs.mkdirSync(runHome,{recursive:true});execFileSync('git',['init','--quiet'],{cwd:project});
+  if(c.fault==='fork-lost' && !fs.existsSync(project+'/published')) {fs.writeFileSync(project+'/published','retain');out({ok:false,error:{code:'rpc_timeout',message:'lost fork reply'}});return;}
   out({ok:true,status:'ready',fork:{project_root:project,dd_flow_home:path.dirname(runHome),run_id:'RUN-fake',run_home:runHome,workspace_root:project,target_stage:'plan-review',engine:c.engine}});
 } else if(a[0]==='run' && a[1]==='drive' && a[2]==='launch') {
   if(fs.existsSync(c.output+'/launch')) throw Error('duplicate controller launch');fs.writeFileSync(c.output+'/launch',get('--request-id'));out({controller});
@@ -175,6 +176,32 @@ test('fork inherits pins, crosses a boundary and finalizes through ordinary EVAL
   assert.equal(calls.filter(a => a[1] === 'drive' && a[2] === 'context').length, 1);
   assert.deepEqual(await readFile(path.join(f.sourceRoot, 'manifest.json')), sourceBytes);
   assert.equal((await waitForState(f.runner, f.output, ['completed'])).state, 'completed');
+});
+
+test('lost fork reply preserves its published target and EVAL identity on exact request reconciliation', async t => {
+  const f = await setup(t, 'fork-lost');
+  await assert.rejects(f.runner.runnerFork(f.input), { code: 'rpc_timeout' });
+  const retained = JSON.parse(await readFile(path.join(f.output, '.fork-intent.json')));
+  const ready = await f.runner.runnerFork(f.input);
+  assert.equal(ready.run_id, retained.run_id);
+  assert.equal(await readFile(path.join(f.output, 'executions/e2e/project/published'), 'utf8'), 'retain');
+  assert.equal((await f.runner.runnerFork(f.input)).run_id, ready.run_id);
+  const calls = (await readFile(f.callsFile, 'utf8')).trim().split('\n').map(JSON.parse).filter(args => args[1] === 'fork');
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls[0], calls[1]);
+});
+
+test('derived candidate and report retain inherited scope independently of suffix completion and Judge', async t => {
+  const f = await setup(t);
+  const ready = await f.runner.runnerFork(f.input);
+  const manifest = JSON.parse(await readFile(path.join(f.output, 'manifest.json')));
+  const result = { execution: 'e2e', state: 'candidate_ready', stage: 'code', boundaries: [], candidate: { manifest_sha256: 'a'.repeat(64) } };
+  const candidate = await f.runner.buildRunCandidate({ runId: ready.run_id, manifest, results: [result] });
+  assert.deepEqual(candidate.derived_from, manifest.derived_from);
+  const report = f.runner.buildReport({ root: f.output, manifest, state: 'completed', executionState: 'completed', results: [result] });
+  assert.equal(report.observability.derived_scope.full_original_e2e_pass, false);
+  assert.equal(report.observability.derived_scope.judge, 'not_requested');
+  assert.match(f.runner.reportMarkdown(report), /not a full original E2E PASS/);
 });
 
 test('fork rejects unsupported and incomplete Stage manifests before creating output',async t=>{

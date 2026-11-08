@@ -4,7 +4,27 @@ import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createHash } from 'node:crypto';
-import { isCurrentTechnicalDependency, observeManagedRun, prepareManagedRun } from "../lib/managed-flow-client.mjs";
+import { isCurrentTechnicalDependency, observeManagedRun, prepareManagedRun, listManagedSnapshots } from "../lib/managed-flow-client.mjs";
+
+test('snapshot registry preserves negative capabilities and rejects foreign or ambiguous receipts without dispatch', async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'managed-snapshots-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'cli.mjs');
+  const points = [{ snapshot_id: 'work', available: true, forkable: true, continuation_supported: true },
+    { snapshot_id: 'corrupt', available: false, forkable: false, error: { code: 'corrupt' } },
+    { snapshot_id: 'terminal', available: true, forkable: false, reason: 'terminal_evidence_only' }];
+  const input = { bin, projectRoot: root, runId: 'RUN-1' };
+  const receipt = { ok: true, run_id: 'RUN-1', snapshots: points };
+  const publish = value => writeFile(bin, `if(process.argv[2]!=='run'||process.argv[3]!=='snapshots')throw Error('unexpected dispatch');console.log(${JSON.stringify(JSON.stringify(value))});`);
+  await publish(receipt);
+  assert.deepEqual(await listManagedSnapshots(input), points);
+  for (const invalid of [{ ...receipt, run_id: 'foreign' }, { ...receipt, snapshots: [...points, points[0]] }, { ...receipt, snapshots: [{}] }]) {
+    await publish(invalid);
+    await assert.rejects(listManagedSnapshots(input), { code: 'snapshot_listing_invalid' });
+  }
+  await writeFile(bin, 'throw Error("unsupported snapshots");');
+  await assert.rejects(listManagedSnapshots(input), { code: 'snapshot_listing_unavailable' });
+});
 
 test('SDLC preparation requires pinned-engine snapshot capability before allocation', async t => {
   const root=await mkdtemp(path.join(os.tmpdir(),'managed-snapshot-policy-'));

@@ -1,0 +1,261 @@
+[
+  {
+    "snapshot_id": "DRV-445b218a-53f8-4d93-88ba-156af67e67c8:boundary:2f44f553d7ece34e47aa25fc1c13cfa2ceee1938163936eb68bcd54f3aa3d097",
+    "snapshot": "/tmp/eval-work-consumer-IEmt3O/points/initial-2f44f553d7ece34e47aa25fc1c13cfa2ceee1938163936eb68bcd54f3aa3d097",
+    "manifest": "/tmp/eval-work-consumer-IEmt3O/points/initial-2f44f553d7ece34e47aa25fc1c13cfa2ceee1938163936eb68bcd54f3aa3d097/snapshot.json",
+    "manifest_sha256": "def6207acfff46c2ae2fd96eba35640b8ed55615d5dbeb7ee0a2d8d814ea98ac",
+    "purpose": "stage_entry",
+    "stage_entry": "specify",
+    "created_at": "2026-11-08T10:49:50.051Z",
+    "after_stage": null,
+    "available": true,
+    "forkable": true,
+    "restorable": true
+  },
+  {
+    "snapshot_id": "DRV-445b218a-53f8-4d93-88ba-156af67e67c8:boundary:237df1f38ddde43058b5a0a66906e40c9fd52d1f69e325c5c7e845f9b2668eeb",
+    "snapshot": "/tmp/eval-work-consumer-IEmt3O/points/specify-237df1f38ddde43058b5a0a66906e40c9fd52d1f69e325c5c7e845f9b2668eeb",
+    "manifest": "/tmp/eval-work-consumer-IEmt3O/points/specify-237df1f38ddde43058b5a0a66906e40c9fd52d1f69e325c5c7e845f9b2668eeb/snapshot.json",
+    "manifest_sha256": "246212e8f627ec951ba4cd05e4cb48017257ef28d6823458a6a02387211a8583",
+    "purpose": "stage_entry",
+    "stage_entry": "protocolize",
+    "created_at": "2026-11-08T10:50:00.944Z",
+    "after_stage": "specify",
+    "available": true,
+    "forkable": true,
+    "restorable": true
+  },
+  {
+    "snapshot_id": "DRV-445b218a-53f8-4d93-88ba-156af67e67c8:boundary:4e499e32a67ac4909c87af84a25b152e3880ad7e8813a8ac5dbc74ebce789c7e",
+    "snapshot": "/tmp/eval-work-consumer-IEmt3O/points/protocolize-4e499e32a67ac4909c87af84a25b152e3880ad7e8813a8ac5dbc74ebce789c7e",
+    "manifest": "/tmp/eval-work-consumer-IEmt3O/points/protocolize-4e499e32a67ac4909c87af84a25b152e3880ad7e8813a8ac5dbc74ebce789c7e/snapshot.json",
+    "manifest_sha256": "4292c8ab6a1f83904b57da63937da5327a720ec4d588998301fe4214b0050854",
+    "purpose": "stage_entry",
+    "stage_entry": "plan",
+    "created_at": "2026-11-08T10:50:13.029Z",
+    "after_stage": "protocolize",
+    "available": true,
+    "forkable": true,
+    "restorable": true
+  },
+  {
+    "snapshot_id": "DRV-445b218a-53f8-4d93-88ba-156af67e67c8:boundary:e301fd5bdb79e5d752f1f38233b2b8028b57c76151a643bfa33e2898d960d27d",
+    "snapshot": "/tmp/eval-work-consumer-IEmt3O/points/plan-e301fd5bdb79e5d752f1f38233b2b8028b57c76151a643bfa33e2898d960d27d",
+    "manifest": "/tmp/eval-work-consumer-IEmt3O/points/plan-e301fd5bdb79e5d752f1f38233b2b8028b57c76151a643bfa33e2898d960d27d/snapshot.json",
+    "manifest_sha256": "deb35907757e4a989e147fe8f7cf0267555760aa324450480616e067389dc7ad",
+    "purpose": "stage_entry",
+    "stage_entry": "plan-review",
+    "created_at": "2026-11-08T10:50:25.743Z",
+    "after_stage": "plan",
+    "available": true,
+    "forkable": true,
+    "restorable": true
+  },
+  {
+    "snapshot_id": "DRV-445b218a-53f8-4d93-88ba-156af67e67c8:boundary:2abc8598171dc1790b70be00ac042d2c6f9cb4dc9bf09f7c7a1ea47e3a1d58ec",
+    "snapshot": "/tmp/eval-work-consumer-IEmt3O/points/plan-review-2abc8598171dc1790b70be00ac042d2c6f9cb4dc9bf09f7c7a1ea47e3a1d58ec",
+    "manifest": "/tmp/eval-work-consumer-IEmt3O/points/plan-review-2abc8598171dc1790b70be00ac042d2c6f9cb4dc9bf09f7c7a1ea47e3a1d58ec/snapshot.json",
+    "manifest_sha256": "0ec76d4535347773795b6eef0cf3287951f85c42ddc56c9d819c02055d46db86",
+    "purpose": "stage_entry",
+    "stage_entry": "code",
+    "created_at": "2026-11-08T10:50:41.566Z",
+    "after_stage": "plan-review",
+    "available": true,
+    "forkable": true,
+    "restorable": true
+  },
+  {
+    "snapshot_id": "DRV-445b218a-53f8-4d93-88ba-156af67e67c8:work-snapshot:auto-f7082163acd6a1cb9345590736eeda079bf5336028cd00e345f0deec81ec7014",
+    "snapshot": "/tmp/eval-work-consumer-IEmt3O/points/work-f7082163acd6a1cb9345590736eeda079bf5336028cd00e345f0deec81ec7014",
+    "manifest_sha256": "ba9a8b022017ded6e4362c6aebb33c9a0f0d1e950baa1967be76ecd738488c1f",
+    "kind": "sequential",
+    "stage": "code",
+    "created_at": "2026-11-08T10:50:54.733Z",
+    "available": true,
+    "forkable": true,
+    "restorable": true,
+    "continuation_supported": true,
+    "operational_acceptance_required": false,
+    "cursor": {
+      "schema_id": "dd-flow/work-boundary-cursor@2",
+      "action": "continue_stage",
+      "stage": "code",
+      "attempt": "try-001",
+      "cycle": "",
+      "parent_work_id": "WRK-001-root",
+      "graph_sha256": "131a1d570bfe0ca97ace026f09abe1a45f1cddcc70ca51cc2f268e4762b00bf9",
+      "accepted": [
+        {
+          "work_id": "WRK-006-prt-001-task-priority-p1",
+          "work_session_id": "WS-ecb208fb-6759-463e-8833-fad45d0ac12c",
+          "attempt_id": "770e7339-216c-4c5e-a9d3-4f989e6fbe89",
+          "committed_at": "2026-11-08T10:50:40.485Z",
+          "result": {
+            "file": "results/WRK-006-prt-001-task-priority-p1.json",
+            "sha256": "c89cb150dd1c6149eede1c27ccb64fc31b8c94fd1bcfb4b291906aa782925d4a"
+          },
+          "git": {
+            "schema_id": "dd-flow/work-git-retained@1",
+            "project_id": "PRJ-001-project",
+            "run_id": "RUN-001-controller-stages",
+            "work_id": "WRK-006-prt-001-task-priority-p1",
+            "attempt_id": "770e7339-216c-4c5e-a9d3-4f989e6fbe89",
+            "work_session_id": "WS-ecb208fb-6759-463e-8833-fad45d0ac12c",
+            "assignment_sha256": "7dcb5c8a9e0c7fe8a656c1354d1f928ea17d53475258761aa775b3dc5a31d538",
+            "result_sha256": "c89cb150dd1c6149eede1c27ccb64fc31b8c94fd1bcfb4b291906aa782925d4a",
+            "ref": "refs/dd-flow/work-results/40cb6fb282bcb51c79bc83d27b7ff14fbef3dd28a53ce08b10a5c2aa0877ffbf",
+            "base": "6fb18d9c0e35f515ac4f31633b03b857f1c2c411",
+            "commit": "e4b96ed6730fcebe8d53583f8e3a7e3e9839521f",
+            "tree": "bb80fd949193197cb94e297a7c4cd88333855f13",
+            "paths": [
+              "apps/api/src/core/WRK-006.txt",
+              "apps/api/src/core/service.ts"
+            ]
+          }
+        }
+      ],
+      "pending": [
+        "WRK-007-prt-001-task-priority-p2",
+        "WRK-008-prt-001-task-priority-p3"
+      ],
+      "integration_pending": true
+    }
+  },
+  {
+    "snapshot_id": "DRV-445b218a-53f8-4d93-88ba-156af67e67c8:work-snapshot:auto-138a753f79a3224156520d660497ebd7eb41d08a8840f5685a57dfff91cb31ee",
+    "snapshot": "/tmp/eval-work-consumer-IEmt3O/points/work-138a753f79a3224156520d660497ebd7eb41d08a8840f5685a57dfff91cb31ee",
+    "manifest_sha256": "9fa3c17acfaa79e51943fcaa8362bcd316fa38ab64559c0152406df4e5eca6b9",
+    "kind": "sequential",
+    "stage": "code",
+    "created_at": "2026-11-08T10:51:06.070Z",
+    "available": true,
+    "forkable": true,
+    "restorable": true,
+    "continuation_supported": true,
+    "operational_acceptance_required": false,
+    "cursor": {
+      "schema_id": "dd-flow/work-boundary-cursor@2",
+      "action": "continue_stage",
+      "stage": "code",
+      "attempt": "try-001",
+      "cycle": "",
+      "parent_work_id": "WRK-001-root",
+      "graph_sha256": "9a4ada3a4f23653ee16f4d1375f2271da5360b44ae099ee855adb6c23e8a69db",
+      "accepted": [
+        {
+          "work_id": "WRK-006-prt-001-task-priority-p1",
+          "work_session_id": "WS-ecb208fb-6759-463e-8833-fad45d0ac12c",
+          "attempt_id": "770e7339-216c-4c5e-a9d3-4f989e6fbe89",
+          "committed_at": "2026-11-08T10:50:40.485Z",
+          "result": {
+            "file": "results/WRK-006-prt-001-task-priority-p1.json",
+            "sha256": "c89cb150dd1c6149eede1c27ccb64fc31b8c94fd1bcfb4b291906aa782925d4a"
+          },
+          "git": {
+            "schema_id": "dd-flow/work-git-retained@1",
+            "project_id": "PRJ-001-project",
+            "run_id": "RUN-001-controller-stages",
+            "work_id": "WRK-006-prt-001-task-priority-p1",
+            "attempt_id": "770e7339-216c-4c5e-a9d3-4f989e6fbe89",
+            "work_session_id": "WS-ecb208fb-6759-463e-8833-fad45d0ac12c",
+            "assignment_sha256": "7dcb5c8a9e0c7fe8a656c1354d1f928ea17d53475258761aa775b3dc5a31d538",
+            "result_sha256": "c89cb150dd1c6149eede1c27ccb64fc31b8c94fd1bcfb4b291906aa782925d4a",
+            "ref": "refs/dd-flow/work-results/40cb6fb282bcb51c79bc83d27b7ff14fbef3dd28a53ce08b10a5c2aa0877ffbf",
+            "base": "6fb18d9c0e35f515ac4f31633b03b857f1c2c411",
+            "commit": "e4b96ed6730fcebe8d53583f8e3a7e3e9839521f",
+            "tree": "bb80fd949193197cb94e297a7c4cd88333855f13",
+            "paths": [
+              "apps/api/src/core/WRK-006.txt",
+              "apps/api/src/core/service.ts"
+            ]
+          }
+        },
+        {
+          "work_id": "WRK-007-prt-001-task-priority-p2",
+          "work_session_id": "WS-ef54b986-0569-4aea-bb54-a683913c256d",
+          "attempt_id": "c37d4ed0-f502-408b-94eb-9c9a0c221488",
+          "committed_at": "2026-11-08T10:50:40.485Z",
+          "result": {
+            "file": "results/WRK-007-prt-001-task-priority-p2.json",
+            "sha256": "1c195b51b6b3ef7331eb896b1686f2389d7893359a031e724fd67fb264cb15ab"
+          },
+          "git": {
+            "schema_id": "dd-flow/work-git-retained@1",
+            "project_id": "PRJ-001-project",
+            "run_id": "RUN-001-controller-stages",
+            "work_id": "WRK-007-prt-001-task-priority-p2",
+            "attempt_id": "c37d4ed0-f502-408b-94eb-9c9a0c221488",
+            "work_session_id": "WS-ef54b986-0569-4aea-bb54-a683913c256d",
+            "assignment_sha256": "3f9351749a552f6df7486c73c281eed85bf42746e468fb5bd5d152af6c66e861",
+            "result_sha256": "1c195b51b6b3ef7331eb896b1686f2389d7893359a031e724fd67fb264cb15ab",
+            "ref": "refs/dd-flow/work-results/955f85716cbfe652bcf1b5122698e9850a4ec7ceb3ff83fc915efd9989b4eed4",
+            "base": "229d39be7a028f5a1b74c8c0c9adba25ed2dace5",
+            "commit": "087d64cc73ed7aaafb96b0c53fb4facaec0edba2",
+            "tree": "1f2bdd37b0eac9fdb3c34220f2a732b8b31ca22e",
+            "paths": [
+              "apps/api/src/core/WRK-007.txt",
+              "apps/api/src/core/service.ts"
+            ]
+          }
+        }
+      ],
+      "pending": [
+        "WRK-008-prt-001-task-priority-p3"
+      ],
+      "integration_pending": true
+    }
+  },
+  {
+    "snapshot_id": "DRV-445b218a-53f8-4d93-88ba-156af67e67c8:work-snapshot:auto-022a1a050d41f575c83ab14bfbd55d00d069507c753e8ca68369778724d18711",
+    "snapshot": "/tmp/eval-work-consumer-IEmt3O/points/work-022a1a050d41f575c83ab14bfbd55d00d069507c753e8ca68369778724d18711",
+    "manifest_sha256": "cae55aabe548bfa0ea7059462085fb32ccdea1355cbb8e30094ef0f4ad4ceb9c",
+    "kind": "fanout_pre_integration",
+    "stage": "code",
+    "created_at": "2026-11-08T10:51:18.347Z",
+    "available": true,
+    "forkable": true,
+    "restorable": true,
+    "continuation_supported": true,
+    "operational_acceptance_required": false
+  },
+  {
+    "snapshot_id": "DRV-445b218a-53f8-4d93-88ba-156af67e67c8:boundary:0192f6a73d830e36464576678dd63277cdb053d2074a18e4aee53cf110951f85",
+    "snapshot": "/tmp/eval-work-consumer-IEmt3O/points/code-0192f6a73d830e36464576678dd63277cdb053d2074a18e4aee53cf110951f85",
+    "manifest": "/tmp/eval-work-consumer-IEmt3O/points/code-0192f6a73d830e36464576678dd63277cdb053d2074a18e4aee53cf110951f85/snapshot.json",
+    "manifest_sha256": "c566a9255f8d3655b4d213ec00ed54feb44b076162693e084900148a23f0f2cb",
+    "purpose": "stage_entry",
+    "stage_entry": "code-review",
+    "created_at": "2026-11-08T10:51:26.836Z",
+    "after_stage": "code",
+    "available": true,
+    "forkable": true,
+    "restorable": true
+  },
+  {
+    "snapshot_id": "DRV-445b218a-53f8-4d93-88ba-156af67e67c8:boundary:a07a710d563c7e50a27504cd0a1453b425f9b149a21b7143e51cf0b7f7228cbe",
+    "snapshot": "/tmp/eval-work-consumer-IEmt3O/points/code-review-a07a710d563c7e50a27504cd0a1453b425f9b149a21b7143e51cf0b7f7228cbe",
+    "manifest": "/tmp/eval-work-consumer-IEmt3O/points/code-review-a07a710d563c7e50a27504cd0a1453b425f9b149a21b7143e51cf0b7f7228cbe/snapshot.json",
+    "manifest_sha256": "440cd3b6c3f64b751daabf37b65e904c9254fa2309b1f61bdec0db29f1a7ddd4",
+    "purpose": "stage_entry",
+    "stage_entry": "merge",
+    "created_at": "2026-11-08T10:51:43.291Z",
+    "after_stage": "code-review",
+    "available": true,
+    "forkable": true,
+    "restorable": true
+  },
+  {
+    "snapshot_id": "DRV-445b218a-53f8-4d93-88ba-156af67e67c8:boundary:624986ed6ffaaa2bd2685c1381e0bb0cc8cfeda43e6d134aa7090995f9a2cabc",
+    "snapshot": "/tmp/eval-work-consumer-IEmt3O/points/merge-624986ed6ffaaa2bd2685c1381e0bb0cc8cfeda43e6d134aa7090995f9a2cabc",
+    "manifest": "/tmp/eval-work-consumer-IEmt3O/points/merge-624986ed6ffaaa2bd2685c1381e0bb0cc8cfeda43e6d134aa7090995f9a2cabc/snapshot.json",
+    "manifest_sha256": "df2fa0db3af055f30bfa08574c8ddc00913b22c7ac5dffeaef66ce5f3d759df3",
+    "purpose": "candidate",
+    "stage_entry": null,
+    "created_at": "2026-11-08T10:51:53.261Z",
+    "after_stage": "merge",
+    "available": true,
+    "forkable": false,
+    "restorable": false,
+    "reason": "terminal_evidence_only"
+  }
+]

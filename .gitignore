@@ -1,4 +1,4 @@
 live-evidence/
 .tmp/
 .tasks/
-node_modules/
+node_modules

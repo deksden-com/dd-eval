@@ -5,6 +5,10 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 const zones = [
+  [/snapshot-version/, /snapshot-version|runner-fork|runner-recovery/],
+  [/completion-scope/, /completion-scope|runner-fork/],
+  [/managed-flow-client/, /managed-flow-client|runner-work-cli/],
+  [/recovery-work-cli/, /runner-work-cli/],
   [/^recovery-observation-budget\.mjs$/, /plan110-recovery|runner-recovery|eval-retirement090|process-json/],
   [/technical-notes|baseline-admission|^runner\.mjs$/, /technical-notes107|tool-preparation114/],
   [/technical-notes/, /runner-health|runner-recovery|qualification-owner090/],
@@ -41,6 +45,8 @@ export function verificationSelection(base = null, { root = process.cwd(), env =
   const available = git('ls-files', '--cached', '--others', '--exclude-standard', '-z').split('\0').filter(file => /^test\/[^/]+\.test\.mjs$/.test(file));
   const tests = new Set(), reasons = [];
   for (const file of paths) {
+    if (file === '.gitignore') continue;
+    if (file.startsWith('evidence/cloud-recovery-O02a-eval-a1/')) continue;
     if (/^(?:README|CHANGELOG)|^(?:runbooks|specs)\/.*\.md$/.test(file)) continue;
     if (available.includes(file)) { tests.add(file); continue; }
     if (controlInputs.includes(file)) controlContracts.filter(test=>available.includes(test)).forEach(test=>tests.add(test));

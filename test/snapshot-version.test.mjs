@@ -4,8 +4,19 @@ import {createHash} from 'node:crypto';
 import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import {isCandidateRunSnapshot,isStageRunSnapshot,isStandardRunSnapshot} from '../lib/snapshot-version.mjs';
+import {isCandidateRunSnapshot,isStageRunSnapshot,isStandardRunSnapshot,isWorkRunSnapshot} from '../lib/snapshot-version.mjs';
 import {verifySnapshot} from '../lib/runner.mjs';
+
+test('Work shape preserves accepted/pending cursor without granting Stage or recovery capability', () => {
+  const work = { schema_id: 'dd-flow/work-boundary-snapshot@1', purpose: 'work_boundary',
+    boundary: { kind: 'fanout_pre_integration' }, source: { run_id: 'RUN-1' },
+    cursor: { schema_id: 'dd-flow/work-boundary-cursor@2', action: 'continue_stage', stage: 'code', accepted: [{ work_id: 'done' }], pending: [], integration_pending: true } };
+  assert(isWorkRunSnapshot(work));
+  assert(!isStageRunSnapshot(work)); assert(!isStandardRunSnapshot(work)); assert(!isCandidateRunSnapshot(work));
+  for (const change of [{ purpose: 'terminal' }, { schema_id: 'dd-flow/work-boundary-snapshot@2' },
+    { boundary: { kind: 'data_only_work' } }, { cursor: { ...work.cursor, schema_id: 'dd-flow/work-boundary-cursor@1' } },
+    { cursor: { ...work.cursor, accepted: [] } }, { cursor: { ...work.cursor, pending: null } }]) assert(!isWorkRunSnapshot({ ...work, ...change }));
+});
 
 test('snapshot version gate keeps independent workspace distinct from legacy and unborn-project formats',()=>{
   for(const kind of ['project','git_worktree']) assert(isStandardRunSnapshot({schema_id:'dd-flow/eval-run-snapshot@5',workspace:{kind}}));

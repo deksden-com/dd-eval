@@ -1,0 +1,21 @@
+✔ generic Memory stop target stays inside its declared contour (1.402889ms)
+✔ bounded direct selection retains original checkpoint mode and planned scope (0.489612ms)
+✔ stop targets shorten ranges, never expand or silently ignore an execution (0.248997ms)
+✔ accepted target becomes finished independently of cleanup; failure or missing target proof cannot finish (0.400117ms)
+✔ legal skipped target has an explicit outcome, not completed-stage or whole-case success (0.359075ms)
+✔ Final Judge scope derives from requested range, including failure and repeated scopes (0.403712ms)
+✔ report and candidate retain bounded observed scope; historical schemas are unchanged (110.782503ms)
+✔ finished is terminal in journal, observation, inventory and productive admission (1.163626ms)
+✔ Work shape preserves accepted/pending cursor without granting Stage or recovery capability (0.895488ms)
+✔ snapshot version gate keeps independent workspace distinct from legacy and unborn-project formats (0.163598ms)
+✔ candidate Git evidence does not become a Stage entry or recovery capability (0.420297ms)
+✔ Stage gate recognizes retained Work refs without treating them as recovery or candidate snapshots (0.319375ms)
+✔ focused entry verification accepts diagnostic snapshot version without widening purpose or RUN identity (19.567137ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 422.269057
