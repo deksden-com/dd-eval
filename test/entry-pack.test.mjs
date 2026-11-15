@@ -6,6 +6,13 @@ import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateFlowContour, validateStageBlueprint, validateStageContext, writeEntryPack } from "../lib/entry-pack.mjs";
 import { createHarnessPermits, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice, validateExecutionDescriptors, assertQualificationSelection, canonicalEntries, initialFlowBoundary, verifySnapshot,restoreStageSnapshot } from "../lib/runner.mjs";
+import * as flowBoundaries from "../lib/flow-boundaries.mjs";
+
+test("flow boundaries remain available through the runner facade", async () => {
+  const runner = await import("../lib/runner.mjs");
+  for (const name of ["validateEntryPack", "inheritedFlowStages", "initialFlowBoundary", "validateCaseBlueprint", "materializeCaseStageSlice", "continuationStage"])
+    assert.equal(runner[name], flowBoundaries[name]);
+});
 
 
 const slice = {
