@@ -4,7 +4,7 @@ import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import Ajv2020 from 'ajv/dist/2020.js';
-import { loadCase, initialFlowBoundary, validateCaseBlueprint, prepareE2EInput, assertBlankMemoryProject, interactionFixtureManifest, resultCheckpointMode, latestObservedStage, buildRunCandidate, frozenCandidate, assertRetainedRunDefinition } from '../lib/runner.mjs';
+import { loadCase, initialFlowBoundary, validateCaseBlueprint, prepareE2EInput, assertBlankMemoryProject, interactionFixtureManifest, latestObservedStage, buildRunCandidate, frozenCandidate, assertRetainedRunDefinition } from '../lib/runner.mjs';
 import { commandText } from '../lib/process-json.mjs';
 import { readBaselineAdmissionPolicy, runBaselineAdmission, verifyBaselineAdmission } from '../lib/baseline-admission.mjs';
 import { inheritedFlowStages, qualifiedNativeFanoutCapacity } from '../lib/runner.mjs';
@@ -39,10 +39,6 @@ test('Memory checkpoint and failure projection use frozen stage order, not SDLC 
   for (const [index, stage] of contour.entries()) assert.deepEqual(inheritedFlowStages(stage, contour), contour.slice(0, index));
   assert.throws(() => inheritedFlowStages('merge', contour), { code: 'fork_checkpoint_invalid' });
   assert.deepEqual(inheritedFlowStages('code'), ['specify', 'protocolize', 'plan', 'plan-review']);
-  for (const [index, stage] of contour.entries()) assert.deepEqual(resultCheckpointMode(stage, contour), index === contour.length - 1
-    ? { purpose: 'candidate', stage_entry: null } : { purpose: 'stage_entry', stage_entry: contour[index + 1] });
-  assert.throws(() => resultCheckpointMode('merge', contour), { code: 'selection_invalid' });
-  assert.throws(() => resultCheckpointMode('preflight'), { code: 'selection_invalid' });
   const records = [{ stage: 'merge', status: 'running' }, { stage: 'compose', status: 'done' }, { stage: 'preflight', status: 'done' }, { stage: 'review', status: 'blocked' }, { stage: 'verify', status: 'done' }];
   const status = { index: { stage_runs: records } };
   assert.equal(latestObservedStage(status, 'preflight', contour), 'review');

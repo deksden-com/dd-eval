@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { buildReport, interactionCoverageSummary, reportMarkdown, resolveHitlJudgment, retainedCoverageFilter, runnerStatus, finalJudgePrompt, hitlProof, executionEvidence } from "../lib/runner.mjs";
+import * as reportProjections from "../lib/report-projections.mjs";
 import { buildHitlPacket, hitlCoverageContract, validateGroundedHitl } from "../lib/hitl-contract.mjs";
 import { hashJson, sha256, appendEvent, writeJsonAtomic } from "../lib/runner-events.mjs";
 import { settledJudge } from "./fixtures/judge-cleanup.mjs";
@@ -11,6 +12,12 @@ import { settledJudge } from "./fixtures/judge-cleanup.mjs";
 const manifest = { run_id: "EVAL-test", case_id: "case", profile: { interaction_judge: { verdict_contract: hitlCoverageContract } }, hitl_coverage_policy: { mode: "shadow" }, executions: [{ id: "e2e" }] };
 const verdict = status => ({ schema_id: hitlCoverageContract, status, response_ids: status === "covered" ? ["canonical"] : [], uncovered_questions: status === "covered" ? [] : ["Which SMS provider should be used?"] });
 const result = (status, source = "interaction_judge") => ({ execution: "e2e", state: status === "covered" ? "candidate_ready" : "failed", ...(status !== "covered" ? { code: "hitl_coverage_unresolved" } : {}), hitl: [{ stage: "specify", verdict: verdict(status), decision_source: source, receipt_file: "/retained/result.json", ...(source === "interaction_judge" ? { judge_session_id: "native-session" } : {}), coverage_filter: { requested_mode: "shadow", state: "completed", reason: "shadow", observation_file: "/retained/jev-observation.json", latency_ms: 123, usage: { cost: .001 } } }], statistics: { usage: { input_tokens: 99 } } });
+
+test("report projections remain available from the runner facade", async () => {
+  const runner = await import("../lib/runner.mjs");
+  for (const name of ["recoveryHistory", "interactionCoverageSummary", "reportMarkdown"])
+    assert.equal(runner[name], reportProjections[name]);
+});
 
 test("compact unresolved JSON and Markdown expose remaining questions without infrastructure blame", () => {
   const report = buildReport({ root: "/retained", manifest, results: [result("uncovered")], state: "completed_with_failures" });

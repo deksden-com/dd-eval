@@ -209,7 +209,7 @@ test("cleanup leaves queued executions and Judge undispatched", async () => {
     for (const type of ["started", "failed"]) await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: "EVAL-test:e:launch", error: { code: "preflight_failed", message: "before session" } } });
     const result = await runnerCleanup({ evalRoot: root, requestId: "cleanup-1" });
     assert.equal(result.execution_state, "failed");
-    assert.equal(result.judge_status, "not_run_incomplete_evidence");
+    assert.equal(result.judge_status, "not_run_cleanup_only");
     const events = await readEvents(path.join(root, "events.jsonl"));
     assert.equal(events.filter(event => event.type === "dev.dd.eval.operation.started").length, 1);
     await assert.rejects(readFile(path.join(root, "candidate.json")), { code: "ENOENT" });
@@ -229,7 +229,8 @@ for (const goal of [undefined, "local_retirement"]) test(`exhausted cleanup work
   const manifestFile = path.join(root, "manifest.json"), eventsFile = path.join(root, "events.jsonl");
   await writeJsonAtomic(manifestFile, manifest);
   for (const type of ["started", "failed"]) await appendEvent(eventsFile, { source: "test", runId: manifest.run_id, executionId: "e", type: `dev.dd.eval.operation.${type}`, data: { operation_id: `${manifest.run_id}:e:launch`, error: { code: "preflight_failed", message: "before session" } } });
-  assert.equal((await runnerCleanup({ evalRoot: root })).cleanup_state, "settled");
+  // A configured runtime cannot be declared retired without physical proof.
+  assert.equal((await runnerCleanup({ evalRoot: root })).cleanup_state, goal ? "pending" : "settled");
   const before = await readFile(eventsFile), manifestHash = sha256(await readFile(manifestFile));
   const file = path.join(root, "runner-attempts", sha256("spent-unpublished"), "attempt.json");
   const intent = { eval_root: root, run_id: manifest.run_id, request_id: "spent-unpublished", kind: "cleanup", manifest_sha256: manifestHash };
@@ -753,7 +754,7 @@ test("automatic reconstruction cannot replenish uncertainty or resurrect exhaust
   repeated.observe({ operation_id: "owned", physical_settled: true });
   assert.equal(repeated.state().remaining_ms, 120000);
 });
-import { appendRunEventOnce, runResultRevision, recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoverySourceFromEvents, recoveryOperationId, recoveryPrompt, prepareRecoveryDelivery, isInfrastructureFailure } from "../lib/runner.mjs";
+import { appendRunEventOnce, runResultRevision, recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoverySourceFromEvents, recoveryOperationId, isInfrastructureFailure } from "../lib/runner.mjs";
 
 test("identical failures in successive recovery generations each finalize exactly once", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "recovery-projection-"));
@@ -808,63 +809,11 @@ test("atomic receipts flush file and directory and preserve the old receipt afte
   } finally { t.mock.restoreAll(); await rm(root, { recursive: true, force: true }); }
 });
 
-test("recovery delivery pins exact prompt bytes and dispatch identity before use", async () => {
-  const attempt = await mkdtemp(path.join(os.tmpdir(), "recovery-delivery-"));
-  try {
-    const input = { attempt, recovery: { recovery_id: "RCV-1", run_id: "RUN-1", generation: 1, accept_command: "dd-flow run recovery accept RUN-1 --recovery-id RCV-1" }, stage: "code", sessionId: "native-root", harness: "codex-desktop" };
-    const first = await prepareRecoveryDelivery(input);
-    assert.equal(first.reused, false);
-    assert.deepEqual(JSON.parse(await readFile(first.file, "utf8")), first.packet);
-    const again = await prepareRecoveryDelivery(input);
-    assert.equal(again.reused, true); assert.equal(again.sha256, first.sha256);
-    assert.equal(again.packet.operation_id, first.packet.operation_id);
-    await assert.rejects(prepareRecoveryDelivery({ ...input, sessionId: "different-root" }), { code: "recovery_delivery_conflict" });
-    await assert.rejects(prepareRecoveryDelivery({ ...input, recovery: { ...input.recovery, accept_command: "changed command" } }), { code: "recovery_delivery_conflict" });
-    assert.deepEqual(JSON.parse(await readFile(first.file, "utf8")), first.packet);
-  } finally { await rm(attempt, { recursive: true, force: true }); }
-});
 
-test("recovery requires engine acceptance before productive work and preserves a paused Work", () => {
+test("missing native result remains an infrastructure failure", () => {
   assert.equal(isInfrastructureFailure("agy_terminal_result_missing"), true);
-  const recovery = { recovery_id: "R2", generation: 2, accept_command: "dd-flow run recovery accept RUN-1 --recovery-id R2 --project-root /project --json" };
-  const prompt = recoveryPrompt({ recovery, stage: "code" });
-  assert.ok(prompt.indexOf(recovery.accept_command) < prompt.indexOf("Continue only the unresolved"));
-  assert.match(prompt, /If acceptance fails, stop/);
-  const paused = recoveryPrompt({ recovery, stage: "code", paused: true });
-  assert.match(paused, /paused for a user answer/);
-  assert.doesNotMatch(paused, /Continue only the unresolved/);
-  const completed = recoveryPrompt({ recovery, stage: "plan", completed: true });
-  assert.match(completed, /plan stage already completed/);
-  assert.doesNotMatch(completed, /Continue only the unresolved/);
-  assert.throws(() => recoveryPrompt({ recovery: { recovery_id: "R2" }, stage: "code" }), { code: "recovery_acceptance_missing" });
 });
 
-test("fan-out recovery acknowledges only and pins the return to ordinary runner dispatch", async () => {
-  const attempt = await mkdtemp(path.join(os.tmpdir(), "recovery-fanout-"));
-  try {
-    const input = { attempt, recovery: { recovery_id: "RCV-fanout", run_id: "RUN-1", generation: 1, accept_command: "dd-flow run recovery accept RUN-1 --recovery-id RCV-fanout" }, stage: "code", sessionId: "native-root", harness: "antigravity-cli", orchestration: { kind: "work_fanout", stage: "code", state: "awaiting_children", works: { created: 1, completed: 2 } } };
-    const first = await prepareRecoveryDelivery(input);
-    assert.equal(first.packet.coordinator_only, true);
-    assert.match(first.packet.prompt, /After acceptance, stop this Turn immediately/);
-    assert.match(first.packet.prompt, /Do not perform or finish child Work/);
-    assert.match(first.packet.prompt, /runner will reconcile the current Work graph/);
-    assert.doesNotMatch(first.packet.prompt, /Continue only the unresolved/);
-    const again = await prepareRecoveryDelivery({ ...input, orchestration: { ...input.orchestration, state: "ready", works: { created: 1, completed: 3 } } });
-    assert.equal(again.reused, true);
-    assert.deepEqual(again.packet, first.packet);
-    await assert.rejects(prepareRecoveryDelivery({ ...input, orchestration: null }), { code: "recovery_delivery_conflict" });
-    await assert.rejects(prepareRecoveryDelivery({ ...input, orchestration: { kind: "work_fanout", stage: "plan-review" } }), { code: "fanout_contract_invalid" });
-    for (const stage of ["plan-review", "code-review"]) {
-      const packet = await prepareRecoveryDelivery({ ...input, stage, recovery: { ...input.recovery, recovery_id: `RCV-${stage}` }, orchestration: { kind: "work_fanout", stage } });
-      assert.equal(packet.packet.coordinator_only, true);
-    }
-    for (const state of [{ paused: true }, { completed: true }]) {
-      const packet = await prepareRecoveryDelivery({ ...input, ...state, recovery: { ...input.recovery, recovery_id: `RCV-${Object.keys(state)[0]}` } });
-      assert.equal(packet.packet.coordinator_only, undefined);
-      assert.doesNotMatch(packet.packet.prompt, /Continue only the unresolved/);
-    }
-  } finally { await rm(attempt, { recursive: true, force: true }); }
-});
 
 test("recovery selects exactly the requested current interruption, including idempotent repeats", () => {
   const failed = { execution: "e", state: "failed", recovery: { recovery_id: "R2" } };

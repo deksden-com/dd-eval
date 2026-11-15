@@ -32,6 +32,18 @@ test('historical HITL exact bytes remain readable but cannot authorize current i
   await assert.rejects(verifyRetainedHitl({ data }), { code: 'judge_evidence_mismatch' });
 });
 
+test('historical partial and contradictory verdicts cannot authorize a retained answer', async t => {
+  const { root, receipt, data } = await retained(t);
+  for (const verdict of [
+    { ...receipt.verdict, status: 'unmatched', classification: 'fixture_gap' },
+    { ...receipt.verdict, uncovered_questions: ['Unresolved choice'] },
+    { ...receipt.verdict, covered_questions: [] },
+  ]) {
+    await writeFile(path.join(root, 'result.json'), JSON.stringify({ ...receipt, verdict }));
+    await assert.rejects(verifyRetainedHitl({ data, legacy: true, historical: true }), { code: 'judge_evidence_mismatch' });
+  }
+});
+
 test('native HITL reuse binds immutable effective Judge settings, not only its ID', async t => {
   const { root, receipt, data } = await retained(t);
   const expected = 'a'.repeat(64);

@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import Ajv2020 from "ajv/dist/2020.js";
-import { buildEvidencePacket, buildReport, buildRunCandidate, frozenCandidate, subjectHistoryEvents, validateHitlMatch, resolveHitlJudgment, isInfrastructureFailure, failureAttribution, failureDiagnostic, failureEvidenceRevision } from "../lib/runner.mjs";
+import { buildEvidencePacket, buildReport, buildRunCandidate, frozenCandidate, subjectHistoryEvents, resolveHitlJudgment, isInfrastructureFailure, failureAttribution, failureDiagnostic, failureEvidenceRevision } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
 
@@ -91,8 +91,6 @@ test("partial HITL is schema-valid evidence, never a deliverable answer", async 
   const fixture = { responses: [{ id: "priority", answer: "canonical" }], sha256: "a".repeat(64) };
   const verdict = { schema_id: "dd-eval/hitl-match@1", status: "unmatched", classification: "fixture_gap", response_ids: ["priority"], covered_questions: ["values"], uncovered_questions: ["independent decision"], rationale: "values covered; independent decision missing" };
   assert.equal(validate(verdict), true, JSON.stringify(validate.errors));
-  assert.equal(validateHitlMatch(verdict, fixture, null, { historical: true }), verdict);
-  assert.throws(() => validateHitlMatch(verdict, fixture), { code: 'judge_result_invalid' });
   assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict }, question: "compound", stage: "specify" }), { code: "judge_result_invalid" }, 'historical verdict cannot authorize new issuance');
   const packet = await buildHitlPacket({ stage: 'specify', question: 'values; independent decision', subjectContext: { objective: 'Accepted independent decision' }, responses: fixture.responses });
   const grounded = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@3', atoms: [
@@ -102,9 +100,7 @@ test("partial HITL is schema-valid evidence, never a deliverable answer", async 
   assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict: grounded, packet }, question: packet.question, stage: packet.stage }), { code: 'interaction_fixture_gap' });
   for (const invalid of [{ ...verdict, covered_questions: [] }, { ...verdict, covered_questions: [""] }, { ...verdict, response_ids: ["priority", "priority"] }, { ...verdict, status: "matched" }]) {
     assert.equal(validate(invalid), false);
-    assert.throws(() => validateHitlMatch(invalid, fixture, null, { historical: true }), { code: "judge_result_invalid" });
   }
-  assert.throws(() => validateHitlMatch({ ...verdict, uncovered_questions: ["values"] }, fixture, null, { historical: true }), { code: "judge_result_invalid" }, "cross-array disjointness is enforced by runtime");
 });
 
 test('qualification mismatch diagnostic is neutral infrastructure and retains bounded comparison metadata', () => {

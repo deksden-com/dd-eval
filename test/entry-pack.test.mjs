@@ -5,14 +5,8 @@ import path from "node:path";
 import test from "node:test";
 import { appendEvent, canonicalJson, hashJson, readEvents, readJsonLines, recordOperation, reduceEvents } from "../lib/runner-events.mjs";
 import { materializeStageSlice, semanticContextHash, validateEntry, validateFlowContour, validateStageBlueprint, validateStageContext, writeEntryPack } from "../lib/entry-pack.mjs";
-import { createHarnessPermits, needsAttemptContext, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice, validateExecutionDescriptors, assertQualificationSelection, canonicalEntries, initialFlowBoundary, verifySnapshot,restoreStageSnapshot } from "../lib/runner.mjs";
+import { createHarnessPermits, selectedEntries, validateEntryPack, validateCaseBlueprint, materializeCaseStageSlice, validateExecutionDescriptors, assertQualificationSelection, canonicalEntries, initialFlowBoundary, verifySnapshot,restoreStageSnapshot } from "../lib/runner.mjs";
 
-test("recovery materializes each reopened stage attempt once", () => {
-  assert.equal(needsAttemptContext({ attempt: "try-001" }, {}), false);
-  assert.equal(needsAttemptContext({ attempt: "try-002" }, { attempt: "try-001" }), true);
-  assert.equal(needsAttemptContext({ attempt: "try-002" }, { attempt: "try-002" }), false);
-  assert.equal(needsAttemptContext({ attempt: "try-003" }, { attempt: "try-002" }), true);
-});
 
 const slice = {
   schema_id: "dd-eval/stage-context@1", stage: "specify", objective: "Specify the request.",

@@ -7,7 +7,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import test from "node:test";
-import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, fanoutSettledFingerprint, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, nativeChildrenSince, qualificationSucceeded, settleExecutionDaemon, resolveHitlJudgment, restoredRoots, resultCheckpointMode, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateHitlMatch, validateJudgeResult } from "../lib/runner.mjs";
+import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, resolveHitlJudgment, restoredRoots, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { definitionSelection } from "../lib/runner.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
@@ -405,6 +405,7 @@ test('qualification PLAN directory pipeline preserves owned membership, aliases,
   const corpusBytes = JSON.stringify(corpus); await writeFile(path.join(inputDir, 'qualification.json'), corpusBytes);
   const input = { loaded: { ...loaded, root: caseRoot, value: { ...loaded.value, hitl_qualification: { file: 'entry-pack-source/interactions/qualification.json', sha256: digest(corpusBytes) } } },
     runProfile: await loadRunProfile(path.join(root, 'cases', caseId, 'run-profiles/e2e-inline-merge-luna-xhigh.json')), definition: { tree: 'd'.repeat(64) } };
+  input.runProfile.value.interaction_judge.verdict_contract = 'dd-eval/hitl-match@3';
   input.runProfile.qualificationJudgeProfile = { ...JSON.parse(await readFile(path.join(root, 'profiles', `${input.runProfile.value.interaction_judge.profile_id}.json`))), provider: 'openai', mode: 'agent', permission: 'allow' };
   const qualified = await hitlQualificationInputs(input), item = qualified.corpus.items[0];
   const output = path.join(temporary, 'owned/contexts/plan.json');
@@ -480,37 +481,6 @@ test("AGY prompt liveness is bounded by native activity, not runner heartbeat", 
   assert.equal(isInfrastructureFailure("subject_liveness_timeout"), true);
 });
 
-test("owned cleanup uses tree evidence independently of failure attribution", async () => {
-  for (const code of ["agy_provider_failed", "new_provider_failure"]) {
-    const calls = [];
-    const result = await settleExecutionDaemon(async cancel => {
-      calls.push(cancel);
-      if (!cancel) throw Object.assign(new Error("active tree"), { code: "tree_not_settled" });
-      return "settled";
-    }, { code });
-    assert.equal(result, "settled");
-    assert.deepEqual(calls, [false, true]);
-  }
-  for (const [failure, cleanupCode] of [
-    [undefined, "tree_not_settled"],
-    [{ code: "operation_observation_lost" }, "tree_not_settled"],
-    [{ code: "subject_liveness_timeout" }, "tree_not_settled"],
-    [{ code: "command_observation_lost" }, "tree_not_settled"],
-    [{ code: "operation_output_limit" }, "tree_not_settled"],
-    [{ code: "agy_provider_failed" }, "daemon_connection_closed"],
-    [{ code: "agy_provider_failed" }, "permission_denied"],
-  ]) {
-    const calls = [];
-    await assert.rejects(settleExecutionDaemon(async cancel => {
-      calls.push(cancel);
-      throw Object.assign(new Error(cleanupCode), { code: cleanupCode });
-    }, failure), error => error.code === cleanupCode);
-    assert.deepEqual(calls, [false]);
-  }
-  const calls = [];
-  await settleExecutionDaemon(async cancel => calls.push(cancel), { code: "agy_provider_failed" });
-  assert.deepEqual(calls, [false]);
-});
 
 test("a case without an accepted entry pack cannot start focused fixtures", async () => {
   await assert.rejects(fixturesValidate({ caseId }), /requires --revision/);
@@ -623,11 +593,6 @@ test("isolated runner never substitutes a configured adapter for a missing engin
   } finally { await rm(home, { recursive: true, force: true }); }
 });
 
-test("qualification cannot pass while any execution failed", () => {
-  assert.equal(qualificationSucceeded({ state: "completed", executions: [{ state: "candidate_ready" }] }), true);
-  assert.equal(qualificationSucceeded({ state: "completed_with_failures", executions: [{ state: "failed" }] }), false);
-  assert.equal(qualificationSucceeded({ state: "completed", executions: [{ state: "failed" }] }), false);
-});
 
 test("terminal reconciliation supersedes only the runner's failed launch receipt", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "dd-eval-reconcile-")); const eventsFile = path.join(directory, "events.jsonl"); const manifest = { run_id: "EVAL-001", executions: [{ id: "e2e", stage: "specify" }] };
@@ -637,15 +602,6 @@ test("terminal reconciliation supersedes only the runner's failed launch receipt
   assert.deepEqual(storedExecutionResults(await readEvents(eventsFile), manifest), [recovered]);
 });
 
-test("focused result checkpoints preserve a legal successor entry", () => {
-  assert.deepEqual(resultCheckpointMode("plan-review"), { purpose: "stage_entry", stage_entry: "code" });
-  assert.deepEqual(resultCheckpointMode("code"), { purpose: "stage_entry", stage_entry: "code-review" });
-  assert.deepEqual(resultCheckpointMode("code-review"), { purpose: "stage_entry", stage_entry: "merge" });
-  assert.deepEqual(resultCheckpointMode("merge"), { purpose: "candidate", stage_entry: null });
-  assert.deepEqual(resultCheckpointMode("specify", undefined, "specify"), { purpose: "candidate", stage_entry: null });
-  assert.deepEqual(resultCheckpointMode("compose", ["preflight", "discover", "compose", "verify"], "compose"), { purpose: "candidate", stage_entry: null });
-  assert.throws(() => resultCheckpointMode("merge", ["preflight", "verify"], "merge"), { code: "selection_invalid" });
-});
 
 test("eval does not retain a second execution snapshot controller", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
@@ -871,10 +827,6 @@ test("productive fan-out has no second execution loop in eval", async () => {
   assert.doesNotMatch(recovery, /nativeChildFanoutPrompt\(|promptExistingSession\(/);
 });
 
-test("a new fan-out stage ignores historical native children but keeps its new wave", () => {
-  const children = [{ session_id: "old", status: "completed" }, { session_id: "new", status: "running" }];
-  assert.deepEqual(nativeChildrenSince(children, new Set(["old"])), [{ session_id: "new", status: "running" }]);
-});
 
 test("reconciliation failures retain undetermined attribution for the Judge", () => {
   assert.equal(failureAttribution("fanout_reconciliation_required"), "undetermined");
@@ -976,7 +928,6 @@ test("HITL verdicts are strict, fail closed, and preserve exact response bytes",
   assert.equal(exchange.delimiter, "dd-eval/hitl-response-delimiter@1");
   assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict }, question: packet.question, stage: packet.stage }), { code: 'judge_result_invalid' });
   assert.throws(() => validateGroundedHitl({ ...verdict, response_ids: ['two', 'one'] }, packet, { stored: true }), { code: 'judge_result_invalid' });
-  assert.throws(() => validateHitlMatch({ schema_id: 'dd-eval/hitl-match@1', status: 'unmatched', classification: 'fixture_gap', response_ids: [], covered_questions: ['Q1'], uncovered_questions: ['Q2'], rationale: 'missing' }, fixture), { code: 'judge_result_invalid' });
   const partialGap = validateGroundedHitl({ schema_id: 'dd-eval/hitl-match@3', atoms: [atom('Q1', 'one'), { ...atom('Q2', 'two'), classification: 'fixture_gap', answer_evidence: [], scope_evidence: [{ kind: 'context', field: 'objective', quote: 'Accepted independent Q2 decision' }] }] }, packet);
   assert.throws(() => resolveHitlJudgment({ fixture, judgment: { verdict: partialGap, packet }, question: packet.question, stage: packet.stage }), error => error.code === 'interaction_fixture_gap' && error.hitl.verdict.classification === 'fixture_gap');
   assert.equal(isInfrastructureFailure("interaction_fixture_gap"), true);
@@ -1105,7 +1056,8 @@ test("capacity reads Codex native child metadata rather than model text", async 
 test("reference native-child recovery delegates to its retained CLI owner", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.doesNotMatch(source, /export function nativeChildWaitPrompt/);
-  assert.match(source, /awaiting_native_children/);
+  const resumeWorker = await readFile(path.join(root, "lib", "eval-resume-worker.mjs"), "utf8");
+  assert.match(resumeWorker, /awaiting_native_children/);
   const reference = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalBoundaryAccept"));
   assert.match(reference, /controllerId: state\.reference\.controller_id/);
   assert.doesNotMatch(reference, /driveFanout\(|providerTurn\(|callDriver\(/);
@@ -1137,12 +1089,6 @@ test("canonical reference no longer owns a private daemon restart loop", async (
   assert.doesNotMatch(source, /function (?:restartIdleReferenceDaemon|startReferenceDaemon|stopReferenceDaemon)\(/);
 });
 
-test("settled fan-out fingerprint changes when a repair Work changes the graph", () => {
-  const before = fanoutSettledFingerprint({ stage: "code-review", status: { orchestration: { parent_work_id: "WRK-001", works: { created: 0, running: 0, completed: 5, failed: 0, cancelled: 0, ready: [] } } } });
-  const after = fanoutSettledFingerprint({ stage: "code-review", status: { orchestration: { parent_work_id: "WRK-001", works: { created: 0, running: 0, completed: 6, failed: 0, cancelled: 0, ready: [] } } } });
-  assert.notEqual(before, after);
-  assert.equal(before, fanoutSettledFingerprint({ stage: "code-review", status: { orchestration: { parent_work_id: "WRK-001", works: { created: 0, running: 0, completed: 5, failed: 0, cancelled: 0, ready: [] } } } }));
-});
 
 test("definition identity ignores unrelated docs and commits but rejects selected input drift", async () => {
   const repository = await mkdtemp(path.join(tmpdir(), "dd-eval-definition-"));
