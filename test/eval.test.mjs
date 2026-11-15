@@ -757,7 +757,8 @@ test("a terminal incomplete execution keeps an immutable evidence candidate for 
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /schema_id: "dd-eval\/run-candidate@2"/);
   assert.match(source, /outcome: results\.every\(\(result\) => result\.state === "candidate_ready"\) \? "complete" : "incomplete"/);
-  assert.match(source, /If candidate\.outcome is incomplete, assess only evidence-backed work that actually ran/);
+  const prompt = finalJudgePrompt({ assessmentFile: '/assessment', candidateFile: '/candidate', evidenceFile: '/evidence', scope: 'e2e', assessment: { scopes: { e2e: { outcome: [], flow: [] } } } });
+  assert.match(prompt, /If candidate\.outcome is incomplete, assess only evidence-backed work that actually ran/);
   assert.match(source, /if \(!finalized\.candidate\) return \{ root, status: "awaiting_provider"/);
 });
 

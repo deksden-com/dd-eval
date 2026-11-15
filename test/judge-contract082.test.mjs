@@ -2,9 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { validateJudgeResult, finalJudgePrompt, failureDiagnostic, isInfrastructureFailure, executionEvidence } from "../lib/runner.mjs";
+import * as finalJudgeContract from "../lib/final-judge-contract.mjs";
 
 const assessment = { scopes: { e2e: { outcome: [], flow: [] } } };
 const result = { schema_id: "dd-eval/judge-result@2", scope: "e2e", run_validity: "valid", outcome: [], flow: [], findings: [], golden: { covered: [], missed: [], alternatives: [], novel: [] }, conclusion: "unreached stages" };
+test("Final Judge contract remains available through the runner facade", async () => {
+  const runner = await import("../lib/runner.mjs");
+  for (const name of ["validateJudgeResult", "finalJudgeScope", "assertFinalJudgeScope", "finalJudgePrompt"])
+    assert.equal(runner[name], finalJudgeContract[name]);
+});
 test("Judge schema enums are shared with prompt and field diagnostics, never coerced", async () => {
   const schema = JSON.parse(await readFile(new URL("../schemas/judge-result.v2.schema.json", import.meta.url)));
   const prompt = finalJudgePrompt({ assessment, scope: "e2e", assessmentFile: "/assessment", candidateFile: "/candidate", evidenceFile: "/evidence" });
