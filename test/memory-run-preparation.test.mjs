@@ -7,6 +7,13 @@ import os from 'node:os';
 import { prepareCaseManagedRun, validateRunProfile, evalPreflight,initialFlowBoundary } from '../lib/runner.mjs';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { materializeOperationalDecision } from '../lib/operational-decision.mjs';
+import * as profileValidation from '../lib/profile-validation.mjs';
+
+test('profile validators remain available through the runner facade', async () => {
+  const runner = await import('../lib/runner.mjs');
+  for (const name of ['validateHarnessProfile', 'nativeOnlyRunProfile', 'validateRunProfile'])
+    assert.equal(runner[name], profileValidation[name]);
+});
 
 test('Memory operational routing never reads absent SDLC policy and retained SDLC still does', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'memory-operational-route-'));
