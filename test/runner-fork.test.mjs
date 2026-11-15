@@ -61,7 +61,9 @@ async function setup(t, fault = null) {
   const checkpointHash = hash(await readFile(cpFile));
   await write(path.join(caseRoot, 'case.json'), { schema_id: 'dd-eval/case@7', id: 'fixture', assessment: 'assessment.json', input: [], entry_pack: null, input_checkpoint: { id: checkpoint.id, sha256: checkpointHash }, baseline_admission: { sha256: 'e'.repeat(64) }, flow: { contour: stages, terminal_stage: 'code' } });
   await write(path.join(caseRoot, 'assessment.json'), {});
-  await write(path.join(caseRoot, 'entry-pack-source/stage-context.json'), { schema_id: 'dd-eval/stage-context-blueprint@1', stages: Object.fromEntries(stages.map(stage => [stage, { schema_id: 'dd-eval/stage-context@1', stage, objective: 'Fixture', task_input: [] }])) });
+  const taskInput = path.join(caseRoot, 'entry-pack-source/code-task.txt');
+  if (['boundary', 'unsettled'].includes(fault)) await write(taskInput, 'original');
+  await write(path.join(caseRoot, 'entry-pack-source/stage-context.json'), { schema_id: 'dd-eval/stage-context-blueprint@1', stages: Object.fromEntries(stages.map(stage => [stage, { schema_id: 'dd-eval/stage-context@1', stage, objective: 'Fixture', task_input: stage === 'code' && ['boundary', 'unsettled'].includes(fault) ? [{ role: 'task', path: '.dd-eval/code-task.txt', source: 'code-task.txt', sha256: hash('original') }] : [] }])) });
   for (const stage of stages) await write(path.join(caseRoot, `entry-pack-source/interactions/${stage}.json`), policy(stage));
   await commandText('git', ['init', '--quiet'], { cwd: definition });
   await commandText('git', ['add', 'cases', 'checkpoints'], { cwd: definition });
@@ -69,6 +71,7 @@ async function setup(t, fault = null) {
   const commit = await commandText('git', ['rev-parse', 'HEAD'], { cwd: definition });
   const sourceRoot = path.join(temp, 'home/runs/source'), output = path.join(temp, 'home/forks/derived');
   const source = { schema_id: 'dd-eval/runner-manifest@1', kind: 'scored', run_id: 'EVAL-source', case_id: 'fixture', definition: { commit }, input_checkpoint: { id: checkpoint.id, sha256: checkpointHash }, executions: [execution], interaction_fixtures: Object.fromEntries(stages.map(stage => [stage, { interaction_fixture_sha256: hashJson(policy(stage)) }])), runtime_resource_home: path.join(temp, 'resources'), profile: { subject: {}, concurrency: { global: 1 }, judge: { enabled: false }, failure_policy: { stop_run_on_infrastructure_error: true } }, subject_profile: { id: 'fake', harness: 'zcode-acp', model: 'fake', reasoning: 'low', subagent_capacity: 5 } };
+  await mkdir(source.runtime_resource_home, { recursive: true });
   const baselineFile = await write(path.join(sourceRoot, 'executions/e2e/baseline-admission/receipt.json'), { schema_id: 'dd-eval/baseline-admission@1', status: 'passed', checkpoint_id: checkpoint.id, checkpoint_sha256: checkpointHash, source_commit: checkpoint.source.commit, policy_sha256: 'e'.repeat(64), checks: [{ exit_code: 0 }] });
   Object.assign(source.profile, {
     schema_id: 'dd-eval/run-profile@1', id: 'fixture', case_id: 'fixture', subject: { profile_id: 'fake' },
@@ -100,7 +103,7 @@ const captured = stage => {const file=c.output+'/capture-'+stage+'/snapshot.json
 if(a[0]==='engine') out(a[1]==='resolve'?{selection:{selected:c.engine}}:{engine:c.engine});
 else if(a[0]==='runtime' && a[1]==='scope') {
   const scope_id=get('--scope-id');
-  if(a[2]==='status') out({scope_id,dispatch_blocked:false,processes:[],provider_turns:[]});
+  if(a[2]==='status') out({scope_id,dispatch_blocked:false,processes:c.fault==='unsettled' && fs.existsSync(c.output+'/stopped')?[{id:'PROC-live',kind:'run-controller',state:'running',metadata_json:JSON.stringify({budget:{scope_id}})}]:[],provider_turns:[]});
   else if(a[2]==='stop') out({scope_id,settled:true,physical_stopped:true,nodes:[]});
   else throw Error('unexpected fixture scope operation '+a[2]);
 }
@@ -117,7 +120,7 @@ else if(a[0]==='run' && a[1]==='fork') {
   const done=fs.existsSync(c.output+'/code'), after=Number(get('--after')||0);
   const first={sequence:1,type:'boundary_captured',data:captured('plan-review')};
   if(c.stopAfter==='plan-review') {out({controller,events:after<1?[first]:[]});return;}
-  if(['boundary','unsettled'].includes(c.fault) && !fs.existsSync(c.output+'/stopped')) fs.writeFileSync(c.fixture,'{}');
+  if(['boundary','unsettled'].includes(c.fault) && !fs.existsSync(c.output+'/stopped')) fs.writeFileSync(c.taskInput,'changed');
   const events=done?[first,{sequence:2,type:'context_required',data:{stage:'code',attempt:1}},{sequence:3,type:'boundary_captured',data:captured('code')}]:[first,{sequence:2,type:'context_required',data:{stage:'code',attempt:1}}];
   out({controller:{...controller,status:done?'stop_target_reached':'waiting_for_context'},events:events.filter(e=>e.sequence>after)});
 } else if(a[0]==='run' && a[1]==='control') {
@@ -136,7 +139,7 @@ else throw Error('unexpected command '+JSON.stringify(a));
   await write(path.join(engineRoot, 'engine.json'), { schema_id: 'dd-flow/engine-manifest@1', ...engine, integrity: { checksum: engine.integrity_checksum } });
   const retainedEngine = path.join(sourceRoot, 'executions/e2e/dd-flow-home/engines/fixture/new');
   await cp(engineRoot, retainedEngine, { recursive: true });
-  await write(configFile, { output, engine, calls: callsFile, fault, fixture: path.join(caseRoot, 'entry-pack-source/interactions/plan-review.json') });
+  await write(configFile, { output, engine, calls: callsFile, fault, taskInput });
   const configHome = path.join(temp, 'config');
   await write(path.join(configHome, 'harnesses.json'), { schema_id: 'dd-flow/harness-config@1', harnesses: {} });
   for (const [key, value] of Object.entries({ HOME: temp, DD_FLOW_BIN: cli, DD_FLOW_CONFIG_HOME: configHome, DD_EVAL_HOME: path.join(temp, 'home'),
@@ -271,8 +274,8 @@ test('boundary callback failure retains primary error, stops the RUN and finaliz
   const result = await f.runner.runnerFork({ ...f.input, start: true });
   assert.equal(result.status, 'accepted');
   const status = await waitForState(f.runner, f.output, ['completed_with_failures']);
-  assert.equal(status.execution_results[0].code, 'interaction_fixture_invalid');
-  assert.equal(status.execution_results[0].boundaries.length, 1);
+  assert.equal(status.execution_results[0].code, 'task_input_checksum_mismatch');
+  assert.equal(status.execution_results[0].boundaries.length, 1, JSON.stringify(status.execution_results[0]));
   assert.equal(await readFile(path.join(f.output, 'stopped'), 'utf8'), 'yes');
   const events = await readEvents(path.join(f.output, 'events.jsonl'));
   assert.equal(events.filter(e => e.type === 'dev.dd.eval.completed').length, 1);
@@ -337,7 +340,7 @@ for (const retainedFailure of [false, true]) test(`infrastructure stop durably c
   }
   const result = await f.runner.runnerResume({ evalRoot: f.output });
   assert.equal(result.state, 'completed_with_failures');
-  assert.equal(result.cleanup_state, 'settled');
+  assert.equal(result.cleanup_state, 'settled', JSON.stringify(result));
   assert.deepEqual(result.executions.map(item => item.state), ['failed', 'cancelled']);
   let events = await readEvents(eventsFile);
   assert.equal(events.filter(event => event.executionid === 'queued' && event.type === 'dev.dd.eval.operation.started').length, 0);
@@ -361,7 +364,7 @@ test('delayed infrastructure cleanup finalizes with its durably cancelled queue'
   manifest.executions.push({ ...manifest.executions[0], id: 'queued' });
   await write(manifestFile, manifest);
   const pending = await f.runner.runnerResume({ evalRoot: f.output });
-  assert.equal(pending.cleanup_state, 'pending');
+  assert.equal(pending.cleanup_state, 'pending', JSON.stringify(pending));
   assert.deepEqual(pending.executions.map(item => item.state), ['failed', 'cancelled']);
   const config = JSON.parse(await readFile(f.configFile));
   await write(f.configFile, { ...config, fault: null });
