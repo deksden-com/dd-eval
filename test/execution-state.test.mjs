@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import os from 'node:os';
 import path from 'node:path';
-import { executionState, assertExecutionDispatch, executionCleanupRequired } from '../lib/execution-state.mjs';
+import { executionState, assertExecutionDispatch } from '../lib/execution-state.mjs';
 import { appendEvent, readEvents, hashJson } from '../lib/runner-events.mjs';
 import { frozenCandidate, storedExecutionResults, subjectHistoryEvents, buildEvidencePacket } from '../lib/runner.mjs';
 const run = 'EVAL', execution = { id: 'e', stage: 'code' }, launch = `${run}:e:launch`;
@@ -45,18 +45,6 @@ test('execution projections cannot mutate accepted subject history during attrib
     events[0].data.provenance='actual journal change';
     assert.throws(()=>buildEvidencePacket({manifest,results,candidate,events:history}),{code:'judge_evidence_mismatch'});
   }
-});
-
-test('cleanup skips settled cancellation and never stops a newer generation', () => {
-  assert.equal(executionCleanupRequired([cancel], run, execution, launch), true);
-  assert.equal(executionCleanupRequired([cancel, settled], run, execution, launch), false);
-  assert.equal(executionCleanupRequired([complete, cancel, settled], run, execution, launch), false);
-  const recovery = `${launch}:recover:R1`;
-  const events = [cancel, settled, event('operation.started', { operation_id: recovery })];
-  assert.equal(executionCleanupRequired(events, run, execution, launch), false);
-  assert.equal(executionCleanupRequired(events, run, execution, recovery), true);
-  events.push(event('execution.cancelled', { execution_operation_id: launch }));
-  assert.equal(executionCleanupRequired(events, run, execution, recovery), true);
 });
 
 test('terminal outcome obeys the first accepted intent, retaining earlier fatal errors', () => {

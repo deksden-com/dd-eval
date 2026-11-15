@@ -3,7 +3,13 @@ import assert from "node:assert/strict";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { capacityCodexChildren } from "../lib/runner.mjs";
+import { capacityCodexChildren, directNativeChildren } from "../lib/runner.mjs";
+import * as nativeChildren from "../lib/native-children.mjs";
+
+test("runner retains native child observation exports", () => {
+  assert.equal(capacityCodexChildren, nativeChildren.capacityCodexChildren);
+  assert.equal(directNativeChildren, nativeChildren.directNativeChildren);
+});
 
 test("capacity reads native leaf completion, not a parent textual claim", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "capacity-transcript-"));

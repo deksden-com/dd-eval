@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cp, mkdtemp, mkdir, writeFile, readFile, symlink, rm } from 'node:fs/promises';
+import { cp, mkdtemp, mkdir, writeFile, readFile, realpath, symlink, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { loadCapacityPolicy, loadNativeContracts } from '../lib/capacity-policy.mjs';
@@ -23,6 +23,7 @@ test('all-harness native contracts execute from exact installed bytes with conse
   const engine = path.join(root, 'engines/selected');
   await mkdir(engine, { recursive: true });
   await cp(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'dist/harness-runtime'), path.join(engine, 'dist/harness-runtime'), { recursive: true });
+  await cp(await realpath(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'node_modules/shell-quote')), path.join(engine, 'node_modules/shell-quote'), { recursive: true });
   await writeFile(path.join(engine, 'engine.json'), JSON.stringify({ integrity: { checksum: await engineArtifactDigest(engine) } }));
   await symlink('engines/selected/dist/harness-runtime', path.join(root, 'harness-runtime'));
   const contracts = await loadNativeContracts(root, { requireProgress: true, requireTreeSettlement: true });
