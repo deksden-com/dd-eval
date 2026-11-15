@@ -935,8 +935,6 @@ test("HITL verdicts are strict, fail closed, and preserve exact response bytes",
 
 test("HITL recovery enforces the same round, receipt, and evidence contract", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /rounds < fixture\.max_rounds/);
-  assert.match(source, /error\.code = "unexpected_hitl"/);
   assert.match(source, /type: "dev\.dd\.eval\.hitl\.matched"[\s\S]*recovered: true/);
   assert.match(source, /hitl\.push\(\.\.\.await hitlEvidenceFor\(retained, execution\.id, runId, manifest\.execution_contract\)\)/);
 });
@@ -946,6 +944,9 @@ test("unplanned HITL fails before Judge dispatch and preserves the exact questio
   const question = path.join(directory, "question.md");
   await writeFile(question, "May direct API callers use no_priority?\n");
   try {
+    assert.equal(await authorizeHitl({ fixture: { mode: "optional", max_rounds: 1 }, stage: "specify", pause: { id: "pause-1", question_path: question }, rounds: 0 }), "May direct API callers use no_priority?\n");
+    await assert.rejects(authorizeHitl({ fixture: { mode: "forbidden", max_rounds: 0 }, stage: "specify", pause: { id: "pause-1", question_path: question }, rounds: 0 }), error =>
+      error.code === "unexpected_hitl" && error.hitl.reason === "forbidden");
     await assert.rejects(authorizeHitl({ fixture: { mode: "optional", max_rounds: 1 }, stage: "specify", pause: { id: "pause-2", question_path: question }, rounds: 1 }), error =>
       error.code === "unexpected_hitl" && error.hitl.reason === "max_rounds_exceeded" && error.hitl.question_sha256.length === 64);
   } finally { await rm(directory, { recursive: true, force: true }); }

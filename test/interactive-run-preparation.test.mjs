@@ -1,6 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { interactiveInputKind, initialFlowBoundary } from '../lib/runner.mjs';
+import { interactiveInputKind, initialFlowBoundary, authorizeHitl, interactionFixtureManifest, readJson } from '../lib/runner.mjs';
+import * as fixtures from '../lib/interaction-fixtures.mjs';
+import { readJson as readJsonFile } from '../lib/json-file.mjs';
+import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+
+test('runner preserves fixture and JSON exports', async () => {
+  assert.equal(interactiveInputKind, fixtures.interactiveInputKind);
+  assert.equal(authorizeHitl, fixtures.authorizeHitl);
+  assert.equal(interactionFixtureManifest, fixtures.interactionFixtureManifest);
+  assert.equal(readJson, readJsonFile);
+  const root = await mkdtemp(path.join(os.tmpdir(), 'dd-eval-json-'));
+  try {
+    const file = path.join(root, 'broken.json');
+    await writeFile(file, '{');
+    await assert.rejects(readJson(file), { code: 'invalid_json', message: `Invalid JSON: ${file}` });
+    await assert.rejects(readJson(root), { code: 'input_file_not_regular' });
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
 
 test('interactive finish authority comes only from explicitly matched canonical metadata', () => {
   const fixture = { responses: [
