@@ -2,6 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { causalNodes, nativeBindingFields, validateNativeFailureEvidence, verifyCapturedNativeFailure, hasVerifiedNativeFailure } from '../lib/native-failure-evidence.mjs';
 import { classifyInterruption, isInfrastructureFailure, failureDiagnostic, failureAttribution, buildReport, executionEvidence } from '../lib/runner.mjs';
+import * as failureClassification from '../lib/failure-classification.mjs';
+
+test('runner retains the failure classification public exports', () => {
+  assert.equal(classifyInterruption, failureClassification.classifyInterruption);
+  assert.equal(isInfrastructureFailure, failureClassification.isInfrastructureFailure);
+});
 
 test('snapshot policy capability and unconfirmed allocation are infrastructure failures',()=>{
   assert.equal(isInfrastructureFailure({code:'snapshot_policy_unsupported',details:{effect:'no_effect'}}),true);

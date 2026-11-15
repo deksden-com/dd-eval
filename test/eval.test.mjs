@@ -634,7 +634,6 @@ test("normal, resumed, judged, and cancelled runs share one terminal projection"
 
 test("provider interruption consumes the CLI-owned sealed recovery capture", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /function classifyInterruption\(error\)/);
   assert.doesNotMatch(source, /\["run", "recovery", "(?:begin|seal|capture)"/);
   assert.match(source, /control\.admission !== "sealed"/);
   assert.match(source, /path\.join\(control\.capture_path, "snapshot.json"\)/);
