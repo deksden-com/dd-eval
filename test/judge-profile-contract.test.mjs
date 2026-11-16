@@ -1,6 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { assertJudgeProfileBinding } from '../lib/runner.mjs';
+import { parseJsonResponse, judgeExecutionArgs } from '../lib/judge/judge-receipt.mjs';
+
+test('Judge response parsing and execution arguments preserve their contract', () => {
+  assert.deepEqual(parseJsonResponse('```json\n{"result":true}\n```', 'Judge'), { result: true });
+  assert.throws(() => parseJsonResponse('not JSON', 'Judge'), { code: 'judge_result_invalid' });
+  assert.deepEqual(judgeExecutionArgs({ model: 'm', reasoning: 'high', provider: 'p', permission: 'allow' }), ['--model', 'm', '--reasoning', 'high', '--provider', 'p', '--permission', 'allow']);
+});
 import { profileSemanticHash } from '../lib/execution-contract.mjs';
 
 test('Judge reuse is bound to semantic settings, not only a stable profile ID', () => {
