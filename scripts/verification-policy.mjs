@@ -40,6 +40,7 @@ const zones = [
   [/^eval-cleanup\.mjs$/, /cleanup|judge|runner|recovery|managed|eval\.test/],
   [/^canonical-resume\.mjs$/, /canonical|hitl|runner|recovery|managed|eval\.test/],
   [/^eval-launch\.mjs$/, /runner|execution|managed|recovery|hitl|baseline|eval\.test/],
+  [/^command-execution\.mjs$/, /baseline|fixture-assessment|runner-compatibility|check-resources/],
   [/^qualification-inputs\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
   [/^qualification-sample\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
   [/^qualification-contract\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
