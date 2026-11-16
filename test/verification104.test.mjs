@@ -125,6 +125,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   write(root,'lib/cases/canonical-qualification.mjs','export const qualification = 1;\n');
   write(root,'lib/cases/acceptance-receipts.mjs','export const acceptance = 1;\n');
   write(root,'lib/cases/managed-tools.mjs','export const tools = 1;\n');
+  write(root,'lib/cases/input-checkpoint.mjs','export const checkpoint = 1;\n');
   write(root,'lib/cases/definition-identity.mjs','export const identity = 1;\n');
   write(root,'lib/engine-admission.mjs','export const admission = 1;\n');
   let selection=verificationSelection(null,{root,env:{}});
@@ -167,6 +168,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   assert.ok(before.inputs.includes('lib/cases/canonical-qualification.mjs'));
   assert.ok(before.inputs.includes('lib/cases/acceptance-receipts.mjs'));
   assert.ok(before.inputs.includes('lib/cases/managed-tools.mjs'));
+  assert.ok(before.inputs.includes('lib/cases/input-checkpoint.mjs'));
   assert.ok(before.inputs.includes('lib/recovery/cleanup-observation.mjs'));
   assert.ok(before.inputs.includes('lib/recovery/snapshot-observation.mjs'));
   assert.ok(before.inputs.includes('lib/recovery/recovery-source.mjs'));
@@ -198,6 +200,9 @@ test('104: changed control and retained-recovery tests have owned source closure
   const beforeTools=contractDescriptor(contracts[1],{root,env:{}});
   write(root,'lib/cases/managed-tools.mjs','export const tools = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,beforeTools.execution_key);
+  const beforeCheckpoint=contractDescriptor(contracts[1],{root,env:{}});
+  write(root,'lib/cases/input-checkpoint.mjs','export const checkpoint = 2;\n');
+  assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,beforeCheckpoint.execution_key);
   const baseline=contractDescriptor('test/baseline-admission.test.mjs',{root,env:{}});
   write(root,'lib/runner.mjs','export const runner = 2;\n');
   selection=verificationSelection(null,{root,env:{}});
