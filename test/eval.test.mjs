@@ -820,7 +820,7 @@ test("E2E dispatch delegates Session handoff and fan-out to the CLI controller",
 });
 
 test("accepted boundary clears the terminal turn marker before a successor launch", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const source = await readFile(path.join(root, "lib", "cases", "canonical-boundary.mjs"), "utf8");
   assert.match(source, /state\.reference = \{ \.\.\.state\.reference, active_turn: null, pending_pause_id: null \}/);
 });
 
