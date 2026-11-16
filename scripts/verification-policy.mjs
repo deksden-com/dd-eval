@@ -41,6 +41,7 @@ const zones = [
   [/^canonical-resume\.mjs$/, /canonical|hitl|runner|recovery|managed|eval\.test/],
   [/^eval-launch\.mjs$/, /runner|execution|managed|recovery|hitl|baseline|eval\.test/],
   [/^command-execution\.mjs$/, /baseline|fixture-assessment|runner-compatibility|check-resources/],
+  [/^runner-contract\.mjs$/, /baseline|runner-compatibility|fixture-assessment/],
   [/^qualification-inputs\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
   [/^qualification-sample\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
   [/^qualification-contract\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
