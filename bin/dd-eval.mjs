@@ -8,7 +8,7 @@ import { reconcileHitlQualification } from "../lib/runner.mjs";
 import { runnerControlReconcile, runnerControlRequest, runnerControlStatus } from "../lib/runner.mjs";
 import { requestEvalResume, requestEvalRun, requestRunnerContinuation } from "../lib/eval-resume-worker.mjs";
 import { validateExpectedExecutionInputs } from "../lib/execution-contract.mjs";
-import { reconcileEvalHealth } from "../lib/runner-health.mjs";
+import { reconcileEvalHealth } from "../lib/recovery/runner-health.mjs";
 
 function usage() {
   return `dd-eval — deterministic evaluation runner

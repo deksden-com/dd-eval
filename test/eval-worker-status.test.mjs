@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import * as status from '../lib/eval-worker-status.mjs';
+import * as status from '../lib/recovery/eval-worker-status.mjs';
 import * as worker from '../lib/eval-resume-worker.mjs';
 
 test('status preserves worker exports and reports foreign or corrupt receipts without mutation', async t => {

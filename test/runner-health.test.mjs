@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { assessEvalHealth, boundFlowHealth, reconcileEvalHealth } from "../lib/runner-health.mjs";
+import { assessEvalHealth, boundFlowHealth, reconcileEvalHealth } from "../lib/recovery/runner-health.mjs";
 import { appendEvent, observationProjection, readEvents } from "../lib/runner-events.mjs";
 
 const now = "2026-10-13T12:00:00.000Z";
