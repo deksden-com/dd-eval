@@ -21,7 +21,7 @@ import os from 'node:os';
 import { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
 import { snapshotTreeHash } from '../lib/case-acceptance.mjs';
-import { resolveBoundSnapshot } from '../lib/recovery-safety.mjs';
+import { resolveBoundSnapshot } from '../lib/recovery/recovery-safety.mjs';
 
 const binding = Object.fromEntries(nativeBindingFields.map(key => [key, key === 'generation' ? 1 : key === 'stage_cycle' ? '' : key]));
 binding.schema_id = 'dd-flow/native-work-failure@1';

@@ -13,7 +13,7 @@ import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { DatabaseSync } from 'node:sqlite';
-import { resolveBoundSnapshot, selectedSnapshots } from '../lib/recovery-safety.mjs';
+import { resolveBoundSnapshot, selectedSnapshots } from '../lib/recovery/recovery-safety.mjs';
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 async function recoveryFixture(f) {
