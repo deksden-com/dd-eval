@@ -5,13 +5,12 @@ import os from "node:os";
 import path from "node:path";
 import { buildHitlPacket, hitlCoverageContract, validateHitlCoverage, hitlCoverageInput, interactionCoveragePrompt, interactionGroundedPrompt, canonicalExclusionRule } from "../lib/hitl-contract.mjs";
 import { semanticQuestion } from "../lib/semantic-decisions.mjs";
-import { coverageTransport, jevPromptHash, validateCoveragePolicy, jevRequest, requestJev, observeJev, calibrateJev, verifyCoverageQualification, verifyJevReceipt } from "../lib/hitl-coverage.mjs";
+import { coverageTransport, jevPromptHash, validateCoveragePolicy, jevRequest, validateJevResponse, observeJev, calibrateJev, verifyCoverageQualification, verifyJevReceipt } from "../lib/hitl-coverage.mjs";
 import { selectedPolicy as capacityPolicy, successfulPolicy, installSuccessfulPolicy } from "./fixtures/capacity-policy.mjs";
 import { childEnvironment } from "../lib/process-json.mjs";
 import { writeJsonAtomic, hashJson, sha256 } from "../lib/runner-events.mjs";
 import { interactionJudge, loadRunProfile, loadCase, hitlQualificationInputs, buildReport, classifyInterruption } from "../lib/runner.mjs";
 import { compareCoverageExpectation } from "../lib/hitl-corpus.mjs";
-import { setTimeout as delay } from "node:timers/promises";
 import { settledJudge } from "./fixtures/judge-cleanup.mjs";
 import { promptJudgeWithCapacity } from "../lib/judge-capacity.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
@@ -66,32 +65,10 @@ test("compact contract validates exact shape and never projects partial IDs", as
   assert.equal(schema({ ...covered, status: "uncovered", response_ids: [], uncovered_questions: ["Need SMS?"] }), true);
 });
 
-test("JEV validates pinned response identity, probability, bytes and HTTP failures", async () => {
-  const p = await packet(), request = jevRequest(p, policy);
-  let calls = 0;
-  const fetchImpl = async (url, options) => { calls++; assert.equal(url, "https://openrouter.ai/api/alpha/decisions"); assert.equal(options.redirect, "error"); return Response.json(response(.1)); };
-  assert.equal((await requestJev(request, policy, { key: "secret", fetchImpl })).probability, .1);
-  assert.equal(calls, 1);
-  assert.equal((await requestJev(request, policy, { key: "", fetchImpl })).reason, "missing_key");
-  assert.equal((await requestJev(request, policy, { key: "secret", fetchImpl: async () => new Response("secret", { status: 429 }) })).reason, "http_429");
-  for (const value of [{ ...response(.1), provider: "other" }, response(1.1), { ...response(.1), model: "latest" }]) assert.equal((await requestJev(request, policy, { key: "secret", fetchImpl: async () => Response.json(value) })).state, "failed");
-  assert.equal((await requestJev(request, policy, { key: "secret", limits: { inactivityMs: 1000, requestBytes: 1, responseBytes: 1000 }, fetchImpl })).reason, "input_limit");
-  assert.equal(calls, 1);
-});
-
-test("only network progress extends JEV inactivity; silence aborts and cancellation wins", async () => {
-  const request = jevRequest(await packet(), policy), body = JSON.stringify(response(.1));
-  const limits = { inactivityMs: 80, requestBytes: 65536, responseBytes: 65536 };
-  const fetchImpl = async () => new Response(new ReadableStream({ async start(controller) {
-    for (const part of [body.slice(0, 20), body.slice(20, 50), body.slice(50)]) { await delay(45); controller.enqueue(new TextEncoder().encode(part)); }
-    controller.close();
-  } }));
-  assert.equal((await requestJev(request, policy, { key: "secret", limits, fetchImpl })).state, "completed", "productive body may outlive original window");
-  const waiting = async (_url, { signal }) => new Promise((resolve, reject) => signal.addEventListener("abort", () => reject(signal.reason), { once: true }));
-  assert.equal((await requestJev(request, policy, { key: "secret", limits, fetchImpl: waiting })).reason, "network_inactivity");
-  const abort = new AbortController(); const pending = requestJev(request, policy, { key: "secret", limits, fetchImpl: waiting, signal: abort.signal });
-  abort.abort(new Error("operator cancellation")); await assert.rejects(pending, /operator cancellation/);
-  assert.equal((await requestJev(request, policy, { key: "secret", limits: { ...limits, responseBytes: 1 }, fetchImpl: async () => Response.json(response(.1)) })).reason, "output_limit");
+test("retained JEV responses require the pinned identity and valid probability", () => {
+  for (const probability of [0, .1, 1]) assert.equal(validateJevResponse(response(probability), policy), probability);
+  for (const value of [{ ...response(.1), provider: "other" }, response(1.1), response(-.1), { ...response(.1), model: "latest" }])
+    assert.throws(() => validateJevResponse(value, policy), { code: "jev_response_invalid" });
 });
 
 test("JEV retains original observation, reuses it once and rejects drift", async () => {

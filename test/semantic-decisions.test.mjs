@@ -6,7 +6,7 @@ import os from "node:os";
 import { setTimeout as delay, setImmediate as nextTurn } from "node:timers/promises";
 import { hashJson, writeJsonAtomic, sha256 } from "../lib/runner-events.mjs";
 import { buildHitlPacket, hitlCoverageContract, canonicalCoveragePolicy, interactionCoveragePrompt } from "../lib/hitl-contract.mjs";
-import { jevInstructions, jevRequest, requestJev } from "../lib/hitl-coverage.mjs";
+import { jevInstructions, jevRequest } from "../lib/hitl-coverage.mjs";
 import { openaiDecisions } from "../lib/semantic-openai-decisions.mjs";
 import { openrouterDecisions } from "../lib/semantic-openrouter-decisions.mjs";
 import { validateSemanticConfig, validateSemanticRequest, semanticQuestion, semanticFingerprint, confidenceMeets,
@@ -186,12 +186,10 @@ test("structural overload in HTTP429 gets bounded retries, unknown429 stays term
   });
 });
 
-test("both optional transports preserve HTTP precedence and never resample invalid successful responses", async () => {
-  const legacy = { requested_model: jev.model, resolved_model: `${jev.model}-20260917`, provider: "TypeSafe" };
+test("optional decision transports preserve HTTP precedence and never resample invalid successful responses", async () => {
   const consumers = [
     fetchImpl => requestSemantic(request, config, { key: "secret", fetchImpl }),
-    fetchImpl => requestSemantic(request, jev, { key: "secret", fetchImpl }),
-    fetchImpl => requestJev({}, legacy, { key: "secret", fetchImpl })
+    fetchImpl => requestSemantic(request, jev, { key: "secret", fetchImpl })
   ];
   for (const consumer of consumers) for (const [fetchImpl, reason, status, retryable] of [
     [async () => new Response("not JSON"), "response_json_invalid", 200, false],
