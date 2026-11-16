@@ -6,6 +6,12 @@ import path from 'node:path';
 import test from 'node:test';
 import { execFileSync } from 'node:child_process';
 import { materializeTaskInput, prepareTaskInput } from '../lib/runner.mjs';
+import * as taskInput from '../lib/task-input.mjs';
+
+test('runner retains task input exports', () => {
+  assert.equal(materializeTaskInput, taskInput.materializeTaskInput);
+  assert.equal(prepareTaskInput, taskInput.prepareTaskInput);
+});
 
 test('task input validates the whole batch before git exclusion or copying, then consumes prepared bytes', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'eval-task-input-'));
