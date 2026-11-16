@@ -7,6 +7,12 @@ import { pathToFileURL } from "node:url";
 import { resolveExecutionContract, resolveGenericExecutionContract, validateExecutionContract, materializeExecutionContract, contractProfile, assertRunExecutionContract, conformanceExecutionContract, profileSemanticHash } from "../lib/execution-contract.mjs";
 import { canonicalJson, sha256, hashJson } from "../lib/runner-events.mjs";
 import { assertProfileCapacity, qualifiedCoordinator, admitContractProfiles } from "../lib/runner.mjs";
+import * as profileCapacity from "../lib/profile-capacity.mjs";
+
+test("runner retains its profile capacity exports", () => {
+  assert.equal(assertProfileCapacity, profileCapacity.assertProfileCapacity);
+  assert.equal(qualifiedCoordinator, profileCapacity.qualifiedCoordinator);
+});
 
 const template = (id, harness = "codex") => ({ schema_id: "dd-flow/agent-profile@1", id, harness, provider: "openai", model: "old-model", reasoning: "high", mode: "agent", permission: "allow" });
 const declaration = (id, harness = "codex-desktop") => ({ schema_version: 1, id, harness, model: "new-model", reasoning: "xhigh", runtime: { codex_cli: "0.161.0" } });
