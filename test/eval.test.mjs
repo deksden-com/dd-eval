@@ -9,7 +9,7 @@ import { promisify } from "node:util";
 import test from "node:test";
 import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, resolveHitlJudgment, restoredRoots, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
-import { definitionSelection } from "../lib/runner.mjs";
+import { buildRunCandidate, definitionSelection } from "../lib/runner.mjs";
 import * as definitionIdentity from "../lib/definition-identity.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 import { buildHitlPacket, validateGroundedHitl, interactionGroundedPrompt } from '../lib/hitl-contract.mjs';
@@ -633,7 +633,6 @@ test("normal, resumed, judged, and cancelled runs share one terminal projection"
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.equal((source.match(/finalizeRunProjection\(\{/g) ?? []).length >= 4, true);
   assert.match(source, /await writeJsonAtomic\(path\.join\(root, "state\.json"\), projection\)/);
-  assert.match(source, /existing candidate does not match completed executions/);
   assert.match(source, /state !== "awaiting_provider"/);
   assert.equal(storedExecutionResults([{ executionid: "e", type: "dev.dd.eval.execution.cancelled", data: {} }], { run_id: "r", executions: [{ id: "e" }] })[0].state, "cancelled");
 });
@@ -645,7 +644,6 @@ test("provider interruption consumes the CLI-owned sealed recovery capture", asy
   assert.match(source, /path\.join\(control\.capture_path, "snapshot.json"\)/);
   assert.match(source, /export async function runnerRecover/);
   assert.match(source, /launch:recover:/);
-  assert.match(source, /candidate-revisions/);
 });
 
 test("interruption attribution preserves structured lifecycle and storage errors", () => {
@@ -760,8 +758,11 @@ test("capacity native children appearing after backoff or permit prevent another
 
 test("a terminal incomplete execution keeps an immutable evidence candidate for Judge", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /schema_id: "dd-eval\/run-candidate@2"/);
-  assert.match(source, /outcome: results\.every\(\(result\) => result\.state === "candidate_ready"\) \? "complete" : "incomplete"/);
+  const candidate = await buildRunCandidate({ runId: 'EVAL-test', manifest: { run_id: 'EVAL-test' }, results: [{ execution: 'e', state: 'failed' }] });
+  assert.equal(candidate.schema_id, 'dd-eval/run-candidate@2');
+  assert.equal(candidate.outcome, 'incomplete');
+  const { immutable_hash, ...content } = candidate;
+  assert.equal(immutable_hash, hashJson(content));
   const prompt = finalJudgePrompt({ assessmentFile: '/assessment', candidateFile: '/candidate', evidenceFile: '/evidence', scope: 'e2e', assessment: { scopes: { e2e: { outcome: [], flow: [] } } } });
   assert.match(prompt, /If candidate\.outcome is incomplete, assess only evidence-backed work that actually ran/);
   assert.match(source, /if \(!finalized\.candidate\) return \{ root, status: "awaiting_provider"/);

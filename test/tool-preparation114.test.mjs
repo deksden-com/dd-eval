@@ -5,6 +5,12 @@ import path from 'node:path';
 import test from 'node:test';
 import { declaredManagedTools, prepareDeclaredManagedTools, failureStageAttribution, latestObservedStage, executionEvidence, enrichFailureEvidence } from '../lib/runner.mjs';
 import { executionState } from '../lib/execution-state.mjs';
+import * as stageAttribution from '../lib/stage-attribution.mjs';
+
+test('runner retains stage attribution exports', () => {
+  assert.equal(latestObservedStage, stageAttribution.latestObservedStage);
+  assert.equal(failureStageAttribution, stageAttribution.failureStageAttribution);
+});
 
 test('declared tools prepare once before caller dispatch and legacy checkpoints do nothing', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'tools114-'));

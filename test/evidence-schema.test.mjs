@@ -7,6 +7,13 @@ import Ajv2020 from "ajv/dist/2020.js";
 import { buildEvidencePacket, buildReport, buildRunCandidate, frozenCandidate, subjectHistoryEvents, resolveHitlJudgment, isInfrastructureFailure, failureAttribution, failureDiagnostic, failureEvidenceRevision } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
+import * as candidateModule from '../lib/run-candidate.mjs';
+
+test('runner retains candidate exports', () => {
+  assert.equal(buildRunCandidate, candidateModule.buildRunCandidate);
+  assert.equal(frozenCandidate, candidateModule.frozenCandidate);
+  assert.equal(subjectHistoryEvents, candidateModule.subjectHistoryEvents);
+});
 
 const schemaRoot = path.resolve(import.meta.dirname, "..", "schemas");
 test('finalization attribution requires engine phase and matching RUN, not generic invalid_run_state', () => {
