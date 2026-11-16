@@ -2,8 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadInputCheckpoint } from '../lib/cases/input-checkpoint.mjs';
 import { loadCase } from '../lib/runner.mjs';
+import { loadCase as loadCaseImpl } from '../lib/cases/load-case.mjs';
 
 test('checkpoint loader rejects invalid pins and preserves loaded case identity', async () => {
+  assert.equal(loadCase, loadCaseImpl);
+  await assert.rejects(loadCase('../escape'));
   await assert.rejects(loadInputCheckpoint({ id: '../escape', sha256: 'a'.repeat(64) }), /valid input_checkpoint/);
   await assert.rejects(loadInputCheckpoint({ id: 'cp-nonexistent-qualification-test', sha256: 'a'.repeat(64) }), { code: 'input_checkpoint_missing' });
   const loaded = await loadCase('sdlc-eval-2026-summer-task-priority');
