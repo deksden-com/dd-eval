@@ -976,7 +976,7 @@ test("canonical recovery reuses accepted HITL bytes without spending another rou
 });
 
 test("canonical mutations are bound to their committed eval definition", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const source = await readFile(path.join(root, "lib", "cases", "canonical-qualification.mjs"), "utf8");
   const recovery = await readFile(path.join(root, "lib", "cases", "canonical-recovery.mjs"), "utf8");
   assert.match(recovery, /runner_definition_drift/);
   assert.match(recovery, /state\.definition\.dependencies_sha256 !== current\.dependencies_sha256/);
