@@ -910,7 +910,7 @@ test("productive fan-out no longer creates an isolated worker root", async () =>
 
 test("worker failure remains primary when daemon cleanup also fails", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  const execution = source.slice(source.indexOf("async function executeEval("), source.indexOf("export async function evalJudge("));
+  const execution = source.slice(source.indexOf("async function executeEval("), source.indexOf("export { evalJudge }"));
   assert.match(execution, /evidence\.control = \{ settled: false, cleanup_error: errorRecord\(cleanupError\) \}/);
   assert.match(execution, /\.\.\.errorRecord\(error\)/);
   assert.match(execution, /!isObservationLoss\(error\)/);
