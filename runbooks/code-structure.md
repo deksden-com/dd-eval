@@ -39,5 +39,8 @@ resource binding and retirement helpers belong in `recovery/`. Keep the
 top-level runner and worker files as orchestration and compatibility facades.
 Harness process policy, bounded diagnostics and structured error parsing live in
 `harness/process-support.mjs`; baseline admission fingerprints this helper.
+Native driver invocation and harness qualification live in `harness/`; final
+Judge assessment belongs to `judge/`, while `evidence/finalization.mjs` owns
+the report projection across capture, cleanup and assessment.
 The old top-level module paths retained as facades preserve existing consumers,
 while verification keys include the actual subsystem implementations.

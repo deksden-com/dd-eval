@@ -21,7 +21,10 @@ test('process contracts bind extracted helpers to their execution key', () => {
 test('control contracts bind the extracted execution and recovery dependencies', () => {
   const inputs = contractDescriptor('test/runner-control.test.mjs').inputs;
   for (const file of ['lib/execution/selection.mjs', 'lib/execution/eval-inputs.mjs',
-    'lib/recovery/launch-retirement.mjs', 'lib/harness/driver-recovery.mjs', 'lib/judge/retained-cleanup.mjs']) {
+    'lib/recovery/launch-retirement.mjs', 'lib/recovery/cleanup-receipt.mjs', 'lib/harness/driver-recovery.mjs',
+    'lib/harness/driver-call.mjs', 'lib/judge/retained-cleanup.mjs', 'lib/judge/final-assessment.mjs',
+    'lib/evidence/finalization.mjs']) {
     assert.ok(inputs.includes(file), `missing execution-key input ${file}`);
   }
+  for (const file of inputs) assert.ok(fs.existsSync(file), `stale execution-key input ${file}`);
 });
