@@ -5,9 +5,12 @@ import os from 'node:os';
 import path from 'node:path';
 import { checkObservedProfile, readModelObservations, modelAttribution, modelObservationFile } from '../lib/model-observations.mjs';
 import { resolveEvidenceJournals } from '../lib/runner.mjs';
+import { resolveEvidenceJournals as resolveEvidenceJournalsImpl } from '../lib/evidence-journals.mjs';
 import { modelProgressPump } from '../lib/model-progress.mjs';
 import { readEvents } from '../lib/runner-events.mjs';
 import { pathToFileURL } from 'node:url';
+
+test('runner retains evidence journal export', () => assert.equal(resolveEvidenceJournals, resolveEvidenceJournalsImpl));
 
 test('qualified native routing preserves provenance while model, reasoning and permissions remain strict', () => {
   const requested = { provider: 'openai', model: 'gpt-6.1-sol', reasoning: 'high', mode: 'agent', permission_mode: 'allow' };
