@@ -7,7 +7,7 @@ import { writeJsonAtomic, appendEvent, readEvents, sha256, canonicalJson } from 
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { resolveExecutionContract, resolveGenericExecutionContract } from '../lib/execution-contract.mjs';
 import { executionConformance, statusCleanupState, runResultRevision, buildReport, reportMarkdown, driverProfileArgs, assertObservedProfile, recoverExecution, interactionFixtureManifest } from '../lib/runner.mjs';
-import { modelConformance } from '../lib/model-conformance.mjs';
+import { modelConformance } from '../lib/evidence/model-conformance.mjs';
 
 test('conformance binds outbound intent to its controller profile, not any planned model', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'runner-contract-'));

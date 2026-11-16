@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { buildReport, interactionCoverageSummary, reportMarkdown, resolveHitlJudgment, retainedCoverageFilter, runnerStatus, finalJudgePrompt, hitlProof, executionEvidence } from "../lib/runner.mjs";
-import * as reportProjections from "../lib/report-projections.mjs";
+import * as reportProjections from "../lib/evidence/report-projections.mjs";
 import { buildHitlPacket, hitlCoverageContract, validateGroundedHitl } from "../lib/hitl-contract.mjs";
 import { hashJson, sha256, appendEvent, writeJsonAtomic } from "../lib/runner-events.mjs";
 import { settledJudge } from "./fixtures/judge-cleanup.mjs";

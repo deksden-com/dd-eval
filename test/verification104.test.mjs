@@ -43,9 +43,9 @@ test('104: changed control and retained-recovery tests have owned source closure
   write(root,'test/baseline-admission.test.mjs',"import test from 'node:test';test('runtime shim',()=>{});\n");
   write(root,'lib/runner.mjs','export const runner = 1;\n');
   write(root,'lib/profile-capacity.mjs','export const profileCapacity = 1;\n');
-  write(root,'lib/report-projections.mjs','export const report = 1;\n');
-  write(root,'lib/model-conformance.mjs','export const model = 1;\n');
-  write(root,'lib/evidence-journals.mjs','export const journals = 1;\n');
+  write(root,'lib/evidence/report-projections.mjs','export const report = 1;\n');
+  write(root,'lib/evidence/model-conformance.mjs','export const model = 1;\n');
+  write(root,'lib/evidence/evidence-journals.mjs','export const journals = 1;\n');
   write(root,'lib/eval-worker-status.mjs','export const status = 1;\n');
   write(root,'lib/runner-health.mjs','export const health = 1;\n');
   write(root,'lib/run-candidate.mjs','export const candidate = 1;\n');
@@ -61,10 +61,10 @@ test('104: changed control and retained-recovery tests have owned source closure
   assert.ok(contracts.every(contract=>selection.files.includes(contract)));
   const before=contractDescriptor(contracts[1],{root,env:{}});
   assert.ok(before.inputs.includes('lib/engine-admission.mjs'));
-  assert.ok(before.inputs.includes('lib/model-conformance.mjs'));
-  assert.ok(before.inputs.includes('lib/report-projections.mjs'));
+  assert.ok(before.inputs.includes('lib/evidence/model-conformance.mjs'));
+  assert.ok(before.inputs.includes('lib/evidence/report-projections.mjs'));
   assert.ok(before.inputs.includes('lib/profile-capacity.mjs'));
-  assert.ok(before.inputs.includes('lib/evidence-journals.mjs'));
+  assert.ok(before.inputs.includes('lib/evidence/evidence-journals.mjs'));
   assert.ok(before.inputs.includes('lib/eval-worker-status.mjs'));
   assert.ok(before.inputs.includes('lib/runner-health.mjs'));
   assert.ok(before.inputs.includes('lib/run-candidate.mjs'));
@@ -91,7 +91,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   const withDriver=contractDescriptor(contracts[1],{root,env:{}});
   write(root,'lib/driver-bindings.mjs','export const driver = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withDriver.execution_key);
-  for (const name of ['snapshot-tree', 'verification-matrix-schema', 'verification-matrix-checks', 'run-candidate', 'stage-attribution', 'eval-worker-status', 'runner-health', 'evidence-journals', 'model-conformance', 'report-projections', 'profile-capacity', 'cleanup-observation']) {
+  for (const name of ['snapshot-tree', 'verification-matrix-schema', 'verification-matrix-checks', 'run-candidate', 'stage-attribution', 'eval-worker-status', 'runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/report-projections', 'profile-capacity', 'cleanup-observation']) {
     const earlier = contractDescriptor(contracts[1],{root,env:{}});
     write(root,`lib/${name}.mjs`,'export const changed = true;\n');
     assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,earlier.execution_key);
