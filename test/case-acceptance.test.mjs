@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { checkCaseAcceptance, snapshotTreeHash, validateCaseAcceptancePolicy, selectFailedCheckGate, finalReceiptIndex, validateFrozenReceiptScope, validateFinalCheckReceipts } from "../lib/case-acceptance.mjs";
-import { snapshotTreeHash as snapshotTreeHashImpl } from '../lib/snapshot-tree.mjs';
+import { snapshotTreeHash as snapshotTreeHashImpl } from '../lib/recovery/snapshot-tree.mjs';
 import { validateFinalCheckReceipts as validateFinalCheckReceiptsImpl } from '../lib/verification-matrix-checks.mjs';
 import { compositeRunner } from './fixtures/composite-runner103.mjs';
 import { framedSnapshotTreeHash } from '../lib/framed-snapshot-hash.mjs';

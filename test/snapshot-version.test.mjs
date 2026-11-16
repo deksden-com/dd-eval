@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import {isCandidateRunSnapshot,isStageRunSnapshot,isStandardRunSnapshot} from '../lib/snapshot-version.mjs';
+import {isCandidateRunSnapshot,isStageRunSnapshot,isStandardRunSnapshot} from '../lib/recovery/snapshot-version.mjs';
 import {verifySnapshot} from '../lib/runner.mjs';
 
 test('snapshot version gate keeps independent workspace distinct from legacy and unborn-project formats',()=>{

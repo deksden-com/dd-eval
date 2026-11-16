@@ -75,6 +75,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   write(root,'lib/hitl/interaction-fixtures.mjs','export const fixtures = 1;\n');
   write(root,'lib/hitl/resolve-judgment.mjs','export const judgment = 1;\n');
   write(root,'lib/recovery/recovery-source.mjs','export const source = 1;\n');
+  write(root,'lib/recovery/snapshot-version.mjs','export const version = 1;\n');
   write(root,'lib/recovery/cleanup-observation.mjs','export const cleanup = 1;\n');
   write(root,'lib/recovery/snapshot-observation.mjs','export const snapshot = 1;\n');
   write(root,'lib/execution/profile-capacity.mjs','export const profileCapacity = 1;\n');
@@ -90,7 +91,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   write(root,'lib/evidence/run-candidate.mjs','export const candidate = 1;\n');
   write(root,'lib/evidence/stage-attribution.mjs','export const stage = 1;\n');
   write(root,'lib/driver-bindings.mjs','export const driver = 1;\n');
-  write(root,'lib/snapshot-tree.mjs','export const snapshot = 1;\n');
+  write(root,'lib/recovery/snapshot-tree.mjs','export const snapshot = 1;\n');
   write(root,'lib/verification-matrix-schema.mjs','export const matrix = 1;\n');
   write(root,'lib/verification-matrix-checks.mjs','export const checks = 1;\n');
   write(root,'lib/task-input.mjs','export const taskInput = 1;\n');
@@ -118,13 +119,14 @@ test('104: changed control and retained-recovery tests have owned source closure
   assert.ok(before.inputs.includes('lib/evidence/stage-attribution.mjs'));
   assert.ok(before.inputs.includes('lib/driver-bindings.mjs'));
   assert.ok(before.inputs.includes('lib/definition-identity.mjs'));
-  assert.ok(before.inputs.includes('lib/snapshot-tree.mjs'));
+  assert.ok(before.inputs.includes('lib/recovery/snapshot-tree.mjs'));
   assert.ok(before.inputs.includes('lib/verification-matrix-schema.mjs'));
   assert.ok(before.inputs.includes('lib/verification-matrix-checks.mjs'));
   assert.ok(before.inputs.includes('lib/task-input.mjs'));
   assert.ok(before.inputs.includes('lib/recovery/cleanup-observation.mjs'));
   assert.ok(before.inputs.includes('lib/recovery/snapshot-observation.mjs'));
   assert.ok(before.inputs.includes('lib/recovery/recovery-source.mjs'));
+  assert.ok(before.inputs.includes('lib/recovery/snapshot-version.mjs'));
   git(root,'add','.');git(root,'commit','-qm','control fixture');
   write(root,'lib/engine-admission.mjs','export const admission = 2;\n');
   selection=verificationSelection(null,{root,env:{}});
@@ -140,7 +142,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   const withDriver=contractDescriptor(contracts[1],{root,env:{}});
   write(root,'lib/driver-bindings.mjs','export const driver = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withDriver.execution_key);
-  for (const name of ['snapshot-tree', 'verification-matrix-schema', 'verification-matrix-checks', 'evidence/run-candidate', 'evidence/stage-attribution', 'eval-worker-status', 'runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/report-projections', 'execution/profile-capacity', 'execution/execution-state', 'execution/admission', 'execution/execution-scheduling', 'harness/native-children', 'recovery/cleanup-observation', 'recovery/snapshot-observation', 'recovery/recovery-source', 'hitl/interaction-fixtures', 'hitl/resolve-judgment', 'judge/judge-receipt', 'judge/final-judge-contract']) {
+  for (const name of ['recovery/snapshot-tree', 'recovery/snapshot-version', 'verification-matrix-schema', 'verification-matrix-checks', 'evidence/run-candidate', 'evidence/stage-attribution', 'eval-worker-status', 'runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/report-projections', 'execution/profile-capacity', 'execution/execution-state', 'execution/admission', 'execution/execution-scheduling', 'harness/native-children', 'recovery/cleanup-observation', 'recovery/snapshot-observation', 'recovery/recovery-source', 'hitl/interaction-fixtures', 'hitl/resolve-judgment', 'judge/judge-receipt', 'judge/final-judge-contract']) {
     const earlier = contractDescriptor(contracts[1],{root,env:{}});
     write(root,`lib/${name}.mjs`,'export const changed = true;\n');
     assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,earlier.execution_key);
