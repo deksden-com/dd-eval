@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { validateJudgeResult, finalJudgePrompt, failureDiagnostic, isInfrastructureFailure, executionEvidence } from "../lib/runner.mjs";
-import * as finalJudgeContract from "../lib/final-judge-contract.mjs";
+import * as finalJudgeContract from "../lib/judge/final-judge-contract.mjs";
 
 const assessment = { scopes: { e2e: { outcome: [], flow: [] } } };
 const result = { schema_id: "dd-eval/judge-result@2", scope: "e2e", run_validity: "valid", outcome: [], flow: [], findings: [], golden: { covered: [], missed: [], alternatives: [], novel: [] }, conclusion: "unreached stages" };
