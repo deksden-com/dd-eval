@@ -108,7 +108,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   write(root,'lib/recovery/runner-health.mjs','export const health = 1;\n');
   write(root,'lib/evidence/run-candidate.mjs','export const candidate = 1;\n');
   write(root,'lib/evidence/stage-attribution.mjs','export const stage = 1;\n');
-  write(root,'lib/driver-bindings.mjs','export const driver = 1;\n');
+  write(root,'lib/harness/driver-bindings.mjs','export const driver = 1;\n');
   write(root,'lib/recovery/snapshot-tree.mjs','export const snapshot = 1;\n');
   write(root,'lib/verification-matrix-schema.mjs','export const matrix = 1;\n');
   write(root,'lib/verification-matrix-checks.mjs','export const checks = 1;\n');
@@ -139,7 +139,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   assert.ok(before.inputs.includes('lib/recovery/runner-health.mjs'));
   assert.ok(before.inputs.includes('lib/evidence/run-candidate.mjs'));
   assert.ok(before.inputs.includes('lib/evidence/stage-attribution.mjs'));
-  assert.ok(before.inputs.includes('lib/driver-bindings.mjs'));
+  assert.ok(before.inputs.includes('lib/harness/driver-bindings.mjs'));
   assert.ok(before.inputs.includes('lib/cases/definition-identity.mjs'));
   assert.ok(before.inputs.includes('lib/recovery/snapshot-tree.mjs'));
   assert.ok(before.inputs.includes('lib/verification-matrix-schema.mjs'));
@@ -165,7 +165,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   write(root,'lib/cases/task-input.mjs','export const taskInput = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withTaskInput.execution_key);
   const withDriver=contractDescriptor(contracts[1],{root,env:{}});
-  write(root,'lib/driver-bindings.mjs','export const driver = 2;\n');
+  write(root,'lib/harness/driver-bindings.mjs','export const driver = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withDriver.execution_key);
   for (const name of ['cases/canonical-qualification', 'recovery/snapshot-tree', 'recovery/snapshot-version', 'recovery/recovery-safety', 'recovery/framed-snapshot-hash', 'verification-matrix-schema', 'verification-matrix-checks', 'evidence/run-candidate', 'evidence/stage-attribution', 'recovery/eval-worker-status', 'recovery/runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/model-observations', 'evidence/observation-summary', 'evidence/report-projections', 'execution/profile-capacity', 'execution/execution-state', 'execution/admission', 'execution/execution-scheduling', 'harness/native-children', 'harness/model-progress', 'recovery/cleanup-observation', 'recovery/snapshot-observation', 'recovery/recovery-source', 'hitl/interaction-fixtures', 'hitl/resolve-judgment', 'judge/judge-receipt', 'judge/final-judge-contract']) {
     const earlier = contractDescriptor(contracts[1],{root,env:{}});
