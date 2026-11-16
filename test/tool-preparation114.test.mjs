@@ -72,7 +72,7 @@ test('tool preparation remains only at declared productive entry boundaries', as
   assert(provision.includes('export async function provisionRuntimeEngine('));
   assert(!provision.includes('prepareDeclaredManagedTools'));
   assert.equal((source.match(/await prepareDeclaredManagedTools\(/g) ?? []).length, 3);
-  const enrich = source.slice(source.indexOf('async function enrichFailureEvidence('), source.indexOf('async function judgeCapacityPrompt('));
+  const enrich = await readFile(new URL('../lib/evidence/failure-enrichment.mjs', import.meta.url), 'utf8');
   assert(enrich.includes('Object.assign(result, failureStageAttribution('));
   assert(!enrich.includes('result.stage = latestObservedStage'));
 });
