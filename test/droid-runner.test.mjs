@@ -140,7 +140,7 @@ test('config-only Judge uses the configured adapter/runtime without enabling flo
     assert.equal(finalOwner.run_id, undefined);
     const source = await readFile(path.join(root, 'lib/runner.mjs'), 'utf8');
     const final = source.slice(source.indexOf('async function finalJudge('), source.indexOf('async function interactionJudge('));
-    const interaction = source.slice(source.indexOf('async function interactionJudge('), source.indexOf('async function materializeHitlAnswer('));
+    const interaction = source.slice(source.indexOf('async function interactionJudge('), source.indexOf('export function judgeRuntimeEnvironment('));
     assert.match(final, /judgeRuntimeEnvironment\(\{ runtimeRoot: roots\.runtimeRoot,/);
     assert.match(interaction, /judgeRuntimeEnvironment\(\{ runtimeRoot,/);
   } finally { await rm(home, { recursive: true, force: true }); }
