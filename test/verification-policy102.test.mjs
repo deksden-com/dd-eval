@@ -13,8 +13,7 @@ test('EVAL defaults use explicit impact selection, never every test before launc
 
 test('process contracts bind extracted helpers to their execution key', () => {
   const inputs = contractDescriptor('test/process-json.test.mjs').inputs;
-  for (const file of ['lib/process-json.mjs', 'lib/json-file.mjs', 'lib/harness/process-failure.mjs',
-    'lib/harness/process-diagnostics.mjs', 'lib/harness/process-policy.mjs']) {
+  for (const file of ['lib/process-json.mjs', 'lib/json-file.mjs', 'lib/harness/process-support.mjs']) {
     assert.ok(inputs.includes(file), `missing execution-key input ${file}`);
   }
 });
