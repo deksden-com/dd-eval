@@ -138,9 +138,8 @@ test('config-only Judge uses the configured adapter/runtime without enabling flo
     const finalOwner = JSON.parse(judgeRuntimeEnvironment({ runtimeRoot: home, daemonState, profile, codexHome: path.join(home, 'codex-home') }).DD_FLOW_RUNTIME_OWNER);
     assert.equal(finalOwner.project_id, undefined);
     assert.equal(finalOwner.run_id, undefined);
-    const source = await readFile(path.join(root, 'lib/runner.mjs'), 'utf8');
-    const final = source.slice(source.indexOf('async function finalJudge('), source.indexOf('async function interactionJudge('));
-    const interaction = source.slice(source.indexOf('async function interactionJudge('), source.indexOf('export function judgeRuntimeEnvironment('));
+    const final = await readFile(path.join(root, 'lib/judge/final-assessment.mjs'), 'utf8');
+    const interaction = await readFile(path.join(root, 'lib/hitl/interaction-judge.mjs'), 'utf8');
     assert.match(final, /judgeRuntimeEnvironment\(\{ runtimeRoot: roots\.runtimeRoot,/);
     assert.match(interaction, /judgeRuntimeEnvironment\(\{ runtimeRoot,/);
   } finally { await rm(home, { recursive: true, force: true }); }
