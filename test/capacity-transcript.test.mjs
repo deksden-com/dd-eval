@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { capacityCodexChildren, directNativeChildren } from "../lib/runner.mjs";
-import * as nativeChildren from "../lib/native-children.mjs";
+import * as nativeChildren from "../lib/harness/native-children.mjs";
 
 test("runner retains native child observation exports", () => {
   assert.equal(capacityCodexChildren, nativeChildren.capacityCodexChildren);

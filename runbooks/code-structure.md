@@ -17,10 +17,10 @@ have a clear owner; do not introduce empty directories or blanket re-exports.
 | Subsystem | Current related modules | Responsibility |
 | --- | --- | --- |
 | Evidence and reporting | `evidence/`, `model-observations`, `observation-summary`, `failure-diagnostic` | Resolve retained evidence and project it into attribution, Judge input and reports; candidate freezing remains an effectful boundary. |
-| Execution and control | `execution/`, `execution-contract`, `runner-events`, `runner-lock`, `operation-context` | Bind the selected execution and coordinate durable state and admission. |
+| Execution and control | `execution/`, `execution-contract`, `runner-events`, `runner-lock`, `operation-context` | Bind the selected execution, coordinate admission and scheduling, and project durable state. |
 | Recovery and cleanup | `recovery/`, `snapshot-tree`, `recovery-safety`, `eval-retirement`, `eval-resume-worker`, `runner-health`, `eval-worker-status` | Select retained recovery sources, verify snapshots and observe/reconcile owned runtime resources. |
 | Cases and qualification | `case-acceptance`, `canonical-qualification`, `definition-identity`, `task-input`, `flow-boundaries`, `verification-matrix-*` | Bind case inputs, frozen definitions, qualification and acceptance. |
-| Harnesses and capacity | `driver-bindings`, `driver-recovery`, `capacity-policy`, `native-children`, `model-progress` | Adapt harness contracts and observe their execution; do not own EVAL verdicts. |
+| Harnesses and capacity | `harness/`, `driver-bindings`, `driver-recovery`, `capacity-policy`, `model-progress` | Adapt harness contracts and observe their execution; do not own EVAL verdicts. |
 | HITL and Judge | `hitl/`, `hitl-*`, `judge-*`, `final-judge-contract`, `semantic-decisions` | Build and verify interaction and assessment contracts. |
 
 On extraction, separate pure projection from I/O and ownership checks where the
