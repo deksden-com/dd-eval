@@ -4,7 +4,7 @@ import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
 import { callDriver } from "../lib/runner.mjs";
-import { modelAttribution, readModelObservations } from "../lib/model-observations.mjs";
+import { modelAttribution, readModelObservations } from "../lib/evidence/model-observations.mjs";
 import { writeJsonAtomic } from "../lib/runner-events.mjs";
 import { waitForNativeDispatch } from "../lib/driver-recovery.mjs";
 

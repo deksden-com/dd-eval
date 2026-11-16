@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, appendFile, mkdir, rm, symlink } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { checkObservedProfile, readModelObservations, modelAttribution, modelObservationFile } from '../lib/model-observations.mjs';
+import { checkObservedProfile, readModelObservations, modelAttribution, modelObservationFile } from '../lib/evidence/model-observations.mjs';
 import { resolveEvidenceJournals } from '../lib/runner.mjs';
 import { resolveEvidenceJournals as resolveEvidenceJournalsImpl } from '../lib/evidence/evidence-journals.mjs';
 import { modelProgressPump } from '../lib/model-progress.mjs';

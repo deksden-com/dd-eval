@@ -3,7 +3,7 @@ import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { observationSummary } from "../lib/observation-summary.mjs";
+import { observationSummary } from "../lib/evidence/observation-summary.mjs";
 
 test("reports unknown gaps separately, without inferring sleep or model time", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dd-observation-"));

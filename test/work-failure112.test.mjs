@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { classifyInterruption, failureDiagnostic, isInfrastructureFailure } from '../lib/runner.mjs';
 import { observationProjection } from '../lib/runner-events.mjs';
-import { observationSummary } from '../lib/observation-summary.mjs';
+import { observationSummary } from '../lib/evidence/observation-summary.mjs';
 
 const failure = code => ({ code, details: { source: 'explicit_work_failure', episode_id: 'EP-1',
   work_id: 'WRK-011', work_session_id: 'WS-1', result_ref: 'run://RUN-1/works/WRK-011/result.json',

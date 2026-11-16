@@ -16,7 +16,7 @@ have a clear owner; do not introduce empty directories or blanket re-exports.
 
 | Subsystem | Current related modules | Responsibility |
 | --- | --- | --- |
-| Evidence and reporting | `evidence/`, `model-observations`, `observation-summary`, `failure-diagnostic` | Resolve retained evidence and project it into attribution, Judge input and reports; candidate freezing remains an effectful boundary. |
+| Evidence and reporting | `evidence/`, `failure-diagnostic` | Resolve retained evidence and project it into attribution, Judge input and reports; candidate freezing remains an effectful boundary. |
 | Execution and control | `execution/`, `execution-contract`, `runner-events`, `runner-lock`, `operation-context` | Bind the selected execution, coordinate admission and scheduling, and project durable state. |
 | Recovery and cleanup | `recovery/`, `eval-retirement`, `eval-resume-worker` | Select retained recovery sources, verify snapshots and observe/reconcile owned runtime resources. |
 | Cases and qualification | `cases/`, `case-acceptance`, `flow-boundaries`, `verification-matrix-*` | Bind case inputs, frozen definitions, qualification and acceptance. |
