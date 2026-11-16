@@ -68,7 +68,7 @@ test('tool preparation remains only at declared productive entry boundaries', as
   const preflight = source.slice(source.indexOf('export async function evalPreflight('), source.indexOf('export async function evalRun('));
   assert(preflight.indexOf('await assertCheckpointEngine') < preflight.indexOf('await prepareDeclaredManagedTools'));
   assert(preflight.indexOf('await prepareDeclaredManagedTools') < preflight.indexOf('await prepareCaseManagedRun'));
-  const provision = source.slice(source.indexOf('export async function provisionRuntimeEngine('), source.indexOf('async function prepareRuntimeHarnessConfig('));
+  const provision = source.slice(source.indexOf('export async function provisionRuntimeEngine('), source.indexOf('export async function installRuntimeShim('));
   assert(!provision.includes('prepareDeclaredManagedTools'));
   assert.equal((source.match(/await prepareDeclaredManagedTools\(/g) ?? []).length, 3);
   const enrich = source.slice(source.indexOf('async function enrichFailureEvidence('), source.indexOf('export async function captureRecoveryEvidence('));
