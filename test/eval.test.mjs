@@ -1027,7 +1027,7 @@ test("capacity qualification needs positive cleanup and exact bounded child owne
 });
 
 test("capacity qualification stays outside the flow runtime", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const source = await readFile(path.join(root, "lib", "harness", "qualification.mjs"), "utf8");
   const helper = source.match(/export async function harnessCapacityCheck[\s\S]*?\n}/);
   assert.ok(helper);
   assert.doesNotMatch(helper[0], /DD_FLOW_HOME/);

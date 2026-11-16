@@ -94,7 +94,7 @@ test('isolated runtime prefers the adapter bundled with its selected engine', as
 });
 
 test('Droid technical capacity launches without flow integration', async () => {
-  const source = await readFile(path.join(root, 'lib/runner.mjs'), 'utf8');
+  const source = await readFile(path.join(root, 'lib/harness/qualification.mjs'), 'utf8');
   const helper = source.match(/export async function harnessCapacityCheck[\s\S]*?\n}/)[0];
   assert.match(helper, /\["grok-acp", "antigravity-cli", "opencode-server", "droid-cli", "droid"\]\.includes\(profile.harness\) \? \["--no-flow"\]/);
   assert.doesNotMatch(helper, /DD_FLOW_HOME/);
