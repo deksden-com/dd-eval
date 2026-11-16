@@ -96,6 +96,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   write(root,'lib/execution/profile-capacity.mjs','export const profileCapacity = 1;\n');
   write(root,'lib/execution/execution-scheduling.mjs','export const scheduling = 1;\n');
   write(root,'lib/harness/native-children.mjs','export const children = 1;\n');
+  write(root,'lib/harness/model-progress.mjs','export const progress = 1;\n');
   write(root,'lib/execution/execution-state.mjs','export const state = 1;\n');
   write(root,'lib/execution/admission.mjs','export const admission = 1;\n');
   write(root,'lib/evidence/report-projections.mjs','export const report = 1;\n');
@@ -130,6 +131,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   assert.ok(before.inputs.includes('lib/execution/profile-capacity.mjs'));
   assert.ok(before.inputs.includes('lib/execution/execution-scheduling.mjs'));
   assert.ok(before.inputs.includes('lib/harness/native-children.mjs'));
+  assert.ok(before.inputs.includes('lib/harness/model-progress.mjs'));
   assert.ok(before.inputs.includes('lib/execution/execution-state.mjs'));
   assert.ok(before.inputs.includes('lib/execution/admission.mjs'));
   assert.ok(before.inputs.includes('lib/evidence/evidence-journals.mjs'));
@@ -165,7 +167,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   const withDriver=contractDescriptor(contracts[1],{root,env:{}});
   write(root,'lib/driver-bindings.mjs','export const driver = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withDriver.execution_key);
-  for (const name of ['cases/canonical-qualification', 'recovery/snapshot-tree', 'recovery/snapshot-version', 'recovery/recovery-safety', 'recovery/framed-snapshot-hash', 'verification-matrix-schema', 'verification-matrix-checks', 'evidence/run-candidate', 'evidence/stage-attribution', 'recovery/eval-worker-status', 'recovery/runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/model-observations', 'evidence/observation-summary', 'evidence/report-projections', 'execution/profile-capacity', 'execution/execution-state', 'execution/admission', 'execution/execution-scheduling', 'harness/native-children', 'recovery/cleanup-observation', 'recovery/snapshot-observation', 'recovery/recovery-source', 'hitl/interaction-fixtures', 'hitl/resolve-judgment', 'judge/judge-receipt', 'judge/final-judge-contract']) {
+  for (const name of ['cases/canonical-qualification', 'recovery/snapshot-tree', 'recovery/snapshot-version', 'recovery/recovery-safety', 'recovery/framed-snapshot-hash', 'verification-matrix-schema', 'verification-matrix-checks', 'evidence/run-candidate', 'evidence/stage-attribution', 'recovery/eval-worker-status', 'recovery/runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/model-observations', 'evidence/observation-summary', 'evidence/report-projections', 'execution/profile-capacity', 'execution/execution-state', 'execution/admission', 'execution/execution-scheduling', 'harness/native-children', 'harness/model-progress', 'recovery/cleanup-observation', 'recovery/snapshot-observation', 'recovery/recovery-source', 'hitl/interaction-fixtures', 'hitl/resolve-judgment', 'judge/judge-receipt', 'judge/final-judge-contract']) {
     const earlier = contractDescriptor(contracts[1],{root,env:{}});
     write(root,`lib/${name}.mjs`,'export const changed = true;\n');
     assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,earlier.execution_key);

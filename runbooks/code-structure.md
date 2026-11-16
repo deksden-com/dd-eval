@@ -20,7 +20,7 @@ have a clear owner; do not introduce empty directories or blanket re-exports.
 | Execution and control | `execution/`, `execution-contract`, `runner-events`, `runner-lock`, `operation-context` | Bind the selected execution, coordinate admission and scheduling, and project durable state. |
 | Recovery and cleanup | `recovery/`, `eval-retirement`, `eval-resume-worker` | Select retained recovery sources, verify snapshots and observe/reconcile owned runtime resources. |
 | Cases and qualification | `cases/`, `case-acceptance`, `flow-boundaries`, `verification-matrix-*` | Bind case inputs, frozen definitions, qualification and acceptance. |
-| Harnesses and capacity | `harness/`, `driver-bindings`, `driver-recovery`, `capacity-policy`, `model-progress` | Adapt harness contracts and observe their execution; do not own EVAL verdicts. |
+| Harnesses and capacity | `harness/`, `driver-bindings`, `driver-recovery`, `capacity-policy` | Adapt harness contracts and observe their execution; do not own EVAL verdicts. |
 | HITL and Judge | `hitl/`, `judge/`, `hitl-*`, `judge-*`, `semantic-decisions` | Build and verify interaction and assessment contracts. |
 
 On extraction, separate pure projection from I/O and ownership checks where the

@@ -6,7 +6,7 @@ import path from 'node:path';
 import { checkObservedProfile, readModelObservations, modelAttribution, modelObservationFile } from '../lib/evidence/model-observations.mjs';
 import { resolveEvidenceJournals } from '../lib/runner.mjs';
 import { resolveEvidenceJournals as resolveEvidenceJournalsImpl } from '../lib/evidence/evidence-journals.mjs';
-import { modelProgressPump } from '../lib/model-progress.mjs';
+import { modelProgressPump } from '../lib/harness/model-progress.mjs';
 import { readEvents } from '../lib/runner-events.mjs';
 import { pathToFileURL } from 'node:url';
 
