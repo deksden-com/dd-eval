@@ -808,13 +808,13 @@ test("new-session handoff is a flow invariant rather than an eval-profile option
 test("E2E dispatch delegates Session handoff and fan-out to the CLI controller", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.doesNotMatch(source, /function (?:runServerMerge|materializeMergeAgentProfile|stageExecutor|mergeHarness)\b/);
-  const execution = source.slice(source.indexOf("export async function launchEvalExecution("), source.indexOf("async function observeManagedExecution("));
+  const execution = source.slice(source.indexOf("export async function launchEvalExecution("), source.indexOf("export { evalJudge }"));
   assert.match(execution, /await observeManagedExecution/);
   assert.match(execution, /const baselineScope = \{ bin: runtimeBin\(runtimeRoot\), home: runtimeRoot,/);
   // Harness doctor is an admission preflight, not a provider turn.  Productive
   // handoff/fan-out must remain exclusively behind the CLI controller.
   assert.doesNotMatch(execution, /providerTurn\(|driveFanout\(|runServerMerge\(|captureExecutionCandidate\(/);
-  const managed = source.slice(source.indexOf("async function observeManagedExecution("), source.indexOf("export async function recoverExecution("));
+  const managed = await readFile(path.join(root, "lib", "execution", "managed-observer.mjs"), "utf8");
   assert.match(managed, /await observeManagedRun/);
   assert.match(managed, /observed\.controller\.sessions/);
 });

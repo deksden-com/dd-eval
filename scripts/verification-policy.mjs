@@ -35,6 +35,7 @@ const zones = [
   [/^eval-preflight\.mjs$/, /preflight|runner|managed|baseline|eval\.test/],
   [/^eval-fork\.mjs$/, /fork|checkpoint|runner|recovery|baseline|eval\.test/],
   [/^eval-judge\.mjs$/, /judge|supplement|runner|recovery|managed|eval\.test/],
+  [/^managed-observer\.mjs$/, /managed|runner|recovery|hitl|execution|eval\.test/],
   [/^qualification-inputs\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
   [/^qualification-sample\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
   [/^qualification-contract\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
