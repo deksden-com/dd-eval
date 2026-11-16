@@ -7,11 +7,26 @@ import os from 'node:os';
 import path from 'node:path';
 import { executionState, assertExecutionDispatch } from '../lib/execution/execution-state.mjs';
 import { assertEvalExecutionDispatch as admissionDispatch } from '../lib/execution/admission.mjs';
+import { subjectSessionFor, preparedContextFor } from '../lib/execution/result-projection.mjs';
 import { appendEvent, readEvents, hashJson } from '../lib/runner-events.mjs';
 import { frozenCandidate, storedExecutionResults, subjectHistoryEvents, buildEvidencePacket, assertEvalExecutionDispatch } from '../lib/runner.mjs';
 
 test('runner retains its dispatch admission export', () => {
   assert.equal(assertEvalExecutionDispatch, admissionDispatch);
+});
+
+test('retained projections choose the latest subject session and prepared stage context', () => {
+  const events = [
+    { executionid: 'e', type: 'dev.dd.eval.subject.session_created', data: { session_id: 'first' } },
+    { executionid: 'e', type: 'dev.dd.eval.operation.started', time: 'first-start' },
+    { executionid: 'e', type: 'dev.dd.eval.execution.context_prepared', data: { stage: 'code', marker: 1 } },
+    { executionid: 'other', type: 'dev.dd.eval.subject.successor_session_created', data: { session_id: 'foreign' } },
+    { executionid: 'e', type: 'dev.dd.eval.subject.successor_session_created', data: { session_id: 'next' } },
+    { executionid: 'e', type: 'dev.dd.eval.execution.context_prepared', data: { stage: 'code', marker: 2 } }
+  ];
+  assert.equal(subjectSessionFor(events, 'e'), 'next');
+  assert.deepEqual(preparedContextFor(events, 'e', 'code'), { stage: 'code', marker: 2, started_at: 'first-start' });
+  assert.equal(subjectSessionFor(events, 'missing'), null);
 });
 const run = 'EVAL', execution = { id: 'e', stage: 'code' }, launch = `${run}:e:launch`;
 const event = (kind, data = {}) => ({ type: `dev.dd.eval.${kind}`, executionid: 'e', data });

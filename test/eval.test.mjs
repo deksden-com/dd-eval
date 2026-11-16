@@ -616,8 +616,10 @@ test("eval does not retain a second execution snapshot controller", async () => 
 
 test("recovery resumes the latest successor Subject Session", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /dev\.dd\.eval\.subject\.successor_session_created/);
-  assert.match(source, /sessions\.at\(-1\).*session_id/s);
+  const projection = await readFile(path.join(root, "lib", "execution", "result-projection.mjs"), "utf8");
+  assert.match(source, /subjectSessionFor\(events, execution\.id\)/);
+  assert.match(projection, /dev\.dd\.eval\.subject\.successor_session_created/);
+  assert.match(projection, /sessions\.at\(-1\).*session_id/s);
 });
 
 test("recovery retains the logical CLI controller rather than restarting an eval daemon", async () => {
