@@ -32,7 +32,7 @@ const zones = [
   [/^execution-state\.mjs$/, /execution-state|completion-scope|runner-cancel|runner-control|runner-recovery|runner-health|runner-launch-observation|managed|retirement|tool-preparation114|hitl-reattach|eval\.test/],
   [/^admission\.mjs$/, /execution-state|completion-scope|runner-cancel|runner-control|runner-recovery|managed-resume|runner|recovery|eval\.test/],
   [/^recovery-source\.mjs$/, /runner-recovery|runner-control|managed-resume|recovery-finalization105|eval\.test|runner|recovery|managed|fork/],
-  [/^cleanup-observation\.mjs$/, /cleanup-observation|technical-notes107|runner-health|runner|recovery|managed|retirement|cleanup|eval\.test/],
+  [/^cleanup-observation\.mjs$/, /cleanup-observation|technical-notes107|monitoring-status|runner-health|runner|recovery|managed|retirement|cleanup|eval\.test/],
   [/^profile-capacity\.mjs$/, /execution-contract|memory-case-definition|droid-runner|capacity|eval\.test|runner|recovery|managed|canonical|fork|baseline-admission/],
   [/^report-projections\.mjs$/, /evidence-schema|native-failure083|judge-contract082|check-diagnostic086|proof-limits091|technical-notes107|tool-preparation114|execution-state|completion-scope|model-observations|hitl|coverage|eval\.test|runner|recovery|managed|fork/],
   [/^model-conformance\.mjs$/, /model-observations|runner-execution-contract|evidence-schema|technical-notes|eval\.test|runner|recovery|managed|fork/],
