@@ -10,7 +10,7 @@ import { frozenCandidate, storedExecutionResults, runnerRecoveryInspect } from "
 import { appendEvent } from "../lib/runner-events.mjs";
 import { resolveBoundSnapshot } from "../lib/recovery/recovery-safety.mjs";
 import { snapshotTreeHash } from "../lib/case-acceptance.mjs";
-import { framedSnapshotTreeHash } from "../lib/recovery/framed-snapshot-hash.mjs";
+import { framedSnapshotTreeHash } from "../lib/recovery/snapshot-tree.mjs";
 
 test("terminal Git candidate checks bundle and framed payload before use", async t => {
   const root=await realpath(await mkdtemp(path.join(os.tmpdir(),"dd-eval-candidate-git-")));t.after(()=>rm(root,{recursive:true,force:true}));

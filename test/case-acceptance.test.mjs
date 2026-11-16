@@ -6,10 +6,9 @@ import os from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { checkCaseAcceptance, snapshotTreeHash, validateCaseAcceptancePolicy, selectFailedCheckGate, finalReceiptIndex, validateFrozenReceiptScope, validateFinalCheckReceipts } from "../lib/case-acceptance.mjs";
-import { snapshotTreeHash as snapshotTreeHashImpl } from '../lib/recovery/snapshot-tree.mjs';
+import { snapshotTreeHash as snapshotTreeHashImpl, framedSnapshotTreeHash } from '../lib/recovery/snapshot-tree.mjs';
 import { validateFinalCheckReceipts as validateFinalCheckReceiptsImpl } from '../lib/verification-matrix-checks.mjs';
 import { compositeRunner } from './fixtures/composite-runner103.mjs';
-import { framedSnapshotTreeHash } from '../lib/recovery/framed-snapshot-hash.mjs';
 
 const sha = value => createHash("sha256").update(value).digest("hex");
 const policy = { checker: "task-priority@1", case_id: "sdlc-eval-2026-summer-task-priority" };

@@ -6,7 +6,7 @@ import os from "node:os";
 import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { snapshotTreeHash } from "../lib/case-acceptance.mjs";
-import { framedSnapshotTreeHash } from "../lib/recovery/framed-snapshot-hash.mjs";
+import { framedSnapshotTreeHash } from "../lib/recovery/snapshot-tree.mjs";
 import { protocolizeMaterializationEvidence } from "../lib/materialization-evidence.mjs";
 import { finalJudgePrompt } from "../lib/runner.mjs";
 const sha = bytes => createHash("sha256").update(bytes).digest("hex");
