@@ -1198,7 +1198,7 @@ test("canonical build rejects a clean checkout whose product commit differs from
 });
 
 test("canonical input does not require an empty overlay commit", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const source = await readFile(path.join(root, "lib", "cases", "materialize-input.mjs"), "utf8");
   assert.match(source, /const overlayChanged = Boolean/);
   assert.match(source, /if \(overlayChanged\) await commandText\("git"/);
 });
