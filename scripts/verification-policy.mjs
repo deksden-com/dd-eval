@@ -5,6 +5,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 const zones = [
+  [/^frozen-evidence\.mjs$/, /frozen-evidence|case-acceptance|verification|runner|recovery|fork|eval\.test/],
   [/^runner-status\.mjs$/, /monitoring-status|runner-health|cleanup|technical-notes107|evidence|runner|recovery|managed|eval\.test/],
   [/^control-status\.mjs$/, /runner-control|monitoring-status|eval-worker|runner|recovery|managed|eval\.test/],
   [/^control-resume\.mjs$/, /runner-control|runner-cancel|admission|runner|recovery|managed|eval\.test/],
