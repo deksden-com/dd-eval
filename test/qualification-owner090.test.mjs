@@ -8,6 +8,13 @@ import { readEvents, reduceEvents, sha256, writeJsonAtomic } from "../lib/runner
 import { listHomes } from "../lib/homes.mjs";
 import { judgeRuntimeEnvironment, runnerStatus } from "../lib/runner.mjs";
 
+test("HITL qualification binds both runtime owner lifecycle operations", async () => {
+  const source = await readFile(new URL("../lib/hitl/qualification-run.mjs", import.meta.url), "utf8");
+  assert.match(source, /import\s*\{\s*prepareQualificationOwner,\s*finishQualificationOwner\s*\}\s*from\s*["']\.\.\/harness\/qualification-owner\.mjs["']/);
+  assert.match(source, /await prepareQualificationOwner\(/);
+  assert.match(source, /await finishQualificationOwner\(/);
+});
+
 test("qualification has an independent discoverable runtime scope without changing semantic task identity", async t => {
   const home = await realpath(await mkdtemp(path.join(os.tmpdir(), "qualification-owner090-")));
   t.after(() => rm(home, { recursive: true, force: true }));
