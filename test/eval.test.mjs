@@ -809,7 +809,7 @@ test("new-session handoff is a flow invariant rather than an eval-profile option
 test("E2E dispatch delegates Session handoff and fan-out to the CLI controller", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.doesNotMatch(source, /function (?:runServerMerge|materializeMergeAgentProfile|stageExecutor|mergeHarness)\b/);
-  const execution = source.slice(source.indexOf("export async function launchEvalExecution("), source.indexOf("export { evalJudge }"));
+  const execution = await readFile(path.join(root, "lib", "execution", "eval-launch.mjs"), "utf8");
   assert.match(execution, /await observeManagedExecution/);
   assert.match(execution, /const baselineScope = \{ bin: runtimeBin\(runtimeRoot\), home: runtimeRoot,/);
   // Harness doctor is an admission preflight, not a provider turn.  Productive
@@ -910,8 +910,7 @@ test("productive fan-out no longer creates an isolated worker root", async () =>
 });
 
 test("worker failure remains primary when daemon cleanup also fails", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  const execution = source.slice(source.indexOf("async function executeEval("), source.indexOf("export { evalJudge }"));
+  const execution = await readFile(path.join(root, "lib", "execution", "eval-launch.mjs"), "utf8");
   assert.match(execution, /evidence\.control = \{ settled: false, cleanup_error: errorRecord\(cleanupError\) \}/);
   assert.match(execution, /\.\.\.errorRecord\(error\)/);
   assert.match(execution, /!isObservationLoss\(error\)/);
@@ -1079,7 +1078,7 @@ test("reference native-child recovery delegates to its retained CLI owner", asyn
 });
 
 test("observer loss remains recoverable instead of producing a failed execution", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const source = await readFile(path.join(root, "lib", "execution", "eval-launch.mjs"), "utf8");
   assert.match(source, /if \(isObservationLoss\(error\)\)/);
   assert.match(source, /state: "awaiting_provider", \.\.\.errorRecord\(error\)/);
   assert.match(source, /dev\.dd\.eval\.execution\.awaiting_provider/);

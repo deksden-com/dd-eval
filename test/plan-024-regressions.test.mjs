@@ -5,7 +5,7 @@ import { assertTargetSession, continuationStage, storedExecutionResults } from "
 
 test("managed execution addresses the restored flow RUN, not the event EVAL ID", async () => {
   const source = await readFile(new URL("../lib/runner.mjs", import.meta.url), "utf8");
-  const execution = source.slice(source.indexOf("async function executeEval("), source.indexOf("export { evalJudge }"));
+  const execution = await readFile(new URL("../lib/execution/eval-launch.mjs", import.meta.url), "utf8");
   assert.match(execution, /observeManagedExecution\(/);
   const managed = await readFile(new URL("../lib/execution/managed-observer.mjs", import.meta.url), "utf8");
   assert.match(managed, /observeManagedRun\(\{[\s\S]*?runId: restored\.run_id/);
