@@ -45,6 +45,7 @@ const zones = [
   [/^managed-prepare\.mjs$/, /managed|memory|flow|runner|preflight|eval\.test/],
   [/^managed-flow-client\.mjs$/, /managed|memory|flow|runner|recovery|eval\.test/],
   [/^continuation-request\.mjs$/, /resume|control|worker|cleanup|recovery|runner/],
+  [/^eval-run\.mjs$/, /runner|execution|managed|recovery|hitl|baseline|eval\.test|canonical/],
   [/^qualification-inputs\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
   [/^qualification-sample\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
   [/^qualification-contract\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
@@ -184,7 +185,7 @@ controlInputs.push('lib/hitl/qualification-run.mjs', 'lib/execution/eval-preflig
   'lib/recovery/execution-recovery.mjs', 'lib/recovery/eval-cleanup.mjs',
   'lib/cases/canonical-resume.mjs', 'lib/execution/eval-launch.mjs',
   'lib/baseline/command-execution.mjs', 'lib/baseline/runner-contract.mjs', 'lib/execution/managed-prepare.mjs',
-  'lib/recovery/continuation-request.mjs');
+  'lib/recovery/continuation-request.mjs', 'lib/execution/eval-run.mjs');
 const repoGit = (root, ...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio:['ignore','pipe','pipe'] }).trimEnd();
 const sha = value => createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
 export function verificationSelection(base = null, { root = process.cwd(), env = process.env } = {}) {

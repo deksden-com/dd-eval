@@ -50,13 +50,13 @@ test("admission wait slides on progress, not repeated heartbeat; waiter cancella
 });
 
 test("prepare-only skips historical admission, direct/resume retain guarded queue barriers", async () => {
-  const source = await readFile(new URL("../lib/runner.mjs", import.meta.url), "utf8");
+  const source = await readFile(new URL("../lib/execution/eval-run.mjs", import.meta.url), "utf8");
   const initial = source.slice(source.indexOf("export async function executeEval("), source.indexOf("async function executePreparedQueue("));
   assert.match(initial, /if \(!prepareOnly\) await withPriorEvalRetirement/);
   assert.ok(initial.indexOf("await provisionRuntimeEngine") < initial.indexOf("if (!prepareOnly) await withPriorEvalRetirement"));
   assert.ok(initial.indexOf('if (prepareOnly) return') < initial.indexOf("return executePreparedQueue"));
   assert.match(initial, /admission: preparedQueueAdmission/);
-  const queue = source.slice(source.indexOf("async function executePreparedQueue("), source.indexOf("export async function launchEvalExecution("));
+  const queue = source.slice(source.indexOf("async function executePreparedQueue("), source.indexOf("export async function runnerResume("));
   assert.match(queue, /admission !== preparedQueueAdmission/);
   const resume = source.slice(source.indexOf("export async function runnerResume("), source.indexOf("async function runnerResumeLocked("));
   assert.ok(resume.indexOf("await withPriorEvalRetirement") < resume.indexOf("admission = preparedQueueAdmission"));

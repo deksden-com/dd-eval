@@ -632,7 +632,7 @@ test("recovery retains the logical CLI controller rather than restarting an eval
 });
 
 test("normal, resumed, judged, and cancelled runs share one terminal projection", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const source = await readFile(path.join(root, "lib", "execution", "eval-run.mjs"), "utf8");
   const finalization = await readFile(path.join(root, "lib", "evidence", "finalization.mjs"), "utf8");
   const cleanup = await readFile(path.join(root, "lib", "recovery", "eval-cleanup.mjs"), "utf8");
   const recovery = await readFile(path.join(root, "lib", "recovery", "execution-recovery.mjs"), "utf8");
