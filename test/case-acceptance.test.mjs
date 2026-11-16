@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { checkCaseAcceptance, snapshotTreeHash, validateCaseAcceptancePolicy, selectFailedCheckGate, finalReceiptIndex, validateFrozenReceiptScope, validateFinalCheckReceipts } from "../lib/case-acceptance.mjs";
+import { snapshotTreeHash as snapshotTreeHashImpl } from '../lib/snapshot-tree.mjs';
 import { compositeRunner } from './fixtures/composite-runner103.mjs';
 import { framedSnapshotTreeHash } from '../lib/framed-snapshot-hash.mjs';
 
@@ -15,6 +16,7 @@ const scenario = ".memory-bank/scenarios/SCN-002-workspace-task-core.md";
 const matrix = ".memory-bank/plans/verification-matrix.md";
 const plan = ".memory-bank/protocol/PRT-007-task-priority-levels/plan.json";
 const evidence = ".memory-bank/protocol/PRT-007-task-priority-levels/evidence/local-proof.md";
+test('case acceptance retains snapshot hashing export', () => assert.equal(snapshotTreeHash, snapshotTreeHashImpl));
 test("case acceptance policy rejects a typo before runner admission", () => {
   assert.doesNotThrow(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@2" }));
   assert.doesNotThrow(() => validateCaseAcceptancePolicy({ ...policy, checker: "task-priority@3" }));

@@ -159,6 +159,7 @@ async function runtimeFixture(t, fault = null) {
   const engineRoot = path.join(runtimeRoot, 'engines/fixture/1');
   assert.ok(process.env.DD_FLOW_SOURCE_ROOT, 'set DD_FLOW_SOURCE_ROOT for exact built native contract fixtures');
   await cp(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'dist/harness-runtime'), path.join(engineRoot, 'dist/harness-runtime'), { recursive: true });
+  await cp(await realpath(path.join(process.env.DD_FLOW_SOURCE_ROOT, 'node_modules/shell-quote')), path.join(engineRoot, 'node_modules/shell-quote'), { recursive: true });
   await put(engineRoot, 'cli.cjs', `const fs=require('node:fs'); const a=process.argv.slice(2), c=JSON.parse(fs.readFileSync(${JSON.stringify(settings)}));
 fs.appendFileSync(c.calls,JSON.stringify({flow:a,recovery_home:process.env.DD_FLOW_RECOVERY_HOME})+'\\n');
 if(a[0]==='codex' && c.fault==='changed-during-setup') fs.appendFileSync(c.output+'/assessment.json',' ');
@@ -314,16 +315,17 @@ for (const code of ['subject_liveness_timeout', 'operation_output_limit']) test(
 test('supplemental publication rechecks physical cleanup and retains the verdict when it becomes unconfirmed', async t => {
   const f = await runtimeFixture(t), result = await f.invoke();
   const calls = await readFile(f.calls, 'utf8'), originalKill = process.kill;
-  let observations = 0;
   const probe = t.mock.method(process, 'kill', (pid, signal) => {
     if (pid !== 2147483647 || signal !== 0) return originalKill(pid, signal);
-    throw Object.assign(new Error('offline physical observation'), { code: ++observations === 2 ? 'EPERM' : 'ESRCH' });
+    throw Object.assign(new Error('offline physical observation'), { code: 'EACCES' });
   });
-  await assert.rejects(f.invoke(), { code: 'judge_cleanup_unconfirmed' });
+  const reused = await f.invoke();
   probe.mock.restore();
   const report = JSON.parse(await readFile(path.join(result.root, 'report.json')));
-  assert.equal(report.judge_status, 'failed'); assert.equal(report.cleanup, 'unconfirmed');
+  assert.equal(reused.reused, true);
+  assert.equal(report.judge_status, 'completed'); assert.equal(report.cleanup, 'unconfirmed');
   assert.equal(report.judge_cleanup.status, 'unknown');
+  assert.equal(report.judge_cleanup.error.code, 'judge_cleanup_unconfirmed');
   assert.deepEqual(report.supplemental, result.receipt);
   assert.equal(await readFile(f.calls, 'utf8'), calls);
 });
