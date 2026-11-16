@@ -48,8 +48,8 @@ test('104: changed control and retained-recovery tests have owned source closure
   write(root,'lib/evidence/evidence-journals.mjs','export const journals = 1;\n');
   write(root,'lib/eval-worker-status.mjs','export const status = 1;\n');
   write(root,'lib/runner-health.mjs','export const health = 1;\n');
-  write(root,'lib/run-candidate.mjs','export const candidate = 1;\n');
-  write(root,'lib/stage-attribution.mjs','export const stage = 1;\n');
+  write(root,'lib/evidence/run-candidate.mjs','export const candidate = 1;\n');
+  write(root,'lib/evidence/stage-attribution.mjs','export const stage = 1;\n');
   write(root,'lib/driver-bindings.mjs','export const driver = 1;\n');
   write(root,'lib/snapshot-tree.mjs','export const snapshot = 1;\n');
   write(root,'lib/verification-matrix-schema.mjs','export const matrix = 1;\n');
@@ -67,8 +67,8 @@ test('104: changed control and retained-recovery tests have owned source closure
   assert.ok(before.inputs.includes('lib/evidence/evidence-journals.mjs'));
   assert.ok(before.inputs.includes('lib/eval-worker-status.mjs'));
   assert.ok(before.inputs.includes('lib/runner-health.mjs'));
-  assert.ok(before.inputs.includes('lib/run-candidate.mjs'));
-  assert.ok(before.inputs.includes('lib/stage-attribution.mjs'));
+  assert.ok(before.inputs.includes('lib/evidence/run-candidate.mjs'));
+  assert.ok(before.inputs.includes('lib/evidence/stage-attribution.mjs'));
   assert.ok(before.inputs.includes('lib/driver-bindings.mjs'));
   assert.ok(before.inputs.includes('lib/definition-identity.mjs'));
   assert.ok(before.inputs.includes('lib/snapshot-tree.mjs'));
@@ -91,7 +91,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   const withDriver=contractDescriptor(contracts[1],{root,env:{}});
   write(root,'lib/driver-bindings.mjs','export const driver = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withDriver.execution_key);
-  for (const name of ['snapshot-tree', 'verification-matrix-schema', 'verification-matrix-checks', 'run-candidate', 'stage-attribution', 'eval-worker-status', 'runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/report-projections', 'profile-capacity', 'cleanup-observation']) {
+  for (const name of ['snapshot-tree', 'verification-matrix-schema', 'verification-matrix-checks', 'evidence/run-candidate', 'evidence/stage-attribution', 'eval-worker-status', 'runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/report-projections', 'profile-capacity', 'cleanup-observation']) {
     const earlier = contractDescriptor(contracts[1],{root,env:{}});
     write(root,`lib/${name}.mjs`,'export const changed = true;\n');
     assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,earlier.execution_key);

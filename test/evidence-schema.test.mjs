@@ -7,7 +7,7 @@ import Ajv2020 from "ajv/dist/2020.js";
 import { buildEvidencePacket, buildReport, buildRunCandidate, frozenCandidate, subjectHistoryEvents, resolveHitlJudgment, isInfrastructureFailure, failureAttribution, failureDiagnostic, failureEvidenceRevision } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
-import * as candidateModule from '../lib/run-candidate.mjs';
+import * as candidateModule from '../lib/evidence/run-candidate.mjs';
 
 test('runner retains candidate exports', () => {
   assert.equal(buildRunCandidate, candidateModule.buildRunCandidate);

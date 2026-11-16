@@ -4,7 +4,7 @@
 cohesive responsibilities by subsystem, preserve its published exports, and
 avoid moving code simply to meet a line-count target. The first structured
 subsystem is `lib/evidence/`: it owns retained journal resolution, model
-conformance projection and report/Judge-evidence projection. Its exported
+conformance projection, candidate and stage attribution, and report/Judge-evidence projection. Its exported
 functions document their contracts with JSDoc; they do not issue model calls.
 
 ## Boundaries for subsequent extractions
@@ -16,7 +16,7 @@ have a clear owner; do not introduce empty directories or blanket re-exports.
 
 | Subsystem | Current related modules | Responsibility |
 | --- | --- | --- |
-| Evidence and reporting | `evidence/`, `model-observations`, `observation-summary`, `failure-diagnostic`, `run-candidate`, `stage-attribution` | Resolve retained evidence and project it into attribution, Judge input and reports; candidate freezing remains an effectful boundary. |
+| Evidence and reporting | `evidence/`, `model-observations`, `observation-summary`, `failure-diagnostic` | Resolve retained evidence and project it into attribution, Judge input and reports; candidate freezing remains an effectful boundary. |
 | Execution and control | `execution-contract`, `execution-state`, `profile-capacity`, `runner-events`, `runner-lock`, `operation-context` | Bind the selected execution and coordinate durable state and admission. |
 | Recovery and cleanup | `snapshot-observation`, `snapshot-tree`, `recovery-safety`, `cleanup-observation`, `eval-retirement`, `eval-resume-worker`, `runner-health`, `eval-worker-status` | Verify retained snapshots and observe/reconcile owned runtime resources. |
 | Cases and qualification | `case-acceptance`, `canonical-qualification`, `definition-identity`, `task-input`, `flow-boundaries`, `verification-matrix-*` | Bind case inputs, frozen definitions, qualification and acceptance. |

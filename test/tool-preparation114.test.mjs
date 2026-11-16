@@ -5,7 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { declaredManagedTools, prepareDeclaredManagedTools, failureStageAttribution, latestObservedStage, executionEvidence, enrichFailureEvidence } from '../lib/runner.mjs';
 import { executionState } from '../lib/execution-state.mjs';
-import * as stageAttribution from '../lib/stage-attribution.mjs';
+import * as stageAttribution from '../lib/evidence/stage-attribution.mjs';
 
 test('runner retains stage attribution exports', () => {
   assert.equal(latestObservedStage, stageAttribution.latestObservedStage);
