@@ -635,7 +635,9 @@ test("normal, resumed, judged, and cancelled runs share one terminal projection"
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   const finalization = await readFile(path.join(root, "lib", "evidence", "finalization.mjs"), "utf8");
   const cleanup = await readFile(path.join(root, "lib", "recovery", "eval-cleanup.mjs"), "utf8");
-  assert.equal((source.match(/finalizeRunProjection\(\{/g) ?? []).length >= 3, true);
+  const recovery = await readFile(path.join(root, "lib", "recovery", "execution-recovery.mjs"), "utf8");
+  assert.equal((source.match(/finalizeRunProjection\(\{/g) ?? []).length >= 2, true);
+  assert.equal((recovery.match(/finalizeRunProjection\(\{/g) ?? []).length >= 2, true);
   assert.match(cleanup, /finalizeRunProjection\(\{/);
   assert.match(finalization, /await writeJsonAtomic\(path\.join\(root, "state\.json"\), projection\)/);
   assert.match(finalization, /!\["awaiting_provider", "awaiting_cleanup"\]\.includes\(state\)/);
