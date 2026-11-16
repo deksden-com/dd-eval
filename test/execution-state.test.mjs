@@ -5,9 +5,14 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import os from 'node:os';
 import path from 'node:path';
-import { executionState, assertExecutionDispatch } from '../lib/execution-state.mjs';
+import { executionState, assertExecutionDispatch } from '../lib/execution/execution-state.mjs';
+import { assertEvalExecutionDispatch as admissionDispatch } from '../lib/execution/admission.mjs';
 import { appendEvent, readEvents, hashJson } from '../lib/runner-events.mjs';
-import { frozenCandidate, storedExecutionResults, subjectHistoryEvents, buildEvidencePacket } from '../lib/runner.mjs';
+import { frozenCandidate, storedExecutionResults, subjectHistoryEvents, buildEvidencePacket, assertEvalExecutionDispatch } from '../lib/runner.mjs';
+
+test('runner retains its dispatch admission export', () => {
+  assert.equal(assertEvalExecutionDispatch, admissionDispatch);
+});
 const run = 'EVAL', execution = { id: 'e', stage: 'code' }, launch = `${run}:e:launch`;
 const event = (kind, data = {}) => ({ type: `dev.dd.eval.${kind}`, executionid: 'e', data });
 const complete = event('operation.completed', { operation_id: launch, result: { execution: 'e', state: 'candidate_ready' } });

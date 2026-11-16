@@ -25,6 +25,34 @@ function fixture() {
 }
 const descriptor = root => contractDescriptor(file,{root,env:{}});
 
+test('runner launch fixture participates in impact selection and contract keys', t => {
+  const root = fixture(), contract = 'test/runner-launch-observation.test.mjs';
+  const source = 'scripts/fixtures/runner-launch-observation.mjs';
+  t.after(() => fs.rmSync(root, {recursive:true,force:true}));
+  write(root, contract, "import test from 'node:test';test('launch',()=>{});\n");
+  write(root, source, 'export const launch = 1;\n');
+  git(root,'add','.');git(root,'commit','-qm','launch fixture');
+  const before = contractDescriptor(contract, {root,env:{}});
+  assert.ok(before.inputs.includes(source));
+  write(root, source, 'export const launch = 2;\n');
+  assert.ok(verificationSelection(null,{root,env:{}}).files.includes(contract));
+  assert.notEqual(contractDescriptor(contract,{root,env:{}}).execution_key,before.execution_key);
+});
+
+test('execution state changes select their direct contract', t => {
+  const root = fixture(), contract = 'test/execution-state.test.mjs';
+  const source = 'lib/execution/execution-state.mjs';
+  t.after(() => fs.rmSync(root, {recursive:true,force:true}));
+  write(root, contract, "import test from 'node:test';test('state',()=>{});\n");
+  write(root, source, 'export const state = 1;\n');
+  git(root,'add','.');git(root,'commit','-qm','state fixture');
+  const before = contractDescriptor(contract,{root,env:{}});
+  assert.ok(before.inputs.includes(source));
+  write(root, source, 'export const state = 2;\n');
+  assert.ok(verificationSelection(null,{root,env:{}}).files.includes(contract));
+  assert.notEqual(contractDescriptor(contract,{root,env:{}}).execution_key,before.execution_key);
+});
+
 test('105: recovery receipt keys include the native fixture they execute', t => {
   const root = fixture(), contract = 'test/recovery-finalization105.test.mjs';
   t.after(() => fs.rmSync(root, {recursive:true,force:true}));
@@ -45,7 +73,9 @@ test('104: changed control and retained-recovery tests have owned source closure
   write(root,'lib/recovery/recovery-source.mjs','export const source = 1;\n');
   write(root,'lib/recovery/cleanup-observation.mjs','export const cleanup = 1;\n');
   write(root,'lib/recovery/snapshot-observation.mjs','export const snapshot = 1;\n');
-  write(root,'lib/profile-capacity.mjs','export const profileCapacity = 1;\n');
+  write(root,'lib/execution/profile-capacity.mjs','export const profileCapacity = 1;\n');
+  write(root,'lib/execution/execution-state.mjs','export const state = 1;\n');
+  write(root,'lib/execution/admission.mjs','export const admission = 1;\n');
   write(root,'lib/evidence/report-projections.mjs','export const report = 1;\n');
   write(root,'lib/evidence/model-conformance.mjs','export const model = 1;\n');
   write(root,'lib/evidence/evidence-journals.mjs','export const journals = 1;\n');
@@ -66,7 +96,9 @@ test('104: changed control and retained-recovery tests have owned source closure
   assert.ok(before.inputs.includes('lib/engine-admission.mjs'));
   assert.ok(before.inputs.includes('lib/evidence/model-conformance.mjs'));
   assert.ok(before.inputs.includes('lib/evidence/report-projections.mjs'));
-  assert.ok(before.inputs.includes('lib/profile-capacity.mjs'));
+  assert.ok(before.inputs.includes('lib/execution/profile-capacity.mjs'));
+  assert.ok(before.inputs.includes('lib/execution/execution-state.mjs'));
+  assert.ok(before.inputs.includes('lib/execution/admission.mjs'));
   assert.ok(before.inputs.includes('lib/evidence/evidence-journals.mjs'));
   assert.ok(before.inputs.includes('lib/eval-worker-status.mjs'));
   assert.ok(before.inputs.includes('lib/runner-health.mjs'));
@@ -96,7 +128,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   const withDriver=contractDescriptor(contracts[1],{root,env:{}});
   write(root,'lib/driver-bindings.mjs','export const driver = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withDriver.execution_key);
-  for (const name of ['snapshot-tree', 'verification-matrix-schema', 'verification-matrix-checks', 'evidence/run-candidate', 'evidence/stage-attribution', 'eval-worker-status', 'runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/report-projections', 'profile-capacity', 'recovery/cleanup-observation', 'recovery/snapshot-observation', 'recovery/recovery-source']) {
+  for (const name of ['snapshot-tree', 'verification-matrix-schema', 'verification-matrix-checks', 'evidence/run-candidate', 'evidence/stage-attribution', 'eval-worker-status', 'runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/report-projections', 'execution/profile-capacity', 'execution/execution-state', 'execution/admission', 'recovery/cleanup-observation', 'recovery/snapshot-observation', 'recovery/recovery-source']) {
     const earlier = contractDescriptor(contracts[1],{root,env:{}});
     write(root,`lib/${name}.mjs`,'export const changed = true;\n');
     assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,earlier.execution_key);

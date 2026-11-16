@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { declaredManagedTools, prepareDeclaredManagedTools, failureStageAttribution, latestObservedStage, executionEvidence, enrichFailureEvidence } from '../lib/runner.mjs';
-import { executionState } from '../lib/execution-state.mjs';
+import { executionState } from '../lib/execution/execution-state.mjs';
 import * as stageAttribution from '../lib/evidence/stage-attribution.mjs';
 
 test('runner retains stage attribution exports', () => {

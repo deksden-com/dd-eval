@@ -7,7 +7,7 @@ import { buildHitlPacket, hitlCoverageContract } from "../lib/hitl-contract.mjs"
 import { resolveHitlJudgment, settleConclusiveHitlFailure, buildReport } from "../lib/runner.mjs";
 import { isConclusiveHitlFailure, isConclusiveManagedFailure, isManagedWait, isObservationLoss, errorRecord } from "../lib/operation-errors.mjs";
 import { appendEvent, readEvents, reduceEvents, writeJsonAtomic } from "../lib/runner-events.mjs";
-import { executionState } from "../lib/execution-state.mjs";
+import { executionState } from "../lib/execution/execution-state.mjs";
 
 async function refusal() {
   const responses = [{ id: "canonical", topic: "priority", applicability: "specify", answer: "No email feature is specified." }];

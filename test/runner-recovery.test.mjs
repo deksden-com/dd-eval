@@ -44,7 +44,7 @@ import { processSnapshot } from "../lib/process-snapshot.mjs";
 import { recoveryObservationBudget, withRecoveryObservation } from "../lib/recovery-observation-budget.mjs";
 import { ObservationClock } from "../lib/observation-clock.mjs";
 import { readBaselineAdmissionPolicy } from "../lib/baseline-admission.mjs";
-import { assertExecutionDispatch, executionState } from "../lib/execution-state.mjs";
+import { assertExecutionDispatch, executionState } from "../lib/execution/execution-state.mjs";
 
 test("fork checkpoint listing returns only Stage-entry manifest candidates", async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "eval-fork-checkpoints-"));

@@ -7,7 +7,7 @@ import { pathToFileURL } from "node:url";
 import { resolveExecutionContract, resolveGenericExecutionContract, validateExecutionContract, materializeExecutionContract, contractProfile, assertRunExecutionContract, conformanceExecutionContract, profileSemanticHash } from "../lib/execution-contract.mjs";
 import { canonicalJson, sha256, hashJson } from "../lib/runner-events.mjs";
 import { assertProfileCapacity, qualifiedCoordinator, admitContractProfiles } from "../lib/runner.mjs";
-import * as profileCapacity from "../lib/profile-capacity.mjs";
+import * as profileCapacity from "../lib/execution/profile-capacity.mjs";
 
 test("runner retains its profile capacity exports", () => {
   assert.equal(assertProfileCapacity, profileCapacity.assertProfileCapacity);

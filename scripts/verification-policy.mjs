@@ -5,6 +5,10 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 const zones = [
+  [/^runner-events\.mjs$/, /runner|recovery|managed|retirement|cleanup|execution|completion-scope|evidence-schema|technical-notes|eval\.test|canonical|fork|judge|hitl/],
+  [/^runner-launch-observation\.mjs$/, /runner-launch-observation/],
+  [/^execution-state\.mjs$/, /execution-state|completion-scope|runner-cancel|runner-control|runner-recovery|runner-health|runner-launch-observation|managed|retirement|tool-preparation114|hitl-reattach|eval\.test/],
+  [/^admission\.mjs$/, /execution-state|completion-scope|runner-cancel|runner-control|runner-recovery|managed-resume|runner|recovery|eval\.test/],
   [/^recovery-source\.mjs$/, /runner-recovery|runner-control|managed-resume|recovery-finalization105|eval\.test|runner|recovery|managed|fork/],
   [/^cleanup-observation\.mjs$/, /cleanup-observation|technical-notes107|runner-health|runner|recovery|managed|retirement|cleanup|eval\.test/],
   [/^profile-capacity\.mjs$/, /execution-contract|memory-case-definition|droid-runner|capacity|eval\.test|runner|recovery|managed|canonical|fork|baseline-admission/],
@@ -41,7 +45,7 @@ const zones = [
 // The control/recovery tests exercise these shared runner helpers directly.
 // Keep their explicit closure local; unrelated libs are not a whole-suite key.
 const controlContracts = ['test/runner-control.test.mjs','test/managed-resume.test.mjs','test/recovery-finalization105.test.mjs'];
-const controlInputs = ['lib/runner.mjs','lib/recovery/recovery-source.mjs','lib/profile-capacity.mjs','lib/evidence/report-projections.mjs','lib/evidence/model-conformance.mjs','lib/evidence/evidence-journals.mjs','lib/eval-worker-status.mjs','lib/runner-health.mjs','lib/evidence/run-candidate.mjs','lib/evidence/stage-attribution.mjs','lib/driver-bindings.mjs','lib/snapshot-tree.mjs','lib/verification-matrix-schema.mjs','lib/verification-matrix-checks.mjs','lib/task-input.mjs','lib/definition-identity.mjs','lib/eval-retirement.mjs','lib/eval-resume-worker.mjs','lib/recovery/cleanup-observation.mjs','lib/recovery/snapshot-observation.mjs','lib/recovery-safety.mjs','lib/execution-state.mjs','lib/execution-contract.mjs','lib/entry-pack.mjs','lib/engine-admission.mjs','lib/baseline-admission.mjs','lib/runtime-maintenance.mjs','lib/managed-flow-client.mjs','lib/homes.mjs','lib/hitl-contract.mjs','lib/hitl-retained.mjs','lib/native-failure-evidence.mjs','lib/driver-recovery.mjs','lib/operation-context.mjs'];
+const controlInputs = ['lib/runner.mjs','lib/execution/admission.mjs','lib/recovery/recovery-source.mjs','lib/execution/profile-capacity.mjs','lib/evidence/report-projections.mjs','lib/evidence/model-conformance.mjs','lib/evidence/evidence-journals.mjs','lib/eval-worker-status.mjs','lib/runner-health.mjs','lib/evidence/run-candidate.mjs','lib/evidence/stage-attribution.mjs','lib/driver-bindings.mjs','lib/snapshot-tree.mjs','lib/verification-matrix-schema.mjs','lib/verification-matrix-checks.mjs','lib/task-input.mjs','lib/definition-identity.mjs','lib/eval-retirement.mjs','lib/eval-resume-worker.mjs','lib/recovery/cleanup-observation.mjs','lib/recovery/snapshot-observation.mjs','lib/recovery-safety.mjs','lib/execution/execution-state.mjs','lib/execution-contract.mjs','lib/entry-pack.mjs','lib/engine-admission.mjs','lib/baseline-admission.mjs','lib/runtime-maintenance.mjs','lib/managed-flow-client.mjs','lib/homes.mjs','lib/hitl-contract.mjs','lib/hitl-retained.mjs','lib/native-failure-evidence.mjs','lib/driver-recovery.mjs','lib/operation-context.mjs'];
 const repoGit = (root, ...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio:['ignore','pipe','pipe'] }).trimEnd();
 const sha = value => createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
 export function verificationSelection(base = null, { root = process.cwd(), env = process.env } = {}) {
@@ -104,7 +108,7 @@ export function contractDescriptor(file, { root = process.cwd(), env = process.e
   const technical = /verification-policy102|verification104/.test(file);
   const processConsumer = /runner|recovery|baseline|fixture-validation|admission|capacity|judge|hitl|control|managed|lease|retirement|cleanup|process|semantic/.test(file);
   const fixtures = all.filter(input => input.startsWith('test/fixtures/') && fixtureOwners.some(([pattern, consumer]) => pattern.test(input.slice('test/fixtures/'.length)) && consumer.test(file)));
-  const inputs = [...new Set([file, ...fixtures, ...(processConsumer ? processHelpers : []), ...(controlContracts.includes(file)?controlInputs:[]), ...(file==='test/baseline-admission.test.mjs'?['lib/runner.mjs']:[]), ...all.filter(input =>
+  const inputs = [...new Set([file, ...fixtures, ...(file==='test/runner-launch-observation.test.mjs'?['scripts/fixtures/runner-launch-observation.mjs']:[]), ...(processConsumer ? processHelpers : []), ...(controlContracts.includes(file)?controlInputs:[]), ...(file==='test/baseline-admission.test.mjs'?['lib/runner.mjs']:[]), ...all.filter(input =>
     /^(lib|bin)\//.test(input) && owners.some(([source]) => source.test(path.basename(input)))
     || technical && /^(?:scripts\/verification(?:-policy)?\.mjs|tools\/verification-jobs\.mjs)$/.test(input)
     || /case-acceptance|case-definition|memory-case-definition|hitl105/.test(file) && /^(?:cases|schemas)\//.test(input))])].sort();

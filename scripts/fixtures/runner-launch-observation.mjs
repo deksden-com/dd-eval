@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { mock } from "node:test";
 import * as events from "../../lib/runner-events.mjs";
-import { executionState } from "../../lib/execution-state.mjs";
+import { executionState } from "../../lib/execution/execution-state.mjs";
 
 // The wrapper starts this fixture with module-mocks enabled. Keep it outside
 // test/ so ordinary Node discovery never executes it without that flag.

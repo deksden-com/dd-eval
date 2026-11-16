@@ -411,7 +411,7 @@ for (const callback of ['onEvent', 'answerFor']) for (const retainedDetails of [
   });
 });
 import { recordOperation, readEvents, reduceEvents, completeOperation } from "../lib/runner-events.mjs";
-import { executionState } from "../lib/execution-state.mjs";
+import { executionState } from "../lib/execution/execution-state.mjs";
 
 const fixture = `import fs from 'node:fs';
 const args=process.argv.slice(2), root=process.env.TEST_MANAGED_ROOT;
