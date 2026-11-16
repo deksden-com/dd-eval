@@ -68,7 +68,8 @@ test('tool preparation remains only at declared productive entry boundaries', as
   const preflight = source.slice(source.indexOf('export async function evalPreflight('), source.indexOf('export async function evalRun('));
   assert(preflight.indexOf('await assertCheckpointEngine') < preflight.indexOf('await prepareDeclaredManagedTools'));
   assert(preflight.indexOf('await prepareDeclaredManagedTools') < preflight.indexOf('await prepareCaseManagedRun'));
-  const provision = source.slice(source.indexOf('export async function provisionRuntimeEngine('), source.indexOf('function runtimeEngineIdentity('));
+  const provision = await readFile(new URL('../lib/execution/runtime-provision.mjs', import.meta.url), 'utf8');
+  assert(provision.includes('export async function provisionRuntimeEngine('));
   assert(!provision.includes('prepareDeclaredManagedTools'));
   assert.equal((source.match(/await prepareDeclaredManagedTools\(/g) ?? []).length, 3);
   const enrich = source.slice(source.indexOf('async function enrichFailureEvidence('), source.indexOf('export async function captureRecoveryEvidence('));
