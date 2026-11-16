@@ -65,13 +65,14 @@ test('current bound controller entry wins over initial and late older-generation
 
 test('tool preparation remains only at declared productive entry boundaries', async () => {
   const source = await readFile(new URL('../lib/runner.mjs', import.meta.url), 'utf8');
-  const preflight = source.slice(source.indexOf('export async function evalPreflight('), source.indexOf('export async function evalRun('));
+  const preflight = await readFile(new URL('../lib/execution/eval-preflight.mjs', import.meta.url), 'utf8');
   assert(preflight.indexOf('await assertCheckpointEngine') < preflight.indexOf('await prepareDeclaredManagedTools'));
   assert(preflight.indexOf('await prepareDeclaredManagedTools') < preflight.indexOf('await prepareCaseManagedRun'));
   const provision = await readFile(new URL('../lib/execution/runtime-provision.mjs', import.meta.url), 'utf8');
   assert(provision.includes('export async function provisionRuntimeEngine('));
   assert(!provision.includes('prepareDeclaredManagedTools'));
-  assert.equal((source.match(/await prepareDeclaredManagedTools\(/g) ?? []).length, 3);
+  assert.equal((source.match(/await prepareDeclaredManagedTools\(/g) ?? []).length, 2);
+  assert.equal((preflight.match(/await prepareDeclaredManagedTools\(/g) ?? []).length, 1);
   const enrich = await readFile(new URL('../lib/evidence/failure-enrichment.mjs', import.meta.url), 'utf8');
   assert(enrich.includes('Object.assign(result, failureStageAttribution('));
   assert(!enrich.includes('result.stage = latestObservedStage'));
