@@ -21,7 +21,7 @@ have a clear owner; do not introduce empty directories or blanket re-exports.
 | Recovery and cleanup | `recovery/`, `snapshot-tree`, `recovery-safety`, `eval-retirement`, `eval-resume-worker`, `runner-health`, `eval-worker-status` | Select retained recovery sources, verify snapshots and observe/reconcile owned runtime resources. |
 | Cases and qualification | `case-acceptance`, `canonical-qualification`, `definition-identity`, `task-input`, `flow-boundaries`, `verification-matrix-*` | Bind case inputs, frozen definitions, qualification and acceptance. |
 | Harnesses and capacity | `driver-bindings`, `driver-recovery`, `capacity-policy`, `native-children`, `model-progress` | Adapt harness contracts and observe their execution; do not own EVAL verdicts. |
-| HITL and Judge | `hitl-*`, `interaction-fixtures`, `judge-*`, `final-judge-contract`, `semantic-decisions` | Build and verify interaction and assessment contracts. |
+| HITL and Judge | `hitl/`, `hitl-*`, `judge-*`, `final-judge-contract`, `semantic-decisions` | Build and verify interaction and assessment contracts. |
 
 On extraction, separate pure projection from I/O and ownership checks where the
 existing contract permits it. Document exported functions with JSDoc describing

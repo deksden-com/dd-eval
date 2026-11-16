@@ -5,6 +5,11 @@ import { createHash } from 'node:crypto';
 import { validateExpectedAtoms, assertExpectedAtoms, compareHitlExpectation, compareCoverageExpectation } from '../lib/hitl-corpus.mjs';
 import { buildHitlPacket, validateGroundedHitl, projectHitlAtoms, hitlCoverageContract, validateHitlCoverage } from '../lib/hitl-contract.mjs';
 import { resolveHitlJudgment } from '../lib/runner.mjs';
+import { resolveHitlJudgment as resolveHitlJudgmentImpl } from '../lib/hitl/resolve-judgment.mjs';
+
+test('runner retains the HITL judgment export', () => {
+  assert.equal(resolveHitlJudgment, resolveHitlJudgmentImpl);
+});
 
 const caseRoot = new URL('../cases/sdlc-eval-2026-summer-task-priority/', import.meta.url);
 const corpus = JSON.parse(await readFile(new URL('entry-pack-source/interactions/qualification.json', caseRoot), 'utf8'));

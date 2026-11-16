@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { interactiveInputKind, initialFlowBoundary, authorizeHitl, interactionFixtureManifest, readJson } from '../lib/runner.mjs';
-import * as fixtures from '../lib/interaction-fixtures.mjs';
+import * as fixtures from '../lib/hitl/interaction-fixtures.mjs';
 import { readJson as readJsonFile } from '../lib/json-file.mjs';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
