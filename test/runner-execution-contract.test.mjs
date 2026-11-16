@@ -7,6 +7,7 @@ import { writeJsonAtomic, appendEvent, readEvents, sha256, canonicalJson } from 
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { resolveExecutionContract, resolveGenericExecutionContract } from '../lib/execution-contract.mjs';
 import { executionConformance, statusCleanupState, runResultRevision, buildReport, reportMarkdown, driverProfileArgs, assertObservedProfile, recoverExecution, interactionFixtureManifest } from '../lib/runner.mjs';
+import { modelConformance } from '../lib/model-conformance.mjs';
 
 test('conformance binds outbound intent to its controller profile, not any planned model', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'runner-contract-'));
@@ -25,6 +26,8 @@ test('conformance binds outbound intent to its controller profile, not any plann
   const result = { execution: 'e', attempt, driver: { controller: { sessions: [{ session_id: 'root', profile_id: 'subject' }] } },
     model_attribution: { sessions: [{ harness: 'codex-desktop', session_id: 'root', requested: { model: 'wanted', reasoning: 'high', permission_mode: 'allow' } }] } };
   result.model_attribution.sessions[0].observations = [{ evidence: 'request', requested: result.model_attribution.sessions[0].requested }];
+  const frozen = JSON.parse(await readFile(path.join(runHome, 'run.json')));
+  assert.deepEqual(modelConformance(result, contract, frozen), await executionConformance(result, contract, root));
   assert.equal((await executionConformance(result, contract, root)).state, 'matched');
   result.model_attribution.sessions[0].requested.model = 'later-model';
   assert.equal((await executionConformance(result, contract, root)).state, 'mismatched');
