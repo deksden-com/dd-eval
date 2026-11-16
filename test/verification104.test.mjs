@@ -100,7 +100,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   write(root,'lib/execution/profile-capacity.mjs','export const profileCapacity = 1;\n');
   write(root,'lib/execution/execution-scheduling.mjs','export const scheduling = 1;\n');
   write(root,'lib/execution/result-projection.mjs','export const projection = 1;\n');
-  write(root,'lib/execution/flow-status.mjs','export const status = 1;\n');
+  write(root,'lib/execution/flow-observation.mjs','export const status = 1;\n');
   write(root,'lib/harness/native-children.mjs','export const children = 1;\n');
   write(root,'lib/harness/model-progress.mjs','export const progress = 1;\n');
   write(root,'lib/execution/execution-state.mjs','export const state = 1;\n');
@@ -149,7 +149,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   assert.ok(before.inputs.includes('lib/execution/profile-capacity.mjs'));
   assert.ok(before.inputs.includes('lib/execution/execution-scheduling.mjs'));
   assert.ok(before.inputs.includes('lib/execution/result-projection.mjs'));
-  assert.ok(before.inputs.includes('lib/execution/flow-status.mjs'));
+  assert.ok(before.inputs.includes('lib/execution/flow-observation.mjs'));
   assert.ok(before.inputs.includes('lib/harness/native-children.mjs'));
   assert.ok(before.inputs.includes('lib/harness/model-progress.mjs'));
   assert.ok(before.inputs.includes('lib/execution/execution-state.mjs'));
@@ -191,7 +191,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   const withDriver=contractDescriptor(contracts[1],{root,env:{}});
   write(root,'lib/harness/driver-bindings.mjs','export const driver = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withDriver.execution_key);
-  for (const name of ['technical-notes', 'cases/canonical-qualification', 'cases/acceptance-receipts', 'recovery/snapshot-tree', 'recovery/snapshot-version', 'recovery/entry-snapshot', 'recovery/recovery-safety', 'verification-matrix-schema', 'verification-matrix-checks', 'evidence/run-candidate', 'evidence/stage-attribution', 'recovery/eval-worker-status', 'recovery/runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/model-observations', 'evidence/observation-summary', 'evidence/failure-classification', 'evidence/failure-diagnostic', 'evidence/report-projections', 'execution/profile-capacity', 'execution/execution-state', 'execution/admission', 'execution/execution-scheduling', 'execution/result-projection', 'execution/flow-status', 'harness/native-children', 'harness/model-progress', 'recovery/cleanup-observation', 'recovery/snapshot-observation', 'recovery/recovery-source', 'hitl/interaction-fixtures', 'hitl/resolve-judgment', 'hitl/answer-evidence', 'hitl/interaction-cleanup', 'hitl/hitl-retained', 'judge/judge-receipt', 'judge/final-judge-contract']) {
+  for (const name of ['technical-notes', 'cases/canonical-qualification', 'cases/acceptance-receipts', 'recovery/snapshot-tree', 'recovery/snapshot-version', 'recovery/entry-snapshot', 'recovery/recovery-safety', 'verification-matrix-schema', 'verification-matrix-checks', 'evidence/run-candidate', 'evidence/stage-attribution', 'recovery/eval-worker-status', 'recovery/runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/model-observations', 'evidence/observation-summary', 'evidence/failure-classification', 'evidence/failure-diagnostic', 'evidence/report-projections', 'execution/profile-capacity', 'execution/execution-state', 'execution/admission', 'execution/execution-scheduling', 'execution/result-projection', 'execution/flow-observation', 'harness/native-children', 'harness/model-progress', 'recovery/cleanup-observation', 'recovery/snapshot-observation', 'recovery/recovery-source', 'hitl/interaction-fixtures', 'hitl/resolve-judgment', 'hitl/answer-evidence', 'hitl/interaction-cleanup', 'hitl/hitl-retained', 'judge/judge-receipt', 'judge/final-judge-contract']) {
     const earlier = contractDescriptor(contracts[1],{root,env:{}});
     write(root,`lib/${name}.mjs`,'export const changed = true;\n');
     assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,earlier.execution_key);
