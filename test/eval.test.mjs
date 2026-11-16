@@ -795,10 +795,7 @@ test("successor context uses the registered v2 RUN artifact root", () => {
 });
 
 test("canonical reference recovery also requires the registered v2 RUN artifact root", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  const start = source.indexOf("async function canonicalResumeUnlocked");
-  const end = source.indexOf("export async function canonicalQualify", start);
-  const implementation = source.slice(start, end);
+  const implementation = await readFile(path.join(root, "lib", "cases", "canonical-resume.mjs"), "utf8");
   assert.match(implementation, /restoredRoots\(\{ status \}, projectRoot, runtimeRoot\)/);
   assert.doesNotMatch(implementation, /run_home_path/);
 });
@@ -969,9 +966,9 @@ test("unplanned HITL fails before Judge dispatch and preserves the exact questio
 });
 
 test("canonical recovery reuses accepted HITL bytes without spending another round", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const source = await readFile(path.join(root, "lib", "cases", "canonical-resume.mjs"), "utf8");
   assert.match(source, /answered_pauses/);
-  const implementation = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalQualify"));
+  const implementation = source.slice(source.indexOf("async function canonicalResumeUnlocked"));
   assert.match(implementation, /if \(prior\) \{[\s\S]*verifyRetainedHitl\(\{ data: prior,[\s\S]*return prior\.answer_file/);
   assert.match(source, /answer_file: answerFile/);
 });
@@ -1076,7 +1073,7 @@ test("reference native-child recovery delegates to its retained CLI owner", asyn
   assert.doesNotMatch(source, /export function nativeChildWaitPrompt/);
   const resumeWorker = await readFile(path.join(root, "lib", "recovery", "worker-attempt.mjs"), "utf8");
   assert.match(resumeWorker, /awaiting_native_children/);
-  const reference = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalQualify"));
+  const reference = await readFile(path.join(root, "lib", "cases", "canonical-resume.mjs"), "utf8");
   assert.match(reference, /controllerId: state\.reference\.controller_id/);
   assert.doesNotMatch(reference, /driveFanout\(|providerTurn\(|callDriver\(/);
 });
@@ -1089,15 +1086,14 @@ test("observer loss remains recoverable instead of producing a failed execution"
 });
 
 test("reference stage continuation is owned by the shared controller", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  const reference = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalQualify"));
+  const reference = await readFile(path.join(root, "lib", "cases", "canonical-resume.mjs"), "utf8");
   assert.match(reference, /await observeManagedRun\(/);
   assert.match(reference, /if \(requested !== stage\) return null/);
   assert.doesNotMatch(reference, /interruptedStageContinuation|session.*prompt/);
 });
 
 test("canonical recovery does not infer liveness from provider timestamps", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const source = await readFile(path.join(root, "lib", "cases", "canonical-resume.mjs"), "utf8");
   assert.doesNotMatch(source, /function providerTurnIsLive\(/);
   assert.match(source, /reference_migration_required/);
 });

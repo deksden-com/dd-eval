@@ -38,6 +38,7 @@ const zones = [
   [/^managed-observer\.mjs$/, /managed|runner|recovery|hitl|execution|eval\.test/],
   [/^execution-recovery\.mjs$/, /managed|runner|recovery|hitl|execution|eval\.test/],
   [/^eval-cleanup\.mjs$/, /cleanup|judge|runner|recovery|managed|eval\.test/],
+  [/^canonical-resume\.mjs$/, /canonical|hitl|runner|recovery|managed|eval\.test/],
   [/^qualification-inputs\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
   [/^qualification-sample\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
   [/^qualification-contract\.mjs$/, /hitl|coverage|qualification|judge|runner|recovery|managed|eval\.test/],
