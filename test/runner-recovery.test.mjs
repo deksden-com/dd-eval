@@ -755,6 +755,13 @@ test("automatic reconstruction cannot replenish uncertainty or resurrect exhaust
   assert.equal(repeated.state().remaining_ms, 120000);
 });
 import { appendRunEventOnce, runResultRevision, recoveryHistory, assertTerminalReconciliation, selectRecoverySource, recoverySourceFromEvents, recoveryOperationId, isInfrastructureFailure } from "../lib/runner.mjs";
+import * as recoverySource from "../lib/recovery/recovery-source.mjs";
+
+test("runner preserves recovery source exports", () => {
+  assert.equal(selectRecoverySource, recoverySource.selectRecoverySource);
+  assert.equal(recoverySourceFromEvents, recoverySource.recoverySourceFromEvents);
+  assert.equal(recoveryOperationId, recoverySource.recoveryOperationId);
+});
 
 test("identical failures in successive recovery generations each finalize exactly once", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "recovery-projection-"));

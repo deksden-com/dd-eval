@@ -6,7 +6,7 @@ import { mkdtemp, mkdir, chmod, writeFile, readFile, rm, realpath, rename, symli
 import { createHash } from 'node:crypto';
 import { captureRecoveryEvidence, runnerCleanup, runnerCleanupReceipt, runnerFinalizeSettled, storedExecutionResults, runResultRevision, recoveryHistory, runnerControlStatus, recoverExecution, runnerCancel } from '../lib/runner.mjs';
 import { appendEvent, readEvents, writeJsonAtomic, sha256 } from '../lib/runner-events.mjs';
-import { observeBoundSnapshot } from '../lib/snapshot-observation.mjs';
+import { observeBoundSnapshot } from '../lib/recovery/snapshot-observation.mjs';
 import { installSuccessfulPolicy } from './fixtures/capacity-policy.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 

@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import os from 'node:os';
 import { mkdtemp, mkdir, writeFile, readFile, realpath, rm } from 'node:fs/promises';
-import { cleanupObservation } from '../lib/cleanup-observation.mjs';
+import { cleanupObservation } from '../lib/recovery/cleanup-observation.mjs';
 import { cleanupGoalComplete, needsFailureReconciliation, workerCleanupFailure } from '../lib/eval-resume-worker.mjs';
 import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { snapshotTreeHash } from '../lib/case-acceptance.mjs';
 import { hashJson } from '../lib/runner-events.mjs';
-import { runPhysicalStopped } from '../lib/snapshot-observation.mjs';
+import { runPhysicalStopped } from '../lib/recovery/snapshot-observation.mjs';
 
 test('actual RUN status uses only a current fenced EVAL retirement proof for physical stop', async t => {
   const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'cleanup-retired-')));

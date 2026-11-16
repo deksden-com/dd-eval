@@ -12,7 +12,7 @@ import { observedCompletionScope } from '../lib/completion-scope.mjs';
 import { baselineExecutionSettled } from '../lib/baseline-admission.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { assertNativeResourceRetired } from '../lib/judge-cleanup.mjs';
-import * as cleanupProjection from '../lib/cleanup-observation.mjs';
+import * as cleanupProjection from '../lib/recovery/cleanup-observation.mjs';
 
 test('runner retains cleanup observation exports', () => {
   assert.equal(scopeResourcesPending, cleanupProjection.scopeResourcesPending);
