@@ -14,7 +14,7 @@ import { compareCoverageExpectation } from "../lib/hitl-corpus.mjs";
 import { settledJudge } from "./fixtures/judge-cleanup.mjs";
 import { promptJudgeWithCapacity } from "../lib/judge-capacity.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
-import { verifyRetainedHitl } from "../lib/hitl-retained.mjs";
+import { verifyRetainedHitl } from "../lib/hitl/hitl-retained.mjs";
 import Ajv from "ajv/dist/2020.js";
 import { resolveExecutionContract, profileSemanticHash } from "../lib/execution-contract.mjs";
 

@@ -90,6 +90,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   write(root,'lib/hitl/resolve-judgment.mjs','export const judgment = 1;\n');
   write(root,'lib/hitl/answer-evidence.mjs','export const answer = 1;\n');
   write(root,'lib/hitl/interaction-cleanup.mjs','export const cleanup = 1;\n');
+  write(root,'lib/hitl/hitl-retained.mjs','export const retained = 1;\n');
   write(root,'lib/recovery/recovery-source.mjs','export const source = 1;\n');
   write(root,'lib/recovery/recovery-safety.mjs','export const safety = 1;\n');
   write(root,'lib/recovery/framed-snapshot-hash.mjs','export const framed = 1;\n');
@@ -136,6 +137,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   assert.ok(before.inputs.includes('lib/hitl/resolve-judgment.mjs'));
   assert.ok(before.inputs.includes('lib/hitl/answer-evidence.mjs'));
   assert.ok(before.inputs.includes('lib/hitl/interaction-cleanup.mjs'));
+  assert.ok(before.inputs.includes('lib/hitl/hitl-retained.mjs'));
   assert.ok(before.inputs.includes('lib/evidence/model-conformance.mjs'));
   assert.ok(before.inputs.includes('lib/evidence/model-observations.mjs'));
   assert.ok(before.inputs.includes('lib/evidence/observation-summary.mjs'));
@@ -185,7 +187,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   const withDriver=contractDescriptor(contracts[1],{root,env:{}});
   write(root,'lib/harness/driver-bindings.mjs','export const driver = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withDriver.execution_key);
-  for (const name of ['technical-notes', 'cases/canonical-qualification', 'cases/acceptance-receipts', 'recovery/snapshot-tree', 'recovery/snapshot-version', 'recovery/entry-snapshot', 'recovery/recovery-safety', 'recovery/framed-snapshot-hash', 'verification-matrix-schema', 'verification-matrix-checks', 'evidence/run-candidate', 'evidence/stage-attribution', 'recovery/eval-worker-status', 'recovery/runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/model-observations', 'evidence/observation-summary', 'evidence/failure-classification', 'evidence/failure-diagnostic', 'evidence/report-projections', 'execution/profile-capacity', 'execution/execution-state', 'execution/admission', 'execution/execution-scheduling', 'execution/result-projection', 'execution/flow-status', 'harness/native-children', 'harness/model-progress', 'recovery/cleanup-observation', 'recovery/snapshot-observation', 'recovery/recovery-source', 'hitl/interaction-fixtures', 'hitl/resolve-judgment', 'hitl/answer-evidence', 'hitl/interaction-cleanup', 'judge/judge-receipt', 'judge/final-judge-contract']) {
+  for (const name of ['technical-notes', 'cases/canonical-qualification', 'cases/acceptance-receipts', 'recovery/snapshot-tree', 'recovery/snapshot-version', 'recovery/entry-snapshot', 'recovery/recovery-safety', 'recovery/framed-snapshot-hash', 'verification-matrix-schema', 'verification-matrix-checks', 'evidence/run-candidate', 'evidence/stage-attribution', 'recovery/eval-worker-status', 'recovery/runner-health', 'evidence/evidence-journals', 'evidence/model-conformance', 'evidence/model-observations', 'evidence/observation-summary', 'evidence/failure-classification', 'evidence/failure-diagnostic', 'evidence/report-projections', 'execution/profile-capacity', 'execution/execution-state', 'execution/admission', 'execution/execution-scheduling', 'execution/result-projection', 'execution/flow-status', 'harness/native-children', 'harness/model-progress', 'recovery/cleanup-observation', 'recovery/snapshot-observation', 'recovery/recovery-source', 'hitl/interaction-fixtures', 'hitl/resolve-judgment', 'hitl/answer-evidence', 'hitl/interaction-cleanup', 'hitl/hitl-retained', 'judge/judge-receipt', 'judge/final-judge-contract']) {
     const earlier = contractDescriptor(contracts[1],{root,env:{}});
     write(root,`lib/${name}.mjs`,'export const changed = true;\n');
     assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,earlier.execution_key);

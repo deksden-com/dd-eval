@@ -4,10 +4,16 @@ import { mkdtemp, writeFile, readFile, rm, mkdir } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { hashJson, sha256 } from '../lib/runner-events.mjs';
-import { verifyRetainedHitl } from '../lib/hitl-retained.mjs';
+import { verifyRetainedHitl, mergeRetainedHitl } from '../lib/hitl/hitl-retained.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { buildHitlPacket, validateGroundedHitl, hitlCoverageContract } from '../lib/hitl-contract.mjs';
 import { semanticQuestion } from '../lib/semantic-decisions.mjs';
+
+test('merge retains matched rounds and adds only new HITL exchanges', () => {
+  const existing = [{ receipt_file: '/one', pause_id: 'p', scope_id: 'e', round: 1, answer: 'saved' }];
+  const retained = [{ receipt_file: '/one', pause_id: 'p', scope_id: 'e', round: 1, verified: true }, { receipt_file: '/two', pause_id: 'q', scope_id: 'e', round: 2 }];
+  assert.deepEqual(mergeRetainedHitl(existing, retained), [{ ...existing[0], verified: true }, retained[1]]);
+});
 
 async function retained(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'hitl-retained-'));
