@@ -9,6 +9,7 @@ import path from "node:path";
 import { assertCheckpointEngine, assertVerificationMatrixQualification, engineArtifactDigest, verifyEngineArtifact } from "../lib/engine-admission.mjs";
 import { verificationMatrixFingerprint, validateVerificationMatrixAuthority, isVerificationMatrixTextSource } from "../lib/case-acceptance.mjs";
 import * as matrixSchema from '../lib/verification-matrix-schema.mjs';
+import * as matrixChecks from '../lib/verification-matrix-checks.mjs';
 import { operationalDecisionFor, materializeOperationalDecision, loadOperationalContract } from "../lib/operational-decision.mjs";
 import { runBaselineAdmission } from "../lib/baseline-admission.mjs";
 import { matrixComponentFingerprint } from '../lib/verification-components.mjs';
@@ -16,6 +17,7 @@ import { compositeRunner } from './fixtures/composite-runner103.mjs';
 test('case acceptance retains matrix schema exports', () => {
   assert.equal(verificationMatrixFingerprint, matrixSchema.verificationMatrixFingerprint);
   assert.equal(isVerificationMatrixTextSource, matrixSchema.isVerificationMatrixTextSource);
+  assert.equal(validateVerificationMatrixAuthority, matrixChecks.validateVerificationMatrixAuthority);
 });
 
 test("operational declarations bind logical launch scope without inventing acceptance", async () => {
