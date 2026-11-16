@@ -642,11 +642,13 @@ test("normal, resumed, judged, and cancelled runs share one terminal projection"
 
 test("provider interruption consumes the CLI-owned sealed recovery capture", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const capture = await readFile(path.join(root, "lib", "recovery", "capture-evidence.mjs"), "utf8");
+  const recovery = await readFile(path.join(root, "lib", "recovery", "recovery-source.mjs"), "utf8");
   assert.doesNotMatch(source, /\["run", "recovery", "(?:begin|seal|capture)"/);
-  assert.match(source, /control\.admission !== "sealed"/);
-  assert.match(source, /path\.join\(control\.capture_path, "snapshot.json"\)/);
+  assert.match(capture, /control\.admission !== "sealed"/);
+  assert.match(capture, /path\.join\(control\.capture_path, "snapshot.json"\)/);
   assert.match(source, /export async function runnerRecover/);
-  assert.match(source, /launch:recover:/);
+  assert.match(recovery, /launch:recover:/);
 });
 
 test("interruption attribution preserves structured lifecycle and storage errors", () => {
@@ -791,7 +793,7 @@ test("successor context uses the registered v2 RUN artifact root", () => {
 test("canonical reference recovery also requires the registered v2 RUN artifact root", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   const start = source.indexOf("async function canonicalResumeUnlocked");
-  const end = source.indexOf("export async function canonicalBoundaryAccept", start);
+  const end = source.indexOf("export async function canonicalQualify", start);
   const implementation = source.slice(start, end);
   assert.match(implementation, /restoredRoots\(\{ status \}, projectRoot, runtimeRoot\)/);
   assert.doesNotMatch(implementation, /run_home_path/);
@@ -965,7 +967,7 @@ test("unplanned HITL fails before Judge dispatch and preserves the exact questio
 test("canonical recovery reuses accepted HITL bytes without spending another round", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.match(source, /answered_pauses/);
-  const implementation = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalBoundaryAccept"));
+  const implementation = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalQualify"));
   assert.match(implementation, /if \(prior\) \{[\s\S]*verifyRetainedHitl\(\{ data: prior,[\s\S]*return prior\.answer_file/);
   assert.match(source, /answer_file: answerFile/);
 });
@@ -1068,9 +1070,9 @@ test("capacity reads Codex native child metadata rather than model text", async 
 test("reference native-child recovery delegates to its retained CLI owner", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.doesNotMatch(source, /export function nativeChildWaitPrompt/);
-  const resumeWorker = await readFile(path.join(root, "lib", "eval-resume-worker.mjs"), "utf8");
+  const resumeWorker = await readFile(path.join(root, "lib", "recovery", "worker-attempt.mjs"), "utf8");
   assert.match(resumeWorker, /awaiting_native_children/);
-  const reference = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalBoundaryAccept"));
+  const reference = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalQualify"));
   assert.match(reference, /controllerId: state\.reference\.controller_id/);
   assert.doesNotMatch(reference, /driveFanout\(|providerTurn\(|callDriver\(/);
 });
@@ -1084,7 +1086,7 @@ test("observer loss remains recoverable instead of producing a failed execution"
 
 test("reference stage continuation is owned by the shared controller", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  const reference = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalBoundaryAccept"));
+  const reference = source.slice(source.indexOf("async function canonicalResumeUnlocked"), source.indexOf("export async function canonicalQualify"));
   assert.match(reference, /await observeManagedRun\(/);
   assert.match(reference, /if \(requested !== stage\) return null/);
   assert.doesNotMatch(reference, /interruptedStageContinuation|session.*prompt/);
