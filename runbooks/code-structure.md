@@ -37,3 +37,7 @@ qualification recovery belong in `cases/`; continuation admission and journal
 projection belong in `execution/`. Recovery worker lifecycle, source selection,
 resource binding and retirement helpers belong in `recovery/`. Keep the
 top-level runner and worker files as orchestration and compatibility facades.
+Harness process policy, bounded diagnostics and structured error parsing live in
+`harness/`; baseline admission fingerprints each of these execution helpers.
+The old top-level module paths retained as facades preserve existing consumers,
+while verification keys include the actual subsystem implementations.
