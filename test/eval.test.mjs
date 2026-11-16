@@ -633,9 +633,10 @@ test("recovery retains the logical CLI controller rather than restarting an eval
 
 test("normal, resumed, judged, and cancelled runs share one terminal projection", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const finalization = await readFile(path.join(root, "lib", "evidence", "finalization.mjs"), "utf8");
   assert.equal((source.match(/finalizeRunProjection\(\{/g) ?? []).length >= 4, true);
-  assert.match(source, /await writeJsonAtomic\(path\.join\(root, "state\.json"\), projection\)/);
-  assert.match(source, /state !== "awaiting_provider"/);
+  assert.match(finalization, /await writeJsonAtomic\(path\.join\(root, "state\.json"\), projection\)/);
+  assert.match(finalization, /!\["awaiting_provider", "awaiting_cleanup"\]\.includes\(state\)/);
   assert.equal(storedExecutionResults([{ executionid: "e", type: "dev.dd.eval.execution.cancelled", data: {} }], { run_id: "r", executions: [{ id: "e" }] })[0].state, "cancelled");
 });
 
@@ -771,7 +772,7 @@ test("a terminal incomplete execution keeps an immutable evidence candidate for 
 });
 
 test("a local engine override refreshes a same-version runtime snapshot", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const source = await readFile(path.join(root, "lib", "execution", "runtime-provision.mjs"), "utf8");
   assert.match(source, /commandJson\(bin, \["engine", "install", "--force"\]/);
 });
 
@@ -971,9 +972,10 @@ test("canonical recovery reuses accepted HITL bytes without spending another rou
 
 test("canonical mutations are bound to their committed eval definition", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /runner_definition_drift/);
-  assert.match(source, /state\.definition\.dependencies_sha256 !== current\.dependencies_sha256/);
-  assert.match(source, /state\.definition\?\.commit !== current\.commit/); // legacy receipts
+  const recovery = await readFile(path.join(root, "lib", "cases", "canonical-recovery.mjs"), "utf8");
+  assert.match(recovery, /runner_definition_drift/);
+  assert.match(recovery, /state\.definition\.dependencies_sha256 !== current\.dependencies_sha256/);
+  assert.match(recovery, /state\.definition\?\.commit !== current\.commit/); // legacy receipts
   assert.match(source, /await assertCanonicalDefinition\(state\)/);
 });
 
