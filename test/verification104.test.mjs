@@ -42,6 +42,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   for(const contract of contracts)write(root,contract,"import test from 'node:test';test('control contract',()=>{});\n");
   write(root,'test/baseline-admission.test.mjs',"import test from 'node:test';test('runtime shim',()=>{});\n");
   write(root,'lib/runner.mjs','export const runner = 1;\n');
+  write(root,'lib/driver-bindings.mjs','export const driver = 1;\n');
   write(root,'lib/snapshot-tree.mjs','export const snapshot = 1;\n');
   write(root,'lib/verification-matrix-schema.mjs','export const matrix = 1;\n');
   write(root,'lib/task-input.mjs','export const taskInput = 1;\n');
@@ -51,6 +52,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   assert.ok(contracts.every(contract=>selection.files.includes(contract)));
   const before=contractDescriptor(contracts[1],{root,env:{}});
   assert.ok(before.inputs.includes('lib/engine-admission.mjs'));
+  assert.ok(before.inputs.includes('lib/driver-bindings.mjs'));
   assert.ok(before.inputs.includes('lib/definition-identity.mjs'));
   assert.ok(before.inputs.includes('lib/snapshot-tree.mjs'));
   assert.ok(before.inputs.includes('lib/verification-matrix-schema.mjs'));
@@ -68,6 +70,9 @@ test('104: changed control and retained-recovery tests have owned source closure
   const withTaskInput=contractDescriptor(contracts[1],{root,env:{}});
   write(root,'lib/task-input.mjs','export const taskInput = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withTaskInput.execution_key);
+  const withDriver=contractDescriptor(contracts[1],{root,env:{}});
+  write(root,'lib/driver-bindings.mjs','export const driver = 2;\n');
+  assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withDriver.execution_key);
   for (const name of ['snapshot-tree', 'verification-matrix-schema']) {
     const earlier = contractDescriptor(contracts[1],{root,env:{}});
     write(root,`lib/${name}.mjs`,'export const changed = true;\n');

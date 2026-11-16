@@ -5,6 +5,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 const zones = [
+  [/^driver-bindings\.mjs$/, /eval\.test|droid-runner|plan-024-regressions|runtime-restore|runner|recovery|managed|canonical|fork|capacity|hitl|judge|baseline-admission/],
   [/^(?:snapshot-tree|materialization-evidence|recovery-safety)\.mjs$/, /case-acceptance|recovery|runner|fork|judge-supplement|materialization-evidence|engine-admission|eval\.test/],
   [/^verification-matrix-schema\.mjs$/, /case-acceptance|engine-admission|runner-proof|verification-components|runner|recovery|fork|eval\.test/],
   [/^task-input\.mjs$/, /task-input|eval\.test|canonical|fork|runner|recovery|managed|baseline-admission|e2e-reliability|memory-run-preparation/],
@@ -32,7 +33,7 @@ const zones = [
 // The control/recovery tests exercise these shared runner helpers directly.
 // Keep their explicit closure local; unrelated libs are not a whole-suite key.
 const controlContracts = ['test/runner-control.test.mjs','test/managed-resume.test.mjs','test/recovery-finalization105.test.mjs'];
-const controlInputs = ['lib/runner.mjs','lib/snapshot-tree.mjs','lib/verification-matrix-schema.mjs','lib/task-input.mjs','lib/definition-identity.mjs','lib/eval-retirement.mjs','lib/eval-resume-worker.mjs','lib/cleanup-observation.mjs','lib/snapshot-observation.mjs','lib/recovery-safety.mjs','lib/execution-state.mjs','lib/execution-contract.mjs','lib/entry-pack.mjs','lib/engine-admission.mjs','lib/baseline-admission.mjs','lib/runtime-maintenance.mjs','lib/managed-flow-client.mjs','lib/homes.mjs','lib/hitl-contract.mjs','lib/hitl-retained.mjs','lib/native-failure-evidence.mjs','lib/driver-recovery.mjs','lib/operation-context.mjs'];
+const controlInputs = ['lib/runner.mjs','lib/driver-bindings.mjs','lib/snapshot-tree.mjs','lib/verification-matrix-schema.mjs','lib/task-input.mjs','lib/definition-identity.mjs','lib/eval-retirement.mjs','lib/eval-resume-worker.mjs','lib/cleanup-observation.mjs','lib/snapshot-observation.mjs','lib/recovery-safety.mjs','lib/execution-state.mjs','lib/execution-contract.mjs','lib/entry-pack.mjs','lib/engine-admission.mjs','lib/baseline-admission.mjs','lib/runtime-maintenance.mjs','lib/managed-flow-client.mjs','lib/homes.mjs','lib/hitl-contract.mjs','lib/hitl-retained.mjs','lib/native-failure-evidence.mjs','lib/driver-recovery.mjs','lib/operation-context.mjs'];
 const repoGit = (root, ...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio:['ignore','pipe','pipe'] }).trimEnd();
 const sha = value => createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
 export function verificationSelection(base = null, { root = process.cwd(), env = process.env } = {}) {

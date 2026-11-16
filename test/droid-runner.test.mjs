@@ -6,6 +6,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertObservedRuntime, assertProfileCapacity, callDriver, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, judgeRuntimeEnvironment, loadProfile } from '../lib/runner.mjs';
 import { qualificationProbeEnvironment } from '../lib/qualification-owner.mjs';
+import * as driverBindings from '../lib/driver-bindings.mjs';
+
+test('runner retains driver binding exports', () => {
+  assert.equal(assertObservedRuntime, driverBindings.assertObservedRuntime);
+  assert.equal(driverAdapterInvocation, driverBindings.driverAdapterInvocation);
+  assert.equal(driverProfileArgs, driverBindings.driverProfileArgs);
+  assert.equal(driverRuntimeArgs, driverBindings.driverRuntimeArgs);
+});
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 
