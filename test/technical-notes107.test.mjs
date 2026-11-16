@@ -12,6 +12,12 @@ import { observedCompletionScope } from '../lib/completion-scope.mjs';
 import { baselineExecutionSettled } from '../lib/baseline-admission.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { assertNativeResourceRetired } from '../lib/judge-cleanup.mjs';
+import * as cleanupProjection from '../lib/cleanup-observation.mjs';
+
+test('runner retains cleanup observation exports', () => {
+  assert.equal(scopeResourcesPending, cleanupProjection.scopeResourcesPending);
+  assert.equal(resolveRetiredTechnicalNotes, cleanupProjection.resolveRetiredTechnicalNotes);
+});
 
 test('technical notes resolve and deduplicate without changing semantic result/history', async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'notes107-'));

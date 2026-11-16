@@ -91,7 +91,7 @@ test('104: changed control and retained-recovery tests have owned source closure
   const withDriver=contractDescriptor(contracts[1],{root,env:{}});
   write(root,'lib/driver-bindings.mjs','export const driver = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withDriver.execution_key);
-  for (const name of ['snapshot-tree', 'verification-matrix-schema', 'verification-matrix-checks', 'run-candidate', 'stage-attribution', 'eval-worker-status', 'runner-health', 'evidence-journals', 'model-conformance', 'report-projections', 'profile-capacity']) {
+  for (const name of ['snapshot-tree', 'verification-matrix-schema', 'verification-matrix-checks', 'run-candidate', 'stage-attribution', 'eval-worker-status', 'runner-health', 'evidence-journals', 'model-conformance', 'report-projections', 'profile-capacity', 'cleanup-observation']) {
     const earlier = contractDescriptor(contracts[1],{root,env:{}});
     write(root,`lib/${name}.mjs`,'export const changed = true;\n');
     assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,earlier.execution_key);
