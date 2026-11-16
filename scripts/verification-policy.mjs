@@ -5,6 +5,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 const zones = [
+  [/^definition-identity\.mjs$/, /eval\.test|canonical|fork|runner|recovery|managed|baseline-admission|e2e-reliability/],
   [/^recovery-observation-budget\.mjs$/, /plan110-recovery|runner-recovery|eval-retirement090|process-json/],
   [/technical-notes|baseline-admission|^runner\.mjs$/, /technical-notes107|tool-preparation114/],
   [/technical-notes/, /runner-health|runner-recovery|qualification-owner090/],
@@ -28,7 +29,7 @@ const zones = [
 // The control/recovery tests exercise these shared runner helpers directly.
 // Keep their explicit closure local; unrelated libs are not a whole-suite key.
 const controlContracts = ['test/runner-control.test.mjs','test/managed-resume.test.mjs','test/recovery-finalization105.test.mjs'];
-const controlInputs = ['lib/runner.mjs','lib/eval-retirement.mjs','lib/eval-resume-worker.mjs','lib/cleanup-observation.mjs','lib/snapshot-observation.mjs','lib/recovery-safety.mjs','lib/execution-state.mjs','lib/execution-contract.mjs','lib/entry-pack.mjs','lib/engine-admission.mjs','lib/baseline-admission.mjs','lib/runtime-maintenance.mjs','lib/managed-flow-client.mjs','lib/homes.mjs','lib/hitl-contract.mjs','lib/hitl-retained.mjs','lib/native-failure-evidence.mjs','lib/driver-recovery.mjs','lib/operation-context.mjs'];
+const controlInputs = ['lib/runner.mjs','lib/definition-identity.mjs','lib/eval-retirement.mjs','lib/eval-resume-worker.mjs','lib/cleanup-observation.mjs','lib/snapshot-observation.mjs','lib/recovery-safety.mjs','lib/execution-state.mjs','lib/execution-contract.mjs','lib/entry-pack.mjs','lib/engine-admission.mjs','lib/baseline-admission.mjs','lib/runtime-maintenance.mjs','lib/managed-flow-client.mjs','lib/homes.mjs','lib/hitl-contract.mjs','lib/hitl-retained.mjs','lib/native-failure-evidence.mjs','lib/driver-recovery.mjs','lib/operation-context.mjs'];
 const repoGit = (root, ...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio:['ignore','pipe','pipe'] }).trimEnd();
 const sha = value => createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
 export function verificationSelection(base = null, { root = process.cwd(), env = process.env } = {}) {
@@ -116,4 +117,3 @@ export function contractDescriptor(file, { root = process.cwd(), env = process.e
   return { id:`eval:${path.basename(file)}`, files:[file], inputs, execution_key:executionKey, validation_key:validationKey,
     declaration_sha256:sha(declaration), runner, execution_class:technical || /fixture-assessment102/.test(file) ? 'isolated':'exclusive', prerequisites:[] };
 }
-export function contractKey(file, options) { return contractDescriptor(file, options).execution_key; }

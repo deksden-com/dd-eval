@@ -10,6 +10,7 @@ import test from "node:test";
 import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, resolveHitlJudgment, restoredRoots, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { definitionSelection } from "../lib/runner.mjs";
+import * as definitionIdentity from "../lib/definition-identity.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 import { buildHitlPacket, validateGroundedHitl, interactionGroundedPrompt } from '../lib/hitl-contract.mjs';
 import { materializeQualificationContext, reassessHitlQualification } from "../lib/runner.mjs";
@@ -25,6 +26,11 @@ const root = path.resolve(import.meta.dirname, "..");
 const buildProfile = path.join(root, "cases", caseId, "run-profiles", "build-entry-pack-reference-sol-high.json");
 const qualificationProfile = path.join(root, "cases", caseId, "run-profiles", "qualify-entry-pack-terra-high.json");
 const run = promisify(execFile);
+
+test("runner preserves definition identity exports", () => {
+  assert.equal(definitionSelection, definitionIdentity.definitionSelection);
+  assert.equal(committedDefinitionIdentity, definitionIdentity.committedDefinitionIdentity);
+});
 
 test("mandatory post-native observation failure is infrastructure, retains stable diagnostic revision", () => {
   const result = { execution: "e2e", state: "failed", code: "native_outcome_observation_failed", error: "observer failed", details: { native_outcome: { status: "completed" }, observation_error: { code: "lifecycle_shell_syntax_invalid", details: { reason: "dynamic_executable" } }, journal_locator: "/owned/native.jsonl" } };
