@@ -1037,7 +1037,7 @@ test("capacity qualification stays outside the flow runtime", async () => {
 });
 
 test("capacity Codex home inherits CPA routing without sharing auth state or hooks", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const source = await readFile(path.join(root, "lib", "harness", "capacity-codex-home.mjs"), "utf8");
   const helper = source.match(/async function provisionCapacityCodexHome[\s\S]*?\n}/);
   assert.ok(helper);
   assert.match(helper[0], /symlink\(sourceAuth/);
