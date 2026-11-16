@@ -615,7 +615,7 @@ test("eval does not retain a second execution snapshot controller", async () => 
 });
 
 test("recovery resumes the latest successor Subject Session", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const source = await readFile(path.join(root, "lib", "recovery", "execution-cleanup.mjs"), "utf8");
   const projection = await readFile(path.join(root, "lib", "execution", "result-projection.mjs"), "utf8");
   assert.match(source, /subjectSessionFor\(events, execution\.id\)/);
   assert.match(projection, /dev\.dd\.eval\.subject\.successor_session_created/);
@@ -624,7 +624,7 @@ test("recovery resumes the latest successor Subject Session", async () => {
 
 test("recovery retains the logical CLI controller rather than restarting an eval daemon", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  const recovery = source.slice(source.indexOf('export async function recoverExecution('), source.indexOf('async function runnerBlueprint('));
+  const recovery = await readFile(path.join(root, "lib", "recovery", "execution-recovery.mjs"), "utf8");
   assert.match(recovery, /\["run", "control", "resume"/);
   assert.match(recovery, /resumed\.controller\?\.controller_id !== controller\.controller_id/);
   assert.doesNotMatch(recovery, /withExecutionDaemon|callDriver\(|providerTurn\(/);
@@ -834,7 +834,7 @@ test("productive fan-out has no second execution loop in eval", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   assert.doesNotMatch(source, /export function nativeChildFanoutPrompt/);
   assert.doesNotMatch(source, /async function driveFanout/);
-  const recovery = source.slice(source.indexOf('export async function recoverExecution('), source.indexOf('async function runnerBlueprint('));
+  const recovery = await readFile(path.join(root, "lib", "recovery", "execution-recovery.mjs"), "utf8");
   assert.match(recovery, /await observeManagedExecution/);
   assert.doesNotMatch(recovery, /nativeChildFanoutPrompt\(|promptExistingSession\(/);
 });
