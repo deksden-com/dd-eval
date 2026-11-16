@@ -648,10 +648,11 @@ test("provider interruption consumes the CLI-owned sealed recovery capture", asy
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   const capture = await readFile(path.join(root, "lib", "recovery", "capture-evidence.mjs"), "utf8");
   const recovery = await readFile(path.join(root, "lib", "recovery", "recovery-source.mjs"), "utf8");
+  const executionRecovery = await readFile(path.join(root, "lib", "recovery", "execution-recovery.mjs"), "utf8");
   assert.doesNotMatch(source, /\["run", "recovery", "(?:begin|seal|capture)"/);
   assert.match(capture, /control\.admission !== "sealed"/);
   assert.match(capture, /path\.join\(control\.capture_path, "snapshot.json"\)/);
-  assert.match(source, /export async function runnerRecover/);
+  assert.match(executionRecovery, /export async function runnerRecover/);
   assert.match(recovery, /launch:recover:/);
 });
 
@@ -766,7 +767,7 @@ test("capacity native children appearing after backoff or permit prevent another
 });
 
 test("a terminal incomplete execution keeps an immutable evidence candidate for Judge", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
+  const source = await readFile(path.join(root, "lib", "judge", "eval-judge.mjs"), "utf8");
   const candidate = await buildRunCandidate({ runId: 'EVAL-test', manifest: { run_id: 'EVAL-test' }, results: [{ execution: 'e', state: 'failed' }] });
   assert.equal(candidate.schema_id, 'dd-eval/run-candidate@2');
   assert.equal(candidate.outcome, 'incomplete');
@@ -946,8 +947,10 @@ test("HITL verdicts are strict, fail closed, and preserve exact response bytes",
 });
 
 test("HITL recovery enforces the same round, receipt, and evidence contract", async () => {
-  const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
-  assert.match(source, /type: "dev\.dd\.eval\.hitl\.matched"[\s\S]*recovered: true/);
+  const source = await readFile(path.join(root, "lib", "execution", "managed-observer.mjs"), "utf8");
+  const recovery = await readFile(path.join(root, "lib", "recovery", "execution-recovery.mjs"), "utf8");
+  assert.match(source, /type: "dev\.dd\.eval\.hitl\.matched"/);
+  assert.match(recovery, /recovered: true/);
   assert.match(source, /hitl\.push\(\.\.\.await hitlEvidenceFor\(retained, execution\.id, runId, manifest\.execution_contract\)\)/);
 });
 
