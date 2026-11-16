@@ -6,7 +6,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { execFileSync } from 'node:child_process';
 import { materializeTaskInput, prepareTaskInput } from '../lib/runner.mjs';
-import * as taskInput from '../lib/task-input.mjs';
+import * as taskInput from '../lib/cases/task-input.mjs';
 
 test('runner retains task input exports', () => {
   assert.equal(materializeTaskInput, taskInput.materializeTaskInput);

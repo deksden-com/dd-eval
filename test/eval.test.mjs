@@ -10,7 +10,7 @@ import test from "node:test";
 import { assertSourceTag, assertObservedRuntime, assertProfileCapacity, assertProjectFlowPack, assertHitlQualification, authorizeHitl, boundedCapacityContinuation, boundedPromptArgs, canonicalBuild, classifyInterruption, committedDefinitionIdentity, directNativeChildren, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, evalRun, executionEvidence, failureAttribution, failureEvidenceRevision, finalJudgePrompt, fixturesValidate, hitlQualificationInputs, isInfrastructureFailure, loadCase, loadRunProfile, resolveHitlJudgment, restoredRoots, selectionNeedsEntryPack, stageSessionMode, storedExecutionResults, validateJudgeResult } from "../lib/runner.mjs";
 import { appendEvent, hashJson, readEvents } from "../lib/runner-events.mjs";
 import { buildRunCandidate, definitionSelection } from "../lib/runner.mjs";
-import * as definitionIdentity from "../lib/definition-identity.mjs";
+import * as definitionIdentity from "../lib/cases/definition-identity.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 import { buildHitlPacket, validateGroundedHitl, interactionGroundedPrompt } from '../lib/hitl-contract.mjs';
 import { materializeQualificationContext, reassessHitlQualification } from "../lib/runner.mjs";

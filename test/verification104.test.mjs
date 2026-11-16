@@ -109,8 +109,8 @@ test('104: changed control and retained-recovery tests have owned source closure
   write(root,'lib/recovery/snapshot-tree.mjs','export const snapshot = 1;\n');
   write(root,'lib/verification-matrix-schema.mjs','export const matrix = 1;\n');
   write(root,'lib/verification-matrix-checks.mjs','export const checks = 1;\n');
-  write(root,'lib/task-input.mjs','export const taskInput = 1;\n');
-  write(root,'lib/definition-identity.mjs','export const identity = 1;\n');
+  write(root,'lib/cases/task-input.mjs','export const taskInput = 1;\n');
+  write(root,'lib/cases/definition-identity.mjs','export const identity = 1;\n');
   write(root,'lib/engine-admission.mjs','export const admission = 1;\n');
   let selection=verificationSelection(null,{root,env:{}});
   assert.ok(contracts.every(contract=>selection.files.includes(contract)));
@@ -133,11 +133,11 @@ test('104: changed control and retained-recovery tests have owned source closure
   assert.ok(before.inputs.includes('lib/evidence/run-candidate.mjs'));
   assert.ok(before.inputs.includes('lib/evidence/stage-attribution.mjs'));
   assert.ok(before.inputs.includes('lib/driver-bindings.mjs'));
-  assert.ok(before.inputs.includes('lib/definition-identity.mjs'));
+  assert.ok(before.inputs.includes('lib/cases/definition-identity.mjs'));
   assert.ok(before.inputs.includes('lib/recovery/snapshot-tree.mjs'));
   assert.ok(before.inputs.includes('lib/verification-matrix-schema.mjs'));
   assert.ok(before.inputs.includes('lib/verification-matrix-checks.mjs'));
-  assert.ok(before.inputs.includes('lib/task-input.mjs'));
+  assert.ok(before.inputs.includes('lib/cases/task-input.mjs'));
   assert.ok(before.inputs.includes('lib/recovery/cleanup-observation.mjs'));
   assert.ok(before.inputs.includes('lib/recovery/snapshot-observation.mjs'));
   assert.ok(before.inputs.includes('lib/recovery/recovery-source.mjs'));
@@ -150,11 +150,11 @@ test('104: changed control and retained-recovery tests have owned source closure
   assert.ok(contracts.every(contract=>selection.files.includes(contract)));
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,before.execution_key);
   const withIdentity=contractDescriptor(contracts[1],{root,env:{}});
-  write(root,'lib/definition-identity.mjs','export const identity = 2;\n');
+  write(root,'lib/cases/definition-identity.mjs','export const identity = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withIdentity.execution_key);
   assert.ok(contracts.every(contract=>verificationSelection(null,{root,env:{}}).files.includes(contract)));
   const withTaskInput=contractDescriptor(contracts[1],{root,env:{}});
-  write(root,'lib/task-input.mjs','export const taskInput = 2;\n');
+  write(root,'lib/cases/task-input.mjs','export const taskInput = 2;\n');
   assert.notEqual(contractDescriptor(contracts[1],{root,env:{}}).execution_key,withTaskInput.execution_key);
   const withDriver=contractDescriptor(contracts[1],{root,env:{}});
   write(root,'lib/driver-bindings.mjs','export const driver = 2;\n');
