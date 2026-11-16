@@ -31,3 +31,9 @@ cycles. Preserve `runner.mjs` compatibility, update any direct consumers and
 verification source closures, and test affected behavior before committing.
 Historical runbooks and archived specifications remain historical references,
 not a reason to maintain duplicate implementations.
+
+Canonical build operations, reviewed boundaries, entry acceptance and
+qualification recovery belong in `cases/`; continuation admission and journal
+projection belong in `execution/`. Recovery worker lifecycle, source selection,
+resource binding and retirement helpers belong in `recovery/`. Keep the
+top-level runner and worker files as orchestration and compatibility facades.
