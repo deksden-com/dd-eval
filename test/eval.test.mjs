@@ -634,7 +634,9 @@ test("recovery retains the logical CLI controller rather than restarting an eval
 test("normal, resumed, judged, and cancelled runs share one terminal projection", async () => {
   const source = await readFile(path.join(root, "lib", "runner.mjs"), "utf8");
   const finalization = await readFile(path.join(root, "lib", "evidence", "finalization.mjs"), "utf8");
-  assert.equal((source.match(/finalizeRunProjection\(\{/g) ?? []).length >= 4, true);
+  const cleanup = await readFile(path.join(root, "lib", "recovery", "eval-cleanup.mjs"), "utf8");
+  assert.equal((source.match(/finalizeRunProjection\(\{/g) ?? []).length >= 3, true);
+  assert.match(cleanup, /finalizeRunProjection\(\{/);
   assert.match(finalization, /await writeJsonAtomic\(path\.join\(root, "state\.json"\), projection\)/);
   assert.match(finalization, /!\["awaiting_provider", "awaiting_cleanup"\]\.includes\(state\)/);
   assert.equal(storedExecutionResults([{ executionid: "e", type: "dev.dd.eval.execution.cancelled", data: {} }], { run_id: "r", executions: [{ id: "e" }] })[0].state, "cancelled");
