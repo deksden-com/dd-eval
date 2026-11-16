@@ -4,7 +4,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { selectedEntries, assertQualificationSelection } from '../lib/runner.mjs';
-import * as qualification from '../lib/canonical-qualification.mjs';
+import * as qualification from '../lib/cases/canonical-qualification.mjs';
 import { contained } from '../lib/contained-path.mjs';
 
 test('qualification keeps runner exports and validates retained cell bytes', async t => {
