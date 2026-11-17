@@ -11,6 +11,10 @@ test("Final Judge contract remains available through the runner facade", async (
   for (const name of ["validateJudgeResult", "finalJudgeScope", "assertFinalJudgeScope", "finalJudgePrompt"])
     assert.equal(runner[name], finalJudgeContract[name]);
 });
+test("Judge prompt rejects a malformed selected rubric with its render diagnostic", () => {
+  assert.throws(() => finalJudgePrompt({ assessment: { scopes: { e2e: { outcome: [] } } }, scope: "e2e" }),
+    { code: "judge_scope_missing", message: "Final Judge cannot render unknown assessment scope: e2e" });
+});
 test("Judge schema enums are shared with prompt and field diagnostics, never coerced", async () => {
   const schema = JSON.parse(await readFile(new URL("../schemas/judge-result.v2.schema.json", import.meta.url)));
   const prompt = finalJudgePrompt({ assessment, scope: "e2e", assessmentFile: "/assessment", candidateFile: "/candidate", evidenceFile: "/evidence" });

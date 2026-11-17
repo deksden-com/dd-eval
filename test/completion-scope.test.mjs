@@ -70,7 +70,7 @@ test("Final Judge scope derives from requested range, including failure and repe
   assert.equal(finalJudgeScope(manifest(profile({ repetitions: 2 })), []), "specify");
   const focused = manifest(profile({ e2e: false, focused_stages: ["merge"], stop_after: "merge" }));
   assert.equal(finalJudgeScope(focused, []), "merge");
-  assert.throws(() => assertFinalJudgeScope({ profile: { ...profile(), judge: { enabled: true } }, executions: focused.executions, assessment: { scopes: { specify: { outcome: [], flow: [] } } } }), { code: "judge_scope_missing" });
+  assert.throws(() => assertFinalJudgeScope({ profile: { ...profile(), judge: { enabled: true } }, executions: focused.executions, assessment: { scopes: { specify: { outcome: [], flow: [] } } } }), { code: "judge_scope_missing", message: "Final Judge cannot use unknown authored assessment scope: merge" });
   assert.throws(() => finalJudgeScope({ profile: profile(), executions: [{ terminal_stage: "code" }, { terminal_stage: "merge" }] }), { code: "judge_scope_missing" });
   assert.equal(finalJudgeScope({ profile: { schema_id: "dd-eval/run-profile@1", selection: { e2e: true } } }, []), "e2e");
 });
