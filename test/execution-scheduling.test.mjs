@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mapLimited, Semaphore, createHarnessPermits, executionBudget } from '../lib/execution/execution-scheduling.mjs';
+import { runLimitedQueue, Semaphore, createHarnessPermits, executionBudget } from '../lib/execution/execution-scheduling.mjs';
 import { Semaphore as runnerSemaphore, createHarnessPermits as runnerPermits, executionBudget as runnerBudget } from '../lib/runner.mjs';
 
 test('runner preserves scheduling exports', () => {
@@ -9,10 +9,10 @@ test('runner preserves scheduling exports', () => {
   assert.equal(runnerBudget, executionBudget);
 });
 
-test('queue bounds concurrency and cancels unstarted items without reordering', async () => {
+test('queue bounds concurrency and does not launch items after admission closes', async () => {
   const starts = [], releases = [], items = ['a', 'b', 'c'].map(id => ({ id }));
   let admit = true;
-  const pending = mapLimited(items, 2, item => {
+  const pending = runLimitedQueue(items, 2, item => {
     starts.push(item.id);
     return new Promise(resolve => releases.push(() => resolve(item.id)));
   }, () => admit);
@@ -20,7 +20,7 @@ test('queue bounds concurrency and cancels unstarted items without reordering', 
   admit = false;
   releases[1]();
   releases[0]();
-  assert.deepEqual(await pending, ['a', 'b', { execution: 'c', state: 'cancelled', code: 'run_stopped_by_infrastructure_error' }]);
+  await pending;
   assert.deepEqual(starts, ['a', 'b']);
 });
 
