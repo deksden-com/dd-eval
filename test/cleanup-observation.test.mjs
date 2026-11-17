@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { snapshotTreeHash } from '../lib/case-acceptance.mjs';
 import { hashJson } from '../lib/runner-events.mjs';
-import { runPhysicalStopped } from '../lib/recovery/snapshot-observation.mjs';
+import { runPhysicalStopped } from '../lib/recovery/cleanup-observation.mjs';
 
 test('actual RUN status uses only a current fenced EVAL retirement proof for physical stop', async t => {
   const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'cleanup-retired-')));
