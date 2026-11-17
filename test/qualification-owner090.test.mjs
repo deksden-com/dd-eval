@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import os from "node:os";
 import { mkdtemp, mkdir, readFile, realpath, rm } from "node:fs/promises";
-import { prepareQualificationOwner, finishQualificationOwner } from "../lib/qualification-owner.mjs";
+import { prepareQualificationOwner, finishQualificationOwner } from "../lib/harness/qualification-owner.mjs";
 import { readEvents, reduceEvents, sha256, writeJsonAtomic } from "../lib/runner-events.mjs";
 import { listHomes } from "../lib/homes.mjs";
 import { judgeRuntimeEnvironment, runnerStatus } from "../lib/runner.mjs";

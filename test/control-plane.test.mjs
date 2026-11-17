@@ -4,7 +4,7 @@ import { mkdtemp, realpath, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { cancelOwnedDaemon } from '../lib/daemon-control.mjs';
+import { cancelOwnedDaemon } from '../lib/harness/daemon-control.mjs';
 import { writeJsonAtomic } from '../lib/runner-events.mjs';
 import { assertDaemonReplaceable } from '../lib/driver-recovery.mjs';
 import { successfulNativeFixture } from './fixtures/capacity-policy.mjs';

@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { writeJsonAtomic, hashJson, sha256 } from "../lib/runner-events.mjs";
 import { profileSemanticHash } from "../lib/execution-contract.mjs";
-import { assertQualificationPreparationRecovery, reconcileQualificationPreparation, assertTerminalQualificationTurns } from "../lib/qualification-recovery.mjs";
+import { assertQualificationPreparationRecovery, reconcileQualificationPreparation, assertTerminalQualificationTurns } from "../lib/hitl/preparation-recovery.mjs";
 
 test("terminal non-verdict recovery binds every paid request, Turn and original prompt", () => {
   const chain = { schema_id: "dd-eval/capacity-chain@2", session_id: "session", turns: [{ operation_id: "paid", state: "dispatched", prompt_sha256: sha256("task") }] };

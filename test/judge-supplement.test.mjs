@@ -6,7 +6,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { hashJson } from '../lib/runner-events.mjs';
 import { snapshotTreeHash } from '../lib/case-acceptance.mjs';
-import { prepareSupplementalJudge, assertSupplementalEvidence, validateJudgeSupplement } from '../lib/judge-supplement.mjs';
+import { prepareSupplementalJudge, assertSupplementalEvidence, validateJudgeSupplement } from '../lib/judge/supplement.mjs';
 import { parse, validateCommand } from '../lib/cli-input.mjs';
 import { evalJudge, installRuntimeShim, runnerControlStatus } from '../lib/runner.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';

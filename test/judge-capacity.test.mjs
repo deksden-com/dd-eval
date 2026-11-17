@@ -1,6 +1,6 @@
 import nodeTest from "node:test";
 import assert from "node:assert/strict";
-import { promptJudgeWithCapacity } from "../lib/judge-capacity.mjs";
+import { promptJudgeWithCapacity } from "../lib/judge/capacity.mjs";
 import { mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";

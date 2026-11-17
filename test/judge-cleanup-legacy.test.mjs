@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { loadNativeContracts } from '../lib/capacity-policy.mjs';
-import { assertJudgeCleanup, assertJudgeCleanupCurrent, finishJudgeCleanup } from '../lib/judge-cleanup.mjs';
+import { assertJudgeCleanup, assertJudgeCleanupCurrent, finishJudgeCleanup } from '../lib/judge/cleanup.mjs';
 
 async function historicalJudge(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'judge-legacy-shutdown-'));

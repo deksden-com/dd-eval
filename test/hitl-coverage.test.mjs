@@ -12,7 +12,7 @@ import { writeJsonAtomic, hashJson, sha256 } from "../lib/runner-events.mjs";
 import { interactionJudge, loadRunProfile, loadCase, hitlQualificationInputs, buildReport, classifyInterruption } from "../lib/runner.mjs";
 import { compareCoverageExpectation } from "../lib/hitl-corpus.mjs";
 import { settledJudge } from "./fixtures/judge-cleanup.mjs";
-import { promptJudgeWithCapacity } from "../lib/judge-capacity.mjs";
+import { promptJudgeWithCapacity } from "../lib/judge/capacity.mjs";
 import { interactionJudgePrompt } from "../lib/runner.mjs";
 import { verifyRetainedHitl } from "../lib/hitl/hitl-retained.mjs";
 import Ajv from "ajv/dist/2020.js";

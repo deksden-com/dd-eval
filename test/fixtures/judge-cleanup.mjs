@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { finishJudgeCleanup } from '../../lib/judge-cleanup.mjs';
+import { finishJudgeCleanup } from '../../lib/judge/cleanup.mjs';
 import { installSuccessfulPolicy } from './capacity-policy.mjs';
 
 export async function settledJudge(root, verdict, { runtimeRoot = path.join(root, 'runtime') } = {}) {

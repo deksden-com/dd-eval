@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { assessEvalHealth, boundFlowHealth, reconcileEvalHealth } from "../lib/recovery/runner-health.mjs";
@@ -22,6 +22,43 @@ test("a live observer does not hide a bound RUN's technical dependency pause", (
   assert.equal(boundFlowHealth({ ...item, receipt: { ...receipt, scope: { run_id: "foreign" } } }).complete, false);
   const other = { id: "other", complete: false };
   assert.equal(assessEvalHealth({ ...input, flowHealth: [boundFlowHealth(item), other] }).state, "unknown");
+});
+test("default health observation reads the retained RUN control status", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-bound-health-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, "dd-flow"), calls = path.join(root, "calls.jsonl"), resources = path.join(root, "resources");
+  const script = `#!${process.execPath}\nconst fs = require('node:fs'); const args = process.argv.slice(2);\n` +
+    `if (process.env.DD_FLOW_RESOURCE_HOME !== ${JSON.stringify(resources)} || args[2] !== 'status') throw new Error('unexpected status binding');\n` +
+    `fs.appendFileSync(${JSON.stringify(calls)}, JSON.stringify(args)+'\\n');\n` +
+    `console.log(JSON.stringify(args[0] === 'runtime' ? {scope_id:'EVAL-bound',dispatch_blocked:true,processes:[]} : {scope:{run_id:'RUN-1'},run_status:'paused',control:{current:true,requested_mode:'pause',request_id:'technical:controller:1:abc'},technical_notes:[{run_id:'RUN-1',state:'open',consequence:'dependency_blocked'}]}));\n`;
+  await writeFile(bin, script); await chmod(bin, 0o700);
+  const attempt = path.join(root, "executions", "one"), project = path.join(attempt, "project"), runtime = path.join(attempt, "dd-flow-home");
+  await mkdir(project, { recursive: true }); await mkdir(path.join(runtime, "bin"), { recursive: true });
+  await writeFile(path.join(runtime, "bin", "dd-flow"), script); await chmod(path.join(runtime, "bin", "dd-flow"), 0o700);
+  await writeFile(path.join(attempt, "managed-runtime.json"), JSON.stringify({ schema_id: "dd-eval/managed-runtime@1", project_root: project, runtime_root: runtime, run_id: "RUN-1" }));
+  await writeFile(path.join(root, "manifest.json"), JSON.stringify({ run_id: "EVAL-bound", runtime_control_bin: bin, runtime_resource_home: resources, executions: [{ id: "one" }] }));
+  await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: "EVAL-bound", executionId: "one", type: "dev.dd.eval.operation.started", data: { operation_id: "EVAL-bound:one:launch", operation: "launch" } });
+  const result = await reconcileEvalHealth({ evalRoot: root });
+  assert.equal(result.health.reason, "native_writer_dependency_blocked");
+  assert.equal(result.health.state, "waiting");
+  const observed = (await readFile(calls, "utf8")).trim().split("\n").map(JSON.parse);
+  assert.deepEqual(observed.map(args => args.slice(0, 3)).sort(), [["run", "control", "status"], ["runtime", "scope", "status"]]);
+});
+
+test("health observation projects a proven operator stop from retained scope", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dd-eval-stop-health-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, "dd-flow"), resources = path.join(root, "resources"), calls = path.join(root, "calls.jsonl");
+  const script = `#!${process.execPath}\nconst fs=require('node:fs');const args=process.argv.slice(2);\n` +
+    `if (args.slice(0,3).join(' ') !== 'runtime scope status' || process.env.DD_FLOW_RESOURCE_HOME !== ${JSON.stringify(resources)}) throw new Error('unexpected status binding');\n` +
+    `fs.appendFileSync(${JSON.stringify(calls)},JSON.stringify(args)+'\\n');console.log(JSON.stringify({scope_id:'EVAL-stop',dispatch_blocked:true,processes:[],control:{request_id:'stop-one',requested_mode:'stop',generation:2},drain:{scope_id:'EVAL-stop',generation:2,physical_settled:true}}));\n`;
+  await writeFile(bin, script); await chmod(bin, 0o700);
+  await writeFile(path.join(root, "manifest.json"), JSON.stringify({ run_id: "EVAL-stop", runtime_control_bin: bin, runtime_resource_home: resources, executions: [] }));
+  await appendEvent(path.join(root, "events.jsonl"), { source: "test", runId: "EVAL-stop", type: "dev.dd.eval.control.requested", data: { mode: "stop", request_id: "stop-one" } });
+  const result = await reconcileEvalHealth({ evalRoot: root });
+  assert.equal(result.state, "stopped");
+  assert.equal(result.health.reason, "operator_stop_settled");
+  assert.equal((await readFile(calls, "utf8")).trim().split("\n").length, 1);
 });
 test("death, unknown ownership, child activity and HITL stay distinct", () => {
   const input = {state:"awaiting_provider",events:[],now,noProgressMs:60_000};

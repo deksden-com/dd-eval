@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import childProcess from 'node:child_process';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
-import { assertJudgeCleanup, assertJudgeCleanupCurrent, assertJudgeVerdict, observeJudgeCleanup, finishJudgeCleanup } from '../lib/judge-cleanup.mjs';
+import { assertJudgeCleanup, assertJudgeCleanupCurrent, assertJudgeVerdict, observeJudgeCleanup, finishJudgeCleanup } from '../lib/judge/cleanup.mjs';
 
 test('stop ACK cannot turn missing, null or active execution evidence into clean cleanup', async t => {
   for (const activity of [undefined, null, true]) {

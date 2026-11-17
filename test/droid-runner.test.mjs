@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertObservedRuntime, assertProfileCapacity, callDriver, driverAdapterInvocation, driverProfileArgs, driverRuntimeArgs, judgeRuntimeEnvironment, loadProfile } from '../lib/runner.mjs';
-import { qualificationProbeEnvironment } from '../lib/qualification-owner.mjs';
+import { qualificationProbeEnvironment } from '../lib/harness/qualification-owner.mjs';
 import * as driverBindings from '../lib/harness/driver-bindings.mjs';
 
 test('runner retains driver binding exports', () => {

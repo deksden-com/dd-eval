@@ -7,7 +7,7 @@ import { interactionJudge, interactionJudgePrompt, judgeRuntimeEnvironment, isIn
 import { buildHitlPacket, validateGroundedHitl } from '../lib/hitl-contract.mjs';
 import { hashJson } from '../lib/runner-events.mjs';
 import { settledJudge } from './fixtures/judge-cleanup.mjs';
-import { promptJudgeWithCapacity } from '../lib/judge-capacity.mjs';
+import { promptJudgeWithCapacity } from '../lib/judge/capacity.mjs';
 import { loadCapacityPolicy } from '../lib/capacity-policy.mjs';
 import { installSuccessfulPolicy, successfulPolicy } from './fixtures/capacity-policy.mjs';
 import { resolveExecutionContract, contractProfile, profileSemanticHash } from '../lib/execution-contract.mjs';
