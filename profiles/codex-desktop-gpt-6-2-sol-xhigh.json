@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "codex-desktop-gpt-6-2-sol-xhigh",
+  "harness": "codex-desktop",
+  "model": "gpt-6.2-sol",
+  "reasoning": "xhigh",
+  "notes": "Final and Interaction Judge for the flow-pack E2E; live qualification is required before use.",
+  "runtime": {
+    "codex_cli": "0.163.0",
+    "dd_harness_contract": "dd-codex-harness@1"
+  }
+}
