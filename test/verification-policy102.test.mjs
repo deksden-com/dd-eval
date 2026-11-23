@@ -18,6 +18,15 @@ test('process contracts bind extracted helpers to their execution key', () => {
   }
 });
 
+test('matrix admission contracts bind the selected pack history and component readers', () => {
+  for (const testFile of ['test/engine-admission.test.mjs', 'test/verification-components103.test.mjs']) {
+    const inputs = contractDescriptor(testFile).inputs;
+    for (const file of ['lib/pack-matrix-admission.mjs', 'lib/pack-component-fingerprint.mjs', 'lib/recovery/pack-history.mjs',
+      'lib/recovery/pack-review-graph.mjs', 'lib/recovery/frozen-evidence-io.mjs', 'lib/recovery/snapshot-tree.mjs', 'lib/execution/journal-hash.mjs'])
+      assert.ok(inputs.includes(file), `${testFile}: missing execution-key input ${file}`);
+  }
+});
+
 test('control contracts bind the extracted execution and recovery dependencies', () => {
   const inputs = contractDescriptor('test/runner-control.test.mjs').inputs;
   for (const file of ['lib/execution/selection.mjs', 'lib/execution/eval-inputs.mjs',
