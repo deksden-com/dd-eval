@@ -6,7 +6,7 @@ import { DatabaseSync } from 'node:sqlite';
 import os from 'node:os';
 import path from 'node:path';
 import { readPackHistory, readPackPlanReviewBinding, readPackRevisionChain } from '../lib/recovery/pack-history.mjs';
-import { readPackReviewerGraph } from '../lib/recovery/pack-review-graph.mjs';
+import { readPackReviewerGraph, readPackRevisionGraphs } from '../lib/recovery/pack-review-graph.mjs';
 import { assertLegacySnapshot } from '../lib/cases/frozen-evidence.mjs';
 import { snapshotTreeHash } from '../lib/recovery/snapshot-tree.mjs';
 
@@ -16,7 +16,7 @@ const hybrid = input => { const canonical = value => Array.isArray(value) ? valu
   return hash(JSON.stringify(canonical(input))); };
 const write = async (file, value) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); };
 
-async function fixture(t, { pset = false, graph = false, revisionChain = false } = {}) {
+async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false } = {}) {
   const snapshot = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-pack-history-')));
   t.after(() => rm(snapshot, { recursive: true, force: true }));
   const runtime = path.join(snapshot, 'runtime'), runDir = path.join(runtime, 'projects/PRJ-one/runs/RUN-one');
@@ -52,50 +52,61 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false }
   const planValue = pset ? { schema_id: 'dd-flow/protocol-plan-set@1', plans: members.map(({ bytes, ...member }) => member) }
     : { schema_id: 'dd-flow/protocol-plan@6', protocol_id: 'PRT-one', revision: 2 };
   const oldPlan = { schema_id: 'dd-flow/protocol-plan@6', protocol_id: 'PRT-one', plan_id: 'PLAN-one', revision: 1, objective: 'old' };
-  const newPlan = { ...oldPlan, revision: 2, objective: 'new' };
+  const newPlan = aspectOnly ? { ...oldPlan } : { ...oldPlan, revision: 2, objective: 'new' };
+  const oldMap = { schema_id: 'dd-flow/plan-aspect-map@3', protocol_id: 'PRT-one', plan_id: 'PLAN-one', plan_revision: 1, aspects: ['before'] };
+  const newMap = { ...oldMap, plan_revision: newPlan.revision, aspects: ['after'] };
+  const mapBinding = (value, visit) => { const bytes = JSON.stringify(value), sha256 = hash(bytes);
+    return { protocol_id: value.protocol_id, ref: `run://plan/${visit}/artifacts/${sha256}`, sha256, bytes }; };
   const revise = { schema_id: 'dd-flow/plan-review-transition@1', outcome: 'revise', plan_ref: 'run://plan/1/result.json', plan_sha256: hash(JSON.stringify(oldPlan)), reason: 'Fix scope' };
-  const decision = { schema_id: 'dd-flow/plan-review-decision@4', outcome: 'accepted', correction: { status: 'not_required', previous_plan_revision: 2 } };
+  const decision = { schema_id: 'dd-flow/plan-review-decision@4', outcome: 'accepted', correction: { status: 'not_required', previous_plan_revision: newPlan.revision } };
   for (const [i, visit] of state.visits.slice(0, -1).entries()) {
     const session = `WS-${String(i + 1).padStart(8, '0')}-0000-0000-0000-000000000000`, value = revisionChain ? [oldPlan, revise, newPlan, decision][i] : i === 1 ? planValue : i === 2 ? decision : { marker: i }, bytes = JSON.stringify(value), digest = hash(bytes);
-    const retained = { schema_id: 'dd-flow/pack-artifacts@1', candidate: `candidate-${String(i + 1).padStart(8, '0')}-0000-0000-0000-000000000000`, owner: { host: 'fixture', pid: 1 }, entries: [{ ref: visit.result, sha256: digest }, ...(i === 1 && pset ? members.map(member => ({ ref: member.ref, sha256: member.sha256 })) : [])] };
+    const map = revisionChain && visit.stage === 'plan' ? mapBinding(visit.visit === 1 ? oldMap : newMap, visit.visit) : null;
+    const retained = { schema_id: 'dd-flow/pack-artifacts@1', candidate: `candidate-${String(i + 1).padStart(8, '0')}-0000-0000-0000-000000000000`, owner: { host: 'fixture', pid: 1 }, entries: [{ ref: visit.result, sha256: digest }, ...(i === 1 && pset ? members.map(member => ({ ref: member.ref, sha256: member.sha256 })) : []), ...(map ? [{ ref: map.ref, sha256: map.sha256 }] : [])] };
     await write(path.join(runDir, 'pack-retained', retained.candidate, 'owner.json'), retained);
     await write(path.join(runDir, 'pack-retained', retained.candidate, digest), bytes);
     if (i === 1 && pset) for (const member of members) await write(path.join(runDir, 'pack-retained', retained.candidate, member.sha256), member.bytes);
+    if (map) await write(path.join(runDir, 'pack-retained', retained.candidate, map.sha256), map.bytes);
     const issuedState = structuredClone(state); issuedState.cursor = { stage: visit.stage, visit: visit.visit };
     issuedState.visits[i] = { ...visit, status: 'running' };
     if (!revisionChain && i === 2) issuedState.flow = { plan: { visit: 1, ref: 'run://plan/1/result.json', sha256: hash(JSON.stringify(planValue)) } };
     if (revisionChain && [1, 2, 3].includes(i)) {
       const prior = i === 3 ? newPlan : oldPlan, number = i === 3 ? 2 : 1;
-      issuedState.flow = { plan: { visit: number, ref: `run://plan/${number}/result.json`, sha256: hash(JSON.stringify(prior)) } };
+      const selectedMap = mapBinding(number === 1 ? oldMap : newMap, number);
+      issuedState.flow = { plan: { visit: number, ref: `run://plan/${number}/result.json`, sha256: hash(JSON.stringify(prior)), aspect_maps: [{ protocol_id: selectedMap.protocol_id, ref: selectedMap.ref, sha256: selectedMap.sha256 }] } };
     }
     const start = { generation: 0, run_state: JSON.stringify(issuedState), pack_start: { stage: visit.stage, visit: visit.visit, attempt: visit.attempt } }; start.run_state_sha256 = hash(start.run_state);
     db.prepare('INSERT INTO work_sessions VALUES(?,?,?,?)').run(session, 'WRK-root', 'completed', JSON.stringify(start));
     db.prepare('INSERT INTO stage_work_memberships VALUES(?,?,?,?,?,?)').run('PRJ-one', 'RUN-one', visit.stage, `visit-${visit.visit}`, 'WRK-root', '');
-    if (i === 2 && graph) {
-      const scope = { project_id: 'PRJ-one', run_id: 'RUN-one', stage: 'plan-review', attempt: 'visit-2', cycle: '', parent_work_id: 'WRK-root', request_key: 'review-v2' };
-      const requestSha = hybrid(scope), batchSha = 'e'.repeat(64), workId = 'WRK-reviewer', childSession = 'WS-00000004-0000-0000-0000-000000000000';
-      const workPayload = { kind: 'plan-review', read_only: true, plan_visit: 1, plan_sha256: hash(JSON.stringify(planValue)), review_visit: 2, group: { key: 'reviewer', protocol_id: 'PRT-one', plan_revision: 2, aspect_ids: [] },
+    if (graph && visit.stage === 'plan-review' && (revisionChain || i === 2)) {
+      const reviewNumber = visit.visit, selectedPlan = revisionChain ? (reviewNumber === 1 ? oldPlan : newPlan) : planValue;
+      const planNumber = revisionChain ? reviewNumber : 1, revision = selectedPlan.revision ?? 2;
+      const scope = { project_id: 'PRJ-one', run_id: 'RUN-one', stage: 'plan-review', attempt: `visit-${reviewNumber}`, cycle: '', parent_work_id: 'WRK-root', request_key: `review-v${reviewNumber}` };
+      const childIndex = revisionChain ? 4 + reviewNumber : 4;
+      const requestSha = hybrid(scope), batchSha = (reviewNumber === 1 ? 'd' : 'e').repeat(64), workId = revisionChain ? `WRK-reviewer-${reviewNumber}` : 'WRK-reviewer';
+      const childSession = `WS-${String(childIndex).padStart(8, '0')}-0000-0000-0000-000000000000`;
+      const workPayload = { kind: 'plan-review', read_only: true, plan_visit: planNumber, plan_sha256: hash(JSON.stringify(selectedPlan)), review_visit: reviewNumber, group: { key: 'reviewer', protocol_id: 'PRT-one', plan_revision: revision, aspect_ids: [] },
         _dd_flow_batch_request: { request_sha256: requestSha, batch_sha256: batchSha, item_key: 'reviewer' } };
-      const childValue = { schema_id: 'dd-flow/plan-review-result@1', plan_revision: 2, aspects: [] }, childBytes = JSON.stringify(childValue), childSha = hash(childBytes);
+      const childValue = { schema_id: 'dd-flow/plan-review-result@1', plan_revision: revision, aspects: [] }, childBytes = JSON.stringify(childValue), childSha = hash(childBytes);
       const immutable = { work_id: workId, project_id: 'PRJ-one', run_id: 'RUN-one', parent_work_id: 'WRK-root', task: 'Review', launch_policy: 'fresh_agent_required',
         result_schema: 'dd-flow/plan-review-result@1', payload: workPayload, depends_on: [] };
       db.prepare('INSERT INTO works VALUES(?,?,?,?,?,?,?,?,?,?,?)').run('PRJ-one', 'RUN-one', workId, 'WRK-root', JSON.stringify(workPayload), 'Review', 'fresh_agent_required', immutable.result_schema, '[]', 'completed', childBytes);
-      db.prepare('INSERT INTO stage_work_memberships VALUES(?,?,?,?,?,?)').run('PRJ-one', 'RUN-one', 'plan-review', 'visit-2', workId, '');
+      db.prepare('INSERT INTO stage_work_memberships VALUES(?,?,?,?,?,?)').run('PRJ-one', 'RUN-one', 'plan-review', `visit-${reviewNumber}`, workId, '');
       db.prepare('INSERT INTO work_sessions VALUES(?,?,?,?)').run(childSession, workId, 'completed', '{}');
       const ids = { reviewer: workId }, batch = { run_id: 'RUN-one', scope, request_sha256: requestSha, batch_sha256: batchSha, work_ids: ids, work_sha256: { [workId]: hybrid(immutable) } };
       db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'work.batch_registration', JSON.stringify(batch));
-      const graphReceipt = { run_id: 'RUN-one', stage: 'plan-review', visit: 2, attempt: 1, generation: 0, work_session_id: session,
-        plan_ref: 'run://plan/1/result.json', plan_visit: 1, plan_sha256: hash(JSON.stringify(planValue)), items_sha256: batchSha, work_ids: ids };
+      const graphReceipt = { run_id: 'RUN-one', stage: 'plan-review', visit: reviewNumber, attempt: 1, generation: 0, work_session_id: session,
+        plan_ref: `run://plan/${planNumber}/result.json`, plan_visit: planNumber, plan_sha256: hash(JSON.stringify(selectedPlan)), items_sha256: batchSha, work_ids: ids };
       db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_review_graph_registered', JSON.stringify(graphReceipt));
       const componentInputs = { schema_id: 'dd-flow/pack-component-inputs@1', stages: ['plan-review'], files: [], listings: [], access_failures: false };
-      const observation = { run_id: 'RUN-one', stage: 'plan-review', visit: 2, attempt: 1, generation: 0, work_id: 'WRK-root', work_session_id: session, command: 'dispatch',
+      const observation = { run_id: 'RUN-one', stage: 'plan-review', visit: reviewNumber, attempt: 1, generation: 0, work_id: 'WRK-root', work_session_id: session, command: 'dispatch',
         component_inputs: componentInputs, component_inputs_sha256: hash(JSON.stringify(componentInputs)) };
       db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_component_observation', JSON.stringify(observation));
-      const ref = `run://plan-review/2/work-results/${workId}/${childSession}/result.json`, childRetained = { schema_id: 'dd-flow/pack-artifacts@1',
-        candidate: 'candidate-00000004-0000-0000-0000-000000000000', owner: { host: 'fixture', pid: 1 }, entries: [{ ref, sha256: childSha }] };
+      const ref = `run://plan-review/${reviewNumber}/work-results/${workId}/${childSession}/result.json`, childRetained = { schema_id: 'dd-flow/pack-artifacts@1',
+        candidate: `candidate-${String(childIndex).padStart(8, '0')}-0000-0000-0000-000000000000`, owner: { host: 'fixture', pid: 1 }, entries: [{ ref, sha256: childSha }] };
       await write(path.join(runDir, 'pack-retained', childRetained.candidate, 'owner.json'), childRetained);
       await write(path.join(runDir, 'pack-retained', childRetained.candidate, childSha), childBytes);
-      const childReceipt = { run_id: 'RUN-one', stage: 'plan-review', visit: 2, attempt: 1, generation: 0, work_id: workId, work_session_id: childSession,
+      const childReceipt = { run_id: 'RUN-one', stage: 'plan-review', visit: reviewNumber, attempt: 1, generation: 0, work_id: workId, work_session_id: childSession,
         operation: 'work', input_sha256: childSha, artifacts: childRetained };
       db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_submission_accepted', JSON.stringify(childReceipt));
     }
@@ -229,4 +240,34 @@ test('traces revise through a substantive new PLAN and second review', async t =
   issued.flow.plan.sha256 = 'f'.repeat(64); start.run_state = JSON.stringify(issued); start.run_state_sha256 = hash(start.run_state);
   db.prepare('UPDATE work_sessions SET start_receipt_json=? WHERE id=?').run(JSON.stringify(start), row.id); db.close();
   await assert.rejects(readPackRevisionChain({ ...input, snapshotSha256: await f.seal() }), { code: 'pack_history_invalid' });
+});
+
+
+test('accepts a retained aspect-map-only correction and rejects changed map bytes', async t => {
+  const f = await fixture(t, { revisionChain: true, aspectOnly: true });
+  const input = { ...f, runId: 'RUN-one', previousPlanVisit: 1, previousReviewVisit: 1, planVisit: 2, reviewVisit: 2 };
+  const chain = await readPackRevisionChain(input);
+  assert.equal(chain.previous.plan.revision, 1); assert.equal(chain.current.plan.revision, 1);
+  assert.notEqual(chain.aspect_maps.previous[0].sha256, chain.aspect_maps.current[0].sha256);
+  const file = path.join(f.snapshot, chain.aspect_maps.current[0].path);
+  await writeFile(file, 'substituted');
+  await assert.rejects(readPackRevisionChain({ ...input, snapshotSha256: await f.seal() }), { code: 'pack_history_invalid' });
+});
+
+
+test('selects both graphs of the revision chain and refuses a missing second dispatch', async t => {
+  const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true });
+  const input = { ...f, runId: 'RUN-one', previousPlanVisit: 1, previousReviewVisit: 1, planVisit: 2, reviewVisit: 2 };
+  const result = await readPackRevisionGraphs(input);
+  assert.equal(result.previous_graph.children[0].work_id, 'WRK-reviewer-1');
+  assert.equal(result.current_graph.children[0].work_id, 'WRK-reviewer-2');
+  assert.equal(result.coverage.matrix_components, 'unavailable');
+  const checkpoint = { manifest_sha256: f.snapshotSha256, pack_history_request: { schema_id: 'dd-eval/pack-revision-graphs-request@1', run_id: 'RUN-one',
+    previous_plan_visit: 1, previous_review_visit: 1, plan_visit: 2, review_visit: 2 } };
+  await assert.rejects(assertLegacySnapshot({ run_id: 'RUN-one', assessment_only: true }, { snapshot: f.snapshot, checkpoint }), error => {
+    assert.equal(error.code, 'pack_history_checker_unavailable'); assert.equal(error.history.current_graph.children[0].work_id, 'WRK-reviewer-2'); return true;
+  });
+  const db = new DatabaseSync(f.database);
+  db.prepare("DELETE FROM audit_events WHERE event_type='flow_run.pack_component_observation' AND json_extract(payload_json,'$.visit')=2").run(); db.close();
+  await assert.rejects(readPackRevisionGraphs({ ...input, snapshotSha256: await f.seal() }), { code: 'pack_history_invalid' });
 });
