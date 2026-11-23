@@ -7,3 +7,13 @@
 Reader отказывает при отсутствующем, неполном, чужом или неоднозначном evidence. Он возвращает `coverage.matrix_components = unavailable` и `forkability = unverified`. Он не является `dd-eval/matrix-history@1`, не доказывает связь reviewer Work/graph с точным PLAN, корректность всех graph/skip и packet inputs, полноту component observations и execution effects, совместимость pack modules либо runner fork. Данные о проектном и canonical commit раздельны. Старые форматы checker/fork остаются без изменений. Особенности CLI `261cb6c4`: assessment `pack_evidence` не предоставляет fork; перечень `packReceiptEvents` не включает `flow_run.pack_component_observation`, а `matrix_components` содержит только partial coverage.
 
 Для завершения T03 нужны согласованные S02/K03/K04 и R01, фактический публичный snapshot/fork с закреплённым engine, безопасная сверка исходника и двух output roots, доказательство PLAN revision/hash и review decision/graph/skip, полная инвентаризация start/exec/submit scopes и неперехваченных эффектов, versioned checker и интеграция T04. Необходимо проверить реальную повторную review и negative mutations, включая PLAN, граф и snapshot. До этого нельзя выпускать passed qualification или выдавать этот reader за полный matrix history. Synthetic fixtures подтверждают только перечисленную низкоуровневую логику; они не представляют фактическое принятое evidence.
+
+## Проверка подготовительного результата
+
+На опубликованном dd-eval `2984f9d7fb7454b0e821695a1683f36e186ee0fb`:
+
+- `node --test test/pack-history.test.mjs`: 2/2 PASS. Проверены synthetic повторный review, successor, чужой RUN, отсутствующий visit, подмена successor и изменение snapshot bytes.
+- `pnpm verify:plan`: команда прошла, статус плана `required`; это выбор проверок, а не их исполнение. Кроме уже выполненного `test/pack-history.test.mjs`, план требует `test/baseline-admission.test.mjs`, `test/managed-resume.test.mjs`, `test/recovery-finalization105.test.mjs`, `test/runner-control.test.mjs`, `test/technical-notes107.test.mjs`, `test/tool-preparation114.test.mjs`, `test/verification-policy102.test.mjs`, `test/verification104.test.mjs`. Эти восемь не запускались.
+- `git diff --check` прошёл. Временные test fixtures удалены через `t.after`; Docker-контейнеры и тома не создавались.
+
+CLI T04 handoff `6c59bd2` дополнительно отмечает, что W08 `rows_sha256` не включает ни `flow_run.pack_component_observation`, ни `flow_run.stage_packet`. Совпадение этого marker не доказывает их полноту.
