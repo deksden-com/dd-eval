@@ -1,13 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtemp, mkdir, readFile, readdir, writeFile, rm, realpath } from 'node:fs/promises';
+import { mkdtemp, mkdir, cp, readFile, readdir, writeFile, rm, realpath } from 'node:fs/promises';
 import { DatabaseSync } from 'node:sqlite';
 import os from 'node:os';
 import path from 'node:path';
 import { readPackHistory, readPackPlanReviewBinding, readPackRevisionChain } from '../lib/recovery/pack-history.mjs';
 import { readPackReviewerGraph, readPackRevisionGraphs } from '../lib/recovery/pack-review-graph.mjs';
 import { assertLegacySnapshot } from '../lib/cases/frozen-evidence.mjs';
+import { attachCaseAcceptance } from '../lib/cases/acceptance-receipts.mjs';
 import { snapshotTreeHash } from '../lib/recovery/snapshot-tree.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -270,4 +271,28 @@ test('selects both graphs of the revision chain and refuses a missing second dis
   const db = new DatabaseSync(f.database);
   db.prepare("DELETE FROM audit_events WHERE event_type='flow_run.pack_component_observation' AND json_extract(payload_json,'$.visit')=2").run(); db.close();
   await assert.rejects(readPackRevisionGraphs({ ...input, snapshotSha256: await f.seal() }), { code: 'pack_history_invalid' });
+});
+
+
+test('retains distinct unavailable checker receipts for explicit accepted visits', async t => {
+  const f = await fixture(t), root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-pack-checker-')));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const snapshot = path.join(root, 'executions/e2e/boundaries/candidate');
+  await mkdir(path.dirname(snapshot), { recursive: true }); await cp(f.snapshot, snapshot, { recursive: true });
+  const manifest = { case_id: 'sdlc-eval-2026-summer-task-priority', case_acceptance: { case_id: 'sdlc-eval-2026-summer-task-priority', checker: 'task-priority@1' } };
+  const result = { execution: 'e2e', state: 'candidate_ready', stage: 'merge', run_id: 'RUN-one', candidate: {
+    manifest: path.join(snapshot, 'snapshot.json'), manifest_sha256: f.snapshotSha256,
+    pack_history_request: { schema_id: 'dd-eval/pack-history-request@1', run_id: 'RUN-one', publications: [{ stage: 'plan-review', visit: 1 }] }
+  } };
+  await attachCaseAcceptance(root, manifest, [result]);
+  const first = result.case_acceptance;
+  assert.equal(first.receipt.status, 'unavailable'); assert.equal(first.receipt.facts.selected_pack_visits.visits[0].visit, 1);
+  result.candidate.pack_history_request.publications[0].visit = 2;
+  await attachCaseAcceptance(root, manifest, [result]);
+  assert.notEqual(result.case_acceptance.file, first.file);
+  assert.equal(result.case_acceptance.receipt.status, 'unavailable');
+  assert.equal(result.case_acceptance.receipt.facts.selected_pack_visits.visits[0].visit, 2);
+  result.candidate.pack_history_request.publications[0].visit = 1;
+  await attachCaseAcceptance(root, manifest, [result]);
+  assert.equal(result.case_acceptance.file, first.file);
 });
