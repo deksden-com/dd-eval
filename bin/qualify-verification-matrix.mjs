@@ -23,6 +23,7 @@ const read = async (relative, owner = runHome) => {
   return await readFile(file);
 };
 const runBytes = await read("run.json"), run = JSON.parse(runBytes);
+if (run.pack_state != null) throw new Error("Pack RUN matrix publication requires a pack-aware qualification contract");
 const bindingBytes = await read("engine-binding.json"), binding = JSON.parse(bindingBytes);
 if (binding.schema_id !== "dd-flow/run-engine-binding@1" || binding.run_id !== run.run_id || binding.engine?.integrity_checksum !== engineDigest
   || binding.engine?.package_name !== engine.package_name || binding.engine?.package_version !== engine.package_version || binding.engine?.engine_version !== engine.engine_version) throw new Error("Evidence RUN belongs to a different selected engine");

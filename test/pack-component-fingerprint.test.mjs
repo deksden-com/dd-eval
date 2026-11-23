@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, writeFile, rm, symlink, unlink } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { retainedPackComponentFingerprint } from '../lib/pack-component-fingerprint.mjs';
+import { retainedPackComponentFingerprint, assertRetainedPackCompatibility } from '../lib/pack-component-fingerprint.mjs';
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 test('retained pack scope binds participant bytes and complete observed listings', async t => {
@@ -23,8 +23,13 @@ test('retained pack scope binds participant bytes and complete observed listings
     return sha(bytes);
   }
   const files = ['descriptor.json', 'helper.mjs', 'ref.json', 'schema.json', 'stage.mjs'].map(name => ({ path: name, sha256: sha(source.get(name)) }));
-  const scope = { schema_id: 'dd-flow/pack-component-inputs@1', stages: ['plan'], files, listings: [{ prefix: 'catalog', paths: ['catalog/one.md'] }] };
-  const initial = await retainedPackComponentFingerprint(root, await retain(), scope);
+  const scope = { schema_id: 'dd-flow/pack-component-inputs@1', stages: ['plan'], files, listings: [{ prefix: 'catalog', paths: ['catalog/one.md'] }], access_failures: false };
+  const originalManifest = await retain();
+  const initial = await retainedPackComponentFingerprint(root, originalManifest, scope);
+  assert.equal(initial, sha(JSON.stringify(scope)), 'CLI serialization and eval recomputation agree on exact participant bytes');
+  assert.equal(await assertRetainedPackCompatibility({ sourceRoot: root, sourceManifestSha256: originalManifest, targetRoot: root, targetManifestSha256: originalManifest, scope, scopeSha256: initial }), initial);
+  await assert.rejects(assertRetainedPackCompatibility({ sourceRoot: root, sourceManifestSha256: originalManifest, targetRoot: root, targetManifestSha256: originalManifest, scope, scopeSha256: '0'.repeat(64) }));
+  await assert.rejects(retainedPackComponentFingerprint(root, await retain(), { ...scope, access_failures: true }));
   source.set('other.mjs', 'changed');
   assert.equal(await retainedPackComponentFingerprint(root, await retain(), scope), initial);
   for (const name of ['stage.mjs', 'helper.mjs', 'schema.json', 'ref.json']) {

@@ -285,6 +285,9 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
     receipt.component_sha256 = await matrixComponentFingerprint(root); await reseal();
     const upgraded = { ...engine, package_version: 'new', engine_version: 'new', integrity: { checksum: 'e'.repeat(64) } };
     await assertVerificationMatrixQualification(checkpoint, upgraded, policy);
+    runValue.pack_state = { pack: { sha256: 'f'.repeat(64) } }; await reseal();
+    await assert.rejects(assertVerificationMatrixQualification(checkpoint, upgraded, policy), { code: 'verification_matrix_qualification_invalid' }, 'legacy scoped evidence cannot qualify a pack RUN');
+    delete runValue.pack_state; await reseal();
     await put('dist/services/verification-matrix.js', 'changed producer');
     await assert.rejects(assertVerificationMatrixQualification(checkpoint, upgraded, policy), { code: 'verification_matrix_qualification_invalid' });
     await put('dist/services/verification-matrix.js', 'export {};\n');
@@ -313,6 +316,9 @@ test("V3 exact qualification validates owning packet bytes and cannot be bypasse
       for (const source of packet.sources) { const file = path.join(producerRun, source.source_path); await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, await readFile(path.join(root, source.path))); }
     }
     const qualify = output => promisify(execFile)(process.execPath, [path.resolve("bin/qualify-verification-matrix.mjs"), "--run-home", producerRun, "--engine-json", engineFile, "--flow-commit", receipt.flow_commit, "--output", output]);
+    await writeFile(path.join(producerRun, "run.json"), JSON.stringify({ ...runValue, pack_state: { pack: { sha256: 'f'.repeat(64) } } }));
+    await assert.rejects(qualify(path.join(root, "legacy-pack-qualification.json")), error => error.stderr.includes("requires a pack-aware qualification"));
+    await writeFile(path.join(producerRun, "run.json"), JSON.stringify(runValue));
     const output = path.join(root, "atomic-qualification.json"); await qualify(output);
     const publishedQualification = JSON.parse(await readFile(output));
     assert.equal(publishedQualification.schema_id, "dd-eval/verification-matrix-qualification@3");
