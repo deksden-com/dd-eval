@@ -5,7 +5,7 @@ import { mkdtemp, mkdir, readFile, readdir, writeFile, rm, realpath } from 'node
 import { DatabaseSync } from 'node:sqlite';
 import os from 'node:os';
 import path from 'node:path';
-import { readPackHistory } from '../lib/recovery/pack-history.mjs';
+import { readPackHistory, readPackPlanReviewBinding } from '../lib/recovery/pack-history.mjs';
 import { assertLegacySnapshot } from '../lib/cases/frozen-evidence.mjs';
 import { snapshotTreeHash } from '../lib/recovery/snapshot-tree.mjs';
 
@@ -35,12 +35,13 @@ async function fixture(t) {
   db.prepare('INSERT INTO works VALUES(?,?,?,?,?)').run('PRJ-one', 'RUN-one', 'WRK-root', null, JSON.stringify({ pack_run_coordinator: anchor }));
   db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_root_work', JSON.stringify({ ...anchor, work_id: 'WRK-root' }));
   for (const [i, visit] of state.visits.slice(0, 3).entries()) {
-    const session = `WS-${String(i + 1).padStart(8, '0')}-0000-0000-0000-000000000000`, value = { marker: i }, bytes = JSON.stringify(value), digest = hash(bytes);
+    const session = `WS-${String(i + 1).padStart(8, '0')}-0000-0000-0000-000000000000`, value = i === 1 ? { schema_id: 'dd-flow/protocol-plan@6', revision: 2 } : i === 2 ? { schema_id: 'dd-flow/plan-review-decision@4', outcome: 'accepted', correction: { status: 'not_required', previous_plan_revision: 2 } } : { marker: i }, bytes = JSON.stringify(value), digest = hash(bytes);
     const retained = { schema_id: 'dd-flow/pack-artifacts@1', candidate: `candidate-${String(i + 1).padStart(8, '0')}-0000-0000-0000-000000000000`, owner: { host: 'fixture', pid: 1 }, entries: [{ ref: visit.result, sha256: digest }] };
     await write(path.join(runDir, 'pack-retained', retained.candidate, 'owner.json'), retained);
     await write(path.join(runDir, 'pack-retained', retained.candidate, digest), bytes);
     const issuedState = structuredClone(state); issuedState.cursor = { stage: visit.stage, visit: visit.visit };
     issuedState.visits[i] = { ...visit, status: 'running' };
+    if (i === 2) issuedState.flow = { plan: { visit: 1, ref: 'run://plan/1/result.json', sha256: hash(JSON.stringify({ schema_id: 'dd-flow/protocol-plan@6', revision: 2 })) } };
     const start = { generation: 0, run_state: JSON.stringify(issuedState), pack_start: { stage: visit.stage, visit: visit.visit, attempt: visit.attempt } }; start.run_state_sha256 = hash(start.run_state);
     db.prepare('INSERT INTO work_sessions VALUES(?,?,?,?)').run(session, 'WRK-root', 'completed', JSON.stringify(start));
     db.prepare('INSERT INTO stage_work_memberships VALUES(?,?,?,?,?)').run('PRJ-one', 'RUN-one', visit.stage, `visit-${visit.visit}`, 'WRK-root');
@@ -103,6 +104,28 @@ test('checker can expose exact requested visits while keeping acceptance unavail
     assert.equal(error.history.coverage.matrix_components, 'unavailable');
     return true;
   });
+  checkpoint.pack_history_request = { schema_id: 'dd-eval/pack-plan-review-request@1', run_id: 'RUN-one', plan_visit: 1, review_visit: 2 };
+  await assert.rejects(assertLegacySnapshot({ run_id: 'RUN-one', assessment_only: true }, { snapshot: f.snapshot, checkpoint }), error => {
+    assert.equal(error.code, 'pack_history_checker_unavailable');
+    assert.equal(error.history.plan.revision, 2);
+    assert.equal(error.history.review.visit, 2);
+    return true;
+  });
   checkpoint.pack_history_request.run_id = 'RUN-foreign';
   await assert.rejects(assertLegacySnapshot({ run_id: 'RUN-one', assessment_only: true }, { snapshot: f.snapshot, checkpoint }), { code: 'pack_history_invalid' });
+});
+
+
+test('binds a second review to its exact issued PLAN revision and rejects substitution', async t => {
+  const f = await fixture(t), input = { ...f, runId: 'RUN-one', planVisit: 1, reviewVisit: 2 };
+  const binding = await readPackPlanReviewBinding(input);
+  assert.equal(binding.plan.revision, 2);
+  assert.equal(binding.review.visit, 2);
+  assert.equal(binding.coverage.reviewer_graph, 'unavailable');
+  await assert.rejects(readPackPlanReviewBinding({ ...input, planVisit: 2 }), { code: 'pack_history_invalid' });
+  const db = new DatabaseSync(f.database), row = db.prepare("SELECT id,start_receipt_json FROM work_sessions WHERE id LIKE 'WS-00000003-%'").get();
+  const start = JSON.parse(row.start_receipt_json), issued = JSON.parse(start.run_state);
+  issued.flow.plan.sha256 = 'f'.repeat(64); start.run_state = JSON.stringify(issued); start.run_state_sha256 = hash(start.run_state);
+  db.prepare('UPDATE work_sessions SET start_receipt_json=? WHERE id=?').run(JSON.stringify(start), row.id); db.close();
+  await assert.rejects(readPackPlanReviewBinding({ ...input, snapshotSha256: await f.seal() }), { code: 'pack_history_invalid' });
 });
