@@ -6,6 +6,7 @@ import { DatabaseSync } from 'node:sqlite';
 import os from 'node:os';
 import path from 'node:path';
 import { readPackHistory } from '../lib/recovery/pack-history.mjs';
+import { assertLegacySnapshot } from '../lib/cases/frozen-evidence.mjs';
 import { snapshotTreeHash } from '../lib/recovery/snapshot-tree.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -88,4 +89,20 @@ test('rejects foreign RUN, absent visit, successor substitution and changed byte
   await assert.rejects(readPackHistory({ ...select, snapshotSha256: await f.seal() }), { code: 'pack_history_invalid' });
   await writeFile(path.join(f.runDir, 'engine-binding.json'), 'changed');
   await assert.rejects(readPackHistory(select), { code: 'pack_history_invalid' });
+});
+
+
+test('checker can expose exact requested visits while keeping acceptance unavailable', async t => {
+  const f = await fixture(t);
+  const checkpoint = { manifest_sha256: f.snapshotSha256, pack_history_request: {
+    schema_id: 'dd-eval/pack-history-request@1', run_id: 'RUN-one', publications: [{ stage: 'plan-review', visit: 2 }]
+  } };
+  await assert.rejects(assertLegacySnapshot({ run_id: 'RUN-one', assessment_only: true }, { snapshot: f.snapshot, checkpoint }), error => {
+    assert.equal(error.code, 'pack_history_checker_unavailable');
+    assert.equal(error.history.visits[0].visit, 2);
+    assert.equal(error.history.coverage.matrix_components, 'unavailable');
+    return true;
+  });
+  checkpoint.pack_history_request.run_id = 'RUN-foreign';
+  await assert.rejects(assertLegacySnapshot({ run_id: 'RUN-one', assessment_only: true }, { snapshot: f.snapshot, checkpoint }), { code: 'pack_history_invalid' });
 });

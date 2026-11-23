@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 
 const zones = [
   [/^pack-history\.mjs$/, /pack-history/],
+  [/^frozen-evidence-io\.mjs$/, /pack-history|case-acceptance|runner|recovery|fork/],
   [/^retire-eval\.mjs$/, /eval-retirement|control-retirement|retirement-proof|cleanup|runner|recovery|managed|eval\.test/],
   [/^prior-owners\.mjs$/, /plan110-admission|eval-retirement|retirement-proof|cleanup|runner|recovery|managed|eval\.test/],
   [/^managed-run\.mjs$/, /memory-run|diagnostic-run|delivery|interactive|tool-preparation|case-definition|runner|recovery|managed|canonical|fork|eval\.test/],
@@ -15,7 +16,7 @@ const zones = [
   [/^launch-retirement\.mjs$/, /retirement|cleanup|runner|recovery|managed|eval\.test/],
   [/^cleanup-receipt\.mjs$/, /retirement|cleanup|runner|recovery|managed|eval\.test/],
   [/^acceptance-(?:v2|policy)\.mjs$/, /case-acceptance|case-definition|verification|runner|recovery|fork|eval\.test/],
-  [/^journal-(?:hash|projection)\.mjs$/, /execution-state|runner|recovery|managed|retirement|cleanup|execution|completion-scope|evidence|eval\.test|canonical|fork|judge|hitl/],
+  [/^journal-(?:hash|projection)\.mjs$/, /pack-history|execution-state|runner|recovery|managed|retirement|cleanup|execution|completion-scope|evidence|eval\.test|canonical|fork|judge|hitl/],
   [/^cleanup-binding\.mjs$/, /control-retirement|eval-retirement|retirement-proof|cleanup|runner|recovery|managed|eval\.test/],
   [/^launch-resources\.mjs$/, /plan110-admission|admission104|retirement|cleanup|runner|recovery|managed|eval\.test/],
   [/^worker-outcomes\.mjs$/, /cleanup-observation|plan110-recovery|eval-worker|runner|recovery|managed|cleanup/],
@@ -150,7 +151,7 @@ const zones = [
   [/^(?:run-candidate|stage-attribution)\.mjs$/, /eval\.test|evidence-schema|execution-state|completion-scope|tool-preparation114|technical-notes107|case-definition|canonical|runner|recovery|managed|fork|baseline-admission/],
   [/^driver-bindings\.mjs$/, /eval\.test|droid-runner|plan-024-regressions|runtime-restore|runner|recovery|managed|canonical|fork|capacity|hitl|judge|baseline-admission/],
   [/^workspace-hooks\.mjs$/, /workspace-hooks|runner|recovery|managed|canonical|fork|eval\.test/],
-  [/^(?:snapshot-tree|materialization-evidence|recovery-safety)\.mjs$/, /case-acceptance|recovery|runner|fork|judge-supplement|materialization-evidence|engine-admission|eval\.test/],
+  [/^(?:snapshot-tree|materialization-evidence|recovery-safety)\.mjs$/, /pack-history|case-acceptance|recovery|runner|fork|judge-supplement|materialization-evidence|engine-admission|eval\.test/],
   [/^verification-matrix-(?:schema|checks)\.mjs$/, /case-acceptance|engine-admission|runner-proof|verification-components|runner|recovery|fork|eval\.test/],
   [/^task-input\.mjs$/, /task-input|eval\.test|canonical|fork|runner|recovery|managed|baseline-admission|e2e-reliability|memory-run-preparation/],
   [/^definition-identity\.mjs$/, /eval\.test|canonical|fork|runner|recovery|managed|baseline-admission|e2e-reliability/],

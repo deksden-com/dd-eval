@@ -17,3 +17,9 @@ Reader отказывает при отсутствующем, неполном,
 - `git diff --check` прошёл. Временные test fixtures удалены через `t.after`; Docker-контейнеры и тома не создавались.
 
 CLI T04 handoff `6c59bd2` дополнительно отмечает, что W08 `rows_sha256` не включает ни `flow_run.pack_component_observation`, ни `flow_run.stage_packet`. Совпадение этого marker не доказывает их полноту.
+
+## Предварительная интеграция потребителей
+
+Новый fork в `eval-fork.mjs` отказывает assessment snapshot и pack RUN, обнаруженный в SQL снимка: прежнее `inheritedFlowStages` нельзя применять к фактическому pack contour. Исторический не-pack путь и replay сохранены. Работающий pack fork требует принятого K04 и пока не заявлен.
+
+Старые checker `task-priority@1`–`@4` возвращают `unavailable`, если snapshot содержит pack assessment marker. При явном `checkpoint.pack_history_request` формата `dd-eval/pack-history-request@1` с `run_id` и точными `publications` checker может дополнительно вернуть `facts.selected_pack_visits` из reader, но его собственный статус остаётся `unavailable`. Этот запрос не служит evidence выбора и не удовлетворяет пока контракту T04 `matrix-history-request@1`. Нового checker с PASS не объявлено. Проверки интеграции и policy wiring подготовлены, но после commit ещё не запущены: нужен отдельный общий слот и точная проверка полученного SHA.
