@@ -12,7 +12,7 @@ import { snapshotTreeHash } from '../lib/recovery/snapshot-tree.mjs';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const write = async (file, value) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); };
 
-async function fixture(t) {
+async function fixture(t, { pset = false } = {}) {
   const snapshot = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-pack-history-')));
   t.after(() => rm(snapshot, { recursive: true, force: true }));
   const runtime = path.join(snapshot, 'runtime'), runDir = path.join(runtime, 'projects/PRJ-one/runs/RUN-one');
@@ -34,14 +34,22 @@ async function fixture(t) {
   db.prepare('INSERT INTO runs VALUES(?,?,?,?)').run('PRJ-one', 'RUN-one', '/source/projects/PRJ-one/runs/RUN-one', index);
   db.prepare('INSERT INTO works VALUES(?,?,?,?,?)').run('PRJ-one', 'RUN-one', 'WRK-root', null, JSON.stringify({ pack_run_coordinator: anchor }));
   db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_root_work', JSON.stringify({ ...anchor, work_id: 'WRK-root' }));
+  const members = ['PRT-one', 'PRT-two'].map(protocol_id => {
+    const bytes = JSON.stringify({ schema_id: 'dd-flow/protocol-plan@6', protocol_id, revision: 2 });
+    const sha256 = hash(bytes);
+    return { bytes, schema_id: 'dd-flow/protocol-plan@6', protocol_id, ref: `run://plan/1/artifacts/${sha256}`, sha256, revision: 2 };
+  });
+  const planValue = pset ? { schema_id: 'dd-flow/protocol-plan-set@1', plans: members.map(({ bytes, ...member }) => member) }
+    : { schema_id: 'dd-flow/protocol-plan@6', revision: 2 };
   for (const [i, visit] of state.visits.slice(0, 3).entries()) {
-    const session = `WS-${String(i + 1).padStart(8, '0')}-0000-0000-0000-000000000000`, value = i === 1 ? { schema_id: 'dd-flow/protocol-plan@6', revision: 2 } : i === 2 ? { schema_id: 'dd-flow/plan-review-decision@4', outcome: 'accepted', correction: { status: 'not_required', previous_plan_revision: 2 } } : { marker: i }, bytes = JSON.stringify(value), digest = hash(bytes);
-    const retained = { schema_id: 'dd-flow/pack-artifacts@1', candidate: `candidate-${String(i + 1).padStart(8, '0')}-0000-0000-0000-000000000000`, owner: { host: 'fixture', pid: 1 }, entries: [{ ref: visit.result, sha256: digest }] };
+    const session = `WS-${String(i + 1).padStart(8, '0')}-0000-0000-0000-000000000000`, value = i === 1 ? planValue : i === 2 ? { schema_id: 'dd-flow/plan-review-decision@4', outcome: 'accepted', correction: { status: 'not_required', previous_plan_revision: 2 } } : { marker: i }, bytes = JSON.stringify(value), digest = hash(bytes);
+    const retained = { schema_id: 'dd-flow/pack-artifacts@1', candidate: `candidate-${String(i + 1).padStart(8, '0')}-0000-0000-0000-000000000000`, owner: { host: 'fixture', pid: 1 }, entries: [{ ref: visit.result, sha256: digest }, ...(i === 1 && pset ? members.map(member => ({ ref: member.ref, sha256: member.sha256 })) : [])] };
     await write(path.join(runDir, 'pack-retained', retained.candidate, 'owner.json'), retained);
     await write(path.join(runDir, 'pack-retained', retained.candidate, digest), bytes);
+    if (i === 1 && pset) for (const member of members) await write(path.join(runDir, 'pack-retained', retained.candidate, member.sha256), member.bytes);
     const issuedState = structuredClone(state); issuedState.cursor = { stage: visit.stage, visit: visit.visit };
     issuedState.visits[i] = { ...visit, status: 'running' };
-    if (i === 2) issuedState.flow = { plan: { visit: 1, ref: 'run://plan/1/result.json', sha256: hash(JSON.stringify({ schema_id: 'dd-flow/protocol-plan@6', revision: 2 })) } };
+    if (i === 2) issuedState.flow = { plan: { visit: 1, ref: 'run://plan/1/result.json', sha256: hash(JSON.stringify(planValue)) } };
     const start = { generation: 0, run_state: JSON.stringify(issuedState), pack_start: { stage: visit.stage, visit: visit.visit, attempt: visit.attempt } }; start.run_state_sha256 = hash(start.run_state);
     db.prepare('INSERT INTO work_sessions VALUES(?,?,?,?)').run(session, 'WRK-root', 'completed', JSON.stringify(start));
     db.prepare('INSERT INTO stage_work_memberships VALUES(?,?,?,?,?)').run('PRJ-one', 'RUN-one', visit.stage, `visit-${visit.visit}`, 'WRK-root');
@@ -127,5 +135,15 @@ test('binds a second review to its exact issued PLAN revision and rejects substi
   const start = JSON.parse(row.start_receipt_json), issued = JSON.parse(start.run_state);
   issued.flow.plan.sha256 = 'f'.repeat(64); start.run_state = JSON.stringify(issued); start.run_state_sha256 = hash(start.run_state);
   db.prepare('UPDATE work_sessions SET start_receipt_json=? WHERE id=?').run(JSON.stringify(start), row.id); db.close();
+  await assert.rejects(readPackPlanReviewBinding({ ...input, snapshotSha256: await f.seal() }), { code: 'pack_history_invalid' });
+});
+
+
+test('binds each retained PLAN set member to the selected review', async t => {
+  const f = await fixture(t, { pset: true }), input = { ...f, runId: 'RUN-one', planVisit: 1, reviewVisit: 2 };
+  const binding = await readPackPlanReviewBinding(input);
+  assert.deepEqual(binding.plan.members.map(member => [member.protocol_id, member.revision]), [['PRT-one', 2], ['PRT-two', 2]]);
+  const member = binding.plan.members[0];
+  await writeFile(path.join(f.runDir, 'pack-retained', 'candidate-00000002-0000-0000-0000-000000000000', member.sha256), 'substituted');
   await assert.rejects(readPackPlanReviewBinding({ ...input, snapshotSha256: await f.seal() }), { code: 'pack_history_invalid' });
 });
