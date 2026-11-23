@@ -328,6 +328,18 @@ test('pack qualification uses selected T03 visits but refuses partial matrix cov
 
 test('pack admission rejects participating target mutations and retains unrelated reuse as unavailable', async t => {
   const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true, components: true });
+  const snapshotManifest = JSON.parse(await readFile(path.join(f.snapshot, 'snapshot.json'), 'utf8'));
+  const snapshotDb = new DatabaseSync(f.database, { readOnly: true });
+  const markerRows = snapshotDb.prepare("SELECT id,event_type,payload_json FROM audit_events WHERE project_id=? AND event_type IN ('flow_run.pack_component_observation','flow_run.stage_packet') AND json_extract(payload_json,'$.run_id')=? ORDER BY id").all('PRJ-one', 'RUN-one');
+  snapshotDb.close();
+  const paths = ['engine-binding.json', 'flow-pack-bundle/manifest.json', ...Object.keys(f.componentFiles).map(name => `flow-pack-bundle/files/${name}`),
+    ...markerRows.filter(row => row.event_type === 'flow_run.stage_packet').map(row => path.relative('/source/projects/PRJ-one/runs/RUN-one', JSON.parse(row.payload_json).file))].sort();
+  const files = await Promise.all(paths.map(async name => { const bytes = await readFile(path.join(f.runDir, name)); return { path: name, sha256: hash(bytes), size: bytes.length }; }));
+  const sourcePack = JSON.parse(await readFile(path.join(f.runDir, 'flow-pack-bundle/manifest.json'), 'utf8'));
+  const sourceBinding = await readFile(path.join(f.runDir, 'engine-binding.json'));
+  snapshotManifest.pack_matrix_evidence = { schema_id: 'dd-flow/pack-matrix-snapshot@1', coverage: 'partial', project_id: 'PRJ-one', run_id: 'RUN-one',
+    pack_sha256: hash(JSON.stringify(sourcePack)), engine_binding_sha256: hash(sourceBinding), rows_sha256: hash(JSON.stringify(markerRows)), files };
+  const snapshotBytes = JSON.stringify(snapshotManifest); await writeFile(path.join(f.snapshot, 'snapshot.json'), snapshotBytes);
   const engineRoot = path.join(f.snapshot, 'engine'), roots = ['services/verification-matrix.js', 'services/stage-report-renderer.js', 'services/accepted-intent.js', 'services/check-runner-evidence.js'];
   for (const file of roots) await write(path.join(engineRoot, 'dist', file), 'export {};\n');
   await write(path.join(engineRoot, 'dist/verification-components.json'), { schema_id: 'dd-flow/verification-components@1', matrix: { files: roots } });
@@ -343,7 +355,7 @@ test('pack admission rejects participating target mutations and retains unrelate
   const receipt = { schema_id: 'dd-eval/verification-matrix-qualification@5', status: 'passed', contract: 'dd-flow/verification-matrix@1',
     coverage_contract: 'dd-flow/final-check-coverage@1', component_sha256: await matrixComponentFingerprint(engineRoot), engine_artifact_sha256: 'a'.repeat(64),
     flow_commit: 'c'.repeat(40), built_with_canon: { version: 'fixture', commit: 'd'.repeat(40) },
-    pack_history: { schema_id: 'dd-eval/pack-revision-graphs-request@1', snapshot: '.', snapshot_sha256: f.snapshotSha256, run_id: 'RUN-one',
+    pack_history: { schema_id: 'dd-eval/pack-revision-graphs-request@1', snapshot: '.', snapshot_sha256: hash(snapshotBytes), run_id: 'RUN-one',
       previous_plan_visit: 1, previous_review_visit: 1, plan_visit: 2, review_visit: 2 } };
   const check = async () => {
     const bytes = Buffer.from(JSON.stringify(receipt));
@@ -351,8 +363,14 @@ test('pack admission rejects participating target mutations and retains unrelate
       verification_matrix: { contract: receipt.contract, file: 'qualification.json', sha256: hash(bytes), canon_commit: 'd'.repeat(40) } } } };
     return assertVerificationMatrixQualification(checkpoint, { snapshot_root: engineRoot }, { checker: 'task-priority@4' }, bytes);
   };
-  const unavailable = error => error.code === 'verification_matrix_qualification_unavailable' && error.details?.compared_scopes === 5;
+  const unavailable = error => error.code === 'verification_matrix_qualification_unavailable' && error.details?.compared_scopes === 5
+    && error.details.gaps.includes('snapshot_component_coverage_partial');
   await assert.rejects(check(), unavailable);
+  const changedMarker = structuredClone(snapshotManifest); changedMarker.pack_matrix_evidence.rows_sha256 = '0'.repeat(64);
+  const changedSnapshot = JSON.stringify(changedMarker); await writeFile(path.join(f.snapshot, 'snapshot.json'), changedSnapshot);
+  receipt.pack_history.snapshot_sha256 = hash(changedSnapshot);
+  await assert.rejects(check(), { code: 'verification_matrix_qualification_invalid' });
+  await writeFile(path.join(f.snapshot, 'snapshot.json'), snapshotBytes); receipt.pack_history.snapshot_sha256 = hash(snapshotBytes);
   targetSha = await writeTarget('modules/unused.mjs', 'export const unused = false;');
   await assert.rejects(check(), unavailable);
   for (const name of ['modules/plan.mjs', 'modules/helper.mjs', 'schemas/result.json', 'schemas/ref.json']) {
