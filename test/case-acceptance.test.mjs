@@ -221,6 +221,22 @@ async function seal(f) {
   f.result.candidate.manifest_sha256 = sha(manifest);
 }
 
+test("legacy checkers do not treat pack assessment projections as accepted history", async () => {
+  const f = await fixture();
+  try {
+    const manifest = JSON.parse(await readFile(f.result.candidate.manifest, "utf8"));
+    manifest.assessment_only = true;
+    manifest.pack_evidence = { schema_id: "dd-flow/pack-snapshot-evidence@1" };
+    const bytes = JSON.stringify(manifest);
+    await writeFile(f.result.candidate.manifest, bytes); f.result.candidate.manifest_sha256 = sha(bytes);
+    for (const checker of ["task-priority@1", "task-priority@2", "task-priority@3"]) {
+      const checked = await checkCaseAcceptance({ evalRoot: f.root, execution: "e2e", result: f.result, policy: { ...policy, checker } });
+      assert.equal(checked.status, "unavailable");
+      assert.equal(checked.evidence_error.code, "pack_history_checker_unavailable");
+    }
+  } finally { await rm(f.root, { recursive: true, force: true }); }
+});
+
 test("case acceptance reads only a sealed checkpoint and separates objective gaps from Judge semantics", async () => {
   const f = await fixture();
   try {

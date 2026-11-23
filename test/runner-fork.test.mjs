@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, cp, readFile, writeFile, chmod, rm, stat, realpath } fr
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import os from 'node:os';
+import { DatabaseSync } from 'node:sqlite';
 import { pathToFileURL } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { commandText } from '../lib/process-json.mjs';
@@ -447,4 +448,21 @@ test('all remaining fixture pins can be checked without creating a RUN', async t
   assert.deepEqual(await interactionFixtureManifest(f.caseRoot, f.source.executions, f.source), f.source.interaction_fixtures);
   await assert.rejects(readFile(f.callsFile), { code: 'ENOENT' });
   await assert.rejects(interactionFixtureManifest(f.caseRoot, [{ stage: 'unknown', terminal_stage: 'code' }], f.source), { code: 'selection_invalid' });
+});
+
+
+test('rejects pack snapshot before using contour as accepted history', async t => {
+  const f = await setup(t);
+  const snapshot = path.join(f.sourceRoot, 'executions/e2e/boundaries', f.input.from);
+  const manifestPath = path.join(snapshot, 'snapshot.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  manifest.run_id = 'RUN-pack';
+  await writeFile(manifestPath, JSON.stringify(manifest));
+  await mkdir(path.join(snapshot, 'runtime'), { recursive: true });
+  const db = new DatabaseSync(path.join(snapshot, 'runtime/db.sqlite'));
+  db.exec('CREATE TABLE runs(id TEXT,index_json TEXT)');
+  db.prepare('INSERT INTO runs VALUES(?,?)').run('RUN-pack', JSON.stringify({ pack_state: { visits: [] } }));
+  db.close();
+  await assert.rejects(f.runner.runnerFork(f.input), { code: 'pack_history_fork_unavailable' });
+  await assert.rejects(stat(f.input.output), { code: 'ENOENT' });
 });
