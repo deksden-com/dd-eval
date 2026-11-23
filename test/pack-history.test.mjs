@@ -12,6 +12,7 @@ import { attachCaseAcceptance } from '../lib/cases/acceptance-receipts.mjs';
 import { snapshotTreeHash } from '../lib/recovery/snapshot-tree.mjs';
 import { assertVerificationMatrixQualification } from '../lib/engine-admission.mjs';
 import { matrixComponentFingerprint } from '../lib/verification-components.mjs';
+import { verificationMatrixFingerprint } from '../lib/verification-matrix-schema.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const hybrid = input => { const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object'
@@ -19,14 +20,19 @@ const hybrid = input => { const canonical = value => Array.isArray(value) ? valu
   return hash(JSON.stringify(canonical(input))); };
 const write = async (file, value) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); };
 
-async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false } = {}) {
+async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false, components = false } = {}) {
   const snapshot = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-pack-history-')));
   t.after(() => rm(snapshot, { recursive: true, force: true }));
   const runtime = path.join(snapshot, 'runtime'), runDir = path.join(runtime, 'projects/PRJ-one/runs/RUN-one');
   await mkdir(runDir, { recursive: true });
-  const pack = { schema_id: 'dd-flow/flow-pack-bundle@1', project_commit: 'c'.repeat(40), canon_commit: 'd'.repeat(40), engine_checksum: 'a'.repeat(64), engine_version: '1', engine_manifest_sha256: 'b'.repeat(64) };
+  const componentFiles = { 'descriptor.json': '{}', 'modules/helper.mjs': 'export const value = 1;', 'modules/plan.mjs': "import { value } from './helper.mjs'; export { value };", 'modules/plan-review.mjs': "import { value } from './helper.mjs'; export { value };", 'modules/unused.mjs': 'export const unused = true;', 'schemas/result.json': '{"$ref":"ref.json"}', 'schemas/ref.json': '{"type":"object"}' };
+  const pack = { schema_id: 'dd-flow/flow-pack-bundle@1', project_commit: 'c'.repeat(40), canon_commit: 'd'.repeat(40), engine_checksum: 'a'.repeat(64), engine_version: '1', engine_manifest_sha256: 'b'.repeat(64),
+    ...(components ? { descriptor: 'descriptor.json', inventory: Object.entries(componentFiles).map(([path, bytes]) => ({ path, sha256: hash(bytes) })) } : {}) };
   const packBytes = JSON.stringify(pack), packSha = hash(packBytes), binding = { schema_id: 'dd-flow/run-engine-binding@1', run_id: 'RUN-one', project_root: '/project', engine: { integrity_checksum: pack.engine_checksum, engine_version: '1' } };
   await write(path.join(runDir, 'flow-pack-bundle/manifest.json'), packBytes);
+  if (components) for (const [name, bytes] of Object.entries(componentFiles)) await write(path.join(runDir, 'flow-pack-bundle/files', name), bytes);
+  const scopeFor = stage => ({ schema_id: 'dd-flow/pack-component-inputs@1', stages: [stage],
+    files: ['descriptor.json', 'modules/helper.mjs', `modules/${stage}.mjs`, 'schemas/ref.json', 'schemas/result.json'].sort().map(name => ({ path: name, sha256: hash(componentFiles[name]) })), listings: [], access_failures: false });
   await write(path.join(runDir, 'engine-binding.json'), binding);
   const state = { schema_id: 'dd-flow/run-state@1', project_id: 'PRJ-one', run_id: 'RUN-one', pack: { flow_id: 'mb-sdlc', version: '1', sha256: packSha }, cursor: { stage: 'code', visit: 1 }, visits: revisionChain ? [
     { stage: 'plan', visit: 1, attempt: 1, status: 'done', outcome: 'review', result: 'run://plan/1/result.json' },
@@ -78,7 +84,9 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
       const selectedMap = mapBinding(number === 1 ? oldMap : newMap, number);
       issuedState.flow = { plan: { visit: number, ref: `run://plan/${number}/result.json`, sha256: hash(JSON.stringify(prior)), aspect_maps: [{ protocol_id: selectedMap.protocol_id, ref: selectedMap.ref, sha256: selectedMap.sha256 }] } };
     }
-    const start = { generation: 0, run_state: JSON.stringify(issuedState), pack_start: { stage: visit.stage, visit: visit.visit, attempt: visit.attempt } }; start.run_state_sha256 = hash(start.run_state);
+    const componentScope = components ? scopeFor(visit.stage) : null;
+    const start = { generation: 0, run_state: JSON.stringify(issuedState), pack_start: { stage: visit.stage, visit: visit.visit, attempt: visit.attempt,
+      ...(componentScope ? { component_inputs: componentScope, component_inputs_sha256: hash(JSON.stringify(componentScope)) } : {}) } }; start.run_state_sha256 = hash(start.run_state);
     db.prepare('INSERT INTO work_sessions VALUES(?,?,?,?)').run(session, 'WRK-root', 'completed', JSON.stringify(start));
     db.prepare('INSERT INTO stage_work_memberships VALUES(?,?,?,?,?,?)').run('PRJ-one', 'RUN-one', visit.stage, `visit-${visit.visit}`, 'WRK-root', '');
     if (graph && visit.stage === 'plan-review' && (revisionChain || i === 2)) {
@@ -101,7 +109,7 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
       const graphReceipt = { run_id: 'RUN-one', stage: 'plan-review', visit: reviewNumber, attempt: 1, generation: 0, work_session_id: session,
         plan_ref: `run://plan/${planNumber}/result.json`, plan_visit: planNumber, plan_sha256: hash(JSON.stringify(selectedPlan)), items_sha256: batchSha, work_ids: ids };
       db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_review_graph_registered', JSON.stringify(graphReceipt));
-      const componentInputs = { schema_id: 'dd-flow/pack-component-inputs@1', stages: ['plan-review'], files: [], listings: [], access_failures: false };
+      const componentInputs = components ? scopeFor('plan-review') : { schema_id: 'dd-flow/pack-component-inputs@1', stages: ['plan-review'], files: [], listings: [], access_failures: false };
       const observation = { run_id: 'RUN-one', stage: 'plan-review', visit: reviewNumber, attempt: 1, generation: 0, work_id: 'WRK-root', work_session_id: session, command: 'dispatch',
         component_inputs: componentInputs, component_inputs_sha256: hash(JSON.stringify(componentInputs)) };
       db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_component_observation', JSON.stringify(observation));
@@ -114,7 +122,26 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
       db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_submission_accepted', JSON.stringify(childReceipt));
     }
     const successor = state.visits[i + 1], response = { ok: true, run_id: 'RUN-one', stage: visit.stage, visit: visit.visit, work_id: 'WRK-root', attempt_id: session, request_id: `request-${i}`, outcome: visit.outcome, value, result_ref: visit.result, next: { stage: successor.stage, visit: successor.visit } };
-    const receipt = { run_id: 'RUN-one', stage: visit.stage, visit: visit.visit, attempt: visit.attempt, generation: 0, work_id: 'WRK-root', work_session_id: session, request_id: response.request_id, operation: 'finish', input_sha256: digest, artifacts: retained, response };
+    const receipt = { run_id: 'RUN-one', stage: visit.stage, visit: visit.visit, attempt: visit.attempt, generation: 0, work_id: 'WRK-root', work_session_id: session, request_id: response.request_id, operation: 'finish', input_sha256: digest, artifacts: retained, response,
+      ...(componentScope ? { component_inputs: componentScope, component_inputs_sha256: hash(JSON.stringify(componentScope)) } : {}) };
+    if (components && revisionChain && visit.visit === 2 && ['plan', 'plan-review'].includes(visit.stage)) {
+      const planBytes = JSON.stringify(newPlan), planSha = hash(planBytes), planPath = 'visits/plan/visit-2/result.json', reviewPath = 'visits/plan-review/visit-2/result.json';
+      await write(path.join(runDir, planPath), planBytes);
+      const sources = [{ role: 'plan:PRT-one', root: 'run', path: planPath, sha256: planSha }];
+      if (visit.stage === 'plan-review') { await write(path.join(runDir, reviewPath), bytes); sources.push({ role: 'plan_review', root: 'run', path: reviewPath, sha256: digest }); }
+      const matrix = { schema_id: 'dd-flow/verification-matrix@1', header: { project_id: 'PRJ-one', run_id: 'RUN-one', stage: visit.stage,
+        stage_attempt: `visit-${visit.visit}-try-${visit.attempt}`, role: 'output', completeness: 'declared', source_fingerprint: '' }, sources, requirements: [], criteria: [], policy_checks: [] };
+      matrix.header.source_fingerprint = verificationMatrixFingerprint(matrix);
+      const base = `visits/${visit.stage}/visit-${visit.visit}/verification/${matrix.header.source_fingerprint}`;
+      const jsonBytes = JSON.stringify(matrix), markdown = 'Generated matrix\n';
+      receipt.verification_matrix = { contract: matrix.schema_id, role: 'output', completeness: 'declared', source_fingerprint: matrix.header.source_fingerprint,
+        json: { path: `${base}/verification-matrix.json`, sha256: hash(jsonBytes) }, markdown: { path: `${base}/verification-matrix.md`, sha256: hash(markdown) } };
+      for (const [key, content] of [['json', jsonBytes], ['markdown', markdown]]) {
+        const descriptor = receipt.verification_matrix[key]; await write(path.join(runDir, descriptor.path), content);
+        const packet = { run_id: 'RUN-one', stage: visit.stage, attempt: `visit-${visit.visit}-try-${visit.attempt}`, file: `/source/projects/PRJ-one/runs/RUN-one/${descriptor.path}`, sha256: descriptor.sha256, base64: Buffer.from(content).toString('base64') };
+        db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.stage_packet', JSON.stringify(packet));
+      }
+    }
     db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_submission_accepted', JSON.stringify(receipt));
   }
   db.close();
@@ -137,7 +164,7 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
     const bytes = JSON.stringify(manifest); await write(path.join(snapshot, 'snapshot.json'), bytes); return hash(bytes);
   }
   const snapshotSha256 = await seal();
-  return { snapshot, snapshotSha256, database, runDir, seal };
+  return { snapshot, snapshotSha256, database, runDir, seal, componentFiles };
 }
 
 test('selects the second accepted visit and preserves return, successor and pins', async t => {
@@ -297,6 +324,43 @@ test('pack qualification uses selected T03 visits but refuses partial matrix cov
   await assert.rejects(check(foreign), { code: 'verification_matrix_qualification_invalid' });
   const engineChanged = structuredClone(receipt); engineChanged.component_sha256 = '0'.repeat(64);
   await assert.rejects(check(engineChanged), { code: 'verification_matrix_qualification_invalid' });
+});
+
+test('pack admission rejects participating target mutations and retains unrelated reuse as unavailable', async t => {
+  const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true, components: true });
+  const engineRoot = path.join(f.snapshot, 'engine'), roots = ['services/verification-matrix.js', 'services/stage-report-renderer.js', 'services/accepted-intent.js', 'services/check-runner-evidence.js'];
+  for (const file of roots) await write(path.join(engineRoot, 'dist', file), 'export {};\n');
+  await write(path.join(engineRoot, 'dist/verification-components.json'), { schema_id: 'dd-flow/verification-components@1', matrix: { files: roots } });
+  const target = path.join(f.snapshot, 'target-bundle'), source = path.join(f.runDir, 'flow-pack-bundle');
+  await cp(source, target, { recursive: true });
+  const manifest = JSON.parse(await readFile(path.join(target, 'manifest.json'), 'utf8'));
+  const writeTarget = async (name, bytes) => {
+    await writeFile(path.join(target, 'files', name), bytes);
+    manifest.inventory.find(item => item.path === name).sha256 = hash(bytes);
+    const content = JSON.stringify(manifest); await writeFile(path.join(target, 'manifest.json'), content); return hash(content);
+  };
+  let targetSha = hash(await readFile(path.join(target, 'manifest.json')));
+  const receipt = { schema_id: 'dd-eval/verification-matrix-qualification@5', status: 'passed', contract: 'dd-flow/verification-matrix@1',
+    coverage_contract: 'dd-flow/final-check-coverage@1', component_sha256: await matrixComponentFingerprint(engineRoot), engine_artifact_sha256: 'a'.repeat(64),
+    flow_commit: 'c'.repeat(40), built_with_canon: { version: 'fixture', commit: 'd'.repeat(40) },
+    pack_history: { schema_id: 'dd-eval/pack-revision-graphs-request@1', snapshot: '.', snapshot_sha256: f.snapshotSha256, run_id: 'RUN-one',
+      previous_plan_visit: 1, previous_review_visit: 1, plan_visit: 2, review_visit: 2 } };
+  const check = async () => {
+    const bytes = Buffer.from(JSON.stringify(receipt));
+    const checkpoint = { file: path.join(f.snapshot, 'checkpoint.json'), value: { flow_pack: { pack_bundle: { root: 'target-bundle', manifest_sha256: targetSha },
+      verification_matrix: { contract: receipt.contract, file: 'qualification.json', sha256: hash(bytes), canon_commit: 'd'.repeat(40) } } } };
+    return assertVerificationMatrixQualification(checkpoint, { snapshot_root: engineRoot }, { checker: 'task-priority@4' }, bytes);
+  };
+  const unavailable = error => error.code === 'verification_matrix_qualification_unavailable' && error.details?.compared_scopes === 5;
+  await assert.rejects(check(), unavailable);
+  targetSha = await writeTarget('modules/unused.mjs', 'export const unused = false;');
+  await assert.rejects(check(), unavailable);
+  for (const name of ['modules/plan.mjs', 'modules/helper.mjs', 'schemas/result.json', 'schemas/ref.json']) {
+    const changed = name.endsWith('.json') ? JSON.stringify({ ...JSON.parse(f.componentFiles[name]), title: 'changed' }) : `${f.componentFiles[name]}\n// changed`;
+    targetSha = await writeTarget(name, changed);
+    await assert.rejects(check(), { code: 'verification_matrix_qualification_invalid' }, `${name} must invalidate old scoped inputs`);
+    targetSha = await writeTarget(name, f.componentFiles[name]);
+  }
 });
 
 
