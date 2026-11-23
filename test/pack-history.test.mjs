@@ -10,6 +10,8 @@ import { readPackReviewerGraph, readPackRevisionGraphs } from '../lib/recovery/p
 import { assertLegacySnapshot } from '../lib/cases/frozen-evidence.mjs';
 import { attachCaseAcceptance } from '../lib/cases/acceptance-receipts.mjs';
 import { snapshotTreeHash } from '../lib/recovery/snapshot-tree.mjs';
+import { assertVerificationMatrixQualification } from '../lib/engine-admission.mjs';
+import { matrixComponentFingerprint } from '../lib/verification-components.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const hybrid = input => { const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object'
@@ -271,6 +273,30 @@ test('selects both graphs of the revision chain and refuses a missing second dis
   const db = new DatabaseSync(f.database);
   db.prepare("DELETE FROM audit_events WHERE event_type='flow_run.pack_component_observation' AND json_extract(payload_json,'$.visit')=2").run(); db.close();
   await assert.rejects(readPackRevisionGraphs({ ...input, snapshotSha256: await f.seal() }), { code: 'pack_history_invalid' });
+});
+
+test('pack qualification uses selected T03 visits but refuses partial matrix coverage', async t => {
+  const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true });
+  const engineRoot = path.join(f.snapshot, 'engine'), roots = ['services/verification-matrix.js', 'services/stage-report-renderer.js', 'services/accepted-intent.js', 'services/check-runner-evidence.js'];
+  for (const file of roots) await write(path.join(engineRoot, 'dist', file), 'export {};\n');
+  await write(path.join(engineRoot, 'dist/verification-components.json'), { schema_id: 'dd-flow/verification-components@1', matrix: { files: roots } });
+  const component = await matrixComponentFingerprint(engineRoot);
+  const receipt = { schema_id: 'dd-eval/verification-matrix-qualification@5', status: 'passed', contract: 'dd-flow/verification-matrix@1',
+    coverage_contract: 'dd-flow/final-check-coverage@1', component_sha256: component, engine_artifact_sha256: 'a'.repeat(64),
+    flow_commit: 'c'.repeat(40), built_with_canon: { version: 'fixture', commit: 'd'.repeat(40) },
+    pack_history: { schema_id: 'dd-eval/pack-revision-graphs-request@1', snapshot: '.', snapshot_sha256: f.snapshotSha256, run_id: 'RUN-one',
+      previous_plan_visit: 1, previous_review_visit: 1, plan_visit: 2, review_visit: 2 } };
+  const check = async value => {
+    const bytes = Buffer.from(JSON.stringify(value));
+    const checkpoint = { file: path.join(f.snapshot, 'checkpoint.json'), value: { flow_pack: { verification_matrix: { contract: value.contract, file: 'qualification.json', sha256: hash(bytes), canon_commit: 'd'.repeat(40) } } } };
+    return assertVerificationMatrixQualification(checkpoint, { snapshot_root: engineRoot }, { checker: 'task-priority@4' }, bytes);
+  };
+  await assert.rejects(check(receipt), error => error.code === 'verification_matrix_qualification_unavailable'
+    && error.details?.selected_run === 'RUN-one' && error.details.gaps.includes('snapshot_component_marker_unavailable'));
+  const foreign = structuredClone(receipt); foreign.pack_history.review_visit = 1;
+  await assert.rejects(check(foreign), { code: 'verification_matrix_qualification_invalid' });
+  const engineChanged = structuredClone(receipt); engineChanged.component_sha256 = '0'.repeat(64);
+  await assert.rejects(check(engineChanged), { code: 'verification_matrix_qualification_invalid' });
 });
 
 
