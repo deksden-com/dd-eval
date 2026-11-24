@@ -303,7 +303,7 @@ test('selects both graphs of the revision chain and refuses a missing second dis
 });
 
 test('pack qualification uses selected T03 visits but refuses partial matrix coverage', async t => {
-  const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true });
+  const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true, components: true });
   const engineRoot = path.join(f.snapshot, 'engine'), roots = ['services/verification-matrix.js', 'services/stage-report-renderer.js', 'services/accepted-intent.js', 'services/check-runner-evidence.js'];
   for (const file of roots) await write(path.join(engineRoot, 'dist', file), 'export {};\n');
   await write(path.join(engineRoot, 'dist/verification-components.json'), { schema_id: 'dd-flow/verification-components@1', matrix: { files: roots } });
