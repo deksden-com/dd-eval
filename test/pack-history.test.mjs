@@ -5,7 +5,7 @@ import { mkdtemp, mkdir, cp, readFile, readdir, writeFile, rm, realpath } from '
 import { DatabaseSync } from 'node:sqlite';
 import os from 'node:os';
 import path from 'node:path';
-import { readPackHistory, readPackPlanReviewBinding, readPackRevisionChain } from '../lib/recovery/pack-history.mjs';
+import { readPackHistory, readPackCatalogHistory, readPackPlanReviewBinding, readPackRevisionChain } from '../lib/recovery/pack-history.mjs';
 import { readPackReviewerGraph, readPackRevisionGraphs } from '../lib/recovery/pack-review-graph.mjs';
 import { assertLegacySnapshot } from '../lib/cases/frozen-evidence.mjs';
 import { attachCaseAcceptance } from '../lib/cases/acceptance-receipts.mjs';
@@ -172,6 +172,53 @@ test('selects the second accepted visit and preserves return, successor and pins
   assert.deepEqual(result.visits.map(v => [v.visit, v.outcome, v.successor]), [[1, 'revise', { stage: 'plan', visit: 1 }], [2, 'accepted', { stage: 'code', visit: 1 }]]);
   assert.equal(result.pack.canon_commit, 'd'.repeat(40)); assert.equal(result.pack.engine_checksum, 'a'.repeat(64));
   assert.equal(result.coverage.matrix_components, 'unavailable');
+});
+
+test('reconciles the complete catalog boundary against retained visits and rejects substitutions', async t => {
+  const f = await fixture(t);
+  const db = new DatabaseSync(f.database, { readOnly: true });
+  const state = JSON.parse(db.prepare('SELECT index_json FROM runs WHERE id=?').get('RUN-one').index_json).pack_state;
+  const accepted = state.visits.filter(visit => visit.status === 'done').map(visit => {
+    const row = db.prepare("SELECT payload_json FROM audit_events WHERE event_type='flow_run.pack_submission_accepted' AND json_extract(payload_json,'$.stage')=? AND json_extract(payload_json,'$.visit')=?").get(visit.stage, visit.visit);
+    const receipt = JSON.parse(row.payload_json);
+    return { stage: visit.stage, visit: visit.visit, attempt: visit.attempt, outcome: visit.outcome, result: visit.result,
+      receipt_sha256: hash(row.payload_json), artifact_sha256: receipt.input_sha256 };
+  });
+  db.close();
+  const boundary = { pack: state.pack, accepted, cursor: state.cursor, next_stage: 'code' };
+  const catalog = { snapshot_id: 'controller:boundary:fixture', after_stage: 'plan-review', available: true, pack_boundary: boundary };
+  const identity = { run_id: 'RUN-one', stage: catalog.after_stage, pack_boundary: boundary };
+  const manifest = JSON.parse(await readFile(path.join(f.snapshot, 'snapshot.json'), 'utf8'));
+  Object.assign(manifest, { purpose: 'stage_entry', stage_entry: 'code', boundary_capture: { operation_id: catalog.snapshot_id, boundary_key: hash(JSON.stringify(identity)) } });
+  const manifestBytes = JSON.stringify(manifest); await writeFile(path.join(f.snapshot, 'snapshot.json'), manifestBytes);
+  catalog.manifest_sha256 = hash(manifestBytes);
+  const request = { snapshot: f.snapshot, snapshotSha256: catalog.manifest_sha256, runId: 'RUN-one', catalog };
+  const history = await readPackCatalogHistory(request);
+  assert.deepEqual(history.visits.map(v => [v.stage, v.visit, v.outcome]), [
+    ['plan-review', 1, 'revise'], ['plan', 1, 'review'], ['plan-review', 2, 'accepted']
+  ]);
+  assert.equal(history.source.snapshot_id, catalog.snapshot_id);
+  assert.equal(history.coverage.forkability, 'unverified');
+  const checker = { schema_id: 'dd-eval/pack-catalog-history-request@1', run_id: 'RUN-one', catalog };
+  await assert.rejects(assertLegacySnapshot(manifest, { snapshot: f.snapshot, checkpoint: { manifest_sha256: catalog.manifest_sha256, pack_history_request: checker } }),
+    error => error.code === 'pack_history_checker_unavailable' && error.history?.visits.length === 3);
+  for (const mutate of [
+    c => { c.pack_boundary.accepted[2].visit = 1; },
+    c => { c.pack_boundary.accepted[2].artifact_sha256 = '0'.repeat(64); },
+    c => { c.pack_boundary.accepted.pop(); },
+    c => { c.snapshot_id = 'another'; },
+    c => { c.pack_boundary.next_stage = 'merge'; }
+  ]) {
+    const changed = structuredClone(catalog); mutate(changed);
+    await assert.rejects(readPackCatalogHistory({ ...request, catalog: changed }), { code: 'pack_history_invalid' });
+    // Even a self-consistent catalog and manifest cannot change the frozen RUN or receipts.
+    const forgedManifest = structuredClone(manifest);
+    forgedManifest.boundary_capture.boundary_key = hash(JSON.stringify({ run_id: 'RUN-one', stage: changed.after_stage, pack_boundary: changed.pack_boundary }));
+    const forgedBytes = JSON.stringify(forgedManifest); await writeFile(path.join(f.snapshot, 'snapshot.json'), forgedBytes);
+    changed.manifest_sha256 = hash(forgedBytes);
+    await assert.rejects(readPackCatalogHistory({ ...request, snapshotSha256: changed.manifest_sha256, catalog: changed }), { code: 'pack_history_invalid' });
+    await writeFile(path.join(f.snapshot, 'snapshot.json'), manifestBytes);
+  }
 });
 
 test('rejects foreign RUN, absent visit, successor substitution and changed bytes', async t => {
