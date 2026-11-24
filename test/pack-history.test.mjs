@@ -357,15 +357,25 @@ test('pack admission rejects participating target mutations and retains unrelate
     flow_commit: 'c'.repeat(40), built_with_canon: { version: 'fixture', commit: 'd'.repeat(40) },
     pack_history: { schema_id: 'dd-eval/pack-revision-graphs-request@1', snapshot: '.', snapshot_sha256: hash(snapshotBytes), run_id: 'RUN-one',
       previous_plan_visit: 1, previous_review_visit: 1, plan_visit: 2, review_visit: 2 } };
-  const check = async () => {
+  const check = async (packBundle = { root: 'target-bundle', manifest_sha256: targetSha }) => {
     const bytes = Buffer.from(JSON.stringify(receipt));
-    const checkpoint = { file: path.join(f.snapshot, 'checkpoint.json'), value: { flow_pack: { pack_bundle: { root: 'target-bundle', manifest_sha256: targetSha },
+    const checkpoint = { file: path.join(f.snapshot, 'checkpoint.json'), value: { flow_pack: { ...(packBundle === false ? {} : { pack_bundle: packBundle }),
       verification_matrix: { contract: receipt.contract, file: 'qualification.json', sha256: hash(bytes), canon_commit: 'd'.repeat(40) } } } };
     return assertVerificationMatrixQualification(checkpoint, { snapshot_root: engineRoot }, { checker: 'task-priority@4' }, bytes);
   };
   const unavailable = error => error.code === 'verification_matrix_qualification_unavailable' && error.details?.compared_scopes === 5
     && error.details.gaps.includes('snapshot_component_coverage_partial');
   await assert.rejects(check(), unavailable);
+  await assert.rejects(check(false), error => error.code === 'verification_matrix_qualification_unavailable'
+    && error.details.gaps.includes('target_pack_authority_missing'));
+  await assert.rejects(check(null), { code: 'verification_matrix_qualification_invalid' });
+  await assert.rejects(check({ root: 'target-bundle', manifest_sha256: 'bad' }), { code: 'verification_matrix_qualification_invalid' });
+  const sourceModule = path.join(source, 'files/modules/plan.mjs');
+  await writeFile(sourceModule, 'tampered');
+  receipt.pack_history.snapshot_sha256 = await f.seal();
+  await assert.rejects(check(false), { code: 'verification_matrix_qualification_invalid' });
+  await writeFile(sourceModule, f.componentFiles['modules/plan.mjs']);
+  await writeFile(path.join(f.snapshot, 'snapshot.json'), snapshotBytes); receipt.pack_history.snapshot_sha256 = hash(snapshotBytes);
   const changedMarker = structuredClone(snapshotManifest); changedMarker.pack_matrix_evidence.rows_sha256 = '0'.repeat(64);
   const changedSnapshot = JSON.stringify(changedMarker); await writeFile(path.join(f.snapshot, 'snapshot.json'), changedSnapshot);
   receipt.pack_history.snapshot_sha256 = hash(changedSnapshot);
