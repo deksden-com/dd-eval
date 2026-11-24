@@ -48,7 +48,28 @@ test('CLI retained PLAN component scope agrees with eval across real canon chang
     return bundle;
   };
   const source = path.join(root, 'source'), original = make(blobs, source);
-  const scope = packReadonlyCapabilities({ bundle: original, workspaceRoot: root, stopTarget: 'merge_completed' }).componentInputs(['plan']);
+  const caps = packReadonlyCapabilities({ bundle: original, workspaceRoot: root, stopTarget: 'merge_completed' });
+  const inputs = new Map();
+  const retain = (ref, value) => { const bytes = Buffer.from(JSON.stringify(value)); inputs.set(ref, bytes); return sha(bytes); };
+  const specifyRef = 'run://specify/1/result.json', protocolizeRef = 'run://protocolize/1/result.json';
+  retain(specifyRef, { schema_id: 'dd-flow/specify@1', requirements: [], acceptance_criteria: [] });
+  const protocolizeSha = retain(protocolizeRef, { schema_id: 'dd-flow/vnext-protocolize-result@3', delivery: { kind: 'single', members: [{ key: 'one', blocked_by: [] }] }, obligation_ownership: [] });
+  const protocolBytes = Buffer.from('accepted protocol');
+  const protocolSha = sha(protocolBytes), protocolRef = `run://protocolize/1/artifacts/${protocolSha}`;
+  inputs.set(protocolRef, protocolBytes);
+  const mapping = { schema_id: 'dd-flow/protocolize-materialization-map@1', protocolize: { visit: 1, ref: protocolizeRef, sha256: protocolizeSha },
+    protocols: [{ member_key: 'one', protocol_id: 'PRT-1', protocol_ref: protocolRef, protocol_sha256: protocolSha }] };
+  const mappingSha = sha(JSON.stringify(mapping)), mappingRef = `run://protocolize/1/artifacts/${mappingSha}`;
+  retain(mappingRef, mapping);
+  const commands = await original.commands(source, 'plan');
+  const reply = await commands.start({ draft: { specify: { ref: specifyRef, schema_id: 'dd-flow/specify@1' },
+    protocolize: { visit: 1, ref: protocolizeRef, schema_id: 'dd-flow/vnext-protocolize-result@3', materialization_ref: mappingRef,
+      materialization_sha256: mappingSha, protocol_refs: [protocolRef] } }, visit: 1,
+    accepted: { read: async ref => ({ bytes: inputs.get(ref), sha256: sha(inputs.get(ref)) }) },
+    files: { output: name => path.join(root, name) }, schemas: caps.schemas, pack: caps.pack });
+  assert.equal(reply.kind, 'reply');
+  assert.equal(reply.value.members[0].protocol_id, 'PRT-1');
+  const scope = caps.componentInputs(['plan']);
   const digest = sha(JSON.stringify(scope));
   const participants = new Set(scope.files.map(item => item.path));
   const used = ['vnext/plugins/plan.mjs', 'vnext/plugins/plan-inputs.mjs', 'schemas/protocol-plan-result.schema.json', 'schemas/protocol-plan.schema.json'];
