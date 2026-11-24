@@ -4,9 +4,25 @@ import path from "node:path";
 import { verifyEngineArtifact, assertVerificationMatrixQualification } from "../lib/engine-admission.mjs";
 import { validateVerificationMatrix } from "../lib/case-acceptance.mjs";
 import { matrixComponentFingerprint } from '../lib/verification-components.mjs';
+import { readPackCatalogHistory } from '../lib/recovery/pack-history.mjs';
 
 const args = process.argv.slice(2);
 const argument = name => { const at = args.indexOf(name); if (at < 0 || !args[at + 1]) throw new Error(`Required: ${name}`); return args[at + 1]; };
+if (args.includes('--inspect-pack-catalog')) {
+  if (args.length !== 4 || new Set(args.filter((_, index) => index % 2 === 0)).size !== 2
+    || !args.includes('--snapshot-sha256')) throw new Error('Use --inspect-pack-catalog <file> --snapshot-sha256 <digest>');
+  const digest = argument('--snapshot-sha256');
+  if (!/^[a-f0-9]{64}$/.test(digest)) throw new Error('An independently pinned snapshot SHA-256 is required');
+  const catalog = JSON.parse(await readFile(argument('--inspect-pack-catalog'), 'utf8'));
+  if (catalog?.ok !== true || typeof catalog.run_id !== 'string' || !Array.isArray(catalog.snapshots)) throw new Error('Public snapshot catalog is invalid');
+  const matches = catalog.snapshots.filter(item => item.manifest_sha256 === digest);
+  if (matches.length !== 1 || matches[0].catalog?.provenance !== 'capture' || matches[0].reason !== 'pack_assessment_only'
+    || matches[0].forkable !== false || matches[0].restorable !== false) throw new Error('Pinned capture assessment is missing or ambiguous');
+  const entry = matches[0];
+  const history = await readPackCatalogHistory({ snapshot: entry.snapshot, snapshotSha256: digest, runId: catalog.run_id, catalog: entry });
+  await new Promise((resolve, reject) => process.stdout.write(`${JSON.stringify({ status: 'assessment_only', qualification: 'unavailable', history })}\n`, error => error ? reject(error) : resolve()));
+  process.exit(0);
+}
 const runHome = await realpath(argument("--run-home"));
 const output = path.resolve(argument("--output"));
 const flowCommit = argument("--flow-commit");

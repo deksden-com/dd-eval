@@ -1,9 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { readPackCatalogHistory } from '../lib/recovery/pack-history.mjs';
 
 const { DD_EVAL_PACK_CATALOG: catalogFile, DD_EVAL_PACK_SNAPSHOT_SHA256: digest } = process.env;
+const qualifier = new URL('../bin/qualify-verification-matrix.mjs', import.meta.url);
+
+test('qualifier diagnostic rejects an unpinned catalog before reading it', async () => {
+  await assert.rejects(promisify(execFile)(process.execPath, [qualifier.pathname, '--inspect-pack-catalog', '/not-read', '--snapshot-sha256', 'invalid']),
+    error => error.stderr.includes('independently pinned snapshot SHA-256'));
+});
 
 test('reads a pinned public CLI catalog and rejects a substituted visit', { skip: !catalogFile && !digest }, async () => {
   assert.ok(catalogFile && /^[a-f0-9]{64}$/.test(digest ?? ''), 'Catalog file and independent snapshot digest are both required');
@@ -20,6 +28,11 @@ test('reads a pinned public CLI catalog and rejects a substituted visit', { skip
   assert.ok(history.visits.length > 0);
   assert.equal(history.coverage.forkability, 'unverified');
   assert.equal(history.coverage.matrix_components, 'unavailable');
+  const { stdout } = await promisify(execFile)(process.execPath, [qualifier.pathname, '--inspect-pack-catalog', catalogFile, '--snapshot-sha256', digest]);
+  const assessment = JSON.parse(stdout);
+  assert.equal(assessment.status, 'assessment_only');
+  assert.equal(assessment.qualification, 'unavailable');
+  assert.deepEqual(assessment.history, history);
   const substituted = structuredClone(entry);
   substituted.pack_boundary.accepted[0].visit += 1;
   await assert.rejects(readPackCatalogHistory({ ...request, catalog: substituted }), { code: 'pack_history_invalid' });

@@ -380,6 +380,10 @@ test('pack qualification uses selected T03 visits but refuses partial matrix cov
   await assert.rejects(check(foreign), { code: 'verification_matrix_qualification_invalid' });
   const engineChanged = structuredClone(receipt); engineChanged.component_sha256 = '0'.repeat(64);
   await assert.rejects(check(engineChanged), { code: 'verification_matrix_qualification_invalid' });
+  const canonChanged = structuredClone(receipt); canonChanged.built_with_canon.commit = 'e'.repeat(40);
+  await assert.rejects(check(canonChanged), { code: 'verification_matrix_qualification_invalid' });
+  const noCanonVersion = structuredClone(receipt); delete noCanonVersion.built_with_canon.version;
+  await assert.rejects(check(noCanonVersion), { code: 'verification_matrix_qualification_invalid' });
 });
 
 test('pack admission rejects participating target mutations and retains unrelated reuse as unavailable', async t => {

@@ -14,7 +14,16 @@ Do not rerun or modify a retained RUN or snapshot owned by another task.
    to an owned file. Choose one `available` capture after CODE and retain its
    published manifest SHA-256 separately from that file. It must report
    `pack_assessment_only`, `forkable: false`, and capture provenance.
-3. On this dd-eval revision, run the interop check with the catalog file and
+3. Inspect the selected published boundary with the production qualifier's
+   read-only diagnostic mode. It emits `assessment_only` and does not create a
+   qualification receipt:
+
+   ```sh
+   node bin/qualify-verification-matrix.mjs \
+     --inspect-pack-catalog "$CATALOG_FILE" --snapshot-sha256 "$MANIFEST_SHA256"
+   ```
+
+   Then run the interop check with the catalog file and
    independently retained digest:
 
    ```sh
