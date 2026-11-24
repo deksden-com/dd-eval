@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 
 const zones = [
   [/^(?:pack-matrix-admission|pack-component-fingerprint)\.mjs$/, /pack-history|pack-component-fingerprint|pack-cli-interop|engine-admission|verification-components(?:102|103)/],
-  [/^pack-(?:history|review-graph)\.mjs$/, /pack-history|engine-admission|verification-components(?:102|103)/],
+  [/^pack-(?:history|review-graph)\.mjs$/, /pack-history|pack-catalog-cli-interop|engine-admission|verification-components(?:102|103)/],
   [/^frozen-evidence-io\.mjs$/, /pack-history|engine-admission|verification-components(?:102|103)|case-acceptance|runner|recovery|fork/],
   [/^retire-eval\.mjs$/, /eval-retirement|control-retirement|retirement-proof|cleanup|runner|recovery|managed|eval\.test/],
   [/^prior-owners\.mjs$/, /plan110-admission|eval-retirement|retirement-proof|cleanup|runner|recovery|managed|eval\.test/],

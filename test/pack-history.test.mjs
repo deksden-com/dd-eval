@@ -20,7 +20,7 @@ const hybrid = input => { const canonical = value => Array.isArray(value) ? valu
   return hash(JSON.stringify(canonical(input))); };
 const write = async (file, value) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); };
 
-async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false, components = false } = {}) {
+async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false, components = false, codeCustody = false } = {}) {
   const snapshot = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-pack-history-')));
   t.after(() => rm(snapshot, { recursive: true, force: true }));
   const runtime = path.join(snapshot, 'runtime'), runDir = path.join(runtime, 'projects/PRJ-one/runs/RUN-one');
@@ -53,6 +53,8 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
   db.prepare('INSERT INTO runs VALUES(?,?,?,?)').run('PRJ-one', 'RUN-one', '/source/projects/PRJ-one/runs/RUN-one', index);
   db.prepare('INSERT INTO works(project_id,run_id,work_id,parent_work_id,payload_json) VALUES(?,?,?,?,?)').run('PRJ-one', 'RUN-one', 'WRK-root', null, JSON.stringify({ pack_run_coordinator: anchor }));
   db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_root_work', JSON.stringify({ ...anchor, work_id: 'WRK-root' }));
+  if (codeCustody) for (const event of ['flow_run.pack_code_review_graph_registered', 'flow_run.pack_code_git_stage_decision'])
+    db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', event, JSON.stringify({ run_id: 'RUN-one' }));
   const members = ['PRT-one', 'PRT-two'].map(protocol_id => {
     const bytes = JSON.stringify({ schema_id: 'dd-flow/protocol-plan@6', protocol_id, revision: 2 });
     const sha256 = hash(bytes);
@@ -145,9 +147,9 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
     db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_submission_accepted', JSON.stringify(receipt));
   }
   db.close();
-  async function seal() {
+  async function seal({ omitCodeCustody = false } = {}) {
     const reader = new DatabaseSync(database, { readOnly: true });
-    const rows = reader.prepare("SELECT id,event_type,payload_json FROM audit_events WHERE project_id=? AND event_type IN ('flow_run.pack_root_work','flow_run.pack_submission_accepted','flow_run.pack_review_graph_registered') AND json_extract(payload_json,'$.run_id')=? ORDER BY id").all('PRJ-one', 'RUN-one');
+    const rows = reader.prepare(`SELECT id,event_type,payload_json FROM audit_events WHERE project_id=? AND event_type IN ('flow_run.pack_root_work','flow_run.pack_submission_accepted','flow_run.pack_review_graph_registered'${omitCodeCustody ? '' : ",'flow_run.pack_code_review_graph_registered','flow_run.pack_code_git_stage_decision'"}) AND json_extract(payload_json,'$.run_id')=? ORDER BY id`).all('PRJ-one', 'RUN-one');
     const history = [
       ['works', reader.prepare('SELECT * FROM works WHERE project_id=? AND run_id=? ORDER BY work_id').all('PRJ-one', 'RUN-one')],
       ['work_sessions', reader.prepare('SELECT * FROM work_sessions WHERE work_id IN (SELECT work_id FROM works WHERE project_id=? AND run_id=?) ORDER BY id').all('PRJ-one', 'RUN-one')],
@@ -172,6 +174,13 @@ test('selects the second accepted visit and preserves return, successor and pins
   assert.deepEqual(result.visits.map(v => [v.visit, v.outcome, v.successor]), [[1, 'revise', { stage: 'plan', visit: 1 }], [2, 'accepted', { stage: 'code', visit: 1 }]]);
   assert.equal(result.pack.canon_commit, 'd'.repeat(40)); assert.equal(result.pack.engine_checksum, 'a'.repeat(64));
   assert.equal(result.coverage.matrix_components, 'unavailable');
+});
+
+test('includes CODE review and Git custody in the snapshot history marker', async t => {
+  const f = await fixture(t, { codeCustody: true });
+  const selection = { snapshot: f.snapshot, snapshotSha256: f.snapshotSha256, runId: 'RUN-one', publications: [{ stage: 'plan', visit: 1 }] };
+  assert.equal((await readPackHistory(selection)).visits[0].stage, 'plan');
+  await assert.rejects(readPackHistory({ ...selection, snapshotSha256: await f.seal({ omitCodeCustody: true }) }), { code: 'pack_history_invalid' });
 });
 
 test('reconciles the complete catalog boundary against retained visits and rejects substitutions', async t => {
