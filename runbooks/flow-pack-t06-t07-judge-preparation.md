@@ -21,3 +21,20 @@ remain `unknown` or `mismatched` and cannot establish the requested settings.
 
 B01 and T05 remain unaccepted. T06 must use their accepted artifacts and T07
 requires accepted T06. No paid operation or database was started for these checks.
+
+## Bounded stop and continuation candidate
+
+The separate `bounded-plan-review-luna-xhigh-sol-6-2-xhigh` profile uses the
+same Subject and Interaction Judge as T02, stops after PLAN-REVIEW and does not
+request another Final Judge. After accepted T06, preflight and a bounded run
+must use the accepted checkpoint and engine, then retain the published stop and
+its source RUN evidence. To explicitly request a derived execution through CODE,
+use `runner fork` with `--through code` and the exact engine and request IDs;
+the ready response supplies its corresponding `--start true` command. The
+fork checks the stopped controller, successful stage and exact published
+snapshot, and refuses a newly needed, previously unadmitted profile. A later
+target needs its own admissible assessment scope when Final Judge is enabled.
+
+The pack snapshot gate remains closed until K04 provides verified authority.
+This candidate does not establish that a pack fork or this profile has run;
+the earlier seven passing checks predate this continuation change.

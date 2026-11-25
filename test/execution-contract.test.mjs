@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -8,6 +9,8 @@ import { resolveExecutionContract, resolveGenericExecutionContract, validateExec
 import { canonicalJson, sha256, hashJson } from "../lib/runner-events.mjs";
 import { assertProfileCapacity, qualifiedCoordinator, admitContractProfiles } from "../lib/runner.mjs";
 import * as profileCapacity from "../lib/execution/profile-capacity.mjs";
+import { boundedForkSelection } from "../lib/recovery/eval-fork.mjs";
+import { validateRunProfile } from "../lib/profile-validation.mjs";
 
 test("runner retains its profile capacity exports", () => {
   assert.equal(assertProfileCapacity, profileCapacity.assertProfileCapacity);
@@ -78,6 +81,38 @@ async function setup(t, values = [template("subject"), template("judge"), templa
   for (const value of values) await writeFile(path.join(home, "agent-profiles", `${value.id}.json`), JSON.stringify(value));
   return home;
 }
+
+test("bounded fork extends only an accepted stop with already admitted profiles", async t => {
+  const configHome = await setup(t);
+  const resolve = execution => resolveExecutionContract({ configHome, runProfile: { subject: { profile_id: "subject", execution } }, loadProfile: declaration, stages: ["plan-review"] });
+  const contract = await resolve({ agent_profile_id: "subject" });
+  const execution = { id: "e2e", stage: "specify", terminal_stage: "plan-review", completion_scope: { requested_stop_after: "plan-review" } };
+  const source = { run_id: "EVAL-source", profile: { schema_id: "dd-eval/run-profile@2", selection: { stop_after: "plan-review" } }, execution_contract: contract };
+  const launch = "EVAL-source:e2e:launch", run = "RUN-1", snapshot = path.join(configHome, "snapshot"), digest = "a".repeat(64);
+  const result = { state: "candidate_ready", execution_operation_id: launch, run_id: run, stage: "plan-review", stage_outcome: "done",
+    driver: { controller: { controller_id: "controller", request_id: `eval:${createHash("sha256").update(launch).digest("hex")}`, run_id: run, project_id: "project", generation: 0, status: "stop_target_reached", stage: "plan-review" } },
+    lifecycle: { run_id: run, stage_status: "done", status: { run: { id: run, project_id: "project" }, index: { run_id: run, current_stage: "plan-review", stage_runs: [{ stage: "plan-review", status: "done" }] } } },
+    boundaries: [{ stage: "plan-review", manifest: path.join(snapshot, "snapshot.json"), manifest_sha256: digest }] };
+  const input = { source, execution, snapshotManifest: { stage_entry: "code", run_id: run }, snapshot, snapshotSha256: digest, through: "code", contour: ["specify", "plan-review", "code"],
+    sourceEvents: [{ executionid: "e2e", type: "dev.dd.eval.operation.completed", data: { operation_id: launch, result } }] };
+  const selected = boundedForkSelection(input);
+  assert.equal(selected.derivedExecution.stage, "code");
+  assert.equal(selected.profile.selection.stop_after, "code");
+  assert.ok(selected.executionContract.admission_stages.includes("code"));
+  assert.equal(source.profile.selection.stop_after, "plan-review");
+  for (const patch of [{ snapshotSha256: "b".repeat(64) }, { through: "plan-review" }, { snapshotManifest: { stage_entry: "code", run_id: "other" } }, { snapshotManifest: { stage_entry: "plan-review", run_id: run } }])
+    assert.throws(() => boundedForkSelection({ ...input, ...patch }), { code: "fork_stopped_boundary_unconfirmed" });
+  const alternate = await resolve({ agent_profile_id: "subject", stage_overrides: { code: { agent_profile_id: "worker" } } });
+  assert.throws(() => boundedForkSelection({ ...input, source: { ...source, execution_contract: alternate } }), { code: "fork_profile_unadmitted" });
+});
+
+test("flow-pack bounded profile selects plan-review without a second Final Judge", async () => {
+  const profile = JSON.parse(await readFile(new URL("../cases/sdlc-eval-2026-summer-task-priority/run-profiles/bounded-plan-review-luna-xhigh-sol-6-2-xhigh.json", import.meta.url)));
+  validateRunProfile(profile);
+  assert.equal(profile.selection.stop_after, "plan-review");
+  assert.equal(profile.interaction_judge.profile_id, "codex-desktop-gpt-6-2-sol-xhigh");
+  assert.equal(profile.judge.enabled, false);
+});
 test("repo model wins same-ID template and freezes effective policy without notes", async t => {
   const configHome = await setup(t);
   const contract = await resolveExecutionContract({ configHome, runProfile: { subject: { profile_id: "subject" }, interaction_judge: { profile_id: "judge" }, selection: { stop_after: "specify" } }, loadProfile: id => ({ value: { ...declaration(id), notes: "not retained" } }) });
