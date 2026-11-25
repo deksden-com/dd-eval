@@ -43,7 +43,7 @@ Usage:
   dd-eval runner recover --eval <path> --from <recovery-id> [--execution <id>]
   dd-eval runner recovery inspect --eval <path> [--execution <id>]
   dd-eval runner checkpoints --eval <path> [--execution <id>]
-  dd-eval runner fork --eval <source-eval> --execution <id> --from <checkpoint-id> --output <new-eval-root> --engine-version <exact-version> --request-id <id> [--integrity-checksum <sha256>] [--through <stage>] [--start true]
+  dd-eval runner fork --eval <source-eval> --execution <id> --from <checkpoint-id> --output <new-eval-root> --engine-version <exact-version> --request-id <id> [--integrity-checksum <sha256>] [--publication-file <file> --publication-sha256 <sha256>] [--through <stage>] [--start true]
   dd-eval runner reconcile --eval <path>
   dd-eval runner cancel --eval <path> [--execution <id>]
   dd-eval storage ls [--case <case-id>]
@@ -135,7 +135,7 @@ try {
   else if (family === "runner" && command === "recover") result = await runnerRecover({ evalRoot: required(options, "eval"), fromRecoveryId: required(options, "from"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "recovery" && positional[2] === "inspect") result = await runnerRecoveryInspect({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "runner" && command === "checkpoints") result = await runnerCheckpoints({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
-  else if (family === "runner" && command === "fork") result = await runnerFork({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), from: required(options, "from"), output: required(options, "output"), engineVersion: required(options, "engine-version"), requestId: required(options, "request-id"), ...(options["integrity-checksum"] ? { integrityChecksum: options["integrity-checksum"] } : {}), ...(options.through ? { through: options.through } : {}), ...(options.start ? { start: optionalBoolean(options, "start") } : {}) });
+  else if (family === "runner" && command === "fork") result = await runnerFork({ evalRoot: required(options, "eval"), executionId: required(options, "execution"), from: required(options, "from"), output: required(options, "output"), engineVersion: required(options, "engine-version"), requestId: required(options, "request-id"), ...(options["integrity-checksum"] ? { integrityChecksum: options["integrity-checksum"] } : {}), ...(options["publication-file"] ? { publicationFile: options["publication-file"] } : {}), ...(options["publication-sha256"] ? { publicationSha256: options["publication-sha256"] } : {}), ...(options.through ? { through: options.through } : {}), ...(options.start ? { start: optionalBoolean(options, "start") } : {}) });
   else if (family === "runner" && command === "reconcile") result = await runnerReconcile({ evalRoot: required(options, "eval") });
   else if (family === "runner" && command === "cancel") result = await runnerCancel({ evalRoot: required(options, "eval"), ...(options.execution ? { executionId: options.execution } : {}) });
   else if (family === "storage" && command === "ls") result = await storageList({ ...(options.case ? { caseId: options.case } : {}) });

@@ -67,11 +67,16 @@ Stage `@14` is recognized structurally; the selected engine still owns full
 resource and payload validation. Assessment-only Stage evidence cannot be
 restored, and listing labels it accordingly.
 
-The available K04 implementation still rejects `mb-sdlc` Stage restoration and
-publishes its boundaries as assessment-only. Work snapshot `@4` is a different
-contract and does not authorize a Stage fork. The bridge therefore deliberately
-retains the pack-state refusal until an actual Stage authority is implemented
-and integrated.
+CLI candidate `d64373b3` defines the `@19` accepted PLAN-REVIEW → CODE
+Stage snapshot and a separate `dd-flow/stage-publication@1` export. The eval
+candidate reads this particular format, obtains the original publication via
+the pinned source CLI or accepts its independently retained exact bytes and
+digest, and supplies it with the exact engine checksum to public fork. It binds
+the target guard, lineage, retained source, publication, engine and exact visit
+before dispatch. Older assessment-only pack snapshots remain rejected. Work
+snapshot `@4` is a different contract and does not authorize a Stage fork.
+This is an integration candidate: CLI K04 and the installed pair are not yet
+accepted, and no live `@19` end-to-end fork has been demonstrated here.
 
 On product commit `d554fd2e5ff5ba1569bf06eb72ad017647bf8086`, the scoped
 checks below passed without failures, cancellations or skips:
@@ -93,3 +98,6 @@ or skipped. It confirms listing marks assessment-only and the public eval fork
 rejects it before creating output. These are isolated synthetic contract checks;
 they do not establish a K04 pack Stage fork, a live bounded `--through` chain,
 preflight on the installed pair, or provider qualification.
+
+The later `@19` reader, publication path, pack visit handling and target checks
+were developed after these checks; their targeted tests have not yet run.
