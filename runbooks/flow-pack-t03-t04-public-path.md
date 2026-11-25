@@ -144,3 +144,27 @@ the public catalog interop additionally needs `DD_EVAL_PACK_CATALOG` and
 `DD_EVAL_PACK_SNAPSHOT_SHA256` as above. CLI needs the pinned-canon build,
 typecheck, and `test/run-snapshot-catalog.test.ts` before generating that
 catalog. Run these against an owned world and retain their actual outcomes.
+
+## Existing public snapshot readback
+
+On eval `56ec4a8ac0b7cde77b369322658ca2c102417341`, the focused suite
+`pack-history`, `pack-catalog-cli-interop` and `engine-admission` passed 25
+tests with three skips: two require a separately selected operational runtime,
+and the catalog interop had no input in that invocation. The separately
+enabled catalog interop then passed 2/2 against the CLI-generated catalog and
+retained managed S03 snapshot SHA-256
+`275ccc04e94e1ab35e094c48c79018e2d9741aeb70195e23dca672880cbcdfe5`;
+the test rejected a substituted visit. CLI code was
+`2a4baa69947edf2f3b2ead82c3dd0837e229d9a3`, built with canon
+`10a701d0ebccec40d3b34d67baee76d473226286`.
+
+This public RUN yielded specify/1, protocolize/1, plan/1 (`review_off`) and
+code/1, followed by the selected code-review/1 boundary. The old snapshot has
+zero retained component observations and no invocation journal or target
+bundle. The output therefore remains `assessment_only`, qualification
+`unavailable`; it proves neither new producer coverage nor K04 fork. Public
+catalog JSON, assessment and command logs are retained under the local
+`_evidence/t03-t04-c8ecde0f-56ec4a8a/` directory. CLI listed a separate owned
+SQLite copy, which was removed after readback; the original world was not
+modified. This result does not replace a new pinned producer → snapshot → eval
+scenario or an installed T06 qualification.
