@@ -22,12 +22,12 @@ const hybrid = input => { const canonical = value => Array.isArray(value) ? valu
   return hash(JSON.stringify(canonical(input))); };
 const write = async (file, value) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); };
 
-async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false, components = false, codeCustody = false, engineChecksum = 'a'.repeat(64) } = {}) {
+async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false, components = false, codeCustody = false, extraExec = false, engineChecksum = 'a'.repeat(64) } = {}) {
   const snapshot = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-pack-history-')));
   t.after(() => rm(snapshot, { recursive: true, force: true }));
   const runtime = path.join(snapshot, 'runtime'), runDir = path.join(runtime, 'projects/PRJ-one/runs/RUN-one');
   await mkdir(runDir, { recursive: true });
-  const componentFiles = { 'descriptor.json': '{}', 'modules/helper.mjs': 'export const value = 1;', 'modules/plan.mjs': "import { value } from './helper.mjs'; export { value };", 'modules/plan-review.mjs': "import { value } from './helper.mjs'; export { value };", 'modules/unused.mjs': 'export const unused = true;', 'schemas/result.json': '{"$ref":"ref.json"}', 'schemas/ref.json': '{"type":"object"}' };
+  const componentFiles = { 'descriptor.json': '{}', 'modules/helper.mjs': 'export const value = 1;', 'modules/plan.mjs': "import { value } from './helper.mjs'; export { value };", 'modules/plan-review.mjs': "import { value } from './helper.mjs'; export { value };", 'modules/unused.mjs': 'export const unused = true;', 'modules/independent.mjs': 'export const independent = true;', 'schemas/result.json': '{"$ref":"ref.json"}', 'schemas/ref.json': '{"type":"object"}' };
   const pack = { schema_id: 'dd-flow/flow-pack-bundle@1', project_commit: 'c'.repeat(40), canon_commit: 'd'.repeat(40), engine_checksum: engineChecksum, engine_version: '1', engine_manifest_sha256: 'b'.repeat(64),
     ...(components ? { descriptor: 'descriptor.json', inventory: Object.entries(componentFiles).map(([path, bytes]) => ({ path, sha256: hash(bytes) })) } : {}) };
   const packBytes = JSON.stringify(pack), packSha = hash(packBytes), binding = { schema_id: 'dd-flow/run-engine-binding@1', run_id: 'RUN-one', project_root: '/project', engine: { integrity_checksum: pack.engine_checksum, engine_version: '1' } };
@@ -145,6 +145,14 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
         const packet = { run_id: 'RUN-one', stage: visit.stage, attempt: `visit-${visit.visit}-try-${visit.attempt}`, file: `/source/projects/PRJ-one/runs/RUN-one/${descriptor.path}`, sha256: descriptor.sha256, base64: Buffer.from(content).toString('base64') };
         db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.stage_packet', JSON.stringify(packet));
       }
+    }
+    if (extraExec && visit.stage === 'plan' && visit.visit === 2) {
+      const scope = scopeFor('plan');
+      scope.files.push({ path: 'modules/unused.mjs', sha256: hash(componentFiles['modules/unused.mjs']) });
+      scope.files.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+      db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_component_observation', JSON.stringify({
+        run_id: 'RUN-one', stage: 'plan', visit: 2, attempt: 1, generation: 0, work_id: 'WRK-root', work_session_id: session,
+        command: 'inspect', component_inputs: scope, component_inputs_sha256: hash(JSON.stringify(scope)) }));
     }
     db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_submission_accepted', JSON.stringify(receipt));
   }
@@ -368,7 +376,7 @@ test('pack qualifier compares retained scopes before publishing a receipt', asyn
   await write(path.join(engineRoot, 'dist/verification-components.json'), { schema_id: 'dd-flow/verification-components@1', matrix: { files: roots } });
   await write(path.join(engineRoot, 'dist/build-info.json'), { built_with_canon: { version: 'fixture', commit: 'd'.repeat(40) } });
   const checksum = await engineArtifactDigest(engineRoot);
-  const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true, components: true, engineChecksum: checksum });
+  const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true, components: true, extraExec: true, engineChecksum: checksum });
   const target = path.join(f.snapshot, 'target-bundle');
   await cp(path.join(f.runDir, 'flow-pack-bundle'), target, { recursive: true });
   const targetManifest = JSON.parse(await readFile(path.join(target, 'manifest.json'), 'utf8'));
@@ -388,10 +396,17 @@ test('pack qualifier compares retained scopes before publishing a receipt', asyn
     '--engine-json', engineFile, '--flow-commit', 'c'.repeat(40), '--output', output]);
   await assert.rejects(run(), error => error.stderr.includes('verification_matrix_qualification_unavailable'));
   await assert.rejects(readFile(output), { code: 'ENOENT' });
-  await setTarget('modules/unused.mjs', 'export const unused = false;');
+  await setTarget('modules/independent.mjs', 'export const independent = false;');
   await assert.rejects(run(), error => error.stderr.includes('verification_matrix_qualification_unavailable'));
-  await setTarget('modules/plan.mjs', `${f.componentFiles['modules/plan.mjs']}\n// changed`);
+  await setTarget('modules/unused.mjs', 'export const unused = false;');
   await assert.rejects(run(), error => error.stderr.includes('verification_matrix_qualification_invalid'));
+  await setTarget('modules/unused.mjs', f.componentFiles['modules/unused.mjs']);
+  for (const name of ['modules/plan.mjs', 'modules/helper.mjs', 'schemas/result.json', 'schemas/ref.json']) {
+    const changed = name.endsWith('.json') ? JSON.stringify({ ...JSON.parse(f.componentFiles[name]), title: 'changed' }) : `${f.componentFiles[name]}\n// changed`;
+    await setTarget(name, changed);
+    await assert.rejects(run(), error => error.stderr.includes('verification_matrix_qualification_invalid'), name);
+    await setTarget(name, f.componentFiles[name]);
+  }
   await assert.rejects(readFile(output), { code: 'ENOENT' });
 });
 

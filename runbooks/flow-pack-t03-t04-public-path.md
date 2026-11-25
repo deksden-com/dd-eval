@@ -87,7 +87,9 @@ node bin/qualify-verification-matrix.mjs \
 This route verifies the engine bytes, reads the exact T03 graphs, derives the
 engine and observed pack fingerprints, checks source/target observations and
 matrix packets via the same admission path, and only then atomically publishes
-an `@5` receipt. A changed used input fails as invalid; an unrelated input can
+an `@5` receipt. It compares retained command observations for the selected
+PLAN/review attempt and generation as well as their start and submit scopes;
+these observations still do not prove all commands were captured. A changed used input fails as invalid; an unrelated input can
 preserve the compared scope. Neither result supplies missing authority.
 
 **Current result is unavailable:** T03 reads assessment snapshots only; K04 has
@@ -99,6 +101,17 @@ the K04 contract lands, the reader and admission must verify that actual
 contract, including CODE/MERGE coverage and unrestricted plugin reads, before
 allowing publication. The fixture tests exercise the route but are not K04 or
 installed-pair evidence.
+
+The K04 integration must expose, through its verified public fork result, a
+versioned binding of source manifest and payload, selected RUN/visits and
+engine artifact, plus the materialized target RUN and its bundle manifest. It
+must establish complete producer custody for every contributing stage and Work,
+including commands and failed/unknown effects, matrix packet bytes, list
+membership and access paths outside capability observation. Eval must check
+those bindings against its selected history and actual target before lifting
+`full_producer_coverage_unavailable` or `forkability_unverified`. A caller's
+path or a receipt declaring full coverage is not that authority. This describes
+the required properties, not a claim that K04 currently exposes such an API.
 
 For the coordinated test slot, with frozen commits and the project's ordinary
 test prerequisites: `node --test --test-concurrency=1 test/pack-history.test.mjs
