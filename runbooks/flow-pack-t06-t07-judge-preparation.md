@@ -71,5 +71,25 @@ The available K04 implementation still rejects `mb-sdlc` Stage restoration and
 publishes its boundaries as assessment-only. Work snapshot `@4` is a different
 contract and does not authorize a Stage fork. The bridge therefore deliberately
 retains the pack-state refusal until an actual Stage authority is implemented
-and integrated. The new bridge and `@14` checks have not been executed; syntax
-and diff checks do not demonstrate a public fork or installed qualification.
+and integrated.
+
+On product commit `d554fd2e5ff5ba1569bf06eb72ad017647bf8086`, the scoped
+checks below passed without failures, cancellations or skips:
+
+```text
+node --test --test-concurrency=1 test/snapshot-version.test.mjs
+  5 passed
+node --test --test-concurrency=1 --test-name-pattern='bounded public fork requires|fork rejects unsupported and incomplete Stage manifests|pack.*assessment' test/runner-fork.test.mjs
+  2 passed
+node --test --test-concurrency=1 --test-name-pattern='bounded fork extends|flow-pack bounded profile' test/execution-contract.test.mjs
+  2 passed
+node --test --test-concurrency=1 --test-name-pattern='rejects pack snapshot before using contour as accepted history' test/runner-fork.test.mjs
+  1 passed
+```
+
+An additional test added after that commit used the pattern `assessment-only
+Stage snapshot is visible` in `test/runner-fork.test.mjs`: 1 passed, 0 failed
+or skipped. It confirms listing marks assessment-only and the public eval fork
+rejects it before creating output. These are isolated synthetic contract checks;
+they do not establish a K04 pack Stage fork, a live bounded `--through` chain,
+preflight on the installed pair, or provider qualification.

@@ -493,3 +493,14 @@ test('rejects pack snapshot before using contour as accepted history', async t =
   await assert.rejects(f.runner.runnerFork(f.input), { code: 'pack_history_fork_unavailable' });
   await assert.rejects(stat(f.input.output), { code: 'ENOENT' });
 });
+
+test('assessment-only Stage snapshot is visible but cannot authorize a fork', async t => {
+  const f = await setup(t);
+  const file = path.join(f.sourceRoot, 'executions/e2e/boundaries', f.input.from, 'snapshot.json');
+  const manifest = { ...JSON.parse(await readFile(file, 'utf8')), run_id: 'RUN-pack', assessment_only: true, pack_evidence: { publication: 'published' } };
+  await write(file, manifest);
+  const listed = await f.runner.runnerCheckpoints({ evalRoot: f.sourceRoot, executionId: 'e2e' });
+  assert.equal(listed.checkpoints[0].forkability, 'assessment_only');
+  await assert.rejects(f.runner.runnerFork(f.input), { code: 'pack_history_fork_unavailable' });
+  await assert.rejects(stat(f.output), { code: 'ENOENT' });
+});
