@@ -5,7 +5,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 const zones = [
-  [/^(?:pack-matrix-admission|pack-component-fingerprint|pack-catalog-components)\.mjs$/, /pack-history|pack-catalog-cli-interop|pack-component-fingerprint|pack-cli-interop|engine-admission|verification-components(?:102|103)/],
+  [/^(?:pack-matrix-admission|pack-component-fingerprint|pack-catalog-components|pack-invocation-observations)\.mjs$/, /pack-history|pack-catalog-cli-interop|pack-component-fingerprint|pack-cli-interop|engine-admission|verification-components(?:102|103)/],
   [/^pack-(?:history|review-graph)\.mjs$/, /pack-history|pack-catalog-cli-interop|engine-admission|verification-components(?:102|103)/],
   [/^frozen-evidence-io\.mjs$/, /pack-history|engine-admission|verification-components(?:102|103)|case-acceptance|runner|recovery|fork/],
   [/^retire-eval\.mjs$/, /eval-retirement|control-retirement|retirement-proof|cleanup|runner|recovery|managed|eval\.test/],

@@ -15,6 +15,7 @@ import { snapshotTreeHash } from '../lib/recovery/snapshot-tree.mjs';
 import { assertVerificationMatrixQualification, engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { assessPackMatrixQualification } from '../lib/pack-matrix-admission.mjs';
 import { assessPackCatalogComponents } from '../lib/pack-catalog-components.mjs';
+import { readPackInvocationObservations } from '../lib/pack-invocation-observations.mjs';
 import { matrixComponentFingerprint } from '../lib/verification-components.mjs';
 import { verificationMatrixFingerprint } from '../lib/verification-matrix-schema.mjs';
 
@@ -24,7 +25,7 @@ const hybrid = input => { const canonical = value => Array.isArray(value) ? valu
   return hash(JSON.stringify(canonical(input))); };
 const write = async (file, value) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); };
 
-async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false, components = false, codeCustody = false, extraExec = false, childScope = false, downstream = false, engineChecksum = 'a'.repeat(64) } = {}) {
+async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false, components = false, codeCustody = false, extraExec = false, childScope = false, downstream = false, journal = false, engineChecksum = 'a'.repeat(64) } = {}) {
   const snapshot = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-pack-history-')));
   t.after(() => rm(snapshot, { recursive: true, force: true }));
   const runtime = path.join(snapshot, 'runtime'), runDir = path.join(runtime, 'projects/PRJ-one/runs/RUN-one');
@@ -99,7 +100,9 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
       issuedState.flow = { plan: { visit: number, ref: `run://plan/${number}/result.json`, sha256: hash(JSON.stringify(prior)), aspect_maps: [{ protocol_id: selectedMap.protocol_id, ref: selectedMap.ref, sha256: selectedMap.sha256 }] } };
     }
     const componentScope = components ? scopeFor(visit.stage) : null;
+    const journalThis = journal && visit.stage === 'plan' && visit.visit === 2;
     const start = { generation: 0, run_state: JSON.stringify(issuedState), pack_start: { stage: visit.stage, visit: visit.visit, attempt: visit.attempt,
+      ...(journalThis ? { component_invocation_id: '00000000-0000-4000-8000-000000000002' } : {}),
       ...(componentScope ? { component_inputs: componentScope, component_inputs_sha256: hash(JSON.stringify(componentScope)) } : {}) } }; start.run_state_sha256 = hash(start.run_state);
     db.prepare('INSERT INTO work_sessions VALUES(?,?,?,?)').run(session, 'WRK-root', 'completed', JSON.stringify(start));
     db.prepare('INSERT INTO stage_work_memberships VALUES(?,?,?,?,?,?)').run('PRJ-one', 'RUN-one', visit.stage, `visit-${visit.visit}`, 'WRK-root', '');
@@ -142,7 +145,8 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
       db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_submission_accepted', JSON.stringify(childReceipt));
     }
     const successor = state.visits[i + 1], response = { ok: true, run_id: 'RUN-one', stage: visit.stage, visit: visit.visit, work_id: 'WRK-root', attempt_id: session, request_id: `request-${i}`, outcome: visit.outcome, value, result_ref: visit.result, next: { stage: successor.stage, visit: successor.visit } };
-    const receipt = { run_id: 'RUN-one', stage: visit.stage, visit: visit.visit, attempt: visit.attempt, generation: 0, work_id: 'WRK-root', work_session_id: session, request_id: response.request_id, operation: 'finish', input_sha256: digest, artifacts: retained, response,
+    const receipt = { run_id: 'RUN-one', stage: visit.stage, visit: visit.visit, attempt: visit.attempt, generation: 0, work_id: 'WRK-root', work_session_id: session, request_id: response.request_id, command: 'finish', operation: 'finish', input_sha256: digest, artifacts: retained, response,
+      ...(journalThis ? { component_invocation_id: '00000000-0000-4000-8000-000000000001' } : {}),
       ...(componentScope ? { component_inputs: componentScope, component_inputs_sha256: hash(JSON.stringify(componentScope)) } : {}) };
     if (childScope && visit.stage === 'plan-review' && visit.visit === 2) {
       const scope = scopeFor('plan-review');
@@ -167,6 +171,16 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
         const packet = { run_id: 'RUN-one', stage: visit.stage, attempt: `visit-${visit.visit}-try-${visit.attempt}`, file: `/source/projects/PRJ-one/runs/RUN-one/${descriptor.path}`, sha256: descriptor.sha256, base64: Buffer.from(content).toString('base64') };
         db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.stage_packet', JSON.stringify(packet));
       }
+    }
+    if (journalThis) {
+      const scope = scopeFor('plan'), identity = { schema_id:'dd-flow/pack-component-invocation@1', invocation_id:'00000000-0000-4000-8000-000000000001',
+        run_id:'RUN-one',stage:'plan',visit:2,attempt:1,generation:0,work_id:'WRK-root',work_session_id:session,pack_sha256:packSha,
+        command:'finish',operation:'finish',args_sha256:'f'.repeat(64) };
+      const startIdentity = {...identity,invocation_id:'00000000-0000-4000-8000-000000000002',command:'start',operation:'start'};
+      db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one','flow_run.pack_component_invocation_started',JSON.stringify(startIdentity));
+      db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one','flow_run.pack_component_invocation_completed',JSON.stringify({...startIdentity,outcome:'returned',component_inputs:scope,component_inputs_sha256:hash(JSON.stringify(scope))}));
+      db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one','flow_run.pack_component_invocation_started',JSON.stringify(identity));
+      db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one','flow_run.pack_component_invocation_completed',JSON.stringify({...identity,outcome:'returned',component_inputs:scope,component_inputs_sha256:hash(JSON.stringify(scope))}));
     }
     if (extraExec && visit.stage === 'plan' && visit.visit === 2) {
       const scope = scopeFor('plan');
@@ -213,6 +227,18 @@ test('includes CODE review and Git custody in the snapshot history marker', asyn
   const selection = { snapshot: f.snapshot, snapshotSha256: f.snapshotSha256, runId: 'RUN-one', publications: [{ stage: 'plan', visit: 1 }] };
   assert.equal((await readPackHistory(selection)).visits[0].stage, 'plan');
   await assert.rejects(readPackHistory({ ...selection, snapshotSha256: await f.seal({ omitCodeCustody: true }) }), { code: 'pack_history_invalid' });
+});
+
+test('requires receipt-bound invocation observations and rejects a missing completion', async t => {
+  const f = await fixture(t, { revisionChain: true, components: true, journal: true });
+  const history = await readPackHistory({ ...f, runId:'RUN-one', publications:[{stage:'plan',visit:2}] });
+  const db = new DatabaseSync(f.database);
+  try {
+    const complete = readPackInvocationObservations(db,history,history.visits[0],0);
+    assert.equal(complete.records.length,2); assert.deepEqual(complete.gaps,[]);
+    db.prepare("DELETE FROM audit_events WHERE event_type='flow_run.pack_component_invocation_completed'").run();
+    assert.throws(() => readPackInvocationObservations(db,history,history.visits[0],0), { code:'pack_component_invocation_invalid' });
+  } finally { db.close(); }
 });
 
 test('reconciles the complete catalog boundary against retained visits and rejects substitutions', async t => {
@@ -506,10 +532,10 @@ test('assesses exact downstream visits and their retained component scopes', asy
 });
 
 test('pack admission rejects participating target mutations and retains unrelated reuse as unavailable', async t => {
-  const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true, components: true });
+  const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true, components: true, journal: true });
   const snapshotManifest = JSON.parse(await readFile(path.join(f.snapshot, 'snapshot.json'), 'utf8'));
   const snapshotDb = new DatabaseSync(f.database, { readOnly: true });
-  const markerRows = snapshotDb.prepare("SELECT id,event_type,payload_json FROM audit_events WHERE project_id=? AND event_type IN ('flow_run.pack_component_observation','flow_run.stage_packet') AND json_extract(payload_json,'$.run_id')=? ORDER BY id").all('PRJ-one', 'RUN-one');
+  const markerRows = snapshotDb.prepare("SELECT id,event_type,payload_json FROM audit_events WHERE project_id=? AND event_type IN ('flow_run.pack_component_observation','flow_run.stage_packet','flow_run.pack_component_invocation_started','flow_run.pack_component_invocation_completed') AND json_extract(payload_json,'$.run_id')=? ORDER BY id").all('PRJ-one', 'RUN-one');
   snapshotDb.close();
   const paths = ['engine-binding.json', 'flow-pack-bundle/manifest.json', ...Object.keys(f.componentFiles).map(name => `flow-pack-bundle/files/${name}`),
     ...markerRows.filter(row => row.event_type === 'flow_run.stage_packet').map(row => path.relative('/source/projects/PRJ-one/runs/RUN-one', JSON.parse(row.payload_json).file))].sort();
@@ -542,7 +568,7 @@ test('pack admission rejects participating target mutations and retains unrelate
       verification_matrix: { contract: receipt.contract, file: 'qualification.json', sha256: hash(bytes), canon_commit: 'd'.repeat(40) } } } };
     return assertVerificationMatrixQualification(checkpoint, { snapshot_root: engineRoot }, { checker: 'task-priority@4' }, bytes);
   };
-  const unavailable = error => error.code === 'verification_matrix_qualification_unavailable' && error.details?.compared_scopes === 5
+  const unavailable = error => error.code === 'verification_matrix_qualification_unavailable' && error.details?.compared_scopes === 7
     && error.details.gaps.includes('snapshot_component_coverage_partial');
   await assert.rejects(check(), unavailable);
   await assert.rejects(check(false), error => error.code === 'verification_matrix_qualification_unavailable'

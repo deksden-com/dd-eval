@@ -35,6 +35,12 @@ Do not rerun or modify a retained RUN or snapshot owned by another task.
    rejected, while a proven independent module may retain the observed scopes.
    Preserve the original snapshot and receipt unchanged.
 
+   Newer producers also retain paired invocation starts and completions,
+   including thrown calls; incomplete pairs and missing scopes appear in the
+   gaps. Older snapshots remain readable with `invocation_journal_missing`.
+   Even a paired journal cannot observe arbitrary Node filesystem access from a
+   plugin; `host_node_access_unbounded` remains an explicit admission gap.
+
    Then run the interop check with the catalog file and
    independently retained digest:
 
