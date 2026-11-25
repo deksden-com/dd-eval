@@ -38,6 +38,14 @@ test('Stage gate recognizes retained Work refs without treating them as recovery
     {...current,workspace:{kind:'git_worktree'}},{...legacy,payload_integrity:current.payload_integrity}]) assert(!isStageRunSnapshot(value));
 });
 
+test('Stage @14 requires the K04 resource capture marker and Work custody',()=>{
+  const sha='a'.repeat(64),ref={ref:`refs/dd-flow/work-results/${sha}`,commit:'b'.repeat(40)};
+  const entry={schema_id:'dd-flow/eval-run-snapshot@14',purpose:'stage_entry',stage_entry:'code',workspace:{kind:'project'},work_git:{sha256:sha,refs:[ref]},
+    consistency:'controller_boundary_writer_barrier@1',boundary_capture:{operation_id:'capture',observation:{settled:true,operation_id:'capture'}},stage_resource_capture:{schema_id:'dd-flow/stage-resource-capture-marker@1',receipt_sha256:sha}};
+  assert(isStageRunSnapshot(entry));
+  for(const value of [{...entry,stage_resource_capture:undefined},{...entry,work_git:null},{...entry,boundary_capture:null},{...entry,purpose:'candidate'}]) assert(!isStageRunSnapshot(value));
+});
+
 test('focused entry verification accepts diagnostic snapshot version without widening purpose or RUN identity',async t=>{
   const root=await mkdtemp(path.join(os.tmpdir(),'diagnostic-entry-version-'));t.after(()=>rm(root,{recursive:true,force:true}));
   const directory=path.join(root,'snapshot');await mkdir(directory);
@@ -56,4 +64,5 @@ test('focused entry verification accepts diagnostic snapshot version without wid
   assert.equal((await read(retained)).manifest.schema_id,retained.schema_id);
   await assert.rejects(read({...retained,payload_integrity:undefined}),{code:'snapshot_contract_mismatch'});
   await assert.rejects(read({...retained,purpose:'candidate'}),{code:'snapshot_contract_mismatch'});
+  await assert.rejects(read({...valid,assessment_only:true,pack_evidence:{}}),{code:'snapshot_contract_mismatch'});
 });

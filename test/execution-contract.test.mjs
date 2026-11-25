@@ -92,15 +92,15 @@ test("bounded fork extends only an accepted stop with already admitted profiles"
   const result = { state: "candidate_ready", execution_operation_id: launch, run_id: run, stage: "plan-review", stage_outcome: "done",
     driver: { controller: { controller_id: "controller", request_id: `eval:${createHash("sha256").update(launch).digest("hex")}`, run_id: run, project_id: "project", generation: 0, status: "stop_target_reached", stage: "plan-review" } },
     lifecycle: { run_id: run, stage_status: "done", status: { run: { id: run, project_id: "project" }, index: { run_id: run, current_stage: "plan-review", stage_runs: [{ stage: "plan-review", status: "done" }] } } },
-    boundaries: [{ stage: "plan-review", manifest: path.join(snapshot, "snapshot.json"), manifest_sha256: digest }] };
-  const input = { source, execution, snapshotManifest: { stage_entry: "code", run_id: run }, snapshot, snapshotSha256: digest, through: "code", contour: ["specify", "plan-review", "code"],
+    boundaries: [{ stage: "plan-review", manifest: path.join(snapshot, "snapshot.json"), manifest_sha256: digest, operation_id: "capture", boundary_key: "c".repeat(64) }] };
+  const input = { source, execution, snapshotManifest: { stage_entry: "code", run_id: run, consistency: "controller_boundary_writer_barrier@1", boundary_capture: { controller_id: "controller", operation_id: "capture", boundary_key: "c".repeat(64), observation: { settled: true, operation_id: "capture" } } }, snapshot, snapshotSha256: digest, through: "code", contour: ["specify", "plan-review", "code"],
     sourceEvents: [{ executionid: "e2e", type: "dev.dd.eval.operation.completed", data: { operation_id: launch, result } }] };
   const selected = boundedForkSelection(input);
   assert.equal(selected.derivedExecution.stage, "code");
   assert.equal(selected.profile.selection.stop_after, "code");
   assert.ok(selected.executionContract.admission_stages.includes("code"));
   assert.equal(source.profile.selection.stop_after, "plan-review");
-  for (const patch of [{ snapshotSha256: "b".repeat(64) }, { through: "plan-review" }, { snapshotManifest: { stage_entry: "code", run_id: "other" } }, { snapshotManifest: { stage_entry: "plan-review", run_id: run } }])
+  for (const patch of [{ snapshotSha256: "b".repeat(64) }, { through: "plan-review" }, { snapshotManifest: { ...input.snapshotManifest, run_id: "other" } }, { snapshotManifest: { ...input.snapshotManifest, stage_entry: "plan-review" } }, { snapshotManifest: { ...input.snapshotManifest, boundary_capture: { ...input.snapshotManifest.boundary_capture, operation_id: "other" } } }])
     assert.throws(() => boundedForkSelection({ ...input, ...patch }), { code: "fork_stopped_boundary_unconfirmed" });
   const alternate = await resolve({ agent_profile_id: "subject", stage_overrides: { code: { agent_profile_id: "worker" } } });
   assert.throws(() => boundedForkSelection({ ...input, source: { ...source, execution_contract: alternate } }), { code: "fork_profile_unadmitted" });

@@ -12,8 +12,35 @@ import { hashJson, readEvents, appendEvent } from '../lib/runner-events.mjs';
 import { engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { interactionFixtureManifest, assertExecutionEngine } from '../lib/runner.mjs';
 import { installMaintenanceFixture } from './fixtures/maintenance-runtime.mjs';
+import { verifyBoundedForkAuthority } from '../lib/recovery/eval-fork.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+
+test('bounded public fork requires matching import guard, lineage and untouched target', async t => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-fork-authority-')));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const target = path.join(root, 'target'), home = path.join(target, 'dd-flow-home'), project = path.join(target, 'project');
+  const runHome = path.join(home, 'runs', 'RUN-1'), snapshot = path.join(root, 'snapshot');
+  await Promise.all([mkdir(runHome, { recursive: true }), mkdir(project, { recursive: true }), mkdir(snapshot, { recursive: true })]);
+  const sourceBytes = '{"run_id":"RUN-1"}\n'; await writeFile(path.join(snapshot, 'snapshot.json'), sourceBytes);
+  const intent = { request_id: 'request', snapshot, snapshot_sha256: hash(sourceBytes), engine_version: '1', integrity_checksum: 'a'.repeat(64), target_stage: 'code', source_run_id: 'RUN-1' };
+  const lineageFile = path.join(runHome, 'fork-lineage.json');
+  const fork = { schema_id: 'dd-flow/run-fork@1', ok: true, status: 'ready', intent: { ...intent }, fork: { project_root: project, dd_flow_home: home, run_id: 'RUN-1', run_home: runHome, workspace_root: project, target_stage: 'code', lineage_file: lineageFile } };
+  const lineage = { schema_id: 'dd-flow/run-fork-lineage@1', request_id: 'request', source_snapshot: snapshot, source_snapshot_sha256: intent.snapshot_sha256, source_run_id: 'RUN-1', target_stage: 'code' };
+  const guard = { schema_id: 'dd-flow/import-guard@1', import_id: '00000000-0000-0000-0000-000000000000', status: 'completed', source_manifest_sha256: intent.snapshot_sha256, runtime_home: home, project_root: project, workspace_root: project };
+  const save = (file, value) => writeFile(file, JSON.stringify(value));
+  await save(path.join(target, 'fork.json'), fork); await save(lineageFile, lineage); await save(path.join(target, '.dd-flow-home.dd-flow-import.json'), guard);
+  const status = { run: { id: 'RUN-1', project_id: 'PRJ-1', project_root: project, run_root: runHome }, index: { run_id: 'RUN-1', stage_runs: [{ stage: 'plan-review', status: 'done' }] } };
+  const input = { managedRoot: target, fork, intent, projectId: 'PRJ-1', status, snapshot };
+  assert.equal((await verifyBoundedForkAuthority(input)).target_stage, 'code');
+  for (const changed of [{ ...status, index: { ...status.index, stage_runs: [...status.index.stage_runs, { stage: 'code', status: 'running' }] } }, { ...status, index: { ...status.index, pack_state: {} } }])
+    await assert.rejects(verifyBoundedForkAuthority({ ...input, status: changed }), { code: 'fork_authority_invalid' });
+  await save(lineageFile, { ...lineage, source_snapshot_sha256: 'b'.repeat(64) });
+  await assert.rejects(verifyBoundedForkAuthority(input), { code: 'fork_authority_invalid' });
+  await save(lineageFile, lineage);
+  await save(path.join(target, '.dd-flow-home.dd-flow-import.json'), { ...guard, status: 'in_progress' });
+  await assert.rejects(verifyBoundedForkAuthority(input), { code: 'fork_authority_invalid' });
+});
 // The detached owner remains observable while fixture startup/settlement runs;
 // allow loaded CI hosts to finish without weakening the production deadline.
 async function waitForState(runner, evalRoot, expected, timeoutMs = 60_000, ready = () => true) {

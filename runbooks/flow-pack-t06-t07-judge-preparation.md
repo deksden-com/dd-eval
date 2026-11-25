@@ -52,3 +52,24 @@ The pack snapshot gate remains closed until K04 provides verified authority.
 Neither these checks nor the earlier seven establish a real pack fork, a live
 bounded run, an installed-pair preflight or Judge qualification. B01 and T05
 remain unaccepted; there were no model calls or databases in these checks.
+
+## Public Stage fork bridge
+
+The later bounded continuation verifies the source controller, capture operation,
+boundary key, snapshot digest and completed stop before calling the pinned
+public `dd-flow run fork`. It then reads the public `dd-flow/run-fork@1`
+receipt, `dd-flow/run-fork-lineage@1`, completed import guard and target RUN
+status, checks their source/target identities, and retains their digests in
+`public-fork-authority.json`. It repeats the target checks before dispatch and
+does not require the source snapshot to remain present after publication. An
+unconfirmed interrupted bounded import is retained for inspection, not erased.
+Stage `@14` is recognized structurally; the selected engine still owns full
+resource and payload validation. Assessment-only Stage evidence cannot be
+restored, and listing labels it accordingly.
+
+The available K04 implementation still rejects `mb-sdlc` Stage restoration and
+publishes its boundaries as assessment-only. Work snapshot `@4` is a different
+contract and does not authorize a Stage fork. The bridge therefore deliberately
+retains the pack-state refusal until an actual Stage authority is implemented
+and integrated. The new bridge and `@14` checks have not been executed; syntax
+and diff checks do not demonstrate a public fork or installed qualification.
