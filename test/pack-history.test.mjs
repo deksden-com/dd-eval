@@ -236,6 +236,18 @@ test('requires receipt-bound invocation observations and rejects a missing compl
   try {
     const complete = readPackInvocationObservations(db,history,history.visits[0],0);
     assert.equal(complete.records.length,2); assert.deepEqual(complete.gaps,[]);
+    const row = db.prepare('SELECT payload_json FROM audit_events WHERE id=?').get(history.visits[0].acceptance_receipt.id);
+    const receipt = JSON.parse(row.payload_json), scope = structuredClone(receipt.component_inputs);
+    scope.files.push({path:'modules/unused.mjs',sha256:hash(f.componentFiles['modules/unused.mjs'])});
+    scope.files.sort((a,b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+    receipt.component_inputs = scope; receipt.component_inputs_sha256 = hash(JSON.stringify(scope));
+    db.prepare('UPDATE audit_events SET payload_json=? WHERE id=?').run(JSON.stringify(receipt),history.visits[0].acceptance_receipt.id);
+    assert.deepEqual(readPackInvocationObservations(db,history,history.visits[0],0).gaps,[]);
+    scope.files = scope.files.filter(file => file.path === 'modules/unused.mjs');
+    receipt.component_inputs_sha256 = hash(JSON.stringify(scope));
+    db.prepare('UPDATE audit_events SET payload_json=? WHERE id=?').run(JSON.stringify(receipt),history.visits[0].acceptance_receipt.id);
+    assert.throws(() => readPackInvocationObservations(db,history,history.visits[0],0), { code:'pack_component_invocation_invalid' });
+    db.prepare('UPDATE audit_events SET payload_json=? WHERE id=?').run(row.payload_json,history.visits[0].acceptance_receipt.id);
     db.prepare("DELETE FROM audit_events WHERE event_type='flow_run.pack_component_invocation_completed'").run();
     assert.throws(() => readPackInvocationObservations(db,history,history.visits[0],0), { code:'pack_component_invocation_invalid' });
   } finally { db.close(); }
