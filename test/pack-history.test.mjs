@@ -13,6 +13,7 @@ import { assertLegacySnapshot } from '../lib/cases/frozen-evidence.mjs';
 import { attachCaseAcceptance } from '../lib/cases/acceptance-receipts.mjs';
 import { snapshotTreeHash } from '../lib/recovery/snapshot-tree.mjs';
 import { assertVerificationMatrixQualification, engineArtifactDigest } from '../lib/engine-admission.mjs';
+import { assessPackMatrixQualification } from '../lib/pack-matrix-admission.mjs';
 import { matrixComponentFingerprint } from '../lib/verification-components.mjs';
 import { verificationMatrixFingerprint } from '../lib/verification-matrix-schema.mjs';
 
@@ -22,12 +23,12 @@ const hybrid = input => { const canonical = value => Array.isArray(value) ? valu
   return hash(JSON.stringify(canonical(input))); };
 const write = async (file, value) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); };
 
-async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false, components = false, codeCustody = false, extraExec = false, engineChecksum = 'a'.repeat(64) } = {}) {
+async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false, components = false, codeCustody = false, extraExec = false, downstream = false, engineChecksum = 'a'.repeat(64) } = {}) {
   const snapshot = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-pack-history-')));
   t.after(() => rm(snapshot, { recursive: true, force: true }));
   const runtime = path.join(snapshot, 'runtime'), runDir = path.join(runtime, 'projects/PRJ-one/runs/RUN-one');
   await mkdir(runDir, { recursive: true });
-  const componentFiles = { 'descriptor.json': '{}', 'modules/helper.mjs': 'export const value = 1;', 'modules/plan.mjs': "import { value } from './helper.mjs'; export { value };", 'modules/plan-review.mjs': "import { value } from './helper.mjs'; export { value };", 'modules/unused.mjs': 'export const unused = true;', 'modules/independent.mjs': 'export const independent = true;', 'schemas/result.json': '{"$ref":"ref.json"}', 'schemas/ref.json': '{"type":"object"}' };
+  const componentFiles = { 'descriptor.json': '{}', 'modules/helper.mjs': 'export const value = 1;', 'modules/plan.mjs': "import { value } from './helper.mjs'; export { value };", 'modules/plan-review.mjs': "import { value } from './helper.mjs'; export { value };", 'modules/code.mjs': 'export const code = 1;', 'modules/code-review.mjs': 'export const review = 1;', 'modules/unused.mjs': 'export const unused = true;', 'modules/independent.mjs': 'export const independent = true;', 'schemas/result.json': '{"$ref":"ref.json"}', 'schemas/ref.json': '{"type":"object"}' };
   const pack = { schema_id: 'dd-flow/flow-pack-bundle@1', project_commit: 'c'.repeat(40), canon_commit: 'd'.repeat(40), engine_checksum: engineChecksum, engine_version: '1', engine_manifest_sha256: 'b'.repeat(64),
     ...(components ? { descriptor: 'descriptor.json', inventory: Object.entries(componentFiles).map(([path, bytes]) => ({ path, sha256: hash(bytes) })) } : {}) };
   const packBytes = JSON.stringify(pack), packSha = hash(packBytes), binding = { schema_id: 'dd-flow/run-engine-binding@1', run_id: 'RUN-one', project_root: '/project', engine: { integrity_checksum: pack.engine_checksum, engine_version: '1' } };
@@ -48,6 +49,14 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
     { stage: 'plan-review', visit: 2, attempt: 1, status: 'done', outcome: 'accepted', result: 'run://plan-review/2/result.json' },
     { stage: 'code', visit: 1, attempt: 1, status: 'running' }
   ] };
+  if (downstream) {
+    assert.ok(revisionChain);
+    state.visits.splice(-1, 1,
+      { stage: 'code', visit: 1, attempt: 1, status: 'done', outcome: 'verified', result: 'run://code/1/result.json' },
+      { stage: 'code-review', visit: 1, attempt: 1, status: 'done', outcome: 'accepted', result: 'run://code-review/1/result.json' },
+      { stage: 'merge', visit: 1, attempt: 1, status: 'running' });
+    state.cursor = { stage: 'merge', visit: 1 };
+  }
   const index = JSON.stringify({ root_work_id: 'WRK-root', pack_state: state });
   const database = path.join(runtime, 'db.sqlite'), db = new DatabaseSync(database);
   db.exec('CREATE TABLE runs(project_id TEXT,id TEXT,run_root TEXT,index_json TEXT); CREATE TABLE works(project_id TEXT,run_id TEXT,work_id TEXT,parent_work_id TEXT,payload_json TEXT,task TEXT,launch_policy TEXT,result_schema TEXT,depends_on_json TEXT,status TEXT,result TEXT); CREATE TABLE audit_events(id INTEGER PRIMARY KEY,project_id TEXT,event_type TEXT,payload_json TEXT); CREATE TABLE work_sessions(id TEXT,work_id TEXT,status TEXT,start_receipt_json TEXT); CREATE TABLE stage_work_memberships(project_id TEXT,run_id TEXT,stage TEXT,attempt TEXT,work_id TEXT,cycle TEXT)');
@@ -73,7 +82,7 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
   const revise = { schema_id: 'dd-flow/plan-review-transition@1', outcome: 'revise', plan_ref: 'run://plan/1/result.json', plan_sha256: hash(JSON.stringify(oldPlan)), reason: 'Fix scope' };
   const decision = { schema_id: 'dd-flow/plan-review-decision@4', outcome: 'accepted', correction: { status: 'not_required', previous_plan_revision: newPlan.revision } };
   for (const [i, visit] of state.visits.slice(0, -1).entries()) {
-    const session = `WS-${String(i + 1).padStart(8, '0')}-0000-0000-0000-000000000000`, value = revisionChain ? [oldPlan, revise, newPlan, decision][i] : i === 1 ? planValue : i === 2 ? decision : { marker: i }, bytes = JSON.stringify(value), digest = hash(bytes);
+    const session = `WS-${String(i + 1).padStart(8, '0')}-0000-0000-0000-000000000000`, value = revisionChain ? ([oldPlan, revise, newPlan, decision][i] ?? { stage: visit.stage }) : i === 1 ? planValue : i === 2 ? decision : { marker: i }, bytes = JSON.stringify(value), digest = hash(bytes);
     const map = revisionChain && visit.stage === 'plan' ? mapBinding(visit.visit === 1 ? oldMap : newMap, visit.visit) : null;
     const retained = { schema_id: 'dd-flow/pack-artifacts@1', candidate: `candidate-${String(i + 1).padStart(8, '0')}-0000-0000-0000-000000000000`, owner: { host: 'fixture', pid: 1 }, entries: [{ ref: visit.result, sha256: digest }, ...(i === 1 && pset ? members.map(member => ({ ref: member.ref, sha256: member.sha256 })) : []), ...(map ? [{ ref: map.ref, sha256: map.sha256 }] : [])] };
     await write(path.join(runDir, 'pack-retained', retained.candidate, 'owner.json'), retained);
@@ -97,7 +106,7 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
       const reviewNumber = visit.visit, selectedPlan = revisionChain ? (reviewNumber === 1 ? oldPlan : newPlan) : planValue;
       const planNumber = revisionChain ? reviewNumber : 1, revision = selectedPlan.revision ?? 2;
       const scope = { project_id: 'PRJ-one', run_id: 'RUN-one', stage: 'plan-review', attempt: `visit-${reviewNumber}`, cycle: '', parent_work_id: 'WRK-root', request_key: `review-v${reviewNumber}` };
-      const childIndex = revisionChain ? 4 + reviewNumber : 4;
+      const childIndex = (revisionChain ? 4 + reviewNumber : 4) + (downstream ? 100 : 0);
       const requestSha = hybrid(scope), batchSha = (reviewNumber === 1 ? 'd' : 'e').repeat(64), workId = revisionChain ? `WRK-reviewer-${reviewNumber}` : 'WRK-reviewer';
       const childSession = `WS-${String(childIndex).padStart(8, '0')}-0000-0000-0000-000000000000`;
       const workPayload = { kind: 'plan-review', read_only: true, plan_visit: planNumber, plan_sha256: hash(JSON.stringify(selectedPlan)), review_visit: reviewNumber, group: { key: 'reviewer', protocol_id: 'PRT-one', plan_revision: revision, aspect_ids: [] },
@@ -436,6 +445,33 @@ test('pack qualification uses selected T03 visits but refuses partial matrix cov
   await assert.rejects(check(canonChanged), { code: 'verification_matrix_qualification_invalid' });
   const noCanonVersion = structuredClone(receipt); delete noCanonVersion.built_with_canon.version;
   await assert.rejects(check(noCanonVersion), { code: 'verification_matrix_qualification_invalid' });
+  const missingCode = structuredClone(receipt); missingCode.pack_history.code_review_visit = 1;
+  await assert.rejects(check(missingCode), { code: 'verification_matrix_qualification_invalid' });
+  const absentCode = structuredClone(receipt); absentCode.pack_history.code_visit = 1;
+  await assert.rejects(check(absentCode), { code: 'verification_matrix_qualification_invalid' });
+});
+
+test('assesses exact downstream visits and their retained component scopes', async t => {
+  const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true, components: true, downstream: true });
+  const source = path.join(f.runDir, 'flow-pack-bundle'), target = path.join(f.snapshot, 'target-bundle');
+  await cp(source, target, { recursive: true });
+  const targetManifest = JSON.parse(await readFile(path.join(target, 'manifest.json'), 'utf8'));
+  const targetSha = hash(JSON.stringify(targetManifest));
+  const checkpoint = { value: { flow_pack: { pack_bundle: { root: 'target-bundle', manifest_sha256: targetSha } } } };
+  const selection = { schema_id: 'dd-eval/pack-revision-graphs-request@1', snapshot: '.', snapshot_sha256: f.snapshotSha256, run_id: 'RUN-one',
+    previous_plan_visit: 1, previous_review_visit: 1, plan_visit: 2, review_visit: 2, code_visit: 1, code_review_visit: 1 };
+  const receipt = { pack_history: selection, component_sha256: 'f'.repeat(64), engine_artifact_sha256: 'a'.repeat(64), flow_commit: 'c'.repeat(40), built_with_canon: { commit: 'd'.repeat(40) } };
+  const input = { owner: f.snapshot, receipt, checkpoint, engineFingerprint: receipt.component_sha256 };
+  const assessed = await assessPackMatrixQualification(input);
+  assert.equal(assessed.observed.length, 9);
+  assert.ok(assessed.gaps.includes('matrix_metadata_missing'));
+  assert.equal(assessed.coverage.forkability, 'unverified');
+  const name = 'modules/code.mjs', changed = 'export const code = 2;';
+  await writeFile(path.join(target, 'files', name), changed);
+  targetManifest.inventory.find(item => item.path === name).sha256 = hash(changed);
+  const manifestBytes = JSON.stringify(targetManifest); await writeFile(path.join(target, 'manifest.json'), manifestBytes);
+  checkpoint.value.flow_pack.pack_bundle.manifest_sha256 = hash(manifestBytes);
+  await assert.rejects(assessPackMatrixQualification(input), { code: 'verification_matrix_qualification_invalid' });
 });
 
 test('pack admission rejects participating target mutations and retains unrelated reuse as unavailable', async t => {

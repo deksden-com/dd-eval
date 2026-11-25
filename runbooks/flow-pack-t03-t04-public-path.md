@@ -77,6 +77,12 @@ symlinks. `$ENGINE_JSON` identifies the exact engine artifact, and `$FLOW_COMMIT
 is the source project's pinned Git commit, separately from the canon in engine
 build-info. Output must be a new file beside the checkpoint:
 
+When those stages have completed, extend the selection in order with
+`code_visit`, `code_review_visit`, and `merge_visit`. Eval verifies each
+successor and each selected stage's retained observations and packet sources.
+Omitting a predecessor while selecting a later visit is invalid. The later
+packets currently say `declared`; they do not supply final check coverage.
+
 ```sh
 node bin/qualify-verification-matrix.mjs \
   --pack-history "$SELECTION_JSON" --checkpoint "$CHECKPOINT_JSON" \
