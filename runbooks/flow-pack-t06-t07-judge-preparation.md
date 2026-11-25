@@ -99,5 +99,26 @@ rejects it before creating output. These are isolated synthetic contract checks;
 they do not establish a K04 pack Stage fork, a live bounded `--through` chain,
 preflight on the installed pair, or provider qualification.
 
-The later `@19` reader, publication path, pack visit handling and target checks
-were developed after these checks; their targeted tests have not yet run.
+On product commit `5e47b74529d78b71d63ffc97d12b7bfecc28b4bc`, these targeted
+checks passed with no failures, cancellations or skips:
+
+```text
+node --test --test-concurrency=1 test/pack-stage-publication.test.mjs test/snapshot-version.test.mjs
+  8 passed
+node --test --test-concurrency=1 --test-name-pattern='bounded public fork requires|fork rejects unsupported and incomplete Stage manifests|rejects pack snapshot before using contour|assessment-only Stage snapshot is visible|fork inherits pins, crosses a boundary' test/runner-fork.test.mjs
+  5 passed
+node --test --test-concurrency=1 --test-name-pattern='bounded fork extends|flow-pack bounded profile' test/execution-contract.test.mjs
+  2 passed
+node --test --test-concurrency=1 --test-name-pattern='selects the second accepted visit|rejects foreign RUN, absent visit' test/pack-history.test.mjs
+  2 passed
+node --test --test-concurrency=1 test/flow-observation.test.mjs
+  1 passed
+node --test --test-concurrency=1 --test-name-pattern='bounded direct selection|accepted target becomes|legal skipped target' test/completion-scope.test.mjs
+  3 passed
+```
+
+These 21 isolated tests cover the new publication/engine/visit and target checks,
+legacy readers and fork, bounded selection, and assessment-only rejection. They
+use synthetic fixtures, not a produced `@19` snapshot; the public installed
+`@19` fork and complete EVAL remain open. No provider, DB server, or container
+was started. Owned temporary SQLite test files were removed by their fixtures.
