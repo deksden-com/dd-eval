@@ -35,6 +35,20 @@ fork checks the stopped controller, successful stage and exact published
 snapshot, and refuses a newly needed, previously unadmitted profile. A later
 target needs its own admissible assessment scope when Final Judge is enabled.
 
+On dd-eval `989e480b4e6f9e695975bf02c80d7b6f69448adb`, the two scoped
+commands below passed, without failures or skips:
+
+```text
+node --test --test-concurrency=1 --test-name-pattern='bounded fork extends|flow-pack bounded profile' test/execution-contract.test.mjs
+  2 passed
+node --test --test-concurrency=1 --test-name-pattern='fork inherits pins, crosses a boundary and finalizes through ordinary EVAL exactly once' test/runner-fork.test.mjs
+  1 passed
+```
+
+The first command checks bounded selection, profile validation and rejection
+of foreign boundaries or unadmitted profiles. The second exercises the
+pre-existing legacy fork path; it does not exercise the new `--through` path.
 The pack snapshot gate remains closed until K04 provides verified authority.
-This candidate does not establish that a pack fork or this profile has run;
-the earlier seven passing checks predate this continuation change.
+Neither these checks nor the earlier seven establish a real pack fork, a live
+bounded run, an installed-pair preflight or Judge qualification. B01 and T05
+remain unaccepted; there were no model calls or databases in these checks.
