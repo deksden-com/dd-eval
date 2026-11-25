@@ -50,3 +50,60 @@ producer observations, matrix packets and selected target authority before a
 pack-aware qualifier may emit passing `@5`. T06 owns qualification on the
 installed accepted pair. A partial marker or this interop check grants none of
 those claims.
+
+## Pack-aware qualification attempt
+
+The qualifier also has an explicit pack RUN route. Prepare a checkpoint-owned
+snapshot and target bundle, a checkpoint JSON whose `flow_pack.pack_bundle`
+contains the target's owner-relative `root` and `manifest_sha256`, and an
+explicit selection JSON:
+
+```json
+{
+  "schema_id": "dd-eval/pack-revision-graphs-request@1",
+  "snapshot": "snapshot",
+  "snapshot_sha256": "<published manifest SHA-256>",
+  "run_id": "<exact RUN ID>",
+  "previous_plan_visit": 1,
+  "previous_review_visit": 1,
+  "plan_visit": 2,
+  "review_visit": 2
+}
+```
+
+Use the actual selected visit numbers, never infer them from stage names. The
+snapshot and bundle directories must be inside the checkpoint directory without
+symlinks. `$ENGINE_JSON` identifies the exact engine artifact, and `$FLOW_COMMIT`
+is the source project's pinned Git commit, separately from the canon in engine
+build-info. Output must be a new file beside the checkpoint:
+
+```sh
+node bin/qualify-verification-matrix.mjs \
+  --pack-history "$SELECTION_JSON" --checkpoint "$CHECKPOINT_JSON" \
+  --engine-json "$ENGINE_JSON" --flow-commit "$FLOW_COMMIT" \
+  --output "$CHECKPOINT_DIR/verification-matrix.json"
+```
+
+This route verifies the engine bytes, reads the exact T03 graphs, derives the
+engine and observed pack fingerprints, checks source/target observations and
+matrix packets via the same admission path, and only then atomically publishes
+an `@5` receipt. A changed used input fails as invalid; an unrelated input can
+preserve the compared scope. Neither result supplies missing authority.
+
+**Current result is unavailable:** T03 reads assessment snapshots only; K04 has
+not supplied portable fork/capture authority or complete producer coverage.
+Admission deliberately refuses even a matching partial scope before writing a
+receipt. Selecting another path, inventing a marker, or supplying a checkpoint
+bundle without proof it was selected for execution does not change this. After
+the K04 contract lands, the reader and admission must verify that actual
+contract, including CODE/MERGE coverage and unrestricted plugin reads, before
+allowing publication. The fixture tests exercise the route but are not K04 or
+installed-pair evidence.
+
+For the coordinated test slot, with frozen commits and the project's ordinary
+test prerequisites: `node --test --test-concurrency=1 test/pack-history.test.mjs
+test/pack-catalog-cli-interop.test.mjs test/engine-admission.test.mjs` in eval;
+the public catalog interop additionally needs `DD_EVAL_PACK_CATALOG` and
+`DD_EVAL_PACK_SNAPSHOT_SHA256` as above. CLI needs the pinned-canon build,
+typecheck, and `test/run-snapshot-catalog.test.ts` before generating that
+catalog. Run these against an owned world and retain their actual outcomes.

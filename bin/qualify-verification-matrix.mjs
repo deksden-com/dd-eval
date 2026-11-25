@@ -5,6 +5,8 @@ import { verifyEngineArtifact, assertVerificationMatrixQualification } from "../
 import { validateVerificationMatrix } from "../lib/case-acceptance.mjs";
 import { matrixComponentFingerprint } from '../lib/verification-components.mjs';
 import { readPackCatalogHistory } from '../lib/recovery/pack-history.mjs';
+import { readPackRevisionGraphs } from '../lib/recovery/pack-review-graph.mjs';
+import { ownedDirectory } from '../lib/pack-matrix-admission.mjs';
 
 const args = process.argv.slice(2);
 const argument = name => { const at = args.indexOf(name); if (at < 0 || !args[at + 1]) throw new Error(`Required: ${name}`); return args[at + 1]; };
@@ -21,6 +23,40 @@ if (args.includes('--inspect-pack-catalog')) {
   const entry = matches[0];
   const history = await readPackCatalogHistory({ snapshot: entry.snapshot, snapshotSha256: digest, runId: catalog.run_id, catalog: entry });
   await new Promise((resolve, reject) => process.stdout.write(`${JSON.stringify({ status: 'assessment_only', qualification: 'unavailable', history })}\n`, error => error ? reject(error) : resolve()));
+  process.exit(0);
+}
+if (args.includes('--pack-history')) {
+  const checkpointFile = await realpath(argument('--checkpoint'));
+  const owner = path.dirname(checkpointFile), output = path.resolve(argument('--output'));
+  if (await realpath(path.dirname(output)) !== owner || output === checkpointFile) throw new Error('Pack qualification output must be a new file beside its checkpoint');
+  const checkpoint = JSON.parse(await readFile(checkpointFile, 'utf8'));
+  const selection = JSON.parse(await readFile(argument('--pack-history'), 'utf8'));
+  const engine = JSON.parse(await readFile(argument('--engine-json'), 'utf8'));
+  const engineDigest = await verifyEngineArtifact(engine);
+  const canon = JSON.parse(await readFile(path.join(engine.snapshot_root, 'dist', 'build-info.json'), 'utf8')).built_with_canon;
+  const flowCommit = argument('--flow-commit');
+  if (!/^[a-f0-9]{40}$/.test(flowCommit) || !/^[a-f0-9]{40}$/.test(canon?.commit ?? '') || typeof canon.version !== 'string' || !canon.version)
+    throw new Error('Pack qualification requires exact project and canon provenance');
+  const snapshot = await ownedDirectory(owner, selection.snapshot);
+  const history = await readPackRevisionGraphs({ snapshot, snapshotSha256: selection.snapshot_sha256, runId: selection.run_id,
+    previousPlanVisit: selection.previous_plan_visit, previousReviewVisit: selection.previous_review_visit,
+    planVisit: selection.plan_visit, reviewVisit: selection.review_visit });
+  if (history.pack.engine_checksum !== engineDigest || history.pack.project_commit !== flowCommit || history.pack.canon_commit !== canon.commit)
+    throw new Error('Pack history differs from the selected engine, project or canon');
+  const receipt = { schema_id: 'dd-eval/verification-matrix-qualification@5', contract: 'dd-flow/verification-matrix@1',
+    coverage_contract: 'dd-flow/final-check-coverage@1', status: 'passed', engine_artifact_sha256: engineDigest,
+    component_sha256: await matrixComponentFingerprint(engine.snapshot_root), flow_commit: flowCommit, built_with_canon: canon, pack_history: selection };
+  const bytes = Buffer.from(JSON.stringify(receipt, null, 2) + '\n');
+  const ref = { contract: receipt.contract, file: path.basename(output), sha256: createHash('sha256').update(bytes).digest('hex'), canon_commit: canon.commit };
+  await assertVerificationMatrixQualification({ file: checkpointFile, value: { ...checkpoint, flow_pack: { ...checkpoint.flow_pack, verification_matrix: ref } } }, engine, { checker: 'task-priority@4' }, bytes);
+  // Admission must finish before any passed receipt becomes visible.
+  const temporary = `${output}.${randomUUID()}.tmp`;
+  let handle;
+  try {
+    handle = await open(temporary, 'wx'); await handle.writeFile(bytes); await handle.sync(); await handle.close(); handle = null;
+    await link(temporary, output);
+  } finally { await handle?.close(); await unlink(temporary).catch(error => { if (error.code !== 'ENOENT') throw error; }); }
+  process.stdout.write(JSON.stringify({ file: output, sha256: ref.sha256, schema_id: receipt.schema_id }) + '\n');
   process.exit(0);
 }
 const runHome = await realpath(argument("--run-home"));

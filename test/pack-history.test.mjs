@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, cp, readFile, readdir, writeFile, rm, realpath } from 'node:fs/promises';
 import { DatabaseSync } from 'node:sqlite';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import os from 'node:os';
 import path from 'node:path';
 import { readPackHistory, readPackCatalogHistory, readPackPlanReviewBinding, readPackRevisionChain } from '../lib/recovery/pack-history.mjs';
@@ -10,7 +12,7 @@ import { readPackReviewerGraph, readPackRevisionGraphs } from '../lib/recovery/p
 import { assertLegacySnapshot } from '../lib/cases/frozen-evidence.mjs';
 import { attachCaseAcceptance } from '../lib/cases/acceptance-receipts.mjs';
 import { snapshotTreeHash } from '../lib/recovery/snapshot-tree.mjs';
-import { assertVerificationMatrixQualification } from '../lib/engine-admission.mjs';
+import { assertVerificationMatrixQualification, engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { matrixComponentFingerprint } from '../lib/verification-components.mjs';
 import { verificationMatrixFingerprint } from '../lib/verification-matrix-schema.mjs';
 
@@ -20,13 +22,13 @@ const hybrid = input => { const canonical = value => Array.isArray(value) ? valu
   return hash(JSON.stringify(canonical(input))); };
 const write = async (file, value) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); };
 
-async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false, components = false, codeCustody = false } = {}) {
+async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false, components = false, codeCustody = false, engineChecksum = 'a'.repeat(64) } = {}) {
   const snapshot = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-pack-history-')));
   t.after(() => rm(snapshot, { recursive: true, force: true }));
   const runtime = path.join(snapshot, 'runtime'), runDir = path.join(runtime, 'projects/PRJ-one/runs/RUN-one');
   await mkdir(runDir, { recursive: true });
   const componentFiles = { 'descriptor.json': '{}', 'modules/helper.mjs': 'export const value = 1;', 'modules/plan.mjs': "import { value } from './helper.mjs'; export { value };", 'modules/plan-review.mjs': "import { value } from './helper.mjs'; export { value };", 'modules/unused.mjs': 'export const unused = true;', 'schemas/result.json': '{"$ref":"ref.json"}', 'schemas/ref.json': '{"type":"object"}' };
-  const pack = { schema_id: 'dd-flow/flow-pack-bundle@1', project_commit: 'c'.repeat(40), canon_commit: 'd'.repeat(40), engine_checksum: 'a'.repeat(64), engine_version: '1', engine_manifest_sha256: 'b'.repeat(64),
+  const pack = { schema_id: 'dd-flow/flow-pack-bundle@1', project_commit: 'c'.repeat(40), canon_commit: 'd'.repeat(40), engine_checksum: engineChecksum, engine_version: '1', engine_manifest_sha256: 'b'.repeat(64),
     ...(components ? { descriptor: 'descriptor.json', inventory: Object.entries(componentFiles).map(([path, bytes]) => ({ path, sha256: hash(bytes) })) } : {}) };
   const packBytes = JSON.stringify(pack), packSha = hash(packBytes), binding = { schema_id: 'dd-flow/run-engine-binding@1', run_id: 'RUN-one', project_root: '/project', engine: { integrity_checksum: pack.engine_checksum, engine_version: '1' } };
   await write(path.join(runDir, 'flow-pack-bundle/manifest.json'), packBytes);
@@ -356,6 +358,41 @@ test('selects both graphs of the revision chain and refuses a missing second dis
   const db = new DatabaseSync(f.database);
   db.prepare("DELETE FROM audit_events WHERE event_type='flow_run.pack_component_observation' AND json_extract(payload_json,'$.visit')=2").run(); db.close();
   await assert.rejects(readPackRevisionGraphs({ ...input, snapshotSha256: await f.seal() }), { code: 'pack_history_invalid' });
+});
+
+test('pack qualifier compares retained scopes before publishing a receipt', async t => {
+  const engineRoot = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-pack-engine-')));
+  t.after(() => rm(engineRoot, { recursive: true, force: true }));
+  const roots = ['services/verification-matrix.js', 'services/stage-report-renderer.js', 'services/accepted-intent.js', 'services/check-runner-evidence.js'];
+  for (const file of roots) await write(path.join(engineRoot, 'dist', file), 'export {};\n');
+  await write(path.join(engineRoot, 'dist/verification-components.json'), { schema_id: 'dd-flow/verification-components@1', matrix: { files: roots } });
+  await write(path.join(engineRoot, 'dist/build-info.json'), { built_with_canon: { version: 'fixture', commit: 'd'.repeat(40) } });
+  const checksum = await engineArtifactDigest(engineRoot);
+  const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true, components: true, engineChecksum: checksum });
+  const target = path.join(f.snapshot, 'target-bundle');
+  await cp(path.join(f.runDir, 'flow-pack-bundle'), target, { recursive: true });
+  const targetManifest = JSON.parse(await readFile(path.join(target, 'manifest.json'), 'utf8'));
+  const checkpointFile = path.join(f.snapshot, 'checkpoint.json'), historyFile = path.join(f.snapshot, 'selection.json');
+  const engineFile = path.join(f.snapshot, 'engine.json'), output = path.join(f.snapshot, 'qualification.json');
+  await write(engineFile, { snapshot_root: engineRoot, integrity_checksum: checksum });
+  await write(historyFile, { schema_id: 'dd-eval/pack-revision-graphs-request@1', snapshot: '.', snapshot_sha256: f.snapshotSha256, run_id: 'RUN-one',
+    previous_plan_visit: 1, previous_review_visit: 1, plan_visit: 2, review_visit: 2 });
+  const setTarget = async (name, bytes) => {
+    if (name) { await writeFile(path.join(target, 'files', name), bytes); targetManifest.inventory.find(item => item.path === name).sha256 = hash(bytes); }
+    const content = JSON.stringify(targetManifest); await writeFile(path.join(target, 'manifest.json'), content);
+    await write(checkpointFile, { flow_pack: { pack_bundle: { root: 'target-bundle', manifest_sha256: hash(content) } } });
+  };
+  await setTarget();
+  const command = new URL('../bin/qualify-verification-matrix.mjs', import.meta.url);
+  const run = () => promisify(execFile)(process.execPath, [command.pathname, '--pack-history', historyFile, '--checkpoint', checkpointFile,
+    '--engine-json', engineFile, '--flow-commit', 'c'.repeat(40), '--output', output]);
+  await assert.rejects(run(), error => error.stderr.includes('verification_matrix_qualification_unavailable'));
+  await assert.rejects(readFile(output), { code: 'ENOENT' });
+  await setTarget('modules/unused.mjs', 'export const unused = false;');
+  await assert.rejects(run(), error => error.stderr.includes('verification_matrix_qualification_unavailable'));
+  await setTarget('modules/plan.mjs', `${f.componentFiles['modules/plan.mjs']}\n// changed`);
+  await assert.rejects(run(), error => error.stderr.includes('verification_matrix_qualification_invalid'));
+  await assert.rejects(readFile(output), { code: 'ENOENT' });
 });
 
 test('pack qualification uses selected T03 visits but refuses partial matrix coverage', async t => {
