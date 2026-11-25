@@ -14,6 +14,7 @@ import { attachCaseAcceptance } from '../lib/cases/acceptance-receipts.mjs';
 import { snapshotTreeHash } from '../lib/recovery/snapshot-tree.mjs';
 import { assertVerificationMatrixQualification, engineArtifactDigest } from '../lib/engine-admission.mjs';
 import { assessPackMatrixQualification } from '../lib/pack-matrix-admission.mjs';
+import { assessPackCatalogComponents } from '../lib/pack-catalog-components.mjs';
 import { matrixComponentFingerprint } from '../lib/verification-components.mjs';
 import { verificationMatrixFingerprint } from '../lib/verification-matrix-schema.mjs';
 
@@ -23,7 +24,7 @@ const hybrid = input => { const canonical = value => Array.isArray(value) ? valu
   return hash(JSON.stringify(canonical(input))); };
 const write = async (file, value) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, typeof value === 'string' ? value : JSON.stringify(value)); };
 
-async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false, components = false, codeCustody = false, extraExec = false, downstream = false, engineChecksum = 'a'.repeat(64) } = {}) {
+async function fixture(t, { pset = false, graph = false, revisionChain = false, aspectOnly = false, components = false, codeCustody = false, extraExec = false, childScope = false, downstream = false, engineChecksum = 'a'.repeat(64) } = {}) {
   const snapshot = await realpath(await mkdtemp(path.join(os.tmpdir(), 'eval-pack-history-')));
   t.after(() => rm(snapshot, { recursive: true, force: true }));
   const runtime = path.join(snapshot, 'runtime'), runDir = path.join(runtime, 'projects/PRJ-one/runs/RUN-one');
@@ -132,11 +133,23 @@ async function fixture(t, { pset = false, graph = false, revisionChain = false, 
       await write(path.join(runDir, 'pack-retained', childRetained.candidate, childSha), childBytes);
       const childReceipt = { run_id: 'RUN-one', stage: 'plan-review', visit: reviewNumber, attempt: 1, generation: 0, work_id: workId, work_session_id: childSession,
         operation: 'work', input_sha256: childSha, artifacts: childRetained };
+      if (childScope) {
+        const scope = scopeFor('plan-review');
+        scope.files.push({ path: 'modules/unused.mjs', sha256: hash(componentFiles['modules/unused.mjs']) });
+        scope.files.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+        childReceipt.component_inputs = scope; childReceipt.component_inputs_sha256 = hash(JSON.stringify(scope));
+      }
       db.prepare('INSERT INTO audit_events(project_id,event_type,payload_json) VALUES(?,?,?)').run('PRJ-one', 'flow_run.pack_submission_accepted', JSON.stringify(childReceipt));
     }
     const successor = state.visits[i + 1], response = { ok: true, run_id: 'RUN-one', stage: visit.stage, visit: visit.visit, work_id: 'WRK-root', attempt_id: session, request_id: `request-${i}`, outcome: visit.outcome, value, result_ref: visit.result, next: { stage: successor.stage, visit: successor.visit } };
     const receipt = { run_id: 'RUN-one', stage: visit.stage, visit: visit.visit, attempt: visit.attempt, generation: 0, work_id: 'WRK-root', work_session_id: session, request_id: response.request_id, operation: 'finish', input_sha256: digest, artifacts: retained, response,
       ...(componentScope ? { component_inputs: componentScope, component_inputs_sha256: hash(JSON.stringify(componentScope)) } : {}) };
+    if (childScope && visit.stage === 'plan-review' && visit.visit === 2) {
+      const scope = scopeFor('plan-review');
+      scope.files.push({ path: 'modules/unused.mjs', sha256: hash(componentFiles['modules/unused.mjs']) });
+      scope.files.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+      receipt.matrix_components = { status: 'partial', scope, sha256: hash(JSON.stringify(scope)) };
+    }
     if (components && revisionChain && visit.visit === 2 && ['plan', 'plan-review'].includes(visit.stage)) {
       const planBytes = JSON.stringify(newPlan), planSha = hash(planBytes), planPath = 'visits/plan/visit-2/result.json', reviewPath = 'visits/plan-review/visit-2/result.json';
       await write(path.join(runDir, planPath), planBytes);
@@ -203,7 +216,7 @@ test('includes CODE review and Git custody in the snapshot history marker', asyn
 });
 
 test('reconciles the complete catalog boundary against retained visits and rejects substitutions', async t => {
-  const f = await fixture(t);
+  const f = await fixture(t, { components: true });
   const db = new DatabaseSync(f.database, { readOnly: true });
   const state = JSON.parse(db.prepare('SELECT index_json FROM runs WHERE id=?').get('RUN-one').index_json).pack_state;
   const accepted = state.visits.filter(visit => visit.status === 'done').map(visit => {
@@ -227,6 +240,21 @@ test('reconciles the complete catalog boundary against retained visits and rejec
   ]);
   assert.equal(history.source.snapshot_id, catalog.snapshot_id);
   assert.equal(history.coverage.forkability, 'unverified');
+  const target = path.join(f.snapshot, 'catalog-target');
+  await cp(path.join(f.runDir, 'flow-pack-bundle'), target, { recursive: true });
+  const targetManifest = JSON.parse(await readFile(path.join(target, 'manifest.json'), 'utf8'));
+  const inputs = { snapshot: f.snapshot, snapshotSha256: catalog.manifest_sha256, history, targetRoot: target, targetManifestSha256: hash(JSON.stringify(targetManifest)) };
+  const assessment = await assessPackCatalogComponents(inputs);
+  assert.equal(assessment.observed.length, 6);
+  assert.equal(assessment.target, 'caller_pinned_unverified');
+  assert.ok(assessment.gaps.includes('full_producer_coverage_unavailable'));
+  for (const [name, changed, invalid] of [['modules/unused.mjs', 'export const unused = false;', false], ['modules/plan.mjs', 'export const changed = true;', true]]) {
+    await writeFile(path.join(target, 'files', name), changed);
+    targetManifest.inventory.find(item => item.path === name).sha256 = hash(changed);
+    const bytes = JSON.stringify(targetManifest); await writeFile(path.join(target, 'manifest.json'), bytes); inputs.targetManifestSha256 = hash(bytes);
+    if (invalid) await assert.rejects(assessPackCatalogComponents(inputs), { code: 'pack_catalog_components_invalid' });
+    else assert.equal((await assessPackCatalogComponents(inputs)).status, 'assessment_only');
+  }
   const checker = { schema_id: 'dd-eval/pack-catalog-history-request@1', run_id: 'RUN-one', catalog };
   await assert.rejects(assertLegacySnapshot(manifest, { snapshot: f.snapshot, checkpoint: { manifest_sha256: catalog.manifest_sha256, pack_history_request: checker } }),
     error => error.code === 'pack_history_checker_unavailable' && error.history?.visits.length === 3);
@@ -452,7 +480,7 @@ test('pack qualification uses selected T03 visits but refuses partial matrix cov
 });
 
 test('assesses exact downstream visits and their retained component scopes', async t => {
-  const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true, components: true, downstream: true });
+  const f = await fixture(t, { revisionChain: true, graph: true, aspectOnly: true, components: true, childScope: true, downstream: true });
   const source = path.join(f.runDir, 'flow-pack-bundle'), target = path.join(f.snapshot, 'target-bundle');
   await cp(source, target, { recursive: true });
   const targetManifest = JSON.parse(await readFile(path.join(target, 'manifest.json'), 'utf8'));
@@ -463,15 +491,18 @@ test('assesses exact downstream visits and their retained component scopes', asy
   const receipt = { pack_history: selection, component_sha256: 'f'.repeat(64), engine_artifact_sha256: 'a'.repeat(64), flow_commit: 'c'.repeat(40), built_with_canon: { commit: 'd'.repeat(40) } };
   const input = { owner: f.snapshot, receipt, checkpoint, engineFingerprint: receipt.component_sha256 };
   const assessed = await assessPackMatrixQualification(input);
-  assert.equal(assessed.observed.length, 9);
+  assert.equal(assessed.observed.length, 11);
   assert.ok(assessed.gaps.includes('matrix_metadata_missing'));
   assert.equal(assessed.coverage.forkability, 'unverified');
-  const name = 'modules/code.mjs', changed = 'export const code = 2;';
-  await writeFile(path.join(target, 'files', name), changed);
-  targetManifest.inventory.find(item => item.path === name).sha256 = hash(changed);
-  const manifestBytes = JSON.stringify(targetManifest); await writeFile(path.join(target, 'manifest.json'), manifestBytes);
-  checkpoint.value.flow_pack.pack_bundle.manifest_sha256 = hash(manifestBytes);
-  await assert.rejects(assessPackMatrixQualification(input), { code: 'verification_matrix_qualification_invalid' });
+  for (const [name, changed] of [['modules/unused.mjs', 'export const unused = false;'], ['modules/code.mjs', 'export const code = 2;']]) {
+    await writeFile(path.join(target, 'files', name), changed);
+    targetManifest.inventory.find(item => item.path === name).sha256 = hash(changed);
+    const manifestBytes = JSON.stringify(targetManifest); await writeFile(path.join(target, 'manifest.json'), manifestBytes);
+    checkpoint.value.flow_pack.pack_bundle.manifest_sha256 = hash(manifestBytes);
+    await assert.rejects(assessPackMatrixQualification(input), { code: 'verification_matrix_qualification_invalid' });
+    await writeFile(path.join(target, 'files', name), f.componentFiles[name]);
+    targetManifest.inventory.find(item => item.path === name).sha256 = hash(f.componentFiles[name]);
+  }
 });
 
 test('pack admission rejects participating target mutations and retains unrelated reuse as unavailable', async t => {

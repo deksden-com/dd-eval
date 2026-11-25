@@ -33,6 +33,8 @@ test('reads a pinned public CLI catalog and rejects a substituted visit', { skip
   assert.equal(assessment.status, 'assessment_only');
   assert.equal(assessment.qualification, 'unavailable');
   assert.deepEqual(assessment.history, history);
+  assert.equal(assessment.components.status, 'assessment_only');
+  assert.ok(assessment.components.gaps.includes('full_producer_coverage_unavailable'));
   const substituted = structuredClone(entry);
   substituted.pack_boundary.accepted[0].visit += 1;
   await assert.rejects(readPackCatalogHistory({ ...request, catalog: substituted }), { code: 'pack_history_invalid' });

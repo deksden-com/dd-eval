@@ -7,12 +7,15 @@ import { matrixComponentFingerprint } from '../lib/verification-components.mjs';
 import { readPackCatalogHistory } from '../lib/recovery/pack-history.mjs';
 import { readPackRevisionGraphs } from '../lib/recovery/pack-review-graph.mjs';
 import { ownedDirectory } from '../lib/pack-matrix-admission.mjs';
+import { assessPackCatalogComponents } from '../lib/pack-catalog-components.mjs';
 
 const args = process.argv.slice(2);
 const argument = name => { const at = args.indexOf(name); if (at < 0 || !args[at + 1]) throw new Error(`Required: ${name}`); return args[at + 1]; };
 if (args.includes('--inspect-pack-catalog')) {
-  if (args.length !== 4 || new Set(args.filter((_, index) => index % 2 === 0)).size !== 2
-    || !args.includes('--snapshot-sha256')) throw new Error('Use --inspect-pack-catalog <file> --snapshot-sha256 <digest>');
+  const names = args.filter((_, index) => index % 2 === 0);
+  if (![4, 8].includes(args.length) || new Set(names).size !== names.length || !names.includes('--snapshot-sha256')
+    || names.some(name => !['--inspect-pack-catalog', '--snapshot-sha256', '--target-bundle', '--target-manifest-sha256'].includes(name))
+    || names.includes('--target-bundle') !== names.includes('--target-manifest-sha256')) throw new Error('Use --inspect-pack-catalog <file> --snapshot-sha256 <digest> [--target-bundle <absolute-directory> --target-manifest-sha256 <digest>]');
   const digest = argument('--snapshot-sha256');
   if (!/^[a-f0-9]{64}$/.test(digest)) throw new Error('An independently pinned snapshot SHA-256 is required');
   const catalog = JSON.parse(await readFile(argument('--inspect-pack-catalog'), 'utf8'));
@@ -22,7 +25,9 @@ if (args.includes('--inspect-pack-catalog')) {
     || matches[0].forkable !== false || matches[0].restorable !== false) throw new Error('Pinned capture assessment is missing or ambiguous');
   const entry = matches[0];
   const history = await readPackCatalogHistory({ snapshot: entry.snapshot, snapshotSha256: digest, runId: catalog.run_id, catalog: entry });
-  await new Promise((resolve, reject) => process.stdout.write(`${JSON.stringify({ status: 'assessment_only', qualification: 'unavailable', history })}\n`, error => error ? reject(error) : resolve()));
+  const components = await assessPackCatalogComponents({ snapshot: entry.snapshot, snapshotSha256: digest, history,
+    ...(names.includes('--target-bundle') ? { targetRoot: argument('--target-bundle'), targetManifestSha256: argument('--target-manifest-sha256') } : {}) });
+  await new Promise((resolve, reject) => process.stdout.write(`${JSON.stringify({ status: 'assessment_only', qualification: 'unavailable', history, components })}\n`, error => error ? reject(error) : resolve()));
   process.exit(0);
 }
 if (args.includes('--pack-history')) {

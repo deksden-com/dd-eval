@@ -23,6 +23,18 @@ Do not rerun or modify a retained RUN or snapshot owned by another task.
      --inspect-pack-catalog "$CATALOG_FILE" --snapshot-sha256 "$MANIFEST_SHA256"
    ```
 
+   The output includes each retained start, command, child and submit scope,
+   plus any partial matrix aggregate. It recomputes each distinct scope against
+   the snapshot's retained bundle and reports missing observations explicitly.
+   To compare a separately materialized, caller-owned bundle, append
+   `--target-bundle "$TARGET_BUNDLE" --target-manifest-sha256 "$TARGET_SHA256"`.
+   The digest must describe that target manifest; the result labels it
+   `caller_pinned_unverified`, because a path and digest do not prove the bundle
+   was selected for a target RUN. On separate owned copies, update the manifest
+   digest after each mutation: a used module/schema or import/ref must be
+   rejected, while a proven independent module may retain the observed scopes.
+   Preserve the original snapshot and receipt unchanged.
+
    Then run the interop check with the catalog file and
    independently retained digest:
 
