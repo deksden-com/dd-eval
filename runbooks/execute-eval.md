@@ -83,6 +83,13 @@ alone does not authorize paid qualification, provider calls or scored launches.
    exact owned-process retirement. This preserves the paid request and native
    journal, does not manufacture PASS, and permits a fresh qualification attempt
    only when every dispatched Turn is conclusively failed/interrupted/cancelled.
+   New native Judge receipts preserve the response's observed model and reasoning,
+   Session/Turn and native-result hash in `turn_observation`. The values describe
+   adapter-observed session settings after that Turn, not undisclosed provider
+   routing. `unknown` and `mismatched` are not proof of the requested settings;
+   each retained observation is checked against its original capacity chain.
+   Legacy receipts remain readable and require separate inspection of their
+   retained native Turn; they are not upgraded into new observations.
 7. Check host prerequisites. Task Priority uses project PostgreSQL on loopback
    `55433` by default; reuse its service/volume, never create a competing container.
    If that port belongs to another project, do not stop or use its server. With
